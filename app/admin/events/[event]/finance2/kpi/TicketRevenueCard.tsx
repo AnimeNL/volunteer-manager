@@ -26,7 +26,7 @@ export function TicketRevenueCard(props: TicketRevenueCardProps) {
 
     return (
         <KeyMetricCard title="Ticket revenue" format="revenue" headline={headline}
-                       historical={historical}>
+                       historical={historical} remainingDays={props.processor.remainingDays}>
             <KeyMetricGraph labels={headline.history.labels} series={headline.history.data}
                             type="revenue" />
         </KeyMetricCard>

@@ -73,6 +73,11 @@ interface KeyMetricCardProps {
     }[];
 
     /**
+     * Number of days remaining until the event will take place, to contextualise historical data.
+     */
+    remainingDays: number;
+
+    /**
      * Optional subject that explains what the figure is, to be used in tooltips.
      */
     subject?: string;
@@ -88,7 +93,15 @@ interface KeyMetricCardProps {
  * content will be decided by the individual cards, their layout is consistent.
  */
 export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>) {
-    const { format, headline, historical, subject, title } = props;
+    const { format, headline, historical, remainingDays, subject, title } = props;
+
+    function formatMetricRef(figure: number) {
+        const formattedMetric = formatMetric(figure, format, subject);
+        if (remainingDays > 0)
+            return `${formattedMetric} @ T-${remainingDays} days`;
+
+        return formattedMetric;
+    }
 
     return (
         <Card>
@@ -123,7 +136,7 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
                                                   sx: { color: 'text.secondary'}
                                               }
                                           }} />
-                            <Tooltip title={ formatMetric(entry.figure, format, subject) }>
+                            <Tooltip title={ formatMetricRef(entry.figure) }>
                                 <Typography
                                     color={ entry.figure < headline.figure ? 'success' : 'error' }
                                     variant="body2">

@@ -145,6 +145,10 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
                      hideFooter columns={columns} rows={props.rows}
                      slots={{
                          noRowsOverlay: NoProductsOverlay,
+                     }}
+                     sx={{
+                        '--DataGrid-overlayHeight': '120px',  // increase empty-state height
+                        borderColor: 'transparent',  // remove the grid's default border
                      }} />
     );
 }

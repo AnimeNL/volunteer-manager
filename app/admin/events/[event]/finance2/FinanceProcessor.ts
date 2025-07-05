@@ -25,26 +25,37 @@ export class FinanceProcessor {
 
     // ---------------------------------------------------------------------------------------------
 
+    // Generic data:
+    #remainingDays: number;
+
     // KPI overview:
-    #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
     #eventTicketRevenueView: ReturnType<typeof views.generateEventTicketRevenueView>;
     #eventTicketSalesView: ReturnType<typeof views.generateEventTicketSalesView>;
     #ticketRevenueView: ReturnType<typeof views.generateTicketRevenueView>;
     #ticketSalesView: ReturnType<typeof views.generateTicketSalesView>;
 
+    // Data tables:
+    #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
+
     private constructor(financialData: FinancialData) {
-        this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
+        this.#remainingDays = financialData.remaining;
+
         this.#eventTicketRevenueView = views.generateEventTicketRevenueView(financialData);
         this.#eventTicketSalesView = views.generateEventTicketSalesView(financialData);
         this.#ticketRevenueView = views.generateTicketRevenueView(financialData);
         this.#ticketSalesView = views.generateTicketSalesView(financialData);
+
+        this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
     }
 
     // ---------------------------------------------------------------------------------------------
 
-    get eventSalesTableView() { return this.#eventSalesTableView; }
+    get remainingDays() { return this.#remainingDays; }
+
     get eventTicketRevenueView() { return this.#eventTicketRevenueView; }
     get eventTicketSalesView() { return this.#eventTicketSalesView; }
     get ticketRevenueView() { return this.#ticketRevenueView; }
     get ticketSalesView() { return this.#ticketSalesView; }
+
+    get eventSalesTableView() { return this.#eventSalesTableView; }
 }
