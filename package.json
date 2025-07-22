@@ -7,6 +7,7 @@
     "build": "next build",
     "build-prod": "node Docker.build.js 3001 volunteer-manager-docker",
     "build-staging": "node Docker.build.js 3002 volunteer-manager-staging",
+    "build-turbo": "next build --turbopack",
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
     "serve": "next dev --turbo",
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
