@@ -9,6 +9,7 @@ import { FinanceDashboard } from './FinanceDashboard';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { generateEventMetadataFn } from '../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEventsSales } from '@lib/database';
 
@@ -31,7 +32,7 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
     let headerAction: React.ReactNode;
     if (!!mostRecentUpdate) {
         headerAction = (
-            <Tooltip title="Most recent update">
+            <Tooltip title="Data updated on…">
                 <Chip size="small" color="primary" variant="outlined" label={
                     <LocalDateTime dateTime={mostRecentUpdate.toString()}
                                    format="dddd, MMMM Do [at] HH:mm" />
@@ -53,3 +54,5 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
         </>
     );
 }
+
+export const generateMetadata = generateEventMetadataFn('Finances');

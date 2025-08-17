@@ -4,13 +4,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback, useState } from 'react';
 
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
 import { default as MuiLink } from '@mui/material/Link';
-import CheckIcon from '@mui/icons-material/Check';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import IconButton from '@mui/material/IconButton';
+import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -74,6 +80,10 @@ interface EventSalesDataGridProps {
  * logic and to provide the ability to display detailed sales in an overlay dialog.
  */
 export function EventSalesDataGrid(props: EventSalesDataGridProps) {
+    const [ salesDialogRow, setSalesDialogRow ] = useState<EventSalesDataGridRow | null>();
+
+    const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
+
     const columns: DataGridProProps<EventSalesDataGridRow>['columns'] = [
         {
             field: 'product',
@@ -99,20 +109,20 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
             flex: 1,
 
             renderCell: params =>
-                <>
-                    <Typography variant="inherit">
-                        { (!!params.row.salesLimit && params.row.salesLimit <= params.value) &&
-                            <Typography component="span" color="success" variant="inherit">
-                                <CheckIcon fontSize="inherit"
-                                           sx={{ mr: 0.5, transform: 'translateY(2px)' }} />
-                            </Typography> }
-                        { params.value }
-                        { !!params.row.salesLimit &&
-                            <Typography component="span" color="textDisabled" variant="inherit">
-                                {' '}/ {params.row.salesLimit}
-                            </Typography> }
-                    </Typography>
-                </>,
+                <Typography variant="inherit">
+                    { (!!params.row.salesLimit && params.row.salesLimit <= params.value) &&
+                        <Typography component="span" color="warning" variant="inherit">
+                            <Tooltip title="Sold out!">
+                                <MoneyOffIcon fontSize="inherit"
+                                              sx={{ mr: 0.5, transform: 'translateY(2px)' }} />
+                            </Tooltip>
+                        </Typography> }
+                    { params.value }
+                    { !!params.row.salesLimit &&
+                        <Typography component="span" color="textDisabled" variant="inherit">
+                            {' '}/ {params.row.salesLimit}
+                        </Typography> }
+                </Typography>,
         },
         {
             field: 'totalRevenue',
@@ -133,7 +143,8 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
 
             renderCell: params =>
                 <Tooltip title="Display sales graph">
-                    <IconButton size="small" color="info">
+                    <IconButton size="small" color="info" disabled
+                                onClick={ () => setSalesDialogRow(params.row) }>
                         <ShowChartIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>,
@@ -141,15 +152,31 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
     ];
 
     return (
-        <DataGridPro density="compact" disableColumnMenu disableColumnReorder disableColumnResize
-                     hideFooter columns={columns} rows={props.rows}
-                     slots={{
-                         noRowsOverlay: NoProductsOverlay,
-                     }}
-                     sx={{
-                        '--DataGrid-overlayHeight': '120px',  // increase empty-state height
-                        borderColor: 'transparent',  // remove the grid's default border
-                     }} />
+        <>
+            <DataGridPro density="compact" disableColumnMenu disableColumnReorder
+                         disableColumnResize hideFooter columns={columns} rows={props.rows}
+                         slots={{
+                             noRowsOverlay: NoProductsOverlay,
+                         }}
+                         sx={{
+                             '--DataGrid-overlayHeight': '120px',  // increase empty-state height
+                             borderColor: 'transparent',  // remove the grid's default border
+                         }} />
+            { !!salesDialogRow &&
+                <Dialog open onClose={closeSalesDialog} maxWidth="md" fullWidth>
+                    <DialogTitle>
+                        {salesDialogRow.product}
+                    </DialogTitle>
+                    <DialogContent>
+                        Graphs to follow
+                    </DialogContent>
+                    <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
+                        <Button onClick={closeSalesDialog} variant="text">
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog> }
+        </>
     );
 }
 

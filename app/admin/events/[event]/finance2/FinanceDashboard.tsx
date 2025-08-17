@@ -62,7 +62,10 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             { /** Section: Ticket sales ------------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6 }}>
-                { /* TODO */ }
+                { /* Table: Ticket sales per day */ }
+                { /* Graph: Tickets + visitors / day (two-layer pie chart) */ }
+                { /* Graph: Locker sales (pie chart) */ }
+                { /* Table: Locker sales */ }
             </Grid>
 
             { /** Section: Event sales -------------------------------------------------------- */ }
