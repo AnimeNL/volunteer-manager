@@ -18,7 +18,7 @@ import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
     tUsersAuth } from '@lib/database';
 
-import { kAuthType } from '@lib/database/Types';
+import { kAuthType, kFileType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
 
 /**
@@ -355,6 +355,61 @@ export async function deactivateAccount(userId: number, formData: unknown) {
 }
 
 /**
+ * Server action that deletes the avatar with the given `fileId` from storage.
+ */
+export async function deleteAvatar(userId: number, fileId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
+        await requireAuthenticationContext({
+            check: 'admin',
+            permission: 'organisation.avatars',
+        });
+
+        const dbInstance = db;
+
+        const alternativeAvatar = await dbInstance.selectFrom(tStorage)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tStorage.userId))
+            .where(tStorage.userId.equals(userId))
+                .and(tStorage.fileType.equals(kFileType.Avatar))
+                .and(tStorage.fileId.notEquals(fileId))
+            .selectOneColumn(tStorage.fileId)
+            .orderBy(tUsers.avatarId.equals(tStorage.fileId), 'desc')
+                .orderBy(tStorage.fileDate, 'desc')
+            .limit(1)
+            .executeSelectNoneOrOne();
+
+        const affectedRows = await dbInstance.transaction(async () => {
+            const affectedRows = await dbInstance.deleteFrom(tStorage)
+                .where(tStorage.fileId.equals(fileId))
+                    .and(tStorage.userId.equals(userId))
+                .executeDelete();
+
+            await db.update(tUsers)
+                .set({
+                    avatarId: alternativeAvatar
+                })
+                .where(tUsers.userId.equals(userId))
+                .executeUpdate();
+
+            return affectedRows;
+        });
+
+        if (!affectedRows)
+            return { success: false, error: 'The avatar could not be deleted from the database' };
+
+        RecordLog({
+            type: kLogType.AdminDeleteAvatar,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+        });
+
+        return { success: true };
+    });
+}
+
+/**
  * Server action that signs the user in to the account identified by the given `userId`
  */
 export async function impersonate(userId: number, formData: unknown) {
@@ -435,6 +490,38 @@ export async function resetPassword(userId: number, formData: unknown) {
             `https://${props.host}/?password-reset-request=${passwordResetRequest}`;
 
         return { success: true, message: passwordResetLink };
+    });
+}
+
+/**
+ * Server action that sets the user's selected avatar to `fileId`.
+ */
+export async function setDefaultAvatar(userId: number, fileId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
+        await requireAuthenticationContext({
+            check: 'admin',
+            permission: 'organisation.avatars',
+        });
+
+        const affectedRows = await db.update(tUsers)
+            .set({
+                avatarId: fileId
+            })
+            .where(tUsers.userId.equals(userId))
+            .executeUpdate();
+
+        if (!affectedRows)
+            return { success: false, error: 'The avatar could not be updated in the database' };
+
+        RecordLog({
+            type: kLogType.AdminUpdateAvatar,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+        });
+
+        return { success: true };
     });
 }
 

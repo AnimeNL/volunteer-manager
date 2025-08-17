@@ -47,6 +47,7 @@ export const kLogType = {
     AdminCreateRole: 'admin-create-role',
     AdminDisplayMutation: 'admin-display-mutation',
     AdminContentMutation: 'admin-content-mutation',
+    AdminDeleteAvatar: 'admin-delete-avatar',
     AdminEnvironmentCreate: 'admin-environment-create',
     AdminEnvironmentDelete: 'admin-environment-delete',
     AdminEventApplication: 'admin-event-application',

@@ -120,6 +120,9 @@ const kLogMessageFormatter: {
     [kLogType.AdminContentMutation]: (source, target, { mutation, context }) => {
         return `${mutation} page ${context}`;
     },
+    [kLogType.AdminDeleteAvatar]: (source, target) => {
+        return `Deleted an avatar from ${target?.name}'s account`;
+    },
     [kLogType.AdminEnvironmentCreate]: (source, target, { domain }) => {
         return `Created a new environment for ${domain}`;
     },
