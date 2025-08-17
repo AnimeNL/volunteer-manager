@@ -105,8 +105,7 @@ export default async function EventVolunteerPage(
             registrationDate: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
             registrationStatus: tUsersEvents.registrationStatus,
             registrationNotes: tUsersEvents.registrationNotes,
-            availabilityBuildUp: tUsersEvents.availabilityBuildUp,
-            availabilityTearDown: tUsersEvents.availabilityTearDown,
+            availabilityBuildUpTearDown: tUsersEvents.availabilityBuildUpTearDown,
             availabilityEventLimit: tUsersEvents.availabilityEventLimit,
             availabilityExceptions: tUsersEvents.availabilityExceptions,
             availabilityTimeslots: tUsersEvents.availabilityTimeslots,
@@ -240,8 +239,7 @@ export default async function EventVolunteerPage(
         preferences: volunteer.preferences,
         preferencesDietary: volunteer.preferencesDietary,
         serviceHours: `${volunteer.serviceHours}`,
-        availabilityBuildUp: volunteer.availabilityBuildUp,
-        availabilityTearDown: volunteer.availabilityTearDown,
+        availabilityBuildUpTearDown: volunteer.availabilityBuildUpTearDown,
     };
 
     if (!!volunteer.serviceTiming) {

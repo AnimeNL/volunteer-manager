@@ -32,8 +32,9 @@ export class UsersEventsTable extends Table<DBConnection, 'UsersEventsTable'> {
     shirtSize = this.optionalColumnWithDefaultValue<ShirtSize>('shirt_size', 'enum', 'ShirtSize');
     hotelEligible = this.optionalColumnWithDefaultValue('hotel_eligible', 'int');
     trainingEligible = this.optionalColumnWithDefaultValue('training_eligible', 'int');
-    availabilityBuildUp = this.optionalColumnWithDefaultValue('availability_build_up', 'string');
-    availabilityTearDown = this.optionalColumnWithDefaultValue('availability_tear_down', 'string');
+    availabilityBuildUpTearDown = this.optionalColumnWithDefaultValue('availability_build_up_tear_down', 'string');
+    //availabilityBuildUp = this.optionalColumnWithDefaultValue('availability_build_up', 'string');
+    //availabilityTearDown = this.optionalColumnWithDefaultValue('availability_tear_down', 'string');
     availabilityEventLimit = this.optionalColumnWithDefaultValue('availability_event_limit', 'int');
     availabilityExceptions = this.optionalColumnWithDefaultValue('availability_exceptions', 'string');
     availabilityTimeslots = this.optionalColumnWithDefaultValue('availability_timeslots', 'string');

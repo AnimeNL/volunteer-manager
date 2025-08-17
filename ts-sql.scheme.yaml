@@ -43,6 +43,10 @@ tables:
     type: tinyint(1) unsigned
     nullable: true
     default: "NULL"
+  - name: availability_build_up_tear_down
+    type: text
+    nullable: true
+    default: "NULL"
   - name: availability_build_up
     type: text
     nullable: true
@@ -180,6 +184,7 @@ tables:
       `shirt_size` enum('XS','S','M','L','XL','XXL','3XL','4XL') DEFAULT NULL,
       `hotel_eligible` tinyint(1) unsigned DEFAULT NULL,
       `training_eligible` tinyint(1) unsigned DEFAULT NULL,
+      `availability_build_up_tear_down` text DEFAULT NULL,
       `availability_build_up` text DEFAULT NULL,
       `availability_tear_down` text DEFAULT NULL,
       `availability_event_limit` int(8) unsigned DEFAULT NULL,

@@ -79,8 +79,7 @@ export default async function EventApplicationAvailabilityPage(
                 timezone: tEvents.eventTimezone,
             },
             preferences: {
-                availabilityBuildUp: tUsersEvents.availabilityBuildUp,
-                availabilityTearDown: tUsersEvents.availabilityTearDown,
+                availabilityBuildUpTearDown: tUsersEvents.availabilityBuildUpTearDown,
                 exceptions: tUsersEvents.availabilityExceptions,
                 preferences: tUsersEvents.preferences,
                 preferencesDietary: tUsersEvents.preferencesDietary,
@@ -99,8 +98,8 @@ export default async function EventApplicationAvailabilityPage(
         .executeSelectOne();
 
     const defaultValues: Record<string, any> = {
-        availabilityBuildUp: detailedApplicationInfo.preferences?.availabilityBuildUp,
-        availabilityTearDown: detailedApplicationInfo.preferences?.availabilityTearDown,
+        availabilityBuildUpTearDown:
+            detailedApplicationInfo.preferences?.availabilityBuildUpTearDown,
         preferences: detailedApplicationInfo.preferences?.preferences,
         preferencesDietary: detailedApplicationInfo.preferences?.preferencesDietary,
         serviceHours: `${detailedApplicationInfo.preferences?.serviceHours}`,

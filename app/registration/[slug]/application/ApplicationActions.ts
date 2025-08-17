@@ -329,8 +329,7 @@ const kUpdateAvailabilityData = z.object({
     serviceTiming: kServiceTimingProperty,
     preferences: z.string().optional(),
     preferencesDietary: z.string().optional(),
-    availabilityBuildUp: z.string().optional(),
-    availabilityTearDown: z.string().optional(),
+    availabilityBuildUpTearDown: z.string().optional(),
 });
 
 /**
@@ -409,11 +408,8 @@ export async function updateAvailability(eventId: number, teamId: number, formDa
 
         const affectedRows = await dbInstance.update(tUsersEvents)
             .dynamicSet()
-            .setWhen(event.availabilityBuildUpEnabled, {
-                availabilityBuildUp: data.availabilityBuildUp,
-            })
-            .setWhen(event.availabilityTearDownEnabled, {
-                availabilityTearDown: data.availabilityTearDown,
+            .setWhen(event.availabilityBuildUpEnabled || event.availabilityTearDownEnabled, {
+                availabilityBuildUpTearDown: data.availabilityBuildUpTearDown,
             })
             .setWhen(!!data.exceptionEvents, {
                 availabilityTimeslots: exceptionEvents.join(','),

@@ -247,14 +247,13 @@ export async function updateApplication(
  * Zod type that describes the data required to update a volunteer's hotel preferences.
  */
 const kUpdateAvailabilityPreferenceData = z.object({
-    exceptionEvents: z.array(z.number().nullish()),
+    exceptionEvents: z.array(z.number().nullish()).optional(),
     exceptions: z.string().optional(),
     serviceHours: kServiceHoursProperty,
     serviceTiming: kServiceTimingProperty,
     preferences: z.string().optional(),
     preferencesDietary: z.string().optional(),
-    availabilityBuildUp: z.string().optional(),
-    availabilityTearDown: z.string().optional(),
+    availabilityBuildUpTearDown: z.string().optional(),
 });
 
 /**
@@ -283,7 +282,7 @@ export async function updateAvailability(
         const [ serviceTimingStart, serviceTimingEnd ] = data.serviceTiming.split('-');
 
         const exceptionEvents: number[] = [ /* no exception events */ ];
-        if (!!event.festivalId && data.exceptionEvents.length > 0) {
+        if (!!event.festivalId && !!data.exceptionEvents?.length) {
             const validEvents =
                 await getPublicEventsForFestival(
                     event.festivalId, event.timezone, /* withTimingInfo= */ false);
@@ -326,8 +325,7 @@ export async function updateAvailability(
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tUsersEvents)
             .set({
-                availabilityBuildUp: data.availabilityBuildUp,
-                availabilityTearDown: data.availabilityTearDown,
+                availabilityBuildUpTearDown: data.availabilityBuildUpTearDown,
                 availabilityExceptions: exceptions,
                 availabilityTimeslots: exceptionEvents.join(','),
                 preferences: data.preferences,
