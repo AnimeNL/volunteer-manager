@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, props: NextRouteParams<never, 'h
 
         const data = await readBlobDataByHash(hash);
         if (data) {
-            return new Response(data.bytes, {
+            return new Response(data.bytes as BodyInit, {
                 headers: [
                     [ 'Cache-Control', 'max-age=31536000'],
                     [ 'Cache-Control', 'max-age=31536000, immutable'],

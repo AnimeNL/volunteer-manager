@@ -24,6 +24,7 @@ export async function seal(data: unknown, password: string, ttl: number): Promis
     if (password.length < 32)
         throw new Error('The password used to seal data must be at least 32 characters long.');
 
+    // @ts-ignore: ArrayBuffer -> ArrayBufferLike migration stuff
     return iron.seal(kWebCryptoImpl, data, password, {
         ...iron.defaults,
         ttl: ttl * /* milliseconds= */ 1000,
@@ -43,6 +44,7 @@ export async function unseal(sealedData: string, password: string, ttl: number):
     if (password.length < 32)
         throw new Error('The password used to unseal data must be at least 32 characters long.');
 
+    // @ts-ignore: ArrayBuffer -> ArrayBufferLike migration stuff
     return iron.unseal(kWebCryptoImpl, sealedData, password, {
         ...iron.defaults,
         ttl: ttl * /* milliseconds= */ 1000,
