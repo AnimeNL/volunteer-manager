@@ -1,15 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Crypto } from '@peculiar/webcrypto';
-import * as iron from 'iron-webcrypto';
-
-/**
- * Prefer use of the Web Crypto implementation offered natively (in browsers & NodeJS v19+), fall
- * back to the implementation provided by the @peculiar/webcrypto package.
- */
-const kWebCryptoImpl =
-    (globalThis.crypto && globalThis.crypto.subtle) ? globalThis.crypto : new Crypto();
+import * as Iron from 'iron-webcrypto';
 
 /**
  * Seals the given `data` using the `password`. The sealed data will be valid for, at most, the
@@ -25,8 +17,8 @@ export async function seal(data: unknown, password: string, ttl: number): Promis
         throw new Error('The password used to seal data must be at least 32 characters long.');
 
     // @ts-ignore: ArrayBuffer -> ArrayBufferLike migration stuff
-    return iron.seal(kWebCryptoImpl, data, password, {
-        ...iron.defaults,
+    return Iron.seal(globalThis.crypto, data, password, {
+        ...Iron.defaults,
         ttl: ttl * /* milliseconds= */ 1000,
     });
 }
@@ -45,8 +37,8 @@ export async function unseal(sealedData: string, password: string, ttl: number):
         throw new Error('The password used to unseal data must be at least 32 characters long.');
 
     // @ts-ignore: ArrayBuffer -> ArrayBufferLike migration stuff
-    return iron.unseal(kWebCryptoImpl, sealedData, password, {
-        ...iron.defaults,
+    return Iron.unseal(globalThis.crypto, sealedData, password, {
+        ...Iron.defaults,
         ttl: ttl * /* milliseconds= */ 1000,
     });
 }

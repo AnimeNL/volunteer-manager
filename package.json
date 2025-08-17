@@ -38,7 +38,6 @@
     "@mui/x-data-grid-pro": "^8.10.1",
     "@mui/x-date-pickers": "^8.10.0",
     "@mui/x-license": "^8.10.1",
-    "@peculiar/webcrypto": "^1.5.0",
     "@simplewebauthn/browser": "^13.1.2",
     "@simplewebauthn/server": "^13.1.2",
     "bowser": "^2.12.0",
