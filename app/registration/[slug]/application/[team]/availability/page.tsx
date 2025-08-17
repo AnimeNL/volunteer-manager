@@ -158,6 +158,8 @@ export default async function EventApplicationAvailabilityPage(
             <FormProvider action={action} defaultValues={defaultValues}>
 
                 <AvailabilityPreferencesForm
+                    eventStartDate={detailedApplicationInfo.event.startTime.toString()}
+                    eventEndDate={detailedApplicationInfo.event.endTime.toString()}
                     exceptionEventLimit={detailedApplicationInfo.settings.exceptionEventLimit}
                     exceptionEvents={exceptionEvents}
                     includeBuildUp={detailedApplicationInfo.event.availabilityBuildUpEnabled}

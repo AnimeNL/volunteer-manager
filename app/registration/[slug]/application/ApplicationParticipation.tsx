@@ -3,19 +3,21 @@
 
 'use client';
 
-import type { z } from 'zod/v4';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { z } from 'zod/v4';
 
 import { SelectElement, TextareaAutosizeElement, useFormContext } from '@proxy/react-hook-form-mui';
 
-import Collapse from '@mui/material/Collapse';
+import Divider from '@mui/material/Divider';
 import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import DomainDisabledIcon from '@mui/icons-material/DomainDisabled';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
+
+import { Temporal, formatDate } from '@lib/Temporal';
 
 import { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
 import { kShirtFit, kShirtSize, type ShirtFit, type ShirtSize } from '@lib/database/Types';
@@ -24,26 +26,14 @@ type ServiceHourValues = z.TypeOf<typeof kServiceHoursProperty>;
 type ServiceTimingValues = z.TypeOf<typeof kServiceTimingProperty>;
 
 /**
- * Valid options for when the volunteer will start helping with the Thursday build-up.
+ * Scheme definition for valid build-up / tear-down information as stored in the database.
  */
-const kBuildUpOptions: { id: string, label: string }[] = [
-    { id: '10:00–12:00', label: 'Thursday from at 10:00-12:00' },
-    { id: '12:00–14:00', label: 'Thursday from at 12:00-14:00' },
-    { id: '14:00–16:00', label: 'Thursday from at 14:00-16:00' },
-    { id: '16:00–18:00', label: 'Thursday from at 16:00-18:00' },
-    { id: '18:00–00:00', label: 'Thursday after 18:00' },
-];
-
-/**
- * Valid options for when the volunteer will start helping with the Friday and Monday tear-down.
- */
-const kTearDownOptions: { id: string, label: string }[] = [
-    { id: '20:00', label: 'Friday evening until 20:00' },
-    { id: '22:00', label: 'Friday evening until 22:00' },
-    { id: '00:00', label: 'Friday evening until 00:00' },
-    { id: '00:00 and Monday (until noon)', label: 'Friday evening and Monday until 12:00' },
-    { id: '00:00 and Monday', label: 'Friday evening and all day Monday' },
-];
+const kAvailabilityBuildUpTearDownScheme = z.object({
+    buildUpDayBefore: z.string(),
+    buildUpOpening: z.string(),
+    tearDownClosing: z.string(),
+    tearDownDayAfter: z.string(),
+});
 
 /**
  * Valid options for the number of hours volunteers are willing to work. When updating an ID, make
@@ -87,9 +77,32 @@ const kTShirtSizeOptions: { id: ShirtSize, label: string }[] = [
 ];
 
 /**
+ * Formats the date relative to `date` with the given `offsetDays` in days. The `date` must be a
+ * string in a Temporal-specific serialisation.
+ */
+function formatRelativeDate(date: string, offsetDays: number): string {
+    const zonedDateTime = Temporal.ZonedDateTime.from(date);
+    const adjustedZonedDateTime = zonedDateTime.add({ days: offsetDays });
+
+    return formatDate(adjustedZonedDateTime, 'dddd, MMMM Do');
+}
+
+/**
  * Props accepted by the <ApplicationAvailabilityForm> component.
  */
 interface ApplicationAvailabilityFormProps {
+    /**
+     * Date at which the event will start, in a Temporal-compatible serialisation. Must be given
+     * when `includeBuildUp` has been set to `true`.
+     */
+    eventStartDate?: string;
+
+    /**
+     * Date at which the event will end, in a Temporal-compatible serialisation. Must be given when
+     * `includeTearDown` has been set to `true`.
+     */
+    eventEndDate?: string;
+
     /**
      * Whether the option should be available where a volunteer can indicate that they're helping
      * out during the festival's build-up.
@@ -121,6 +134,53 @@ interface ApplicationAvailabilityFormProps {
  */
 export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormProps) {
     const { readOnly } = props;
+
+    const { register, setValue, watch } = useFormContext();
+
+    // Validate the variants:
+    if (!!props.includeBuildUp && !props.eventStartDate)
+        throw new Error('Invalid variant: must provide `eventStartDate` with `includeBuildUp`');
+    if (!!props.includeTearDown && !props.eventEndDate)
+        throw new Error('Invalid variant: must provide `eventEndDate` with `includeTearDown`');
+
+    let buildUpDayBefore: string = 'No';
+    let buildUpOpening: string = 'No';
+    let tearDownClosing: string = 'No';
+    let tearDownDayAfter: string = 'No';
+
+    const availabilityBuildUpTearDown = watch('availabilityBuildUpTearDown');
+    try {
+        const parsedAvailabilityBuildUpTearDown =
+            kAvailabilityBuildUpTearDownScheme.safeParse(JSON.parse(availabilityBuildUpTearDown));
+
+        if (parsedAvailabilityBuildUpTearDown.success) {
+            buildUpDayBefore = parsedAvailabilityBuildUpTearDown.data.buildUpDayBefore;
+            buildUpOpening = parsedAvailabilityBuildUpTearDown.data.buildUpOpening;
+            tearDownClosing = parsedAvailabilityBuildUpTearDown.data.tearDownClosing;
+            tearDownDayAfter = parsedAvailabilityBuildUpTearDown.data.tearDownDayAfter;
+        }
+    } catch (error: any) {
+        console.warn('Invalid availabilityBuildUpTearDown value', error);
+    }
+
+    const handleBuildUpTearDownChange = useCallback((field: string, event: unknown, value: any) => {
+        const availabilityBuildUpTearDown = {
+            buildUpDayBefore,
+            buildUpOpening,
+            tearDownClosing,
+            tearDownDayAfter,
+        };
+
+        // Update the `field` with the new `value`:
+        availabilityBuildUpTearDown[field as keyof typeof availabilityBuildUpTearDown]
+            = value || 'No';
+
+        setValue('availabilityBuildUpTearDown', JSON.stringify(availabilityBuildUpTearDown), {
+            shouldDirty: true,
+        });
+
+    }, [ buildUpDayBefore, buildUpOpening, setValue, tearDownClosing, tearDownDayAfter ]);
+
     return (
         <>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -144,90 +204,97 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                                          label="Anything we should know about?"
                                          disabled={readOnly} />
             </Grid>
+            { (!!props.includeBuildUp || !!props.includeTearDown) &&
+                <input type="hidden" {...register('availabilityBuildUpTearDown')} /> }
             { !!props.includeBuildUp &&
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <AvailabilityBuildUpTearDownField name="availabilityBuildUp"
-                                                      variant="build-up" />
+                <Grid size={{ xs: 12, md: 6 }} sx={{
+                    border: '1px solid transparent',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    paddingX: 2,
+                    paddingY: 1,
+                }}>
+                    <Stack direction="column" spacing={1}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <DomainAddIcon fontSize="small" />
+                            <Typography>
+                                Will you help with build-up?
+                            </Typography>
+                        </Stack>
+                        <Divider />
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography variant="body2">
+                                { formatRelativeDate(props.eventStartDate!, /* offsetDays= */ -1) }
+                            </Typography>
+                            <ToggleButtonGroup
+                                exclusive size="small" value={buildUpDayBefore}
+                                onChange={
+                                    handleBuildUpTearDownChange.bind(null, 'buildUpDayBefore') }>
+                                <ToggleButton value="10:00+">10:00+</ToggleButton>
+                                <ToggleButton value="14:00+">14:00+</ToggleButton>
+                                <ToggleButton value="No">No</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Stack>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography variant="body2">
+                                { formatRelativeDate(props.eventStartDate!, /* offsetDays= */ 0) }
+                            </Typography>
+                            <ToggleButtonGroup
+                                exclusive size="small" value={buildUpOpening}
+                                onChange={
+                                    handleBuildUpTearDownChange.bind(null, 'buildUpOpening') }>
+                                <ToggleButton value="10:00+">10:00+</ToggleButton>
+                                <ToggleButton value="12:00+">12:00+</ToggleButton>
+                                <ToggleButton value="No">No</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Stack>
+                    </Stack>
                 </Grid> }
             { !!props.includeTearDown &&
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <AvailabilityBuildUpTearDownField name="availabilityTearDown"
-                                                      variant="tear-down" />
+                <Grid size={{ xs: 12, md: 6 }} sx={{
+                    border: '1px solid transparent',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    paddingX: 2,
+                    paddingY: 1,
+                }}>
+                    <Stack direction="column" spacing={1}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <DomainDisabledIcon fontSize="small" />
+                            <Typography>
+                                Will you help with tear-down?
+                            </Typography>
+                        </Stack>
+                        <Divider />
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography variant="body2">
+                                { formatRelativeDate(props.eventEndDate!, /* offsetDays= */ 0) }
+                            </Typography>
+                            <ToggleButtonGroup
+                                exclusive size="small" value={tearDownClosing}
+                                onChange={
+                                    handleBuildUpTearDownChange.bind(null, 'tearDownClosing') }>
+                                <ToggleButton value="19:00">until 19:00</ToggleButton>
+                                <ToggleButton value="22:00">22:00</ToggleButton>
+                                <ToggleButton value="No">No</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Stack>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography variant="body2">
+                                { formatRelativeDate(props.eventEndDate!, /* offsetDays= */ 1) }
+                            </Typography>
+                            <ToggleButtonGroup
+                                exclusive size="small" value={tearDownDayAfter}
+                                onChange={
+                                    handleBuildUpTearDownChange.bind(null, 'tearDownDayAfter') }>
+                                <ToggleButton value="12:00">until 12:00</ToggleButton>
+                                <ToggleButton value="18:00">18:00</ToggleButton>
+                                <ToggleButton value="No">No</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Stack>
+                    </Stack>
                 </Grid> }
         </>
-    );
-}
-
-/**
- * Props accepted by the <AvailabilityBuildUpTearDownField> component.
- */
-interface AvailabilityBuildUpTearDownFieldProps {
-    /**
-     * Name of the field that this element wraps.
-     */
-    name: string;
-
-    /**
-     * Variant of the field that should be shown.
-     */
-    variant: 'build-up' | 'tear-down';
-}
-
-/**
- * The <AvailabilityBuildUpTearDownField> component is the rich build-up or tear-down element using
- * which volunteers can indicate whether they plan to help out with either.
- */
-function AvailabilityBuildUpTearDownField(props: AvailabilityBuildUpTearDownFieldProps) {
-    const { setValue, watch } = useFormContext();
-
-    const value = watch(props.name);
-
-    // ---------------------------------------------------------------------------------------------
-
-    const [ timeSelectionOpen, setTimeSelectionOpen ] = useState<boolean>(!!value);
-    const toggleTimeSelection = useCallback(() => {
-        if (!!timeSelectionOpen && !!value)
-            setValue(props.name, /* reset= */ '');
-
-        setTimeSelectionOpen(!timeSelectionOpen);
-
-    }, [ props.name, setValue, timeSelectionOpen, value ]);
-
-    // ---------------------------------------------------------------------------------------------
-
-    const icon = props.variant === 'build-up'
-        ? <DomainAddIcon color={ !!value ? 'success' : undefined } />
-        : <DomainDisabledIcon color={ !!value ? 'success' : undefined } />;
-
-    const label = props.variant === 'build-up' ? 'build up' : 'tear down';
-    const options = props.variant === 'build-up' ? kBuildUpOptions : kTearDownOptions;
-
-    return (
-        <Stack direction="column">
-            <ToggleButton value="check" size="small" fullWidth onClick={toggleTimeSelection}>
-                <Stack direction="row" spacing={2}>
-                    {icon}
-                    <Typography variant="button" color={ !!value ? 'success' : undefined }>
-                        { !!value ? 'Yes, I will' : 'No, I won\'t' } help out with {label}
-                    </Typography>
-                </Stack>
-            </ToggleButton>
-            <Collapse in={timeSelectionOpen}>
-                <Stack direction="row" alignItems="center" sx={{
-                    borderBottomLeftRadius: 4,
-                    borderBottomRightRadius: 4,
-                    backgroundColor: theme =>
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.045)'
-                                                      : 'rgba(0, 0, 0, 0.035)',
-                    padding: 1,
-                }}>
-                    <SubdirectoryArrowRightIcon sx={{ mr: 1 }} />
-                    <SelectElement name={props.name} fullWidth size="small"
-                                   label="When will you help out?" options={options}
-                                   sx={{ mt: 0.5 }} />
-                </Stack>
-            </Collapse>
-        </Stack>
     );
 }
 

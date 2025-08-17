@@ -22,6 +22,16 @@ const ordinal = (n: number) => [ 'st', 'nd', 'rd' ][ ((n + 90) % 100 - 10) % 10 
  */
 interface AvailabilityPreferencesFormProps {
     /**
+     * Date at which the event will start, in a Temporal-compatible serialisation.
+     */
+    eventStartDate: string;
+
+    /**
+     * Date at which the event will end, in a Temporal-compatible serialisation.
+     */
+    eventEndDate: string;
+
+    /**
      * Maximum number of events that this volunteer is able to indicate they want to attend.
      */
     exceptionEventLimit: number;
@@ -73,7 +83,9 @@ export function AvailabilityPreferencesForm(props: AvailabilityPreferencesFormPr
                     </Alert>
                 </Grid> }
 
-            <ApplicationAvailabilityForm includeBuildUp={props.includeBuildUp}
+            <ApplicationAvailabilityForm eventStartDate={props.eventStartDate}
+                                         eventEndDate={props.eventEndDate}
+                                         includeBuildUp={props.includeBuildUp}
                                          includeDietaryRestrictions
                                          includeTearDown={props.includeTearDown} />
 
