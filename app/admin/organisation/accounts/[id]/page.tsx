@@ -48,6 +48,7 @@ async function AccountParticipationTable(props: { userId: number }) {
             teamColour: tTeams.teamColourLightTheme,
         })
         .orderBy('eventStartTime', 'desc')
+            .orderBy('team', 'asc')
         .executeSelectMany();
 
     return <ParticipationTable participation={participation} userId={props.userId} />;
