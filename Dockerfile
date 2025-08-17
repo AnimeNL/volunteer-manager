@@ -22,7 +22,7 @@ ARG BUILD_HASH=0
 ENV BUILD_HASH=$BUILD_HASH
 
 # This will do the trick, use the corresponding env file for each environment.
-RUN npm run build
+RUN npm run build-turbo
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
