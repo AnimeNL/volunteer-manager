@@ -3,6 +3,8 @@
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
+import DomainAddIcon from '@mui/icons-material/DomainAdd';
+import DomainDisabledIcon from '@mui/icons-material/DomainDisabled';
 import EuroIcon from '@mui/icons-material/Euro';
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -40,6 +42,7 @@ const kViewsOptions = [
     { id: 5, label: '5 views' },
     { id: 10, label: '10 views' },
     { id: 25, label: '25 views' },
+    { id: 50, label: '50 views' },
 ];
 
 /**
@@ -70,9 +73,11 @@ export default async function OrganisationExportsCreatePage() {
         .orderBy('label', 'asc')
         .executeSelectMany();
 
+    const exportBuildUpFn = actions.createSimpleExport.bind(null, kExportType.BuildUp);
     const exportCreditReelConsentFn = actions.createSimpleExport.bind(null, kExportType.Credits);
     const exportDiscordHandlesFn = actions.createSimpleExport.bind(null, kExportType.Discord);
     const exportRefundRequestsFn = actions.createSimpleExport.bind(null, kExportType.Refunds);
+    const exportTearDownFn = actions.createSimpleExport.bind(null, kExportType.TearDown);
     const exportTrainingsFn = actions.createSimpleExport.bind(null, kExportType.Trainings);
     const exportVolunteersFn = actions.createSimpleExport.bind(null, kExportType.Volunteers);
     const exportWhatsappFn = actions.createSimpleExport.bind(null, kExportType.WhatsApp);
@@ -82,6 +87,12 @@ export default async function OrganisationExportsCreatePage() {
             <Grid size={{ xs: 12 }}>
                 <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap"
                        useFlexGap>
+                    <ExportTile action={exportBuildUpFn}
+                                icon={ <DomainAddIcon color="primary" /> }
+                                label="Build-up volunteers">
+                        <CommonExportForm events={events} teams={teams} />
+                    </ExportTile>
+
                     <ExportTile action={exportCreditReelConsentFn}
                                 icon={ <ReceiptIcon color="primary" /> }
                                 label="Credit reel consent">
@@ -98,6 +109,12 @@ export default async function OrganisationExportsCreatePage() {
                                 icon={ <EuroIcon color="primary" /> }
                                 label="Refund requests">
                         <CommonExportForm events={events} />
+                    </ExportTile>
+
+                    <ExportTile action={exportTearDownFn}
+                                icon={ <DomainDisabledIcon color="primary" /> }
+                                label="Tear-down volunteers">
+                        <CommonExportForm events={events} teams={teams} />
                     </ExportTile>
 
                     <ExportTile action={exportTrainingsFn}

@@ -3,8 +3,8 @@
 
 'use client';
 
+import type { z } from 'zod/v4';
 import { useCallback } from 'react';
-import { z } from 'zod/v4';
 
 import { SelectElement, TextareaAutosizeElement, useFormContext } from '@proxy/react-hook-form-mui';
 
@@ -19,21 +19,12 @@ import Typography from '@mui/material/Typography';
 
 import { Temporal, formatDate } from '@lib/Temporal';
 
+import { kAvailabilityBuildUpTearDownScheme } from './AvailabilityBuildUpTearDownScheme';
 import { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
 import { kShirtFit, kShirtSize, type ShirtFit, type ShirtSize } from '@lib/database/Types';
 
 type ServiceHourValues = z.TypeOf<typeof kServiceHoursProperty>;
 type ServiceTimingValues = z.TypeOf<typeof kServiceTimingProperty>;
-
-/**
- * Scheme definition for valid build-up / tear-down information as stored in the database.
- */
-const kAvailabilityBuildUpTearDownScheme = z.object({
-    buildUpDayBefore: z.string(),
-    buildUpOpening: z.string(),
-    tearDownClosing: z.string(),
-    tearDownDayAfter: z.string(),
-});
 
 /**
  * Valid options for the number of hours volunteers are willing to work. When updating an ID, make

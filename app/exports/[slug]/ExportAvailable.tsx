@@ -12,8 +12,8 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
-import type { CreditsDataExport, DiscordDataExport, RefundsDataExport, TrainingsDataExport,
-    VolunteersDataExport, WhatsAppDataExport } from '@app/api/exports/route';
+import type { BuildUpTearDownDataExport, CreditsDataExport, DiscordDataExport, RefundsDataExport,
+    TrainingsDataExport, VolunteersDataExport, WhatsAppDataExport } from '@app/api/exports/route';
 
 import type { ExportMetadata } from './ExportMetadata';
 import { ExportCredits } from './ExportCredits';
@@ -25,6 +25,7 @@ import { ExportWhatsapp } from './ExportWhatsapp';
 import { callApi } from '@lib/callApi';
 
 import { kExportType } from '@lib/database/Types';
+import { ExportBuildUpTearDown } from './ExportBuildUpTearDown';
 
 /**
  * Props accepted by the <ExportAvailable> component.
@@ -46,6 +47,9 @@ export function ExportAvailable(props: ExportAvailableProps) {
 
     let description: string;
     switch (metadata.type) {
+        case kExportType.BuildUp:
+            description = 'build-up volunteers';
+            break;
         case kExportType.Credits:
             description = 'credit real consent';
             break;
@@ -54,6 +58,9 @@ export function ExportAvailable(props: ExportAvailableProps) {
             break;
         case kExportType.Refunds:
             description = 'ticket refund requests';
+            break;
+        case kExportType.TearDown:
+            description = 'tear-down volunteers';
             break;
         case kExportType.Trainings:
             description = 'training participation';
@@ -68,9 +75,11 @@ export function ExportAvailable(props: ExportAvailableProps) {
             throw new Error(`Unrecognised export type: ${metadata.type}`);
     }
 
+    const [ buildUp, setBuildUp ] = useState<BuildUpTearDownDataExport | undefined>();
     const [ credits, setCredits ] = useState<CreditsDataExport | undefined>();
     const [ discord, setDiscord ] = useState<DiscordDataExport | undefined>();
     const [ refunds, setRefunds ] = useState<RefundsDataExport | undefined>();
+    const [ tearDown, setTearDown ] = useState<BuildUpTearDownDataExport | undefined>();
     const [ trainings, setTrainings ] = useState<TrainingsDataExport | undefined>();
     const [ volunteers, setVolunteers ] = useState<VolunteersDataExport | undefined>();
     const [ whatsapp, setWhatsapp ] = useState<WhatsAppDataExport | undefined>();
@@ -86,9 +95,11 @@ export function ExportAvailable(props: ExportAvailableProps) {
             });
 
             if (response.success) {
+                setBuildUp(response.buildUp);
                 setCredits(response.credits);
                 setDiscord(response.discord);
                 setRefunds(response.refunds);
+                setTearDown(response.tearDown);
                 setTrainings(response.trainings);
                 setVolunteers(response.volunteers);
                 setWhatsapp(response.whatsapp);
@@ -114,7 +125,8 @@ export function ExportAvailable(props: ExportAvailableProps) {
                     {error}
                 </Alert>
             </Collapse>
-            <Collapse in={!credits && !discord && !trainings && !volunteers && !whatsapp}
+            <Collapse in={!buildUp && !credits && !discord && !tearDown && !trainings &&
+                          !volunteers && !whatsapp}
                       unmountOnExit>
                 <Paper component={Stack} alignItems="center" sx={{ p: 2 }}>
                     <Button loading={loading} variant="contained" onClick={handleAccessData}
@@ -122,6 +134,9 @@ export function ExportAvailable(props: ExportAvailableProps) {
                         Access data
                     </Button>
                 </Paper>
+            </Collapse>
+            <Collapse in={!!buildUp} unmountOnExit>
+                <ExportBuildUpTearDown buildUpTearDown={buildUp!} />
             </Collapse>
             <Collapse in={!!credits} unmountOnExit>
                 <ExportCredits credits={credits!} />
@@ -131,6 +146,9 @@ export function ExportAvailable(props: ExportAvailableProps) {
             </Collapse>
             <Collapse in={!!refunds} unmountOnExit>
                 <ExportRefunds refunds={refunds!} />
+            </Collapse>
+            <Collapse in={!!tearDown} unmountOnExit>
+                <ExportBuildUpTearDown buildUpTearDown={tearDown!} />
             </Collapse>
             <Collapse in={!!trainings} unmountOnExit>
                 <ExportTrainings trainings={trainings!} />

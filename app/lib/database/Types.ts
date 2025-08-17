@@ -108,9 +108,11 @@ export const kEventSalesCategory = {
  */
 export type ExportType = Values<typeof kExportType>;
 export const kExportType = {
+    BuildUp: 'BuildUp',
     Credits: 'Credits',
     Discord: 'Discord',
     Refunds: 'Refunds',
+    TearDown: 'TearDown',
     Trainings: 'Trainings',
     Volunteers: 'Volunteers',
     WhatsApp: 'WhatsApp',

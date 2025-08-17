@@ -15,6 +15,44 @@ import { readSetting } from '@lib/Settings';
 import db, { tEvents, tExports, tExportsLogs, tRefunds, tRoles, tTeams, tTrainings,
     tTrainingsAssignments, tTrainingsExtra, tUsers, tUsersEvents, tVendors } from '@lib/database';
 
+import { kAvailabilityBuildUpTearDownScheme }
+    from '@app/registration/[slug]/application/AvailabilityBuildUpTearDownScheme';
+
+/**
+ * Data export type definition for build-up and tear-down volunteer lists.
+ */
+const kBuildUpTearDownDataExport = z.array(z.object({
+    /**
+     * Date on which the list of volunteers applies.
+     */
+    date: z.string(),
+
+    /**
+     * Volunteers that have indicated availability on this date. Expected to be sorted.
+     */
+    volunteers: z.array(z.object({
+        /**
+         * Name of the volunteer who's indicated availability.
+         */
+        name: z.string(),
+
+        /**
+         * Role that the volunteer has within their team.
+         */
+        role: z.string(),
+
+        /**
+         * Team that the volunteer is part of.
+         */
+        team: z.string(),
+
+        /**
+         * Availability of this volunteer.
+         */
+        availability: z.string(),
+    })),
+}));
+
 /**
  * Data export type definition for credit reel consent.
  */
@@ -229,6 +267,7 @@ const kWhatsAppDataExport = z.array(z.object({
 /**
  * Export the aforementioned type definitions for use elsewhere in the Volunteer Manager.
  */
+export type BuildUpTearDownDataExport = z.infer<typeof kBuildUpTearDownDataExport>;
 export type CreditsDataExport = z.infer<typeof kCreditsDataExport>;
 export type DiscordDataExport = z.infer<typeof kDiscordDataExport>;
 export type RefundsDataExport = z.infer<typeof kRefundsDataExport>;
@@ -258,6 +297,11 @@ const kExportsDefinition = z.object({
         error: z.string().optional(),
 
         /**
+         * Build-up volunteer list data export.
+         */
+        buildUp: kBuildUpTearDownDataExport.optional(),
+
+        /**
          * Credit reel consent data export, when the `slug` describes that kind of export.
          */
         credits: kCreditsDataExport.optional(),
@@ -271,6 +315,11 @@ const kExportsDefinition = z.object({
          * Refund request data export, when the `slug` describes that kind of export.
          */
         refunds: kRefundsDataExport.optional(),
+
+        /**
+         * Tear-down volunteer list data export.
+         */
+        tearDown: kBuildUpTearDownDataExport.optional(),
 
         /**
          * Training participation data export, when the `slug` describes that kind of export.
@@ -301,6 +350,13 @@ type Response = ApiResponse<typeof kExportsDefinition>;
 const kReloadIgnoreThreshold = 5 /* = minutes */ * 60 * 1000;
 
 /**
+ * Picks either `left` or `right` depending on which one comes (alphabetically) first.
+ */
+function pickAlphaFirst(left: string, right: string): string {
+    return left.localeCompare(right) < 1 ? left : right;
+}
+
+/**
  * API through which volunteers can update their training preferences.
  */
 async function exports(request: Request, props: ActionProps): Promise<Response> {
@@ -323,6 +379,7 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
             eventId: tExports.exportEventId,
             eventName: tEvents.eventShortName,
             eventStartTime: tEvents.eventStartTime,
+            eventEndTime: tEvents.eventEndTime,
             teamId: tExports.exportTeamId,
             type: tExports.exportType,
 
@@ -371,6 +428,128 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
             }
         });
     }
+
+    let buildUp: BuildUpTearDownDataExport | undefined = undefined;
+    let tearDown: BuildUpTearDownDataExport | undefined = undefined;
+
+    if (metadata.type === kExportType.BuildUp || metadata.type === kExportType.TearDown) {
+        const kNotAvailable = 'No';
+
+        const volunteers = await db.selectFrom(tUsersEvents)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .where(tUsersEvents.eventId.equals(metadata.eventId))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
+            .select({
+                name: tUsers.name,
+                availability: dbInstance.aggregateAsArray({
+                    availability: tUsersEvents.availabilityBuildUpTearDown,
+                    role: tRoles.roleName,
+                    team: tTeams.teamName,
+                }),
+            })
+            .groupBy(tUsers.userId)
+            .executeSelectMany();
+
+        type EventEntries = BuildUpTearDownDataExport[number]['volunteers'];
+
+        const eventDayEntries: EventEntries = [];
+        const eventDayDiffOneEntries: EventEntries = [];
+
+        for (const volunteer of volunteers) {
+            let eventDay: string = kNotAvailable;
+            let eventDayDiffOne: string = kNotAvailable;
+
+            const roles = new Set<string>();
+            const teams = new Set<string>();
+
+            for (const { availability, role, team } of volunteer.availability) {
+                roles.add(role);
+                teams.add(team);
+
+                try {
+                    const deserialisedAvailability = JSON.parse(availability || '');
+                    const parsedAvailability =
+                        kAvailabilityBuildUpTearDownScheme.parse(deserialisedAvailability);
+
+                    if (metadata.type === kExportType.BuildUp) {
+                        eventDay = pickAlphaFirst(eventDay, parsedAvailability.buildUpOpening);
+                        eventDayDiffOne = pickAlphaFirst(
+                            eventDayDiffOne, parsedAvailability.buildUpDayBefore);
+                    } else {
+                        eventDay = pickAlphaFirst(eventDay, parsedAvailability.tearDownClosing);
+                        eventDayDiffOne = pickAlphaFirst(
+                            eventDayDiffOne, parsedAvailability.tearDownDayAfter);
+                    }
+                } catch (error: any) {
+                    if (availability && availability.length)
+                        console.warn('Invalid availability information seen for:', volunteer.name);
+                }
+            }
+
+            type PartialVolunteer =
+                Omit<BuildUpTearDownDataExport[number]['volunteers'][number], 'availability'>;
+
+            const entry: PartialVolunteer = {
+                name: volunteer.name,
+                role: [ ...roles ].sort().join(', '),
+                team: [ ...teams ].sort().join(', '),
+            };
+
+            if (eventDay !== kNotAvailable) {
+                eventDayEntries.push({
+                    availability: eventDay,
+                    ...entry,
+                });
+            }
+
+            if (eventDayDiffOne !== kNotAvailable) {
+                eventDayDiffOneEntries.push({
+                    availability: eventDayDiffOne,
+                    ...entry,
+                });
+            }
+        }
+
+        function pushIfNotEmpty(
+            target: BuildUpTearDownDataExport,
+            entries: EventEntries,
+            referenceDate: Temporal.ZonedDateTime,
+            referenceDateDiff: number
+        ) {
+            if (!entries.length)
+                return;
+
+            entries.sort((lhs, rhs) => {
+                const availabilityOrder = lhs.availability.localeCompare(rhs.availability);
+                if (availabilityOrder !== 0)
+                    return availabilityOrder;
+
+                return lhs.name.localeCompare(rhs.name);
+            });
+
+            target.push({
+                date: formatDate(referenceDate.add({ days: referenceDateDiff }), 'dddd, MMMM Do'),
+                volunteers: entries,
+            });
+        }
+
+        if (metadata.type === kExportType.BuildUp) {
+            buildUp = [];
+            pushIfNotEmpty(buildUp, eventDayDiffOneEntries, metadata.eventStartTime, -1);
+            pushIfNotEmpty(buildUp, eventDayEntries, metadata.eventStartTime, 0);
+        } else {
+            tearDown = [];
+            pushIfNotEmpty(tearDown, eventDayEntries, metadata.eventEndTime, 0);
+            pushIfNotEmpty(tearDown, eventDayDiffOneEntries, metadata.eventEndTime, 1);
+        }
+    }
+
 
     let credits: CreditsDataExport | undefined = undefined;
     if (metadata.type === kExportType.Credits) {
@@ -709,7 +888,7 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
 
     return {
         success: true,
-        credits, discord, refunds, trainings, volunteers, whatsapp,
+        buildUp, credits, discord, refunds, tearDown, trainings, volunteers, whatsapp,
     };
 }
 

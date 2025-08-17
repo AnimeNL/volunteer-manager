@@ -20,7 +20,7 @@ const kCreateSimpleExportData = z.object({
     event: z.number(),
     justification: z.string().nonempty(),
     team: z.number().optional(),
-    views: z.number().min(1).max(25),
+    views: z.number().min(1).max(50),
 });
 
 /**

@@ -84,8 +84,8 @@ export function ExportTile(props: React.PropsWithChildren<ExportTileProps>) {
                                     title={`Export ${recapitalise(props.label)}`}
                                     open={dialogOpen} onClose={handleDialogClose}>
                     <Alert severity="warning" sx={{ mt: -1, mb: 2 }}>
-                        You're about to export {recapitalise(props.label)} information to a third
-                        party. All data access will be logged for accountability.
+                        You're about to export {recapitalise(props.label)} information, possibly to
+                        a third party. All data access will be logged for accountability.
                     </Alert>
                     <Grid container spacing={2}>
                         {props.children}
