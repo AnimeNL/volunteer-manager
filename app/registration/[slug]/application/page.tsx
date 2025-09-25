@@ -238,7 +238,7 @@ async function EventApplicationFormPage(props: EventApplicationFormPageProps) {
                                       user={context.user} />
 
                 <FormSubmitButton callToAction="Submit application" startIcon={ <SendIcon /> }
-                                  sx={{ mt: 2 }} />
+                                  sx={{ mt: 2 }} disabled={!context.user} />
             </Box>
         </FormProvider>
     );

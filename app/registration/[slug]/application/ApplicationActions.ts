@@ -51,6 +51,9 @@ const kCreateApplicationData = z.object({
 export async function createApplication(eventId: number, teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateApplicationData, async (data, props) => {
+        if (!props.user)
+            return { success: false, error: 'Please sign in or create an account first…' };
+
         const dbInstance = db;
 
         // -----------------------------------------------------------------------------------------
@@ -228,7 +231,8 @@ export async function createApplication(eventId: number, teamId: number, formDat
         // -----------------------------------------------------------------------------------------
 
         return { success: true, refresh: true };
-    });
+
+    }, /* allowVisitors= */ true);
 }
 
 /**
