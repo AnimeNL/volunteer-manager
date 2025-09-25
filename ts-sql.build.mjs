@@ -112,7 +112,7 @@ do {
                     type: {
                         kind: 'custom',
                         dbType: { name: 'Blob' },
-                        tsType: { name: 'Buffer' },
+                        tsType: { name: 'Uint8Array<ArrayBuffer>' },
                         adapter: {
                             importPath: './app/lib/database/BlobTypeAdapter',
                             name: 'BlobTypeAdapter',

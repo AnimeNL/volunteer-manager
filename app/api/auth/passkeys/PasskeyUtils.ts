@@ -97,7 +97,7 @@ export async function retrieveCredentials(user: UserLike, rpID: string): Promise
             .and(tUsersPasskeys.credentialRpid.equals(rpID))
         .orderBy(tUsersPasskeys.credentialLastUsed, 'desc nulls last')
             .orderBy(tUsersPasskeys.credentialCreated, 'asc')
-        .executeSelectMany() as any /* TODO: Fix types in the convertion function */;
+        .executeSelectMany();
 }
 
 /**

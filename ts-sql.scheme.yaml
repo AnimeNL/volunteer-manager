@@ -263,6 +263,79 @@ tables:
       `environment_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`environment_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: exports
+  type: BASE TABLE
+  columns:
+  - name: export_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: export_slug
+    type: varchar(16)
+    nullable: false
+  - name: export_event_id
+    type: int(8) unsigned
+    nullable: false
+  - name: export_team_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
+  - name: export_type
+    type: enum('BuildUp','Credits','Discord','Refunds','TearDown','Trainings','Volunteers','WhatsApp')
+    nullable: false
+  - name: export_justification
+    type: text
+    nullable: false
+  - name: export_created_date
+    type: datetime
+    nullable: false
+  - name: export_created_user_id
+    type: int(8) unsigned
+    nullable: false
+  - name: export_expiration_date
+    type: datetime
+    nullable: false
+  - name: export_expiration_views
+    type: int(8) unsigned
+    nullable: false
+  - name: export_enabled
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "1"
+  indexes:
+  - name: export_slug
+    def: KEY export_slug (export_slug) USING BTREE
+    table: exports
+    columns:
+    - export_slug
+  - name: PRIMARY
+    def: PRIMARY KEY (export_id) USING BTREE
+    table: exports
+    columns:
+    - export_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (export_id)
+    table: exports
+    columns:
+    - export_id
+  def: |-
+    CREATE TABLE `exports` (
+      `export_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `export_slug` varchar(16) NOT NULL,
+      `export_event_id` int(8) unsigned NOT NULL,
+      `export_team_id` int(4) unsigned DEFAULT NULL,
+      `export_type` enum('BuildUp','Credits','Discord','Refunds','TearDown','Trainings','Volunteers','WhatsApp') NOT NULL,
+      `export_justification` text NOT NULL,
+      `export_created_date` datetime NOT NULL,
+      `export_created_user_id` int(8) unsigned NOT NULL,
+      `export_expiration_date` datetime NOT NULL,
+      `export_expiration_views` int(8) unsigned NOT NULL,
+      `export_enabled` tinyint(1) unsigned NOT NULL DEFAULT 1,
+      PRIMARY KEY (`export_id`),
+      KEY `export_slug` (`export_slug`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: events_teams
   type: BASE TABLE
   columns:
@@ -511,79 +584,6 @@ tables:
       `role_schedule_collapse` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `role_training_eligible` tinyint(1) NOT NULL DEFAULT 0,
       PRIMARY KEY (`role_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: exports
-  type: BASE TABLE
-  columns:
-  - name: export_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: export_slug
-    type: varchar(16)
-    nullable: false
-  - name: export_event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: export_team_id
-    type: int(4) unsigned
-    nullable: true
-    default: "NULL"
-  - name: export_type
-    type: enum('Credits','Discord','Refunds','Trainings','Volunteers','WhatsApp')
-    nullable: false
-  - name: export_justification
-    type: text
-    nullable: false
-  - name: export_created_date
-    type: datetime
-    nullable: false
-  - name: export_created_user_id
-    type: int(8) unsigned
-    nullable: false
-  - name: export_expiration_date
-    type: datetime
-    nullable: false
-  - name: export_expiration_views
-    type: int(8) unsigned
-    nullable: false
-  - name: export_enabled
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "1"
-  indexes:
-  - name: export_slug
-    def: KEY export_slug (export_slug) USING BTREE
-    table: exports
-    columns:
-    - export_slug
-  - name: PRIMARY
-    def: PRIMARY KEY (export_id) USING BTREE
-    table: exports
-    columns:
-    - export_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (export_id)
-    table: exports
-    columns:
-    - export_id
-  def: |-
-    CREATE TABLE `exports` (
-      `export_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `export_slug` varchar(16) NOT NULL,
-      `export_event_id` int(8) unsigned NOT NULL,
-      `export_team_id` int(4) unsigned DEFAULT NULL,
-      `export_type` enum('Credits','Discord','Refunds','Trainings','Volunteers','WhatsApp') NOT NULL,
-      `export_justification` text NOT NULL,
-      `export_created_date` datetime NOT NULL,
-      `export_created_user_id` int(8) unsigned NOT NULL,
-      `export_expiration_date` datetime NOT NULL,
-      `export_expiration_views` int(8) unsigned NOT NULL,
-      `export_enabled` tinyint(1) unsigned NOT NULL DEFAULT 1,
-      PRIMARY KEY (`export_id`),
-      KEY `export_slug` (`export_slug`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: twilio_webhook_calls
   type: BASE TABLE

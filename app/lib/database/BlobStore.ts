@@ -23,7 +23,7 @@ const kBlobSizeLimit = 5 * 1024 * 1024;  // 5MB
  * identifiers are sequential, and we don't want to accidentally leak information.
  */
 export async function readBlobDataByHash(hash: string)
-    : Promise<{ bytes: Buffer<ArrayBufferLike>, mimeType: string } | undefined>
+    : Promise<{ bytes: Uint8Array<ArrayBuffer>, mimeType: string } | undefined>
 {
     const bucket = await db.selectFrom(tStorage)
         .select({
@@ -43,7 +43,7 @@ export interface BlobInfo {
     /**
      * The bytes that should be stored in the database.
      */
-    bytes: Buffer;
+    bytes: Uint8Array<ArrayBuffer>;
 
     /**
      * Mime type of the information that's being stored. (E.g. "image/png")
