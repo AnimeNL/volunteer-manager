@@ -29,7 +29,7 @@ const partialJestConfig = {
 module.exports = async () => ({
     ...(await createJestConfig(partialJestConfig)()),
     transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!(marked)/)'
+        '<rootDir>/node_modules/(?!(marked|uuid)/)'
     ],
 });
 

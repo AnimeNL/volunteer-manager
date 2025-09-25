@@ -55,12 +55,12 @@ export interface Credential {
     /**
      * The credential's ID which was assigned by the authenticator.
      */
-    credentialId: Uint8Array;
+    credentialId: Uint8Array<ArrayBuffer>;
 
     /**
      * The public key that's associated with this credential.
      */
-    credentialPublicKey: Uint8Array;
+    credentialPublicKey: Uint8Array<ArrayBuffer>;
 
     /**
      * The counter indicated by the authenticator.
@@ -97,7 +97,7 @@ export async function retrieveCredentials(user: UserLike, rpID: string): Promise
             .and(tUsersPasskeys.credentialRpid.equals(rpID))
         .orderBy(tUsersPasskeys.credentialLastUsed, 'desc nulls last')
             .orderBy(tUsersPasskeys.credentialCreated, 'asc')
-        .executeSelectMany();
+        .executeSelectMany() as any /* TODO: Fix types in the convertion function */;
 }
 
 /**
