@@ -11,7 +11,7 @@
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
     "serve": "next dev --turbo",
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
-    "lint": "biome lint",
+    "lint": "biome check",
     "lint:fix": "biome lint --write",
     "test": "jest",
     "test:e2e": "playwright test --reporter=html"
@@ -90,9 +90,6 @@
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-dom": "^19.2.0",
     "cross-env": "^10.1.0",
-    "eslint": "9.36.0",
-    "eslint-config-next": "^15.5.4",
-    "eslint-plugin-unused-imports": "^4.2.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "jest-extended": "^6.0.0",
