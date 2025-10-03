@@ -171,7 +171,7 @@ function InteractivePanel(props: InteractivePanelProps) {
         } finally {
             setLoading(false);
         }
-    }, [ props, setLoading ]);
+    }, [ props ]);
 
     const normalizedPrompt = kExamplePrompt.replaceAll(/\s{2,}/g, ' ').trim();
 
@@ -287,7 +287,7 @@ export function VertexAI(props: VertexAIProps) {
 
     const updateSettings = useCallback((settings: VertexAISettings) => {
         setSettings(settings);
-    }, [ setSettings ]);
+    }, [ /* no deps */ ]);
 
     const saveSettings = useCallback(async () => {
         await callApi('post', '/api/admin/update-integration', {

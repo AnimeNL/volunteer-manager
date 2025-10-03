@@ -59,7 +59,7 @@ function HotelAssignmentPersonSelect(props: HotelAssignmentPersonSelectProps) {
         if (hasFocus && ref.current)
             ref.current.focus();
 
-    }, [ hasFocus, ref ]);
+    }, [ hasFocus ]);
 
     return (
         <Autocomplete freeSolo disableClearable fullWidth options={props.requests}

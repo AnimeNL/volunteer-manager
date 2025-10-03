@@ -278,7 +278,7 @@ export function AdminSidebarClient(props: AdminSidebarClientProps) {
     const isSmallScreenDevice =
         !!props.responsive &&
         // Intentional rule violation because this is a static, transitionary feature:
-        // eslint-disable-next-line react-hooks/rules-of-hooks
+        // biome-ignore lint/correctness/useHookAtTopLevel: intentional behaviour
         useMediaQuery(theme => theme.breakpoints.down('md'));
 
     if (isSmallScreenDevice) {

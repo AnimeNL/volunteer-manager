@@ -116,7 +116,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         } finally {
             setLoading(false);
         }
-    }, [ defaultValues, contentId, scope, ref ]);
+    }, [ defaultValues, contentId, scope ]);
 
     const [ contentProtected, setContentProtected ] = useState<boolean>(false);
     const [ markdown, setMarkdown ] = useState<string>();

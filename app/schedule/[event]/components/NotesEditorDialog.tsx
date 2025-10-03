@@ -64,7 +64,7 @@ export default function NotesEditorDialog(props: NotesEditorDialogProps) {
         if (!!onClose)
             onClose();
 
-    }, [ onClose, props.notes, setNotes ]);
+    }, [ onClose, props.notes ]);
 
     const handleUpdateNotes = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
         setNotes(event.target.value);

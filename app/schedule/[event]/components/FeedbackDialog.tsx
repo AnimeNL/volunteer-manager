@@ -56,7 +56,7 @@ export default function FeedbackDialog(props: FeedbackDialogProps) {
         if (!!onClose)
             onClose();
 
-    }, [ onClose, setFeedback ]);
+    }, [ onClose ]);
 
     const handleUpdateFeedback = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
         setFeedback(event.target.value);

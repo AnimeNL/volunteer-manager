@@ -73,7 +73,7 @@ export function Google(props: GoogleProps) {
     const [ invalidated, setInvalidated ] = useState<boolean>(false);
     const [ loading, setLoading ] = useState<boolean>(false);
 
-    const handleInvalidate = useCallback(() => setInvalidated(true), [ setInvalidated ]);
+    const handleInvalidate = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (data: FieldValues) => {
         setLoading(true);
         setError(undefined);
@@ -92,7 +92,7 @@ export function Google(props: GoogleProps) {
         } finally {
             setLoading(false);
         }
-    }, [ setError, setInvalidated, setLoading ]);
+    }, [ /* no deps */ ]);
 
     return (
         <Paper sx={{ p: 2 }}>

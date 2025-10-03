@@ -131,6 +131,7 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
     const [ passkeysLoading, setPasskeysLoading ] = useState<boolean>(false);
     const [ passkeys, setPasskeys ] = useState<Passkeys>();
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: used for invalidation
     useEffect(() => {
         setPasskeysLoading(true);
         callApi('get', '/api/auth/passkeys/list', { /* no props */ }).then(response => {
@@ -141,6 +142,8 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
         }).catch(error => {
             setError(error.message);
         }).finally(() => setPasskeysLoading(false));
+
+
     }, [ counter ]);
 
     return (

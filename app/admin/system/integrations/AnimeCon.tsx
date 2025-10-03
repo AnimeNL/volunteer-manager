@@ -53,7 +53,7 @@ export function AnimeCon(props: GoogleProps) {
         router.push('./integrations/animecon');
     }, [ router ]);
 
-    const doInvalidate = useCallback(() => setInvalidated(true), [ setInvalidated ]);
+    const doInvalidate = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
     const requestSubmit = useCallback(async (data: FieldValues) => {
         setLoading(true);
         setError(undefined);
@@ -67,7 +67,7 @@ export function AnimeCon(props: GoogleProps) {
         } finally {
             setLoading(false);
         }
-    }, [ setError, setInvalidated, setLoading ]);
+    }, [ /* no deps */ ]);
 
     return (
         <Paper sx={{ p: 2 }}>

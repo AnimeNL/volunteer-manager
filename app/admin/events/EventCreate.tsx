@@ -29,7 +29,7 @@ export function EventCreate() {
 
     const router = useRouter();
 
-    const handleChange = useCallback(() => setInvalidated(true), [ setInvalidated ]);
+    const handleChange = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (data: FieldValues) => {
         setError(undefined);
         setLoading(true);

@@ -148,7 +148,7 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
             }
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ includeAllTeams ]);
+    }, [ includeAllTeams, props.entries.filter ]);
 
     // ---------------------------------------------------------------------------------------------
 

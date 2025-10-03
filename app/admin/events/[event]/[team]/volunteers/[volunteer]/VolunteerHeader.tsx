@@ -94,7 +94,7 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
     const [ selectedRole, setSelectedRole ] = useState<number>(volunteer.roleId);
     const [ warning, setWarning ] = useState<boolean>(false);
 
-    const handleChange = useCallback((value: any) => setSelectedRole(value), [ setSelectedRole ]);
+    const handleChange = useCallback((value: any) => setSelectedRole(value), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (data: FieldValues) => {
         const response = await callApi('post', '/api/admin/volunteer-roles', {
             eventId,
@@ -113,7 +113,7 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
 
     useEffect(() => {
         setSelectedRole(volunteer.roleId);
-    }, [ open, setSelectedRole, volunteer.roleId ]);
+    }, [ volunteer.roleId ]);
 
     useEffect(() => {
         for (const { roleId, rolePrivilegeWarning } of roles ?? []) {
@@ -124,7 +124,7 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
             return;
         }
         setWarning(false);
-    }, [ roles, selectedRole, setWarning ]);
+    }, [ roles, selectedRole ]);
 
     return (
         <SettingDialog defaultValues={{ role: volunteer.roleId }}
@@ -468,7 +468,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
     const [ rolesLoading, setRolesLoading ] = useState<boolean>(false);
     const [ rolesOpen, setRolesOpen ] = useState<boolean>(false);
 
-    const handleRolesClose = useCallback(() => setRolesOpen(false), [ setRolesOpen ]);
+    const handleRolesClose = useCallback(() => setRolesOpen(false), [ /* no deps */ ]);
     const handleRolesOpen = useCallback(async () => {
         if (!roles) {
             setRolesLoading(true);
@@ -484,7 +484,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
             }
         }
         setRolesOpen(true);
-    }, [ event.slug, roles, setRoles, setRolesLoading, setRolesOpen, team ]);
+    }, [ event.slug, roles, team ]);
 
     // ---------------------------------------------------------------------------------------------
     // Change team
@@ -494,7 +494,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
     const [ teamsLoading, setTeamsLoading ] = useState<boolean>(false);
     const [ teamsOpen, setTeamsOpen ] = useState<boolean>(false);
 
-    const handleTeamsClose = useCallback(() => setTeamsOpen(false), [ setTeamsOpen ]);
+    const handleTeamsClose = useCallback(() => setTeamsOpen(false), [ /* no deps */ ]);
     const handleTeamsOpen = useCallback(async () => {
         if (!teamsForVolunteer) {
             setTeamsLoading(true);

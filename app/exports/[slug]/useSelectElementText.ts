@@ -38,7 +38,7 @@ export function useSelectElementText<Type extends HTMLElement>(): SelectElementR
                 console.error('Unable to select all table content:', error);
             }
         }
-    }, [ elementRef ]);
+    }, [ /* no deps */ ]);
 
     return { elementRef, handleSelect };
 }

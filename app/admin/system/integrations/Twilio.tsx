@@ -40,7 +40,7 @@ export function Twilio(props: TwilioProps) {
     const [ invalidated, setInvalidated ] = useState<boolean>(false);
     const [ loading, setLoading ] = useState<boolean>(false);
 
-    const handleInvalidate = useCallback(() => setInvalidated(true), [ setInvalidated ]);
+    const handleInvalidate = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (data: FieldValues) => {
         setLoading(true);
         setError(undefined);
@@ -60,7 +60,7 @@ export function Twilio(props: TwilioProps) {
         } finally {
             setLoading(false);
         }
-    }, [ setError, setInvalidated, setLoading ]);
+    }, [ /* no deps */ ]);
 
     const regions = useMemo(() => {
         return Object.values(kTwilioRegion).map(region => ({

@@ -65,7 +65,7 @@ export function ProgramNavigation(props: ProgramNavigationProps) {
             setSelectedTabIndex(index);
             break;
         }
-    }, [ navigationOptions, pathname, props.slug ]);
+    }, [ navigationOptions, pathname ]);
 
     const handleChange = useCallback((event: unknown, index: number) => {
         if (index < 0 || index > navigationOptions.length)
