@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { type FieldValues, SelectElement } from '@proxy/react-hook-form-mui';
+import { type FieldValues, SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
 
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Alert from '@mui/material/Alert';
@@ -39,6 +39,53 @@ import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
 
 type TeamsForVolunteer = VolunteerTeamsDefinition['response']['teams'];
+
+/**
+ * Props accepted by the <ChangeRoleDialogFields> component.
+ */
+interface ChangeRoleDialogFieldsProps {
+    /**
+     * The roles that are available for the current team.
+     */
+    roles: NonNullable<VolunteerRolesDefinition['response']['roles']>;
+
+    /**
+     * The volunteer for whom this dialog is being displayed.
+     */
+    volunteer: VolunteerHeaderProps['volunteer'];
+}
+
+/**
+ * The <ChangeRoleDialogFields> component contains the fields that are part of the change role
+ * dialog, isolated to be able to watch value changes in the encapsulating form.
+ */
+function ChangeRoleDialogFields(props: ChangeRoleDialogFieldsProps) {
+    const { roles, volunteer } = props;
+    const { watch } = useFormContext();
+
+    const options = useMemo(() => {
+        return roles ? roles.map(role => ({ id: role.roleId, label: role.roleName })) : [];
+    }, [ roles ]);
+
+    const selectedRole = watch('role');
+    const selectedRoleWarning =
+        roles.some(entry => entry.roleId === selectedRole && entry.rolePrivilegeWarning);
+
+    return (
+        <>
+            <SelectElement name="role" label="Role" size="small" fullWidth
+                           options={options} sx={{ mt: 2 }} />
+
+            <Collapse in={!!selectedRoleWarning}>
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                    This role will grant administration access to
+                    <strong> {volunteer.firstName}</strong> for this event.
+                </Alert>
+            </Collapse>
+        </>
+    );
+}
+
 
 /**
  * Props accepted by the <ChangeRoleDialog> dialog.
@@ -87,14 +134,7 @@ interface ChangeRoleDialogProps {
 function ChangeRoleDialog(props: ChangeRoleDialogProps) {
     const { eventId, event, onClose, open, roles, teamId, volunteer } = props;
 
-    const options = useMemo(() => {
-        return roles ? roles.map(role => ({ id: role.roleId, label: role.roleName })) : [];
-    }, [ roles ]);
-
-    const [ selectedRole, setSelectedRole ] = useState<number>(volunteer.roleId);
-    const [ warning, setWarning ] = useState<boolean>(false);
-
-    const handleChange = useCallback((value: any) => setSelectedRole(value), [ /* no deps */ ]);
+    const router = useRouter();
     const handleSubmit = useCallback(async (data: FieldValues) => {
         const response = await callApi('post', '/api/admin/volunteer-roles', {
             eventId,
@@ -104,27 +144,14 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
             userId: volunteer.userId,
         });
 
-        if (response.success)
-            return { success: `${volunteer.firstName}'s role has been successfully updated.` };
-        else
+        if (!response.success)
             return { error: `${volunteer.firstName}'s role could not be updated right now.` };
 
-    }, [ eventId, event, teamId, volunteer ]);
+        router.refresh();
 
-    useEffect(() => {
-        setSelectedRole(volunteer.roleId);
-    }, [ volunteer.roleId ]);
+        return { success: `${volunteer.firstName}'s role has been successfully updated.` };
 
-    useEffect(() => {
-        for (const { roleId, rolePrivilegeWarning } of roles ?? []) {
-            if (roleId !== selectedRole)
-                continue;
-
-            setWarning(rolePrivilegeWarning);
-            return;
-        }
-        setWarning(false);
-    }, [ roles, selectedRole ]);
+    }, [ eventId, event, router, teamId, volunteer ]);
 
     return (
         <SettingDialog defaultValues={{ role: volunteer.roleId }}
@@ -137,15 +164,7 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
                         onClose={onClose} onSubmit={handleSubmit} open={open}
                         title="Change role">
 
-            <SelectElement name="role" label="Role" size="small" fullWidth
-                           options={options} onChange={handleChange} sx={{ mt: 2 }} />
-
-            <Collapse in={!!warning}>
-                <Alert severity="warning" sx={{ mt: 2 }}>
-                    This role will grant administration access to
-                    <strong> {volunteer.firstName}</strong> for this event.
-                </Alert>
-            </Collapse>
+            <ChangeRoleDialogFields roles={roles} volunteer={volunteer} />
 
         </SettingDialog>
     );
