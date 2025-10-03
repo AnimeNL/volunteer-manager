@@ -68,11 +68,13 @@ export function AvatarControl(props: AvatarControlProps) {
     const handleDeleteClose = useCallback(() => setDeleteOpen(false), [ /* no deps */ ]);
     const handleDeleteOpen = useCallback(() => setDeleteOpen(true), [ /* no deps */ ]);
 
+    const { deleteFn, setDefaultFn } = props;
+
     const handleDeleteCommit = useCallback(async () => {
-        if (!props.deleteFn)
+        if (!deleteFn)
             return { error: 'No delete action is available' };
 
-        const result = await props.deleteFn(new FormData);
+        const result = await deleteFn(new FormData);
         if (!result.success)
             return { error: result.error };
 
@@ -83,14 +85,14 @@ export function AvatarControl(props: AvatarControlProps) {
         router.refresh();
         return true;
 
-    }, [ props.deleteFn, router ]);
+    }, [ deleteFn, router ]);
 
     const handleSetDefault = useCallback(async () => {
         try {
-            if (!props.setDefaultFn)
+            if (!setDefaultFn)
                 throw new Error('No default action is available');
 
-            const result = await props.setDefaultFn(new FormData);
+            const result = await setDefaultFn(new FormData);
             if (!result.success)
                 throw new Error(result.error ?? 'Unable to update the default avatar');
 
@@ -105,7 +107,7 @@ export function AvatarControl(props: AvatarControlProps) {
         } finally {
             setSnackbarOpen(true);
         }
-    }, [ props.setDefaultFn, router ]);
+    }, [ setDefaultFn, router ]);
 
     return (
         <>
@@ -117,26 +119,26 @@ export function AvatarControl(props: AvatarControlProps) {
                         color: 'white',
                         padding: 0.5,
                     }}>
-                            { !!props.setDefaultFn &&
-                                <Tooltip title="Set as default">
-                                    <DoneIcon fontSize="small" onClick={handleSetDefault}
-                                              sx={{
-                                                  cursor: 'pointer',
-                                                  '&:hover': {
-                                                      fill: theme => theme.palette.success.light,
-                                                  }
-                                              }} />
-                                </Tooltip> }
-                            { !!props.deleteFn &&
-                                <Tooltip title="Delete…">
-                                    <DeleteIcon fontSize="small" onClick={handleDeleteOpen}
-                                                sx={{
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        fill: theme => theme.palette.error.light,
-                                                    }
-                                                }} />
-                                </Tooltip> }
+                        { !!props.setDefaultFn &&
+                            <Tooltip title="Set as default">
+                                <DoneIcon fontSize="small" onClick={handleSetDefault}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    fill: theme => theme.palette.success.light,
+                                                }
+                                            }} />
+                            </Tooltip> }
+                        { !!props.deleteFn &&
+                            <Tooltip title="Delete…">
+                                <DeleteIcon fontSize="small" onClick={handleDeleteOpen}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    fill: theme => theme.palette.error.light,
+                                                }
+                                            }} />
+                            </Tooltip> }
                     </Stack>
                 }>
                 <Avatar alt={props.alt} src={props.src}
