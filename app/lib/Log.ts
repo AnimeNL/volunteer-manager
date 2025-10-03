@@ -224,7 +224,10 @@ export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
         logSourceIpAddress = requestHeaders.get('x-forwarded-for');
         logSourceUserAgent = requestHeaders.get('user-agent');
 
-    } catch (error) { /* ignore for non-request contexts */ }
+    } catch (_error) {
+        // IP address and user agent information are not available for uses of this function that
+        // aren't in a Next.js request path, so we ignore the |_error|.
+    }
 
     await db.insertInto(tLogs)
         .values({

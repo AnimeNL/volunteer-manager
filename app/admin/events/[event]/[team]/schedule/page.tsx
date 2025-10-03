@@ -63,7 +63,7 @@ export default async function EventTeamSchedulePage(props: NextPageParams<'event
         sections = kExpandSection.parse(unverifiedSections);
 
     } catch (error: any) {
-        console.warn(`User ${user.id} has invalid section expand configuration`);
+        console.warn(`User ${user.id} has invalid section expand configuration`, error);
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -205,7 +205,7 @@ export function AccountDataTable(props: AccountDataTableProps) {
         try {
             return JSON.parse(props.initialFilterModel) as GridFilterModel;
         } catch (error: any) {
-            console.error(`Invalid filter model stored: ${props.initialFilterModel}`);
+            console.error(`Invalid filter model stored: ${props.initialFilterModel}`, error);
         }
 
         return undefined;

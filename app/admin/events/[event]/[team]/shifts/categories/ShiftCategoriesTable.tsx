@@ -104,7 +104,7 @@ export function ShiftCategoriesTable() {
             width: 50,
 
             type: 'boolean',
-            renderHeader: params =>
+            renderHeader: () =>
                 <Tooltip title="Will shifts count as contributions?">
                     <FunctionsIcon fontSize="small" color="primary" />
                 </Tooltip>,

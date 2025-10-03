@@ -141,7 +141,7 @@ export function MobileNavigation() {
                   anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
                   transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                   MenuListProps={{ sx: { minWidth: '35vw' } }}
-                  onClose={e => setAnchorElement(/* value= */ null)}
+                  onClose={ () => setAnchorElement(/* value= */ null) }
                   open={!!anchorElement}>
 
                 { areas.map((area, index) =>

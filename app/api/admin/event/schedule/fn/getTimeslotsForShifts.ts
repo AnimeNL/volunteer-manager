@@ -42,7 +42,7 @@ export async function getTimeslotsForShifts(shiftIds: number[]) {
                     demand = demandParsed.data;
 
             } catch (error: any) {
-                console.warn('Unable to parse shift demand:', shift.demand);
+                console.warn('Unable to parse shift demand:', shift.demand, error);
             }
         }
 

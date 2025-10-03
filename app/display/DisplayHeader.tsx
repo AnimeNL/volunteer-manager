@@ -247,6 +247,7 @@ function DisplayHeaderMenu(props: { display: DisplayContextInfo }) {
             setRefreshColor('success');
 
         } catch (error: any) {
+            console.warn('Exception when refreshing the header:', error);
             setRefreshColor('error');
 
         } finally {
@@ -268,6 +269,7 @@ function DisplayHeaderMenu(props: { display: DisplayContextInfo }) {
                     return;
                 }
             } catch (error: any) {
+                console.warn(error);
                 console.error(`Invalid devEnvironment setting: ${context.config.devEnvironment}`);
             }
         }

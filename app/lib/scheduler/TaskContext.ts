@@ -152,6 +152,7 @@ export class TaskContext {
         try {
             deserializedParams = JSON.parse(task.params ?? /* no params= */ '{}');
         } catch (error: any) {
+            console.warn('Invalid task found:', error);
             return undefined;  // the task exists, but does not contain valid configuration
         }
 

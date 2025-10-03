@@ -98,7 +98,7 @@ function calculateDemandMinutes(demand?: string): number {
             totalMinutes += difference.minutes * volunteers;
         }
     } catch (error: any) {
-        console.error('Invalid demand value seen in a serialised shift.');
+        console.error('Invalid demand value seen in a serialised shift.', error);
     }
 
     return totalMinutes;

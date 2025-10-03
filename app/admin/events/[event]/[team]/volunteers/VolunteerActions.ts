@@ -318,6 +318,7 @@ export async function updateAvailability(
                 })));
 
             } catch (error) {
+                console.warn('Unable to parse availability exceptions:', error);
                 return { success: false, error: 'Unable to validate the availability exceptions…' };
             }
         }

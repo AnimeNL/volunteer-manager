@@ -35,7 +35,7 @@ do {
             console.log('to verify everything is still working if necessary.');
             break;
         }
-    } catch (error) {
+    } catch (_error) {
         console.log('The `tbls` tool does not seem to be installed, or could not be invoked. You');
         console.log('should install it from the following page, and make sure that the command is');
         console.log('available on the global path.');

@@ -171,7 +171,7 @@ export function RequestDataTable(props: RequestDataTableProps) {
             align: 'center',
             width: 50,
 
-            renderHeader: params =>
+            renderHeader: () =>
                 <Square colour={team.colour} title={team.name} />,
 
             renderCell: params => {

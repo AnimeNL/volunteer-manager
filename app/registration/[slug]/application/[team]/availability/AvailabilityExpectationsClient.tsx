@@ -3,8 +3,6 @@
 
 'use client';
 
-import React from 'react';
-
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';

@@ -80,6 +80,7 @@ export default function NotesEditorDialog(props: NotesEditorDialogProps) {
             else
                 setError(true);
         } catch (error: any) {
+            console.warn('Unable to submit the notes:', error);
             setError(true);
         } finally {
             setLoading(false);

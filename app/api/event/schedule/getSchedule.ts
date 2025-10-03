@@ -124,7 +124,9 @@ function determineVolunteerUnavailability(
                         return -1;  // they are explicitly marked as unavailable
                 }
             }
-        } catch (error: any) { /* ignore */ }
+        } catch (error: any) {
+            console.warn('Invalid availability information:', error);
+        }
     }
 
     if (Temporal.ZonedDateTime.compare(event.eventAvailabilityStartTime, event.currentTime) > 0)

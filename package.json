@@ -11,7 +11,8 @@
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
     "serve": "next dev --turbo",
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
-    "lint": "next lint",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
     "test": "jest",
     "test:e2e": "playwright test --reporter=html"
   },
@@ -75,6 +76,7 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
     "@next/bundle-analyzer": "^15.5.4",
     "@playwright/test": "^1.55.1",
     "@simplewebauthn/typescript-types": "^8.3.4",

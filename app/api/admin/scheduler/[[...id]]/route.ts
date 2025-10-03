@@ -118,7 +118,7 @@ export const { GET } = createDataTableApi(kSchedulerRowModel, kSchedulerContext,
                     try {
                         const params = JSON.parse(row.params ?? /* no params */ '{}');
                         taskName = kTaskFormatFn[row.task as keyof typeof kTaskFormatFn](params);
-                    } catch (e) { /* no failure handling */ }
+                    } catch (_error) { /* no failure handling */ }
                 }
 
                 let state: SchedulerRowModel['state'] = 'pending';

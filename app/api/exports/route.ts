@@ -487,6 +487,7 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
                             eventDayDiffOne, parsedAvailability.tearDownDayAfter);
                     }
                 } catch (error: any) {
+                    console.warn('Invalid availability information:', error);
                     if (availability && availability.length)
                         console.warn('Invalid availability information seen for:', volunteer.name);
                 }

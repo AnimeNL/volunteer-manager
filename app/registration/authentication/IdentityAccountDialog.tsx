@@ -87,6 +87,7 @@ export function IdentityAccountDialog(props: IdentityAccountDialogProps) {
                     form.setValue(field, value);
             }
         }).catch(error => {
+            console.warn(error);
             setError('Unable to load your account information.');
         });
     }, [ form ])

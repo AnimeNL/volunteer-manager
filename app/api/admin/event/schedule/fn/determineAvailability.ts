@@ -110,7 +110,9 @@ export function determineAvailability(input: AvailabilityInput): AvailabilityInf
                         break;
                 }
             }
-        } catch (error: any) { console.warn(`Invalid availability exceptions seen: ${volunteer}`); }
+        } catch (error: any) {
+            console.warn(`Invalid availability exceptions seen: ${volunteer}`, error);
+        }
     }
 
     // (2) Process timelines. These will be marked as "avoid" on the volunteer's schedule.
@@ -128,7 +130,9 @@ export function determineAvailability(input: AvailabilityInput): AvailabilityInf
                 if (!!adjustedTimeslot)
                     availability.avoid.push(...adjustedTimeslot);
             }
-        } catch (error: any) { console.warn(`Invalid availability timeslots seen: ${volunteer}`); }
+        } catch (error: any) {
+            console.warn(`Invalid availability timeslots seen: ${volunteer}`, error);
+        }
     }
 
     // (3) Process the volunteer's preferred start and end times for helping out.

@@ -67,7 +67,7 @@ export function ShiftTable(props: ShiftTableProps) {
             align: 'center',
             width: 50,
 
-            renderHeader: params =>
+            renderHeader: () =>
                 <Tooltip title="Colour assigned to this shift">
                     <PaletteIcon fontSize="small" color="primary" />
                 </Tooltip>,

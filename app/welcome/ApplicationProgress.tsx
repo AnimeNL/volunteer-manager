@@ -168,7 +168,10 @@ export function ApplicationProgress(props: ApplicationProgressProps) {
             sessionStorage.setItem(kProgressExpansionStateName, `${expanded}`);
             setOpen(expanded);
 
-        } catch (e) { /* thanks, Safari */ }
+        } catch (error) {
+            // This may happen in Safari's private browsing mode.
+            console.warn(error);
+        }
     }
 
     if (application.status === kRegistrationStatus.Accepted)

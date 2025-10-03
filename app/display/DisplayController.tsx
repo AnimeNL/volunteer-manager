@@ -53,7 +53,7 @@ export function DisplayController(props: React.PropsWithChildren) {
     // Periodically update the display's configuration using the `SWR` library. The interval can be
     // configured by the server, although will default to one update per five minutes.
     // eslint-disable-next-line unused-imports/no-unused-vars
-    const { data, error, isLoading, mutate } = useSWR<DisplayDefinition['response']>(url, fetcher, {
+    const { data, isLoading, mutate } = useSWR<DisplayDefinition['response']>(url, fetcher, {
         refreshInterval: data => !!data ? data.config.updateFrequencyMs : kDefaultUpdateFrequencyMs,
     });
 

@@ -38,6 +38,7 @@ export const kTemporalPlainDate =
             context.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Only plain dates are accepted (YYYY-MM-DD)',
+                _error: error,
             });
         }
 
@@ -55,6 +56,7 @@ export const kTemporalPlainTime =
             context.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Only plain times are accepted (HH:mm:ss)',
+                _error: error,
             });
         }
 
@@ -72,6 +74,7 @@ export const kTemporalZonedDateTime =
             context.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Only zoned dates and times are accepted (YYYY-MM-DD HH:mm:ss Z)',
+                _error: error,
             });
         }
 

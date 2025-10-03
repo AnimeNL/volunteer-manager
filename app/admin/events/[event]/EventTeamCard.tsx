@@ -39,7 +39,7 @@ interface TeamIdentityHeaderProps extends BoxProps {
  * with a font colour that provides an appropriate amount of context.
  */
 const TeamIdentityHeader = styled((props: TeamIdentityHeaderProps) => {
-    // eslint-disable-next-line unused-imports/no-unused-vars
+    // biome-ignore lint/correctness/noUnusedVariables: strip internal prop
     const { backgroundColor, ...boxProps } = props;
     return <Box {...boxProps} />;
 })(({ backgroundColor, theme }) => ({

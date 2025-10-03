@@ -39,7 +39,7 @@ export async function isValidShift(
         'schedule-event-view-end-hours',
     ]);
 
-    // eslint-disable-next-line unused-imports/no-unused-vars
+    // biome-ignore lint/correctness/noUnusedVariables: not implemented yet
     const availability = determineAvailability({
         event: {
             startTime: event.temporalStartTime,

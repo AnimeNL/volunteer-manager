@@ -69,7 +69,7 @@ export function RegisterDialog(props: RegisterDialogProps) {
         // client side to prevent sending it to the server altogether, the |rawBirthdate| because
         // we want to make sure that it's shared in a particular format, and the |username| because
         // it's only included in the form to help autofill providers in browsers.
-        // eslint-disable-next-line unused-imports/no-unused-vars
+        // biome-ignore lint/correctness/noUnusedVariables: not implemented yet
         const { rawBirthdate, username, password, ...rest } = data;
 
         // Format the |birthdate| in YYYY-MM-DD format because that's the only sensible format to
