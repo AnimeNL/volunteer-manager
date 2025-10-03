@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 
 import BarChartIcon from '@mui/icons-material/BarChart';
 import Button from '@mui/material/Button';

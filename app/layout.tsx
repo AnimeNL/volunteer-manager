@@ -43,7 +43,7 @@ export default async function RootLayout(props: React.PropsWithChildren) {
 
     return (
         <html lang="en">
-            <head></head>
+            <head />
             <body>
                 <AppRouterCacheProvider>
                     <ClientProviders paletteMode="auto" themeColours={environment?.colours}>

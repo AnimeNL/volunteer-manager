@@ -35,8 +35,15 @@
 				"useJsxKeyInIterable": "warn",
 				"useParseIntRadix": "warn"
 			},
+			"nursery": {
+				"noNextAsyncClientComponent": "warn"
+			},
 			"style": {
-				"useConst": "warn"
+				"noEnum": "error",
+				"useConst": "warn",
+				"useExportType": "warn",
+				"useImportType": "warn",
+				"useSelfClosingElements": "warn"
 			},
 			"suspicious": {
 				"noDoubleEquals": "error",

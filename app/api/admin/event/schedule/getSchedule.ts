@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '@app/api/Types';
-import { Temporal } from '@lib/Temporal';
+import type { Temporal } from '@lib/Temporal';
 import { determineAvailability } from './fn/determineAvailability';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';

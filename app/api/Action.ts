@@ -1,8 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z, ZodDiscriminatedUnion, ZodIntersection, ZodRecord, ZodUnion, type ZodObject } from 'zod/v4';
-import { NextRequest, NextResponse } from 'next/server';
+import type { z, ZodDiscriminatedUnion, ZodIntersection, ZodRecord, ZodUnion, ZodObject } from 'zod/v4';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';

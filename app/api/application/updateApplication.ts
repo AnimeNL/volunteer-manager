@@ -11,7 +11,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tEventsTeams, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
-import { type ApiDefinition, type ApiRequest, type ApiResponse }
+import type { ApiDefinition, ApiRequest, ApiResponse }
     from '../Types';
 
 /**

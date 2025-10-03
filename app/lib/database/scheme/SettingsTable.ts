@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* eslint-disable quotes, max-len */
+// biome-ignore-all lint/style/useImportType: not feasible
 /**
  * DO NOT EDIT:
  *

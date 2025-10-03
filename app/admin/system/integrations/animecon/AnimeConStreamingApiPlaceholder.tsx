@@ -9,7 +9,7 @@ import Skeleton from '@mui/material/Skeleton';
  * The <AnimeConStreamingApiPlaceholder> component displays a pageholder paper that will be replaced
  * with the actual result contents.
  */
-export async function AnimeConStreamingApiPlaceholder() {
+export function AnimeConStreamingApiPlaceholder() {
     return (
         <>
             <Skeleton height={8} width="90%" />

@@ -28,7 +28,7 @@ import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/d
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { HelpRequestTarget } from '../components/HelpRequestTarget';
 import { SetTitle } from '../components/SetTitle';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { type Temporal, formatDate } from '@lib/Temporal';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
 import { getEventBySlug } from '@lib/EventLoader';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';

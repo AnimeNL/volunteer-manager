@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
 import { useQueryState, parseAsBoolean } from 'nuqs';
 
-import { type SvgIconProps } from '@mui/material/SvgIcon';
+import type { SvgIconProps } from '@mui/material/SvgIcon';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';

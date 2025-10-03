@@ -3,7 +3,7 @@
 
 import Alert from '@mui/material/Alert';
 
-import { Temporal, formatDate, isAfter, isBefore } from '@lib/Temporal';
+import { type Temporal, formatDate, isAfter, isBefore } from '@lib/Temporal';
 
 /**
  * Number of days prior to the availability window closing that a warning should be shown.

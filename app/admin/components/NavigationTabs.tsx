@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import Tabs from '@mui/material/Tabs';

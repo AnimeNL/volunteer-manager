@@ -4,7 +4,8 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import type React from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';

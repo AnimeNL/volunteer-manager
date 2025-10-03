@@ -3,8 +3,9 @@
 
 'use client';
 
+import type React from 'react';
 import Link from 'next/link';
-import React, { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';

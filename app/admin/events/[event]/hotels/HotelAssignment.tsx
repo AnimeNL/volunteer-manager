@@ -3,8 +3,9 @@
 
 'use client';
 
+import type React from 'react';
 import Link from 'next/link';
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 
 import type { GridRenderEditCellParams } from '@mui/x-data-grid-pro';
 import { default as MuiLink } from '@mui/material/Link';

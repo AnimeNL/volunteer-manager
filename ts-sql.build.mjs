@@ -279,7 +279,7 @@ do {
         },
 
         rawContent: {
-            before: '// @ts-nocheck\n/* eslint-disable quotes, max-len */',
+            before: '// @ts-nocheck\n// biome-ignore-all lint/style/useImportType: not feasible',
         }
     });
 

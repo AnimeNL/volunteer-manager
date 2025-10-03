@@ -5,7 +5,7 @@ import { ZodError } from 'zod/v4';
 
 import type { Scheduler, TaskIdentifier } from './Scheduler';
 import { TaskContext } from './TaskContext';
-import { type TaskResult, TaskWithParams } from './Task';
+import type { TaskResult, TaskWithParams } from './Task';
 import { kTaskRegistry } from './TaskRegistry';
 
 import { kTaskResult } from '@lib/database/Types';

@@ -141,13 +141,13 @@ export function TrainingOverview(props: TrainingOverviewProps) {
                 <Table size="small" sx={{ marginTop: '-8px' }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell width="50"></TableCell>
+                            <TableCell width="50" />
                             { props.confirmations.map((session, index) =>
                                 <TableCell key={index} align="center">
                                     { formatDate(
                                         Temporal.ZonedDateTime.from(session.date), 'dddd, MMMM D') }
                                 </TableCell> )}
-                            <TableCell width="50"></TableCell>
+                            <TableCell width="50" />
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -158,7 +158,7 @@ export function TrainingOverview(props: TrainingOverviewProps) {
                                 </TableCell>
                                 { row.map((participant, index2) => {
                                     if (!participant)
-                                        return <TableCell key={index2}></TableCell>;
+                                        return <TableCell key={index2} />;
 
                                     const href =
                                         `./${participant.team}/volunteers/${participant.userId}`;

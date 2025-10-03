@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Button, { type ButtonProps } from '@mui/material/Button';

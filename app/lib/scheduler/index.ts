@@ -4,7 +4,7 @@
 import type { RegisteredTasks } from './TaskRegistry';
 import type { Scheduler } from './Scheduler';
 import { TemporalTypeAdapter } from '@lib/database/TemporalTypeAdapter';
-import { Temporal } from '@lib/Temporal';
+import type { Temporal } from '@lib/Temporal';
 import { globalScheduler } from './SchedulerImpl';
 
 import db, { tTasks } from '@lib/database';

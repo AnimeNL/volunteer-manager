@@ -5,6 +5,8 @@
 
 import React from 'react';
 
+import type SvgIcon from '@mui/material/SvgIcon';
+import type { SvgIconProps } from '@mui/material/SvgIcon';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AccessibleIcon from '@mui/icons-material/Accessible';
 import AirportShuttleIcon from '@mui/icons-material/AirportShuttle';
@@ -19,7 +21,6 @@ import LocationCityIcon from '@mui/icons-material/LocationCity';
 import MapIcon from '@mui/icons-material/Map';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import SecurityIcon from '@mui/icons-material/Security';
-import SvgIcon, { type SvgIconProps } from '@mui/material/SvgIcon';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 /**

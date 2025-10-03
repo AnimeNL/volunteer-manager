@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { createContext, useCallback, useMemo, useState } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 import Alert from '@mui/material/Alert';

@@ -1,7 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import React, { useMemo, useState } from 'react';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 
 import type { Theme } from '@mui/material/styles';
 import type { AvatarProps as MuiAvatarProps } from '@mui/material/Avatar';

@@ -19,8 +19,8 @@ import Typography from '@mui/material/Typography';
 
 import { Temporal, formatDate } from '@lib/Temporal';
 
+import type { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
 import { kAvailabilityBuildUpTearDownScheme } from './AvailabilityBuildUpTearDownScheme';
-import { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
 import { kShirtFit, kShirtSize, type ShirtFit, type ShirtSize } from '@lib/database/Types';
 
 type ServiceHourValues = z.TypeOf<typeof kServiceHoursProperty>;

@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useContext } from 'react';
+import type React from 'react';
+import { useCallback, useContext } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 

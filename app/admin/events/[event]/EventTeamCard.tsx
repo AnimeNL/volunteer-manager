@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 
 import Box, { type BoxProps } from '@mui/material/Box';
 import Button from '@mui/material/Button';

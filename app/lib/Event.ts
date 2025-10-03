@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EnvironmentDomain } from './Environment';
-import { Temporal } from '@lib/Temporal';
+import type { Temporal } from '@lib/Temporal';
 import { isAvailabilityWindowOpen } from './isAvailabilityWindowOpen';
 
 /**
