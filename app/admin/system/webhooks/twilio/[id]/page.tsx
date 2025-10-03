@@ -54,7 +54,7 @@ export default async function TwilioWebhooksPage(props: NextPageParams<'id'>) {
         .leftJoin(originalMessageJoin)
             .on(originalMessageJoin.outboxResultSid.equals(
                 tTwilioWebhookCalls.webhookMessageOriginalSid))
-        .where(tTwilioWebhookCalls.webhookCallId.equals(parseInt(params.id)))
+        .where(tTwilioWebhookCalls.webhookCallId.equals(parseInt(params.id, 10)))
         .select({
             date: tTwilioWebhookCalls.webhookCallDate,
             endpoint: tTwilioWebhookCalls.webhookCallEndpoint,

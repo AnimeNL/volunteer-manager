@@ -19,9 +19,21 @@
 		},
 		"rules": {
 			"recommended": false,
+			"complexity": {
+				"noCommaOperator": "error",
+				"noUselessContinue": "error",
+				"noUselessStringRaw": "error"
+			},
 			"correctness": {
+				"noInvalidConstructorSuper": "error",
+				"noReactPropAssignments": "error",
+				"noUnreachable": "error",
 				"noUnusedImports": "error",
-				"noUnusedVariables": "warn"
+				"noUnusedPrivateClassMembers": "error",
+				"noUnusedVariables": "warn",
+				"useJsonImportAttributes": "error",
+				"useJsxKeyInIterable": "warn",
+				"useParseIntRadix": "warn"
 			},
 			"style": {
 				"useConst": "warn"

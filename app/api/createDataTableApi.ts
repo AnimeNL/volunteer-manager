@@ -411,7 +411,7 @@ export function createDataTableApi<RowModel extends ZodObject, Context extends Z
             zContext.and(z.object({
                 pagination: z.object({
                     page: z.coerce.number(),
-                    pageSize: z.enum([ '10', '25', '50', '100' ]).transform(v => parseInt(v)),
+                    pageSize: z.enum([ '10', '25', '50', '100' ]).transform(v => parseInt(v, 10)),
                 }).optional(),
                 sort: z.object({
                     field: z.enum([

@@ -27,7 +27,7 @@ do {
     //     missing or too old for our liking.
     try {
         const { stdout } = await exec('tbls version');
-        const [ major, minor ] = stdout.trim().split('.').map(v => parseInt(v));
+        const [ major, minor ] = stdout.trim().split('.').map(v => parseInt(v, 10));
 
         if (major !== 1 || minor < 68) {
             console.log('The `tbls` tool used in this repository is only supported for version');

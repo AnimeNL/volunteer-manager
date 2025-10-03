@@ -71,7 +71,7 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
     // ---------------------------------------------------------------------------------------------
 
     const highlightedSet = useMemo(() => {
-        return !!props.highlighted ? new Set(props.highlighted.split(',').map(v => parseInt(v)))
+        return !!props.highlighted ? new Set(props.highlighted.split(',').map(v => parseInt(v, 10)))
                                    : new Set();
 
     }, [ props.highlighted ]);

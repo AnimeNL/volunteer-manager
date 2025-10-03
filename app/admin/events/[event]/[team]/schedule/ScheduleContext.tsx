@@ -244,7 +244,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
 
     const handleToggleShiftHighlight = useCallback(async (shiftId: number) => {
         const highlightedShiftIds =
-            !!highlightedShifts ? new Set(highlightedShifts.split(',').map(v => parseInt(v)))
+            !!highlightedShifts ? new Set(highlightedShifts.split(',').map(v => parseInt(v, 10)))
                                 : new Set();
 
         highlightedShiftIds.has(shiftId) ? highlightedShiftIds.delete(shiftId)
@@ -260,7 +260,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     // Set of highlighted shifts. Always an instance, only set to the right shifts when at least a
     // single shift has been selected for highlight.
     const highlightedShiftIds =
-        !!highlightedShifts ? new Set(highlightedShifts.split(',').map(v => parseInt(v)))
+        !!highlightedShifts ? new Set(highlightedShifts.split(',').map(v => parseInt(v, 10)))
                             : new Set();
 
     // The schedule context contains our local confirmation, as well as the schedule that has been

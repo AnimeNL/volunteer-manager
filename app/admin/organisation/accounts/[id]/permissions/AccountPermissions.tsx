@@ -131,7 +131,6 @@ export function toPermissionList(
             if (!!input[entry])
                 permissions.push(permission);
 
-            continue;
         } else if (typeof input[entry] === 'object') {
             const typedPermission: BooleanPermission | CRUDPermission = permission as any;
             if (Object.hasOwn(kPermissions, typedPermission)) {

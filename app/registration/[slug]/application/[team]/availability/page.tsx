@@ -112,7 +112,7 @@ export default async function EventApplicationAvailabilityPage(
 
     if (!!detailedApplicationInfo.preferences?.timeslots) {
         defaultValues.exceptionEvents =
-            detailedApplicationInfo.preferences.timeslots.split(',').map(v => parseInt(v));
+            detailedApplicationInfo.preferences.timeslots.split(',').map(v => parseInt(v, 10));
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -249,7 +249,7 @@ export default async function EventVolunteerPage(
 
     if (!!volunteer.availabilityTimeslots) {
         availabilityDefaultValues.exceptionEvents =
-            volunteer.availabilityTimeslots.split(',').map(v => parseInt(v));
+            volunteer.availabilityTimeslots.split(',').map(v => parseInt(v, 10));
     }
 
     const availabilityEvent = {

@@ -97,7 +97,7 @@ function seriesToCsv(series: LineSeriesType[]): string {
         ...data.map((points, index) => `${data.length - index - 1},${points.join(',')}`),
     ];
 
-    return lines.join('\n');;
+    return lines.join('\n');
 }
 
 /**

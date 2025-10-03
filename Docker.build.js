@@ -11,7 +11,7 @@ const nextBuildId = require('next-build-id');
 if (process.argv.length !== /* NodeJS: */ 2 + /* Volunteer Manager: */ 2)
     throw new Error('Usage: node Docker.build.js [port] [image]');
 
-const port = parseInt(process.argv[2]);
+const port = parseInt(process.argv[2], 10);
 const image = process.argv[3];
 
 /**

@@ -23,7 +23,7 @@ declare module globalThis {
  */
 const kConnectionPoolConfig: PoolConfig = {
     host: process.env.APP_DATABASE_SERVER,
-    port: parseInt(process.env.APP_DATABASE_PORT!),
+    port: parseInt(process.env.APP_DATABASE_PORT!, 10),
     user: process.env.APP_DATABASE_USERNAME,
     password: process.env.APP_DATABASE_PASSWORD,
     database: process.env.APP_DATABASE_NAME,
