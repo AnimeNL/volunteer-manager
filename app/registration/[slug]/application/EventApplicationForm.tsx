@@ -93,6 +93,11 @@ export interface EventApplicationFormProps {
     }[];
 
     /**
+     * URL to which successful registrations (& activations) should be forwarded.
+     */
+    redirectUrl: string;
+
+    /**
      * The user who is currently signed in, if any. Applications can only be submitted when the
      * visitor has identified to their account, so some subtle nudging may be required.
      */
@@ -108,9 +113,10 @@ export function EventApplicationForm(props: EventApplicationFormProps) {
     const { eventShortName, partnerApplications, user } = props;
 
     const authenticationContext = useContext(AuthenticationContext);
+
     const requestAuthenticationFlow = useCallback(() => {
-        authenticationContext.requestAuthenticationFlow();
-    }, [ authenticationContext ])
+        authenticationContext.requestAuthenticationFlow(props.redirectUrl);
+    }, [ authenticationContext, props.redirectUrl ])
 
     const [ availabilityWarning, setAvailabilityWarning ] = useState<boolean>(false);
 

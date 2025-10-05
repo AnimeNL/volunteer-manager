@@ -51,12 +51,17 @@ export function RegistrationContentContainer(props: RegistrationContentContainer
                                 searchParams.has('registration-request');
 
     const authenticationContext = useContext(AuthenticationContext);
+
     const [ authFlowOpen, setAuthFlowOpen ] = useState<boolean>(initialAuthFlowOpen);
+    const [ authFlowRedirectUrl, setAuthFlowRedirectUrl ] = useState<string | undefined>();
 
     // Observe requests for the authentication context to be opened from within the rendering tree
     // of the <RegistrationLayout>.
     useEffect(() => {
-        const listener = () => setAuthFlowOpen(true);
+        const listener = (authFlowRedirectUrl?: string) => {
+            setAuthFlowRedirectUrl(authFlowRedirectUrl);
+            setAuthFlowOpen(true);
+        };
 
         authenticationContext.attachRequestListener(listener);
         return () => authenticationContext.detachRequestListener(listener);
@@ -77,7 +82,8 @@ export function RegistrationContentContainer(props: RegistrationContentContainer
                                     open={authFlowOpen}
                                     passwordResetRequest={
                                         searchParams.get('password-reset-request')!}
-                                    registrationRedirectUrl={props.redirectUrl}
+                                    registrationRedirectUrl={
+                                        authFlowRedirectUrl ?? props.redirectUrl}
                                     registrationRequest={
                                         searchParams.get('registration-request')!}
                                     user={props.user} />

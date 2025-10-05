@@ -8,7 +8,7 @@ import { createContext } from 'react';
 /**
  * Signature of a listener function that will be called when a request has been issued.
  */
-export type AuthenticationContextListener = () => void;
+export type AuthenticationContextListener = (authFlowRedirectUrl?: string) => void;
 
 /**
  * Manages the authentication context. The provider of the context should
@@ -33,9 +33,9 @@ export class AuthenticationContextManager {
     /**
      * Requests the authentication flow to be opened. All attached listeners will be informed.
      */
-    requestAuthenticationFlow() {
+    requestAuthenticationFlow(authFlowRedirectUrl?: string) {
         for (const listener of this.#listeners)
-            listener();
+            listener(authFlowRedirectUrl);
     }
 }
 

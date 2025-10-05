@@ -54,11 +54,16 @@ export default async function EventApplicationPage(props: NextPageParams<'slug'>
     if (!event)
         notFound();
 
+    let redirectUrl = `https://${environment.domain}/registration/${event.slug}/application`;
     let targetTeam: EnvironmentContextEventAccess['teams'][number] | undefined;
+
     {
         const searchParams = await props.searchParams;
         if (Object.hasOwn(searchParams, 'invite'))
             targetTeam = event.teams.find(team => team.inviteKey === searchParams.invite);
+
+        if (!!targetTeam)
+            redirectUrl += `?invite=${targetTeam.inviteKey}`;
     }
 
     if (event.applications.length > 0) {
@@ -82,7 +87,7 @@ export default async function EventApplicationPage(props: NextPageParams<'slug'>
 
     return acceptsApplications
         ? <EventApplicationFormPage context={context} environment={environment} event={event}
-                                    team={targetTeam} />
+                                    redirectUrl={redirectUrl} team={targetTeam} />
         : <EventApplicationNotAvailablePage />;
 }
 
@@ -121,6 +126,11 @@ async function EventApplicationNotAvailablePage() {
  * Props accepted by the <EventApplicationFormPage> component.
  */
 interface EventApplicationFormPageProps extends EventApplicationSpecialisedProps {
+    /**
+     * URL to which successful registrations (& activations) should be forwarded.
+     */
+    redirectUrl: string;
+
     /**
      * Team that the application should be made towards, if any.
      */
@@ -235,6 +245,7 @@ async function EventApplicationFormPage(props: EventApplicationFormPageProps) {
 
                 <EventApplicationForm eventShortName={event.shortName}
                                       partnerApplications={partnerApplications}
+                                      redirectUrl={props.redirectUrl}
                                       user={context.user} />
 
                 <FormSubmitButton callToAction="Submit application" startIcon={ <SendIcon /> }
