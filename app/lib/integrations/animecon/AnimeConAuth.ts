@@ -103,7 +103,7 @@ export class AnimeConAuth {
         this.#scopes = settings.scopes;
 
         if (settings.revalidateCache)
-            revalidateTag(kNextRevalidationToken);
+            revalidateTag(kNextRevalidationToken, 'max');
     }
 
     /**

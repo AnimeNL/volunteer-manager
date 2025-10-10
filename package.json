@@ -51,7 +51,7 @@
     "marked": "^16.4.0",
     "mui-color-input": "^7.0.0",
     "mui-markdown": "^2.0.3",
-    "next": "^15.5.4",
+    "next": "^16.0.0-beta.0",
     "nodemailer": "^7.0.9",
     "nuqs": "^2.7.1",
     "react": "^19.2.0",
@@ -68,8 +68,14 @@
     "zod": "^4.1.12"
   },
   "overrides": {
+    "@mui/material-nextjs": {
+      "next": "^16.0.0-beta.0"
+    },
     "nodemailer-mock": {
       "nodemailer": "^6.x || ^7.x"
+    },
+    "nuqs": {
+      "next": "^2.7.1 || ^16.0.0-beta.0"
     },
     "react-hook-form-mui": {
       "@mui/x-date-pickers": "^8.2.0"

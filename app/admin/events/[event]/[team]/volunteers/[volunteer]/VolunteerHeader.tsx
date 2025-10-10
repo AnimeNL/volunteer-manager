@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { type FieldValues, SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
