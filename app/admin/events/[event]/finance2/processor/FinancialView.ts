@@ -93,6 +93,38 @@ export function generateEventTicketSalesView(financialData: FinancialData) {
 }
 
 /**
+ * Generates the view necessary to populate the `<LockerSalesTable>` component.
+ */
+export function generateLockerSalesTableView(financialData: FinancialData) {
+    if (!financialData.data.length)
+        return [ /* no event, no products */ ];
+
+    function IsLocker(product: { category: EventSalesCategory }): boolean {
+        return product.category === kEventSalesCategory.Locker;
+    }
+
+    return [ ...financialData.data[0].products.values() ].filter(IsLocker).map(product => {
+        let totalRevenue: number = 0;
+        let totalSales: number = 0;
+
+        for (const sales of product.sales.values()) {
+            totalRevenue += sales * (product.price ?? 0);
+            totalSales += sales;
+        }
+
+        return {
+            id: product.id,
+            programId: product.programId,
+            product: product.product,
+            salesLimit: product.limit,
+            totalRevenue,
+            totalSales,
+        };
+
+    }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
+}
+
+/**
  * Generates the view necessary to populate the `<TicketRevenueCard>` component.
  */
 export function generateTicketRevenueView(financialData: FinancialData) {
@@ -100,6 +132,47 @@ export function generateTicketRevenueView(financialData: FinancialData) {
         figure: 'revenue',
         ticketSales: true,
     });
+}
+
+/**
+ * Generates the view necessary to populate the `<TicketSalesTable>` component.
+ */
+export function generateTicketSalesTableView(financialData: FinancialData) {
+    if (!financialData.data.length)
+        return [ /* no event, no products */ ];
+
+    function IsTicket(product: { category: EventSalesCategory }): boolean {
+        switch (product.category) {
+            case kEventSalesCategory.TicketFriday:
+            case kEventSalesCategory.TicketSaturday:
+            case kEventSalesCategory.TicketSunday:
+            case kEventSalesCategory.TicketWeekend:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    return [ ...financialData.data[0].products.values() ].filter(IsTicket).map(product => {
+        let totalRevenue: number = 0;
+        let totalSales: number = 0;
+
+        for (const sales of product.sales.values()) {
+            totalRevenue += sales * (product.price ?? 0);
+            totalSales += sales;
+        }
+
+        return {
+            id: product.id,
+            programId: product.programId,
+            product: product.product,
+            salesLimit: product.limit,
+            totalRevenue,
+            totalSales,
+        };
+
+    }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
 }
 
 /**

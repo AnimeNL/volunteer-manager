@@ -9,8 +9,10 @@ import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
 import { EventSalesTable } from './tables/EventSalesTable';
 import { FinanceProcessor } from './FinanceProcessor';
+import { LockerSalesTable } from './tables/LockerSalesTable';
 import { TicketRevenueCard } from './kpi/TicketRevenueCard';
 import { TicketSalesCard } from './kpi/TicketSalesCard';
+import { TicketSalesTable } from './tables/TicketSalesTable';
 
 /**
  * Props accepted by the <FinanceDashboard> component.
@@ -41,6 +43,20 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
         );
     }
 
+    // TODO: Unify the components between <{Event,Locker,Ticket}SalesTable>
+    // TODO: Unify the processors between <{Event,Locker,Ticket}SalesTable> functions
+
+    // TODO: Graph displaying ticket sales and estimated visitors per day
+    // TODO: Graph displaying locker sales
+
+    // TODO: Group days together in <TicketSalesTable>
+    // TODO: Graphs for each of the row items in <TicketSalesTable>
+
+    // TODO: Group days together in <LockerSalesTable>
+    // TODO: Graphs for each of the row items in <LockerSalesTable>
+
+    // TODO: Graphs for each of the row items in <EventSalesTable>
+
     return (
         <Grid container spacing={2}>
 
@@ -59,13 +75,28 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                 <EventRevenueCard processor={processor} />
             </Grid>
 
-            { /** Section: Ticket sales ------------------------------------------------------- */ }
+            { /** Section: Festival sales ----------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6 }}>
-                { /* Table: Ticket sales per day */ }
-                { /* Graph: Tickets + visitors / day (two-layer pie chart) */ }
-                { /* Graph: Locker sales (pie chart) */ }
-                { /* Table: Locker sales */ }
+                <Grid container spacing={2}>
+
+                    { /** Section: Tickets ---------------------------------------------------- */ }
+
+                    <Grid size={{ xs: 12 }}>
+                        <TicketSalesTable processor={processor} />
+                    </Grid>
+
+                    { /* Graph: Tickets + visitors / day (two-layer pie chart) */ }
+
+                    { /** Section: Lockers ---------------------------------------------------- */ }
+
+                    { /* Graph: Locker sales (pie chart) */ }
+
+                    <Grid size={{ xs: 12 }}>
+                        <LockerSalesTable processor={processor} />
+                    </Grid>
+
+                </Grid>
             </Grid>
 
             { /** Section: Event sales -------------------------------------------------------- */ }

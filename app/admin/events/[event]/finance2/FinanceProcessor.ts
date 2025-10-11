@@ -26,16 +26,18 @@ export class FinanceProcessor {
     // ---------------------------------------------------------------------------------------------
 
     // Generic data:
-    #remainingDays: number;
+    readonly #remainingDays: number;
 
     // KPI overview:
-    #eventTicketRevenueView: ReturnType<typeof views.generateEventTicketRevenueView>;
-    #eventTicketSalesView: ReturnType<typeof views.generateEventTicketSalesView>;
-    #ticketRevenueView: ReturnType<typeof views.generateTicketRevenueView>;
-    #ticketSalesView: ReturnType<typeof views.generateTicketSalesView>;
+    readonly #eventTicketRevenueView: ReturnType<typeof views.generateEventTicketRevenueView>;
+    readonly #eventTicketSalesView: ReturnType<typeof views.generateEventTicketSalesView>;
+    readonly #ticketRevenueView: ReturnType<typeof views.generateTicketRevenueView>;
+    readonly #ticketSalesView: ReturnType<typeof views.generateTicketSalesView>;
 
     // Data tables:
-    #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
+    readonly #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
+    readonly #lockerSalesTableView: ReturnType<typeof views.generateLockerSalesTableView>;
+    readonly #ticketSalesTableView: ReturnType<typeof views.generateTicketSalesTableView>;
 
     private constructor(financialData: FinancialData) {
         this.#remainingDays = financialData.remaining;
@@ -46,6 +48,8 @@ export class FinanceProcessor {
         this.#ticketSalesView = views.generateTicketSalesView(financialData);
 
         this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
+        this.#lockerSalesTableView = views.generateLockerSalesTableView(financialData);
+        this.#ticketSalesTableView = views.generateTicketSalesTableView(financialData);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -58,4 +62,6 @@ export class FinanceProcessor {
     get ticketSalesView() { return this.#ticketSalesView; }
 
     get eventSalesTableView() { return this.#eventSalesTableView; }
+    get lockerSalesTableView() { return this.#lockerSalesTableView; }
+    get ticketSalesTableView() { return this.#ticketSalesTableView; }
 }

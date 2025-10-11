@@ -3,12 +3,10 @@
 
 'use client';
 
-import Link from '@app/LinkProxy';
 import { useCallback, useState } from 'react';
 
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -20,13 +18,13 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { NoProductsOverlay } from './NoProductsOverlay';
+import { NoLockersOverlay } from './NoProductsOverlay';
 import { formatMetric } from '../kpi/ValueFormatter';
 
 /**
- * Information that needs to be known about an individual product sales.
+ * Information that needs to be known about locker sales.
  */
-export interface EventSalesDataGridRow {
+export interface LockerSalesDataGridRow {
     /**
      * Unique ID assigned to the product. Required by MUI.
      */
@@ -59,46 +57,30 @@ export interface EventSalesDataGridRow {
 }
 
 /**
- * Props accepted by the <EventSalesDataGrid> component.
+ * Props accepted by the <LockerSalesDataGrid> component.
  */
-interface EventSalesDataGridProps {
-    /**
-     * Whether program-associated entries should link through to their respective pages.
-     */
-    enableProgramLinks?: boolean;
-
+interface LockerSalesDataGridProps {
     /**
      * Rows that should be shown in the DataGrid component.
      */
-    rows: EventSalesDataGridRow[];
+    rows: LockerSalesDataGridRow[];
 }
 
 /**
- * The <EventSalesDataGrid> component wraps a MUI <DataGrid> to display event sales information, as
- * made available in the props passed to this component. Client-side logic is used to customise
+ * The <LockerSalesDataGrid> component wraps a MUI <DataGrid> to display locker sales information,
+ * as made available in the props passed to this component. Client-side logic is used to customise
  * logic and to provide the ability to display detailed sales in an overlay dialog.
  */
-export function EventSalesDataGrid(props: EventSalesDataGridProps) {
-    const [ salesDialogRow, setSalesDialogRow ] = useState<EventSalesDataGridRow | null>();
+export function LockerSalesDataGrid(props: LockerSalesDataGridProps) {
+    const [ salesDialogRow, setSalesDialogRow ] = useState<LockerSalesDataGridRow | null>();
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columns: DataGridProProps<EventSalesDataGridRow>['columns'] = [
+    const columns: DataGridProProps<LockerSalesDataGridRow>['columns'] = [
         {
             field: 'product',
             headerName: 'Product',
             flex: 2.5,
-
-            renderCell: params => {
-                if (!props.enableProgramLinks || !params.row.programId)
-                    return params.value;
-
-                return (
-                    <MuiLink component={Link} href={`./program/activities/${params.row.programId}`}>
-                        {params.value}
-                    </MuiLink>
-                );
-            },
         },
         {
             field: 'totalSales',
@@ -155,7 +137,7 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
             <DataGridPro density="compact" disableColumnMenu disableColumnReorder
                          disableColumnResize hideFooter columns={columns} rows={props.rows}
                          slots={{
-                             noRowsOverlay: NoProductsOverlay,
+                             noRowsOverlay: NoLockersOverlay,
                          }}
                          sx={{
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height

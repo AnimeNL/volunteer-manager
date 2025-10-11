@@ -3,30 +3,27 @@
 
 'use client';
 
-import Link from '@app/LinkProxy';
 import { useCallback, useState } from 'react';
 
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { NoProductsOverlay } from './NoProductsOverlay';
 import { formatMetric } from '../kpi/ValueFormatter';
+import { NoTicketsOverlay } from './NoProductsOverlay';
 
 /**
- * Information that needs to be known about an individual product sales.
+ * Information that needs to be known about an individual ticket sales.
  */
-export interface EventSalesDataGridRow {
+export interface TicketSalesDataGridRow {
     /**
      * Unique ID assigned to the product. Required by MUI.
      */
@@ -59,46 +56,30 @@ export interface EventSalesDataGridRow {
 }
 
 /**
- * Props accepted by the <EventSalesDataGrid> component.
+ * Props accepted by the <TicketSalesDataGrid> component.
  */
-interface EventSalesDataGridProps {
-    /**
-     * Whether program-associated entries should link through to their respective pages.
-     */
-    enableProgramLinks?: boolean;
-
+interface TicketSalesDataGridProps {
     /**
      * Rows that should be shown in the DataGrid component.
      */
-    rows: EventSalesDataGridRow[];
+    rows: TicketSalesDataGridRow[];
 }
 
 /**
- * The <EventSalesDataGrid> component wraps a MUI <DataGrid> to display event sales information, as
+ * The <EventSalesDataGrid> component wraps a MUI <DataGrid> to display ticket sales information, as
  * made available in the props passed to this component. Client-side logic is used to customise
  * logic and to provide the ability to display detailed sales in an overlay dialog.
  */
-export function EventSalesDataGrid(props: EventSalesDataGridProps) {
-    const [ salesDialogRow, setSalesDialogRow ] = useState<EventSalesDataGridRow | null>();
+export function TicketSalesDataGrid(props: TicketSalesDataGridProps) {
+    const [ salesDialogRow, setSalesDialogRow ] = useState<TicketSalesDataGridRow | null>();
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columns: DataGridProProps<EventSalesDataGridRow>['columns'] = [
+    const columns: DataGridProProps<TicketSalesDataGridRow>['columns'] = [
         {
             field: 'product',
             headerName: 'Product',
             flex: 2.5,
-
-            renderCell: params => {
-                if (!props.enableProgramLinks || !params.row.programId)
-                    return params.value;
-
-                return (
-                    <MuiLink component={Link} href={`./program/activities/${params.row.programId}`}>
-                        {params.value}
-                    </MuiLink>
-                );
-            },
         },
         {
             field: 'totalSales',
@@ -109,13 +90,6 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
 
             renderCell: params =>
                 <Typography variant="inherit">
-                    { (!!params.row.salesLimit && params.row.salesLimit <= params.value) &&
-                        <Typography component="span" color="warning" variant="inherit">
-                            <Tooltip title="Sold out!">
-                                <MoneyOffIcon fontSize="inherit"
-                                              sx={{ mr: 0.5, transform: 'translateY(2px)' }} />
-                            </Tooltip>
-                        </Typography> }
                     { params.value }
                     { !!params.row.salesLimit &&
                         <Typography component="span" color="textDisabled" variant="inherit">
@@ -155,7 +129,7 @@ export function EventSalesDataGrid(props: EventSalesDataGridProps) {
             <DataGridPro density="compact" disableColumnMenu disableColumnReorder
                          disableColumnResize hideFooter columns={columns} rows={props.rows}
                          slots={{
-                             noRowsOverlay: NoProductsOverlay,
+                             noRowsOverlay: NoTicketsOverlay,
                          }}
                          sx={{
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height
