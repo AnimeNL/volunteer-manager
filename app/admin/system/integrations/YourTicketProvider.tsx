@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback, useState } from 'react';
 
 import { type FieldValues, FormContainer, TextFieldElement } from '@proxy/react-hook-form-mui';

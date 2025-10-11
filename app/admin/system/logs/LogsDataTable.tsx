@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';

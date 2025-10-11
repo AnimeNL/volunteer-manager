@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
 import AddTaskIcon from '@mui/icons-material/AddTask';

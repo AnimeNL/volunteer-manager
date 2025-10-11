@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import React, { useContext, useMemo } from 'react';
 import { redirect } from 'next/navigation';
 

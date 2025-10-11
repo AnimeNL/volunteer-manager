@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { SelectElement } from '@proxy/react-hook-form-mui';

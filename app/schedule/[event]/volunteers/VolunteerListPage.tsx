@@ -4,7 +4,7 @@
 'use client';
 
 import type React from 'react';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback, useContext, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 

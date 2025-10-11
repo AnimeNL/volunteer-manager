@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback } from 'react';
 
 import type { GridCellParams, ValueOptions } from '@mui/x-data-grid-pro';

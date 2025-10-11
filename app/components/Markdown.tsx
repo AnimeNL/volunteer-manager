@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { MuiMarkdown, defaultOverrides } from 'mui-markdown';
 
 import type { SxProps } from '@mui/system';

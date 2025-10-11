@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import React from 'react';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';

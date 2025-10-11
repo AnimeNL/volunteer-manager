@@ -4,7 +4,7 @@
 'use client';
 
 import type React from 'react';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 
 import type { GridRenderEditCellParams } from '@mui/x-data-grid-pro';

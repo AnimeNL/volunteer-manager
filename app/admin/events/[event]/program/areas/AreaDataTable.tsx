@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';

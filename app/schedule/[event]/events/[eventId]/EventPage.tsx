@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import type React from 'react';
 import { useCallback, useContext, useMemo, useState } from 'react';
 

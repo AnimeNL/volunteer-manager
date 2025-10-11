@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';

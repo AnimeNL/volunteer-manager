@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';

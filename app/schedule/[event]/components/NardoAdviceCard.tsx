@@ -4,7 +4,7 @@
 'use client';
 
 import type { PropsWithChildren } from 'react';
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';

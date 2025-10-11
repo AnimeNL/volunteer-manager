@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useEffect, useState } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';

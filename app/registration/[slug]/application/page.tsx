@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';

@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import React, { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 

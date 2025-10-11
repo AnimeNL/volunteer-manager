@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { GridColDef, GridRowParams } from '@mui/x-data-grid-pro';

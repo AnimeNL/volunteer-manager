@@ -3,7 +3,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import Link from '@app/LinkProxy';
 
 import type { GridCellParams, GridGroupingColDefOverride } from '@mui/x-data-grid-pro';
 import { default as MuiLink } from '@mui/material/Link';
