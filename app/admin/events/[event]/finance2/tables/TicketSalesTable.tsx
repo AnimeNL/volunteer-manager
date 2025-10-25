@@ -4,7 +4,7 @@
 import Card from '@mui/material/Card';
 
 import type { FinanceProcessor } from '../FinanceProcessor';
-import { TicketSalesDataGrid } from './TicketSalesDataGrid';
+import { SalesDataGrid } from './SalesDataGrid';
 
 /**
  * Props accepted by the <TicketSalesTable> component.
@@ -22,7 +22,7 @@ interface TicketSalesTableProps {
 export function TicketSalesTable(props: TicketSalesTableProps) {
     return (
         <Card elevation={1}>
-            <TicketSalesDataGrid rows={props.processor.ticketSalesTableView} />
+            <SalesDataGrid kind="tickets" rows={props.processor.ticketSalesTableView} />
         </Card>
     );
 }

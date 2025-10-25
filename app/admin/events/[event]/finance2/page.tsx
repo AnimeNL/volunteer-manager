@@ -50,7 +50,7 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
                     figures and comparisons with past editions.
                 </SectionIntroduction>
             </Section>
-            <FinanceDashboard enableProgramLinks event={event.slug} />
+            <FinanceDashboard event={event.slug} />
         </>
     );
 }

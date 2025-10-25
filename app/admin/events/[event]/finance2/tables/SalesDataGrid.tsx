@@ -3,47 +3,44 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import Link from 'next/link';
+import { useCallback, useMemo, useState } from 'react';
 
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
+import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
+import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { NoLockersOverlay } from './NoProductsOverlay';
 import { formatMetric } from '../kpi/ValueFormatter';
 
 /**
- * Information that needs to be known about locker sales.
+ * Information that needs to be known about an individual sales.
  */
-export interface LockerSalesDataGridRow {
+export interface SalesDataGridRow {
     /**
      * Unique ID assigned to the product. Required by MUI.
      */
     id: number;
 
     /**
-     * Unique ID of the AnPlan program entry that this product has been associated with.
+     * Link of the page that this product should link to.
      */
-    programId?: number;
+    href?: string;
 
     /**
      * Human-readable name of the product. Should be the primary sorting key.
      */
     product: string;
-
-    /**
-     * Maximum number of sales that can be made for this product, if known.
-     */
-    salesLimit?: number;
 
     /**
      * Total revenue that has been generated on this event.
@@ -54,33 +51,59 @@ export interface LockerSalesDataGridRow {
      * Current sales of the product, as total number of products sold.
      */
     totalSales: number;
+
+    /**
+     * Maximum number of sales that can be made for this product, if known.
+     */
+    maximumSales?: number;
 }
 
 /**
- * Props accepted by the <LockerSalesDataGrid> component.
+ * Props accepted by the <TicketSalesDataGrid> component.
  */
-interface LockerSalesDataGridProps {
+interface SalesDataGridProps {
+    /**
+     * Whether product links should be disabled, even if a valid `href` has been passed.
+     */
+    disableProductLinks?: boolean;
+
+    /**
+     * Kind of products displayed by this data table.
+     */
+    kind: 'events' | 'lockers' | 'tickets';
+
     /**
      * Rows that should be shown in the DataGrid component.
      */
-    rows: LockerSalesDataGridRow[];
+    rows: SalesDataGridRow[];
 }
 
 /**
- * The <LockerSalesDataGrid> component wraps a MUI <DataGrid> to display locker sales information,
- * as made available in the props passed to this component. Client-side logic is used to customise
+ * The <SalesDataGrid> component wraps a MUI <DataGrid> to display sales information for a series of
+ * products, with various customisation options available. Client-side logic is used to customise
  * logic and to provide the ability to display detailed sales in an overlay dialog.
  */
-export function LockerSalesDataGrid(props: LockerSalesDataGridProps) {
-    const [ salesDialogRow, setSalesDialogRow ] = useState<LockerSalesDataGridRow | null>();
+export function SalesDataGrid(props: SalesDataGridProps) {
+    const [ salesDialogRow, setSalesDialogRow ] = useState<SalesDataGridRow | null>();
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columns: DataGridProProps<LockerSalesDataGridRow>['columns'] = [
+    const columns: DataGridProProps<SalesDataGridRow>['columns'] = [
         {
             field: 'product',
             headerName: 'Product',
             flex: 2.5,
+
+            renderCell: params => {
+                if (props.disableProductLinks || !params.row.href)
+                    return params.value;
+
+                return (
+                    <MuiLink component={Link} href={params.row.href}>
+                        {params.value}
+                    </MuiLink>
+                );
+            },
         },
         {
             field: 'totalSales',
@@ -91,17 +114,10 @@ export function LockerSalesDataGrid(props: LockerSalesDataGridProps) {
 
             renderCell: params =>
                 <Typography variant="inherit">
-                    { (!!params.row.salesLimit && params.row.salesLimit <= params.value) &&
-                        <Typography component="span" color="warning" variant="inherit">
-                            <Tooltip title="Sold out!">
-                                <MoneyOffIcon fontSize="inherit"
-                                              sx={{ mr: 0.5, transform: 'translateY(2px)' }} />
-                            </Tooltip>
-                        </Typography> }
                     { params.value }
-                    { !!params.row.salesLimit &&
+                    { !!params.row.maximumSales &&
                         <Typography component="span" color="textDisabled" variant="inherit">
-                            {' '}/ {params.row.salesLimit}
+                            {' '}/ {params.row.maximumSales}
                         </Typography> }
                 </Typography>,
         },
@@ -132,13 +148,25 @@ export function LockerSalesDataGrid(props: LockerSalesDataGridProps) {
         },
     ];
 
+    const noRowsOverlay = useMemo(() => {
+        switch (props.kind) {
+            case 'events':
+                return OverlayWithoutLabel.bind(null, 'Event tickets will appear here…');
+            case 'lockers':
+                return OverlayWithoutLabel.bind(null, 'Lockers will appear here…');
+            case 'tickets':
+                return OverlayWithoutLabel.bind(null, 'Tickets will appear here…');
+        }
+
+        throw new Error(`Invalid |kind| prop passed: ${props.kind}`)
+
+    }, [ props.kind ]);
+
     return (
         <>
             <DataGridPro density="compact" disableColumnMenu disableColumnReorder
                          disableColumnResize hideFooter columns={columns} rows={props.rows}
-                         slots={{
-                             noRowsOverlay: NoLockersOverlay,
-                         }}
+                         slots={{ noRowsOverlay }}
                          sx={{
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height
                              borderColor: 'transparent',  // remove the grid's default border
@@ -158,5 +186,21 @@ export function LockerSalesDataGrid(props: LockerSalesDataGridProps) {
                     </DialogActions>
                 </Dialog> }
         </>
+    );
+}
+
+/**
+ * Overlay used in the MUI Data Grid component when no products could be found, which is quite
+ * commonly the case early on during festival organisation.
+ */
+function OverlayWithoutLabel(label: string) {
+    return (
+        <Stack direction="column" alignItems="center" justifyContent="center"
+               sx={{ height: '100%' }}>
+            <LocalActivityIcon color="disabled" fontSize="large" />
+            <Typography color="textDisabled" variant="body2">
+                {label}
+            </Typography>
+        </Stack>
     );
 }

@@ -4,7 +4,7 @@
 import Card from '@mui/material/Card';
 
 import type { FinanceProcessor } from '../FinanceProcessor';
-import { LockerSalesDataGrid } from './LockerSalesDataGrid';
+import { SalesDataGrid } from './SalesDataGrid';
 
 /**
  * Props accepted by the <LockerSalesTable> component.
@@ -22,7 +22,7 @@ interface LockerSalesTableProps {
 export function LockerSalesTable(props: LockerSalesTableProps) {
     return (
         <Card elevation={1}>
-            <LockerSalesDataGrid rows={props.processor.lockerSalesTableView} />
+            <SalesDataGrid kind="lockers" rows={props.processor.lockerSalesTableView} />
         </Card>
     );
 }

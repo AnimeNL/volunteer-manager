@@ -21,7 +21,7 @@ interface FinanceDashboardProps {
     /**
      * Whether program-associated entries should link through to their respective pages.
      */
-    enableProgramLinks?: boolean;
+    disableProductLinks?: boolean;
 
     /**
      * URL-safe slug of the event for which financial information should be shown.
@@ -43,7 +43,6 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
         );
     }
 
-    // TODO: Unify the components between <{Event,Locker,Ticket}SalesTable>
     // TODO: Unify the processors between <{Event,Locker,Ticket}SalesTable> functions
 
     // TODO: Graph displaying ticket sales and estimated visitors per day
@@ -102,7 +101,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             { /** Section: Event sales -------------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6 }}>
-                <EventSalesTable enableProgramLinks={props.enableProgramLinks}
+                <EventSalesTable disableProductLinks={props.disableProductLinks}
                                  processor={processor} />
             </Grid>
 

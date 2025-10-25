@@ -4,7 +4,7 @@
 import Card from '@mui/material/Card';
 
 import type { FinanceProcessor } from '../FinanceProcessor';
-import { EventSalesDataGrid } from './EventSalesDataGrid';
+import { SalesDataGrid } from './SalesDataGrid';
 
 /**
  * Props accepted by the <EventSalesTable> component.
@@ -13,7 +13,7 @@ interface EventSalesTableProps {
     /**
      * Whether program-associated entries should link through to their respective pages.
      */
-    enableProgramLinks?: boolean;
+    disableProductLinks?: boolean;
 
     /**
      * The financial processor that contains the relevant ticket sale information.
@@ -28,8 +28,8 @@ interface EventSalesTableProps {
 export function EventSalesTable(props: EventSalesTableProps) {
     return (
         <Card elevation={1}>
-            <EventSalesDataGrid enableProgramLinks={props.enableProgramLinks}
-                                rows={props.processor.eventSalesTableView} />
+            <SalesDataGrid disableProductLinks={props.disableProductLinks} kind="events"
+                           rows={props.processor.eventSalesTableView} />
         </Card>
     );
 }

@@ -47,6 +47,8 @@ export function generateEventSalesTableView(financialData: FinancialData) {
     if (!financialData.data.length)
         return [ /* no event, no products */ ];
 
+    const baseHref = `/admin/events/${financialData.data[0].slug}/program/activities`;
+
     function IsEvent(product: { category: EventSalesCategory }): boolean {
         return product.category === kEventSalesCategory.Event;
     }
@@ -60,9 +62,13 @@ export function generateEventSalesTableView(financialData: FinancialData) {
             totalSales += sales;
         }
 
+        let href: string | undefined;
+        if (!!product.programId)
+            href = `${baseHref}/${product.programId}`;
+
         return {
             id: product.id,
-            programId: product.programId,
+            href,
             product: product.product,
             salesLimit: product.limit,
             totalRevenue,
