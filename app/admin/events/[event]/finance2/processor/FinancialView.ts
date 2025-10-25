@@ -112,9 +112,10 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
             category: product.category,
             href,
             product: product.product,
-            salesLimit: product.limit,
+            price: product.price,
             totalRevenue,
             totalSales,
+            maximumSales: product.limit,
         };
 
     }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));

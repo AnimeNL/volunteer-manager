@@ -1,7 +1,13 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
+
 import Chip from '@mui/material/Chip';
+import EuroIcon from '@mui/icons-material/Euro';
+import IconButton from '@mui/material/IconButton';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { NextPageParams } from '@lib/NextRouterParams';
@@ -18,7 +24,7 @@ import db, { tEventsSales } from '@lib/database';
  * data is only accessible to a subset of our users, as it's not usually applicable.
  */
 export default async function FinancePage(props: NextPageParams<'event'>) {
-    const { event } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event } = await verifyAccessAndFetchPageInfo(props.params, {
         permission: 'statistics.finances',
     });
 
@@ -29,22 +35,37 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
         .groupBy(tEventsSales.eventId)
         .executeSelectNoneOrOne();
 
-    let headerAction: React.ReactNode;
+    const headerActions: React.ReactNode[] = [];
+    if (access.can('admin')) {
+        headerActions.push(
+            <Tooltip title="Settings">
+                <IconButton LinkComponent={Link} href="./finance/settings" size="small">
+                    <SettingsIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        )
+    }
+
     if (!!mostRecentUpdate) {
-        headerAction = (
+        headerActions.push(
             <Tooltip title="Data updated on…">
                 <Chip size="small" color="primary" variant="outlined" label={
                     <LocalDateTime dateTime={mostRecentUpdate.toString()}
                                    format="dddd, MMMM Do [at] HH:mm" />
                 } />
-            </Tooltip>
-        );
+            </Tooltip>);
     }
+
+
 
     return (
         <>
             <Section title="Financial information" subtitle={event.shortName}
-                     headerAction={headerAction}>
+                     icon={ <EuroIcon color="primary" /> } headerAction={
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            {headerActions}
+                        </Stack>
+                     }>
                 <SectionIntroduction>
                     This is the financial dashboard for {event.shortName}, showing key ticket sale
                     figures and comparisons with past editions.

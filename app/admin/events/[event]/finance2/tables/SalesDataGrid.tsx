@@ -9,17 +9,20 @@ import { useCallback, useMemo, useState } from 'react';
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
 import { default as MuiLink } from '@mui/material/Link';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import EuroIcon from '@mui/icons-material/Euro';
 import IconButton from '@mui/material/IconButton';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import VerifiedIcon from '@mui/icons-material/Verified';
 
 import { formatMetric } from '../kpi/ValueFormatter';
 
@@ -68,6 +71,11 @@ export interface SalesDataGridRow {
      * Human-readable name of the product. Should be the primary sorting key.
      */
     product: string;
+
+    /**
+     * When given, will enable a tooltip to display the individual product price.
+     */
+    price?: number;
 
     /**
      * Total revenue that has been generated on this event.
@@ -146,6 +154,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
             renderCell: params =>
                 <Typography variant="inherit">
+                    { params.row.maximumSales === params.row.totalSales &&
+                        <Tooltip title="Sold out!">
+                            <VerifiedIcon fontSize="inherit" color="success"
+                                          sx={{ mr: 0.75, transform: 'translateY(2px)' }} />
+                        </Tooltip> }
                     { params.value }
                     { !!params.row.maximumSales &&
                         <Typography component="span" color="textDisabled" variant="inherit">
@@ -160,7 +173,15 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             align: 'right',
             flex: 1,
 
-            valueFormatter: v => formatMetric(v, 'revenue'),
+            renderCell: params =>
+                <Typography variant="inherit">
+                    { !!params.row.price &&
+                        <Tooltip title={ formatMetric(params.row.price, 'revenue', 'each') }>
+                            <AttachMoneyIcon fontSize="inherit" color="info"
+                                             sx={{ mr: 0.5, transform: 'translateY(2px)' }} />
+                        </Tooltip> }
+                    { formatMetric(params.value, 'revenue') }
+                </Typography>,
         },
         {
             display: 'flex',

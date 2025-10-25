@@ -9,10 +9,12 @@ import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
 import { EventSalesTable } from './tables/EventSalesTable';
 import { FinanceProcessor } from './FinanceProcessor';
+import { LockerSalesGraph } from './graphs/LockerSalesGraph';
 import { LockerSalesTable } from './tables/LockerSalesTable';
 import { TicketRevenueCard } from './kpi/TicketRevenueCard';
 import { TicketSalesCard } from './kpi/TicketSalesCard';
 import { TicketSalesTable } from './tables/TicketSalesTable';
+import { VisitorGraphCard } from './graphs/VisitorGraphCard';
 
 /**
  * Props accepted by the <FinanceDashboard> component.
@@ -43,8 +45,8 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
         );
     }
 
-    // TODO: Graph displaying ticket sales and estimated visitors per day
-    // TODO: Graph displaying locker sales
+    // Aspect ratio to apply to the pie chart containers.
+    const kPieChartAspectRatio = 1.8;
 
     // TODO: Graphs for each of the row items in <TicketSalesTable>
     // TODO: Graphs for each of the row items in <LockerSalesTable>
@@ -79,11 +81,18 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                         <TicketSalesTable processor={processor} />
                     </Grid>
 
-                    { /* Graph: Tickets + visitors / day (two-layer pie chart) */ }
+                    { /** Section: Graphs ------------------------------------------------------ */}
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <VisitorGraphCard aspectRatio={kPieChartAspectRatio}
+                                          processor={processor} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <LockerSalesGraph aspectRatio={kPieChartAspectRatio}
+                                          processor={processor} />
+                    </Grid>
 
                     { /** Section: Lockers ---------------------------------------------------- */ }
-
-                    { /* Graph: Locker sales (pie chart) */ }
 
                     <Grid size={{ xs: 12 }}>
                         <LockerSalesTable processor={processor} />
