@@ -36,7 +36,7 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
         .executeSelectNoneOrOne();
 
     const headerActions: React.ReactNode[] = [];
-    if (access.can('admin')) {
+    if (access.can('event.settings', { event: event.slug })) {
         headerActions.push(
             <Tooltip title="Settings">
                 <IconButton LinkComponent={Link} href="./finance/settings" size="small">
@@ -55,8 +55,6 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
                 } />
             </Tooltip>);
     }
-
-
 
     return (
         <>
