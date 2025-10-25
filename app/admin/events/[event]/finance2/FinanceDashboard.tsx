@@ -43,8 +43,6 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
         );
     }
 
-    // TODO: Unify the processors between <{Event,Locker,Ticket}SalesTable> functions
-
     // TODO: Graph displaying ticket sales and estimated visitors per day
     // TODO: Graph displaying locker sales
 

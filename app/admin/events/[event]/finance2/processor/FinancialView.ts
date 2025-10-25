@@ -44,38 +44,11 @@ const kSalesCategoryLabels: { [key in EventSalesCategory]?: string } = {
  * Generates the view necessary to populate the `<EventSalesTable>` component.
  */
 export function generateEventSalesTableView(financialData: FinancialData) {
-    if (!financialData.data.length)
-        return [ /* no event, no products */ ];
-
-    const baseHref = `/admin/events/${financialData.data[0].slug}/program/activities`;
-
     function IsEvent(product: { category: EventSalesCategory }): boolean {
         return product.category === kEventSalesCategory.Event;
     }
 
-    return [ ...financialData.data[0].products.values() ].filter(IsEvent).map(product => {
-        let totalRevenue: number = 0;
-        let totalSales: number = 0;
-
-        for (const sales of product.sales.values()) {
-            totalRevenue += sales * (product.price ?? 0);
-            totalSales += sales;
-        }
-
-        let href: string | undefined;
-        if (!!product.programId)
-            href = `${baseHref}/${product.programId}`;
-
-        return {
-            id: product.id,
-            href,
-            product: product.product,
-            salesLimit: product.limit,
-            totalRevenue,
-            totalSales,
-        };
-
-    }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
+    return generateSalesTableView(IsEvent, financialData);
 }
 
 /**
@@ -102,14 +75,26 @@ export function generateEventTicketSalesView(financialData: FinancialData) {
  * Generates the view necessary to populate the `<LockerSalesTable>` component.
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
-    if (!financialData.data.length)
-        return [ /* no event, no products */ ];
-
     function IsLocker(product: { category: EventSalesCategory }): boolean {
         return product.category === kEventSalesCategory.Locker;
     }
 
-    return [ ...financialData.data[0].products.values() ].filter(IsLocker).map(product => {
+    return generateSalesTableView(IsLocker, financialData);
+}
+
+type ProductFilterFn = (product: { category: EventSalesCategory }) => boolean;
+
+/**
+ * Generates a sales table view for products matching the given |filter|. Only the first event in
+ * the |financialData| will be considered.
+ */
+function generateSalesTableView(filter: ProductFilterFn, financialData: FinancialData) {
+    if (!financialData.data.length)
+        return [ /* no event, no products */ ];
+
+    const baseHref = `/admin/events/${financialData.data[0].slug}/program/activities`;
+
+    return [ ...financialData.data[0].products.values() ].filter(filter).map(product => {
         let totalRevenue: number = 0;
         let totalSales: number = 0;
 
@@ -118,9 +103,13 @@ export function generateLockerSalesTableView(financialData: FinancialData) {
             totalSales += sales;
         }
 
+        let href: string | undefined;
+        if (!!product.programId)
+            href = `${baseHref}/${product.programId}`;
+
         return {
             id: product.id,
-            programId: product.programId,
+            href,
             product: product.product,
             salesLimit: product.limit,
             totalRevenue,
@@ -144,41 +133,11 @@ export function generateTicketRevenueView(financialData: FinancialData) {
  * Generates the view necessary to populate the `<TicketSalesTable>` component.
  */
 export function generateTicketSalesTableView(financialData: FinancialData) {
-    if (!financialData.data.length)
-        return [ /* no event, no products */ ];
-
     function IsTicket(product: { category: EventSalesCategory }): boolean {
-        switch (product.category) {
-            case kEventSalesCategory.TicketFriday:
-            case kEventSalesCategory.TicketSaturday:
-            case kEventSalesCategory.TicketSunday:
-            case kEventSalesCategory.TicketWeekend:
-                return true;
-
-            default:
-                return false;
-        }
+        return isTicketSalesCategory(product.category);
     }
 
-    return [ ...financialData.data[0].products.values() ].filter(IsTicket).map(product => {
-        let totalRevenue: number = 0;
-        let totalSales: number = 0;
-
-        for (const sales of product.sales.values()) {
-            totalRevenue += sales * (product.price ?? 0);
-            totalSales += sales;
-        }
-
-        return {
-            id: product.id,
-            programId: product.programId,
-            product: product.product,
-            salesLimit: product.limit,
-            totalRevenue,
-            totalSales,
-        };
-
-    }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
+    return generateSalesTableView(IsTicket, financialData);
 }
 
 /**
