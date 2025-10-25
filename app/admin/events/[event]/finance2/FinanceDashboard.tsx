@@ -46,12 +46,8 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     // TODO: Graph displaying ticket sales and estimated visitors per day
     // TODO: Graph displaying locker sales
 
-    // TODO: Group days together in <TicketSalesTable>
     // TODO: Graphs for each of the row items in <TicketSalesTable>
-
-    // TODO: Group days together in <LockerSalesTable>
     // TODO: Graphs for each of the row items in <LockerSalesTable>
-
     // TODO: Graphs for each of the row items in <EventSalesTable>
 
     return (

@@ -109,6 +109,7 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
 
         return {
             id: product.id,
+            category: product.category,
             href,
             product: product.product,
             salesLimit: product.limit,

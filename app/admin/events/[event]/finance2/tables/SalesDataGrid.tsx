@@ -23,6 +23,28 @@ import Typography from '@mui/material/Typography';
 
 import { formatMetric } from '../kpi/ValueFormatter';
 
+import { kEventSalesCategory, type EventSalesCategory } from '@lib/database/Types';
+
+/**
+ * Optional category labels to translate to a human readable name. Falls back to the category name.
+ */
+const kCategoryLabels: { [key in EventSalesCategory]?: string } = {
+    [kEventSalesCategory.TicketFriday]: 'Friday tickets',
+    [kEventSalesCategory.TicketSaturday]: 'Saturday tickets',
+    [kEventSalesCategory.TicketSunday]: 'Sunday tickets',
+    [kEventSalesCategory.TicketWeekend]: 'Weekend tickets',
+};
+
+/**
+ * Returns the tree data path for category grouping as supported by the <SalesDataGrid> component.
+ */
+function getTreeDataPathForCategories(row: SalesDataGridRow): string[] {
+    const categoryLabel = kCategoryLabels[row.category as EventSalesCategory] ?? row.category;
+    return row.id <= 0
+        ? [ categoryLabel ]
+        : [ categoryLabel, row.product ];
+}
+
 /**
  * Information that needs to be known about an individual sales.
  */
@@ -31,6 +53,11 @@ export interface SalesDataGridRow {
      * Unique ID assigned to the product. Required by MUI.
      */
     id: number;
+
+    /**
+     * Category that the row is part of. Used for the optional grouping feature.
+     */
+    category: string;
 
     /**
      * Link of the page that this product should link to.
@@ -68,6 +95,11 @@ interface SalesDataGridProps {
     disableProductLinks?: boolean;
 
     /**
+     * Whether category grouping should be enabled.
+     */
+    enableCategoryGrouping?: boolean;
+
+    /**
      * Kind of products displayed by this data table.
      */
     kind: 'events' | 'lockers' | 'tickets';
@@ -88,7 +120,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columns: DataGridProProps<SalesDataGridRow>['columns'] = [
+    const columnDefinitions: DataGridProProps<SalesDataGridRow>['columns'] = [
         {
             field: 'product',
             headerName: 'Product',
@@ -148,6 +180,59 @@ export function SalesDataGrid(props: SalesDataGridProps) {
         },
     ];
 
+    // ---------------------------------------------------------------------------------------------
+
+    const [ columns, groupingColDef ] = useMemo(() => {
+        if (!props.enableCategoryGrouping)
+            return [ columnDefinitions, undefined ];
+
+        const [ _, ...columns ] = columnDefinitions;
+
+        const groupingColDef: DataGridProProps['groupingColDef'] = {
+            headerName: 'Product',
+            flex: 2.5,
+        };
+
+        return [ columns, groupingColDef ];
+
+    }, [ props.enableCategoryGrouping ]);
+
+    const rows = useMemo(() => {
+        if (!props.enableCategoryGrouping)
+            return props.rows;
+
+        const uniqueCategories = new Set<string>;
+        for (const { category } of props.rows)
+            uniqueCategories.add(category);
+
+        const categoryAggregates = new Map<string, SalesDataGridRow>;
+        for (const category of uniqueCategories.values()) {
+            categoryAggregates.set(category, {
+                id: 0 - categoryAggregates.size,
+                category,
+                // |href| intentionally omitted
+                product: kCategoryLabels[category as EventSalesCategory] ?? category,
+                totalRevenue: 0,
+                totalSales: 0,
+                // |maximumSales| intentionally omitted
+            });
+        }
+
+        for (const row of props.rows) {
+            const aggregate = categoryAggregates.get(row.category)!;
+            aggregate.totalRevenue += row.totalRevenue;
+            aggregate.totalSales += row.totalSales;
+        }
+
+        return [
+            ...categoryAggregates.values(),
+            ...props.rows,
+        ];
+
+    }, [ props.enableCategoryGrouping, props.rows ]);
+
+    // ---------------------------------------------------------------------------------------------
+
     const noRowsOverlay = useMemo(() => {
         switch (props.kind) {
             case 'events':
@@ -162,15 +247,19 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     }, [ props.kind ]);
 
+    // ---------------------------------------------------------------------------------------------
+
     return (
         <>
             <DataGridPro density="compact" disableColumnMenu disableColumnReorder
-                         disableColumnResize hideFooter columns={columns} rows={props.rows}
+                         disableColumnResize hideFooter columns={columns} rows={rows}
                          slots={{ noRowsOverlay }}
                          sx={{
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height
                              borderColor: 'transparent',  // remove the grid's default border
-                         }} />
+                         }}
+                         treeData={props.enableCategoryGrouping} groupingColDef={groupingColDef}
+                         getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
                 <Dialog open onClose={closeSalesDialog} maxWidth="md" fullWidth>
                     <DialogTitle>
