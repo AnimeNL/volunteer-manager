@@ -72,6 +72,13 @@ export function generateEventTicketSalesView(financialData: FinancialData) {
 }
 
 /**
+ * Generates a graph view for locker sales and occupation expectations during the event.
+ */
+export function generateLockerSalesGraphView(financialData: FinancialData) {
+    return generateSalesGraphView('lockers', financialData);
+}
+
+/**
  * Generates the view necessary to populate the `<LockerSalesTable>` component.
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
@@ -87,6 +94,69 @@ export function generateLockerSalesTableView(financialData: FinancialData) {
 }
 
 type ProductFilterFn = (product: { category: EventSalesCategory }) => boolean;
+
+/**
+ * Generates a sales graph view for products of the given |type|. Two data series will be returned,
+ * one specific to sales, and one specific to actual use. (E.g. weekend sales multiply across days.)
+ */
+function generateSalesGraphView(type: 'lockers' | 'tickets', financialData: FinancialData) {
+    if (!financialData.data.length)
+        return [ /* no event, no products */ ];
+
+    const kOccupancySuffix = type === 'lockers' ? 'occupied lockers' : 'visitors';
+    const kSalesSuffix = type === 'lockers'? 'locker sales' : 'ticket sales';
+
+    const kIndexFriday = 0;
+    const kIndexSaturday = 1;
+    const kIndexSunday = 2;
+    const kIndexWeekend = 3;  // only valid for |salesSeries|
+
+    const kProductCategoryToIndexMapping: { [key in EventSalesCategory]?: number } =
+        type === 'lockers' ? {
+            [kEventSalesCategory.LockerFriday]: kIndexFriday,
+            [kEventSalesCategory.LockerSaturday]: kIndexSaturday,
+            [kEventSalesCategory.LockerSunday]: kIndexSunday,
+            [kEventSalesCategory.LockerWeekend]: kIndexWeekend,
+        } : {
+            [kEventSalesCategory.TicketFriday]: kIndexFriday,
+            [kEventSalesCategory.TicketSaturday]: kIndexSaturday,
+            [kEventSalesCategory.TicketSunday]: kIndexSunday,
+            [kEventSalesCategory.TicketWeekend]: kIndexWeekend,
+        };
+
+    type SalesGraphPoint = { color: string; label: string; value: number; };
+
+    const occupancySeries = [ 'Friday', 'Saturday', 'Sunday' ].map((label, index) => ({
+        color: kSalesBarColors[index],
+        label: `${label} (${kOccupancySuffix})`,
+        value: 0,
+    })) satisfies SalesGraphPoint[];
+
+    const salesSeries = [ 'Friday', 'Saturday', 'Sunday', 'Weekend' ].map((label, index) => ({
+        color: kSalesBarColors[index],
+        label: `${label} (${kSalesSuffix})`,
+        value: 0,
+    })) satisfies SalesGraphPoint[];
+
+    for (const product of financialData.data[0].products.values()) {
+        const seriesIndex = kProductCategoryToIndexMapping[product.category];
+        if (seriesIndex === undefined)
+            continue;
+
+        for (const sales of product.sales.values()) {
+            salesSeries[seriesIndex].value += sales;
+            if (seriesIndex !== kIndexWeekend) {
+                occupancySeries[seriesIndex].value += sales;
+            } else {
+                occupancySeries[kIndexFriday].value += sales;
+                occupancySeries[kIndexSaturday].value += sales;
+                occupancySeries[kIndexSunday].value += sales;
+            }
+        }
+    }
+
+    return [ { data: occupancySeries }, { data: salesSeries } ];
+}
 
 /**
  * Generates a sales table view for products matching the given |filter|. Only the first event in
@@ -123,6 +193,13 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
         };
 
     }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
+}
+
+/**
+ * Generates a graph view for ticket sales and visitor expectations during the event.
+ */
+export function generateTicketSalesGraphView(financialData: FinancialData) {
+    return generateSalesGraphView('tickets', financialData);
 }
 
 /**

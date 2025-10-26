@@ -11,6 +11,13 @@ import * as views from './processor/FinancialView';
  */
 export class FinanceProcessor {
     /**
+     * Clears any cached processors for the given `event`.
+     */
+    static clearForEvent(event: string): void {
+        // TODO: Remove cached FinanceProcessor instances
+    }
+
+    /**
      * Retrieves the processor for the given `event` when it exists in the cache, or creates and
      * initialises a new instance when it doesn't. Returns `undefined` when an instance could not
      * be created for the given `event`, for example because it does not contain financial data.
@@ -39,6 +46,10 @@ export class FinanceProcessor {
     readonly #lockerSalesTableView: ReturnType<typeof views.generateLockerSalesTableView>;
     readonly #ticketSalesTableView: ReturnType<typeof views.generateTicketSalesTableView>;
 
+    // Graphs:
+    readonly #lockerSalesGraphView: ReturnType<typeof views.generateLockerSalesGraphView>;
+    readonly #ticketSalesGraphView: ReturnType<typeof views.generateTicketSalesGraphView>;
+
     private constructor(financialData: FinancialData) {
         this.#remainingDays = financialData.remaining;
 
@@ -50,6 +61,9 @@ export class FinanceProcessor {
         this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
         this.#lockerSalesTableView = views.generateLockerSalesTableView(financialData);
         this.#ticketSalesTableView = views.generateTicketSalesTableView(financialData);
+
+        this.#lockerSalesGraphView = views.generateLockerSalesGraphView(financialData);
+        this.#ticketSalesGraphView = views.generateTicketSalesGraphView(financialData);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -64,4 +78,7 @@ export class FinanceProcessor {
     get eventSalesTableView() { return this.#eventSalesTableView; }
     get lockerSalesTableView() { return this.#lockerSalesTableView; }
     get ticketSalesTableView() { return this.#ticketSalesTableView; }
+
+    get lockerSalesGraphView() { return this.#lockerSalesGraphView; }
+    get ticketSalesGraphView() { return this.#ticketSalesGraphView; }
 }

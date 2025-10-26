@@ -3,11 +3,23 @@
 
 'use client';
 
+import { useMemo } from 'react';
+
+import { PieChartPro, type PieChartProProps, type PieValueType } from '@components/proxy/mui-x-charts-pro';
+
 /**
  * Props accepted by the <DoublePieChart> component.
  */
 interface DoublePieChartProps {
-    // TODO
+    /**
+     * Series that should be displayed on the <DoublePieChart> component.
+     */
+    series: {
+        /**
+         * Data associated with this serie.
+         */
+        data: PieValueType[];
+    }[];
 }
 
 /**
@@ -15,9 +27,41 @@ interface DoublePieChartProps {
  * abstraction over MUI X's Pie Chat component, with our own composition.
  */
 export function DoublePieChart(props: DoublePieChartProps) {
+    const series = useMemo(() => {
+        if (props.series.length !== 2)
+            return [ /* invalid invariant */ ];
+
+        const commonSeriesProperties: Omit<PieChartProProps['series'][number], 'data'> = {
+            cornerRadius: 4,
+            highlightScope: {
+                fade: 'global',
+                highlight: 'item',
+            },
+            faded: {
+                additionalRadius: -10,
+                color: 'gray',
+            },
+        };
+
+        return [
+            {
+                ...commonSeriesProperties,
+                innerRadius: '25%',
+                outerRadius: '55%',
+                data: props.series.pop()!.data,
+            },
+            {
+                ...commonSeriesProperties,
+                innerRadius: '60%',
+                outerRadius: '90%',
+                data: props.series.pop()!.data,
+            }
+        ] satisfies PieChartProProps['series'];
+    }, [ props.series ]);
+
     return (
         <>
-            { /* TODO */ }
+            <PieChartPro hideLegend series={series} />
         </>
     );
 }

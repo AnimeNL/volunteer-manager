@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
 
 import type { FinanceProcessor } from '../FinanceProcessor';
 import { DoublePieChart } from './DoublePieChart';
@@ -31,10 +32,14 @@ export function VisitorGraphCard(props: VisitorGraphCardProps) {
         <Card elevation={1} sx={{
             aspectRatio: props.aspectRatio,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
         }}>
-            <DoublePieChart />
+            <DoublePieChart series={props.processor.ticketSalesGraphView} />
+            <Typography variant="body2" color="textSecondary" sx={{ pb: 1 }}>
+                Ticket sales & visitors
+            </Typography>
         </Card>
     );
 }
