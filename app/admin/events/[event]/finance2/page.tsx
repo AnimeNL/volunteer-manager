@@ -38,7 +38,7 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
     const headerActions: React.ReactNode[] = [];
     if (access.can('event.settings', { event: event.slug })) {
         headerActions.push(
-            <Tooltip title="Settings">
+            <Tooltip title="Settings" key="settings">
                 <IconButton LinkComponent={Link} href="./finance/settings" size="small">
                     <SettingsIcon fontSize="small" />
                 </IconButton>
@@ -48,7 +48,7 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
 
     if (!!mostRecentUpdate) {
         headerActions.push(
-            <Tooltip title="Data updated on…">
+            <Tooltip title="Data updated on…" key="updated">
                 <Chip size="small" color="primary" variant="outlined" label={
                     <LocalDateTime dateTime={mostRecentUpdate.toString()}
                                    format="dddd, MMMM Do [at] HH:mm" />

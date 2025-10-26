@@ -31,6 +31,10 @@ import { kEventSalesCategory, type EventSalesCategory } from '@lib/database/Type
  * Optional category labels to translate to a human readable name. Falls back to the category name.
  */
 const kCategoryLabels: { [key in EventSalesCategory]?: string } = {
+    [kEventSalesCategory.LockerFriday]: 'Friday lockers',
+    [kEventSalesCategory.LockerSaturday]: 'Saturday lockers',
+    [kEventSalesCategory.LockerSunday]: 'Sunday lockers',
+    [kEventSalesCategory.LockerWeekend]: 'Weekend lockers',
     [kEventSalesCategory.TicketFriday]: 'Friday tickets',
     [kEventSalesCategory.TicketSaturday]: 'Saturday tickets',
     [kEventSalesCategory.TicketSunday]: 'Sunday tickets',
@@ -42,7 +46,7 @@ const kCategoryLabels: { [key in EventSalesCategory]?: string } = {
  */
 function getTreeDataPathForCategories(row: SalesDataGridRow): string[] {
     const categoryLabel = kCategoryLabels[row.category as EventSalesCategory] ?? row.category;
-    return row.id <= 0
+    return (row.id <= 0 || row.avoidCategoryAggregation)
         ? [ categoryLabel ]
         : [ categoryLabel, row.product ];
 }
@@ -90,6 +94,14 @@ export interface SalesDataGridRow {
      * Maximum number of sales that can be made for this product, if known.
      */
     maximumSales?: number;
+
+    /**
+     * Internal property to signal that aggregation by category should be avoided, as this row has
+     * been identified as being the only one within a particular category.
+     *
+     * @ignore
+     */
+    avoidCategoryAggregation?: true;
 }
 
 /**
@@ -202,31 +214,18 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     // ---------------------------------------------------------------------------------------------
 
-    const [ columns, groupingColDef ] = useMemo(() => {
+    const [ rows, requiresCategoryGrouping ] = useMemo(() => {
         if (!props.enableCategoryGrouping)
-            return [ columnDefinitions, undefined ];
+            return [ props.rows, /* requiresCategoryGrouping= */ false ];
 
-        const [ _, ...columns ] = columnDefinitions;
-
-        const groupingColDef: DataGridProProps['groupingColDef'] = {
-            headerName: 'Product',
-            flex: 2.5,
-        };
-
-        return [ columns, groupingColDef ];
-
-    }, [ props.enableCategoryGrouping ]);
-
-    const rows = useMemo(() => {
-        if (!props.enableCategoryGrouping)
-            return props.rows;
-
-        const uniqueCategories = new Set<string>;
+        const categoryTally = new Map<string, number>;
         for (const { category } of props.rows)
-            uniqueCategories.add(category);
+            categoryTally.set(category, 1 + (categoryTally.get(category) ?? 0));
 
         const categoryAggregates = new Map<string, SalesDataGridRow>;
-        for (const category of uniqueCategories.values()) {
+        for (const [ category, tally ] of categoryTally.entries()) {
+            if (tally === 1) continue;  // avoid aggregate rows for single-product categories
+
             categoryAggregates.set(category, {
                 id: 0 - categoryAggregates.size,
                 category,
@@ -239,17 +238,39 @@ export function SalesDataGrid(props: SalesDataGridProps) {
         }
 
         for (const row of props.rows) {
-            const aggregate = categoryAggregates.get(row.category)!;
-            aggregate.totalRevenue += row.totalRevenue;
-            aggregate.totalSales += row.totalSales;
+            const aggregate = categoryAggregates.get(row.category);
+            if (aggregate) {
+                aggregate.totalRevenue += row.totalRevenue;
+                aggregate.totalSales += row.totalSales;
+            } else {
+                row.avoidCategoryAggregation = true;
+            }
         }
 
         return [
-            ...categoryAggregates.values(),
-            ...props.rows,
+            [
+                ...categoryAggregates.values(),
+                ...props.rows,
+            ],
+            /* requiresCategoryGrouping= */ categoryAggregates.size > 0
         ];
 
     }, [ props.enableCategoryGrouping, props.rows ]);
+
+    const [ columns, groupingColDef ] = useMemo(() => {
+        if (!requiresCategoryGrouping)
+            return [ columnDefinitions, undefined ];
+
+        const [ _, ...columns ] = columnDefinitions;
+
+        const groupingColDef: DataGridProProps['groupingColDef'] = {
+            headerName: 'Product',
+            flex: 2.5,
+        };
+
+        return [ columns, groupingColDef ];
+
+    }, [ requiresCategoryGrouping ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -278,7 +299,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height
                              borderColor: 'transparent',  // remove the grid's default border
                          }}
-                         treeData={props.enableCategoryGrouping} groupingColDef={groupingColDef}
+                         treeData={requiresCategoryGrouping} groupingColDef={groupingColDef}
                          getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
                 <Dialog open onClose={closeSalesDialog} maxWidth="md" fullWidth>
