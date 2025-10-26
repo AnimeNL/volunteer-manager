@@ -76,7 +76,11 @@ export function generateEventTicketSalesView(financialData: FinancialData) {
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
     function IsLocker(product: { category: EventSalesCategory }): boolean {
-        return product.category === kEventSalesCategory.Locker;
+        return product.category === kEventSalesCategory.Locker ||
+               product.category === kEventSalesCategory.LockerFriday ||
+               product.category === kEventSalesCategory.LockerSaturday ||
+               product.category === kEventSalesCategory.LockerSunday ||
+               product.category === kEventSalesCategory.LockerWeekend;
     }
 
     return generateSalesTableView(IsLocker, financialData);

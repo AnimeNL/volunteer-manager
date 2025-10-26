@@ -97,8 +97,12 @@ export async function FinanceGraphGrid(props: FinanceGraphGridProps) {
                 break;
 
             case kEventSalesCategory.Locker:
+            case kEventSalesCategory.LockerFriday:
+            case kEventSalesCategory.LockerSaturday:
+            case kEventSalesCategory.LockerSunday:
+            case kEventSalesCategory.LockerWeekend:
                 lockerGraphs.push({
-                    category: graph.category,
+                    category: kEventSalesCategory.Locker,
                     eventId: eventId,
                     products: graph.products,
                     range,

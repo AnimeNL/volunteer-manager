@@ -4349,6 +4349,47 @@ tables:
       PRIMARY KEY (`vendors_schedule_id`),
       KEY `vendor_id` (`vendor_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: nardo_personalised
+  type: BASE TABLE
+  columns:
+  - name: nardo_personalised_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: nardo_personalised_user_id
+    type: int(8) unsigned
+    nullable: false
+  - name: nardo_personalised_date
+    type: datetime
+    nullable: false
+  - name: nardo_personalised_input
+    type: text
+    nullable: false
+  - name: nardo_personalised_output
+    type: text
+    nullable: false
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (nardo_personalised_id) USING BTREE
+    table: nardo_personalised
+    columns:
+    - nardo_personalised_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (nardo_personalised_id)
+    table: nardo_personalised
+    columns:
+    - nardo_personalised_id
+  def: |-
+    CREATE TABLE `nardo_personalised` (
+      `nardo_personalised_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `nardo_personalised_user_id` int(8) unsigned NOT NULL,
+      `nardo_personalised_date` datetime NOT NULL,
+      `nardo_personalised_input` text NOT NULL,
+      `nardo_personalised_output` text NOT NULL,
+      PRIMARY KEY (`nardo_personalised_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: events_sales_configuration
   type: BASE TABLE
   columns:
@@ -4359,7 +4400,7 @@ tables:
     type: int(8) unsigned
     nullable: false
   - name: sale_category
-    type: enum('Event','Hidden','Locker','TicketFriday','TicketSaturday','TicketSunday','TicketWeekend')
+    type: enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketWeekend')
     nullable: true
     default: "NULL"
   - name: sale_category_limit
@@ -4405,7 +4446,7 @@ tables:
     CREATE TABLE `events_sales_configuration` (
       `event_id` int(11) NOT NULL,
       `sale_id` int(8) unsigned NOT NULL,
-      `sale_category` enum('Event','Hidden','Locker','TicketFriday','TicketSaturday','TicketSunday','TicketWeekend') DEFAULT NULL,
+      `sale_category` enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketWeekend') DEFAULT NULL,
       `sale_category_limit` int(4) unsigned DEFAULT NULL,
       `sale_description` text DEFAULT NULL,
       `sale_price` double unsigned DEFAULT NULL,
@@ -4414,47 +4455,6 @@ tables:
       UNIQUE KEY `event_id` (`event_id`,`sale_id`),
       KEY `event_id_2` (`event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: nardo_personalised
-  type: BASE TABLE
-  columns:
-  - name: nardo_personalised_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: nardo_personalised_user_id
-    type: int(8) unsigned
-    nullable: false
-  - name: nardo_personalised_date
-    type: datetime
-    nullable: false
-  - name: nardo_personalised_input
-    type: text
-    nullable: false
-  - name: nardo_personalised_output
-    type: text
-    nullable: false
-  indexes:
-  - name: PRIMARY
-    def: PRIMARY KEY (nardo_personalised_id) USING BTREE
-    table: nardo_personalised
-    columns:
-    - nardo_personalised_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (nardo_personalised_id)
-    table: nardo_personalised
-    columns:
-    - nardo_personalised_id
-  def: |-
-    CREATE TABLE `nardo_personalised` (
-      `nardo_personalised_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `nardo_personalised_user_id` int(8) unsigned NOT NULL,
-      `nardo_personalised_date` datetime NOT NULL,
-      `nardo_personalised_input` text NOT NULL,
-      `nardo_personalised_output` text NOT NULL,
-      PRIMARY KEY (`nardo_personalised_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
 - table: users_events
   columns:

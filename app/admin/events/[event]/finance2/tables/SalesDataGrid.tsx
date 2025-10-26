@@ -15,7 +15,6 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import EuroIcon from '@mui/icons-material/Euro';
 import IconButton from '@mui/material/IconButton';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
