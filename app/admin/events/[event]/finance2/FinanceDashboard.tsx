@@ -2,18 +2,17 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Alert from '@mui/material/Alert';
+import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 
 import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
-import { EventSalesTable } from './tables/EventSalesTable';
 import { FinanceProcessor } from './FinanceProcessor';
 import { LockerSalesGraph } from './graphs/LockerSalesGraph';
-import { LockerSalesTable } from './tables/LockerSalesTable';
+import { SalesDataGrid } from './SalesDataGrid';
 import { TicketRevenueCard } from './kpi/TicketRevenueCard';
 import { TicketSalesCard } from './kpi/TicketSalesCard';
-import { TicketSalesTable } from './tables/TicketSalesTable';
 import { VisitorGraphCard } from './graphs/VisitorGraphCard';
 
 /**
@@ -78,7 +77,9 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                     { /** Section: Tickets ---------------------------------------------------- */ }
 
                     <Grid size={{ xs: 12 }}>
-                        <TicketSalesTable processor={processor} />
+                        <Card elevation={1}>
+                            <SalesDataGrid kind="tickets" rows={processor.ticketSalesTableView} />
+                        </Card>
                     </Grid>
 
                     { /** Section: Graphs ------------------------------------------------------ */}
@@ -95,7 +96,9 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                     { /** Section: Lockers ---------------------------------------------------- */ }
 
                     <Grid size={{ xs: 12 }}>
-                        <LockerSalesTable processor={processor} />
+                        <Card elevation={1}>
+                            <SalesDataGrid kind="lockers" rows={processor.lockerSalesTableView} />
+                        </Card>
                     </Grid>
 
                 </Grid>
@@ -104,8 +107,10 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             { /** Section: Event sales -------------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6 }}>
-                <EventSalesTable disableProductLinks={props.disableProductLinks}
-                                 processor={processor} />
+                <Card elevation={1}>
+                    <SalesDataGrid disableProductLinks={props.disableProductLinks} kind="events"
+                                   rows={processor.eventSalesTableView} />
+                </Card>
             </Grid>
 
         </Grid>

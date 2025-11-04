@@ -23,7 +23,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
-import { formatMetric } from '../kpi/ValueFormatter';
+import { formatMetric } from './kpi/ValueFormatter';
 
 import { kEventSalesCategory, type EventSalesCategory } from '@lib/database/Types';
 
