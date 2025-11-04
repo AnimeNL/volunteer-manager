@@ -185,7 +185,7 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
             id: product.id,
             category: product.program.title ?? product.category,
             href,
-            product: product.product,
+            product: maybeRemoveProductNameDuplication(product.product, product.program.title),
             price: product.price,
             totalRevenue,
             totalSales,
@@ -231,6 +231,28 @@ export function generateTicketSalesView(financialData: FinancialData) {
         figure: 'sales',
         ticketSales: true,
     });
+}
+
+/**
+ * Attempts to remove duplication from the product's name when the `programTitle` is included as
+ * well, in which case displaying the same information twice isn't helpful to anyone.
+ */
+function maybeRemoveProductNameDuplication(product: string, programTitle?: string): string {
+    if (!programTitle)
+        return product;
+
+    let normalisedProgramTitle = programTitle;
+    if (normalisedProgramTitle.endsWith('18+')) {
+        normalisedProgramTitle =
+            normalisedProgramTitle.substring(0, normalisedProgramTitle.length - 3).trim();
+    }
+
+    if (product.startsWith(normalisedProgramTitle))
+        product = product.substring(normalisedProgramTitle.length);
+    if (product.startsWith(':'))
+        product = product.substring(1);
+
+    return product.trim();
 }
 
 /**

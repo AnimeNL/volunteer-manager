@@ -139,7 +139,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
         {
             field: 'product',
             headerName: 'Product',
-            flex: 2.5,
+            flex: 3,
 
             renderCell: params => {
                 if (props.disableProductLinks || !params.row.href)
@@ -245,7 +245,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             [
                 ...categoryAggregates.values(),
                 ...props.rows,
-            ].sort((a, b) => a.product.localeCompare(b.product)),
+            ].sort((lhs, rhs) => lhs.product.localeCompare(rhs.product)),
             /* requiresCategoryGrouping= */ categoryAggregates.size > 0
         ];
 
@@ -259,7 +259,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
         const groupingColDef: DataGridProProps['groupingColDef'] = {
             headerName: 'Product',
-            flex: 2.5,
+            flex: 3,
 
             renderCell: params =>
                 <SalesDataGridGroupingCell href={!props.disableProductLinks && params.row.href}
@@ -313,17 +313,6 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                         </Button>
                     </DialogActions>
                 </Dialog> }
-        </>
-    );
-}
-
-/**
- *
- */
-function CustomGroupingCell() {
-    return (
-        <>
-            xx
         </>
     );
 }

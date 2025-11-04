@@ -12,6 +12,7 @@ import { gridFilteredDescendantCountLookupSelector, useGridApiContext, useGridRo
 import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import SubdirectoryArrowRightOutlinedIcon from '@mui/icons-material/SubdirectoryArrowRightOutlined';
 import Typography from '@mui/material/Typography';
 
 /**
@@ -78,6 +79,9 @@ export function SalesDataGridGroupingCell(props: SalesDataGridGroupingCellParams
                         {icon}
                     </rootProps.slots.baseIconButton> }
             </Box>
+            { rowNode.depth > 0 &&
+                <SubdirectoryArrowRightOutlinedIcon fontSize="inherit" color="action"
+                                                    sx={{ marginRight: 1 }} /> }
             <Typography variant="inherit" noWrap>
 
                 { (!props.href || rowNode.depth > 0) && (formattedValue ?? label) }
