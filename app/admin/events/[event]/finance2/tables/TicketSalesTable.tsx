@@ -22,8 +22,7 @@ interface TicketSalesTableProps {
 export function TicketSalesTable(props: TicketSalesTableProps) {
     return (
         <Card elevation={1}>
-            <SalesDataGrid enableCategoryGrouping kind="tickets"
-                           rows={props.processor.ticketSalesTableView} />
+            <SalesDataGrid kind="tickets" rows={props.processor.ticketSalesTableView} />
         </Card>
     );
 }

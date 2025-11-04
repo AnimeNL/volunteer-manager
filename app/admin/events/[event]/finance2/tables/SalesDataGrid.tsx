@@ -114,11 +114,6 @@ interface SalesDataGridProps {
     disableProductLinks?: boolean;
 
     /**
-     * Whether category grouping should be enabled.
-     */
-    enableCategoryGrouping?: boolean;
-
-    /**
      * Kind of products displayed by this data table.
      */
     kind: 'events' | 'lockers' | 'tickets';
@@ -215,9 +210,6 @@ export function SalesDataGrid(props: SalesDataGridProps) {
     // ---------------------------------------------------------------------------------------------
 
     const [ rows, requiresCategoryGrouping ] = useMemo(() => {
-        if (!props.enableCategoryGrouping)
-            return [ props.rows, /* requiresCategoryGrouping= */ false ];
-
         const categoryTally = new Map<string, number>;
         for (const { category } of props.rows)
             categoryTally.set(category, 1 + (categoryTally.get(category) ?? 0));
@@ -251,11 +243,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             [
                 ...categoryAggregates.values(),
                 ...props.rows,
-            ],
+            ].sort((a, b) => a.product.localeCompare(b.product)),
             /* requiresCategoryGrouping= */ categoryAggregates.size > 0
         ];
 
-    }, [ props.enableCategoryGrouping, props.rows ]);
+    }, [ props.rows ]);
 
     const [ columns, groupingColDef ] = useMemo(() => {
         if (!requiresCategoryGrouping)
@@ -315,6 +307,17 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                         </Button>
                     </DialogActions>
                 </Dialog> }
+        </>
+    );
+}
+
+/**
+ *
+ */
+function CustomGroupingCell() {
+    return (
+        <>
+            xx
         </>
     );
 }

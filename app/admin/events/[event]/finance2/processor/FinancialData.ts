@@ -3,7 +3,7 @@
 
 import type { EventSalesCategory } from '@lib/database/Types';
 import { Temporal } from '@lib/Temporal';
-import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
+import db, { tActivities, tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
 /**
  * Interface defining the raw representation of finaicial data associated with a specific event.
@@ -64,9 +64,19 @@ interface FinancialEventData {
         product: string;
 
         /**
-         * Unique ID of the AnPlan program entry that this product has been associated with.
+         * Optional AnPlan program association that exists for this product.
          */
-        programId?: number;
+        program: {
+            /**
+             * Unique ID of the program entry, as it exists in AnPlan.
+             */
+            id?: number;
+
+            /**
+             * Title of the program, as it exists in AnPlan.
+             */
+            title?: string;
+        };
 
         /**
          * Keyed by number of days until the event (365, 0], and valued with the number of products
@@ -148,6 +158,7 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
 
     // ---------------------------------------------------------------------------------------------
 
+    const activitiesJoin = tActivities.forUseInLeftJoin();
     const daysFromEvent = dbInstance.fragmentWithType('int', 'required')
         .sql`DATEDIFF(${tEvents.eventEndTime}, ${tEventsSales.eventSaleDate})`;
 
@@ -156,6 +167,8 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
             .on(tEvents.eventId.equals(tEventsSalesConfiguration.eventId))
         .innerJoin(tEventsSales)
             .on(tEventsSales.eventSaleId.equals(tEventsSalesConfiguration.saleId))
+        .leftJoin(activitiesJoin)
+            .on(activitiesJoin.activityId.equals(tEventsSalesConfiguration.saleEventId))
         .where(tEventsSalesConfiguration.eventId.in(events.map(event => event.id)))
             .and(tEventsSalesConfiguration.saleCategory.isNotNull())
         .select({
@@ -165,7 +178,10 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
             limit: tEventsSalesConfiguration.saleCategoryLimit,
             price: tEventsSalesConfiguration.salePrice,
             product: tEventsSalesConfiguration.saleProduct,
-            programId: tEventsSalesConfiguration.saleEventId,
+            program: {
+                id: tEventsSalesConfiguration.saleEventId,
+                title: activitiesJoin.activityTitle,
+            },
 
             sales: dbInstance.aggregateAsArray({
                 days: daysFromEvent,
@@ -202,6 +218,7 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
             products.set(product.id, {
                 ...product,
                 category: product.category!,  // null check performed in the query
+                program: product.program ?? { /* no program data */ },
                 sales,
             });
         }

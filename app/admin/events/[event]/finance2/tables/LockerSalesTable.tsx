@@ -22,8 +22,7 @@ interface LockerSalesTableProps {
 export function LockerSalesTable(props: LockerSalesTableProps) {
     return (
         <Card elevation={1}>
-            <SalesDataGrid enableCategoryGrouping kind="lockers"
-                           rows={props.processor.lockerSalesTableView} />
+            <SalesDataGrid kind="lockers" rows={props.processor.lockerSalesTableView} />
         </Card>
     );
 }

@@ -178,12 +178,12 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
         }
 
         let href: string | undefined;
-        if (!!product.programId)
-            href = `${baseHref}/${product.programId}`;
+        if (!!product.program.id)
+            href = `${baseHref}/${product.program.id}`;
 
         return {
             id: product.id,
-            category: product.category,
+            category: product.program.title ?? product.category,
             href,
             product: product.product,
             price: product.price,
