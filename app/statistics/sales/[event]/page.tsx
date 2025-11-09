@@ -4,7 +4,7 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import type { NextPageParams } from '@lib/NextRouterParams';
-import { FinanceGraphGrid } from '@app/admin/events/[event]/finance/FinanceGraphGrid';
+import { FinanceDashboard } from '@app/admin/events/[event]/finance2/FinanceDashboard';
 import { determineFilters } from '../../Filters';
 import { getEventBySlug } from '@lib/EventLoader';
 
@@ -25,6 +25,6 @@ export default async function StatisticsPage(props: NextPageParams<'event'>) {
         notFound();
 
     return (
-        <FinanceGraphGrid disableEventLinks eventId={event.id} />
+        <FinanceDashboard disableProductLinks event={event.slug} />
     );
 }
