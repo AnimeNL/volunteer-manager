@@ -131,6 +131,14 @@ export default async function IntegrationsPage() {
                     'exceptions.',
             },
             {
+                setting: 'program-event-sales-relative',
+                type: 'boolean',
+                defaultValue: true,
+
+                label: 'Program - relative sales graphs',
+                description: 'Whether sales graph date ranges should be relative to the festival',
+            },
+            {
                 setting: 'retention-number-of-events-to-consider',
                 type: 'number',
                 defaultValue: 2,

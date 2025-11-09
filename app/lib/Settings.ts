@@ -34,6 +34,9 @@ type SettingsMap = {
     'availability-max-event-duration-minutes': number;
     'availability-time-step-minutes': number;
 
+    // Program:
+    'program-event-sales-relative': boolean;
+
     // Retention:
     'retention-number-of-events-to-consider': number;
     'retention-whatsapp-message': string;
