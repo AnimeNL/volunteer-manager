@@ -3,8 +3,8 @@
 
 import Link from '@app/LinkProxy';
 
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import Chip from '@mui/material/Chip';
-import EuroIcon from '@mui/icons-material/Euro';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Stack from '@mui/material/Stack';
@@ -58,8 +58,8 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
 
     return (
         <>
-            <Section title="Financial information" subtitle={event.shortName}
-                     icon={ <EuroIcon color="primary" /> } headerAction={
+            <Section title="Finances" subtitle={event.shortName}
+                     icon={ <AnalyticsOutlinedIcon color="primary" /> } headerAction={
                         <Stack direction="row" spacing={2} alignItems="center">
                             {headerActions}
                         </Stack>

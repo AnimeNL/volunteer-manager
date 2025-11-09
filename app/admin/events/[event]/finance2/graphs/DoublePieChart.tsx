@@ -46,7 +46,7 @@ export function DoublePieChart(props: DoublePieChartProps) {
         return [
             {
                 ...commonSeriesProperties,
-                innerRadius: '25%',
+                innerRadius: '35%',
                 outerRadius: '55%',
                 data: props.series.pop()!.data,
             },

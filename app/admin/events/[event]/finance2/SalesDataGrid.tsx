@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 
-import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
+import { DataGridPro, GRID_TREE_DATA_GROUPING_FIELD, type DataGridProProps } from '@mui/x-data-grid-pro';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
@@ -135,7 +135,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columnDefinitions: DataGridProProps<SalesDataGridRow>['columns'] = [
+    const columnDefinitions: DataGridProProps<SalesDataGridRow>['columns'] = useMemo(() => [
         {
             field: 'product',
             headerName: 'Product',
@@ -206,7 +206,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                     </IconButton>
                 </Tooltip>,
         },
-    ];
+    ], [ props.disableProductLinks ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -259,6 +259,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
         const groupingColDef: DataGridProProps['groupingColDef'] = {
             headerName: 'Product',
+            sortable: true,
             flex: 3,
 
             renderCell: params =>
@@ -293,6 +294,18 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             <DataGridPro density="compact" disableColumnMenu disableColumnReorder
                          disableColumnResize hideFooter columns={columns} rows={rows}
                          slots={{ noRowsOverlay }}
+                         initialState={{
+                            sorting: {
+                                sortModel: [
+                                    {
+                                        field: requiresCategoryGrouping
+                                            ? GRID_TREE_DATA_GROUPING_FIELD
+                                            : 'product',
+                                        sort: 'asc',
+                                    }
+                                ]
+                            }
+                         }}
                          sx={{
                              '--DataGrid-overlayHeight': '120px',  // increase empty-state height
                              borderColor: 'transparent',  // remove the grid's default border

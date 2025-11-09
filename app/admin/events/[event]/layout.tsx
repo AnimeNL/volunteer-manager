@@ -3,9 +3,9 @@
 
 import { notFound } from 'next/navigation';
 
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
-import EuroIcon from '@mui/icons-material/Euro';
 import GridViewIcon from '@mui/icons-material/GridView';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -239,7 +239,7 @@ export default async function EventLayout(props: React.PropsWithChildren<NextLay
             urlMatchMode: 'strict',
         },
         {
-            icon: <EuroIcon />,
+            icon: <AnalyticsOutlinedIcon />,
             label: 'Finances',
             condition: !!info.event.financialProductCount,
             permission: {
