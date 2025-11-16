@@ -7,21 +7,19 @@ import Stack from '@mui/material/Stack';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventRecentChangeUpdate, EventRecentChangesProps } from './EventRecentChanges';
 import type { NextPageParams } from '@lib/NextRouterParams';
+import { EnvironmentCard, type EnvironmentCardProps } from './EnvironmentCard';
 import { EventDeadlines } from './EventDeadlines';
 import { EventIdentityCard } from './EventIdentityCard';
 import { EventMetadata } from './EventMetadata';
 import { EventRecentChanges } from './EventRecentChanges';
 import { EventRecentVolunteers } from './EventRecentVolunteers';
 import { EventSeniors } from './EventSeniors';
-import { EventTeamCard } from './EventTeamCard';
-import { EventTeamHistoryGraph } from './EventTeamHistoryGraph';
 import { Temporal, isAfter } from '@lib/Temporal';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
-import { isAvailabilityWindowOpen } from '@lib/isAvailabilityWindowOpen';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents, tEventsDeadlines, tEventsTeams, tRoles, tStorage, tTeams,
     tTrainingsAssignments, tTrainings, tUsersEvents, tUsers, tHotels, tHotelsAssignments,
-    tHotelsBookings, tHotelsPreferences, tRefunds } from '@lib/database';
+    tHotelsBookings, tHotelsPreferences, tRefunds, tEnvironments } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -107,10 +105,9 @@ async function getEventMetadata(eventId: number) {
 }
 
 /**
- * Returns the teams that participate in the event, together with some high-level metainformation
- * about whether the teams have published their information pages, registration portal and schedule.
+ * Returns the environments and associated teams that participate in this particula revent.
  */
-async function getParticipatingTeams(eventId: number) {
+async function getParticipatingEnvironments(eventId: number) {
     const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
     const dbInstance = db;
@@ -120,42 +117,50 @@ async function getParticipatingTeams(eventId: number) {
             .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
         .innerJoin(tTeams)
             .on(tTeams.teamId.equals(tEventsTeams.teamId))
+        .innerJoin(tEnvironments)
+            .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
         .leftJoin(usersEventsJoin)
             .on(usersEventsJoin.eventId.equals(tEvents.eventId))
             .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
             .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
         .where(tEvents.eventId.equals(eventId))
         .select({
-            id: tTeams.teamId,
-
-            teamName: tTeams.teamName,
-            teamColour: tTeams.teamColourLightTheme,
-            teamTargetSize: tEventsTeams.teamTargetSize,
-            teamSize: dbInstance.count(usersEventsJoin.userId),
-
-            enableApplications: {
-                start: tEventsTeams.enableApplicationsStart,
-                end: tEventsTeams.enableApplicationsEnd,
+            environment: {
+                id: tEnvironments.environmentId,
+                domain: tEnvironments.environmentDomain,
+                title: tEnvironments.environmentTitle,
             },
-            enableRegistration: {
-                start: tEventsTeams.enableRegistrationStart,
-                end: tEventsTeams.enableRegistrationEnd,
-            },
-            enableSchedule: {
-                start: tEventsTeams.enableScheduleStart,
-                end: tEventsTeams.enableScheduleEnd,
+            team: {
+                id: tTeams.teamId,
+                color: tTeams.teamColourLightTheme,
+                flagManagesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
+                participants: {
+                    current: dbInstance.count(usersEventsJoin.userId),
+                    maximum: tEventsTeams.teamMaximumSize,
+                    target: tEventsTeams.teamTargetSize,
+                },
+                title: tTeams.teamTitle,
             },
         })
-        .groupBy(tEventsTeams.teamId)
-        .orderBy(tTeams.teamName, 'asc')
+        .groupBy(tTeams.teamEnvironmentId, tTeams.teamId)
+        .orderBy(tTeams.teamTitle, 'asc')
         .executeSelectMany();
 
-    return teams.map(team => ({
-        ...team,
-        enableApplications: isAvailabilityWindowOpen(team.enableApplications),
-        enableRegistration: isAvailabilityWindowOpen(team.enableRegistration),
-        enableSchedule: isAvailabilityWindowOpen(team.enableSchedule),
-    }));
+    const environments = new Map<number, EnvironmentCardProps & { id: number }>();
+    for (const { environment, team } of teams) {
+        if (!environments.has(environment.id)) {
+            environments.set(environment.id, {
+                id: environment.id,
+                domain: environment.domain,
+                teams: [ /* will be populated */ ],
+                title: environment.title,
+            });
+        }
+
+        environments.get(environment.id)!.teams.push(team);
+    }
+
+    return [ ...environments.values() ].sort((lhs, rhs) => lhs.title.localeCompare(rhs.title));
 }
 
 /**
@@ -396,7 +401,7 @@ export default async function EventPage(props: NextPageParams<'event'>) {
 
     const deadlines = await getEventDeadlines(event.id);
     const eventMetadata = await getEventMetadata(event.id);
-    const participatingTeams = await getParticipatingTeams(event.id);
+    const participatingEnvironments = await getParticipatingEnvironments(event.id);
     const recentChanges = await getRecentChanges(access, event.slug, event.id);
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
     const seniorVolunteers = await getSeniorVolunteers(access, event.slug, event.id);
@@ -410,12 +415,10 @@ export default async function EventPage(props: NextPageParams<'event'>) {
             <Grid size={{ xs: 3 }}>
                 <EventIdentityCard event={event} />
             </Grid>
-            { participatingTeams.map((team, index) =>
-                <Grid key={`team-${index}`} size={{ xs: 3 }}>
-                    <EventTeamCard {...team} graph={
-                        <EventTeamHistoryGraph eventId={event.id} teamId={team.id} />
-                    } />
-                </Grid> ) }
+            { participatingEnvironments.map(environment =>
+                <Grid key={`environment-${environment.id}`} size={{ xs: 3 }}>
+                    <EnvironmentCard {...environment} />
+                </Grid> )}
             <Grid size={{ xs: 12, md: 6 }}>
                 <Stack direction="column" spacing={2}>
                     <EventMetadata event={event} metadata={eventMetadata}
