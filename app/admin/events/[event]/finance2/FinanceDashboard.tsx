@@ -47,10 +47,6 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;
 
-    // TODO: Graphs for each of the row items in <TicketSalesTable>
-    // TODO: Graphs for each of the row items in <LockerSalesTable>
-    // TODO: Graphs for each of the row items in <EventSalesTable>
-
     return (
         <Grid container spacing={2}>
 

@@ -30,7 +30,6 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
 
     // TODO: Replace team history graphs on the event dashboard
     // TODO: Replace financial graph on the event dashboard
-    // TODO: Enable the per-product graph dialogs on the financial dashboard
 
     const dbInstance = db;
     const mostRecentUpdate = await dbInstance.selectFrom(tEventsSales)

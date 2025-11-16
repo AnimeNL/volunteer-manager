@@ -36,6 +36,12 @@ const kColorScheme = [
 const kLimitColour = '#C62828';
 
 /**
+ * Maximum space (as a fraction of 1) that is allowed to be wasted in favour of displaying the
+ * product sales limit information.
+ */
+const kMaximumWastedVerticalSpace = 0.4;
+
+/**
  * Result returned from the `fetchProductSales` server action when executed successfully.
  */
 export interface ProductSalesResult {
@@ -225,6 +231,9 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     const aggregates: Map<number, number> = new Map();
     const labels: string[] = [ /* no labels yet */ ];
 
+    // Maximum number of products that have been sold from any individual category.
+    let productSalesMaximum: number = 0;
+
     for (let date = min; !isAfter(date, max); date = date.add({ days: 1 })) {
         const dateString = date.toString();
 
@@ -240,9 +249,22 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
 
             aggregateSalesForDate += salesForDate;
             aggregates.set(product, totalSales);
+
+            productSalesMaximum = Math.max(productSalesMaximum, totalSales);
         }
 
         labels.push(dateString);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Decide on the maximum value to display on the vertical axis (y). Generally prefer the highest
+    // product sales limit, when known, but ignore this when it would lead a substantial amount of
+    // vertical space being unused.
+    // ---------------------------------------------------------------------------------------------
+
+    let verticalAxisMaximum: number | undefined;
+    if (limitMaximum > 0 && (limitMaximum * kMaximumWastedVerticalSpace) <= productSalesMaximum) {
+        verticalAxisMaximum = Math.floor(limitMaximum * 1.1);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -262,7 +284,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
             yAxis: [
                 {
                     position: 'left',
-                    max: limitMaximum > 0 ? Math.floor(limitMaximum * 1.1) : undefined,
+                    max: verticalAxisMaximum,
                     width: 50,
                 },
             ],
