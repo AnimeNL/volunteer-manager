@@ -1,17 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
-
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardHeader from '@mui/material/CardHeader';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import SsidChartIcon from '@mui/icons-material/SsidChart';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventRecentChangeUpdate, EventRecentChangesProps } from './EventRecentChanges';
@@ -25,7 +16,6 @@ import { EventSeniors } from './EventSeniors';
 import { EventTeamCard } from './EventTeamCard';
 import { EventTeamHistoryGraph } from './EventTeamHistoryGraph';
 import { Temporal, isAfter } from '@lib/Temporal';
-import { TicketSalesTopLineGraph } from './finance/graphs/TicketSalesTopLineGraph';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
 import { isAvailabilityWindowOpen } from '@lib/isAvailabilityWindowOpen';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
@@ -411,8 +401,6 @@ export default async function EventPage(props: NextPageParams<'event'>) {
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
     const seniorVolunteers = await getSeniorVolunteers(access, event.slug, event.id);
 
-    const canAccessFinanceStatistics = access.can('statistics.finances');
-
     return (
         <Grid container spacing={2} alignItems="stretch">
             <Grid size={{ xs: 3 }}>
@@ -437,28 +425,9 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                 <Stack direction="column" spacing={2}>
                     { deadlines.length > 0 &&
                         <EventDeadlines event={event} deadlines={deadlines} /> }
-                    { !!canAccessFinanceStatistics &&
-                        <Card>
-                            <CardHeader avatar={ <SsidChartIcon color="primary" /> }
-                                        title={`${event.shortName} ticket sales`}
-                                        titleTypographyProps={{ variant: 'subtitle2' }} />
-                            <Divider />
-                            <CardContent sx={{ p: '0 !important' }}>
-                                <TicketSalesTopLineGraph eventId={event.id} height={250}
-                                                         loadingGraphPadding={2} />
-                            </CardContent>
-                            <Divider />
-                            <CardActions sx={{ justifyContent: 'flex-end' }}>
-                                <Button LinkComponent={Link}
-                                        href={`/admin/events/${event.slug}/finance`}
-                                        size="small">
-                                    Learn more
-                                </Button>
-                            </CardActions>
-                        </Card> }
-                    { (!canAccessFinanceStatistics && recentVolunteers.length > 0) &&
+                    { recentVolunteers.length > 0 &&
                         <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
-                    { (!canAccessFinanceStatistics && seniorVolunteers.length > 0) &&
+                    { seniorVolunteers.length > 0 &&
                         <EventSeniors event={event} volunteers={seniorVolunteers} /> }
                 </Stack>
             </Grid>
