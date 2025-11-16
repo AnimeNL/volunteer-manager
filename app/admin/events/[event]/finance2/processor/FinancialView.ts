@@ -186,6 +186,7 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
             category: product.program.title ?? product.category,
             href,
             product: maybeRemoveProductNameDuplication(product.product, product.program.title),
+            productIds: [ product.id ],
             price: product.price,
             totalRevenue,
             totalSales,

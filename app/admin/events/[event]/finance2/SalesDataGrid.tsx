@@ -9,11 +9,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { DataGridPro, GRID_TREE_DATA_GROUPING_FIELD, type DataGridProProps } from '@mui/x-data-grid-pro';
 
 import { default as MuiLink } from '@mui/material/Link';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
@@ -23,6 +18,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
+import { SalesDataGridDialog } from './SalesDataGridDialog';
 import { SalesDataGridGroupingCell } from './SalesDataGridGroupingCell';
 import { formatMetric } from './kpi/ValueFormatter';
 
@@ -77,6 +73,11 @@ export interface SalesDataGridRow {
     product: string;
 
     /**
+     * One or more product IDs that refer to this product. Used in the visualised timelines.
+     */
+    productIds: number[];
+
+    /**
      * When given, will enable a tooltip to display the individual product price.
      */
     price?: number;
@@ -113,6 +114,11 @@ interface SalesDataGridProps {
      * Whether product links should be disabled, even if a valid `href` has been passed.
      */
     disableProductLinks?: boolean;
+
+    /**
+     * Unique ID of the event for which the graph should be displayed.
+     */
+    eventId: number;
 
     /**
      * Kind of products displayed by this data table.
@@ -199,8 +205,8 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             width: 50,
 
             renderCell: params =>
-                <Tooltip title="Display sales graph">
-                    <IconButton size="small" color="info" disabled
+                <Tooltip title="Show timeline">
+                    <IconButton size="small" color="info"
                                 onClick={ () => setSalesDialogRow(params.row) }>
                         <ShowChartIcon fontSize="small" />
                     </IconButton>
@@ -224,6 +230,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                 category,
                 // |href| intentionally omitted
                 product: kCategoryLabels[category as EventSalesCategory] ?? category,
+                productIds: [ /* will be populated */ ],
                 totalRevenue: 0,
                 totalSales: 0,
                 // |maximumSales| intentionally omitted
@@ -234,6 +241,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             const aggregate = categoryAggregates.get(row.category);
             if (aggregate) {
                 aggregate.href ??= row.href;
+                aggregate.productIds.push(row.productIds[0]);
                 aggregate.totalRevenue += row.totalRevenue;
                 aggregate.totalSales += row.totalSales;
             } else {
@@ -313,19 +321,10 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                          treeData={requiresCategoryGrouping} groupingColDef={groupingColDef}
                          getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
-                <Dialog open onClose={closeSalesDialog} maxWidth="md" fullWidth>
-                    <DialogTitle>
-                        {salesDialogRow.product}
-                    </DialogTitle>
-                    <DialogContent>
-                        Graphs to follow
-                    </DialogContent>
-                    <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
-                        <Button onClick={closeSalesDialog} variant="text">
-                            Close
-                        </Button>
-                    </DialogActions>
-                </Dialog> }
+                <SalesDataGridDialog eventId={props.eventId}
+                                     onClose={closeSalesDialog}
+                                     products={salesDialogRow.productIds}
+                                     title={salesDialogRow.product} /> }
         </>
     );
 }

@@ -33,6 +33,7 @@ export class FinanceProcessor {
     // ---------------------------------------------------------------------------------------------
 
     // Generic data:
+    readonly #eventId: number | undefined;
     readonly #remainingDays: number;
 
     // KPI overview:
@@ -51,6 +52,7 @@ export class FinanceProcessor {
     readonly #ticketSalesGraphView: ReturnType<typeof views.generateTicketSalesGraphView>;
 
     private constructor(financialData: FinancialData) {
+        this.#eventId = financialData.data[0]?.id;
         this.#remainingDays = financialData.remaining;
 
         this.#eventTicketRevenueView = views.generateEventTicketRevenueView(financialData);
@@ -68,6 +70,7 @@ export class FinanceProcessor {
 
     // ---------------------------------------------------------------------------------------------
 
+    get eventId() { return this.#eventId; }
     get remainingDays() { return this.#remainingDays; }
 
     get eventTicketRevenueView() { return this.#eventTicketRevenueView; }

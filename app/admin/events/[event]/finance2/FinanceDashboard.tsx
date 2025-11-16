@@ -36,7 +36,7 @@ interface FinanceDashboardProps {
  */
 export async function FinanceDashboard(props: FinanceDashboardProps) {
     const processor = await FinanceProcessor.getOrCreateForEvent(props.event);
-    if (!processor) {
+    if (!processor || !processor.eventId) {
         return (
             <Paper component={Alert} severity="error">
                 There's no financial information available for this edition at the moment.
@@ -78,7 +78,8 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
-                            <SalesDataGrid kind="tickets" rows={processor.ticketSalesTableView} />
+                            <SalesDataGrid eventId={processor.eventId}
+                                           kind="tickets" rows={processor.ticketSalesTableView} />
                         </Card>
                     </Grid>
 
@@ -97,7 +98,8 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
-                            <SalesDataGrid kind="lockers" rows={processor.lockerSalesTableView} />
+                            <SalesDataGrid eventId={processor.eventId}
+                                           kind="lockers" rows={processor.lockerSalesTableView} />
                         </Card>
                     </Grid>
 
@@ -108,7 +110,8 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
             <Grid size={{ xs: 12, md: 6 }}>
                 <Card elevation={1}>
-                    <SalesDataGrid disableProductLinks={props.disableProductLinks} kind="events"
+                    <SalesDataGrid disableProductLinks={props.disableProductLinks}
+                                   eventId={processor.eventId} kind="events"
                                    rows={processor.eventSalesTableView} />
                 </Card>
             </Grid>
