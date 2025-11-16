@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
@@ -140,6 +141,9 @@ createDataTableApi(kEventFinanceRowModel, kEventFinanceContext, {
             .where(tEventsSalesConfiguration.eventId.equals(event.id))
                 .and(tEventsSalesConfiguration.saleId.equals(row.id))
             .executeUpdate();
+
+        if (!!affectedRows)
+            FinanceProcessor.clearForEvent(event.slug);
 
         return { success: !!affectedRows };
     },

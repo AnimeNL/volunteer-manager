@@ -5,6 +5,10 @@ import { fetchFinancialData, type FinancialData } from './processor/FinancialDat
 
 import * as views from './processor/FinancialView';
 
+declare namespace globalThis {
+    let animeConFinanceProcessorCache: Map<string, FinanceProcessor | undefined> | undefined;
+}
+
 /**
  * Processor that provides operations to work with the financial information of a particular event,
  * including comparisons to past events. Groups together all finance-related logic.
@@ -14,7 +18,7 @@ export class FinanceProcessor {
      * Clears any cached processors for the given `event`.
      */
     static clearForEvent(event: string): void {
-        // TODO: Remove cached FinanceProcessor instances
+        globalThis.animeConFinanceProcessorCache?.delete(event);
     }
 
     /**
@@ -23,11 +27,19 @@ export class FinanceProcessor {
      * be created for the given `event`, for example because it does not contain financial data.
      */
     static async getOrCreateForEvent(event: string): Promise<FinanceProcessor | undefined> {
-        // TODO: Cache initialised FinanceProcessor instances
+        if (!globalThis.animeConFinanceProcessorCache)
+            globalThis.animeConFinanceProcessorCache = new Map;
+
+        if (globalThis.animeConFinanceProcessorCache.has(event))
+            return globalThis.animeConFinanceProcessorCache.get(event);
 
         const financialData = await fetchFinancialData(event);
-        return financialData ? new FinanceProcessor(financialData)
-                             : undefined;
+        const financialProcessor = financialData
+            ? new FinanceProcessor(financialData)
+            : undefined;
+
+        globalThis.animeConFinanceProcessorCache.set(event, financialProcessor);
+        return financialProcessor;
     }
 
     // ---------------------------------------------------------------------------------------------

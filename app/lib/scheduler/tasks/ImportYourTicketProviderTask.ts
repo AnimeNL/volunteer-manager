@@ -3,6 +3,7 @@
 
 import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider/YourTicketProviderClient';
 import type { YourTicketProviderTicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
+import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
 import { Temporal } from '@lib/Temporal';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
@@ -13,6 +14,7 @@ import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/datab
  */
 interface EventInfo {
     id: number;
+    slug: string;
     name: string;
     endTime: Temporal.ZonedDateTime;
     yourTicketProviderId: number;
@@ -184,6 +186,9 @@ export class ImportYourTicketProviderTask extends Task {
                 })
                 .executeInsert();
         }
+
+        // Reset the cache used for the financial dashboards:
+        FinanceProcessor.clearForEvent(event.slug);
     }
 
     /**
@@ -198,6 +203,7 @@ export class ImportYourTicketProviderTask extends Task {
                 .and(tEvents.eventYtpId.isNotNull())
             .select({
                 id: tEvents.eventId,
+                slug: tEvents.eventSlug,
                 name: tEvents.eventShortName,
                 endTime: tEvents.eventEndTime,
                 yourTicketProviderId: tEvents.eventYtpId,
