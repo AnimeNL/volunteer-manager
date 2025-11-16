@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SalesLineGraphProps } from './finance/graphs/SalesLineGraph';
-import { ComparisonGraph, kComparisonEditionColours } from './finance/graphs/ComparisonGraph';
 import db, { tEvents, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -15,7 +14,7 @@ const kTeamHistoryComparisonDays = 180;
 /**
  * How many events should be considered in the team history?
  */
-const kTeamHistoryComparisonEvents = kComparisonEditionColours.length;
+const kTeamHistoryComparisonEvents = 4;
 
 /**
  * Props accepted by the <EventTeamHistoryGraph> component.
@@ -107,7 +106,7 @@ export async function EventTeamHistoryGraph(props: EventTeamHistoryGraphProps) {
         series.push({
             id: currentId++,
             data: aggregateApplicationData,
-            color: kComparisonEditionColours[currentSeriesColourIndex++],
+            //color: kComparisonEditionColours[currentSeriesColourIndex++],
             label: event.name,
             type: 'line',
         });
@@ -115,5 +114,6 @@ export async function EventTeamHistoryGraph(props: EventTeamHistoryGraphProps) {
 
     // ---------------------------------------------------------------------------------------------
 
-    return <ComparisonGraph days={kTeamHistoryComparisonDays} series={series} />;
+    // TODO: FIXME
+    return undefined;
 }

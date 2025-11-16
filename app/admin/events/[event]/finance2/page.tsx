@@ -28,8 +28,6 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
         permission: 'statistics.finances',
     });
 
-    // TODO: Replace team history graphs on the event dashboard
-
     const dbInstance = db;
     const mostRecentUpdate = await dbInstance.selectFrom(tEventsSales)
         .where(tEventsSales.eventId.equals(event.id))

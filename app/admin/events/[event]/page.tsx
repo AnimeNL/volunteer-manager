@@ -401,6 +401,10 @@ export default async function EventPage(props: NextPageParams<'event'>) {
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
     const seniorVolunteers = await getSeniorVolunteers(access, event.slug, event.id);
 
+    // TODO: Rework the <EventTeamCard> hierarchy and system
+    // - Scale to being able to have more teams listed
+    // - Bring back application history graphs
+
     return (
         <Grid container spacing={2} alignItems="stretch">
             <Grid size={{ xs: 3 }}>

@@ -184,6 +184,7 @@ export function EventTeamCard(props: EventTeamCardProps) {
                         {props.teamName} team history
                     </DialogTitle>
                     <DialogContent>
+                        <em>This graph is momentarily unavailable.</em>
                         {props.graph}
                     </DialogContent>
                     <DialogActions sx={{ pt: 1, mr: 1, mb: 0 }}>
