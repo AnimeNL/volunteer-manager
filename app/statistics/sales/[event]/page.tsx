@@ -4,7 +4,7 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import type { NextPageParams } from '@lib/NextRouterParams';
-import { FinanceDashboard } from '@app/admin/events/[event]/finance2/FinanceDashboard';
+import { FinanceDashboard } from '@app/admin/events/[event]/finance/FinanceDashboard';
 import { determineFilters } from '../../Filters';
 import { getEventBySlug } from '@lib/EventLoader';
 

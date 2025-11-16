@@ -14,7 +14,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { NextPageParams } from '@lib/NextRouterParams';
-import { ProductSalesGraph } from '../../../finance2/graphs/ProductSalesGraph';
+import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
 import { formatDate } from '@lib/Temporal';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';

@@ -10,7 +10,6 @@ import type { DeleteScheduleEntryDefinition } from '@app/api/admin/event/schedul
 import type { DisplayDefinition } from '@app/api/display/route';
 import type { ErrorDefinition } from '@app/api/error/route';
 import type { ExportsDefinition } from '@app/api/exports/route';
-import type { FinancialInsightsDefinition } from '@app/api/admin/event/finance/insights/route';
 import type { GeneratePromptDefinition } from '@app/api/ai/generatePrompt';
 import type { GetScheduleDefinition } from '@app/api/admin/event/schedule/getSchedule';
 import type { HelpRequestDefinition } from '@app/api/display/help-request/route';
@@ -146,7 +145,6 @@ export type ApiEndpoints = {
         '/api/admin/content': ContentEndpoints['create'],
         '/api/admin/create-event': CreateEventDefinition,
         '/api/admin/event/deadlines': EventDeadlinesEndpoints['create'],
-        '/api/admin/event/finance/insights': FinancialInsightsDefinition,
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/event/shifts': EventShiftEndpoints['create'],
