@@ -7,6 +7,7 @@ import Stack from '@mui/material/Stack';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventRecentChangeUpdate, EventRecentChangesProps } from './EventRecentChanges';
 import type { NextPageParams } from '@lib/NextRouterParams';
+import type { RemoteGraphFn } from './finance/graphs/RemoteGraphFn';
 import { EnvironmentCard, type EnvironmentCardProps } from './EnvironmentCard';
 import { EventDeadlines } from './EventDeadlines';
 import { EventIdentityCard } from './EventIdentityCard';
@@ -17,6 +18,7 @@ import { EventSalesCard } from './finance/kpi/EventSalesCard';
 import { FinanceProcessor } from './finance/FinanceProcessor';
 import { Temporal, isAfter } from '@lib/Temporal';
 import { TicketSalesCard } from './finance/kpi/TicketSalesCard';
+import { fetchTeamGrowth } from './EnvironmentCardFn';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents, tEventsDeadlines, tEventsTeams, tStorage, tTeams, tTrainingsAssignments,
@@ -148,7 +150,9 @@ async function getParticipatingEnvironments(eventId: number) {
         .orderBy(tTeams.teamTitle, 'asc')
         .executeSelectMany();
 
-    const environments = new Map<number, EnvironmentCardProps & { id: number }>();
+    const environments =
+        new Map<number, Omit<EnvironmentCardProps, 'partialFetchDataFn'> & { id: number }>();
+
     for (const { environment, team } of teams) {
         if (!environments.has(environment.id)) {
             environments.set(environment.id, {
@@ -376,6 +380,9 @@ export default async function EventPage(props: NextPageParams<'event'>) {
         }
     }
 
+    // Server Action through which remote graph data can be obtained.
+    const partialFetchDataFn = fetchTeamGrowth.bind(null, event.id, event.slug) as RemoteGraphFn;
+
     return (
         <>
             <Grid container spacing={2} alignItems="stretch">
@@ -384,7 +391,7 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                 </Grid>
                 { participatingEnvironments.map(environment =>
                     <Grid key={`environment-${environment.id}`} size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <EnvironmentCard {...environment} />
+                        <EnvironmentCard partialFetchDataFn={partialFetchDataFn} {...environment} />
                     </Grid> )}
             </Grid>
             <Grid container spacing={2} alignItems="stretch">

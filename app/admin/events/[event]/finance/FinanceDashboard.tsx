@@ -47,7 +47,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     }
 
     // Server Action through which remote graph data can be obtained.
-    const partialFetchDataFn = fetchProductSales as RemoteGraphFn;
+    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId) as RemoteGraphFn;
 
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;
@@ -79,8 +79,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
-                            <SalesDataGrid eventId={processor.eventId}
-                                           partialFetchDataFn={partialFetchDataFn}
+                            <SalesDataGrid partialFetchDataFn={partialFetchDataFn}
                                            kind="tickets" rows={processor.ticketSalesTableView} />
                         </Card>
                     </Grid>
@@ -100,8 +99,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
-                            <SalesDataGrid eventId={processor.eventId}
-                                           partialFetchDataFn={partialFetchDataFn}
+                            <SalesDataGrid partialFetchDataFn={partialFetchDataFn}
                                            kind="lockers" rows={processor.lockerSalesTableView} />
                         </Card>
                     </Grid>
@@ -115,8 +113,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                 <Card elevation={1}>
                     <SalesDataGrid disableProductLinks={props.disableProductLinks}
                                    partialFetchDataFn={partialFetchDataFn}
-                                   eventId={processor.eventId} kind="events"
-                                   rows={processor.eventSalesTableView} />
+                                   kind="events" rows={processor.eventSalesTableView} />
                 </Card>
             </Grid>
 

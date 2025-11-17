@@ -3,6 +3,8 @@
 
 'use client';
 
+import { useCallback, useState } from 'react';
+
 import Box, { type BoxProps } from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -13,6 +15,9 @@ import PeopleIcon from '@mui/icons-material/People';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+
+import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
+import { RemoteGraphDialog } from './finance/graphs/RemoteGraphDialog';
 
 /**
  * Props accepted by the <EnvironmentHeader> component.
@@ -60,6 +65,11 @@ export interface EnvironmentCardProps {
      * Domain on which these teams have been hosted.
      */
     domain: string;
+
+    /**
+     * Server action through which the data associated with the remote graph can be obtained.
+     */
+    partialFetchDataFn: (teamId: number) => Promise<RemoteGraphFnReturn>;
 
     /**
      * The teams that are part of this environment. It's assumed that the signed in user has access
@@ -115,10 +125,19 @@ export interface EnvironmentCardProps {
 }
 
 /**
+ * Type identifying an individual team part of the <EnvironmentCard> props.
+ */
+type EnvironmentCardTeam = EnvironmentCardProps['teams'][number];
+
+/**
  * The <EnvironmentCard> component displays progression for the teams associated with a particular
  * environment, each of which are assumed to be able to attract volunteers.
  */
 export function EnvironmentCard(props: EnvironmentCardProps) {
+    const [ selectedTeam, setSelectedTeam ] = useState<EnvironmentCardTeam | undefined>();
+
+    const handleClose = useCallback(() => setSelectedTeam(undefined), [ /* no deps */ ]);
+
     return (
         <Paper elevation={1} sx={{ minHeight: '100%', height: '100%' }}>
             <Stack direction="column" justifyContent="space-between" sx={{ height: '100%' }}>
@@ -136,7 +155,18 @@ export function EnvironmentCard(props: EnvironmentCardProps) {
                             <ListItemIcon sx={{ minWidth: '24px' }}>
                                 <PeopleIcon fontSize="inherit" htmlColor={team.color} />
                             </ListItemIcon>
-                            <ListItemText primary={team.title} />
+                            <ListItemText onClick={ () => setSelectedTeam(team) }>
+                                <Typography variant="body2" component="span" sx={{
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline dotted',
+                                    textDecorationColor: theme =>
+                                        theme.palette.mode === 'dark'
+                                            ? '#ffffff80'
+                                            : '#00000050',
+                                }}>
+                                    {team.title}
+                                </Typography>
+                            </ListItemText>
                             <Typography variant="body2">
                                 {team.participants.current}
                                 { !!team.participants.target &&
@@ -149,6 +179,11 @@ export function EnvironmentCard(props: EnvironmentCardProps) {
                 </List>
                 <EnvironmentFooter color={props.teams[0].color} />
             </Stack>
+            { !!selectedTeam &&
+                <RemoteGraphDialog
+                    fetchDataFn={ props.partialFetchDataFn.bind(null, selectedTeam.id) }
+                    onClose={handleClose}
+                    title={selectedTeam.title} /> }
         </Paper>
     );
 }

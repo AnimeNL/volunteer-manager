@@ -117,14 +117,9 @@ interface SalesDataGridProps {
     disableProductLinks?: boolean;
 
     /**
-     * Unique ID of the event for which the graph should be displayed.
-     */
-    eventId: number;
-
-    /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    partialFetchDataFn: (ventId: number, products: number[]) => Promise<RemoteGraphFnReturn>;
+    partialFetchDataFn: (products: number[]) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Kind of products displayed by this data table.
@@ -328,8 +323,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                          getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
                 <RemoteGraphDialog
-                    fetchDataFn={ props.partialFetchDataFn.bind(null, props.eventId,
-                                                                salesDialogRow.productIds) }
+                    fetchDataFn={ props.partialFetchDataFn.bind(null, salesDialogRow.productIds) }
                     onClose={closeSalesDialog}
                     title={salesDialogRow.product} /> }
         </>
