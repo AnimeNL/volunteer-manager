@@ -6,6 +6,7 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 
+import type { RemoteGraphFn } from './graphs/RemoteGraphFn';
 import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
 import { FinanceProcessor } from './FinanceProcessor';
@@ -14,6 +15,7 @@ import { SalesDataGrid } from './SalesDataGrid';
 import { TicketRevenueCard } from './kpi/TicketRevenueCard';
 import { TicketSalesCard } from './kpi/TicketSalesCard';
 import { VisitorGraphCard } from './graphs/VisitorGraphCard';
+import { fetchProductSales } from './graphs/ProductSalesGraphFn';
 
 /**
  * Props accepted by the <FinanceDashboard> component.
@@ -43,6 +45,9 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             </Paper>
         );
     }
+
+    // Server Action through which remote graph data can be obtained.
+    const partialFetchDataFn = fetchProductSales as RemoteGraphFn;
 
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;
@@ -75,6 +80,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
                             <SalesDataGrid eventId={processor.eventId}
+                                           partialFetchDataFn={partialFetchDataFn}
                                            kind="tickets" rows={processor.ticketSalesTableView} />
                         </Card>
                     </Grid>
@@ -95,6 +101,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                     <Grid size={{ xs: 12 }}>
                         <Card elevation={1}>
                             <SalesDataGrid eventId={processor.eventId}
+                                           partialFetchDataFn={partialFetchDataFn}
                                            kind="lockers" rows={processor.lockerSalesTableView} />
                         </Card>
                     </Grid>
@@ -107,6 +114,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             <Grid size={{ xs: 12, md: 6 }}>
                 <Card elevation={1}>
                     <SalesDataGrid disableProductLinks={props.disableProductLinks}
+                                   partialFetchDataFn={partialFetchDataFn}
                                    eventId={processor.eventId} kind="events"
                                    rows={processor.eventSalesTableView} />
                 </Card>

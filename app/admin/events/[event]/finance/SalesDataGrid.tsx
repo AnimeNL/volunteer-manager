@@ -18,7 +18,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
-import { SalesDataGridDialog } from './SalesDataGridDialog';
+import type { RemoteGraphFnReturn } from './graphs/RemoteGraphFn';
+import { RemoteGraphDialog } from './graphs/RemoteGraphDialog';
 import { SalesDataGridGroupingCell } from './SalesDataGridGroupingCell';
 import { formatMetric } from './kpi/ValueFormatter';
 
@@ -119,6 +120,11 @@ interface SalesDataGridProps {
      * Unique ID of the event for which the graph should be displayed.
      */
     eventId: number;
+
+    /**
+     * Server action through which the data associated with the remote graph can be obtained.
+     */
+    partialFetchDataFn: (ventId: number, products: number[]) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Kind of products displayed by this data table.
@@ -321,10 +327,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                          treeData={requiresCategoryGrouping} groupingColDef={groupingColDef}
                          getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
-                <SalesDataGridDialog eventId={props.eventId}
-                                     onClose={closeSalesDialog}
-                                     products={salesDialogRow.productIds}
-                                     title={salesDialogRow.product} /> }
+                <RemoteGraphDialog
+                    fetchDataFn={ props.partialFetchDataFn.bind(null, props.eventId,
+                                                                salesDialogRow.productIds) }
+                    onClose={closeSalesDialog}
+                    title={salesDialogRow.product} /> }
         </>
     );
 }

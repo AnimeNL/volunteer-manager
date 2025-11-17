@@ -5,77 +5,21 @@
 
 import { z } from 'zod/v4';
 
-import type { BarSeriesType, ChartContainerProProps, ChartsReferenceLineProps, LineSeriesType,
-    XAxis, YAxis } from '@mui/x-charts-pro';
+import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
+import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
-
 import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
-/**
- * This is the Tableau 10 colour scheme, which looks good for these graphs.
- */
-const kColorScheme = [
-    '#4E79A7',
-    '#F28E2C',
-    '#E15759',
-    '#76B7B2',
-    '#59A14F',
-    '#EDC949',
-    '#AF7AA1',
-    '#FF9DA7',
-    '#9C755F',
-    '#BAB0AB',
-];
-
-/**
- * Colour in which the line visualising the product's sales limit should be displayed.
- */
-const kLimitColour = '#C62828';
+import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './RemoteGraphFn';
 
 /**
  * Maximum space (as a fraction of 1) that is allowed to be wasted in favour of displaying the
  * product sales limit information.
  */
 const kMaximumWastedVerticalSpace = 0.4;
-
-/**
- * Result returned from the `fetchProductSales` server action when executed successfully.
- */
-export interface ProductSalesResult {
-    /**
-     * Zero or more reference lines that should be shown on the graph.
-     */
-    referenceLines: ChartsReferenceLineProps[];
-
-    /**
-     * Series and raw information that should be displayed on the graph.
-     */
-    series: NonNullable<ChartContainerProProps['series']>;
-
-    /**
-     * Singular x axis that should be displayed on the graph.
-     */
-    xAxis: XAxis;
-
-    /**
-     * Zero, one or two y axes that should be displayed on the graph.
-     */
-    yAxis: YAxis[];
-}
-
-/**
- * Data that can be returned by the `fetchProductSales` server action.
- */
-type FetchProductSalesReturn = {
-    success: false;
-    error: string;
-} | {
-    success: true;
-    data: ProductSalesResult;
-};
 
 /**
  * Server action used to fetch product sales information for the given |products|, associated with
@@ -95,9 +39,9 @@ export async function fetchProductSales(eventId: number, products: number[]) {
  * Actually fetches product sales information for the given |eventId| and |products|.
  */
 async function actuallyFetchProductSales(eventId: number, products: number[])
-    : Promise<FetchProductSalesReturn>
+    : Promise<RemoteGraphFnReturn>
 {
-    if (products.length > kColorScheme.length)
+    if (products.length > kRemoteGraphColorScheme.length)
         throw new Error('Not enough colours defined to deal with this many products...');
 
     const currentDate = Temporal.Now.plainDateISO();
@@ -184,7 +128,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
 
         bars.set(data.id, {
             type: 'bar',
-            color: `${kColorScheme[productIndex]}80`,
+            color: `${kRemoteGraphColorScheme[productIndex]}80`,
             label: data.product,
             data: [ /* to be populated */ ],
             stack: 'day',
@@ -192,7 +136,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
 
         lines.set(data.id, {
             type: 'line',
-            color: kColorScheme[productIndex],
+            color: kRemoteGraphColorScheme[productIndex],
             label: data.product,
             data: [ /* to be populated */ ],
         });
@@ -213,12 +157,12 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     const referenceLines: ChartsReferenceLineProps[] = [ ...limits.entries() ].map(([ y, p ]) => ({
         label: limits.size === 1 ? `${y}` : `${y} (${p.join(', ')})`,
         labelStyle: {
-            fill: kLimitColour,
+            fill: kRemoteGraphLimitColour,
             fontSize: '12px',
         },
         lineStyle: {
             strokeDasharray: 4,
-            stroke: kLimitColour
+            stroke: kRemoteGraphLimitColour
         },
         y,
     }));
@@ -237,7 +181,6 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     for (let date = min; !isAfter(date, max); date = date.add({ days: 1 })) {
         const dateString = date.toString();
 
-        let aggregateSalesForDate = 0;
         for (const [ product, productSales ] of sales.entries()) {
             const salesAggregate = aggregates.get(product) || 0;
             const salesForDate = productSales.get(dateString) || 0;
@@ -247,7 +190,6 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
             bars.get(product!)?.data.push(salesForDate > 0 ? salesForDate : null);
             lines.get(product)!.data.push(totalSales > 0 ? totalSales : null);
 
-            aggregateSalesForDate += salesForDate;
             aggregates.set(product, totalSales);
 
             productSalesMaximum = Math.max(productSalesMaximum, totalSales);

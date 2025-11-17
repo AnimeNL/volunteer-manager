@@ -9,26 +9,22 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { ProductSalesGraph } from './graphs/ProductSalesGraph';
+import type { RemoteGraphFnReturn } from './RemoteGraphFn';
+import { RemoteGraph } from './RemoteGraph';
 
 /**
- * Props accepted by the <SalesDataGridDialog> component.
+ * Props accepted by the <RemoteGraphDialog> component.
  */
-interface SalesDataGridDialogProps {
+interface RemoteGraphDialogProps {
     /**
-     * Unique ID of the event for which the graph should be displayed.
+     * Server action through which the data associated with the remote graph can be obtained.
      */
-    eventId: number;
+    fetchDataFn: () => Promise<RemoteGraphFnReturn>;
 
     /**
      * Callback to invoke when the dialog should be closed.
      */
     onClose?: () => void;
-
-    /**
-     * One of more product IDs that should be displayed in the graph.
-     */
-    products: number[];
 
     /**
      * Title of the dialog, to show in the user interface.
@@ -37,18 +33,17 @@ interface SalesDataGridDialogProps {
 }
 
 /**
- * The <SalesDataGridDialog> component displays a dialog with more information about the sales of
- * one or more products, including a graph that will be dynamically generated through an API.
+ * The <RemoteGraphDialog> component displays a dialog for a remote graph. The function used to
+ * fetch the data must be made available as a Server Action passed in a prop.
  */
-export function SalesDataGridDialog(props: SalesDataGridDialogProps) {
-
+export function RemoteGraphDialog(props: RemoteGraphDialogProps) {
     return (
         <Dialog open onClose={props.onClose} maxWidth="md" fullWidth>
             <DialogTitle>
                 {props.title}
             </DialogTitle>
             <DialogContent>
-                <ProductSalesGraph eventId={props.eventId} products={props.products} />
+                <RemoteGraph fetchDataFn={props.fetchDataFn} />
             </DialogContent>
             <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
                 <Button onClick={props.onClose} variant="text">
