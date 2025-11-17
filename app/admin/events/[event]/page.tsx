@@ -13,7 +13,10 @@ import { EventIdentityCard } from './EventIdentityCard';
 import { EventMetadata } from './EventMetadata';
 import { EventRecentChanges } from './EventRecentChanges';
 import { EventRecentVolunteers } from './EventRecentVolunteers';
+import { EventSalesCard } from './finance/kpi/EventSalesCard';
+import { FinanceProcessor } from './finance/FinanceProcessor';
 import { Temporal, isAfter } from '@lib/Temporal';
+import { TicketSalesCard } from './finance/kpi/TicketSalesCard';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents, tEventsDeadlines, tEventsTeams, tStorage, tTeams, tTrainingsAssignments,
@@ -362,6 +365,17 @@ export default async function EventPage(props: NextPageParams<'event'>) {
     const recentChanges = await getRecentChanges(access, event.slug, event.id);
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
 
+    let eventSalesCard: React.ReactNode;
+    let ticketSalesCard: React.ReactNode;
+
+    if (access.can('statistics.finances')) {
+        const processor = await FinanceProcessor.getOrCreateForEvent(event.slug);
+        if (processor) {
+            eventSalesCard = <EventSalesCard processor={processor} />;
+            ticketSalesCard = <TicketSalesCard processor={processor} />;
+        }
+    }
+
     return (
         <>
             <Grid container spacing={2} alignItems="stretch">
@@ -389,6 +403,17 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                             <EventDeadlines event={event} deadlines={deadlines} /> }
                         { recentVolunteers.length > 0 &&
                             <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
+                        { (eventSalesCard || ticketSalesCard) &&
+                            <Grid container spacing={2} size={12}>
+                                { !!ticketSalesCard &&
+                                    <Grid size={{ xs: 12, md: !!eventSalesCard ? 6 : 12 }}>
+                                        {ticketSalesCard}
+                                    </Grid> }
+                                { !!eventSalesCard &&
+                                    <Grid size={{ xs: 12, md: !!ticketSalesCard ? 6 : 12 }}>
+                                        {eventSalesCard}
+                                    </Grid> }
+                            </Grid> }
                     </Stack>
                 </Grid>
             </Grid>
