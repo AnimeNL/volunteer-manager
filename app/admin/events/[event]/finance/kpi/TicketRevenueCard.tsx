@@ -21,8 +21,7 @@ interface TicketRevenueCardProps {
 export function TicketRevenueCard(props: TicketRevenueCardProps) {
     const view = props.processor.ticketRevenueView;
 
-    const headline = view.shift()!;
-    const historical = view;
+    const [ headline, ...historical ] = view;
 
     return (
         <KeyMetricCard title="Ticket revenue" format="revenue" headline={headline}
