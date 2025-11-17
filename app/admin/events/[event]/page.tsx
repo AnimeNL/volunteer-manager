@@ -13,13 +13,12 @@ import { EventIdentityCard } from './EventIdentityCard';
 import { EventMetadata } from './EventMetadata';
 import { EventRecentChanges } from './EventRecentChanges';
 import { EventRecentVolunteers } from './EventRecentVolunteers';
-import { EventSeniors } from './EventSeniors';
 import { Temporal, isAfter } from '@lib/Temporal';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEvents, tEventsDeadlines, tEventsTeams, tRoles, tStorage, tTeams,
-    tTrainingsAssignments, tTrainings, tUsersEvents, tUsers, tHotels, tHotelsAssignments,
-    tHotelsBookings, tHotelsPreferences, tRefunds, tEnvironments } from '@lib/database';
+import db, { tEvents, tEventsDeadlines, tEventsTeams, tStorage, tTeams, tTrainingsAssignments,
+    tTrainings, tUsersEvents, tUsers, tHotels, tHotelsAssignments, tHotelsBookings,
+    tHotelsPreferences, tRefunds, tEnvironments } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -351,48 +350,6 @@ async function getRecentVolunteers(access: AccessControl, event: string, eventId
 }
 
 /**
- * Returns the Senior-level engineers that participate in the event, which is defined as any role
- * that grants administrator access to the event.
- */
-async function getSeniorVolunteers(access: AccessControl, event: string, eventId: number) {
-    const rolesJoin = tRoles.forUseInLeftJoin();
-    const storageJoin = tStorage.forUseInLeftJoin();
-
-    const seniors = await db.selectFrom(tEvents)
-        .innerJoin(tUsersEvents)
-            .on(tUsersEvents.eventId.equals(tEvents.eventId))
-            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tUsersEvents.teamId))
-        .innerJoin(tUsers)
-            .on(tUsers.userId.equals(tUsersEvents.userId))
-        .leftJoin(storageJoin)
-            .on(storageJoin.fileId.equals(tUsers.avatarId))
-        .leftJoin(rolesJoin)
-            .on(rolesJoin.roleId.equals(tUsersEvents.roleId))
-        .where(tUsersEvents.eventId.equals(eventId))
-            .and(rolesJoin.rolePermissionGrant.isNotNull())
-        .select({
-            userId: tUsers.userId,
-            avatarHash: storageJoin.fileHash,
-            team: tTeams.teamSlug,
-            name: tUsers.name,
-            status: tUsersEvents.registrationStatus,
-        })
-        .orderBy(rolesJoin.roleOrder, 'asc')
-        .orderBy(tUsers.username, 'asc')
-        .executeSelectMany();
-
-    return seniors.map(senior => ({
-        ...senior,
-        accessible: access.can('event.visible', {
-            event,
-            team: senior.team,
-        }),
-    }));
-}
-
-/**
  * The <EventPage> component gathers the required information for the event-specific dashboard,
  * which concisely displays the status and progress of organising an individual event.
  */
@@ -404,7 +361,6 @@ export default async function EventPage(props: NextPageParams<'event'>) {
     const participatingEnvironments = await getParticipatingEnvironments(event.id);
     const recentChanges = await getRecentChanges(access, event.slug, event.id);
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
-    const seniorVolunteers = await getSeniorVolunteers(access, event.slug, event.id);
 
     return (
         <>
@@ -433,8 +389,6 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                             <EventDeadlines event={event} deadlines={deadlines} /> }
                         { recentVolunteers.length > 0 &&
                             <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
-                        { seniorVolunteers.length > 0 &&
-                            <EventSeniors event={event} volunteers={seniorVolunteers} /> }
                     </Stack>
                 </Grid>
             </Grid>
