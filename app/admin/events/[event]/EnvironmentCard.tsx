@@ -120,7 +120,7 @@ export interface EnvironmentCardProps {
  */
 export function EnvironmentCard(props: EnvironmentCardProps) {
     return (
-        <Paper elevation={1} sx={{ aspectRatio: 1.25, minHeight: '215px' }}>
+        <Paper elevation={1} sx={{ minHeight: '100%', height: '100%' }}>
             <Stack direction="column" justifyContent="space-between" sx={{ height: '100%' }}>
                 <EnvironmentHeader color={props.teams[0].color} sx={{ px: 2, py: 1 }}>
                     <Typography noWrap>
@@ -130,7 +130,7 @@ export function EnvironmentCard(props: EnvironmentCardProps) {
                         </Typography>
                     </Typography>
                 </EnvironmentHeader>
-                <List dense disablePadding sx={{ px: 2 }}>
+                <List dense disablePadding sx={{ px: 2, my: 1 }}>
                     { props.teams.map(team =>
                         <ListItem key={team.id} disableGutters disablePadding>
                             <ListItemIcon sx={{ minWidth: '24px' }}>

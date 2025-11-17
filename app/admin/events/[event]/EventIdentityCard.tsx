@@ -32,12 +32,13 @@ export function EventIdentityCard(props: EventIdentityCardProps) {
     const { identityHash, name } = props.event;
 
     if (!!identityHash) {
-        return <Paper sx={{ aspectRatio: 1.25, backgroundImage: `url(/blob/${identityHash}.png)`,
+        return <Paper sx={{ minHeight: '100%', height: '100%',
+                            backgroundImage: `url(/blob/${identityHash}.png)`,
                             backgroundSize: 'cover', backgroundPosition: 'center center' }} />;
     }
 
     return (
-        <Paper sx={{ aspectRatio: 1.25, p: 2 }}>
+        <Paper sx={{ p: 2, minHeight: '100%', height: '100%' }}>
             <Stack direction="column" justifyContent="center" sx={{ height: '100%' }}>
                 <Typography variant="h5" align="center">
                     {name}

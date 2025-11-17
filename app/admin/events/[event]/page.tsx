@@ -406,39 +406,39 @@ export default async function EventPage(props: NextPageParams<'event'>) {
     const recentVolunteers = await getRecentVolunteers(access, event.slug, event.id);
     const seniorVolunteers = await getSeniorVolunteers(access, event.slug, event.id);
 
-    // TODO: Rework the <EventTeamCard> hierarchy and system
-    // - Scale to being able to have more teams listed
-    // - Bring back application history graphs
-
     return (
-        <Grid container spacing={2} alignItems="stretch">
-            <Grid size={{ xs: 3 }}>
-                <EventIdentityCard event={event} />
+        <>
+            <Grid container spacing={2} alignItems="stretch">
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <EventIdentityCard event={event} />
+                </Grid>
+                { participatingEnvironments.map(environment =>
+                    <Grid key={`environment-${environment.id}`} size={{ xs: 12, sm: 6, lg: 3 }}>
+                        <EnvironmentCard {...environment} />
+                    </Grid> )}
             </Grid>
-            { participatingEnvironments.map(environment =>
-                <Grid key={`environment-${environment.id}`} size={{ xs: 3 }}>
-                    <EnvironmentCard {...environment} />
-                </Grid> )}
-            <Grid size={{ xs: 12, md: 6 }}>
-                <Stack direction="column" spacing={2}>
-                    <EventMetadata event={event} metadata={eventMetadata}
-                                   hotelEnabled={event.hotelEnabled}
-                                   trainingEnabled={event.trainingEnabled} />
-                    { recentChanges.length > 0 &&
-                        <EventRecentChanges changes={recentChanges} event={event} /> }
-                </Stack>
+            <Grid container spacing={2} alignItems="stretch">
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Stack direction="column" spacing={2}>
+                        <EventMetadata event={event} metadata={eventMetadata}
+                                       hotelEnabled={event.hotelEnabled}
+                                       trainingEnabled={event.trainingEnabled} />
+                        { recentChanges.length > 0 &&
+                            <EventRecentChanges changes={recentChanges} event={event} /> }
+                    </Stack>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Stack direction="column" spacing={2}>
+                        { deadlines.length > 0 &&
+                            <EventDeadlines event={event} deadlines={deadlines} /> }
+                        { recentVolunteers.length > 0 &&
+                            <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
+                        { seniorVolunteers.length > 0 &&
+                            <EventSeniors event={event} volunteers={seniorVolunteers} /> }
+                    </Stack>
+                </Grid>
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <Stack direction="column" spacing={2}>
-                    { deadlines.length > 0 &&
-                        <EventDeadlines event={event} deadlines={deadlines} /> }
-                    { recentVolunteers.length > 0 &&
-                        <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
-                    { seniorVolunteers.length > 0 &&
-                        <EventSeniors event={event} volunteers={seniorVolunteers} /> }
-                </Stack>
-            </Grid>
-        </Grid>
+        </>
     );
 }
 
