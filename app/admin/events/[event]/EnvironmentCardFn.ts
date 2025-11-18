@@ -32,9 +32,9 @@ const kComparisonEditionColours: string[] = [
 const kHistoricEventCount = kComparisonEditionColours.length - 1;
 
 /**
- * Server action used to fetch multi-year growth information for a particular team.
+ * Server action used to fetch multi-year growth information for a one or more teams.
  */
-export async function fetchTeamGrowth(eventId: number, eventSlug: string, teamId: number) {
+export async function fetchTeamGrowth(eventId: number, eventSlug: string, teamIds: number[]) {
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         const permission = props.access.can('event.visible', {
             event: eventSlug,
@@ -44,14 +44,14 @@ export async function fetchTeamGrowth(eventId: number, eventSlug: string, teamId
         if (!permission)
             return { success: false, error: 'No access to team information…' };
 
-        return actuallyFetchTeamGrowth(eventId, teamId);
+        return actuallyFetchTeamGrowth(eventId, teamIds);
     });
 }
 
 /**
- * Actually fetches team growth information for the given |eventId| and |teamId|.
+ * Actually fetches team growth information for the given |eventId| and |teamIds|.
  */
-async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
+async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
     : Promise<RemoteGraphFnReturn>
 {
     const dbInstance = db;
@@ -113,7 +113,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
     const applicationsByEvent = await dbInstance.selectFrom(tEvents)
         .innerJoin(tUsersEvents)
             .on(tUsersEvents.eventId.equals(tEvents.eventId))
-                .and(tUsersEvents.teamId.equals(teamId))
+                .and(tUsersEvents.teamId.in(teamIds))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.registrationDate.isNotNull())
                 .and(tUsersEvents.registrationDate.lessOrEquals(tEvents.eventEndTime))

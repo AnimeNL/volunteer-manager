@@ -69,7 +69,7 @@ export interface EnvironmentCardProps {
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    partialFetchDataFn: (teamId: number) => Promise<RemoteGraphFnReturn>;
+    partialFetchDataFn: (teamIds: number[]) => Promise<RemoteGraphFnReturn>;
 
     /**
      * The teams that are part of this environment. It's assumed that the signed in user has access
@@ -181,7 +181,7 @@ export function EnvironmentCard(props: EnvironmentCardProps) {
             </Stack>
             { !!selectedTeam &&
                 <RemoteGraphDialog
-                    fetchDataFn={ props.partialFetchDataFn.bind(null, selectedTeam.id) }
+                    fetchDataFn={ props.partialFetchDataFn.bind(null, [ selectedTeam.id ]) }
                     onClose={handleClose}
                     title={selectedTeam.title} /> }
         </Paper>
