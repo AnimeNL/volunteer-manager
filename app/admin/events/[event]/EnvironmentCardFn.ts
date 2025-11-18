@@ -90,6 +90,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
     // Prepare the base information.
     // ---------------------------------------------------------------------------------------------
 
+    // The bar graphs that should be shown on the graph, populated for each event.
+    const bars: Map<number, BarSeriesType & { data: (number | null)[] }> = new Map();
+
     // The line graphs that should be shown on the graph, populated for each event.
     const lines: Map<number, LineSeriesType & { data: (number | null)[] }> = new Map();
 
@@ -127,47 +130,61 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
     for (const { event, applications } of applicationsByEvent) {
         applications.sort((lhs, rhs) => lhs - rhs).reverse();
 
-        console.log(`Event ${event.name}:`, applications);
+        const barData: (number | null)[] = [ /* to be populated */ ];
+        const lineData: (number | null)[] = [ /* to be populated */ ];
 
-        const data: (number | null)[] = [ /* to be populated */ ];
         let runningTotal = 0;
 
         for (let day = totalDisplayDays; day >= 0; --day) {
+            let applicationsOnThisDay = 0;
             while (!!applications.length && applications[0] >= day) {
                 applications.shift();
+
+                applicationsOnThisDay++;
                 runningTotal++;
             }
 
+            barData.push(applicationsOnThisDay > 0 ? applicationsOnThisDay : null);
+
+            // Update the |maximum| with the latest computed |runningTotal|.
             maximum = Math.max(runningTotal, maximum);
 
             // If the |event| represents the current event, there aren't any (future) applications,
             // and the current |day| lies in the future, intentionally break the line.
             if (event.id === eventId && !applications.length) {
                 if (Temporal.PlainDate.compare(currentDay, max.subtract({ days: day })) < 0) {
-                    data.push(null);
+                    lineData.push(null);
                     continue;
                 }
             }
 
             // Append a NULL when the |runningTotal| is still zero, as applications would not have
             // opened yet. Conversely, append the total number of applications, and correct the
-            // previous entry if |data| already has values but this is the first day with numbers.
+            // previous entry if |lineData| already has values & this is the first day with numbers.
             if (!runningTotal) {
-                data.push(null);
+                lineData.push(null);
                 continue;
             }
 
-            if (!!data.length && data[data.length - 1] === null)
-                data[data.length - 1] = 0;
+            if (!!lineData.length && lineData[lineData.length - 1] === null)
+                lineData[lineData.length - 1] = 0;
 
-            data.push(runningTotal);
+            lineData.push(runningTotal);
         }
 
         lines.set(event.id, {
             type: 'line',
             color: kComparisonEditionColours[lines.size],
             label: event.name,
-            data,
+            data: lineData,
+        });
+
+        bars.set(event.id, {
+            type: 'bar',
+            color: kComparisonEditionColours[bars.size],
+            label: event.name,
+            data: barData,
+            stack: 'day',
         });
     }
 
@@ -186,6 +203,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
             referenceLines,
             series: [
                 ...lines.values(),
+                ...bars.values(),
             ],
             xAxis: {
                 data: labels,
