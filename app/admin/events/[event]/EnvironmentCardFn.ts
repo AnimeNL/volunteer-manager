@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
 import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
-import { Temporal, isAfter } from '@lib/Temporal';
+import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEvents, tUsersEvents } from '@lib/database';
 
@@ -98,6 +98,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
 
     // The maximum number of volunteers shown in the graph.
     let maximum = Number.MIN_SAFE_INTEGER;
+
+    // Reference lines that should be shown on the graph. Can be for any reason.
+    const referenceLines: ChartsReferenceLineProps[] = [ /* none */ ];
 
     // ---------------------------------------------------------------------------------------------
     // For each of the |kHistoricEventCount| past events, as well as the latest one, compute the
@@ -195,7 +198,21 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
     for (let date = min; !isAfter(date, max); date = date.add({ days: 1 }))
         labels.push(date.toString());
 
-    const referenceLines: ChartsReferenceLineProps[] = [ /* none */ ];
+    // Add a reference line for the current day if |currentDay| lies within |min| and |max|.
+    if (isBefore(min, currentDay) && isAfter(max, currentDay)) {
+        referenceLines.push({
+            labelStyle: {
+                fill: 'blue',
+                fontSize: '12px',
+            },
+            lineStyle: {
+                strokeDasharray: 4,
+                strokeWidth: 2,
+                stroke: '#0097A7'
+            },
+            x: currentDay.add({ days: 1 }).toString(),
+        });
+    }
 
     return {
         success: true,
