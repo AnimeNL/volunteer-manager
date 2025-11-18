@@ -187,8 +187,16 @@ export class ImportYourTicketProviderTask extends Task {
                 .executeInsert();
         }
 
-        // Reset the cache used for the financial dashboards:
-        FinanceProcessor.clearForEvent(event.slug);
+        // Revalidate the cache used for the financial dashboards:
+        {
+            const start = process.hrtime.bigint();
+            await FinanceProcessor.revalidateForEvent(event.slug);
+            const end = process.hrtime.bigint();
+
+            const revalidationTimeMs = Number((end - start) / 1000n / 1000n);
+            this.log.info(
+                `Revalidated the financial cache for ${event.slug} in ${revalidationTimeMs}ms`);
+        }
     }
 
     /**

@@ -143,7 +143,7 @@ createDataTableApi(kEventFinanceRowModel, kEventFinanceContext, {
             .executeUpdate();
 
         if (!!affectedRows)
-            FinanceProcessor.clearForEvent(event.slug);
+            await FinanceProcessor.revalidateForEvent(event.slug);
 
         return { success: !!affectedRows };
     },

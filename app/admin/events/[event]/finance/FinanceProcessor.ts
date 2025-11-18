@@ -15,10 +15,12 @@ declare namespace globalThis {
  */
 export class FinanceProcessor {
     /**
-     * Clears any cached processors for the given `event`.
+     * Clears any cached processors for the given `event` and rebuilds it in time. Calling this
+     * method may block for several seconds.
      */
-    static clearForEvent(event: string): void {
+    static async revalidateForEvent(event: string): Promise<void> {
         globalThis.animeConFinanceProcessorCache?.delete(event);
+        /* dismiss return value */ await this.getOrCreateForEvent(event);
     }
 
     /**
