@@ -8,20 +8,28 @@ import { z } from 'zod/v4';
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
 import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
-import { Temporal, isAfter, isBefore } from '@lib/Temporal';
+import { Temporal, isAfter } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
-import { readSetting } from '@lib/Settings';
-import db, { tEvents, tEventsSales, tEventsSalesConfiguration, tUsersEvents } from '@lib/database';
+import db, { tEvents, tUsersEvents } from '@lib/database';
 
-import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './finance/graphs/RemoteGraphFn';
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/AccessList';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
- * Maximum space (as a fraction of 1) that is allowed to be wasted in favour of displaying the
- * product sales limit information.
+ * Which colours should the edition series be rendered in? More recent series (first entries) should
+ * be more pronounced on the graph than later series (later entries).
  */
-const kMaximumWastedVerticalSpace = 0.4;
+const kComparisonEditionColours: string[] = [
+    '#b71c1cff',  // red 900
+    '#455a6490',  // blueGrey 700
+    '#78909c70',  // blueGrey 400
+    '#b0bec570',  // blueGrey 200
+];
+
+/**
+ * Number of historic events to include in the graph, for comparison purposes.
+ */
+const kHistoricEventCount = kComparisonEditionColours.length - 1;
 
 /**
  * Server action used to fetch multi-year growth information for a particular team.
@@ -74,10 +82,94 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
     const min = dateRange.min.toPlainDate();
     const max = dateRange.max.toPlainDate();
 
+    const currentDay = Temporal.Now.plainDateISO();
+
+    const totalDisplayDays = min.until(max, { largestUnit: 'days' }).days;
+
+    // ---------------------------------------------------------------------------------------------
+    // Prepare the base information.
     // ---------------------------------------------------------------------------------------------
 
-    // TODO: Multiple line charts for historic comparison
-    // TODO: Bar graph for single-day applications
+    // The line graphs that should be shown on the graph, populated for each event.
+    const lines: Map<number, LineSeriesType & { data: (number | null)[] }> = new Map();
+
+    // The maximum number of volunteers shown in the graph.
+    let maximum = Number.MIN_SAFE_INTEGER;
+
+    // ---------------------------------------------------------------------------------------------
+    // For each of the |kHistoricEventCount| past events, as well as the latest one, compute the
+    // number of accepted participants in the team based on their registration status.
+    // ---------------------------------------------------------------------------------------------
+
+    const daysFromEvent = dbInstance.fragmentWithType('int', 'optional')
+        .sql`DATEDIFF(${tEvents.eventEndTime}, ${tUsersEvents.registrationDate})`;
+
+    const applicationsByEvent = await dbInstance.selectFrom(tEvents)
+        .innerJoin(tUsersEvents)
+            .on(tUsersEvents.eventId.equals(tEvents.eventId))
+                .and(tUsersEvents.teamId.equals(teamId))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .and(tUsersEvents.registrationDate.isNotNull())
+                .and(tUsersEvents.registrationDate.lessOrEquals(tEvents.eventEndTime))
+        .where(tEvents.eventId.lessOrEquals(eventId))
+        .select({
+            event: {
+                id: tEvents.eventId,
+                name: tEvents.eventShortName,
+            },
+            applications: dbInstance.aggregateAsArrayOfOneColumn(daysFromEvent),
+        })
+        .groupBy(tEvents.eventId)
+        .orderBy(tEvents.eventEndTime, 'desc')
+            .limit(kHistoricEventCount + 1)
+        .executeSelectMany();
+
+    for (const { event, applications } of applicationsByEvent) {
+        applications.sort((lhs, rhs) => lhs - rhs).reverse();
+
+        console.log(`Event ${event.name}:`, applications);
+
+        const data: (number | null)[] = [ /* to be populated */ ];
+        let runningTotal = 0;
+
+        for (let day = totalDisplayDays; day >= 0; --day) {
+            while (!!applications.length && applications[0] >= day) {
+                applications.shift();
+                runningTotal++;
+            }
+
+            maximum = Math.max(runningTotal, maximum);
+
+            // If the |event| represents the current event, there aren't any (future) applications,
+            // and the current |day| lies in the future, intentionally break the line.
+            if (event.id === eventId && !applications.length) {
+                if (Temporal.PlainDate.compare(currentDay, max.subtract({ days: day })) < 0) {
+                    data.push(null);
+                    continue;
+                }
+            }
+
+            // Append a NULL when the |runningTotal| is still zero, as applications would not have
+            // opened yet. Conversely, append the total number of applications, and correct the
+            // previous entry if |data| already has values but this is the first day with numbers.
+            if (!runningTotal) {
+                data.push(null);
+                continue;
+            }
+
+            if (!!data.length && data[data.length - 1] === null)
+                data[data.length - 1] = 0;
+
+            data.push(runningTotal);
+        }
+
+        lines.set(event.id, {
+            type: 'line',
+            color: kComparisonEditionColours[lines.size],
+            label: event.name,
+            data,
+        });
+    }
 
     // ---------------------------------------------------------------------------------------------
 
@@ -92,7 +184,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
         success: true,
         data: {
             referenceLines,
-            series: [ /* none */ ],
+            series: [
+                ...lines.values(),
+            ],
             xAxis: {
                 data: labels,
                 scaleType: 'band',
@@ -100,6 +194,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamId: number)
             yAxis: [
                 {
                     position: 'left',
+                    max: maximum > 0 ? Math.floor(maximum * 1.15) : undefined,
                     width: 50,
                 },
             ],
