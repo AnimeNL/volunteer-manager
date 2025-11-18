@@ -7,6 +7,7 @@ import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProce
 import { Task } from '../Task';
 import { Temporal } from '@lib/Temporal';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
+import { isTest } from '@lib/isTest';
 import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
 /**
@@ -188,7 +189,7 @@ export class ImportYourTicketProviderTask extends Task {
         }
 
         // Revalidate the cache used for the financial dashboards:
-        {
+        if (!isTest()) {
             const start = process.hrtime.bigint();
             await FinanceProcessor.revalidateForEvent(event.slug);
             const end = process.hrtime.bigint();

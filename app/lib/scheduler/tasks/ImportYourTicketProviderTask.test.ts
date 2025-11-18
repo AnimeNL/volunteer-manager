@@ -15,6 +15,7 @@ describe('ImportYourTicketProviderTask', () => {
 
     interface FestivalOptions {
         id: number;
+        slug: string;
         name: string;
         endTime: string;  // YYYY-MM-DD HH:mm:ss
         yourTicketProviderId: number;
@@ -112,6 +113,7 @@ describe('ImportYourTicketProviderTask', () => {
             const task = createImportYourTicketProviderTask([
                 {
                     id: 100,
+                    slug: 'event',
                     name: 'AnimeCon',
                     endTime: formatDate(
                         Temporal.Now.zonedDateTimeISO('UTC').add({ days: maximumDays }),
@@ -133,6 +135,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -154,6 +157,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -202,6 +206,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -250,6 +255,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -316,6 +322,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -364,6 +371,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
@@ -404,6 +412,7 @@ describe('ImportYourTicketProviderTask', () => {
         const task = createImportYourTicketProviderTask([
             {
                 id: 100,
+                slug: 'event',
                 name: 'AnimeCon',
                 endTime: kEndTimeTwoWeeksFromNow,
                 yourTicketProviderId: 1337,
