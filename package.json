@@ -30,7 +30,7 @@
   "dependencies": {
     "@beverloo/volunteer-manager-timeline": "^3.0.0",
     "@google-cloud/vertexai": "^1.10.0",
-    "@mdxeditor/editor": "^3.49.0",
+    "@mdxeditor/editor": "^3.49.2",
     "@mui/icons-material": "^7.3.5",
     "@mui/lab": "^7.0.1-beta.19",
     "@mui/material": "^7.3.5",
@@ -53,7 +53,7 @@
     "mui-markdown": "^2.0.3",
     "next": "^16.0.3",
     "nodemailer": "^7.0.10",
-    "nuqs": "^2.7.3",
+    "nuqs": "^2.8.0",
     "react": "^19.2.0",
     "react-avatar-editor": "14.0.0-beta.6",
     "react-dom": "^19.2.0",
@@ -68,7 +68,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.5",
+    "@biomejs/biome": "^2.3.6",
     "@next/bundle-analyzer": "^16.0.3",
     "@playwright/test": "^1.56.1",
     "@simplewebauthn/typescript-types": "^8.3.4",
@@ -77,8 +77,8 @@
     "@types/d3-interpolate": "^3.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "24.10.1",
-    "@types/nodemailer": "^7.0.3",
-    "@types/react": "^19.2.5",
+    "@types/nodemailer": "^7.0.4",
+    "@types/react": "^19.2.6",
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-dom": "^19.2.3",
     "cross-env": "^10.1.0",
