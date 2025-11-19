@@ -10,10 +10,10 @@ import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@m
 import { type RemoteGraphFnReturn, computeTickInterval } from './finance/graphs/RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tEvents, tUsersEvents } from '@lib/database';
+import db, { tEvents, tEventsDates, tUsersEvents } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';
-import { kRegistrationStatus } from '@lib/database/Types';
+import { kDateType, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Which colours should the edition series be rendered in? More recent series (first entries) should
@@ -30,6 +30,16 @@ const kComparisonEditionColours: string[] = [
  * Number of historic events to include in the graph, for comparison purposes.
  */
 const kHistoricEventCount = kComparisonEditionColours.length - 1;
+
+/**
+ * Which colours should chart highlights be rendered in? They will cycle through these values.
+ */
+const kHighlightColours: string[] = [
+    '#d81b60',  // pink 600
+    '#5e35b1',  // deepPurple 600
+    '#43a047',  // green 600
+    '#6d4c41',  // brown 600
+];
 
 /**
  * Server action used to fetch multi-year growth information for a one or more teams.
@@ -192,6 +202,41 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Determine any highlights that should be displayed on the graph. These can be controlled
+    // through the event settings, and are useful for visualising e.g. social media activity.
+    // ---------------------------------------------------------------------------------------------
+
+    const highlights = await dbInstance.selectFrom(tEventsDates)
+        .where(tEventsDates.eventId.equals(eventId))
+            .and(tEventsDates.dateType.equals(kDateType.Highlight))
+            .and(tEventsDates.dateDeleted.isNull())
+        .select({
+            date: dbInstance.dateAsString(tEventsDates.dateDate),
+            label: tEventsDates.dateTitle,
+        })
+        .orderBy(tEventsDates.dateDate, 'asc')
+        .executeSelectMany();
+
+    for (const { date, label } of highlights) {
+        const colour = kHighlightColours[referenceLines.length % kHighlightColours.length];
+
+        referenceLines.push({
+            label,
+            labelAlign: 'start',
+            labelStyle: {
+                fill: `${colour}aa`,
+                fontSize: '12px',
+                textAnchor: 'end',
+            },
+            lineStyle: {
+                stroke: `${colour}50`,
+            },
+            spacing: { x: -2, y: 5 },
+            x: date,
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     const labels: string[] = [ /* no labels yet */ ];
 
@@ -206,7 +251,8 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
                 fontSize: '12px',
             },
             lineStyle: {
-                stroke: '#0097A7AA'
+                strokeDasharray: 2,
+                stroke: '#0097A7AA',
             },
             x: currentDay.toString(),
         });

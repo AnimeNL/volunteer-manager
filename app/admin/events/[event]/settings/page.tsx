@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { NextPageParams } from '@lib/NextRouterParams';
-import { EventDeadlinesTable } from './EventDeadlinesTable';
+import { EventDatesTable } from './EventDatesTable';
 import { EventParticipatingTeams } from './EventParticipatingTeams';
 import { EventSettings } from './EventSettings';
 import { EventTeamSettings } from './EventTeamSettings';
@@ -65,8 +65,8 @@ export default async function EventSettingsPage(props: NextPageParams<'event'>) 
         <>
             <SettingsHeader event={event} />
             <EventSettings event={event.id} timezone={event.timezone} />
-            <Section title="Deadlines">
-                <EventDeadlinesTable event={event} leaders={leaders} />
+            <Section title="Deadlines and highlights">
+                <EventDatesTable event={event} leaders={leaders} />
             </Section>
             <Section title="Participating teams">
                 <EventParticipatingTeams event={event} />

@@ -9,39 +9,46 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { Temporal } from '@lib/Temporal';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import db, { tEventsDeadlines, tUsers } from '@lib/database';
+import db, { tEventsDates, tUsers } from '@lib/database';
+
+import { kDateType } from '@lib/database/Types';
 
 /**
- * Row model for a deadline associated with a particular event.
+ * Row model for a dates associated with a particular event.
  */
-const kEventDeadlineRowModel = z.object({
+const kEventDatesRowModel = z.object({
     /**
-     * Unique ID of the deadline as it exists in the database.
+     * Unique ID of the date as it exists in the database.
      */
     id: z.number(),
 
     /**
-     * Date on which the deadline will expire.
+     * Date on which the date will expire.
      */
     date: z.string().regex(/^\d{4}\-\d{2}\-\d{2}$/),
 
     /**
-     * Title of the deadline, giving a succint description of what it's about.
+     * Type of date that's being described by this row.
+     */
+    type: z.enum(kDateType),
+
+    /**
+     * Title of the date, giving a succint description of what it's about.
      */
     title: z.string(),
 
     /**
-     * Description explaining what this deadline is about.
+     * Description explaining what this date is about.
      */
     description: z.string(),
 
     /**
-     * User ID of the person responsible for deliving on this deadline.
+     * User ID of the person responsible for deliving on this date.
      */
     ownerUserId: z.number().optional(),
 
     /**
-     * Whether the deadline has been completed.
+     * Whether the date has been completed.
      */
     completed: z.boolean(),
 });
@@ -49,10 +56,10 @@ const kEventDeadlineRowModel = z.object({
 /**
  * This API is associated with a particular event.
  */
-const kEventDeadlineContext = z.object({
+const kEventDatesContext = z.object({
     context: z.object({
         /**
-         * Unique slug of the event that the deadline is in scope of.
+         * Unique slug of the event that the date is in scope of.
          */
         event: z.string(),
     }),
@@ -61,25 +68,25 @@ const kEventDeadlineContext = z.object({
 /**
  * Export type definitions so that the API can be used in `callApi()`.
  */
-export type EventDeadlinesEndpoints =
-    DataTableEndpoints<typeof kEventDeadlineRowModel, typeof kEventDeadlineContext>;
+export type EventDatesEndpoints =
+    DataTableEndpoints<typeof kEventDatesRowModel, typeof kEventDatesContext>;
 
 /**
  * Export type definition for the API's Row Model.
  */
-export type EventDeadlinesRowModel = z.infer<typeof kEventDeadlineRowModel>;
+export type EventDatesRowModel = z.infer<typeof kEventDatesRowModel>;
 
 /**
  * This is implemented as a regular DataTable API. The following endpoints are provided by this
  * implementation:
  *
- *     GET    /api/admin/event/deadlines
- *     DELETE /api/admin/event/deadlines/:id
- *     POST   /api/admin/event/deadlines
- *     PUT    /api/admin/event/deadlines/:id
+ *     GET    /api/admin/event/dates
+ *     DELETE /api/admin/event/dates/:id
+ *     POST   /api/admin/event/dates
+ *     PUT    /api/admin/event/dates/:id
  */
 export const { GET, DELETE, POST, PUT } =
-createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
+createDataTableApi(kEventDatesRowModel, kEventDatesContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
             check: 'admin-event',
@@ -98,20 +105,21 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
         if (!event || !props.user)
             notFound();
 
-        const deadlineDate = event.temporalStartTime.toPlainDate();
+        const dateDate = event.temporalStartTime.toPlainDate();
 
-        const kDeadlineTitle = 'New deadline';
-        const kDeadlineDescription = 'Brief description of what is expected, by who.';
+        const kDateTitle = 'New date';
+        const kDateDescription = 'Brief description of what is expected, by who.';
 
-        const insertId = await db.insertInto(tEventsDeadlines)
+        const insertId = await db.insertInto(tEventsDates)
             .set({
                 eventId: event.id,
-                deadlineOwnerId: props.user.id,
-                deadlineDate: deadlineDate,
-                deadlineTitle: kDeadlineTitle,
-                deadlineDescription: kDeadlineDescription,
-                deadlineCompleted: null,
-                deadlineDeleted: null,
+                dateOwnerId: props.user.id,
+                dateType: kDateType.Deadline,
+                dateDate: dateDate,
+                dateTitle: kDateTitle,
+                dateDescription: kDateDescription,
+                dateCompleted: null,
+                dateDeleted: null,
             })
             .returningLastInsertedId()
             .executeInsert();
@@ -120,9 +128,10 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
             success: true,
             row: {
                 id: insertId,
-                date: deadlineDate.toString(),
-                title: kDeadlineTitle,
-                description: kDeadlineDescription,
+                date: dateDate.toString(),
+                type: kDateType.Deadline,
+                title: kDateTitle,
+                description: kDateDescription,
                 ownerUserId: props.user.id,
                 completed: false,
             },
@@ -135,13 +144,13 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
             notFound();
 
         const dbInstance = db;
-        const affectedRows = await dbInstance.update(tEventsDeadlines)
+        const affectedRows = await dbInstance.update(tEventsDates)
             .set({
-                deadlineDeleted: dbInstance.currentZonedDateTime(),
+                dateDeleted: dbInstance.currentZonedDateTime(),
             })
-            .where(tEventsDeadlines.deadlineId.equals(id))
-                .and(tEventsDeadlines.eventId.equals(event.id))
-                .and(tEventsDeadlines.deadlineDeleted.isNull())
+            .where(tEventsDates.dateId.equals(id))
+                .and(tEventsDates.eventId.equals(event.id))
+                .and(tEventsDates.dateDeleted.isNull())
             .executeUpdate();
 
         return { success: !!affectedRows };
@@ -155,26 +164,27 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
         const usersJoin = tUsers.forUseInLeftJoin();
 
         const dbInstance = db;
-        const deadlines = await dbInstance.selectFrom(tEventsDeadlines)
+        const dates = await dbInstance.selectFrom(tEventsDates)
             .leftJoin(usersJoin)
-                .on(usersJoin.userId.equals(tEventsDeadlines.deadlineOwnerId))
+                .on(usersJoin.userId.equals(tEventsDates.dateOwnerId))
             .select({
-                id: tEventsDeadlines.deadlineId,
-                date: dbInstance.dateAsString(tEventsDeadlines.deadlineDate),
-                title: tEventsDeadlines.deadlineTitle,
-                description: tEventsDeadlines.deadlineDescription,
+                id: tEventsDates.dateId,
+                date: dbInstance.dateAsString(tEventsDates.dateDate),
+                type: tEventsDates.dateType,
+                title: tEventsDates.dateTitle,
+                description: tEventsDates.dateDescription,
                 ownerUserId: usersJoin.userId,
-                completed: tEventsDeadlines.deadlineCompleted.isNotNull(),
+                completed: tEventsDates.dateCompleted.isNotNull(),
             })
-            .where(tEventsDeadlines.eventId.equals(event.id))
-                .and(tEventsDeadlines.deadlineDeleted.isNull())
+            .where(tEventsDates.eventId.equals(event.id))
+                .and(tEventsDates.dateDeleted.isNull())
             .orderBy(sort?.field ?? 'date', sort?.sort ?? 'asc')
             .executeSelectPage();
 
         return {
             success: true,
-            rowCount: deadlines.count,
-            rows: deadlines.data,
+            rowCount: dates.count,
+            rows: dates.data,
         };
     },
 
@@ -184,17 +194,18 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
             notFound();
 
         const dbInstance = db;
-        const affectedRows = await dbInstance.update(tEventsDeadlines)
+        const affectedRows = await dbInstance.update(tEventsDates)
             .set({
-                deadlineDate: Temporal.PlainDate.from(row.date),
-                deadlineOwnerId: row.ownerUserId,
-                deadlineTitle: row.title,
-                deadlineDescription: row.description,
-                deadlineCompleted: row.completed ? dbInstance.currentZonedDateTime() : null,
+                dateDate: Temporal.PlainDate.from(row.date),
+                dateType: row.type,
+                dateOwnerId: row.ownerUserId,
+                dateTitle: row.title,
+                dateDescription: row.description,
+                dateCompleted: row.completed ? dbInstance.currentZonedDateTime() : null,
             })
-            .where(tEventsDeadlines.deadlineId.equals(row.id))
-                .and(tEventsDeadlines.eventId.equals(event.id))
-                .and(tEventsDeadlines.deadlineDeleted.isNull())
+            .where(tEventsDates.dateId.equals(row.id))
+                .and(tEventsDates.eventId.equals(event.id))
+                .and(tEventsDates.dateDeleted.isNull())
             .executeUpdate();
 
         return { success: !!affectedRows };
@@ -203,7 +214,7 @@ createDataTableApi(kEventDeadlineRowModel, kEventDeadlineContext, {
     async writeLog({ context }, mutation, props) {
         const event = await getEventBySlug(context.event);
         RecordLog({
-            type: kLogType.AdminEventDeadlineMutation,
+            type: kLogType.AdminEventDateMutation,
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
             data: {

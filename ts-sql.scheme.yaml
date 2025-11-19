@@ -239,6 +239,11 @@ tables:
     nullable: true
     default: "NULL"
   indexes:
+  - name: environment_domain
+    def: KEY environment_domain (environment_domain) USING BTREE
+    table: environments
+    columns:
+    - environment_domain
   - name: PRIMARY
     def: PRIMARY KEY (environment_id) USING BTREE
     table: environments
@@ -261,7 +266,8 @@ tables:
       `environment_purpose` enum('LandingPage','Placeholder') NOT NULL DEFAULT 'LandingPage',
       `environment_title` text NOT NULL,
       `environment_deleted` datetime DEFAULT NULL,
-      PRIMARY KEY (`environment_id`)
+      PRIMARY KEY (`environment_id`),
+      KEY `environment_domain` (`environment_domain`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: exports
   type: BASE TABLE
@@ -584,6 +590,72 @@ tables:
       `role_schedule_collapse` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `role_training_eligible` tinyint(1) NOT NULL DEFAULT 0,
       PRIMARY KEY (`role_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: events_dates
+  type: BASE TABLE
+  columns:
+  - name: date_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: event_id
+    type: int(8) unsigned
+    nullable: false
+  - name: date_type
+    type: enum('Deadline','Highlight')
+    nullable: false
+  - name: date_date
+    type: date
+    nullable: false
+  - name: date_owner_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: date_title
+    type: text
+    nullable: false
+  - name: date_description
+    type: text
+    nullable: false
+  - name: date_completed
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: date_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: event_id
+    def: KEY event_id (event_id) USING BTREE
+    table: events_dates
+    columns:
+    - event_id
+  - name: PRIMARY
+    def: PRIMARY KEY (date_id) USING BTREE
+    table: events_dates
+    columns:
+    - date_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (date_id)
+    table: events_dates
+    columns:
+    - date_id
+  def: |-
+    CREATE TABLE `events_dates` (
+      `date_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `event_id` int(8) unsigned NOT NULL,
+      `date_type` enum('Deadline','Highlight') NOT NULL,
+      `date_date` date NOT NULL,
+      `date_owner_id` int(8) unsigned DEFAULT NULL,
+      `date_title` text NOT NULL,
+      `date_description` text NOT NULL,
+      `date_completed` datetime DEFAULT NULL,
+      `date_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`date_id`),
+      KEY `event_id` (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: twilio_webhook_calls
   type: BASE TABLE

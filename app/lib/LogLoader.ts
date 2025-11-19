@@ -56,6 +56,7 @@ export interface LogMessage {
  * the origin log messages in a formatted manner, but autocomplete doesn't have to care.
  */
 const kDeprecatedLogType = {
+    AdminEventDeadlineMutation: 'admin-event-deadline-mutation',
     AdminHotelBookingCreate: 'admin-hotel-booking-create',
     AdminHotelBookingDelete: 'admin-hotel-booking-delete',
     AdminHotelBookingUpdate: 'admin-hotel-booking-update',
@@ -140,8 +141,8 @@ const kLogMessageFormatter: {
         return `Moved their application to the ${team} team`;
     },
     [kLogType.AdminEventCreate]: (source, target, { event }) => `Created the ${event} event`,
-    [kLogType.AdminEventDeadlineMutation]: (source, target, { event, mutation }) => {
-        return `${mutation} a deadline for ${event}`;
+    [kLogType.AdminEventDateMutation]: (source, target, { event, mutation }) => {
+        return `${mutation} a special date for ${event}`;
     },
     [kLogType.AdminEventHotelMutation]: (source, target, { eventName, mutation }) => {
         return `${mutation} an hotel room for ${eventName}`;
@@ -329,6 +330,9 @@ const kLogMessageFormatter: {
     // Deprecated
     // ---------------------------------------------------------------------------------------------
 
+    [kDeprecatedLogType.AdminEventDeadlineMutation]: (source, target, { event, mutation }) => {
+        return `${mutation} a deadline for ${event}`;
+    },
     [kDeprecatedLogType.AdminHotelBookingCreate]: (source, target, { event }) => {
         return `Created a new hotel assignment for ${event}`;
     },

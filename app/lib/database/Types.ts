@@ -46,6 +46,16 @@ export const kContentType = {
 } as const;
 
 /**
+ * Type of event-associated date an entry represents.
+ * @see Table `events_dates`
+ */
+export type DateType = Values<typeof kDateType>;
+export const kDateType = {
+    Deadline: 'Deadline',
+    Highlight: 'Highlight',
+} as const;
+
+/**
  * Status of a help request issued by one of the displays.
  * @see Table `displays`
  */

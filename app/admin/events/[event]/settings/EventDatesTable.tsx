@@ -10,9 +10,10 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { EventDeadlinesRowModel } from '@app/api/admin/event/deadlines/[[...id]]/route';
+import type { EventDatesRowModel } from '@app/api/admin/event/dates/[[...id]]/route';
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
+import { kDateType } from '@lib/database/Types';
 
 /**
  * Returns a stringified, ISO representation of the given `input`.
@@ -27,28 +28,28 @@ function toDateString(input?: Date): string {
 }
 
 /**
- * Props accepted by the <EventDeadlinesTable> component.
+ * Props accepted by the <EventDatesTable> component.
  */
-interface EventDeadlinesTableProps {
+interface EventDatesTableProps {
     /**
      * Information about the event whose settings are being changed.
      */
     event: PageInfo['event'];
 
     /**
-     * Leaders to whom a deadline can be assigned.
+     * Leaders to whom a date can be assigned.
      */
     leaders: ValueOptions[];
 }
 
 /**
- * The <EventDeadlinesTable> component allows event administrators to indicate what the deadlines
- * are for a particular event. Such deadlines will be surfaced on the event dashboard page. They can
+ * The <EventDatesTable> component allows event administrators to indicate what the special dates
+ * are for a particular event. Such dates will be surfaced on the event dashboard page. They can
  * be marked as complete in order to hide them.
  */
-export function EventDeadlinesTable(props: EventDeadlinesTableProps) {
+export function EventDatesTable(props: EventDatesTableProps) {
     const context = { event: props.event.slug };
-    const columns: RemoteDataTableColumn<EventDeadlinesRowModel>[] = [
+    const columns: RemoteDataTableColumn<EventDatesRowModel>[] = [
         {
             field: 'id',
             headerAlign: 'center',
@@ -71,6 +72,16 @@ export function EventDeadlinesTable(props: EventDeadlinesTableProps) {
             }),
 
             renderCell: params => params.row.date,
+        },
+        {
+            field: 'type',
+            headerName: 'Type',
+            editable: true,
+            sortable: true,
+            width: 125,
+
+            type: 'singleSelect',
+            valueOptions: Object.values(kDateType).map(type => ({ label: type, value: type })),
         },
         {
             field: 'title',
@@ -133,7 +144,7 @@ export function EventDeadlinesTable(props: EventDeadlinesTableProps) {
     ];
 
     return (
-        <RemoteDataTable columns={columns} endpoint="/api/admin/event/deadlines" context={context}
+        <RemoteDataTable columns={columns} endpoint="/api/admin/event/dates" context={context}
                          disableFooter enableCreate enableDelete enableUpdate
                          defaultSort={{ field: 'date', sort: 'asc' }} subject="deadline" />
     );

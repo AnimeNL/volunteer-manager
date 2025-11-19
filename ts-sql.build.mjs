@@ -226,6 +226,7 @@ do {
                     field: [ 'events', 'event_availability_status' ],
                     type: 'EventAvailabilityStatus'
                 },
+                { field: [ 'events_dates', 'date_type' ], type: 'DateType' },
                 {
                     field: [ 'events_sales_configuration', 'sale_category' ],
                     type: 'EventSalesCategory',

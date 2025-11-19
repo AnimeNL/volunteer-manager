@@ -21,11 +21,11 @@ import { TicketSalesCard } from './finance/kpi/TicketSalesCard';
 import { fetchTeamGrowth } from './EnvironmentCardFn';
 import { generateEventMetadataFn } from './generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEvents, tEventsDeadlines, tEventsTeams, tStorage, tTeams, tTrainingsAssignments,
+import db, { tEvents, tEventsDates, tEventsTeams, tStorage, tTeams, tTrainingsAssignments,
     tTrainings, tUsersEvents, tUsers, tHotels, tHotelsAssignments, tHotelsBookings,
     tHotelsPreferences, tRefunds, tEnvironments } from '@lib/database';
 
-import { kRegistrationStatus } from '@lib/database/Types';
+import { kDateType, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Updates within how many minutes of each other should be merged together?
@@ -40,21 +40,22 @@ async function getEventDeadlines(eventId: number) {
     const usersJoin = tUsers.forUseInLeftJoin();
 
     const dbInstance = db;
-    return db.selectFrom(tEventsDeadlines)
+    return db.selectFrom(tEventsDates)
         .leftJoin(usersJoin)
-            .on(usersJoin.userId.equals(tEventsDeadlines.deadlineOwnerId))
+            .on(usersJoin.userId.equals(tEventsDates.dateOwnerId))
         .select({
-            id: tEventsDeadlines.deadlineId,
-            date: dbInstance.dateAsString(tEventsDeadlines.deadlineDate),
-            title: tEventsDeadlines.deadlineTitle,
-            description: tEventsDeadlines.deadlineDescription,
+            id: tEventsDates.dateId,
+            date: dbInstance.dateAsString(tEventsDates.dateDate),
+            title: tEventsDates.dateTitle,
+            description: tEventsDates.dateDescription,
             owner: usersJoin.name,
         })
-        .where(tEventsDeadlines.eventId.equals(eventId))
-            .and(tEventsDeadlines.deadlineCompleted.isNull())
-            .and(tEventsDeadlines.deadlineDeleted.isNull())
-        .orderBy(tEventsDeadlines.deadlineDate, 'asc')
-            .orderBy(tEventsDeadlines.deadlineTitle, 'asc')
+        .where(tEventsDates.eventId.equals(eventId))
+            .and(tEventsDates.dateType.equals(kDateType.Deadline))
+            .and(tEventsDates.dateCompleted.isNull())
+            .and(tEventsDates.dateDeleted.isNull())
+        .orderBy(tEventsDates.dateDate, 'asc')
+            .orderBy(tEventsDates.dateTitle, 'asc')
         .executeSelectMany();
 }
 
