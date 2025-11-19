@@ -65,3 +65,21 @@ export type RemoteGraphFnReturn = {
  * Type defining the server action function used to handle remote graph data fetching.
  */
 export type RemoteGraphFn = () => Promise<RemoteGraphFnReturn>;
+
+/**
+ * Computes the |labels| to identify as ticks on the horizontal axis, when a total of |amount| are
+ * to be displayed. The first and last are guaranteed to be included.
+ */
+export function computeTickInterval(labels: string[], amount: number = 6) {
+    let tickInterval: string[] | undefined;
+
+    if (labels.length >= amount) {
+        const increment = (labels.length - 1) / (amount - 1);
+
+        tickInterval = [ /* to be populated */ ];
+        for (let tick = 0; tick < amount; ++tick)
+            tickInterval.push(labels[Math.round(tick * increment)]);
+    }
+
+    return tickInterval;
+}

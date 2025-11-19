@@ -100,7 +100,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
     return (
         <ChartContainerPro series={series} height={props.height ?? kDefaultGraphHeightPx}
                            xAxis={[ result.xAxis ]} yAxis={result.yAxis}
-                           margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+                           margin={{ top: 10, right: 35, bottom: 0, left: 0 }}>
             <g clipPath={`url(#${chartId}-clip-path)`}>
                 <BarPlot />
                 <LinePlot />

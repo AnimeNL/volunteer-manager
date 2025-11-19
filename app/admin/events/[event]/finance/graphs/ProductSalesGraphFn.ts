@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
-import type { RemoteGraphFnReturn } from './RemoteGraphFn';
+import { type RemoteGraphFnReturn, computeTickInterval } from './RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
@@ -222,6 +222,9 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
             xAxis: {
                 data: labels,
                 scaleType: 'band',
+                tickInterval: computeTickInterval(labels, /* amount= */ 6),
+                tickLabelPlacement: 'tick',
+                tickPlacement: 'middle',
             },
             yAxis: [
                 {

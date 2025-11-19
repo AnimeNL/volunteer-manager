@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
-import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
+import { type RemoteGraphFnReturn, computeTickInterval } from './finance/graphs/RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEvents, tUsersEvents } from '@lib/database';
@@ -206,11 +206,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
                 fontSize: '12px',
             },
             lineStyle: {
-                strokeDasharray: 4,
-                strokeWidth: 2,
-                stroke: '#0097A7'
+                stroke: '#0097A7AA'
             },
-            x: currentDay.add({ days: 1 }).toString(),
+            x: currentDay.toString(),
         });
     }
 
@@ -225,6 +223,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
             xAxis: {
                 data: labels,
                 scaleType: 'band',
+                tickInterval: computeTickInterval(labels, /* amount= */ 6),
+                tickLabelPlacement: 'tick',
+                tickPlacement: 'middle',
             },
             yAxis: [
                 {
