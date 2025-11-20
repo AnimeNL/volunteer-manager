@@ -225,6 +225,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
                 tickInterval: computeTickInterval(labels, /* amount= */ 6),
                 tickLabelPlacement: 'tick',
                 tickPlacement: 'middle',
+                zoom: true,
             },
             yAxis: [
                 {

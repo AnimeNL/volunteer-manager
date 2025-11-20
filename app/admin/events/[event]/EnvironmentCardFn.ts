@@ -272,6 +272,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
                 tickInterval: computeTickInterval(labels, /* amount= */ 6),
                 tickLabelPlacement: 'tick',
                 tickPlacement: 'middle',
+                zoom: true,
             },
             yAxis: [
                 {

@@ -6,6 +6,7 @@
 import { useEffect, useId, useState } from 'react';
 
 import type { AllSeriesType } from '@mui/x-charts-pro';
+import { ChartsBrushOverlay } from '@mui/x-charts/ChartsBrushOverlay';
 import { BarPlot, ChartContainerPro, ChartsAxisHighlight, ChartsClipPath, ChartsGrid,
     ChartsReferenceLine, ChartsTooltip, ChartsXAxis, ChartsYAxis, LinePlot }
     from '@mui/x-charts-pro';
@@ -100,7 +101,11 @@ export function RemoteGraph(props: RemoteGraphProps) {
     return (
         <ChartContainerPro series={series} height={props.height ?? kDefaultGraphHeightPx}
                            xAxis={[ result.xAxis ]} yAxis={result.yAxis}
-                           margin={{ top: 10, right: 35, bottom: 0, left: 0 }}>
+                           margin={{ top: 10, right: 35, bottom: 0, left: 0 }}
+                           zoomInteractionConfig={{
+                               zoom: [ 'brush', 'doubleTapReset' ],
+                               pan: [ /* disabled */ ],
+                           }}>
             <g clipPath={`url(#${chartId}-clip-path)`}>
                 <BarPlot />
                 <LinePlot />
@@ -108,6 +113,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
                     <ChartsReferenceLine key={index} {...line} />) }
             </g>
             <ChartsAxisHighlight x="line" />
+            <ChartsBrushOverlay />
             <ChartsClipPath id={`${chartId}-clip-path`} />
             <ChartsGrid horizontal />
             <ChartsTooltip />
