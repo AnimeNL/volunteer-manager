@@ -2,20 +2,46 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
+ * Types that are valid for parameters given to a prompt.
+ */
+type PromptParameter = boolean | number | string;
+
+/**
+ * Nested variant of the |PromptParameter| set of types.
+ */
+type NestedPromptParameter = { [key: string]: PromptParameter | NestedPromptParameter };
+
+/**
  * Available tokens that the compile function is able to tokenize a prompt into.
  */
-type CompiledPromptToken =
+type PromptToken =
     string |
     { parameter: string } |
-    { conditionalStart: string } |
+    { conditionalStart: true; expression: string } |
     { conditionalElse: true } |
     { conditionalEnd: true } |
     { unknownDirective: string };
 
 /**
- * A compiled prompt exists of one or more individual chunks.
+ * A prompt exists of one or more individual tokens.
  */
-type CompiledPrompt = CompiledPromptToken[];
+type PromptTokens = PromptToken[];
+
+/**
+ * Regular expression used to validate that a parameter's name is valid. We allow A-Z regardless of
+ * casing, and periods to indicate the need to dive into an object.
+ */
+const kParameterNameValidator = /^[a-zA-Z\.]+$/;
+
+/**
+ * Value to use when a given parameter name resolves to an object.
+ */
+const kParameterObject = '[object]';
+
+/**
+ * Value to use when a given parameter name cannot be resolved on the passed arguments.
+ */
+const kParameterUndefined = '[undefined]';
 
 /**
  * The PromptParser class is a mechanism to take a raw prompt with our pseudo-syntax and transform
@@ -45,22 +71,77 @@ export class PromptParser {
      */
     static compile(rawPrompt: string): PromptParser {
         if (typeof rawPrompt !== 'string')
-            throw new Error(`PromptParser::compile expected a string, got a ${typeof rawPrompt}.`);
+            throw new Error(`PromptParser::compile expected a string, got a ${typeof rawPrompt}`);
 
-        return new PromptParser([ rawPrompt ]);
+        const errors: string[] = [ /* no errors yet */ ];
+        const tokens: PromptTokens = [ /* no tokens yet */ ];
+        let buffer: string = '';
+
+        for (let index = 0; index < rawPrompt.length;) {
+            const char = rawPrompt[index];
+            const pair = char + (rawPrompt[index] || '');
+
+            if (pair === '{{') {
+                if (buffer.length > 0) {
+                    tokens.push(buffer);
+                    buffer = '';
+                }
+
+                const startIndex = index + 2;
+                const endIndex = rawPrompt.indexOf('}}', startIndex);
+
+                if (endIndex < 0) {
+                    errors.push(`Missing parameter closing token ("}}") at index ${index}`);
+                    break;  // cannot continue
+                }
+
+                if (endIndex === startIndex) {
+                    errors.push(`Missing parameter name at index ${startIndex}`);
+                    break;  // cannot continue
+                }
+
+                const parameter = rawPrompt.substring(startIndex, endIndex);
+                if (!kParameterNameValidator.test(parameter)) {
+                    errors.push(`Invalid parameter name ("${parameter}") at index ${startIndex}`);
+                } else {
+                    tokens.push({ parameter });
+                }
+
+                index = endIndex + /* }}= */ 2;
+                continue;
+            }
+
+            buffer += char;
+            index++;
+        }
+
+        if (buffer.length > 0)
+            tokens.push(buffer);
+
+        return new PromptParser(errors, tokens);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     readonly #ok: boolean;
 
-    readonly #parameters: string[];
-    readonly #prompt: CompiledPrompt;
+    readonly #errors: string[];
+    readonly #parameters: string[]
+    readonly #tokens: PromptTokens;
 
-    private constructor(prompt: CompiledPrompt) {
-        this.#ok = true;
-        this.#parameters = [ /* none */ ];
-        this.#prompt = prompt;
+    private constructor(errors: string[], tokens: PromptTokens) {
+        this.#ok = !errors.length;
+
+        this.#errors = errors;
+        this.#tokens = tokens;
+
+        const parameters = new Set<string>();
+        for (const token of this.#tokens) {
+            if (typeof token === 'object' && 'parameter' in token)
+                parameters.add(token.parameter);
+        }
+
+        this.#parameters = [ ...parameters ].sort();
     }
 
     /**
@@ -69,14 +150,60 @@ export class PromptParser {
     get ok() { return this.#ok; }
 
     /**
-     * Returns the substitution parameters that evaluation is expecting.
+     * Returns the errors that occurred during compilation.
      */
-    get parameters() { return this.#parameters; }
+    get errors() { return this.#errors; }
 
     /**
-     * Evaluates the compiled prompt, and returns the result as a string.
+     * Returns the substitution parameters that evaluation is expecting.
      */
-    evaluate(): string {
-        return this.#prompt.join('');
+    get parameters() { return [ ...this.#parameters ]; }
+
+    /**
+     * Evaluates the compiled prompt, and returns the result as a string. The |args| can be passed
+     * to substitute placeholders made available in the prompt.
+     */
+    evaluate(args?: NestedPromptParameter): string {
+        const result: string[] = [ /* none yet */ ];
+        for (const token of this.#tokens) {
+            if (typeof token === 'string') {
+                result.push(token);
+                continue;
+            }
+
+            if ('parameter' in token) {
+                const parameterValue = this.evaluteResolveParameter(token.parameter, args);
+
+                result.push(`${parameterValue ?? kParameterUndefined}`);
+                continue;
+            }
+        }
+
+        return result.join('');
+    }
+
+    /**
+     * Resolves the given |parameter| in the set of |args|, based on its name and periods as the
+     * character used to separate levels of nesting. Only dictionaries are supported.
+     */
+    private evaluteResolveParameter(parameter: string, args?: NestedPromptParameter) {
+        if (!args)
+            return undefined;
+
+        const path = parameter.split('.');
+
+        let currentRoot = args;
+        for (const component of path) {
+            if (!(component in currentRoot))
+                return undefined;
+
+            const value = currentRoot[component];
+            if (typeof value !== 'object')
+                return value;
+
+            currentRoot = value;
+        }
+
+        return kParameterObject;
     }
 }
