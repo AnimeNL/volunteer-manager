@@ -12,15 +12,18 @@ type PromptParameter = boolean | number | string;
 type NestedPromptParameter = { [key: string]: PromptParameter | NestedPromptParameter };
 
 /**
+ * Available directives that the compile function is able to tokenize a prompt into.
+ */
+type PromptDirective =
+    { directive: 'conditionStart'; expression: string } |
+    { directive: 'conditionElse' } |
+    { directive: 'conditionEnd' } |
+    { directive: 'unknown', text: string };
+
+/**
  * Available tokens that the compile function is able to tokenize a prompt into.
  */
-type PromptToken =
-    string |
-    { parameter: string } |
-    { conditionalStart: true; expression: string } |
-    { conditionalElse: true } |
-    { conditionalEnd: true } |
-    { unknownDirective: string };
+type PromptToken = string | { parameter: string } | PromptDirective;
 
 /**
  * A prompt exists of one or more individual tokens.
@@ -81,17 +84,19 @@ export class PromptParser {
             const char = rawPrompt[index];
             const pair = char + (rawPrompt[index] || '');
 
-            if (pair === '{{') {
+            if (pair === '{{' || pair === '[[') {
                 if (buffer.length > 0) {
                     tokens.push(buffer);
                     buffer = '';
                 }
 
+                const end = pair === '{{' ? '}}' : ']]';
+
                 const startIndex = index + 2;
-                const endIndex = rawPrompt.indexOf('}}', startIndex);
+                const endIndex = rawPrompt.indexOf(end, startIndex);
 
                 if (endIndex < 0) {
-                    errors.push(`Missing parameter closing token ("}}") at index ${index}`);
+                    errors.push(`Missing parameter closing token ("${end}") at index ${index}`);
                     break;  // cannot continue
                 }
 
@@ -100,14 +105,26 @@ export class PromptParser {
                     break;  // cannot continue
                 }
 
-                const parameter = rawPrompt.substring(startIndex, endIndex);
-                if (!kParameterNameValidator.test(parameter)) {
-                    errors.push(`Invalid parameter name ("${parameter}") at index ${startIndex}`);
+                if (pair === '{{') {
+                    const parameter = rawPrompt.substring(startIndex, endIndex);
+                    if (!kParameterNameValidator.test(parameter)) {
+                        errors.push(
+                            `Invalid parameter name ("${parameter}") at index ${startIndex}`);
+                    } else {
+                        tokens.push({ parameter });
+                    }
                 } else {
-                    tokens.push({ parameter });
+                    const directive =
+                        this.compileDirective(rawPrompt.substring(startIndex, endIndex));
+                    if (directive.directive === 'unknown') {
+                        errors.push(
+                            `Invalid directive ("${directive.text}") at index ${startIndex}`);
+                    }
+
+                    tokens.push(directive);
                 }
 
-                index = endIndex + /* }}= */ 2;
+                index = endIndex + end.length;
                 continue;
             }
 
@@ -118,7 +135,29 @@ export class PromptParser {
         if (buffer.length > 0)
             tokens.push(buffer);
 
+        // TODO: Ensure that if/else/nif are balanced.
+
         return new PromptParser(errors, tokens);
+    }
+
+    /**
+     * Compiles the given |rawDirective| into a prompt token. Various sorts of directives are
+     * supported, where unknown ones will fall into a canonical "unknownDirective" directive.
+     */
+    private static compileDirective(rawDirective: string): PromptDirective {
+        if (rawDirective.startsWith('if')) {
+            // TODO: Parse the expression to populate the left and (optional) right hand sides
+            // TODO: Parse the expression to populate eq/gt/ge/lt/le/ne comparisons
+            return { directive: 'conditionStart', expression: rawDirective.substring(2).trim() };
+        }
+
+        if (rawDirective.startsWith('else'))
+            return { directive: 'conditionElse' };
+
+        if (rawDirective.startsWith('/if'))
+            return { directive: 'conditionEnd' };
+
+        return { directive: 'unknown', text: rawDirective };
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -150,12 +189,12 @@ export class PromptParser {
     get ok() { return this.#ok; }
 
     /**
-     * Returns the errors that occurred during compilation.
+     * Returns the errors that occurred during compilation. Chronologically sorted.
      */
     get errors() { return this.#errors; }
 
     /**
-     * Returns the substitution parameters that evaluation is expecting.
+     * Returns the substitution parameters that evaluation is expecting. Alphabetically sorted.
      */
     get parameters() { return [ ...this.#parameters ]; }
 
