@@ -90,7 +90,7 @@ const kParameterUndefined = '[undefined]';
 const kStringRegexp = /"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/;
 
 /**
- * The PromptParser class is a mechanism to take a raw prompt with our pseudo-syntax and transform
+ * The PromptTemplate class is a mechanism to take a raw prompt with our pseudo-syntax and transform
  * it into a composed form. This is done in two steps, first a compile() step, which extracts the
  * expected parameters, and an evaluate() step which injects them and composes the prompt.
  * 
@@ -124,14 +124,14 @@ const kStringRegexp = /"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/;
  *
  * These faetures are extensively covered by a test suite, and documented in the manager itself.
  */
-export class PromptParser {
+export class PromptTemplate {
     /**
-     * Compiles the given |rawPrompt| and returns a PromptParser instance. The |ok| property of the
-     * instance must be checked prior to attempting to evaluate the prompt.
+     * Compiles the given |rawPrompt| and returns a PromptTemplate instance. The |ok| property of
+     * the instance must be checked prior to attempting to evaluate the prompt.
      */
-    static compile(rawPrompt: string): PromptParser {
+    static compile(rawPrompt: string): PromptTemplate {
         if (typeof rawPrompt !== 'string')
-            throw new Error(`PromptParser::compile expected a string, got a ${typeof rawPrompt}`);
+            throw new Error(`PromptTemplate::compile expected a string, got a ${typeof rawPrompt}`);
 
         const errors: string[] = [ /* no errors yet */ ];
         const tokens: PromptTokens = [ /* no tokens yet */ ];
@@ -194,7 +194,7 @@ export class PromptParser {
 
         // TODO: Ensure that if/else/nif are balanced.
 
-        return new PromptParser(errors, tokens);
+        return new PromptTemplate(errors, tokens);
     }
 
     /**
@@ -309,7 +309,7 @@ export class PromptParser {
     }
 
     /**
-     * Returns whether this parser represents a prompt that can be evaluated.
+     * Returns whether this template represents a prompt that can be evaluated.
      */
     get ok() { return !this.#errors.length; }
 
