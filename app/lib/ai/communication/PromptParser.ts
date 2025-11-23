@@ -162,15 +162,11 @@ export class PromptParser {
 
     // ---------------------------------------------------------------------------------------------
 
-    readonly #ok: boolean;
-
     readonly #errors: string[];
     readonly #parameters: string[]
     readonly #tokens: PromptTokens;
 
     private constructor(errors: string[], tokens: PromptTokens) {
-        this.#ok = !errors.length;
-
         this.#errors = errors;
         this.#tokens = tokens;
 
@@ -186,7 +182,7 @@ export class PromptParser {
     /**
      * Returns whether this parser represents a prompt that can be evaluated.
      */
-    get ok() { return this.#ok; }
+    get ok() { return !this.#errors.length; }
 
     /**
      * Returns the errors that occurred during compilation. Chronologically sorted.
@@ -198,13 +194,21 @@ export class PromptParser {
      */
     get parameters() { return [ ...this.#parameters ]; }
 
+    get tokensForTesting() { return this.#tokens; }
+
     /**
      * Evaluates the compiled prompt, and returns the result as a string. The |args| can be passed
      * to substitute placeholders made available in the prompt.
      */
     evaluate(args?: NestedPromptParameter): string {
+        const conditionStack: boolean[] = [ /* empty */ ];
+
         const result: string[] = [ /* none yet */ ];
         for (const token of this.#tokens) {
+            const inFalseBranch = conditionStack.some(state => !state);
+            if (inFalseBranch && (typeof token !== 'object' || !('directive' in token)))
+                continue;  // ignore literals and parameters in non-truthy branches
+
             if (typeof token === 'string') {
                 result.push(token);
                 continue;
@@ -215,6 +219,27 @@ export class PromptParser {
 
                 result.push(`${parameterValue ?? kParameterUndefined}`);
                 continue;
+            }
+
+            switch (token.directive) {
+                case 'conditionStart': {
+                    const directiveValue = this.evaluteResolveParameter(token.expression, args);
+                    const directiveBooleanValue = !!directiveValue;
+
+                    conditionStack.push(directiveBooleanValue);
+                    break;
+                }
+
+                case 'conditionElse':
+                    conditionStack.push(!conditionStack.pop());
+                    break;
+
+                case 'conditionEnd':
+                    conditionStack.pop();
+                    break;
+
+                case 'unknown':
+                    throw new Error('Reached unreachable code');
             }
         }
 

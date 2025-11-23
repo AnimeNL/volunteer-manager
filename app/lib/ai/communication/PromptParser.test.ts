@@ -173,7 +173,7 @@ describe('PromptParser', () => {
         expect(parser.evaluate({ person: { /* no properties */ } })).toBe('Hello, [object]!');
     });
 
-    it.failing('should be able to deal with binary conditionals', () => {
+    it('should be able to deal with binary conditionals', () => {
         const parser = PromptParser.compile('Today is [[if warm]]great[[else]]ok[[/if]]!');
         expect(parser.ok).toBeTrue();
 
@@ -186,8 +186,25 @@ describe('PromptParser', () => {
         // Present and falsy
         expect(parser.evaluate({ warm: false })).toBe('Today is ok!');
 
-        // Missing
-        expect(parser.evaluate({ warm: false })).toBe('Today is ok!');
+        // Missing, thus falsy
+        expect(parser.evaluate({ /* no `warm` */ })).toBe('Today is ok!');
+    });
+
+    it('should be able to deal with nested binary conditionals', () => {
+        const parser = PromptParser.compile(
+            '[[if red]][[if yellow]]orange[[else]]red[[/if]][[else]][[if yellow]]yellow[[else]]' +
+            'white[[/if]][[/if]]');
+        expect(parser.ok).toBeTrue();
+
+        expect(parser.evaluate({ /* no red */ yellow: true })).toBe('yellow');
+        expect(parser.evaluate({ /* no red */ yellow: false })).toBe('white');
+        expect(parser.evaluate({ /* no red & no yellow */ })).toBe('white');
+        expect(parser.evaluate({ red: false, yellow: false })).toBe('white');
+        expect(parser.evaluate({ red: false, yellow: true })).toBe('yellow');
+        expect(parser.evaluate({ red: false /* no yellow */ })).toBe('white');
+        expect(parser.evaluate({ red: true, yellow: false })).toBe('red');
+        expect(parser.evaluate({ red: true, yellow: true })).toBe('orange');
+        expect(parser.evaluate({ red: true /* no yellow */ })).toBe('red');
     });
 
     it('should be able to deal with basic comparison operator conditionals', () => {
@@ -199,10 +216,10 @@ describe('PromptParser', () => {
     });
 
     it('should be able to recognise and reject on invalid directives', () => {
-        const parser = PromptParser.compile('Foo [[capture]] Baz');
+        const parser = PromptParser.compile('Foo [[invalid]] Baz');
         expect(parser.ok).toBeFalse();
 
         expect(parser.errors).toBeArrayOfSize(1);
-        expect(parser.errors[0]).toBe('Invalid directive ("capture") at index 6');
+        expect(parser.errors[0]).toBe('Invalid directive ("invalid") at index 6');
     });
 });
