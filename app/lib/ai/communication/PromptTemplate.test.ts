@@ -495,7 +495,46 @@ describe('PromptTemplate', () => {
     });
 
     it('should be able to recognise and reject unbalanced conditionals', () => {
-        // todo
+        {
+            const template = PromptTemplate.compile('[[if foo]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]]bar[[else]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]]bar[[elif bar]]baz');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]]bar[[elif bar]]baz[[else]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]]a[[else]]b[[elif qux]]c[[/if]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]][[if bar]]baz[[/if]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[if foo]]a[[else]]b[[else]]c[[/if]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[elif]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[else]]');
+            expect(template.ok).toBeFalse();
+        }
+        {
+            const template = PromptTemplate.compile('[[/if]]');
+            expect(template.ok).toBeFalse();
+        }
     });
 
     it('should be able to recognise and reject on invalid directives', () => {

@@ -195,7 +195,7 @@ export class PromptTemplate {
         if (buffer.length > 0)
             tokens.push(buffer);
 
-        // TODO: Ensure that if/else/nif are balanced.
+        this.compileValidateConditionals(tokens, errors);
 
         return new PromptTemplate(errors, tokens);
     }
@@ -298,6 +298,66 @@ export class PromptTemplate {
             return { directive: 'conditionEnd' };
 
         return { directive: 'unknown', text: trimmedRawDirective };
+    }
+
+    /**
+     * Validates that the conditionals included in the |tokens| are balanced. If they're not, then
+     * an error will be written to |errors|, causing the template to be non-ok.
+     */
+    private static compileValidateConditionals(tokens: PromptTokens, errors: string[]) {
+        type ConditionalValidationState = { hasElse: boolean };
+        const stack: ConditionalValidationState[] = [ /* empty */ ];
+
+        for (const token of tokens) {
+            if (typeof token !== 'object' || !('directive' in token))
+                continue;  // not a directive
+
+            switch (token.directive) {
+                case 'conditionStart':
+                    stack.push({ hasElse: false });
+                    break;
+
+                case 'conditionElseIf':
+                    if (!stack.length) {
+                        errors.push('Found an [[elif]] outside of a condition block.');
+                        return;
+                    }
+                    if (stack[stack.length - 1].hasElse) {
+                        errors.push('Found an [[elif]] in a condition block that follows [[else]]');
+                        return;
+                    }
+                    break;
+
+                case 'conditionElse':
+                    if (!stack.length) {
+                        errors.push('Found an [[else]] outside of a condition block.');
+                        return;
+                    }
+                    if (stack[stack.length - 1].hasElse) {
+                        errors.push('Found an [[else]] in a condition block that already has one');
+                        return;
+                    }
+
+                    stack[stack.length - 1].hasElse = true;
+                    break;
+
+                case 'conditionEnd':
+                    if (!stack.length) {
+                        errors.push('Found an [[/if]] outside of a condition block.');
+                        return;
+                    }
+
+                    stack.pop();
+                    break;
+
+                case 'unknown':
+                    // ignore
+                    break;
+            }
+        }
+
+        if (stack.length > 0)
+            errors.push('Found one or more unclosed condition blocks.');
     }
 
     // ---------------------------------------------------------------------------------------------
