@@ -9,7 +9,7 @@ import db, { tSettings } from '@lib/database';
  * Represents the settings that can be stored and retrieved in the Volunteer Manager. These are all
  * stored in the database, but typing is done exclusively client-side.
  */
-type SettingsMap = {
+export type Settings = {
     // ---------------------------------------------------------------------------------------------
     // Display settings
     // ---------------------------------------------------------------------------------------------
@@ -57,8 +57,22 @@ type SettingsMap = {
     'vendor-security-roles': string;
 
     // ---------------------------------------------------------------------------------------------
-    // Generative AI settings
+    // Artificial Intelligence
     // ---------------------------------------------------------------------------------------------
+
+    // Communication:
+    'ai-communication-system-prompt': string;
+    'ai-communication-type-hotel-confirmation': string;
+    'ai-communication-type-retention': string;
+    'ai-example-messages': string;
+
+    // Settings:
+    'ai-setting-image-model': VertexSupportedModels;
+    'ai-setting-text-model': VertexSupportedModels;
+    'ai-setting-candidate-count': number;
+    'ai-setting-temperature': number;
+    'ai-setting-top-k': number;
+    'ai-setting-top-p': number;
 
     // Personality:
     'gen-ai-personality': string;
@@ -151,14 +165,14 @@ type SettingsMap = {
 /**
  * Type containing all setting names known to the system.
  */
-export type Setting = keyof SettingsMap;
+export type Setting = keyof Settings;
 
 /**
  * Reads the setting with the given `setting`, or `undefined` when it cannot be loaded. This
  * function will end up issuing a database call.
  */
-export async function readSetting<T extends keyof SettingsMap>(setting: T)
-    : Promise<SettingsMap[T] | undefined>
+export async function readSetting<T extends keyof Settings>(setting: T)
+    : Promise<Settings[T] | undefined>
 {
     return (await readSettings([ setting ]))[setting];
 }
@@ -168,8 +182,8 @@ export async function readSetting<T extends keyof SettingsMap>(setting: T)
  * with the setting values, or `undefined` when they cannot be loaded. This function will end up
  * issuing a database call.
  */
-export async function readSettings<T extends keyof SettingsMap>(settings: T[])
-    : Promise<{ [k in T]: SettingsMap[k] | undefined }>
+export async function readSettings<T extends keyof Settings>(settings: T[])
+    : Promise<{ [k in T]: Settings[k] | undefined }>
 {
     const storedValues = await db.selectFrom(tSettings)
         .where(tSettings.settingName.in(settings))
@@ -179,7 +193,7 @@ export async function readSettings<T extends keyof SettingsMap>(settings: T[])
         })
         .executeSelectMany();
 
-    const result: { [k in T]: SettingsMap[k] | undefined } = { /* empty */ } as any;
+    const result: { [k in T]: Settings[k] | undefined } = { /* empty */ } as any;
     for (const { name, value } of storedValues)
         result[name as keyof typeof result] = JSON.parse(value);
 
@@ -190,7 +204,7 @@ export async function readSettings<T extends keyof SettingsMap>(settings: T[])
  * Writes the setting with the given `setting` to the database, to be associated with the given
  * `value` (which may be `undefined`). This function will end up issuing a database call.
  */
-export async function writeSetting<T extends keyof SettingsMap>(setting: T, value?: SettingsMap[T])
+export async function writeSetting<T extends keyof Settings>(setting: T, value?: Settings[T])
     : Promise<void>
 {
     await writeSettings({ [setting]: value } as any);
@@ -201,8 +215,8 @@ export async function writeSetting<T extends keyof SettingsMap>(setting: T, valu
  * the appropriate type, or `undefined`. This function works by deleting all keys from the database
  * and then creating new rows for the settings with values, all within a transaction.
  */
-export async function writeSettings<T extends keyof SettingsMap>(
-    settings: { [k in T]: SettingsMap[k] | undefined }) : Promise<void>
+export async function writeSettings<T extends keyof Settings>(
+    settings: { [k in T]: Settings[k] | undefined }) : Promise<void>
 {
     const dbInstance = db;
     await dbInstance.transaction(async () => {

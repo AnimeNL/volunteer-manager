@@ -99,5 +99,5 @@ export default async function AiPage() {
 }
 
 export const metadata: Metadata = {
-    title: 'Generative AI | AnimeCon Volunteer Manager',
+    title: 'Artificial Intelligence | AnimeCon Volunteer Manager',
 };

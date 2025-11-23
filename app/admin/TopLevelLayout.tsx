@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import ApiIcon from '@mui/icons-material/Api';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import DeviceHubIcon from '@mui/icons-material/DeviceHub';
 import DvrIcon from '@mui/icons-material/Dvr';
@@ -10,7 +11,6 @@ import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
 import ForumIcon from '@mui/icons-material/Forum';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
-import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import OutboxIcon from '@mui/icons-material/Outbox';
 import SettingsIcon from '@mui/icons-material/Settings';
 import WebhookIcon from '@mui/icons-material/Webhook';
@@ -99,10 +99,10 @@ export default async function TopLevelLayout(props: React.PropsWithChildren) {
             defaultOpen: access.can('system.internals'),
             menu: [
                 {
-                    icon: <ModelTrainingIcon />,
-                    label: 'Generative AI',
+                    icon: <AutoAwesomeIcon />,
+                    label: 'AI',
                     permission: 'system.internals.ai',
-                    url: '/admin/system/ai',
+                    url: '/admin/system/ai/communication',
                 },
                 {
                     icon: <ApiIcon />,

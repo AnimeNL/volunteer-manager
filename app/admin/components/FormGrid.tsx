@@ -24,6 +24,11 @@ export interface FormGridProps extends FormProviderProps {
      * Defaults to "Save changes".
      */
     callToAction?: string;
+
+    /**
+     * Spacing to apply to the grid. Defaults to two units (16 pixels).
+     */
+    spacing?: number;
 }
 
 /**
@@ -31,11 +36,11 @@ export interface FormGridProps extends FormProviderProps {
  * the underlying behaviour is underpinned by our <FormProvider> implementation.
  */
 export function FormGrid(props: React.PropsWithChildren<FormGridProps>) {
-    const { callToAction, children, ...formProviderProps } = props;
+    const { callToAction, children, spacing, ...formProviderProps } = props;
 
     return (
         <FormProvider {...formProviderProps}>
-            <Grid container spacing={2} sx={{ mb: -2 }}>
+            <Grid container spacing={ spacing ?? 2 } sx={{ mb: -2 }}>
                 {children}
                 <InnerFormGrid callToAction={callToAction} />
             </Grid>
