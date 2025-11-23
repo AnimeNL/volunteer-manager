@@ -10,12 +10,9 @@ import { Email, type EmailSettings } from './Email';
 import { Google, type GoogleSettings } from './Google';
 import { StatusHeader } from './StatusHeader';
 import { Twilio } from './Twilio';
-import { VertexAI, type VertexAISettings } from './VertexAI';
 import { YourTicketProvider } from './YourTicketProvider';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-
-import { kVertexSupportedModels } from '@lib/integrations/vertexai/VertexSupportedModels';
 
 /**
  * The Integrations page lists settings and information regarding the third party services that the
@@ -48,13 +45,6 @@ export default async function IntegrationsPage() {
         'integration-google-credentials',
         'integration-google-location',
         'integration-google-project-id',
-
-        // Google Vertex AI:
-        'integration-vertex-model',
-        'integration-vertex-temperature',
-        'integration-vertex-token-limit',
-        'integration-vertex-top-k',
-        'integration-vertex-top-p',
 
         // Twilio:
         'integration-twilio-account-auth-token',
@@ -100,15 +90,6 @@ export default async function IntegrationsPage() {
         region: settings['integration-twilio-region'],
     };
 
-    const vertexSettings: VertexAISettings = {
-        model:
-            settings['integration-vertex-model'] ?? kVertexSupportedModels['gemini-2.0-flash-001'],
-        temperature: settings['integration-vertex-temperature'] ?? 0.25,
-        tokenLimit: settings['integration-vertex-token-limit'] ?? 256,
-        topK: settings['integration-vertex-top-k'] ?? 40,
-        topP: settings['integration-vertex-top-p'] ?? 0.8,
-    };
-
     const yourTicketProviderSettings: YourTicketProviderClientSettings = {
         apiKey: settings['integration-ytp-api-key'] ?? '',
         endpoint: settings['integration-ytp-endpoint'] ?? '',
@@ -120,7 +101,6 @@ export default async function IntegrationsPage() {
             <AnimeCon settings={animeConSettings} />
             <Email settings={emailSettings} />
             <Google settings={googleSettings} />
-            <VertexAI settings={vertexSettings} />
             <Twilio settings={twilioSettings} />
             <YourTicketProvider settings={yourTicketProviderSettings} />
         </>

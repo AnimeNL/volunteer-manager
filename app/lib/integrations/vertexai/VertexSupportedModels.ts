@@ -5,25 +5,49 @@
  * Enumeration of the models that are supported by the Vertex AI API.
  */
 export const kVertexSupportedModels = {
-    // https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash
-    'gemini-2.5-flash': 'gemini-2.5-flash',
-
-    // https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-lite
-    'gemini-2.5-flash-lite-preview-06-17': 'gemini-2.5-flash-lite-preview-06-17',
-
-    // https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-    'gemini-2.5-pro': 'gemini-2.5-pro',
-
-    // https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash
-    'gemini-2.0-flash-001': 'gemini-2.0-flash-001',
-
-    // https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash-lite
-    'gemini-2.0-flash-lite-001': 'gemini-2.0-flash-lite-001',
-
+    'gemini-3-pro-image-preview': {
+        name: 'Gemini 3 Pro (Image) (Preview)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-pro-image',
+    },
+    'gemini-3-pro-preview': {
+        name: 'Gemini 3 Pro (Preview)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-pro',
+    },
+    'gemini-2.5-flash': {
+        name: 'Gemini 2.5 Flash',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash',
+    },
+    'gemini-2.5-flash-image': {
+        name: 'Gemini 2.5 Flash (Image)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-image',
+    },
+    'gemini-2.5-flash-lite': {
+        name: 'Gemini 2.5 Flash (Lite)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-lite',
+    },
+    'gemini-2.0-flash': {
+        name: 'Gemini 2 Flash',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash',
+    },
+    'gemini-2.0-flash-001': {
+        name: 'Gemini 2 Flash (Preview)',
+        url: 'https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash',
+    },
+    'gemini-2.0-flash-lite': {
+        name: 'Gemini 2 Flash (Lite)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash-lite',
+    },
 } as const;
+
+/**
+ * Enumeration of the model identifiers that are supported by the Vertex AI API.
+ */
+export const kVertexSupportedModelIdentifiers: { [k in keyof typeof kVertexSupportedModels ]: k } =
+    Object.fromEntries(Object.keys(kVertexSupportedModels).map(modelIdentifier =>
+        [ modelIdentifier, modelIdentifier ])) as any;
 
 /**
  * Enumeration of the models that are supported by the Vertex AI API.
  */
 export type VertexSupportedModels =
-    typeof kVertexSupportedModels[keyof typeof kVertexSupportedModels];
+    typeof kVertexSupportedModelIdentifiers[keyof typeof kVertexSupportedModelIdentifiers];

@@ -10,7 +10,6 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { writeSettings } from '@lib/Settings';
 
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
-import { kVertexAiSettings } from './vertexAi';
 
 /**
  * Interface definition for the Update Integration API, exposed through
@@ -61,11 +60,6 @@ export const kUpdateIntegrationDefinition = z.object({
             messagingSidWhatsapp: z.string(),
             region: z.enum(kTwilioRegion),
         }).optional(),
-
-        /**
-         * Vertex AI settings that should be updated.
-         */
-        vertexAi: kVertexAiSettings.optional(),
 
         /**
          * YourTicketProvider settings that should be updated.
@@ -171,25 +165,6 @@ export async function updateIntegration(request: Request, props: ActionProps): P
             sourceUser: props.user,
             data: {
                 integration: 'Twilio',
-            }
-        });
-    }
-
-    if (request.vertexAi) {
-        await writeSettings({
-            'integration-vertex-model': request.vertexAi.model,
-            'integration-vertex-temperature': request.vertexAi.temperature,
-            'integration-vertex-token-limit': request.vertexAi.tokenLimit,
-            'integration-vertex-top-k': request.vertexAi.topK,
-            'integration-vertex-top-p': request.vertexAi.topP,
-        });
-
-        RecordLog({
-            type: kLogType.AdminUpdateIntegration,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                integration: 'Vertex AI LLM',
             }
         });
     }

@@ -23,7 +23,6 @@ const ServiceEnumeration = z.enum([
     'AnimeCon',
     'Email',
     'Google',
-    'VertexAI',
     'YourTicketProvider'
 ]);
 
@@ -149,35 +148,6 @@ async function runGoogleHealthCheck(): Promise<Response> {
 }
 
 /**
- * Runs a health check for the Google Vertex AI integration. This health check works by executing a
- * simple prompt using the VertexAI API and confirming that a non-empty response is obtained.
- */
-async function runVertexAIHealthCheck(): Promise<Response> {
-    try {
-        const client = await createVertexAIClient();
-        const prediction = await client.predictText({
-            prompt: 'Who is your favourite artist?'
-        });
-
-        if (typeof prediction === 'string') {
-            return {
-                status: 'success',
-                service: 'VertexAI',
-                message: `The integration is functional ("${prediction}")`
-            };
-        }
-
-        throw new Error('The Vertex AI API did not return a response.');
-    } catch (error: any) {
-        return {
-            status: 'error',
-            service: 'VertexAI',
-            message: error.message,
-        };
-    }
-}
-
-/**
  * Runs a health check for the YourTicketProvider API integration.
  */
 async function runYourTicketProviderHealthCheck(): Promise<Response> {
@@ -225,8 +195,6 @@ export async function serviceHealth(request: Request, props: ActionProps): Promi
             return runEmailHealthCheck(props.user!);
         case 'Google':
             return runGoogleHealthCheck();
-        case 'VertexAI':
-            return runVertexAIHealthCheck();
         case 'YourTicketProvider':
             return runYourTicketProviderHealthCheck();
     }

@@ -104,7 +104,6 @@ export function StatusHeader() {
     const [ animeConStatus, setAnimeConStatus ] = useState<ServiceHealthResponse>();
     const [ emailStatus, setEmailStatus ] = useState<ServiceHealthResponse>();
     const [ googleStatus, setGoogleStatus ] = useState<ServiceHealthResponse>();
-    const [ vertexAiStatus, setVertexAiStatus ] = useState<ServiceHealthResponse>();
     const [ ytpStatus, setYtpStatus ] = useState<ServiceHealthResponse>();
 
     const handleHealthCheck = useCallback(async () => {
@@ -113,7 +112,6 @@ export function StatusHeader() {
             determineServiceStatus('AnimeCon').then(result => setAnimeConStatus(result)),
             determineServiceStatus('Email').then(result => setEmailStatus(result)),
             determineServiceStatus('Google').then(result => setGoogleStatus(result)),
-            determineServiceStatus('VertexAI').then(result => setVertexAiStatus(result)),
             determineServiceStatus('YourTicketProvider').then(result => setYtpStatus(result)),
         ]);
         setLoading(false);
@@ -147,16 +145,13 @@ export function StatusHeader() {
                         <ServiceStatus icon={ <GoogleIcon /> }
                                        label="Google" status={googleStatus?.status} />
 
-                        <ServiceStatus icon={ <HeatPumpIcon /> }
-                                       label="Vertex AI" status={vertexAiStatus?.status} />
-
                         <ServiceStatus icon={ <LocalActivityIcon /> }
                                        label="YTP" status={ytpStatus?.status} />
 
                     </Stack>
                 </ContrastBox>
             </Stack>
-            { [ animeConStatus, googleStatus, vertexAiStatus ].map((status, index) =>
+            { [ animeConStatus, googleStatus ].map((status, index) =>
                 <Collapse in={ [ 'error', 'warning' ].includes(status?.status!) } key={index}>
                     <Alert sx={{ mt: 2 }} severity={ (status?.status ?? 'info') as any }>
                         <strong>{status?.service}</strong>: {status?.message}

@@ -9,13 +9,13 @@ import { createVertexAIClient } from '@lib/integrations/vertexai';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { readSettings } from '@lib/Settings';
 
-import { kVertexSupportedModels } from '@lib/integrations/vertexai/VertexSupportedModels';
+import { kVertexSupportedModelIdentifiers } from '@lib/integrations/vertexai/VertexSupportedModels';
 
 /**
  * The Vertex AI settings object. Shared across multiple API calls.
  */
 export const kVertexAiSettings = z.object({
-    model: z.enum(kVertexSupportedModels),
+    model: z.enum(kVertexSupportedModelIdentifiers),
     temperature: z.number().gte(0).lte(1),
     tokenLimit: z.number().gte(1).lte(1024),
     topK: z.number().gte(1).lte(40),
