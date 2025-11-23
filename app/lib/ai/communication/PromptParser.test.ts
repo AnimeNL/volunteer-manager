@@ -208,7 +208,238 @@ describe('PromptParser', () => {
     });
 
     it('should be able to deal with basic comparison operator conditionals', () => {
-        // todo
+        // -----------------------------------------------------------------------------------------
+        // IMPLICIT EQUALITY
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('true');
+            expect(parser.evaluate({ value: false })).toBe('false');
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+            expect(parser.evaluate({ /* truthy= */ value: 15 })).toBe('true');
+            expect(parser.evaluate({ /* truthy= */ value: 'text' })).toBe('true');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // IMPLICIT NON-EQUALITY
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if !value]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('false');
+            expect(parser.evaluate({ value: false })).toBe('true');
+            expect(parser.evaluate({ /* no value */ })).toBe('true');
+            expect(parser.evaluate({ /* truthy= */ value: 15 })).toBe('false');
+            expect(parser.evaluate({ /* truthy= */ value: 'text' })).toBe('false');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // EQUALITY
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value == true]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('true');
+            expect(parser.evaluate({ value: 'aye' })).toBe('true');
+
+            expect(parser.evaluate({ value: false })).toBe('false');
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if value == false]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('false');
+            expect(parser.evaluate({ value: 'aye' })).toBe('false');
+
+            expect(parser.evaluate({ value: false })).toBe('true');
+            expect(parser.evaluate({ /* no value */ })).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if value == 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 25 })).toBe('true');
+            expect(parser.evaluate({ value: '25' })).toBe('true');
+            expect(parser.evaluate({ value: 14 })).toBe('false');
+            expect(parser.evaluate({ value: '14' })).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if value == "text"]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 'text' })).toBe('true');
+            expect(parser.evaluate({ value: 'other' })).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if value == \'text\']]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 'text' })).toBe('true');
+            expect(parser.evaluate({ value: 'other' })).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if "text" == "text"]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate()).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if true == true]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate()).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if value == value]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 25 })).toBe('true');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // NON-EQUALITY
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value != true]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('false');
+            expect(parser.evaluate({ value: 'aye' })).toBe('false');
+
+            expect(parser.evaluate({ value: false })).toBe('true');
+            expect(parser.evaluate({ /* no value */ })).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if value != false]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: true })).toBe('true');
+            expect(parser.evaluate({ value: 'aye' })).toBe('true');
+
+            expect(parser.evaluate({ value: false })).toBe('false');
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if value != 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 25 })).toBe('false');
+            expect(parser.evaluate({ value: '25' })).toBe('false');
+            expect(parser.evaluate({ value: 14 })).toBe('true');
+            expect(parser.evaluate({ value: '14' })).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if value != "text"]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 'text' })).toBe('false');
+            expect(parser.evaluate({ value: 'other' })).toBe('true');
+        }
+        {
+            const parser = PromptParser.compile('[[if "text" != "text"]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate()).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if true != true]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate()).toBe('false');
+        }
+        {
+            const parser = PromptParser.compile('[[if value != value]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ value: 25 })).toBe('false');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // LESS THAN
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value < 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+            expect(parser.evaluate({ value: 26 })).toBe('false');
+            expect(parser.evaluate({ value: 25 })).toBe('false');
+            expect(parser.evaluate({ value: 24 })).toBe('true');
+
+            expect(parser.evaluate({ value: 'text' })).toBe('false');
+            expect(parser.evaluate({ value: { num: 24 } })).toBe('false');
+            expect(parser.evaluate({ value: true })).toBe('false');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // LESS THAN EQUAL
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value <= 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+            expect(parser.evaluate({ value: 26 })).toBe('false');
+            expect(parser.evaluate({ value: 25 })).toBe('true');
+            expect(parser.evaluate({ value: 24 })).toBe('true');
+
+            expect(parser.evaluate({ value: 'text' })).toBe('false');
+            expect(parser.evaluate({ value: { num: 24 } })).toBe('false');
+            expect(parser.evaluate({ value: true })).toBe('false');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // GREATER THAN
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value > 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+            expect(parser.evaluate({ value: 26 })).toBe('true');
+            expect(parser.evaluate({ value: 25 })).toBe('false');
+            expect(parser.evaluate({ value: 24 })).toBe('false');
+
+            expect(parser.evaluate({ value: 'text' })).toBe('false');
+            expect(parser.evaluate({ value: { num: 24 } })).toBe('false');
+            expect(parser.evaluate({ value: true })).toBe('false');
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // GREATER THAN EQUAL
+        // -----------------------------------------------------------------------------------------
+        {
+            const parser = PromptParser.compile('[[if value >= 25]]true[[else]]false[[/if]]');
+            expect(parser.ok).toBeTrue();
+
+            expect(parser.evaluate({ /* no value */ })).toBe('false');
+            expect(parser.evaluate({ value: 26 })).toBe('true');
+            expect(parser.evaluate({ value: 25 })).toBe('true');
+            expect(parser.evaluate({ value: 24 })).toBe('false');
+
+            expect(parser.evaluate({ value: 'text' })).toBe('false');
+            expect(parser.evaluate({ value: { num: 24 } })).toBe('false');
+            expect(parser.evaluate({ value: true })).toBe('false');
+        }
+    });
+
+    it('should ignore whitespace in the middle of directives', () => {
+        const parser = PromptParser.compile('[[  if   value  ]]true[[ else  ]]false[[ /if ]]');
+        expect(parser.ok).toBeTrue();
+
+        expect(parser.evaluate({ value: true })).toBe('true');
+    });
+
+    it('should ignore whitespace in the middle of parameters', () => {
+        const parser = PromptParser.compile('a {{  value  }} b');
+        expect(parser.ok).toBeTrue();
+
+        expect(parser.evaluate({ value: 25 })).toBe('a 25 b');
     });
 
     it('should be able to recognise and reject unbalanced conditionals', () => {

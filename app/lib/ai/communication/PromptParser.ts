@@ -12,10 +12,33 @@ type PromptParameter = boolean | number | string;
 type NestedPromptParameter = { [key: string]: PromptParameter | NestedPromptParameter };
 
 /**
+ * Operators that can be evaluated as part of prompt conditions.
+ */
+type PromptConditionOperator = 'eq' | 'ne' | 'ge' | 'gt' | 'le' | 'lt';
+
+/**
+ * Available types for either the left-hand or right-hand side of a condition.
+ */
+type PromptConditionPart =
+    { type: 'boolean', value: boolean } |
+    { type: 'number', value: number } |
+    { type: 'parameter', value: string } |
+    { type: 'string', value: string };
+
+/**
+ * Available conditions that the compile function is able to tokenize from a prompt.
+ */
+type PromptCondition = {
+    operator: PromptConditionOperator;
+    lhs: PromptConditionPart;
+    rhs: PromptConditionPart;
+};
+
+/**
  * Available directives that the compile function is able to tokenize a prompt into.
  */
 type PromptDirective =
-    { directive: 'conditionStart'; expression: string } |
+    { directive: 'conditionStart'; condition: PromptCondition } |
     { directive: 'conditionElse' } |
     { directive: 'conditionEnd' } |
     { directive: 'unknown', text: string };
@@ -29,6 +52,21 @@ type PromptToken = string | { parameter: string } | PromptDirective;
  * A prompt exists of one or more individual tokens.
  */
 type PromptTokens = PromptToken[];
+
+/**
+ * Regular expression used to identify whether a string is a falsy boolean.
+ */
+const kBooleanFalsyRegexp = /^false$/i;
+
+/**
+ * Regular expression used to identify whether a string is a truthy boolean.
+ */
+const kBooleanTruthyRegexp = /^true$/i;
+
+/**
+ * Regular expression used to identify whether a string is a number.
+ */
+const kNumberRegexp = /^(-?\d+(?:\.\d+)?)$/;
 
 /**
  * Regular expression used to validate that a parameter's name is valid. We allow A-Z regardless of
@@ -45,6 +83,11 @@ const kParameterObject = '[object]';
  * Value to use when a given parameter name cannot be resolved on the passed arguments.
  */
 const kParameterUndefined = '[undefined]';
+
+/**
+ * Regular expression used to identify whether a string is a literal.
+ */
+const kStringRegexp = /"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/;
 
 /**
  * The PromptParser class is a mechanism to take a raw prompt with our pseudo-syntax and transform
@@ -66,6 +109,20 @@ const kParameterUndefined = '[undefined]';
  *     [[else]]
  *       Consider all sorts of events.
  *     [[/if]]
+ *
+ * Conditionals are supported with six operators, as well as two that implicitly convert to one of
+ * the formally supported operators. They are:
+ *
+ *     [[if param]]            - |param| must be truthy
+ *     [[if !param]]           - |param| must not be truthy
+ *     [[if param == 2026]]    - |param| must be equal to the number 2026
+ *     [[if param != "name"]]  - |param| must not be equal to the string "name"
+ *     [[if param > 2024]]     - |param| must be larger than 2024
+ *     [[if param >= 2025]]    - |param| must be larger than or be equal to 2025
+ *     [[if param < 2026]]     - |param| must be smaller than 2026
+ *     [[if param <= 2025]]    - |param| must be smaller than or be equal to 2025
+ *
+ * These faetures are extensively covered by a test suite, and documented in the manager itself.
  */
 export class PromptParser {
     /**
@@ -106,7 +163,7 @@ export class PromptParser {
                 }
 
                 if (pair === '{{') {
-                    const parameter = rawPrompt.substring(startIndex, endIndex);
+                    const parameter = rawPrompt.substring(startIndex, endIndex).trim();
                     if (!kParameterNameValidator.test(parameter)) {
                         errors.push(
                             `Invalid parameter name ("${parameter}") at index ${startIndex}`);
@@ -141,23 +198,95 @@ export class PromptParser {
     }
 
     /**
+     * Compiles the given |rawCondition| into a prompt condition. Six operators are available.
+     */
+    private static compileCondition(rawCondition: string): PromptCondition {
+        const kOperators: { [k in PromptConditionOperator]: string } = {
+            'eq': '==',
+            'ne': '!=',
+            'ge': '>=',
+            'gt': '>',
+            'le': '<=',
+            'lt': '<',
+        };
+
+        // TODO: This leads to incorrect results when the condition includes a literal with |symbol|
+        // A better parsing mechanism should be implemented to avoid this from happening.
+        for (const [ operator, symbol ] of Object.entries(kOperators)) {
+            if (!rawCondition.includes(symbol))
+                continue;
+
+            const [ lhs, rhs ] = rawCondition.split(symbol, /* limit= */ 2);
+            return {
+                operator: operator as PromptConditionOperator,
+                lhs: this.compileConditionPart(lhs),
+                rhs: this.compileConditionPart(rhs),
+            };
+        }
+
+        let operator: PromptConditionOperator = 'eq';
+        if (rawCondition.startsWith('!')) {
+            rawCondition = rawCondition.substring(1);
+            operator = 'ne';
+        }
+
+        return {
+            operator,
+            lhs: this.compileConditionPart(rawCondition),
+            rhs: { type: 'boolean', value: true },
+        };
+    }
+
+    /**
+     * Compiles the given |rawConditionPart| to a typed prompt condition part.
+     */
+    private static compileConditionPart(rawConditionPart: string): PromptConditionPart {
+        const trimmedRawConditionPart = rawConditionPart.trim();
+        if (kBooleanFalsyRegexp.test(trimmedRawConditionPart))
+            return { type: 'boolean', value: false };
+        if (kBooleanTruthyRegexp.test(trimmedRawConditionPart))
+            return { type: 'boolean', value: true };
+
+        if (kNumberRegexp.test(trimmedRawConditionPart))
+            return { type: 'number', value: parseFloat(trimmedRawConditionPart) };
+
+        const stringLiteralMatch = trimmedRawConditionPart.match(kStringRegexp);
+        if (stringLiteralMatch) {
+            return {
+                type: 'string',
+                value: /* double quotes= */ stringLiteralMatch[1]
+                    ?? /* single quotes= */ stringLiteralMatch[3]
+            };
+        }
+
+        return {
+            type: 'parameter',
+            value: trimmedRawConditionPart,
+        }
+    }
+
+    /**
      * Compiles the given |rawDirective| into a prompt token. Various sorts of directives are
      * supported, where unknown ones will fall into a canonical "unknownDirective" directive.
      */
     private static compileDirective(rawDirective: string): PromptDirective {
-        if (rawDirective.startsWith('if')) {
-            // TODO: Parse the expression to populate the left and (optional) right hand sides
-            // TODO: Parse the expression to populate eq/gt/ge/lt/le/ne comparisons
-            return { directive: 'conditionStart', expression: rawDirective.substring(2).trim() };
+        const trimmedRawDirective = rawDirective.trim();
+
+        if (trimmedRawDirective.startsWith('if')) {
+            const rawCondition = trimmedRawDirective.substring(2).trim();
+            return {
+                directive: 'conditionStart',
+                condition: this.compileCondition(rawCondition),
+            };
         }
 
-        if (rawDirective.startsWith('else'))
+        if (trimmedRawDirective.startsWith('else'))
             return { directive: 'conditionElse' };
 
-        if (rawDirective.startsWith('/if'))
+        if (trimmedRawDirective.startsWith('/if'))
             return { directive: 'conditionEnd' };
 
-        return { directive: 'unknown', text: rawDirective };
+        return { directive: 'unknown', text: trimmedRawDirective };
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -194,7 +323,7 @@ export class PromptParser {
      */
     get parameters() { return [ ...this.#parameters ]; }
 
-    get tokensForTesting() { return this.#tokens; }
+    get tokens() { return this.#tokens; }
 
     /**
      * Evaluates the compiled prompt, and returns the result as a string. The |args| can be passed
@@ -223,10 +352,11 @@ export class PromptParser {
 
             switch (token.directive) {
                 case 'conditionStart': {
-                    const directiveValue = this.evaluteResolveParameter(token.expression, args);
-                    const directiveBooleanValue = !!directiveValue;
+                    const lhs = this.evaluateResolveConditionPart(token.condition, 'lhs', args);
+                    const rhs = this.evaluateResolveConditionPart(token.condition, 'rhs', args);
+                    const result = this.evaluateCondition(token.condition.operator, lhs, rhs);
 
-                    conditionStack.push(directiveBooleanValue);
+                    conditionStack.push(result);
                     break;
                 }
 
@@ -244,6 +374,65 @@ export class PromptParser {
         }
 
         return result.join('');
+    }
+
+    /**
+     * Evaluates the condition between |lhs| and |rhs| based on the given |operator|.
+     */
+    private evaluateCondition(
+        operator: PromptConditionOperator, lhs: PromptParameter, rhs: PromptParameter)
+    {
+        if (typeof lhs !== typeof rhs) {
+            switch (typeof rhs) {
+                case 'boolean':
+                    lhs = !!lhs;
+                    break;
+
+                case 'number':
+                    lhs = parseInt(`${lhs}`, /* radix= */ 10);
+                    if (Number.isNaN(lhs))
+                        return false;
+
+                    break;
+
+                case 'string':
+                    lhs = `${lhs}`;
+                    break;
+            }
+        }
+
+        switch (operator) {
+            case 'eq':
+                return lhs === rhs;
+            case 'ne':
+                return lhs !== rhs;
+            case 'ge':
+                return lhs >= rhs;
+            case 'gt':
+                return lhs > rhs;
+            case 'le':
+                return lhs <= rhs;
+            case 'lt':
+                return lhs < rhs;
+        }
+    }
+
+    /**
+     * Evaluates the |side| from the given |condition|, which could either be a literal, or be a
+     * reference to a parameter that has to be resolved.
+     */
+    private evaluateResolveConditionPart(
+        condition: PromptCondition, side: 'lhs' | 'rhs', args?: NestedPromptParameter)
+    {
+        switch (condition[side].type) {
+            case 'boolean':
+            case 'number':
+            case 'string':
+                return condition[side].value;
+
+            case 'parameter':
+                return this.evaluteResolveParameter(condition[side].value, args) ?? false;
+        }
     }
 
     /**
