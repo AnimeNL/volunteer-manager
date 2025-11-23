@@ -204,24 +204,52 @@ export class PromptTemplate {
      * Compiles the given |rawCondition| into a prompt condition. Six operators are available.
      */
     private static compileCondition(rawCondition: string): PromptCondition {
-        const kOperators: { [k in PromptConditionOperator]: string } = {
-            'eq': '==',
-            'ne': '!=',
-            'ge': '>=',
-            'gt': '>',
-            'le': '<=',
-            'lt': '<',
+        const kOperators: { [k: string]: PromptConditionOperator } = {
+            '==': 'eq',
+            '!=': 'ne',
+            '>=': 'ge',
+            '>': 'gt',
+            '<=': 'le',
+            '<': 'lt',
         };
 
-        // TODO: This leads to incorrect results when the condition includes a literal with |symbol|
-        // A better parsing mechanism should be implemented to avoid this from happening.
-        for (const [ operator, symbol ] of Object.entries(kOperators)) {
-            if (!rawCondition.includes(symbol))
-                continue;
+        let inDoubleQuote = false;
+        let inSingleQuote = false;
 
-            const [ lhs, rhs ] = rawCondition.split(symbol, /* limit= */ 2);
+        for (let index = 0; index < rawCondition.length; ++index) {
+            if (rawCondition[index] === '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (rawCondition[index] === '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+
+            if (inDoubleQuote || inSingleQuote)
+                continue;  // in a quoted string, no point in searching for operators here
+
+            const singleChar = rawCondition[index];
+            const doubleChar = rawCondition.substring(index, index + 2);
+
+            let lhs: string | undefined;
+            let rhs: string | undefined;
+            let operator: PromptConditionOperator | undefined;
+
+            if (Object.hasOwn(kOperators, doubleChar)) {
+                lhs = rawCondition.substring(0, index - 1);
+                rhs = rawCondition.substring(index + 2);
+                operator = kOperators[doubleChar];
+            } else if (Object.hasOwn(kOperators, singleChar)) {
+                lhs = rawCondition.substring(0, index - 1);
+                rhs = rawCondition.substring(index + 1);
+                operator = kOperators[singleChar];
+            } else {
+                continue;
+            }
+
             return {
-                operator: operator as PromptConditionOperator,
+                operator,
                 lhs: this.compileConditionPart(lhs),
                 rhs: this.compileConditionPart(rhs),
             };
@@ -255,10 +283,12 @@ export class PromptTemplate {
 
         const stringLiteralMatch = trimmedRawConditionPart.match(kStringRegexp);
         if (stringLiteralMatch) {
+            const stringLiteral = /* double quotes= */ stringLiteralMatch[1] ??
+                                  /* single quotes= */ stringLiteralMatch[3] ?? '';
+
             return {
                 type: 'string',
-                value: /* double quotes= */ stringLiteralMatch[1]
-                    ?? /* single quotes= */ stringLiteralMatch[3]
+                value: stringLiteral.replace(/(?:\\(.))/g, '$1'),
             };
         }
 
@@ -393,8 +423,6 @@ export class PromptTemplate {
      * Returns the substitution parameters that evaluation is expecting. Alphabetically sorted.
      */
     get parameters() { return [ ...this.#parameters ]; }
-
-    get tokens() { return this.#tokens; }
 
     /**
      * Evaluates the compiled prompt, and returns the result as a string. The |args| can be passed

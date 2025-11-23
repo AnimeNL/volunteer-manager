@@ -537,6 +537,32 @@ describe('PromptTemplate', () => {
         }
     });
 
+    it('should deal properly with escaped string values in conditionals', () => {
+        {
+            const template =
+                PromptTemplate.compile('[[if "\\"foo\\"" == bar]]true[[else]]false[[/if]]');
+            expect(template.ok).toBeTrue();
+
+            expect(template.evaluate({ bar: 'foo' })).toBe('false');
+            expect(template.evaluate({ bar: '"foo"' })).toBe('true');
+        }
+        {
+            const template =
+                PromptTemplate.compile('[[if "\\\'foo\\\'" == bar]]true[[else]]false[[/if]]');
+            expect(template.ok).toBeTrue();
+
+            expect(template.evaluate({ bar: 'foo' })).toBe('false');
+            expect(template.evaluate({ bar: '\'foo\'' })).toBe('true');
+        }
+    });
+
+    it('should compile conditions without operator ambiguity', () => {
+        const template = PromptTemplate.compile('[[if "==" != ">="]]true[[else]]false[[/if]]');
+        expect(template.ok).toBeTrue();
+
+        expect(template.evaluate()).toBe('true');
+    });
+
     it('should be able to recognise and reject on invalid directives', () => {
         const template = PromptTemplate.compile('Foo [[invalid]] Baz');
         expect(template.ok).toBeFalse();
