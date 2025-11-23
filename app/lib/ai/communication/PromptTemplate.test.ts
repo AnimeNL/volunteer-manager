@@ -437,6 +437,49 @@ describe('PromptTemplate', () => {
         }
     });
 
+    it('should support else if ("elif") statements in conditionals', () => {
+        {
+            const template = PromptTemplate.compile(
+                '[[if value < 25]]low[[elif value == 25]]mid[[else]]high[//if]]');
+            expect(template.ok).toBeTrue();
+
+            expect(template.evaluate({ /* no value */ })).toBe('high');
+
+            expect(template.evaluate({ value: 26 })).toBe('high');
+            expect(template.evaluate({ value: 25 })).toBe('mid');
+            expect(template.evaluate({ value: 24 })).toBe('low');
+        }
+        {
+            const template = PromptTemplate.compile(
+                '[[if value < 25]]low[[elif value == 25]]mid-low[[elif value == 26]]mid-high' +
+                '[[else]]high[//if]]');
+            expect(template.ok).toBeTrue();
+
+            expect(template.evaluate({ /* no value */ })).toBe('high');
+
+            expect(template.evaluate({ value: 27 })).toBe('high');
+            expect(template.evaluate({ value: 26 })).toBe('mid-high');
+            expect(template.evaluate({ value: 25 })).toBe('mid-low');
+            expect(template.evaluate({ value: 24 })).toBe('low');
+        }
+        {
+            const template = PromptTemplate.compile('[[if a]]a[[elif b]]b[[elif c]]c[[/if]]');
+            expect(template.ok).toBeTrue();
+
+            expect(template.evaluate({ /* no value */ })).toBe(/* empty= */ '');
+
+            expect(template.evaluate({ a: true, b: false, c: false })).toBe('a');
+            expect(template.evaluate({ a: true, b: false, c: true })).toBe('a');
+            expect(template.evaluate({ a: true, b: true, c: false })).toBe('a');
+            expect(template.evaluate({ a: true, b: true, c: true })).toBe('a');
+
+            expect(template.evaluate({ a: false, b: false, c: false })).toBe(/* empty= */ '');
+            expect(template.evaluate({ a: false, b: false, c: true })).toBe('c');
+            expect(template.evaluate({ a: false, b: true, c: false })).toBe('b');
+            expect(template.evaluate({ a: false, b: true, c: true })).toBe('b');
+        }
+    });
+
     it('should ignore whitespace in the middle of directives', () => {
         const template = PromptTemplate.compile('[[  if   value  ]]true[[ else  ]]false[[ /if ]]');
         expect(template.ok).toBeTrue();

@@ -39,6 +39,7 @@ type PromptCondition = {
  */
 type PromptDirective =
     { directive: 'conditionStart'; condition: PromptCondition } |
+    { directive: 'conditionElseIf'; condition: PromptCondition } |
     { directive: 'conditionElse' } |
     { directive: 'conditionEnd' } |
     { directive: 'unknown', text: string };
@@ -106,6 +107,8 @@ const kStringRegexp = /"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/;
  *     List the ten most significant happening in the past ten years.
  *     [[if onlySports]]
  *       Only consider sports events.
+ *     [[elif onlyMusic]]
+ *       Only consider music events.
  *     [[else]]
  *       Consider all sorts of events.
  *     [[/if]]
@@ -280,6 +283,14 @@ export class PromptTemplate {
             };
         }
 
+        if (trimmedRawDirective.startsWith('elif')) {
+            const rawCondition = trimmedRawDirective.substring(4).trim();
+            return {
+                directive: 'conditionElseIf',
+                condition: this.compileCondition(rawCondition),
+            };
+        }
+
         if (trimmedRawDirective.startsWith('else'))
             return { directive: 'conditionElse' };
 
@@ -330,11 +341,11 @@ export class PromptTemplate {
      * to substitute placeholders made available in the prompt.
      */
     evaluate(args?: NestedPromptParameter): string {
-        const conditionStack: boolean[] = [ /* empty */ ];
+        const conditionStack: [ /* branch= */ boolean, /* condition= */ boolean ][] = [];
 
         const result: string[] = [ /* none yet */ ];
         for (const token of this.#tokens) {
-            const inFalseBranch = conditionStack.some(state => !state);
+            const inFalseBranch = conditionStack.some(state => !state[0]);
             if (inFalseBranch && (typeof token !== 'object' || !('directive' in token)))
                 continue;  // ignore literals and parameters in non-truthy branches
 
@@ -351,18 +362,32 @@ export class PromptTemplate {
             }
 
             switch (token.directive) {
-                case 'conditionStart': {
+                case 'conditionStart':
+                case 'conditionElseIf': {
                     const lhs = this.evaluateResolveConditionPart(token.condition, 'lhs', args);
                     const rhs = this.evaluateResolveConditionPart(token.condition, 'rhs', args);
                     const result = this.evaluateCondition(token.condition.operator, lhs, rhs);
 
-                    conditionStack.push(result);
+                    if (token.directive === 'conditionStart') {
+                        conditionStack.push([ result, result ]);
+                    } else {
+                        const [ _, condition ] = conditionStack.pop()!;
+                        conditionStack.push([
+                            /* branch= */ result && !condition,
+                            /* condition= */ result || condition,
+                        ]);
+                    }
                     break;
                 }
 
-                case 'conditionElse':
-                    conditionStack.push(!conditionStack.pop());
+                case 'conditionElse': {
+                    const [ _, condition ] = conditionStack.pop()!;
+                    conditionStack.push([
+                        /* branch= */ !condition,
+                        /* condition= */ !condition
+                    ]);
                     break;
+                }
 
                 case 'conditionEnd':
                     conditionStack.pop();
