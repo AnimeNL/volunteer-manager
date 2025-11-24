@@ -9,7 +9,6 @@ import type { TaskResult } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { createAnimeConClient } from '@lib/integrations/animecon';
-import { createVertexAIClient } from '@lib/integrations/vertexai';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';

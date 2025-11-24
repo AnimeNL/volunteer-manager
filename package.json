@@ -30,6 +30,7 @@
   "dependencies": {
     "@beverloo/volunteer-manager-timeline": "^3.0.0",
     "@google-cloud/vertexai": "^1.10.0",
+    "@google/genai": "^1.30.0",
     "@mdxeditor/editor": "^3.49.3",
     "@mui/icons-material": "^7.3.5",
     "@mui/lab": "^7.0.1-beta.19",

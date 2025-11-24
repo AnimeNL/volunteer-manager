@@ -70,6 +70,7 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
 
     }, [ props.serverAction ]);
 
+    // biome-ignore-start lint/performance/noImgElement: intentional usage
     return (
         <>
             <FormGrid action={executeModel} callToAction="Execute" spacing={1}
@@ -106,6 +107,7 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
             </Collapse>
         </>
     );
+    // biome-ignore-end lint/performance/noImgElement: intentional usage
 }
 
 /**
