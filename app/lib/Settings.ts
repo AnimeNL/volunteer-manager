@@ -67,6 +67,8 @@ export type Settings = {
     'ai-example-messages': string;
 
     // Settings:
+    'ai-setting-backend': 'gemini' | 'vertexai';
+    'ai-setting-gemini-api-key': string;
     'ai-setting-image-model': VertexSupportedModels;
     'ai-setting-text-model': VertexSupportedModels;
     'ai-setting-candidate-count': number;
