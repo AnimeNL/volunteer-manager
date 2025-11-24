@@ -177,6 +177,9 @@ describe('PromptTemplate', () => {
         const template = PromptTemplate.compile('Today is [[if warm]]great[[else]]ok[[/if]]!');
         expect(template.ok).toBeTrue();
 
+        expect(template.parameters).toBeArrayOfSize(1);
+        expect(template.parameters[0]).toBe('warm');
+
         // Present and true
         expect(template.evaluate({ warm: true })).toBe('Today is great!');
 
@@ -196,6 +199,10 @@ describe('PromptTemplate', () => {
             'white[[/if]][[/if]]');
         expect(template.ok).toBeTrue();
 
+        expect(template.parameters).toBeArrayOfSize(2);
+        expect(template.parameters[0]).toBe('red');
+        expect(template.parameters[1]).toBe('yellow');
+
         expect(template.evaluate({ /* no red */ yellow: true })).toBe('yellow');
         expect(template.evaluate({ /* no red */ yellow: false })).toBe('white');
         expect(template.evaluate({ /* no red & no yellow */ })).toBe('white');
@@ -214,6 +221,9 @@ describe('PromptTemplate', () => {
         {
             const template = PromptTemplate.compile('[[if value]]true[[else]]false[[/if]]');
             expect(template.ok).toBeTrue();
+
+            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: true })).toBe('true');
             expect(template.evaluate({ value: false })).toBe('false');
@@ -242,6 +252,9 @@ describe('PromptTemplate', () => {
         {
             const template = PromptTemplate.compile('[[if value == true]]true[[else]]false[[/if]]');
             expect(template.ok).toBeTrue();
+
+            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: true })).toBe('true');
             expect(template.evaluate({ value: 'aye' })).toBe('true');
@@ -440,7 +453,7 @@ describe('PromptTemplate', () => {
     it('should support else if ("elif") statements in conditionals', () => {
         {
             const template = PromptTemplate.compile(
-                '[[if value < 25]]low[[elif value == 25]]mid[[else]]high[//if]]');
+                '[[if value < 25]]low[[elif value == 25]]mid[[else]]high[[/if]]');
             expect(template.ok).toBeTrue();
 
             expect(template.evaluate({ /* no value */ })).toBe('high');
@@ -452,7 +465,7 @@ describe('PromptTemplate', () => {
         {
             const template = PromptTemplate.compile(
                 '[[if value < 25]]low[[elif value == 25]]mid-low[[elif value == 26]]mid-high' +
-                '[[else]]high[//if]]');
+                '[[else]]high[[/if]]');
             expect(template.ok).toBeTrue();
 
             expect(template.evaluate({ /* no value */ })).toBe('high');
@@ -483,6 +496,9 @@ describe('PromptTemplate', () => {
     it('should ignore whitespace in the middle of directives', () => {
         const template = PromptTemplate.compile('[[  if   value  ]]true[[ else  ]]false[[ /if ]]');
         expect(template.ok).toBeTrue();
+
+        expect(template.parameters).toBeArrayOfSize(1);
+        expect(template.parameters[0]).toBe('value');
 
         expect(template.evaluate({ value: true })).toBe('true');
     });

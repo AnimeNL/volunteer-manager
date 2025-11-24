@@ -4,12 +4,12 @@
 /**
  * Types that are valid for parameters given to a prompt.
  */
-type PromptParameter = boolean | number | string;
+export type PromptParameter = boolean | number | string;
 
 /**
  * Nested variant of the |PromptParameter| set of types.
  */
-type NestedPromptParameter = { [key: string]: PromptParameter | NestedPromptParameter };
+export type PromptParameters = { [key: string]: PromptParameter | PromptParameters };
 
 /**
  * Operators that can be evaluated as part of prompt conditions.
@@ -142,7 +142,7 @@ export class PromptTemplate {
 
         for (let index = 0; index < rawPrompt.length;) {
             const char = rawPrompt[index];
-            const pair = char + (rawPrompt[index] || '');
+            const pair = char + (rawPrompt[index + 1] || '');
 
             if (pair === '{{' || pair === '[[') {
                 if (buffer.length > 0) {
@@ -402,7 +402,17 @@ export class PromptTemplate {
 
         const parameters = new Set<string>();
         for (const token of this.#tokens) {
-            if (typeof token === 'object' && 'parameter' in token)
+            if (typeof token !== 'object')
+                continue;
+
+            if ('condition' in token) {
+                if (token.condition.lhs.type === 'parameter')
+                    parameters.add(token.condition.lhs.value);
+                if (token.condition.rhs.type === 'parameter')
+                    parameters.add(token.condition.rhs.value);
+            }
+
+            if ('parameter' in token)
                 parameters.add(token.parameter);
         }
 
@@ -428,7 +438,7 @@ export class PromptTemplate {
      * Evaluates the compiled prompt, and returns the result as a string. The |args| can be passed
      * to substitute placeholders made available in the prompt.
      */
-    evaluate(args?: NestedPromptParameter): string {
+    evaluate(args?: PromptParameters): string {
         const conditionStack: [ /* branch= */ boolean, /* condition= */ boolean ][] = [];
 
         const result: string[] = [ /* none yet */ ];
@@ -535,7 +545,7 @@ export class PromptTemplate {
      * reference to a parameter that has to be resolved.
      */
     private evaluateResolveConditionPart(
-        condition: PromptCondition, side: 'lhs' | 'rhs', args?: NestedPromptParameter)
+        condition: PromptCondition, side: 'lhs' | 'rhs', args?: PromptParameters)
     {
         switch (condition[side].type) {
             case 'boolean':
@@ -552,7 +562,7 @@ export class PromptTemplate {
      * Resolves the given |parameter| in the set of |args|, based on its name and periods as the
      * character used to separate levels of nesting. Only dictionaries are supported.
      */
-    private evaluteResolveParameter(parameter: string, args?: NestedPromptParameter) {
+    private evaluteResolveParameter(parameter: string, args?: PromptParameters) {
         if (!args)
             return undefined;
 
