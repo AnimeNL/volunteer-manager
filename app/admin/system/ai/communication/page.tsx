@@ -23,7 +23,7 @@ import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import * as actions from '../AiActions';
-import * as prompts from '@lib/ai/communication/prompts';
+import * as prompts from '@lib/ai/prompts';
 
 /**
  * Maximum number of example messages that can be provided to the model.
@@ -54,7 +54,7 @@ export default async function CommunicationAiPage() {
     const exampleMessages = JSON.parse(settings['ai-example-messages'] || '[]');
     const systemPrompt = settings['ai-communication-system-prompt'] || '';
 
-    // Infer the available prompts from the ones exported from the //lib/ai/communication library,
+    // Infer the available prompts from the ones exported from the //lib/ai/ library,
     // which is the source of truth. Icons are complemented by this component.
     const availablePrompts = Object.values(prompts).map(promptConstructor => {
         const promptInstance = new promptConstructor();

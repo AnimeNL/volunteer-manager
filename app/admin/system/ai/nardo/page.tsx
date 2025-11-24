@@ -14,7 +14,7 @@ import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import * as actions from '../AiActions';
-import { NardoPersonalisedAdvicePrompt } from '@lib/ai/communication/prompts/NardoPersonalisedAdvice';
+import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
 
 /**
  * The AI page contains the prompt configuration used for our use of Generative AI throughout the

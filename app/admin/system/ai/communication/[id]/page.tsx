@@ -10,7 +10,7 @@ import type { NextPageParams } from '@lib/NextRouterParams';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
-import * as prompts from '@lib/ai/communication/prompts';
+import * as prompts from '@lib/ai/prompts';
 
 /**
  * This page displays configuration, and provides the ability to try out an individual prompt. The

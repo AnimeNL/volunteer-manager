@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import { NardoPersonalisedAdvicePrompt } from '@lib/ai/communication/prompts/NardoPersonalisedAdvice';
+import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
@@ -11,7 +11,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
-import { PromptValidator } from '@lib/ai/communication/PromptValidator';
+import { PromptValidator } from '@lib/ai/PromptValidator';
 
 /**
  * Zod type that describes information required in order to execute a model.
