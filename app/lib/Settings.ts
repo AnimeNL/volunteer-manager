@@ -66,6 +66,9 @@ export type Settings = {
     'ai-communication-type-retention': string;
     'ai-example-messages': string;
 
+    // Del a Rie Advies:
+    'ai-nardo-personalised-advice': string;
+
     // Settings:
     'ai-setting-backend': 'gemini' | 'vertexai';
     'ai-setting-gemini-api-key': string;

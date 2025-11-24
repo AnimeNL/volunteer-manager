@@ -3,11 +3,18 @@
 
 import type { Metadata } from 'next';
 
-import Divider from '@mui/material/Divider';
+import { TextareaAutosizeElement } from 'react-hook-form-mui';
+
+import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
+import { FormGrid } from '@app/admin/components/FormGrid';
+import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+
+import * as actions from '../AiActions';
+import { NardoPersonalisedAdvicePrompt } from '@lib/ai/communication/prompts/NardoPersonalisedAdvice';
 
 /**
  * The AI page contains the prompt configuration used for our use of Generative AI throughout the
@@ -19,36 +26,36 @@ export default async function NardoAiPage() {
         permission: 'system.internals.ai',
     });
 
+    const personalisedAdvicePrompt = new NardoPersonalisedAdvicePrompt();
+    const personalisedAdviceParameters =
+        [ ...personalisedAdvicePrompt.parameters ].sort().map(param => `{{${param}}}`);
+
+    const settings = await readSettings([
+        personalisedAdvicePrompt.metadata.setting,
+    ]);
+
+    const defaultValues = {
+        personalisedAdvice: settings[personalisedAdvicePrompt.metadata.setting],
+    };
+
     return (
-        <Grid container spacing={2}>
+        <FormGrid action={actions.updateNardo} defaultValues={defaultValues}>
             <Grid size={{ xs: 12 }} sx={{ mb: -1 }}>
                 <Typography variant="h6">
                     Personalised Advice
                 </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-                TODO (Prompt)
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    Available tokens: {personalisedAdviceParameters.join(', ')}
+                </Alert>
+                <TextareaAutosizeElement name="personalisedAdvice" label="Personalised advice"
+                                         size="small" fullWidth />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
                 TODO (Example)
             </Grid>
-
-            <Grid size={{ xs: 12 }}>
-                <Divider />
-            </Grid>
-
-            <Grid size={{ xs: 12 }} sx={{ mb: -1 }}>
-                <Typography variant="h6">
-                    Personalised Gift
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, md: 8 }}>
-                TODO (Prompt)
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-                TODO (Example)
-            </Grid>
-        </Grid>
+        </FormGrid>
     );
 }
 

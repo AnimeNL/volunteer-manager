@@ -106,10 +106,10 @@ export abstract class Prompt<T extends PromptParameters> {
                 const value = node[key as keyof typeof node];
                 const path = prefix ? `${prefix}.${key}` : key;
 
-                paths.add(path);
-
                 if (typeof value === 'object' && value && !seen.has(value))
                     stack.push({ node: value, prefix: path });
+                else
+                    paths.add(path);
             }
         }
 

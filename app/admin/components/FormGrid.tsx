@@ -70,7 +70,12 @@ function InnerFormGrid(props: { callToAction?: string }) {
                         { props.callToAction ?? 'Save changes' }
                     </Button>
                     { (!!formContext.result && !formContext.result.success) &&
-                        <Alert severity="warning" sx={{ flexGrow: 1, px: 1, py: 0 }}>
+                        <Alert severity="warning" sx={{
+                            flexGrow: 1,
+                            px: 1,
+                            py: 0,
+                            whiteSpace: 'pre-line'
+                        }}>
                             { formContext.result.error || 'The changes could not be saved' }
                         </Alert> }
                 </Stack>
