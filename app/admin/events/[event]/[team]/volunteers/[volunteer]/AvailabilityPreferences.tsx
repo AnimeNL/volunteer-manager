@@ -21,6 +21,7 @@ import { darken, lighten } from '@mui/system/colorManipulator';
 import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
 import { ApplicationAvailabilityForm } from '@app/registration/[slug]/application/ApplicationParticipation';
 import { AvailabilityTimelineImpl } from './AvailabilityTimelineImpl';
+import { HiddenInput } from '@components/HiddenInput';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 
 import { kAvailabilityTimelineColours, kAvailabilityTimelineTitles }
@@ -96,7 +97,7 @@ interface AvailabilityPreferencesProps {
  * have been applied to their participation.
  */
 export function AvailabilityPreferences(props: AvailabilityPreferencesProps) {
-    const { register, setValue, watch } = useFormContext();
+    const { setValue, watch } = useFormContext();
 
     // ---------------------------------------------------------------------------------------------
     // Deal with timeline changes for any exceptions to the volunteer's availability.
@@ -221,7 +222,7 @@ export function AvailabilityPreferences(props: AvailabilityPreferencesProps) {
                 </Accordion>
             </Grid>
 
-            <input type="hidden" {...register('exceptions')} />
+            <HiddenInput name="exceptions" />
 
             <Grid size={{ xs: 12 }}>
                 <Accordion disableGutters elevation={0} square>

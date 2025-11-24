@@ -17,6 +17,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
 
+import { HiddenInput } from '@components/HiddenInput';
 import { Temporal, formatDate } from '@lib/Temporal';
 
 import type { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
@@ -126,7 +127,7 @@ interface ApplicationAvailabilityFormProps {
 export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormProps) {
     const { readOnly } = props;
 
-    const { register, setValue, watch } = useFormContext();
+    const { setValue, watch } = useFormContext();
 
     // Validate the variants:
     if (!!props.includeBuildUp && !props.eventStartDate)
@@ -196,7 +197,7 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                                          disabled={readOnly} />
             </Grid>
             { (!!props.includeBuildUp || !!props.includeTearDown) &&
-                <input type="hidden" {...register('availabilityBuildUpTearDown')} /> }
+                <HiddenInput name="availabilityBuildUpTearDown" /> }
             { !!props.includeBuildUp &&
                 <Grid size={{ xs: 12, md: 6 }} sx={{
                     border: '1px solid transparent',

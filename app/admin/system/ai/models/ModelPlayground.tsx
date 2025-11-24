@@ -17,6 +17,7 @@ import { styled } from '@mui/material/styles';
 
 import type { ServerAction, ServerActionResult } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { HiddenInput } from '@components/HiddenInput';
 
 /**
  * Props accepted by the <ModelPlayground> component.
@@ -76,7 +77,7 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
             <FormGrid action={executeModel} callToAction="Execute" spacing={1}
                       defaultValues={defaultValues}>
                 <Grid size={{ xs: 12 }}>
-                    <ModelPlaygroundHiddenModelField />
+                    <HiddenInput name="model" />
                     <TextareaAutosizeElement
                         name="prompt" label={props.label} size="small" required fullWidth
                         sx={{ backgroundColor: 'background.paper' }} />
@@ -108,15 +109,6 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
         </>
     );
     // biome-ignore-end lint/performance/noImgElement: intentional usage
-}
-
-/**
- * Hidden input element that will register with RHF in order to communicate the type of model that
- * should be used with the server. Will additionally control parts of the response.
- */
-function ModelPlaygroundHiddenModelField() {
-    const { register } = useFormContext();
-    return <input type="hidden" {...register('model')} />;
 }
 
 /**
