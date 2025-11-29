@@ -87,8 +87,8 @@ export abstract class Prompt<T extends PromptParameters> {
      * the prompt instance. Will return the result as a set. Used by the validator, as well as by
      * the user interface to identify the available parameters.
      */
-    get parameters(): Set<string> {
-        const paths = new Set<string>();
+    get parameters(): Map<string, string> {
+        const paths = new Map<string, string>();
 
         const seen: WeakSet<object> = new WeakSet([ this.exampleParameters ]);
         const stack: [{ node: object, prefix: string }] = [
@@ -109,7 +109,7 @@ export abstract class Prompt<T extends PromptParameters> {
                 if (typeof value === 'object' && value && !seen.has(value))
                     stack.push({ node: value, prefix: path });
                 else
-                    paths.add(path);
+                    paths.set(path, `${value}`);
             }
         }
 

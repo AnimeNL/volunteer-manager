@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 
 import { TextareaAutosizeElement } from 'react-hook-form-mui';
 
-import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -16,6 +15,7 @@ import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
+import { TokenOverviewAlert } from '../../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -39,8 +39,6 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
     if (!prompt)
         notFound();
 
-    const promptParamters = [ ...prompt.parameters ].sort().map(param => `{{${param}}}`);
-
     const settings = await readSettings([
         prompt.metadata.setting,
     ]);
@@ -63,9 +61,7 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
                     <Typography variant="h6" sx={{ pb: 1 }}>
                         {prompt.metadata.label}
                     </Typography>
-                    <Alert severity="info">
-                        Available tokens: {promptParamters.join(', ')}
-                    </Alert>
+                    <TokenOverviewAlert prompt={prompt} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <HiddenInput name="id" />

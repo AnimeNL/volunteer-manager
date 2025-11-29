@@ -5,16 +5,16 @@ import type { Metadata } from 'next';
 
 import { TextareaAutosizeElement } from 'react-hook-form-mui';
 
-import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
+import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import * as actions from '../AiActions';
-import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
 
 /**
  * The AI page contains the prompt configuration used for our use of Generative AI throughout the
@@ -27,9 +27,6 @@ export default async function NardoAiPage() {
     });
 
     const personalisedAdvicePrompt = new NardoPersonalisedAdvicePrompt();
-    const personalisedAdviceParameters =
-        [ ...personalisedAdvicePrompt.parameters ].sort().map(param => `{{${param}}}`);
-
     const settings = await readSettings([
         personalisedAdvicePrompt.metadata.setting,
     ]);
@@ -46,11 +43,9 @@ export default async function NardoAiPage() {
                 </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-                <Alert severity="info" sx={{ mb: 2 }}>
-                    Available tokens: {personalisedAdviceParameters.join(', ')}
-                </Alert>
+                <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
                 <TextareaAutosizeElement name="personalisedAdvice" label="Personalised advice"
-                                         size="small" fullWidth />
+                                         size="small" fullWidth sx={{ mt: 2 }} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
                 TODO (Example)

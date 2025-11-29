@@ -37,8 +37,8 @@ export class NardoPersonalisedAdvicePrompt extends Prompt<NardoPersonalisedAdvic
 
     override get exampleParameters() {
         return {
-            additionalContext: /* none */ '',
-            advice: 'Use old manga as wallpaper to give any room instant "otaku chic".',
+            additionalContext: 'They are currently on their last shift.',
+            advice: 'Use old manga as wallpaper to give any room instant otaku chic.',
             audience: {
                 name: 'John',
                 tenure: 6,
