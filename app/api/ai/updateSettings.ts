@@ -36,14 +36,6 @@ export const kUpdateAiSettingsDefinition = z.object({
             'gen-ai-intention-remind-participation': z.string(),
         }).optional(),
 
-        /**
-         * Prompts, owned by separate, self-driven features, that should be updated.
-         */
-        promptsFeatures: z.object({
-            'gen-ai-prompt-del-a-rie-advies': z.string(),
-            'gen-ai-prompt-financial-insights': z.string(),
-        }).optional(),
-
     }),
     response: z.strictObject({
         /**
@@ -105,24 +97,6 @@ export async function updateSettings(request: Request, props: ActionProps): Prom
             sourceUser: props.user,
             data: {
                 setting: 'intentions',
-            },
-        });
-    }
-
-    if (request.promptsFeatures) {
-        await writeSettings({
-            'gen-ai-prompt-del-a-rie-advies':
-                request.promptsFeatures['gen-ai-prompt-del-a-rie-advies'],
-            'gen-ai-prompt-financial-insights':
-                request.promptsFeatures['gen-ai-prompt-financial-insights'],
-        });
-
-        RecordLog({
-            type: kLogType.AdminUpdateAiSetting,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                setting: 'feature prompts',
             },
         });
     }

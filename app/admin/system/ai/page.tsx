@@ -5,7 +5,6 @@ import type { Metadata } from 'next';
 
 import { AiPromptContext, type AiPromptContextProps } from './AiPromptContext';
 import { AiPromptPersonality } from './AiPromptPersonality';
-import { AiPrompts, type AiPromptsProps } from './AiPrompts';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { readSettings } from '@lib/Settings';
@@ -34,10 +33,6 @@ export default async function AiPage() {
         'gen-ai-intention-reinstate-participation',
         'gen-ai-intention-reject-volunteer',
         'gen-ai-intention-remind-participation',
-
-        // <AiPrompts>:
-        'gen-ai-prompt-del-a-rie-advies',
-        'gen-ai-prompt-financial-insights',
     ]);
 
     // <AiPromptContext> intentions:
@@ -74,12 +69,6 @@ export default async function AiPage() {
         },
     ];
 
-    // <AiPrompts> prompts:
-    const prompts: AiPromptsProps['prompts'] = {
-        'gen-ai-prompt-del-a-rie-advies': settings['gen-ai-prompt-del-a-rie-advies'] ?? '',
-        'gen-ai-prompt-financial-insights': settings['gen-ai-prompt-financial-insights'] ?? '',
-    };
-
     return (
         <>
             <Section title="Generative AI">
@@ -93,7 +82,6 @@ export default async function AiPage() {
             <AiPromptPersonality personality={settings['gen-ai-personality'] ?? ''}
                                  systemInstruction={settings['gen-ai-system-instruction'] ?? ''} />
             <AiPromptContext intentions={intentions} />
-            <AiPrompts prompts={prompts} />
         </>
     );
 }
