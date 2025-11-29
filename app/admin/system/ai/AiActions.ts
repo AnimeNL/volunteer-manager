@@ -1,9 +1,11 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
+import { PromptValidator } from '@lib/ai/PromptValidator';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
@@ -11,7 +13,8 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
-import { PromptValidator } from '@lib/ai/PromptValidator';
+
+import * as prompts from '@lib/ai/prompts';
 
 /**
  * Zod type that describes information required in order to execute a model.
@@ -188,6 +191,54 @@ export async function updateNardo(formData: unknown) {
             'ai-nardo-personalised-advice': data.personalisedAdvice,
         });
 
+        RecordLog({
+            type: kLogType.AdminUpdateAiSetting,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            data: {
+                setting: 'Del a Rie Advies prompts',
+            },
+        });
+
+        return { success: true };
+    });
+}
+
+/**
+ * Zod type that describes information required in order to update a particular prompt.
+ */
+const kUpdatePromptData = z.object({
+    id: z.string().nonempty(),
+    prompt: z.string().nonempty(),
+});
+
+/**
+ * Server action to update the system prompt used in generated communication.
+ */
+export async function updatePrompt(formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kUpdatePromptData, async (data, props) => {
+        await requireAuthenticationContext({
+            check: 'admin',
+            permission: 'system.internals.ai',
+        });
+
+        const relevantPromptConstructor = Object.values(prompts).find(promptConstructor => {
+            const instance = new promptConstructor();
+            return instance.metadata.id === data.id;
+        });
+
+        if (!relevantPromptConstructor)
+            notFound();
+
+        const prompt = new relevantPromptConstructor(data.prompt);
+        const promptValidator = PromptValidator.forPrompt(prompt);
+
+        const validation = await promptValidator.validate();
+        if (!validation.ok)
+            return { success: false, error: validation.errors.join('\n') };
+
+        await writeSetting(prompt.metadata.setting, data.prompt);
         return { success: true };
     });
 }
