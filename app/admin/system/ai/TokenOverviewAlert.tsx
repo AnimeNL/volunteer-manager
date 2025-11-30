@@ -14,14 +14,20 @@ import Typography from '@mui/material/Typography';
 import type { Prompt } from '@lib/ai/Prompt';
 
 /**
- * Props accepted by the <TokenOverviewAlert> component.
+ * Props accepted by the <TokenOverviewAlert> component. This component either accepts a prompt, or
+ * a record of token names together with their example values, but not both.
  */
-interface TokenOverviewAlertProps {
+type TokenOverviewAlertProps = {
     /**
      * The prompt for which available token information should be displayed.
      */
     prompt: Prompt<any>;
-}
+} | {
+    /**
+     * The tokens that are available for use in this prompt.
+     */
+    tokens: Record<string, string>;
+};
 
 /**
  * The <TokenOverviewAlert> component gives an overview of the tokens that are available for a
@@ -29,8 +35,14 @@ interface TokenOverviewAlertProps {
  * see both the tokens and example values that can be associated with those tokens.
  */
 export function TokenOverviewAlert(props: TokenOverviewAlertProps) {
-    const parameters = props.prompt.parameters;
-    if (!parameters.size) {
+    let parameters: [ string, string ][];
+    if ('prompt' in props) {
+        parameters = [ ...props.prompt.parameters.entries() ];
+    } else {
+        parameters = Object.entries(props.tokens);
+    }
+
+    if (!parameters.length) {
         return (
             <Alert icon={ <FindReplaceIcon fontSize="inherit" /> } severity="info">
                 No tokens are supported by this prompt.
@@ -38,8 +50,7 @@ export function TokenOverviewAlert(props: TokenOverviewAlertProps) {
         );
     }
 
-    const sortedParameters =
-        [ ...parameters.entries() ].sort((lhs, rhs) => lhs[0].localeCompare(rhs[0]));
+    const sortedParameters = parameters.sort((lhs, rhs) => lhs[0].localeCompare(rhs[0]));
 
     return (
         <Alert icon={ <FindReplaceIcon fontSize="inherit" /> } severity="info" sx={{
@@ -66,8 +77,8 @@ export function TokenOverviewAlert(props: TokenOverviewAlertProps) {
                     },
                 }}>
                     <Typography variant="body2">
-                        <strong>{parameters.size} token{parameters.size > 1 ? 's' : ''}</strong>
-                        {parameters.size > 1 ? ' are' : ' is'} supported by this prompt.
+                        <strong>{parameters.length} token{parameters.length > 1 ? 's' : ''}</strong>
+                        {parameters.length > 1 ? ' are' : ' is'} supported by this prompt…
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 0, pb: 1 }}>

@@ -19,6 +19,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -82,12 +83,10 @@ export default async function CommunicationAiPage() {
             <Divider sx={{ my: 1 }} />
             <FormGrid action={actions.updateSystemPrompt} defaultValues={{ systemPrompt }}>
                 <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6">
+                    <Typography variant="h6" sx={{ mb: 1 }}>
                         System prompt
                     </Typography>
-                    <Alert severity="info" sx={{ mt: '8px !important' }}>
-                        Available tokens: {'{'}language{'}'}
-                    </Alert>
+                    <TokenOverviewAlert tokens={{ language: 'English' }} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <TextareaAutosizeElement name="systemPrompt" label="System prompt" fullWidth
