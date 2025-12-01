@@ -62,7 +62,7 @@ describe('TaskContext', () => {
         expect(() => context.markTaskExecutionStart()).toThrow(/has already started/);
         expect(context.runtimeMs).toBeUndefined();
 
-        await new Promise(resolve => setTimeout(resolve, 1001));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         context.markTaskExecutionFinished();
         expect(() => context.markTaskExecutionFinished()).toThrow(/has already finished/);

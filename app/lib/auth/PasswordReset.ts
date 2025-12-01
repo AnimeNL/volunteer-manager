@@ -43,7 +43,6 @@ export async function sealPasswordResetRequest(request: PasswordResetRequest): P
  * @returns The password request in plaintext form.
  */
 export async function unsealPasswordResetRequest(request: string): Promise<PasswordResetRequest> {
-    return await unseal(
-        decodeURIComponent(request), kPasswordResetRequestPassword,
-        kPasswordResetRequestExpirySeconds) as PasswordResetRequest;
+    return await unseal(decodeURIComponent(request), kPasswordResetRequestPassword) as
+        PasswordResetRequest;
 }

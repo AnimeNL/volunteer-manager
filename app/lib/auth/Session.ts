@@ -65,8 +65,7 @@ export async function sealSession(session: SessionData): Promise<string> {
  * @returns The plaintext session data in its original format.
  */
 export async function unsealSession(sealedSession: string): Promise<SessionData> {
-    return await unseal(
-        sealedSession, kSessionPassword, kSessionExpirationTimeSeconds) as SessionData;
+    return await unseal(sealedSession, kSessionPassword) as SessionData;
 }
 
 /**

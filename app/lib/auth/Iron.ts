@@ -79,10 +79,9 @@ export async function seal(data: unknown, password: string, ttl: number): Promis
  *
  * @param sealedData The string containing the sealed representation of the data.
  * @param password The password to unseal the data with. Must be at least 32 characters in length.
- * @param ttl The time to live for the data, indicated in seconds.
  * @returns The unsealed data of whatever type it was serialized as.
  */
-export async function unseal(sealedData: string, password: string, ttl: number): Promise<unknown> {
+export async function unseal(sealedData: string, password: string): Promise<unknown> {
     if (password.length < 32)
         throw new Error('The password used to unseal data must be at least 32 characters long.');
 

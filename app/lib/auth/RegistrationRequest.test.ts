@@ -33,6 +33,6 @@ describe('RegistrationRequest', () => {
     });
 
     it('should throw on invalid or expired requests', async () => {
-        expect(unsealRegistrationRequest('foobar')).rejects.toThrow();
+        await expect(unsealRegistrationRequest('foobar')).rejects.toThrow();
     });
 });

@@ -52,7 +52,6 @@ export async function sealRegistrationRequest(request: RegistrationRequest): Pro
  * @returns The registration request in plaintext form.
  */
 export async function unsealRegistrationRequest(request: string): Promise<RegistrationRequest> {
-    return await unseal(
-        decodeURIComponent(request), kRegistrationRequestPassword,
-        kRegistrationRequestExpirySeconds) as RegistrationRequest;
+    return await unseal(decodeURIComponent(request), kRegistrationRequestPassword) as
+        RegistrationRequest;
 }

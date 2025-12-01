@@ -64,7 +64,7 @@ describe('callApi', () => {
             endTime: '2024-01-03 18:00:00'
         });
 
-        expect(responsePromise).rejects.toThrow();
+        await expect(responsePromise).rejects.toThrow();
     });
 
     it('is able to substitute REST path parameters from the request to the endpoint', async () => {
@@ -99,7 +99,7 @@ describe('callApi', () => {
             /* `foo` is missing */
         });
 
-        expect(responsePromise).rejects.toThrow(/doesn't exist/)
+        await expect(responsePromise).rejects.toThrow(/doesn't exist/)
     });
 
     it('confirms that REST path parameters are limited to scalar types', async () => {
@@ -109,6 +109,6 @@ describe('callApi', () => {
             foo: { a: 1, b: 2 }  // `foo` is not a scalar
         });
 
-        expect(responsePromise).rejects.toThrow(/must be scalars/)
+        await expect(responsePromise).rejects.toThrow(/must be scalars/)
     });
 });
