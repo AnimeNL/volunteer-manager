@@ -97,6 +97,15 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     // The sales information representing day-by-day sales, populated for each product.
     const sales: Map<number, Map<string, number>> = new Map();
 
+    // The line that indicates total sales across all shown products.
+    const totalLine: LineSeriesType & { data: (number | null)[] } = {
+        type: 'line',
+        color: 'transparent',
+        label: '(Total)',
+        yAxisId: 'total-axis',
+        data: [ /* to be populated */ ],
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Fetch the sales information from the database and populate the
     // ---------------------------------------------------------------------------------------------
@@ -220,6 +229,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     for (let date = min; !isAfter(date, max); date = date.add({ days: 1 })) {
         const dateString = date.toString();
 
+        let totalSalesAcrossProducts = 0;
         for (const [ product, productSales ] of sales.entries()) {
             const salesAggregate = aggregates.get(product) || 0;
             const salesForDate = productSales.get(dateString) || 0;
@@ -232,7 +242,10 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
             aggregates.set(product, totalSales);
 
             productSalesMaximum = Math.max(productSalesMaximum, totalSales);
+            totalSalesAcrossProducts += totalSales;
         }
+
+        totalLine.data.push(totalSalesAcrossProducts > 0 ? totalSalesAcrossProducts : null);
 
         labels.push(dateString);
     }
@@ -255,6 +268,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
         data: {
             referenceLines,
             series: [
+                ...( lines.size > 1 ? [ totalLine ] : [] ),
                 ...lines.values(),
                 ...bars.values(),
             ],
@@ -272,6 +286,10 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
                     max: verticalAxisMaximum,
                     width: 50,
                 },
+                {
+                    id: 'total-axis',
+                    position: 'none',
+                }
             ],
         },
     };
