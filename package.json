@@ -47,7 +47,6 @@
     "d3-color": "^3.1.0",
     "d3-interpolate": "^3.0.1",
     "dayjs": "^1.11.19",
-    "iron-webcrypto": "^1.2.1",
     "mariadb": "^3.4.5",
     "marked": "^17.0.1",
     "mui-color-input": "^7.0.0",
