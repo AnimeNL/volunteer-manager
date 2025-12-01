@@ -138,6 +138,7 @@ interface SalesDataGridProps {
  * logic and to provide the ability to display detailed sales in an overlay dialog.
  */
 export function SalesDataGrid(props: SalesDataGridProps) {
+    const [ salesAggregatesOpen, setSalesAggregatesOpen ] = useState<boolean>();
     const [ salesDialogRow, setSalesDialogRow ] = useState<SalesDataGridRow | null>();
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
@@ -212,12 +213,20 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                         <ShowChartIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>,
+
+            renderHeader: () =>
+                <Tooltip title="Show aggregate sales">
+                    <IconButton size="small" color="primary"
+                                onClick={ () => setSalesAggregatesOpen(true) }>
+                        <ShowChartIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
         },
     ], [ props.disableProductLinks ]);
 
     // ---------------------------------------------------------------------------------------------
 
-    const [ rows, requiresCategoryGrouping ] = useMemo(() => {
+    const [ productIds, rows, requiresCategoryGrouping ] = useMemo(() => {
         const categoryTally = new Map<string, number>;
         for (const { category } of props.rows)
             categoryTally.set(category, 1 + (categoryTally.get(category) ?? 0));
@@ -238,7 +247,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             });
         }
 
+        const productIds = new Set<number>();
         for (const row of props.rows) {
+            if (row.productIds.length > 1)
+                throw new Error('Expected only a single product ID to be set for a product row.');
+
             const aggregate = categoryAggregates.get(row.category);
             if (aggregate) {
                 aggregate.href ??= row.href;
@@ -248,9 +261,12 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             } else {
                 row.avoidCategoryAggregation = true;
             }
+
+            productIds.add(row.productIds[0]);
         }
 
         return [
+            [ ...productIds ],
             [
                 ...categoryAggregates.values(),
                 ...props.rows,
@@ -324,8 +340,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             { !!salesDialogRow &&
                 <RemoteGraphDialog
                     fetchDataFn={ props.partialFetchDataFn.bind(null, salesDialogRow.productIds) }
-                    onClose={closeSalesDialog}
-                    title={salesDialogRow.product} /> }
+                    onClose={closeSalesDialog} title={salesDialogRow.product} /> }
+            { !!salesAggregatesOpen &&
+                <RemoteGraphDialog
+                    fetchDataFn={ props.partialFetchDataFn.bind(null, productIds) }
+                    onClose={ () => setSalesAggregatesOpen(false) } title="Aggregate sales" /> }
         </>
     );
 }

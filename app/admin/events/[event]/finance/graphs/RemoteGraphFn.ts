@@ -5,7 +5,8 @@ import type { ChartContainerProProps, ChartsReferenceLineProps, XAxis, YAxis }
     from '@mui/x-charts-pro';
 
 /**
- * This is the Tableau 10 colour scheme, which looks good for these graphs.
+ * This is the Tableau 10 colour scheme, which looks good for these graphs. Gemini extended this to
+ * an unofficial "Tableau 50" color set allowing us to support additional products.
  */
 export const kRemoteGraphColorScheme = [
     '#4E79A7',
@@ -18,10 +19,52 @@ export const kRemoteGraphColorScheme = [
     '#FF9DA7',
     '#9C755F',
     '#BAB0AB',
+
+    // Unofficial additions:
+    '#1F77B4',
+    '#FF7F0E',
+    '#2CA02C',
+    '#D62728',
+    '#9467BD',
+    '#8C564B',
+    '#E377C2',
+    '#7F7F7F',
+    '#BCBD22',
+    '#17BECF',
+    '#284766',
+    '#A65628',
+    '#8E2424',
+    '#499894',
+    '#2E5E2E',
+    '#B6992D',
+    '#6A3D9A',
+    '#B35A66',
+    '#5C4033',
+    '#79706E',
+    '#A0CBE8',
+    '#FFBE7D',
+    '#FF9D9A',
+    '#86BCB6',
+    '#8CD17D',
+    '#F1CE63',
+    '#D4A6C8',
+    '#FABFD2',
+    '#D7B5A6',
+    '#D4D4D4',
+    '#154F78',
+    '#B0580A',
+    '#1E6E1E',
+    '#941B1C',
+    '#664682',
+    '#5E3C32',
+    '#9E5386',
+    '#525252',
+    '#828218',
+    '#108490',
 ];
 
 /**
- * Colour in which the line visualising an upper limit should be displayed.
+ * Colour in which the horizontal line visualising an upper limit should be displayed.
  */
 export const kRemoteGraphLimitColour = '#C62828';
 
