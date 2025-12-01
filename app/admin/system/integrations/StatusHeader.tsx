@@ -80,6 +80,9 @@ function ServiceStatus(props: ServiceStatusProps) {
         case 'warning':
             color = `${props.status}.main`;
             break;
+
+        case undefined:
+            break;
     }
 
     return (
@@ -151,7 +154,7 @@ export function StatusHeader() {
                 </ContrastBox>
             </Stack>
             { [ animeConStatus, googleStatus ].map((status, index) =>
-                <Collapse in={ [ 'error', 'warning' ].includes(status?.status!) } key={index}>
+                <Collapse in={ [ 'error', 'warning' ].includes(status?.status || '') } key={index}>
                     <Alert sx={{ mt: 2 }} severity={ (status?.status ?? 'info') as any }>
                         <strong>{status?.service}</strong>: {status?.message}
                     </Alert>

@@ -3,9 +3,9 @@
 
 import { Generator } from 'ts-sql-codegen';
 import { readFile } from 'node:fs/promises';
-import util from 'util';
+import util from 'node:util';
 
-const exec = util.promisify((await import('child_process')).exec);
+const exec = util.promisify((await import('node:child_process')).exec);
 
 /**
  * Input file in which the database connection source is exported.
@@ -286,4 +286,5 @@ do {
 
     await generator.generate();
 
+// biome-ignore lint/correctness/noConstantCondition: used for quick bail-out
 } while (false);

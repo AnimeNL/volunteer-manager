@@ -23,13 +23,13 @@ const unrecognisedNodeVisitor: MdastImportVisitor<any> = {
 
         const lexicalParentElement = lexicalParent as ElementNode;
         switch (mdastNode.type) {
-            case 'mdxFlowExpression':
+            case 'mdxFlowExpression': {
                 const paragraph = $createParagraphNode();
                 paragraph.append($createTextNode(`{${mdastNode.value}}`));
 
                 lexicalParentElement.append(paragraph);
                 break;
-
+            }
             case 'mdxTextExpression':
                 lexicalParentElement.append($createTextNode(`{${mdastNode.value}}`));
                 break;

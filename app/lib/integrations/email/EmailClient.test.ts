@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { setImmediate } from 'timers';
+import { setImmediate } from 'node:timers';
 
 import { EmailClientMock } from './EmailClientMock';
 import { EmailMessage } from './EmailMessage';

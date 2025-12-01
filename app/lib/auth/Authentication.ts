@@ -135,7 +135,7 @@ export async function authenticateUser(params: AuthenticateUserParams)
     let authenticationQuery: ReturnType<typeof authenticationBaseSelect['executeSelectNoneOrOne']>;
 
     switch (params.type) {
-        case 'password':
+        case 'password': {
             const securelyHashedPassword = await securePasswordHash(params.sha256Password);
             authenticationQuery = authenticationBaseSelect
                 .where(tUsers.username.equals(params.username))
@@ -150,6 +150,7 @@ export async function authenticateUser(params: AuthenticateUserParams)
                 .executeSelectNoneOrOne();
 
             break;
+        }
 
         case 'session':
             authenticationQuery = authenticationBaseSelect

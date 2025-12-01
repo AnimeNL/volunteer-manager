@@ -7,7 +7,7 @@ describe('PromptTemplate', () => {
     it('should reject invalid input', () => {
         expect(() => PromptTemplate.compile(undefined as unknown as string)).toThrow();
         expect(() => PromptTemplate.compile(null as unknown as string)).toThrow();
-        expect(() => PromptTemplate.compile(3.1415 as unknown as string)).toThrow();
+        expect(() => PromptTemplate.compile(1.2345 as unknown as string)).toThrow();
         expect(() => PromptTemplate.compile({ value: true } as unknown as string)).toThrow();
         expect(() => PromptTemplate.compile([ 'hello' ] as unknown as string)).toThrow();
     });

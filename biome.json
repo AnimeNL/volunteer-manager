@@ -24,38 +24,93 @@
         "rules": {
             "recommended": false,
             "complexity": {
+                "noArguments": "error",
                 "noCommaOperator": "error",
                 "noThisInStatic": "error",
                 "noUselessConstructor": "error",
                 "noUselessContinue": "error",
                 "noUselessFragments": "error",
-                "noUselessStringRaw": "error"
+                "noUselessStringRaw": "error",
+                "noUselessTernary": "error"
             },
             "correctness": {
+                "noConstAssign": "error",
+                "noConstantCondition": "warn",
+                "noConstructorReturn": "error",
+                "noInnerDeclarations": "error",
+                "noInvalidBuiltinInstantiation": "error",
                 "noInvalidConstructorSuper": "error",
+                "noPrecisionLoss": "warn",
                 "noReactPropAssignments": "error",
+                "noSelfAssign": "error",
+                "noStringCaseMismatch": "error",
+                "noSwitchDeclarations": "error",
                 "noUnreachable": "error",
+                "noUnreachableSuper": "error",
+                "noUnsafeFinally": "error",
                 "noUnusedImports": "error",
+                "noUnusedLabels": "error",
                 "noUnusedPrivateClassMembers": "error",
                 "noUnusedVariables": "warn",
+                "noVoidTypeReturn": "error",
+                "useExhaustiveDependencies": "error",
                 "useJsonImportAttributes": "error",
                 "useJsxKeyInIterable": "warn",
-                "useParseIntRadix": "warn"
+                "useParseIntRadix": "warn",
+                "useValidForDirection": "error",
+                "useValidTypeof": "error"
             },
             "nursery": {
                 "noDeprecatedImports": "warn",
-                "noNextAsyncClientComponent": "warn"
+                "noNextAsyncClientComponent": "warn",
+                "useExhaustiveSwitchCases": "warn"
+            },
+            "performance": {
+                "noDynamicNamespaceImportAccess": "warn"
+            },
+            "security": {
+                "noBlankTarget": "error",
+                "noDangerouslySetInnerHtml": "error",
+                "noDangerouslySetInnerHtmlWithChildren": "error",
+                "noGlobalEval": "error"
             },
             "style": {
                 "noEnum": "error",
                 "useConst": "warn",
+                "useExponentiationOperator": "warn",
                 "useExportType": "warn",
                 "useImportType": "warn",
-                "useSelfClosingElements": "warn"
+                "useNodejsImportProtocol": "error",
+                "useSelfClosingElements": "warn",
+                "useShorthandFunctionType": "error"
             },
             "suspicious": {
+                "noApproximativeNumericConstant": "warn",
+                "noAssignInExpressions": "error",
                 "noDoubleEquals": "error",
-                "noVar": "error"
+                "noDuplicateJsxProps": "error",
+                "noDuplicateParameters": "error",
+                "noExtraNonNullAssertion": "error",
+                "noFunctionAssign": "error",
+                "noGlobalAssign": "error",
+                "noIrregularWhitespace": "error",
+                "noMisleadingCharacterClass": "error",
+                "noMisleadingInstantiator": "error",
+                "noMisrefactoredShorthandAssign": "error",
+                "noNonNullAssertedOptionalChain": "error",
+                "noOctalEscape": "error",
+                "noSelfCompare": "error",
+                "noSkippedTests": "info",
+                "noSuspiciousSemicolonInJsx": "error",
+                "noTemplateCurlyInString": "error",
+                "noUnsafeNegation": "error",
+                "noUselessEscapeInString": "error",
+                "noVar": "error",
+                "useDefaultSwitchClauseLast": "error",
+                "useGetterReturn": "error",
+                "useIsArray": "error",
+                "useIterableCallbackReturn": "error",
+                "useNamespaceKeyword": "error"
             }
         }
     },

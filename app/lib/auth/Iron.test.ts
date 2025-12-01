@@ -28,7 +28,7 @@ describe('Iron', () => {
         await expect(roundtrip(true)).resolves.toEqual(true);
         await expect(roundtrip(false)).resolves.toEqual(false);
 
-        await expect(roundtrip(3.1415)).resolves.toEqual(3.1415);
+        await expect(roundtrip(1.2345)).resolves.toEqual(1.2345);
         await expect(roundtrip('hello, world')).resolves.toEqual('hello, world');
         await expect(roundtrip({ value: 42 })).resolves.toEqual({ value: 42 });
     });

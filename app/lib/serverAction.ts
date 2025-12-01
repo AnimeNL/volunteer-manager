@@ -187,9 +187,11 @@ function coerceZodType(def: $ZodTypeDef, values: FormDataEntryValue[]): ServerAc
             return values.map(value =>
                 coerceZodType(typedDef.element._zod.def, [ value ])) as any[];
         }
-        case 'boolean': {
+        case 'boolean':
             return coerceZodBoolean(values[0]);
-        }
+
+        default:
+            break;
     }
 
     return values[0];

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
+import path from 'node:path';
 
 const url = `http://localhost:${process.env.PORT || 3000}`;
 

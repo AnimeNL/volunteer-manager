@@ -521,6 +521,13 @@ export class PromptTemplate {
                 case 'string':
                     lhs = `${lhs}`;
                     break;
+
+                case 'bigint':
+                case 'function':
+                case 'object':
+                case 'symbol':
+                case 'undefined':
+                    throw new Error(`Unexpected operator type detected ("${typeof rhs}")`);
             }
         }
 
