@@ -20,7 +20,7 @@ export class FinanceProcessor {
      */
     static async revalidateForEvent(event: string): Promise<void> {
         globalThis.animeConFinanceProcessorCache?.delete(event);
-        /* dismiss return value */ await this.getOrCreateForEvent(event);
+        /* dismiss return value */ await FinanceProcessor.getOrCreateForEvent(event);
     }
 
     /**

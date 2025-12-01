@@ -175,7 +175,7 @@ export class PromptTemplate {
                     }
                 } else {
                     const directive =
-                        this.compileDirective(rawPrompt.substring(startIndex, endIndex));
+                        PromptTemplate.compileDirective(rawPrompt.substring(startIndex, endIndex));
                     if (directive.directive === 'unknown') {
                         errors.push(
                             `Invalid directive ("${directive.text}") at index ${startIndex}`);
@@ -195,7 +195,7 @@ export class PromptTemplate {
         if (buffer.length > 0)
             tokens.push(buffer);
 
-        this.compileValidateConditionals(tokens, errors);
+        PromptTemplate.compileValidateConditionals(tokens, errors);
 
         return new PromptTemplate(errors, tokens);
     }
@@ -250,8 +250,8 @@ export class PromptTemplate {
 
             return {
                 operator,
-                lhs: this.compileConditionPart(lhs),
-                rhs: this.compileConditionPart(rhs),
+                lhs: PromptTemplate.compileConditionPart(lhs),
+                rhs: PromptTemplate.compileConditionPart(rhs),
             };
         }
 
@@ -263,7 +263,7 @@ export class PromptTemplate {
 
         return {
             operator,
-            lhs: this.compileConditionPart(rawCondition),
+            lhs: PromptTemplate.compileConditionPart(rawCondition),
             rhs: { type: 'boolean', value: true },
         };
     }
@@ -309,7 +309,7 @@ export class PromptTemplate {
             const rawCondition = trimmedRawDirective.substring(2).trim();
             return {
                 directive: 'conditionStart',
-                condition: this.compileCondition(rawCondition),
+                condition: PromptTemplate.compileCondition(rawCondition),
             };
         }
 
@@ -317,7 +317,7 @@ export class PromptTemplate {
             const rawCondition = trimmedRawDirective.substring(4).trim();
             return {
                 directive: 'conditionElseIf',
-                condition: this.compileCondition(rawCondition),
+                condition: PromptTemplate.compileCondition(rawCondition),
             };
         }
 

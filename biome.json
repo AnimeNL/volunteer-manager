@@ -25,6 +25,7 @@
             "recommended": false,
             "complexity": {
                 "noCommaOperator": "error",
+                "noThisInStatic": "error",
                 "noUselessContinue": "error",
                 "noUselessStringRaw": "error"
             },
@@ -40,6 +41,7 @@
                 "useParseIntRadix": "warn"
             },
             "nursery": {
+                "noDeprecatedImports": "warn",
                 "noNextAsyncClientComponent": "warn"
             },
             "style": {

@@ -15,7 +15,7 @@ export class FavouriteCache {
      * Clears any cached favourite activities for the given |userId|.
      */
     static clear(eventId: number, userId: number): void {
-        this.#cache.delete(`${userId}:${eventId}`);
+        FavouriteCache.#cache.delete(`${userId}:${eventId}`);
     }
 
     /**
@@ -25,7 +25,7 @@ export class FavouriteCache {
     static async read(dbInstance: DBConnection, eventId: number, userId: number) {
         const key = `${userId}:${eventId}`;
 
-        const cachedValue = this.#cache.get(key);
+        const cachedValue = FavouriteCache.#cache.get(key);
         if (cachedValue !== undefined)
             return cachedValue;
 
@@ -39,7 +39,7 @@ export class FavouriteCache {
         for (const activityId of favouriteActivities)
             favourites[`${activityId}`] = true;
 
-        this.#cache.set(key, favourites);
+        FavouriteCache.#cache.set(key, favourites);
 
         return favourites;
     }
