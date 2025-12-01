@@ -1,8 +1,9 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { nanoid } from 'nanoid';
+
 import type { FileType } from './Types';
-import { nanoid } from '@lib/nanoid';
 import db, { tStorage } from './index';
 
 /**

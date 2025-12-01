@@ -71,7 +71,6 @@ describe('AuthenticationContext', () => {
         }
     });
 
-    // TODO: Fix this test.
     it('is able to execute dedicated access checks: "admin-event"', () => {
         // Case (1): Visitors are never administrators
         const visitorAuthenticationContext = { access: new AccessControl({}), user: undefined };

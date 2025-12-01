@@ -1,10 +1,10 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { nanoid } from 'nanoid';
+
 import { Temporal } from '@lib/Temporal';
 import { determineAvailabilityStatus, generateInviteKey } from './EnvironmentContext';
-
-import { nanoid } from './nanoid';
 
 describe('EnvironmentContext', () => {
 

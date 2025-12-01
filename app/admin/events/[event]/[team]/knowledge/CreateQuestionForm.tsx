@@ -3,6 +3,7 @@
 
 'use client';
 
+import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -15,7 +16,6 @@ import Grid from '@mui/material/Grid';
 import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
 import { callApi } from '@lib/callApi';
-import { nanoid } from '@lib/nanoid';
 
 /**
  * Props accepted by the <CreateQuestionForm> component.

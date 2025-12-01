@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { cookies } from 'next/headers';
+import { nanoid } from 'nanoid';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -9,7 +10,6 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
 import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { nanoid } from '@lib/nanoid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
 import { setExampleMessagesForUser } from '@app/admin/lib/getExampleMessagesForUser';
