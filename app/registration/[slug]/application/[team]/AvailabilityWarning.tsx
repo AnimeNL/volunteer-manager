@@ -78,5 +78,5 @@ export function AvailabilityWarning(props: AvailabilityWarningProps) {
         }
     }
 
-    return <></>;
+    return undefined;
 }

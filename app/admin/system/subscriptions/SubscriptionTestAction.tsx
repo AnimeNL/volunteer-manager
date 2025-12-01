@@ -30,14 +30,12 @@ export function SubscriptionTestAction(props: SubscriptionTestActionProps) {
     }
 
     return (
-        <>
-            <form action={publishTestMessage.bind(null, props)}>
-                <Tooltip title="Publish a test message">
-                    <IconButton size="small" type="submit">
-                        <ExtensionIcon fontSize="small" color="warning" />
-                    </IconButton>
-                </Tooltip>
-            </form>
-        </>
+        <form action={publishTestMessage.bind(null, props)}>
+            <Tooltip title="Publish a test message">
+                <IconButton size="small" type="submit">
+                    <ExtensionIcon fontSize="small" color="warning" />
+                </IconButton>
+            </Tooltip>
+        </form>
     );
 }

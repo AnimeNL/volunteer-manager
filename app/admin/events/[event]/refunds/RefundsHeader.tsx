@@ -39,16 +39,14 @@ export function RefundsHeader(props: RefundsHeaderProps) {
     }, [ router ])
 
     return (
-        <>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="Refund requests" subtitle={event.shortName}
-                             onExport={!!props.enableExport ? handleExportButton : undefined} />
-                <Alert severity="warning" sx={{ mt: 1 }}>
-                    Volunteers can request their ticket to be refunded, which involves sharing
-                    financial information. Access to these requests and settings is
-                    <strong> need to know</strong>.
-                </Alert>
-            </Paper>
-        </>
+        <Paper sx={{ p: 2 }}>
+            <PaperHeader title="Refund requests" subtitle={event.shortName}
+                         onExport={!!props.enableExport ? handleExportButton : undefined} />
+            <Alert severity="warning" sx={{ mt: 1 }}>
+                Volunteers can request their ticket to be refunded, which involves sharing financial
+                information. Access to these requests and settings is
+                <strong> need to know</strong>.
+            </Alert>
+        </Paper>
     );
 }

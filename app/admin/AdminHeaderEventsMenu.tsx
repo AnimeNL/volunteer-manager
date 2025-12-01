@@ -56,7 +56,7 @@ export function AdminHeaderEventsMenu(props: AdminHeaderEventsMenuProps) {
     }, [ /* no dependencies */ ]);
 
     if (!props.events.length)
-        return <></>;
+        return undefined;
 
     return (
         <>

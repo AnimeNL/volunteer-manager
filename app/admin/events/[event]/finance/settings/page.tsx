@@ -23,16 +23,14 @@ export default async function FinancePage(props: NextPageParams<'event'>) {
     });
 
     return (
-        <>
-            <Section title="Financial settings" subtitle={event.shortName}
-                     icon={ <EuroIcon color="primary" /> }>
-                <SectionIntroduction>
-                    These are the financial settings for {event.shortName}. Information imported
-                    from our ticketing partner is authoritative and may override any modifications.
-                </SectionIntroduction>
-                <SettingsDataTable event={event.slug} />
-            </Section>
-        </>
+        <Section title="Financial settings" subtitle={event.shortName}
+                 icon={ <EuroIcon color="primary" /> }>
+            <SectionIntroduction>
+                These are the financial settings for {event.shortName}. Information imported
+                from our ticketing partner is authoritative and may override any modifications.
+            </SectionIntroduction>
+            <SettingsDataTable event={event.slug} />
+        </Section>
     );
 }
 

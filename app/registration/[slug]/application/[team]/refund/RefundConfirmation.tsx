@@ -29,7 +29,7 @@ interface RefundConfirmationProps {
  */
 export function RefundConfirmation(props: RefundConfirmationProps) {
     if (!props.refund || !props.refund.requested)
-        return <></>;
+        return undefined;
 
     const requested = Temporal.ZonedDateTime.from(props.refund.requested);
     const secondary: string =

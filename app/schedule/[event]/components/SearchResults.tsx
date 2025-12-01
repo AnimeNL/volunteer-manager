@@ -268,7 +268,7 @@ export function SearchResults(props: SearchResultsProps) {
             router.push(results[0].href);
 
         onClose();
-        return <></>;
+        return undefined;
     }
 
     if (!anchorEl || !schedule || !query)

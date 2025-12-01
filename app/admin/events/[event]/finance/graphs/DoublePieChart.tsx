@@ -59,9 +59,5 @@ export function DoublePieChart(props: DoublePieChartProps) {
         ] satisfies PieChartProProps['series'];
     }, [ props.series ]);
 
-    return (
-        <>
-            <PieChartPro hideLegend series={series} />
-        </>
-    );
+    return <PieChartPro hideLegend series={series} />;
 }

@@ -274,16 +274,14 @@ export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
 
                 const readOnly = props.readOnly || params.row.restricted;
                 return (
-                    <>
-                        <CheckboxElement name={`grants[${name}]`} size="small"
-                                         color="success" sx={{ ml: 1 }}
-                                         labelProps={{
-                                             // This is a workaround for the fact that checkboxes in
-                                             // MUI don't support the `readOnly` state, despite
-                                             // advertising in TypeScript definitions that they do.
-                                             sx: { pointerEvents: readOnly ? 'none' : undefined }
-                                         }} />
-                    </>
+                    <CheckboxElement name={`grants[${name}]`} size="small"
+                                     color="success" sx={{ ml: 1 }}
+                                     labelProps={{
+                                         // This is a workaround for the fact that checkboxes in
+                                         // MUI don't support the `readOnly` state, despite
+                                         // advertising in TypeScript definitions that they do.
+                                         sx: { pointerEvents: readOnly ? 'none' : undefined }
+                                     }} />
                 );
             },
         },
@@ -311,16 +309,14 @@ export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
 
                 const readOnly = props.readOnly || params.row.restricted;
                 return (
-                    <>
-                        <CheckboxElement name={`revokes[${name}]`} size="small"
-                                         color="error" sx={{ ml: 1 }}
-                                         labelProps={{
-                                             // This is a workaround for the fact that checkboxes in
-                                             // MUI don't support the `readOnly` state, despite
-                                             // advertising in TypeScript definitions that they do.
-                                             sx: { pointerEvents: readOnly ? 'none' : undefined }
-                                         }} />
-                    </>
+                    <CheckboxElement name={`revokes[${name}]`} size="small"
+                                     color="error" sx={{ ml: 1 }}
+                                     labelProps={{
+                                         // This is a workaround for the fact that checkboxes in
+                                         // MUI don't support the `readOnly` state, despite
+                                         // advertising in TypeScript definitions that they do.
+                                         sx: { pointerEvents: readOnly ? 'none' : undefined }
+                                     }} />
                 );
             },
         }

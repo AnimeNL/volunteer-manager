@@ -105,33 +105,31 @@ export function ShiftSettingsSection(props: ShiftSettingsSectionProps) {
     useEffect(() => setColour(props.shift.colour ?? '#ffffff'), [ props.shift.colour ]);
 
     return (
-        <>
-            <ShiftSettingsForm {...props} includeName invalidated={invalidated}
-                               onSubmit={handleSubmit}>
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                    <Grid size={{ xs: 6 }}>
-                        <SelectElement name="excitement" label="Excitement level" fullWidth required
-                                       options={kExcitementOptions} size="small" type="number"
-                                       disabled={readOnly} onChange={handleChange} />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <MuiColorInput format="hex" value={colour} label="Override colour" fullWidth
-                                       size="small" isAlphaHidden disabled={readOnly}
-                                       sx={{ '& input[value="#ffffff"]': { color: 'transparent' } }}
-                                       fallbackValue="#ffffff" onChange={handleColourChange} />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <SelectElement name="overlap" label="Timeslot overlap" fullWidth required
-                                       options={kOverlapOptions} size="small" disabled={readOnly}
-                                       onChange={handleChange} />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextareaAutosizeElement name="description" label="Description"
-                                                 size="small" fullWidth disabled={readOnly}
-                                                 onChange={handleChange} />
-                    </Grid>
+        <ShiftSettingsForm {...props} includeName invalidated={invalidated}
+                           onSubmit={handleSubmit}>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="excitement" label="Excitement level" fullWidth required
+                                   options={kExcitementOptions} size="small" type="number"
+                                   disabled={readOnly} onChange={handleChange} />
                 </Grid>
-            </ShiftSettingsForm>
-        </>
+                <Grid size={{ xs: 6 }}>
+                    <MuiColorInput format="hex" value={colour} label="Override colour" fullWidth
+                                   size="small" isAlphaHidden disabled={readOnly}
+                                   sx={{ '& input[value="#ffffff"]': { color: 'transparent' } }}
+                                   fallbackValue="#ffffff" onChange={handleColourChange} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <SelectElement name="overlap" label="Timeslot overlap" fullWidth required
+                                   options={kOverlapOptions} size="small" disabled={readOnly}
+                                   onChange={handleChange} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextareaAutosizeElement name="description" label="Description"
+                                             size="small" fullWidth disabled={readOnly}
+                                             onChange={handleChange} />
+                </Grid>
+            </Grid>
+        </ShiftSettingsForm>
     );
 }
