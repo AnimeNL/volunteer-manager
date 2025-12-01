@@ -6,7 +6,7 @@
 import { Temporal } from '@lib/Temporal';
 import device from './lib/Device';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConBrightnessValue: number;
     let animeConColorValue: string | undefined;
     let animeConInitialised: boolean;

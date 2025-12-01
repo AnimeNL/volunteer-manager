@@ -5,7 +5,7 @@
 
 import { Temporal } from '@lib/Temporal';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConTimeCache: Map<number, Temporal.ZonedDateTime>;
     let animeConTimeOffset: number;
     let animeConTimezone: string;

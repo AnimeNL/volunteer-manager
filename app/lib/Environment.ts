@@ -8,7 +8,7 @@ import type { PaletteMode } from '@mui/material';
 import type { EnvironmentPurpose } from './database/Types';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConEnvironmentCache: Map<string, Environment> | undefined;
 }
 

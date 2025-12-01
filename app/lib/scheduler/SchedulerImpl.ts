@@ -5,7 +5,7 @@ import type { Scheduler, TaskIdentifier } from './Scheduler';
 import { SchedulerBase } from './SchedulerBase';
 import { SchedulerRunner } from './SchedulerRunner';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConScheduler: Scheduler;
 }
 

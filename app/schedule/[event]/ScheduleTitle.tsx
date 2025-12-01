@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConTitleListeners: Set<(title: string) => void>;
     let animeConTitle: string;
 }

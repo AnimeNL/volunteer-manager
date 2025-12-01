@@ -7,7 +7,7 @@ import type { EventHandler } from 'react';
  * Define the `globalThis.animeCon` property. This is injected in the WebView used to display the
  * Volunteer Manager on the AnimeCon Display devices, as a message port.
  */
-declare module globalThis {
+declare namespace globalThis {
     let animeConEventListener: EventHandler<any>;
     let animeCon: EventTarget & {
         postMessage: (message: string) => void;

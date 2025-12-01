@@ -13,7 +13,7 @@ import { MockQueryRunner, type QueryType as MockQueryType }
 import type { PlainDate, ZonedDateTime } from '@lib/Temporal';
 import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;
     let animeConMockConnection: DBConnection | undefined;
 }

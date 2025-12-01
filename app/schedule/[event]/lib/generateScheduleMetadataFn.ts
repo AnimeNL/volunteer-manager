@@ -12,7 +12,7 @@ interface TitleCache {
     expiration: Temporal.Instant;
 }
 
-declare module globalThis {
+declare namespace globalThis {
     let animeConScheduleEventNameCache: Map<string, string>;
     let animeConScheduleTitleCache: Map<string, TitleCache>;
 }
