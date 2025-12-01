@@ -11,8 +11,10 @@ import { type RemoteGraphFnReturn, computeTickInterval } from './RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
-import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
+import db, { tEvents, tEventsDates, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
+import { kDateType } from '@lib/database/Types';
+import { kProductHighlightColors } from './ProductHighlightColors';
 import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './RemoteGraphFn';
 
 /**
@@ -166,6 +168,43 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
         },
         y,
     }));
+
+    // ---------------------------------------------------------------------------------------------
+    // Fetch applicable highlights from the event's key dates configuration, as those should be
+    // added to the set of available reference lines as well.
+    // ---------------------------------------------------------------------------------------------
+
+    const highlights = await dbInstance.selectFrom(tEventsDates)
+        .where(tEventsDates.eventId.equals(eventId))
+            .and(tEventsDates.dateType.in([ kDateType.Highlight, kDateType.HighlightFinance ]))
+            .and(tEventsDates.dateDeleted.isNull())
+        .select({
+            date: dbInstance.dateAsString(tEventsDates.dateDate),
+            label: tEventsDates.dateTitle,
+        })
+        .orderBy(tEventsDates.dateDate, 'asc')
+        .executeSelectMany();
+
+    let highlightCount = 0;
+    for (const { date, label } of highlights) {
+        const colour =
+            kProductHighlightColors[highlightCount++ % kProductHighlightColors.length];
+
+        referenceLines.push({
+            label,
+            labelAlign: 'start',
+            labelStyle: {
+                fill: `${colour}aa`,
+                fontSize: '12px',
+                textAnchor: 'end',
+            },
+            lineStyle: {
+                stroke: `${colour}50`,
+            },
+            spacing: { x: -2, y: 5 },
+            x: date,
+        });
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Compute the per-day and sales aggregates and add the resulting information to both the per-

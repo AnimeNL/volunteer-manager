@@ -14,6 +14,7 @@ import db, { tEvents, tEventsDates, tUsersEvents } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';
 import { kDateType, kRegistrationStatus } from '@lib/database/Types';
+import { kProductHighlightColors } from './finance/graphs/ProductHighlightColors';
 
 /**
  * Which colours should the edition series be rendered in? More recent series (first entries) should
@@ -30,16 +31,6 @@ const kComparisonEditionColours: string[] = [
  * Number of historic events to include in the graph, for comparison purposes.
  */
 const kHistoricEventCount = kComparisonEditionColours.length - 1;
-
-/**
- * Which colours should chart highlights be rendered in? They will cycle through these values.
- */
-const kHighlightColours: string[] = [
-    '#d81b60',  // pink 600
-    '#5e35b1',  // deepPurple 600
-    '#43a047',  // green 600
-    '#6d4c41',  // brown 600
-];
 
 /**
  * Server action used to fetch multi-year growth information for a one or more teams.
@@ -208,7 +199,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
 
     const highlights = await dbInstance.selectFrom(tEventsDates)
         .where(tEventsDates.eventId.equals(eventId))
-            .and(tEventsDates.dateType.equals(kDateType.Highlight))
+            .and(tEventsDates.dateType.in([ kDateType.Highlight, kDateType.HighlightVolunteers ]))
             .and(tEventsDates.dateDeleted.isNull())
         .select({
             date: dbInstance.dateAsString(tEventsDates.dateDate),
@@ -218,7 +209,8 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
         .executeSelectMany();
 
     for (const { date, label } of highlights) {
-        const colour = kHighlightColours[referenceLines.length % kHighlightColours.length];
+        const colour =
+            kProductHighlightColors[referenceLines.length % kProductHighlightColors.length];
 
         referenceLines.push({
             label,

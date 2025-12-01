@@ -13,7 +13,17 @@ import Typography from '@mui/material/Typography';
 import type { EventDatesRowModel } from '@app/api/admin/event/dates/[[...id]]/route';
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { kDateType } from '@lib/database/Types';
+import { kDateType, type DateType } from '@lib/database/Types';
+
+/**
+ * Labels to use when allowing configuration of deadline / highlight dates.
+ */
+const kDateTypeLabel: { [k in DateType]: string } = {
+    Deadline: 'Deadline',
+    Highlight: 'Highlight (both)',
+    HighlightFinance: 'Highlight (finance)',
+    HighlightVolunteers: 'Highlight (volunteers)'
+}
 
 /**
  * Returns a stringified, ISO representation of the given `input`.
@@ -78,10 +88,11 @@ export function EventDatesTable(props: EventDatesTableProps) {
             headerName: 'Type',
             editable: true,
             sortable: true,
-            width: 125,
+            width: 175,
 
             type: 'singleSelect',
-            valueOptions: Object.values(kDateType).map(type => ({ label: type, value: type })),
+            valueOptions: Object.values(kDateType).map(type =>
+                ({ label: kDateTypeLabel[type], value: type })),
         },
         {
             field: 'title',

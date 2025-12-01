@@ -53,6 +53,8 @@ export type DateType = Values<typeof kDateType>;
 export const kDateType = {
     Deadline: 'Deadline',
     Highlight: 'Highlight',
+    HighlightFinance: 'HighlightFinance',
+    HighlightVolunteers: 'HighlightVolunteers',
 } as const;
 
 /**
