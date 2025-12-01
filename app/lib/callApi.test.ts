@@ -45,7 +45,7 @@ describe('callApi', () => {
         expect(latestRequestInput).toEqual('/api/admin/create-event');
 
         expect(latestRequestInit).not.toBeUndefined();
-        expect(latestRequestInit?.body).toInclude('My Event: The Long Theme');
+        expect(latestRequestInit?.body).toContain('My Event: The Long Theme');
         expect(latestRequestInit?.headers).toEqual({
             'Content-Type': 'application/json',
         });
@@ -64,7 +64,7 @@ describe('callApi', () => {
             endTime: '2024-01-03 18:00:00'
         });
 
-        expect(responsePromise).toReject();
+        expect(responsePromise).rejects.toThrow();
     });
 
     it('is able to substitute REST path parameters from the request to the endpoint', async () => {
@@ -89,7 +89,7 @@ describe('callApi', () => {
             'Content-Type': 'application/json',
         });
 
-        expect(response.success).toBeTrue();
+        expect(response.success).toBeTruthy();
     });
 
     it('confirms that REST path parameters are present in the request', async () => {

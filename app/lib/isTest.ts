@@ -5,5 +5,5 @@
  * Returns whether a test is currently running.
  */
 export function isTest() {
-    return process.env.JEST_WORKER_ID !== undefined;
+    return process.env.VITEST_POOL_ID !== undefined;
 }

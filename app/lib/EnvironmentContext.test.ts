@@ -112,7 +112,7 @@ describe('EnvironmentContext', () => {
             console.log('-- Time taken (total):', benchmarkTimeMs / 100, 'ms');
             console.log('-- Time taken (call):', benchmarkTimeMs / iterations / 100, 'ms');
 
-            expect(false).toBeTrue();  // force a fail to see benchmark output
+            expect(false).toBeTruthy();  // force a fail to see benchmark output
         }
     });
 });

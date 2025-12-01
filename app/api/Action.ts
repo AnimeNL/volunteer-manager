@@ -229,7 +229,7 @@ export async function executeAction<T extends ActionZodObject>(
         if (isHTTPAccessFallbackError(error))
             return createResponse(getAccessFallbackHTTPStatus(error), { success: false });
 
-        if (!process.env.JEST_WORKER_ID)
+        if (!process.env.VITEST_POOL_ID)
             console.error(`Action(${request.nextUrl.pathname}) threw an Exception:`, error);
 
         return createResponse(500, {

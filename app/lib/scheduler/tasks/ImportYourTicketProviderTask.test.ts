@@ -65,7 +65,7 @@ describe('ImportYourTicketProviderTask', () => {
             }
         };
 
-        expect(task.isComplexTask()).toBeFalse();
+        expect(task.isComplexTask()).toBeFalsy();
 
         mockConnection.expect('selectManyRows', () =>  options);
         for (const { existingProducts, existingSales } of options) {
@@ -85,10 +85,10 @@ describe('ImportYourTicketProviderTask', () => {
             /* interval=*/ ImportYourTicketProviderTask.kIntervalMaximum);
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(1);
-        expect(task.log.entries[0].message).toInclude('No future events');
+        expect(task.log.entries[0].message).toContain('No future events');
 
         expect(task.contextForTesting.intervalMsForTesting).toBe(
             ImportYourTicketProviderTask.kIntervalMaximum);
@@ -125,7 +125,7 @@ describe('ImportYourTicketProviderTask', () => {
             /* interval= */ ImportYourTicketProviderTask.kIntervalMaximum);
 
             const result = await task.execute();
-            expect(result).toBeTrue();
+            expect(result).toBeTruthy();
 
             expect(task.contextForTesting.intervalMsForTesting).toBe(intervalMs);
         }
@@ -147,10 +147,10 @@ describe('ImportYourTicketProviderTask', () => {
         ]);
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('No tickets were returned');
+        expect(task.log.entries[2].message).toContain('No tickets were returned');
     });
 
     it('should update the product name when it changed', async () => {
@@ -194,12 +194,12 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
-        expect(receivedUpdate).toBeTrue();
+        expect(receivedUpdate).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('Locker Sunday XL');
+        expect(task.log.entries[2].message).toContain('Locker Sunday XL');
     });
 
     it('should update the product description when it changed', async () => {
@@ -243,12 +243,12 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
-        expect(receivedUpdate).toBeTrue();
+        expect(receivedUpdate).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('Locker Sunday');
+        expect(task.log.entries[2].message).toContain('Locker Sunday');
     });
 
     it('should update the price when it changed', async () => {
@@ -310,12 +310,12 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
-        expect(receivedUpdate).toBeTrue();
+        expect(receivedUpdate).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('Locker Sunday');
+        expect(task.log.entries[2].message).toContain('Locker Sunday');
     });
 
     it('should update maximum ticket information in the database when it changed', async () => {
@@ -359,12 +359,12 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
-        expect(receivedUpdate).toBeTrue();
+        expect(receivedUpdate).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('Locker Sunday');
+        expect(task.log.entries[2].message).toContain('Locker Sunday');
     });
 
     it('should create product information when a new product is seen', async () => {
@@ -399,13 +399,13 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
-        expect(receivedInsert).toBeTrue();
+        expect(receivedInsert).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(4);
-        expect(task.log.entries[2].message).toInclude('Locker Sunday');  // created
-        expect(task.log.entries[3].message).toInclude('Locker Sunday');  // sales
+        expect(task.log.entries[2].message).toContain('Locker Sunday');  // created
+        expect(task.log.entries[3].message).toContain('Locker Sunday');  // sales
     });
 
     it('should upsert information retrieved from the API in the database', async () => {
@@ -465,10 +465,10 @@ describe('ImportYourTicketProviderTask', () => {
         mockConnection.expect('insert', (values: unknown) => { /* ticketSale 143338 */ });
 
         const result = await task.execute();
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[2].message).toInclude('Locker Weekend');
-        expect(task.log.entries[2].message).toInclude('48 -> 50');
+        expect(task.log.entries[2].message).toContain('Locker Weekend');
+        expect(task.log.entries[2].message).toContain('48 -> 50');
     });
 });

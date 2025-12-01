@@ -148,7 +148,7 @@ describe('ImportActivitiesTask', () => {
             }
         };
 
-        expect(task.isComplexTask()).toBeTrue();
+        expect(task.isComplexTask()).toBeTruthy();
         expect(() => task.validate({ /* no params */ })).not.toThrow();
 
         if (!skipDb) {
@@ -171,10 +171,10 @@ describe('ImportActivitiesTask', () => {
             { interval: ImportActivitiesTask.kIntervalMaximum });
 
         const result = await task.execute({ /* no params */ });
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(1);
-        expect(task.log.entries[0].message).toInclude('No future events');
+        expect(task.log.entries[0].message).toContain('No future events');
 
         expect(task.contextForTesting.intervalMsForTesting).toBe(
             ImportActivitiesTask.kIntervalMaximum);
@@ -187,12 +187,12 @@ describe('ImportActivitiesTask', () => {
         });
 
         const result = await task.execute({ /* no params */ });
-        expect(result).toBeTrue();
+        expect(result).toBeTruthy();
 
         expect(task.log.entries).toHaveLength(3);
-        expect(task.log.entries[0].message).toInclude('Interval');
-        expect(task.log.entries[1].message).toInclude('Interval');  // ignored
-        expect(task.log.entries[2].message).toInclude('No activities were returned');
+        expect(task.log.entries[0].message).toContain('Interval');
+        expect(task.log.entries[1].message).toContain('Interval');  // ignored
+        expect(task.log.entries[2].message).toContain('No activities were returned');
     });
 
     it('should scale the task interval based on duration until the festival', async () => {
@@ -244,7 +244,7 @@ describe('ImportActivitiesTask', () => {
         });
 
         const implicitFestivalResult = await task.execute({ /* no params */ });
-        expect(implicitFestivalResult).toBeTrue();
+        expect(implicitFestivalResult).toBeTruthy();
 
         // Confirm that the task remains as a one-off task.
         expect(task.contextForTesting.intervalMsForTesting).toBeUndefined();
@@ -265,7 +265,7 @@ describe('ImportActivitiesTask', () => {
         });
 
         const explicitFestivalResult = await task.execute({ festivalId: 9001 });
-        expect(explicitFestivalResult).toBeTrue();
+        expect(explicitFestivalResult).toBeTruthy();
 
         // Confirm that the task remains as a one-off task.
         expect(task.contextForTesting.intervalMsForTesting).toBeUndefined();
@@ -831,15 +831,15 @@ describe('ImportActivitiesTask', () => {
             /* no festival= */ undefined, /* skipDb= */ true);
 
         // Individual comparisons:
-        expect(task.compareField('boolean', /* stored= */ 0, /* current= */ true)).toBeFalse();
-        expect(task.compareField('boolean', /* stored= */ 1, /* current= */ true)).toBeTrue();
-        expect(task.compareField('boolean', /* stored= */ 0, /* current= */ false)).toBeTrue();
-        expect(task.compareField('boolean', /* stored= */ 1, /* current= */ false)).toBeFalse();
-        expect(task.compareField('number', /* stored= */ 42, /* current= */ 42)).toBeTrue();
-        expect(task.compareField('number', /* stored= */ 42, /* current= */ 9001)).toBeFalse();
-        expect(task.compareField('string', /* stored= */ 'Foo', /* current= */ 'Foo')).toBeTrue();
-        expect(task.compareField('string', /* stored= */ 'Foo', /* current= */ 'Foo')).toBeTrue();
-        expect(task.compareField('number', /* stored= */ NaN, /* current= */ NaN)).toBeTrue();
+        expect(task.compareField('boolean', /* stored= */ 0, /* current= */ true)).toBeFalsy();
+        expect(task.compareField('boolean', /* stored= */ 1, /* current= */ true)).toBeTruthy();
+        expect(task.compareField('boolean', /* stored= */ 0, /* current= */ false)).toBeTruthy();
+        expect(task.compareField('boolean', /* stored= */ 1, /* current= */ false)).toBeFalsy();
+        expect(task.compareField('number', /* stored= */ 42, /* current= */ 42)).toBeTruthy();
+        expect(task.compareField('number', /* stored= */ 42, /* current= */ 9001)).toBeFalsy();
+        expect(task.compareField('string', /* stored= */ 'Foo', /* current= */ 'Foo')).toBeTruthy();
+        expect(task.compareField('string', /* stored= */ 'Foo', /* current= */ 'Foo')).toBeTruthy();
+        expect(task.compareField('number', /* stored= */ NaN, /* current= */ NaN)).toBeTruthy();
 
         // Comprehensive comparisons:
         {
@@ -860,7 +860,7 @@ describe('ImportActivitiesTask', () => {
                 }
             ]);
 
-            expect(lowSeverityUpdates.fields).toIncludeAllMembers([ 'first' ]);
+            expect(lowSeverityUpdates.fields).toEqual([ 'first' ]);
             expect(lowSeverityUpdates.severity).toBe('Low');
         }
 
@@ -889,7 +889,7 @@ describe('ImportActivitiesTask', () => {
                 }
             ]);
 
-            expect(moderateSeverityUpdates.fields).toIncludeAllMembers([ 'first', 'second' ]);
+            expect(moderateSeverityUpdates.fields).toEqual([ 'first', 'second' ]);
             expect(moderateSeverityUpdates.severity).toBe('Moderate');
         }
 
@@ -918,7 +918,7 @@ describe('ImportActivitiesTask', () => {
                 }
             ]);
 
-            expect(importantSeverifyUpdates.fields).toIncludeAllMembers([ 'third' ]);
+            expect(importantSeverifyUpdates.fields).toEqual([ 'third' ]);
             expect(importantSeverifyUpdates.severity).toBe('Important');
         }
 

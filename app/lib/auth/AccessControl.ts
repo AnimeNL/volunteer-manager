@@ -7,6 +7,7 @@ import type { AccessDescriptor, AccessOperation } from './AccessDescriptor';
 import type { AccessScope, Grant, Result } from './AccessList';
 import type { BooleanPermission, CRUDPermission } from './Access';
 import { AccessList, kAnyEvent, kAnyTeam } from './AccessList';
+
 import { kPermissionGroups, kPermissions } from './Access';
 
 /**

@@ -270,9 +270,9 @@ describe('TaskRunner', () => {
         const update = await updatePromise;
         expect(update.taskId).toEqual(100);
         expect(update.taskInvocationResult).toEqual(kTaskResult.TaskSuccess);
-        expect(Object.hasOwn(update, 'scheduledTaskName')).toBeFalse();
-        expect(Object.hasOwn(update, 'scheduledTaskParams')).toBeFalse();
-        expect(Object.hasOwn(update, 'scheduledTaskIntervalMs')).toBeFalse();
+        expect(Object.hasOwn(update, 'scheduledTaskName')).toBeFalsy();
+        expect(Object.hasOwn(update, 'scheduledTaskParams')).toBeFalsy();
+        expect(Object.hasOwn(update, 'scheduledTaskIntervalMs')).toBeFalsy();
     });
 
     it('should reject tasks when the given taskId is not known to the database', async () => {

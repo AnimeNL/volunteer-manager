@@ -46,26 +46,26 @@ describe('serverAction', () => {
 
         {
             const result = await action(/* formData= */ undefined as any);
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe('Invalid data received from Next.js');
         }
         {
             const result = await action(/* formData= */ null as any);
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe('Invalid data received from Next.js');
         }
         {
             const result = await action(/* formData= */ {} as any);
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
         }
         {
             const result = await action(/* formData= */ new FormData);
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
         }
     });
@@ -82,7 +82,7 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ a: 42 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -90,7 +90,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ b: 101 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -98,7 +98,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: 42, b: 101 }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
         }
     });
@@ -115,7 +115,7 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ a: 42, b: 121 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -123,7 +123,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: '42', b: 121 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -131,7 +131,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: 42, b: true }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
         }
     });
@@ -148,7 +148,7 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ a: 'banana' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -156,7 +156,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: false }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -164,7 +164,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: [ 'banana' ] }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -172,7 +172,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: [ 42, 'banana' ] }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -180,19 +180,19 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: 42 }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
             expect(a).toEqual([ 42 ]);
         }
         {
             const result = await action(toFormData({ a: [ 42 ] }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
             expect(a).toEqual([ 42 ]);
         }
         {
             const result = await action(toFormData({ a: [ 42, 101 ] }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(3);
             expect(a).toEqual([ 42, 101 ]);
         }
@@ -210,7 +210,7 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ a: 42 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -218,7 +218,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -226,7 +226,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: { /* object */ } }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -234,7 +234,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: undefined }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -242,7 +242,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: null }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success && expect(result.error).toBe(
@@ -250,39 +250,39 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: 'on' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
-            expect(a).toBeTrue();
+            expect(a).toBeTruthy();
         }
         {
             const result = await action(toFormData({ a: 'true' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
-            expect(a).toBeTrue();
+            expect(a).toBeTruthy();
         }
         {
             const result = await action(toFormData({ a: /* "true"= */ true }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(3);
-            expect(a).toBeTrue();
+            expect(a).toBeTruthy();
         }
         {
             const result = await action(toFormData({ a: 'off' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(4);
-            expect(a).toBeFalse();
+            expect(a).toBeFalsy();
         }
         {
             const result = await action(toFormData({ a: 'false' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(5);
-            expect(a).toBeFalse();
+            expect(a).toBeFalsy();
         }
         {
             const result = await action(toFormData({ a: false }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(6);
-            expect(a).toBeFalse();
+            expect(a).toBeFalsy();
         }
     });
 
@@ -298,33 +298,33 @@ describe('serverAction', () => {
 
         {
             const result = await nullableAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullableAction(toFormData({ a: undefined }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullableAction(toFormData({ a: 'bananas' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullableAction(toFormData({ a: null }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
             expect(value).toBeNull();
         }
         {
             const result = await nullableAction(toFormData({ a: false }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
-            expect(value).toBeFalse();
+            expect(value).toBeFalsy();
         }
 
         const nullishScheme = z.object({ a: z.boolean().nullish() });
@@ -337,33 +337,33 @@ describe('serverAction', () => {
 
         {
             const result = await nullishAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(3);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullishAction(toFormData({ a: undefined }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(4);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullishAction(toFormData({ a: 'bananas' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(4);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullishAction(toFormData({ a: null }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(5);
             expect(value).toBeNull();
         }
         {
             const result = await nullishAction(toFormData({ a: false }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(6);
-            expect(value).toBeFalse();
+            expect(value).toBeFalsy();
         }
 
         const optionalScheme = z.object({ a: z.boolean().optional() });
@@ -376,33 +376,33 @@ describe('serverAction', () => {
 
         {
             const result = await optionalAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(7);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: undefined }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(8);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: 'bananas' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(8);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: null }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(8);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: false }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(9);
-            expect(value).toBeFalse();
+            expect(value).toBeFalsy();
         }
 
         const arrayScheme = z.object({ a: z.array(z.coerce.number()).nullish() });
@@ -415,37 +415,37 @@ describe('serverAction', () => {
 
         {
             const result = await arrayAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(10);
             expect(value).toBeUndefined();
         }
         {
             const result = await arrayAction(toFormData({ a: undefined }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(11);
             expect(value).toBeUndefined();
         }
         {
             const result = await arrayAction(toFormData({ a: '15' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(12);
             expect(value).toEqual([ 15 ]);
         }
         {
             const result = await arrayAction(toFormData({ a: null }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(13);
             expect(value).toBeNull();
         }
         {
             const result = await arrayAction(toFormData({ a: [ '15', '42' ] }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(14);
             expect(value).toEqual([ 15, 42 ]);
         }
         {
             const result = await arrayAction(toFormData({ a: [ '15', null, '42' ] }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(14);
         }
 
@@ -459,42 +459,42 @@ describe('serverAction', () => {
 
         {
             const result = await nullArrayAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(14);
             expect(value).toBeUndefined();
         }
         {
             const result = await nullArrayAction(toFormData({ a: undefined }));
-            expect(result.success).toBeTrue();  // single values are automatically array-ified
+            expect(result.success).toBeTruthy();  // single values are automatically array-ified
             expect(invocations).toBe(15);
             expect(value).toEqual([ undefined ]);
         }
         {
             const result = await nullArrayAction(toFormData({ a: '15' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(16);
             expect(value).toEqual([ 15 ]);
         }
         {
             const result = await nullArrayAction(toFormData({ a: 'banana' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(16);
         }
         {
             const result = await nullArrayAction(toFormData({ a: null }));
-            expect(result.success).toBeTrue();  // single values are automatically array-ified
+            expect(result.success).toBeTruthy();  // single values are automatically array-ified
             expect(invocations).toBe(17);
             expect(value).toEqual([ null ]);
         }
         {
             const result = await nullArrayAction(toFormData({ a: [ '15', '42' ] }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(18);
             expect(value).toEqual([ 15, 42 ]);
         }
         {
             const result = await nullArrayAction(toFormData({ a: [ '15', null, '42' ] }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(19);
             expect(value).toEqual([ 15, null, 42 ]);
         }
@@ -517,7 +517,7 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success &&
@@ -525,7 +525,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: 'bananas' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success &&
@@ -533,7 +533,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: '5' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success &&
@@ -541,7 +541,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: '25' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
 
             !result.success &&
@@ -549,7 +549,7 @@ describe('serverAction', () => {
         }
         {
             const result = await action(toFormData({ a: '15' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
         }
     });
@@ -567,13 +567,13 @@ describe('serverAction', () => {
 
         {
             const result = await sameTypeAction(toFormData({ a: '15' }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
             expect(value).toBe(30);
         }
         {
             const result = await sameTypeAction(toFormData({ a: 'banana' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(1);
         }
 
@@ -586,24 +586,24 @@ describe('serverAction', () => {
 
         {
             const result = await differentTypeAction(toFormData({ a: undefined }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(1);
         }
         {
             const result = await differentTypeAction(toFormData({ a: true }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
             expect(value).toBe('yay');
         }
         {
             const result = await differentTypeAction(toFormData({ a: false }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(3);
             expect(value).toBe('nay');
         }
         {
             const result = await differentTypeAction(toFormData({ a: 'banana' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(3);
         }
     });
@@ -619,16 +619,16 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ a: 32 }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
         }
         {
             const result = await action(toFormData({ a: /* Error exception= */ 42 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             !result.success && expect(result.error).toBe('This is an Error exception');
         }
         {
             const result = await action(toFormData({ a: /* string exception= */ 101 }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             !result.success && expect(result.error).toBe('This is a string exception');
         }
     });
@@ -640,7 +640,7 @@ describe('serverAction', () => {
         });
 
         const result = await action(toFormData({ /* no properties */ }));
-        expect(result.success).toBeFalse();
+        expect(result.success).toBeFalsy();
         !result.success && expect(result.error).toBe('Not yet implemented');
     });
 
@@ -651,7 +651,7 @@ describe('serverAction', () => {
         });
 
         const result = await action(toFormData({ /* no properties */ }));
-        expect(result.success).toBeTrue();
+        expect(result.success).toBeTruthy();
     });
 
     it('should succeed when the action manually returns additional data', async () => {
@@ -664,7 +664,7 @@ describe('serverAction', () => {
         });
 
         const result = await action(toFormData({ /* no properties */ })) as any;
-        expect(result.success).toBeTrue();
+        expect(result.success).toBeTruthy();
         expect(result.value).toBe(42);
     });
 
@@ -682,22 +682,22 @@ describe('serverAction', () => {
 
         {
             const result = await action(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
         }
         {
             const result = await action(toFormData({ a: undefined }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
         }
         {
             const result = await action(toFormData({ a: null }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
         }
         {
             const result = await action(toFormData({ a: 'filez' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(0);
         }
         {
@@ -705,7 +705,7 @@ describe('serverAction', () => {
                 a: new Blob([ data ], { type: 'image/png' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(1);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);
@@ -716,7 +716,7 @@ describe('serverAction', () => {
                 a: new File([ data ], 'myfile.jpg', { type: 'image/jpg' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(2);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);
@@ -729,23 +729,23 @@ describe('serverAction', () => {
 
         {
             const result = await nullableAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(2);
         }
         {
             const result = await nullableAction(toFormData({ a: undefined }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(2);
         }
         {
             const result = await nullableAction(toFormData({ a: null }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(3);
             expect(value).toBeNull();
         }
         {
             const result = await nullableAction(toFormData({ a: 'filez' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(3);
         }
         {
@@ -753,7 +753,7 @@ describe('serverAction', () => {
                 a: new Blob([ data ], { type: 'image/png' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(4);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);
@@ -764,7 +764,7 @@ describe('serverAction', () => {
                 a: new File([ data ], 'myfile.jpg', { type: 'image/jpg' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(5);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);
@@ -777,24 +777,24 @@ describe('serverAction', () => {
 
         {
             const result = await optionalAction(toFormData({ /* missing property */ }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(6);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: undefined }));
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(7);
             expect(value).toBeUndefined();
         }
         {
             const result = await optionalAction(toFormData({ a: null }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(7);
         }
         {
             const result = await optionalAction(toFormData({ a: 'filez' }));
-            expect(result.success).toBeFalse();
+            expect(result.success).toBeFalsy();
             expect(invocations).toBe(7);
         }
         {
@@ -802,7 +802,7 @@ describe('serverAction', () => {
                 a: new Blob([ data ], { type: 'image/png' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(8);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);
@@ -813,7 +813,7 @@ describe('serverAction', () => {
                 a: new File([ data ], 'myfile.jpg', { type: 'image/jpg' })
             }));
 
-            expect(result.success).toBeTrue();
+            expect(result.success).toBeTruthy();
             expect(invocations).toBe(9);
             expect(value).toBeInstanceOf(Blob);
             expect(value.size).toBe(8);

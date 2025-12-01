@@ -28,17 +28,17 @@ describe('TaskContext', () => {
         expect(context.log.entries[0].severity).toEqual(kTaskLogSeverity.Debug);
         expect(context.log.entries[0].time).toBeUndefined();
         expect(context.log.entries[0].message).toEqual('Some detail happened');
-        expect(context.log.entries[0].data).toIncludeAllMembers([ 1, 2, 3 ]);
+        expect(context.log.entries[0].data).toEqual([ 1, 2, 3 ]);
 
         expect(context.log.entries[1].severity).toEqual(kTaskLogSeverity.Info);
         expect(context.log.entries[1].time).toBeGreaterThan(0);
         expect(context.log.entries[1].message).toEqual('Something did happen');
-        expect(context.log.entries[1].data).toIncludeAllMembers([ 'a', 'b', 'c' ]);
+        expect(context.log.entries[1].data).toEqual([ 'a', 'b', 'c' ]);
 
         expect(context.log.entries[2].severity).toEqual(kTaskLogSeverity.Warning);
         expect(context.log.entries[2].time).toBeGreaterThan(context.log.entries[1].time!);
         expect(context.log.entries[2].message).toEqual('Something almost went wrong');
-        expect(context.log.entries[2].data).toIncludeAllMembers([ true, false, false ]);
+        expect(context.log.entries[2].data).toEqual([ true, false, false ]);
 
         expect(context.log.entries[3].severity).toEqual(kTaskLogSeverity.Error);
         expect(context.log.entries[3].time).toBeGreaterThan(context.log.entries[2].time!);

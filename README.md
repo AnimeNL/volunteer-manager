@@ -86,10 +86,11 @@ mimics these steps remotely. This action is accessible through the GitHub user i
 
 ## Testing
 
-### Jest and unit tests
-We use [Jest](https://jestjs.io/) for unit tests in the project. They primarily focus on server-side
-logic, as using them for client-side components is awkward at best. (Consider Playwright.) Adding
-unit tests is easy and cheap, so should be the default for anything involving non-trivial logic.
+### Vitest and unit tests
+We use [Vitest](https://vitest.dev/) for unit tests in the project. They primarily focus on
+server-side logic, as using them for client-side components is awkward at best. (Consider
+Playwright.) Adding unit tests is easy and cheap, so should be the default for anything involving
+non-trivial logic.
 
 ```
 $ npm run test

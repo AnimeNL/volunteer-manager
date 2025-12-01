@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
  *
  * @see https://github.com/ai/nanoid/issues/365
  * @todo Switch back to `nanoid` when we can depend on it w/o breaking tests, which have issues
- *       between Jest and ESM modules.
+ *       between Vitest and ESM modules.
  */
 export function nanoid(size: number): string {
     return uuid().replaceAll('-', '').slice(0, size);

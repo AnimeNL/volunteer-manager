@@ -611,17 +611,17 @@ describe('AccessList', () => {
             teams: 'crew,hosts',
         });
 
-        expect(specificAccessList.events).toIncludeAllMembers([ '2024', '2025' ]);
-        expect(specificAccessList.events).not.toIncludeAllMembers([ '2023', kAnyEvent ]);
-        expect(specificAccessList.teams).toIncludeAllMembers([ 'crew', 'hosts' ]);
-        expect(specificAccessList.teams).not.toIncludeAllMembers([ 'stewards', kAnyTeam ]);
+        expect(specificAccessList.events).toEqual([ '2024', '2025' ]);
+        expect(specificAccessList.events).not.toEqual([ '2023', kAnyEvent ]);
+        expect(specificAccessList.teams).toEqual([ 'crew', 'hosts' ]);
+        expect(specificAccessList.teams).not.toEqual([ 'stewards', kAnyTeam ]);
 
         const allAccessList = new AccessList({
             events: '*',
             teams: '*',
         });
 
-        expect(allAccessList.events).toIncludeAllMembers([ kAnyEvent ]);
-        expect(allAccessList.teams).toIncludeAllMembers([ kAnyTeam ]);
+        expect(allAccessList.events).toEqual([ kAnyEvent ]);
+        expect(allAccessList.teams).toEqual([ kAnyTeam ]);
     });
 });

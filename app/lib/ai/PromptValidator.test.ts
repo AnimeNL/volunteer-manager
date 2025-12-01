@@ -21,8 +21,8 @@ describe('PromptValidator', () => {
         const promptValidator = PromptValidator.forPrompt(promptInstance);
         const validation = await promptValidator.validate();
 
-        expect(validation.ok).toBeTrue();
-        expect(validation.errors).toBeArrayOfSize(0);
+        expect(validation.ok).toBeTruthy();
+        expect(validation.errors).toHaveLength(0);
     });
 
     it('is able to identify compile issues with the template', async () => {
@@ -35,8 +35,8 @@ describe('PromptValidator', () => {
         const promptValidator = PromptValidator.forPrompt(promptInstance);
         const validation = await promptValidator.validate();
 
-        expect(validation.ok).toBeFalse();
-        expect(validation.errors).toIncludeSameMembers([
+        expect(validation.ok).toBeFalsy();
+        expect(validation.errors).toEqual([
             'Found one or more unclosed condition blocks.',
             'Template references an undefined parameter: "foobar".',
         ]);
@@ -58,8 +58,8 @@ describe('PromptValidator', () => {
         const promptValidator = PromptValidator.forPrompt(promptInstance);
         const validation = await promptValidator.validate();
 
-        expect(validation.ok).toBeFalse();
-        expect(validation.errors).toIncludeSameMembers([
+        expect(validation.ok).toBeFalsy();
+        expect(validation.errors).toEqual([
             'Template references an undefined parameter: "context".'
         ]);
     });
@@ -81,8 +81,8 @@ describe('PromptValidator', () => {
         const promptValidator = PromptValidator.forPrompt(promptInstance);
         const validation = await promptValidator.validate();
 
-        expect(validation.ok).toBeFalse();
-        expect(validation.errors).toIncludeSameMembers([
+        expect(validation.ok).toBeFalsy();
+        expect(validation.errors).toEqual([
             'Template references an undefined parameter: "valeu".'
         ]);
     });

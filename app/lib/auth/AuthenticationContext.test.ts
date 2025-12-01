@@ -45,9 +45,9 @@ describe('AuthenticationContext', () => {
         const visitorAuthenticationContext = { access: new AccessControl({}), user: undefined };
         try {
             executeAccessCheck(visitorAuthenticationContext, { check: 'admin' });
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(401);
         }
 
@@ -64,9 +64,9 @@ describe('AuthenticationContext', () => {
         const userAuthenticationContext = buildAuthenticationContext();
         try {
             executeAccessCheck(userAuthenticationContext, { check: 'admin' });
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
     });
@@ -77,9 +77,9 @@ describe('AuthenticationContext', () => {
         const visitorAuthenticationContext = { access: new AccessControl({}), user: undefined };
         try {
             executeAccessCheck(visitorAuthenticationContext, { check: 'admin-event', event: 'XX' });
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(401);
         }
 
@@ -105,9 +105,9 @@ describe('AuthenticationContext', () => {
             executeAccessCheck(
                 participationAuthenticationContext, { check: 'admin-event', event: '2024' });
 
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
 
@@ -122,9 +122,9 @@ describe('AuthenticationContext', () => {
             executeAccessCheck(
                 wrongEventAuthenticationContext, { check: 'admin-event', event: '2024' });
 
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
 
@@ -132,9 +132,9 @@ describe('AuthenticationContext', () => {
         const userAuthenticationContext = buildAuthenticationContext();
         try {
             executeAccessCheck(userAuthenticationContext, { check: 'admin-event', event: '2024' });
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
     });
@@ -144,9 +144,9 @@ describe('AuthenticationContext', () => {
         const visitorAuthenticationContext = buildAuthenticationContext();
         try {
             executeAccessCheck(visitorAuthenticationContext, { check: 'event', event: '2025' });
-            fail('executeAccessCheck was expected to throw');
+            expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTrue();
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { AccessControl } from '@lib/auth/AccessControl';
-import { toPermissionList } from './AccountPermissions';
+import { toPermissionList } from './toPermissionList';
 
 describe('toPermissionList', () => {
     const adminAccess = new AccessControl({ grants: [ 'admin' ] });

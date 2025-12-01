@@ -14,16 +14,16 @@ describe('PromptTemplate', () => {
     it('should be able to deal with simple strings', () => {
         {
             const template = PromptTemplate.compile(/* empty= */ '');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
             expect(template.evaluate()).toBe('');
         }
         {
             const template = PromptTemplate.compile('Hello, world!');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
             expect(template.evaluate()).toBe('Hello, world!');
         }
     });
@@ -31,29 +31,29 @@ describe('PromptTemplate', () => {
     it('should be able to identify substitution parameters', () => {
         {
             const template = PromptTemplate.compile('Hello, {{world}}');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.errors).toBeArrayOfSize(0);
+            expect(template.errors).toHaveLength(0);
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('world');
         }
         {
             const template = PromptTemplate.compile('Hello, {{world}} & {{world}}');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.errors).toBeArrayOfSize(0);
+            expect(template.errors).toHaveLength(0);
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('world');
         }
         {
             const template = PromptTemplate.compile('Hello, {{world}} & {{planet}}');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.errors).toBeArrayOfSize(0);
+            expect(template.errors).toHaveLength(0);
 
-            expect(template.parameters).toBeArrayOfSize(2);
+            expect(template.parameters).toHaveLength(2);
             expect(template.parameters[0]).toBe('planet');
             expect(template.parameters[1]).toBe('world');
         }
@@ -62,80 +62,80 @@ describe('PromptTemplate', () => {
     it('should be able to detect compilation issues regarding substitution parameters', () => {
         {
             const template = PromptTemplate.compile('Hello, {{');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
 
-            expect(template.errors).toBeArrayOfSize(1);
+            expect(template.errors).toHaveLength(1);
             expect(template.errors[0]).toBe('Missing parameter closing token ("}}") at index 7');
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
         }
         {
             const template = PromptTemplate.compile('Hello, {{}}');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
 
-            expect(template.errors).toBeArrayOfSize(1);
+            expect(template.errors).toHaveLength(1);
             expect(template.errors[0]).toBe('Missing parameter name at index 9');
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
         }
         {
             const template = PromptTemplate.compile('Hello, {{]]}}');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
 
-            expect(template.errors).toBeArrayOfSize(1);
+            expect(template.errors).toHaveLength(1);
             expect(template.errors[0]).toBe('Invalid parameter name ("]]") at index 9');
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
         }
         {
             const template = PromptTemplate.compile('Hello, {{1}} {{2}}');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
 
-            expect(template.errors).toBeArrayOfSize(2);
+            expect(template.errors).toHaveLength(2);
             expect(template.errors[0]).toBe('Invalid parameter name ("1") at index 9');
             expect(template.errors[1]).toBe('Invalid parameter name ("2") at index 15');
 
-            expect(template.parameters).toBeArrayOfSize(0);
+            expect(template.parameters).toHaveLength(0);
         }
     });
 
     it('should be able to replace substitution parameters', () => {
         {
             const template = PromptTemplate.compile('{{value}}');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: 42 })).toBe('42');
         }
         {
             const template = PromptTemplate.compile('{{value}}{{value}}');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: 9001 })).toBe('90019001');
         }
         {
             const template = PromptTemplate.compile('Hello, {{name}}!');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('name');
 
             expect(template.evaluate({ name: 'World' })).toBe('Hello, World!');
         }
         {
             const template = PromptTemplate.compile('Hello, {{person.name}}!');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('person.name');
 
             expect(template.evaluate({ person: { name: 'John' } })).toBe('Hello, John!');
@@ -145,18 +145,18 @@ describe('PromptTemplate', () => {
     it('should be able to replace substitution parameters that are not provided', () => {
         {
             const template = PromptTemplate.compile('Hello, {{name}}!');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('name');
 
             expect(template.evaluate({ /* no name */ })).toBe('Hello, [undefined]!');
         }
         {
             const template = PromptTemplate.compile('Hello, {{person.name}}!');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('person.name');
 
             expect(template.evaluate({ person: { /* no name */ } })).toBe('Hello, [undefined]!');
@@ -165,9 +165,9 @@ describe('PromptTemplate', () => {
 
     it('should be able to replace substitution parameters that resolve to an object', () => {
         const template = PromptTemplate.compile('Hello, {{person}}!');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
-        expect(template.parameters).toBeArrayOfSize(1);
+        expect(template.parameters).toHaveLength(1);
         expect(template.parameters[0]).toBe('person');
 
         expect(template.evaluate({ person: { /* no properties */ } })).toBe('Hello, [object]!');
@@ -175,9 +175,9 @@ describe('PromptTemplate', () => {
 
     it('should be able to deal with binary conditionals', () => {
         const template = PromptTemplate.compile('Today is [[if warm]]great[[else]]ok[[/if]]!');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
-        expect(template.parameters).toBeArrayOfSize(1);
+        expect(template.parameters).toHaveLength(1);
         expect(template.parameters[0]).toBe('warm');
 
         // Present and true
@@ -197,9 +197,9 @@ describe('PromptTemplate', () => {
         const template = PromptTemplate.compile(
             '[[if red]][[if yellow]]orange[[else]]red[[/if]][[else]][[if yellow]]yellow[[else]]' +
             'white[[/if]][[/if]]');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
-        expect(template.parameters).toBeArrayOfSize(2);
+        expect(template.parameters).toHaveLength(2);
         expect(template.parameters[0]).toBe('red');
         expect(template.parameters[1]).toBe('yellow');
 
@@ -220,9 +220,9 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: true })).toBe('true');
@@ -237,7 +237,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if !value]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: true })).toBe('false');
             expect(template.evaluate({ value: false })).toBe('true');
@@ -251,9 +251,9 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value == true]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
-            expect(template.parameters).toBeArrayOfSize(1);
+            expect(template.parameters).toHaveLength(1);
             expect(template.parameters[0]).toBe('value');
 
             expect(template.evaluate({ value: true })).toBe('true');
@@ -265,7 +265,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if value == false]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: true })).toBe('false');
             expect(template.evaluate({ value: 'aye' })).toBe('false');
@@ -275,7 +275,7 @@ describe('PromptTemplate', () => {
         }
         {
             const template = PromptTemplate.compile('[[if value == 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 25 })).toBe('true');
             expect(template.evaluate({ value: '25' })).toBe('true');
@@ -285,7 +285,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if value == "text"]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 'text' })).toBe('true');
             expect(template.evaluate({ value: 'other' })).toBe('false');
@@ -293,7 +293,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if value == \'text\']]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 'text' })).toBe('true');
             expect(template.evaluate({ value: 'other' })).toBe('false');
@@ -301,20 +301,20 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if "text" == "text"]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate()).toBe('true');
         }
         {
             const template = PromptTemplate.compile('[[if true == true]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate()).toBe('true');
         }
         {
             const template =
                 PromptTemplate.compile('[[if value == value]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 25 })).toBe('true');
         }
@@ -324,7 +324,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value != true]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: true })).toBe('false');
             expect(template.evaluate({ value: 'aye' })).toBe('false');
@@ -335,7 +335,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if value != false]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: true })).toBe('true');
             expect(template.evaluate({ value: 'aye' })).toBe('true');
@@ -345,7 +345,7 @@ describe('PromptTemplate', () => {
         }
         {
             const template = PromptTemplate.compile('[[if value != 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 25 })).toBe('false');
             expect(template.evaluate({ value: '25' })).toBe('false');
@@ -355,7 +355,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if value != "text"]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 'text' })).toBe('false');
             expect(template.evaluate({ value: 'other' })).toBe('true');
@@ -363,20 +363,20 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if "text" != "text"]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate()).toBe('false');
         }
         {
             const template = PromptTemplate.compile('[[if true != true]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate()).toBe('false');
         }
         {
             const template =
                 PromptTemplate.compile('[[if value != value]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ value: 25 })).toBe('false');
         }
@@ -386,7 +386,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value < 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('false');
             expect(template.evaluate({ value: 26 })).toBe('false');
@@ -403,7 +403,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value <= 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('false');
             expect(template.evaluate({ value: 26 })).toBe('false');
@@ -420,7 +420,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value > 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('false');
             expect(template.evaluate({ value: 26 })).toBe('true');
@@ -437,7 +437,7 @@ describe('PromptTemplate', () => {
         // -----------------------------------------------------------------------------------------
         {
             const template = PromptTemplate.compile('[[if value >= 25]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('false');
             expect(template.evaluate({ value: 26 })).toBe('true');
@@ -454,7 +454,7 @@ describe('PromptTemplate', () => {
         {
             const template = PromptTemplate.compile(
                 '[[if value < 25]]low[[elif value == 25]]mid[[else]]high[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('high');
 
@@ -466,7 +466,7 @@ describe('PromptTemplate', () => {
             const template = PromptTemplate.compile(
                 '[[if value < 25]]low[[elif value == 25]]mid-low[[elif value == 26]]mid-high' +
                 '[[else]]high[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe('high');
 
@@ -477,7 +477,7 @@ describe('PromptTemplate', () => {
         }
         {
             const template = PromptTemplate.compile('[[if a]]a[[elif b]]b[[elif c]]c[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ /* no value */ })).toBe(/* empty= */ '');
 
@@ -495,9 +495,9 @@ describe('PromptTemplate', () => {
 
     it('should ignore whitespace in the middle of directives', () => {
         const template = PromptTemplate.compile('[[  if   value  ]]true[[ else  ]]false[[ /if ]]');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
-        expect(template.parameters).toBeArrayOfSize(1);
+        expect(template.parameters).toHaveLength(1);
         expect(template.parameters[0]).toBe('value');
 
         expect(template.evaluate({ value: true })).toBe('true');
@@ -505,7 +505,7 @@ describe('PromptTemplate', () => {
 
     it('should ignore whitespace in the middle of parameters', () => {
         const template = PromptTemplate.compile('a {{  value  }} b');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
         expect(template.evaluate({ value: 25 })).toBe('a 25 b');
     });
@@ -513,43 +513,43 @@ describe('PromptTemplate', () => {
     it('should be able to recognise and reject unbalanced conditionals', () => {
         {
             const template = PromptTemplate.compile('[[if foo]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]]bar[[else]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]]bar[[elif bar]]baz');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]]bar[[elif bar]]baz[[else]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]]a[[else]]b[[elif qux]]c[[/if]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]][[if bar]]baz[[/if]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[if foo]]a[[else]]b[[else]]c[[/if]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[elif]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[else]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
         {
             const template = PromptTemplate.compile('[[/if]]');
-            expect(template.ok).toBeFalse();
+            expect(template.ok).toBeFalsy();
         }
     });
 
@@ -557,7 +557,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if "\\"foo\\"" == bar]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ bar: 'foo' })).toBe('false');
             expect(template.evaluate({ bar: '"foo"' })).toBe('true');
@@ -565,7 +565,7 @@ describe('PromptTemplate', () => {
         {
             const template =
                 PromptTemplate.compile('[[if "\\\'foo\\\'" == bar]]true[[else]]false[[/if]]');
-            expect(template.ok).toBeTrue();
+            expect(template.ok).toBeTruthy();
 
             expect(template.evaluate({ bar: 'foo' })).toBe('false');
             expect(template.evaluate({ bar: '\'foo\'' })).toBe('true');
@@ -574,16 +574,16 @@ describe('PromptTemplate', () => {
 
     it('should compile conditions without operator ambiguity', () => {
         const template = PromptTemplate.compile('[[if "==" != ">="]]true[[else]]false[[/if]]');
-        expect(template.ok).toBeTrue();
+        expect(template.ok).toBeTruthy();
 
         expect(template.evaluate()).toBe('true');
     });
 
     it('should be able to recognise and reject on invalid directives', () => {
         const template = PromptTemplate.compile('Foo [[invalid]] Baz');
-        expect(template.ok).toBeFalse();
+        expect(template.ok).toBeFalsy();
 
-        expect(template.errors).toBeArrayOfSize(1);
+        expect(template.errors).toHaveLength(1);
         expect(template.errors[0]).toBe('Invalid directive ("invalid") at index 6');
     });
 });

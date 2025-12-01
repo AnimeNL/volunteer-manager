@@ -336,27 +336,27 @@ describe('Temporal', () => {
         const monday = Temporal.PlainDate.from('2024-02-05');
         const tuesday = Temporal.PlainDate.from('2024-02-06');
 
-        expect(isAfter(monday, monday)).toBeFalse();
-        expect(isAfter(monday, tuesday)).toBeFalse();
-        expect(isAfter(tuesday, monday)).toBeTrue();
-        expect(isAfter(tuesday, tuesday)).toBeFalse();
+        expect(isAfter(monday, monday)).toBeFalsy();
+        expect(isAfter(monday, tuesday)).toBeFalsy();
+        expect(isAfter(tuesday, monday)).toBeTruthy();
+        expect(isAfter(tuesday, tuesday)).toBeFalsy();
 
-        expect(isBefore(monday, monday)).toBeFalse();
-        expect(isBefore(monday, tuesday)).toBeTrue();
-        expect(isBefore(tuesday, monday)).toBeFalse();
-        expect(isBefore(tuesday, tuesday)).toBeFalse();
+        expect(isBefore(monday, monday)).toBeFalsy();
+        expect(isBefore(monday, tuesday)).toBeTruthy();
+        expect(isBefore(tuesday, monday)).toBeFalsy();
+        expect(isBefore(tuesday, tuesday)).toBeFalsy();
 
         const march = Temporal.ZonedDateTime.from('2024-03-01T00:00:00Z[UTC]');
         const april = Temporal.ZonedDateTime.from('2024-04-01T00:00:00Z[UTC]');
 
-        expect(isAfter(march, march)).toBeFalse();
-        expect(isAfter(march, april)).toBeFalse();
-        expect(isAfter(april, march)).toBeTrue();
-        expect(isAfter(april, april)).toBeFalse();
+        expect(isAfter(march, march)).toBeFalsy();
+        expect(isAfter(march, april)).toBeFalsy();
+        expect(isAfter(april, march)).toBeTruthy();
+        expect(isAfter(april, april)).toBeFalsy();
 
-        expect(isBefore(march, march)).toBeFalse();
-        expect(isBefore(march, april)).toBeTrue();
-        expect(isBefore(april, march)).toBeFalse();
-        expect(isBefore(april, april)).toBeFalse();
+        expect(isBefore(march, march)).toBeFalsy();
+        expect(isBefore(march, april)).toBeTruthy();
+        expect(isBefore(april, march)).toBeFalsy();
+        expect(isBefore(april, april)).toBeFalsy();
     });
 });
