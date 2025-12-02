@@ -59,12 +59,14 @@ export async function EventApplicationStatus(props: EventApplicationStatusProps)
         .where(tEvents.eventId.equals(event.id))
         .select({
             teamId: tTeams.teamId,
+            teamTitle: tTeams.teamTitle,
 
             event: {
                 hotelEnabled: tEvents.hotelEnabled.equals(/* true= */ 1),
                 refundEnabled: tEvents.refundEnabled.equals(/* true= */ 1),
                 timezone: tEvents.eventTimezone,
                 trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
+                whatsAppLink: tEventsTeams.whatsappLink,
             },
             availabilityWindows: {
                 hotelPreferences: {
@@ -116,7 +118,7 @@ export async function EventApplicationStatus(props: EventApplicationStatusProps)
     return (
         <EventApplicationPage availabilityWindows={info.availabilityWindows || {}} context={context}
                               event={eventInfo} registration={registration} team={team}
-                              user={context.user!} />
+                              teamTitle={info.teamTitle} user={context.user!} />
     );
 }
 

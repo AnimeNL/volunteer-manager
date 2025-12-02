@@ -16,6 +16,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import type { EnvironmentContext } from '@lib/EnvironmentContext';
 import type { EventAvailabilityStatus } from '@lib/database/Types';
@@ -586,6 +587,7 @@ export interface EventApplicationPageProps {
         slug: string;
         timezone: string;
         trainingEnabled: boolean;
+        whatsAppLink?: string;
     };
 
     /**
@@ -599,6 +601,11 @@ export interface EventApplicationPageProps {
     team: string;
 
     /**
+     * Title of the team that the volunteer has joined.
+     */
+    teamTitle: string;
+
+    /**
      * The user who is currently signed in. We require someone to be signed in when applying, as
      * it helps carry their participation information across multiple events.
      */
@@ -610,7 +617,7 @@ export interface EventApplicationPageProps {
  * retrieved by the team's leads and the status of its consideration.
  */
 export function EventApplicationPage(props: EventApplicationPageProps) {
-    const { availabilityWindows: aw, event, team, user } = props;
+    const { availabilityWindows: aw, event, team, teamTitle, user } = props;
 
     const { access } = props.context;
 
@@ -725,6 +732,17 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
                                                 override={canAccessRefunds}
                                                 refund={registration.refund}
                                                 baseUrl={baseUrl} timezone={event.timezone} /> }
+
+                        { !!event.whatsAppLink &&
+                            <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
+                                            href={event.whatsAppLink}>
+                                <ListItemIcon>
+                                    <WhatsAppIcon />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={`Join the ${teamTitle} WhatsApp group!`}
+                                    secondary="You're duly invited to meet your fellow volunteers" />
+                            </ListItemButton> }
 
                         <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
                                         disabled={!enableScheduleWithOverride}
