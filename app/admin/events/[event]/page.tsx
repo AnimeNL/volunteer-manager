@@ -138,6 +138,7 @@ async function getParticipatingEnvironments(eventId: number) {
             team: {
                 id: tTeams.teamId,
                 color: tTeams.teamColourLightTheme,
+                flagGrowthCharts: tTeams.teamFlagGrowthCharts.equals(/* true= */ 1),
                 flagManagesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
                 participants: {
                     current: dbInstance.count(usersEventsJoin.userId),
@@ -381,8 +382,30 @@ export default async function EventPage(props: NextPageParams<'event'>) {
         }
     }
 
+    const growthChartTeamTitles: string[] = [ /* none yet */ ];
+    const growthChartTeams: number[] = [ /* none yet */ ];
+
+    // Determine the teams that should participate in the growth charts.
+    for (const { teams } of participatingEnvironments) {
+        for (const team of teams) {
+            if (team.flagGrowthCharts) {
+                growthChartTeamTitles.push(team.title);
+                growthChartTeams.push(team.id);
+            }
+        }
+    }
+
+    let growthChartTeamDescription: string | undefined;
+    if (growthChartTeamTitles.length === 1) {
+        growthChartTeamDescription = `Participating team: ${growthChartTeamTitles[0]}`;
+    } else if (growthChartTeamTitles.length > 1) {
+        const finalTitle = growthChartTeamTitles.sort().pop()!;
+        growthChartTeamDescription = `Participating teams: ${growthChartTeamTitles.join(', ')} and ${finalTitle}`;
+    }
+
     // Server Action through which remote graph data can be obtained.
-    const partialFetchDataFn = fetchTeamGrowth.bind(null, event.id, event.slug) as RemoteGraphFn;
+    const partialFetchDataFn = fetchTeamGrowth.bind(null, event.id, event.slug);
+    const fetchDataFn = partialFetchDataFn.bind(null, growthChartTeams);
 
     return (
         <>
@@ -392,7 +415,8 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                 </Grid>
                 { participatingEnvironments.map(environment =>
                     <Grid key={`environment-${environment.id}`} size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <EnvironmentCard partialFetchDataFn={partialFetchDataFn} {...environment} />
+                        <EnvironmentCard partialFetchDataFn={partialFetchDataFn as RemoteGraphFn}
+                                         {...environment} />
                     </Grid> )}
             </Grid>
             <Grid container spacing={2} alignItems="stretch">
@@ -410,7 +434,10 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                         { deadlines.length > 0 &&
                             <EventDeadlines event={event} deadlines={deadlines} /> }
                         { recentVolunteers.length > 0 &&
-                            <EventRecentVolunteers event={event} volunteers={recentVolunteers} /> }
+                            <EventRecentVolunteers event={event.slug}
+                                                   fetchDataFn={fetchDataFn as RemoteGraphFn}
+                                                   timelineDescription={growthChartTeamDescription}
+                                                   volunteers={recentVolunteers} /> }
                         { (eventSalesCard || ticketSalesCard) &&
                             <Grid container spacing={2} size={12}>
                                 { !!ticketSalesCard &&

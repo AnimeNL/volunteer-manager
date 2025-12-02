@@ -66,6 +66,7 @@ export default async function TeamPage(props: NextPageParams<'slug'>) {
             availableRoleIds: db.aggregateAsArrayOfOneColumn(teamsRolesJoin.roleId),
 
             flagEnableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
+            flagGrowthCharts: tTeams.teamFlagGrowthCharts.equals(/* true= */ 1),
             flagManagesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
             flagManagesFaq: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),
             flagManagesFirstAid: tTeams.teamFlagManagesFirstAid.equals(/* true= */ 1),
@@ -138,6 +139,11 @@ export default async function TeamPage(props: NextPageParams<'slug'>) {
             field: 'flagManagesSecurity',
             title: 'Manages the Security team',
             description: '',
+        },
+        {
+            field: 'flagGrowthCharts',
+            title: 'Participates in volunteer growth charts',
+            description: 'Consider this team for the graphs shown under recent applications',
         },
         {
             field: 'flagRequestConfirmation',

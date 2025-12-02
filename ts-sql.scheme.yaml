@@ -602,7 +602,7 @@ tables:
     type: int(8) unsigned
     nullable: false
   - name: date_type
-    type: enum('Deadline','Highlight')
+    type: enum('Deadline','Highlight','HighlightFinance','HighlightVolunteers')
     nullable: false
   - name: date_date
     type: date
@@ -647,7 +647,7 @@ tables:
     CREATE TABLE `events_dates` (
       `date_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `event_id` int(8) unsigned NOT NULL,
-      `date_type` enum('Deadline','Highlight') NOT NULL,
+      `date_type` enum('Deadline','Highlight','HighlightFinance','HighlightVolunteers') NOT NULL,
       `date_date` date NOT NULL,
       `date_owner_id` int(8) unsigned DEFAULT NULL,
       `date_title` text NOT NULL,
@@ -1906,118 +1906,6 @@ tables:
       `retention_notes` text DEFAULT NULL,
       PRIMARY KEY (`user_id`,`event_id`,`team_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: teams
-  type: BASE TABLE
-  columns:
-  - name: team_id
-    type: int(4) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: team_slug
-    type: varchar(16)
-    nullable: false
-  - name: team_name
-    type: varchar(32)
-    nullable: false
-  - name: team_plural
-    type: varchar(32)
-    nullable: false
-  - name: team_title
-    type: varchar(128)
-    nullable: false
-  - name: team_description
-    type: text
-    nullable: false
-  - name: team_environment
-    type: varchar(32)
-    nullable: false
-  - name: team_environment_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: team_invite_key
-    type: varchar(32)
-    nullable: false
-  - name: team_flag_enable_scheduling
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_manages_content
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_manages_faq
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_manages_first_aid
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_manages_security
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_program_requests
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_flag_request_confirmation
-    type: tinyint(1) unsigned
-    nullable: false
-    default: "0"
-  - name: team_colour_dark_theme
-    type: varchar(16)
-    nullable: false
-  - name: team_colour_light_theme
-    type: varchar(16)
-    nullable: false
-  - name: team_deleted
-    type: datetime
-    nullable: true
-    default: "NULL"
-  indexes:
-  - name: team_slug
-    def: KEY team_slug (team_slug) USING BTREE
-    table: teams
-    columns:
-    - team_slug
-  - name: PRIMARY
-    def: PRIMARY KEY (team_id) USING BTREE
-    table: teams
-    columns:
-    - team_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (team_id)
-    table: teams
-    columns:
-    - team_id
-  def: |-
-    CREATE TABLE `teams` (
-      `team_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
-      `team_slug` varchar(16) NOT NULL,
-      `team_name` varchar(32) NOT NULL,
-      `team_plural` varchar(32) NOT NULL,
-      `team_title` varchar(128) NOT NULL,
-      `team_description` text NOT NULL,
-      `team_environment` varchar(32) NOT NULL,
-      `team_environment_id` int(8) unsigned DEFAULT NULL,
-      `team_invite_key` varchar(32) NOT NULL,
-      `team_flag_enable_scheduling` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_manages_content` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_manages_faq` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_manages_first_aid` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_manages_security` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_program_requests` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_flag_request_confirmation` tinyint(1) unsigned NOT NULL DEFAULT 0,
-      `team_colour_dark_theme` varchar(16) NOT NULL,
-      `team_colour_light_theme` varchar(16) NOT NULL,
-      `team_deleted` datetime DEFAULT NULL,
-      PRIMARY KEY (`team_id`),
-      KEY `team_slug` (`team_slug`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: hotels_preferences
   type: BASE TABLE
   columns:
@@ -2482,6 +2370,123 @@ tables:
       PRIMARY KEY (`activity_id`),
       UNIQUE KEY `activity_id` (`activity_id`,`activity_festival_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: teams
+  type: BASE TABLE
+  columns:
+  - name: team_id
+    type: int(4) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: team_slug
+    type: varchar(16)
+    nullable: false
+  - name: team_name
+    type: varchar(32)
+    nullable: false
+  - name: team_plural
+    type: varchar(32)
+    nullable: false
+  - name: team_title
+    type: varchar(128)
+    nullable: false
+  - name: team_description
+    type: text
+    nullable: false
+  - name: team_environment
+    type: varchar(32)
+    nullable: false
+  - name: team_environment_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: team_invite_key
+    type: varchar(32)
+    nullable: false
+  - name: team_flag_enable_scheduling
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_growth_charts
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_manages_content
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_manages_faq
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_manages_first_aid
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_manages_security
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_program_requests
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_flag_request_confirmation
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: team_colour_dark_theme
+    type: varchar(16)
+    nullable: false
+  - name: team_colour_light_theme
+    type: varchar(16)
+    nullable: false
+  - name: team_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: team_slug
+    def: KEY team_slug (team_slug) USING BTREE
+    table: teams
+    columns:
+    - team_slug
+  - name: PRIMARY
+    def: PRIMARY KEY (team_id) USING BTREE
+    table: teams
+    columns:
+    - team_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (team_id)
+    table: teams
+    columns:
+    - team_id
+  def: |-
+    CREATE TABLE `teams` (
+      `team_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
+      `team_slug` varchar(16) NOT NULL,
+      `team_name` varchar(32) NOT NULL,
+      `team_plural` varchar(32) NOT NULL,
+      `team_title` varchar(128) NOT NULL,
+      `team_description` text NOT NULL,
+      `team_environment` varchar(32) NOT NULL,
+      `team_environment_id` int(8) unsigned DEFAULT NULL,
+      `team_invite_key` varchar(32) NOT NULL,
+      `team_flag_enable_scheduling` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_growth_charts` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_manages_content` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_manages_faq` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_manages_first_aid` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_manages_security` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_program_requests` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_flag_request_confirmation` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `team_colour_dark_theme` varchar(16) NOT NULL,
+      `team_colour_light_theme` varchar(16) NOT NULL,
+      `team_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`team_id`),
+      KEY `team_slug` (`team_slug`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: activities_logs
   type: BASE TABLE
   columns:

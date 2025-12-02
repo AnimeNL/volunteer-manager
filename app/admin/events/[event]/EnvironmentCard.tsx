@@ -87,6 +87,11 @@ export interface EnvironmentCardProps {
         color: string;
 
         /**
+         * Whether this team participate in volunteer manager growth charts.
+         */
+        flagGrowthCharts: boolean;
+
+        /**
          * Whether this team is responsible for managing landing page content.
          */
         flagManagesContent: boolean;

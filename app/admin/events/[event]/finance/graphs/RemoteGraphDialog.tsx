@@ -8,6 +8,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Typography from '@mui/material/Typography';
 
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { RemoteGraph } from './RemoteGraph';
@@ -16,6 +17,11 @@ import { RemoteGraph } from './RemoteGraph';
  * Props accepted by the <RemoteGraphDialog> component.
  */
 interface RemoteGraphDialogProps {
+    /**
+     * Optional description to show under the chart's title.
+     */
+    description?: string;
+
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
@@ -39,10 +45,14 @@ interface RemoteGraphDialogProps {
 export function RemoteGraphDialog(props: RemoteGraphDialogProps) {
     return (
         <Dialog open onClose={props.onClose} maxWidth="md" fullWidth>
-            <DialogTitle>
+            <DialogTitle sx={{ pb: !!props.description ? 0 : undefined }}>
                 {props.title}
             </DialogTitle>
             <DialogContent>
+                { !!props.description &&
+                    <Typography variant="body2" color="primary" sx={{ pb: 1 }}>
+                        {props.description}
+                    </Typography> }
                 <RemoteGraph fetchDataFn={props.fetchDataFn} />
             </DialogContent>
             <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
