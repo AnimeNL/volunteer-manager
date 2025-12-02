@@ -18,7 +18,9 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
     dark: {
         palette: {
             animecon: {
+                adminExampleBackground: '#212121',
                 adminHeaderBackground: '#0d419d',
+                adminSubmitBackground: '#343125',
             } satisfies AdminPalette as any,
 
             primary: {
@@ -34,7 +36,9 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
     light: {
         palette: {
             animecon: {
+                adminExampleBackground: '#eeeeee',
                 adminHeaderBackground: '#37474F',
+                adminSubmitBackground: '#fff4e5',
             } satisfies AdminPalette as any,
 
             primary: {

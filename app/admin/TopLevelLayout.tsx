@@ -103,6 +103,7 @@ export default async function TopLevelLayout(props: React.PropsWithChildren) {
                     label: 'AI',
                     permission: 'system.internals.ai',
                     url: '/admin/system/ai/communication',
+                    urlPrefix: '/admin/system/ai/',
                 },
                 {
                     icon: <ApiIcon />,

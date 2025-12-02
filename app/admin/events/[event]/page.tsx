@@ -397,10 +397,11 @@ export default async function EventPage(props: NextPageParams<'event'>) {
 
     let growthChartTeamDescription: string | undefined;
     if (growthChartTeamTitles.length === 1) {
-        growthChartTeamDescription = `Participating team: ${growthChartTeamTitles[0]}`;
+        growthChartTeamDescription = `Participating team: ${growthChartTeamTitles[0]}.`;
     } else if (growthChartTeamTitles.length > 1) {
         const finalTitle = growthChartTeamTitles.sort().pop()!;
-        growthChartTeamDescription = `Participating teams: ${growthChartTeamTitles.join(', ')} and ${finalTitle}`;
+        growthChartTeamDescription =
+            `Participating teams: ${growthChartTeamTitles.join(', ')} and ${finalTitle}.`;
     }
 
     // Server Action through which remote graph data can be obtained.

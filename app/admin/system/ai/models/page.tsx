@@ -116,7 +116,7 @@ export default async function ModelsAiPage() {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}
                       sx={{
-                          backgroundColor: 'action.selected',
+                          backgroundColor: 'animecon.adminExampleBackground',
                           borderRadius: 1,
                           padding: 2,
                       }}>
@@ -125,7 +125,7 @@ export default async function ModelsAiPage() {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}
                       sx={{
-                          backgroundColor: 'action.selected',
+                          backgroundColor: 'animecon.adminExampleBackground',
                           borderRadius: 1,
                           padding: 2,
                       }}>

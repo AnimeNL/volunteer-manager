@@ -16,7 +16,9 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import Box from '@mui/material/Box';
 
 export interface AdminPalette {
+    adminExampleBackground: string;
     adminHeaderBackground: string;
+    adminSubmitBackground: string;
 };
 
 interface PublicPalette {

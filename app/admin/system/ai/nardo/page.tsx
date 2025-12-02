@@ -5,14 +5,20 @@ import type { Metadata } from 'next';
 
 import { TextareaAutosizeElement } from 'react-hook-form-mui';
 
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
+import { PersonalisedAdviceExample } from './PersonalisedAdviceExample';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
+import { executeNardoPersonalisedAdvicePrompt} from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
+
+import { kRegistrationStatus } from '@lib/database/Types';
 
 import * as actions from '../AiActions';
 
@@ -21,7 +27,7 @@ import * as actions from '../AiActions';
  * volunteer portal. The page is protected behind a special permission.
  */
 export default async function NardoAiPage() {
-    await requireAuthenticationContext({
+    const { user } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.ai',
     });
@@ -31,26 +37,77 @@ export default async function NardoAiPage() {
         personalisedAdvicePrompt.metadata.setting,
     ]);
 
+    // ---------------------------------------------------------------------------------------------
+    // Compose the necessary information to enable the example generators.
+    // ---------------------------------------------------------------------------------------------
+
+    const dbInstance = db;
+    const advice = await dbInstance.selectFrom(tNardo)
+        .where(tNardo.nardoVisible.equals(/* true= */ 1))
+        .select({
+            id: tNardo.nardoId,
+            label: tNardo.nardoAdvice,
+        })
+        .orderBy(dbInstance.rawFragment`rand()`)
+        .executeSelectMany();
+
+    const events = await dbInstance.selectFrom(tEvents)
+        .where(tEvents.eventHidden.equals(/* false= */ 0))
+        .select({
+            id: tEvents.eventSlug,
+            label: tEvents.eventShortName,
+        })
+        .orderBy(tEvents.eventEndTime, 'desc')
+        .executeSelectMany();
+
+    const volunteers = await dbInstance.selectFrom(tEvents)
+        .innerJoin(tUsersEvents)
+            .on(tUsersEvents.eventId.equals(tEvents.eventId))
+        .innerJoin(tUsers)
+            .on(tUsers.userId.equals(tUsersEvents.userId))
+        .where(tEvents.eventHidden.equals(/* false= */ 0))
+            .and(tUsersEvents.registrationStatus.equals( kRegistrationStatus.Accepted ))
+            .and(tUsers.anonymized.isNull())
+        .select({
+            id: tUsers.userId,
+            label: tUsers.name,
+        })
+        .groupBy(tUsers.userId)
+        .orderBy(tUsers.name)
+        .executeSelectMany();
+
+    // ---------------------------------------------------------------------------------------------
+
     const defaultValues = {
         personalisedAdvice: settings[personalisedAdvicePrompt.metadata.setting],
     };
 
     return (
-        <FormGrid action={actions.updateNardo} defaultValues={defaultValues}>
-            <Grid size={{ xs: 12 }} sx={{ mb: -1 }}>
-                <Typography variant="h6">
+        <Grid container spacing={2}>
+            <Grid size={{ xs: 12 }}>
+                <Typography variant="h6" sx={{ mb: -1 }}>
                     Personalised Advice
                 </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-                <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
-                <TextareaAutosizeElement name="personalisedAdvice" label="Personalised advice"
-                                         size="small" fullWidth sx={{ mt: 2 }} />
+                <FormGrid action={actions.updateNardo} defaultValues={defaultValues}>
+                    <Grid size={{ xs: 12 }}>
+                        <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
+                        <TextareaAutosizeElement
+                            name="personalisedAdvice" label="Personalised advice" size="small"
+                            fullWidth sx={{ mt: 2 }} />
+                    </Grid>
+                </FormGrid>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-                TODO (Example)
+                <PersonalisedAdviceExample action={executeNardoPersonalisedAdvicePrompt}
+                                           advice={advice} events={events} volunteers={volunteers}
+                                           userId={user.id} />
             </Grid>
-        </FormGrid>
+            <Grid size={{ xs: 12 }}>
+                <Divider />
+            </Grid>
+        </Grid>
     );
 }
 
