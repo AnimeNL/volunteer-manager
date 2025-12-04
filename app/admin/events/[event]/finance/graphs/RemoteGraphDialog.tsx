@@ -3,11 +3,16 @@
 
 'use client';
 
+import { useCallback, useState } from 'react';
+
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
@@ -25,7 +30,7 @@ interface RemoteGraphDialogProps {
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    fetchDataFn: () => Promise<RemoteGraphFnReturn>;
+    fetchDataFn: (cumulative: boolean) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Callback to invoke when the dialog should be closed.
@@ -43,17 +48,32 @@ interface RemoteGraphDialogProps {
  * fetch the data must be made available as a Server Action passed in a prop.
  */
 export function RemoteGraphDialog(props: RemoteGraphDialogProps) {
+    const [ cumulative, setCumulative ] = useState<boolean>(true);
+
+    const handleChangeCumulative = useCallback(() => setCumulative(v => !v), [ /* no deps */ ]);
+
     return (
         <Dialog open onClose={props.onClose} maxWidth="md" fullWidth>
             <DialogTitle sx={{ pb: !!props.description ? 0 : undefined }}>
-                {props.title}
+                <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="inherit">
+                        {props.title}
+                    </Typography>
+                    <FormControlLabel value="cumulative"
+                                      control={
+                                          <Switch checked={cumulative} color="primary"
+                                                  onChange={handleChangeCumulative} /> }
+                                      label="Cumulative"
+                                      labelPlacement="start"
+                                      slotProps={{ typography: { variant: 'caption' } }} />
+                </Stack>
             </DialogTitle>
             <DialogContent>
                 { !!props.description &&
                     <Typography variant="body2" color="primary" sx={{ pb: 1 }}>
                         {props.description}
                     </Typography> }
-                <RemoteGraph fetchDataFn={props.fetchDataFn} />
+                <RemoteGraph cumulative={cumulative} fetchDataFn={props.fetchDataFn} />
             </DialogContent>
             <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
                 <Button onClick={props.onClose} variant="text">

@@ -107,4 +107,4 @@ export type RemoteGraphFnReturn = {
 /**
  * Type defining the server action function used to handle remote graph data fetching.
  */
-export type RemoteGraphFn = () => Promise<RemoteGraphFnReturn>;
+export type RemoteGraphFn = (cumulative: boolean) => Promise<RemoteGraphFnReturn>;

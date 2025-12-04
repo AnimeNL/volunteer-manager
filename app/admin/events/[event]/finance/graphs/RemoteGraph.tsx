@@ -27,9 +27,14 @@ const kDefaultGraphHeightPx = 275;
  */
 export interface RemoteGraphProps {
     /**
+     * Whether cumulative lines should be included in this graph.
+     */
+    cumulative?: boolean;
+
+    /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    fetchDataFn: () => Promise<RemoteGraphFnReturn>;
+    fetchDataFn: (cumulative: boolean) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Height of the graph, in pixels. Width will be based on the container.
@@ -51,7 +56,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
 
     useEffect(() => {
         const fetchGraphDataFromServer = async () => {
-            const response = await props.fetchDataFn();
+            const response = await props.fetchDataFn(!!props.cumulative);
             if (!response.success) {
                 setError(response.error);
                 return;
@@ -62,7 +67,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
                 series.push({
                     ...serie,
                     valueFormatter: (value: unknown) => {
-                        if (serie.type === 'bar')
+                        if (serie.type === 'bar' && !!props.cumulative)
                             return null;  // hide day-individual sale values
 
                         return value === null ? value : `${value}`;
@@ -76,7 +81,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
 
         fetchGraphDataFromServer();
 
-    }, [ props.fetchDataFn ]);
+    }, [ props.cumulative, props.fetchDataFn ]);
 
     if (!result) {
         return (

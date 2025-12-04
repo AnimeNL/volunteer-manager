@@ -26,21 +26,22 @@ const kMaximumWastedVerticalSpace = 0.4;
 /**
  * Server action used to fetch product sales information for the given |products|, associated with
  * the given |eventId|. Called when the chart is being requested by the client. Will complete the
- * necessary security checks, specifically to verify access to financial statistic.s
+ * necessary security checks, specifically to verify access to financial statistics.
  */
-export async function fetchProductSales(eventId: number, products: number[]) {
+export async function fetchProductSales(eventId: number, products: number[], cumulative: boolean) {
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         if (!props.access.can('statistics.finances'))
             return { success: false, error: 'No access to sales information…' };
 
-        return actuallyFetchProductSales(eventId, products);
+        return actuallyFetchProductSales(eventId, products, cumulative);
     });
 }
 
 /**
- * Actually fetches product sales information for the given |eventId| and |products|.
+ * Actually fetches product sales information for the given |eventId| and |products|. When the
+ * |cumulative| flag is set, total lines for each of the sold products will be included as well.
  */
-async function actuallyFetchProductSales(eventId: number, products: number[])
+async function actuallyFetchProductSales(eventId: number, products: number[], cumulative: boolean)
     : Promise<RemoteGraphFnReturn>
 {
     if (products.length > kRemoteGraphColorScheme.length)
@@ -129,7 +130,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
 
     let productIndex = 0;
     for (const data of eventsSalesData) {
-        if (typeof data.limit === 'number') {
+        if (typeof data.limit === 'number' && !!cumulative) {
             limits.set(data.limit, [ ...(limits.get(data.limit) || []), data.product ]);
             limitMaximum = Math.max(limitMaximum, data.limit);
         }
@@ -262,6 +263,9 @@ async function actuallyFetchProductSales(eventId: number, products: number[])
     }
 
     // ---------------------------------------------------------------------------------------------
+
+    if (!cumulative)
+        lines.clear();
 
     return {
         success: true,

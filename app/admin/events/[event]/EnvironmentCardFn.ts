@@ -35,7 +35,9 @@ const kHistoricEventCount = kComparisonEditionColours.length - 1;
 /**
  * Server action used to fetch multi-year growth information for a one or more teams.
  */
-export async function fetchTeamGrowth(eventId: number, eventSlug: string, teamIds: number[]) {
+export async function fetchTeamGrowth(
+    eventId: number, eventSlug: string, teamIds: number[], cumulative: boolean)
+{
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         const permission = props.access.can('event.visible', {
             event: eventSlug,
@@ -45,14 +47,15 @@ export async function fetchTeamGrowth(eventId: number, eventSlug: string, teamId
         if (!permission)
             return { success: false, error: 'No access to team information…' };
 
-        return actuallyFetchTeamGrowth(eventId, teamIds);
+        return actuallyFetchTeamGrowth(eventId, teamIds, cumulative);
     });
 }
 
 /**
- * Actually fetches team growth information for the given |eventId| and |teamIds|.
+ * Actually fetches team growth information for the given |eventId| and |teamIds|. When the
+ * |cumulative| flag is set, total lines for each of the sold products will be included as well.
  */
-async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
+async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[], cumulative: boolean)
     : Promise<RemoteGraphFnReturn>
 {
     const dbInstance = db;
@@ -250,6 +253,11 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
         });
     }
 
+    // ---------------------------------------------------------------------------------------------
+
+    if (!cumulative)
+        lines.clear();
+
     return {
         success: true,
         data: {
@@ -269,7 +277,7 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
             yAxis: [
                 {
                     position: 'left',
-                    max: maximum > 0 ? Math.floor(maximum * 1.15) : undefined,
+                    max: (!!cumulative && maximum > 0) ? Math.floor(maximum * 1.15) : undefined,
                     width: 50,
                 },
             ],
