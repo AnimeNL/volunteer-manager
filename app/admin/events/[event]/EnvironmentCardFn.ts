@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
 
-import { type RemoteGraphFnReturn, computeTickInterval } from './finance/graphs/RemoteGraphFn';
+import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEvents, tEventsDates, tUsersEvents } from '@lib/database';
@@ -261,9 +261,9 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[])
             xAxis: {
                 data: labels,
                 scaleType: 'band',
-                tickInterval: computeTickInterval(labels, /* amount= */ 6),
                 tickLabelPlacement: 'tick',
                 tickPlacement: 'middle',
+                tickSpacing: 50,
                 zoom: true,
             },
             yAxis: [
