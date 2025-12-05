@@ -14,10 +14,10 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
 
 import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { GenerateButton } from '../GenerateButton';
 import { Markdown } from '@components/Markdown';
 
 /**
@@ -84,12 +84,10 @@ export function PersonalisedAdviceExample(props: PersonalisedAdviceExampleProps)
             padding: 2,
         }}>
             <FormGrid action={handleSubmit} defaultValues={defaultValues}
-                      callToAction="Generate" invalidated>
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle2">
-                        Generate example advice
-                    </Typography>
-                </Grid>
+                      submitButtonSlot={
+                          <Grid size={{ xs: 12 }} sx={{ pb: 2 }}>
+                              <GenerateButton />
+                          </Grid> }>
                 <Grid size={{ xs: 12 }}>
                     <SelectElement name="advice" label="Advice" fullWidth size="small"
                                    options={props.advice}

@@ -26,14 +26,15 @@ export interface FormGridProps extends FormProviderProps {
     callToAction?: string;
 
     /**
-     * Whether the form should be permamently invalidated.
-     */
-    invalidated?: boolean;
-
-    /**
      * Spacing to apply to the grid. Defaults to two units (16 pixels).
      */
     spacing?: number;
+
+    /**
+     * Node that should be used in the submit button slot. Defaults to an auto-revealing submit
+     * button contained within a <Collapse> component.
+     */
+    submitButtonSlot?: React.ReactNode;
 }
 
 /**
@@ -41,13 +42,16 @@ export interface FormGridProps extends FormProviderProps {
  * the underlying behaviour is underpinned by our <FormProvider> implementation.
  */
 export function FormGrid(props: React.PropsWithChildren<FormGridProps>) {
-    const { callToAction, children, invalidated, spacing, ...formProviderProps } = props;
+    const { callToAction, children, spacing, submitButtonSlot, ...formProviderProps } = props;
+
+    const submitButtonComponent =
+        submitButtonSlot ?? <InnerFormGrid callToAction={callToAction} />;
 
     return (
         <FormProvider {...formProviderProps}>
             <Grid container spacing={ spacing ?? 2 } sx={{ mb: -2 }}>
                 {children}
-                <InnerFormGrid callToAction={callToAction} invalidated={invalidated} />
+                {submitButtonComponent}
             </Grid>
         </FormProvider>
     );
@@ -57,12 +61,12 @@ export function FormGrid(props: React.PropsWithChildren<FormGridProps>) {
  * The <InnerFormGrid> component provides the inner behaviour of a <FormGrid>. It's factored out
  * separately to give it access to both the form and the FormProvider contexts.
  */
-function InnerFormGrid(props: { callToAction?: string; invalidated?: boolean }) {
+function InnerFormGrid(props: { callToAction?: string }) {
     const formContext = useContext(FormProviderContext);
     const formState = useFormState();
 
     return (
-        <Collapse in={!!formState.isDirty || !!props.invalidated} sx={{ width: '100%' }}>
+        <Collapse in={!!formState.isDirty} sx={{ width: '100%' }}>
             <Grid size={{ xs: 12 }}>
                 <Stack direction="row" spacing={1} alignItems="center"
                         sx={{

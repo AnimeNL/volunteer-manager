@@ -19,6 +19,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { HiddenInput } from '@components/HiddenInput';
+import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -34,7 +36,7 @@ const kMaximumExampleMessages = 5;
 /**
  * Icons to visually identify the prompts with. They're indexed by the name of the constructor.
  */
-const kPromptIcons: { [k in keyof typeof prompts]: React.JSX.Element } = {
+const kPromptIcons: { [k in keyof typeof prompts]?: React.JSX.Element } = {
     HotelConfirmationPrompt: <HotelIcon color="primary" />,
     RetentionPrompt: <RepeatIcon color="primary" />
 };
@@ -53,7 +55,9 @@ export default async function CommunicationAiPage() {
         await readSettings([ 'ai-communication-system-prompt', 'ai-example-messages' ]);
 
     const exampleMessages = JSON.parse(settings['ai-example-messages'] || '[]');
-    const systemPrompt = settings['ai-communication-system-prompt'] || '';
+
+    const systemPromptTemplate = settings['ai-communication-system-prompt'] || '';
+    const systemPrompt = new SystemPrompt();
 
     // Infer the available prompts from the ones exported from the //lib/ai/ library,
     // which is the source of truth. Icons are complemented by this component.
@@ -63,6 +67,7 @@ export default async function CommunicationAiPage() {
             name: promptConstructor.name,
             metadata: promptInstance.metadata,
         };
+    }).filter(({ metadata }) => { return !('hidden' in metadata)
     }).sort((lhs, rhs) => lhs.metadata.label.localeCompare(rhs.metadata.label));
 
     return (
@@ -81,15 +86,17 @@ export default async function CommunicationAiPage() {
                 </List>
             </Stack>
             <Divider sx={{ my: 1 }} />
-            <FormGrid action={actions.updateSystemPrompt} defaultValues={{ systemPrompt }}>
+            <FormGrid action={actions.updatePrompt}
+                      defaultValues={{ id: 'system', prompt: systemPromptTemplate }}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="h6" sx={{ mb: 1 }}>
                         System prompt
                     </Typography>
-                    <TokenOverviewAlert tokens={{ language: 'English' }} />
+                    <TokenOverviewAlert prompt={systemPrompt} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <TextareaAutosizeElement name="systemPrompt" label="System prompt" fullWidth
+                    <HiddenInput name="id" />
+                    <TextareaAutosizeElement name="prompt" label="System prompt" fullWidth
                                              size="small" />
                 </Grid>
             </FormGrid>

@@ -5,18 +5,16 @@
 
 import { SelectElement } from 'react-hook-form-mui';
 
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { GenerateButton } from '../../GenerateButton';
 
 /**
  * Array of the supported languages. Gemini supports many more, but these ones are exposed.
  */
-export const kSupportedLanguages = [
+const kLanguages = [
     'Chinese',
     'Dutch',
     'English',
@@ -56,32 +54,31 @@ export function Example(props: ExampleProps) {
     };
 
     return (
-        <FormGrid action={handleSubmit} defaultValues={defaultValues}>
-            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                <Divider />
-            </Grid>
-            <Grid size={{ xs: 12 }} sx={{ mt: -1, mb: -1 }}>
-                <Typography variant="h6">
-                    Example
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <SelectElement name="language" label="Language" size="small" fullWidth
-                               options={kSupportedLanguages.map(label => ({ id: label, label }))} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <SelectElement name="personalisation" label="Personalisation" size="small" fullWidth
-                               options={[
-                                   { id: true, label: 'Enabled' },
-                                   { id: false, label: 'Disabled' },
-                               ]} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-                <Button startIcon={ <SmartToyIcon /> } loading={false} type="submit" fullWidth
-                        variant="outlined">
-                    Generate message
-                </Button>
-            </Grid>
-        </FormGrid>
+        <Box sx={{
+            backgroundColor: 'animecon.adminExampleBackground',
+            borderRadius: 1,
+            padding: 2,
+            marginTop: 2,
+        }}>
+            <FormGrid action={handleSubmit} defaultValues={defaultValues}
+                      submitButtonSlot={
+                        <Grid size={{ xs: 12 }} sx={{ pb: 2 }}>
+                            <GenerateButton />
+                        </Grid> }>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <SelectElement name="language" label="Language" size="small" fullWidth
+                                   sx={{ backgroundColor: 'background.paper' }}
+                                   options={ kLanguages.map(label => ({ id: label, label }))} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <SelectElement name="personalisation" label="Personalisation" size="small"
+                                   fullWidth sx={{ backgroundColor: 'background.paper' }}
+                                   options={[
+                                       { id: true, label: 'Use your example messages' },
+                                       { id: false, label: 'Use generic example messages' },
+                                   ]} />
+                </Grid>
+            </FormGrid>
+        </Box>
     );
 }

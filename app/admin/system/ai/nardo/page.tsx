@@ -10,10 +10,11 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
+import { HiddenInput } from '@components/HiddenInput';
+import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvicePrompt';
 import { PersonalisedAdviceExample } from './PersonalisedAdviceExample';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
-import { executeNardoPersonalisedAdvicePrompt} from '@lib/ai/Actions';
+import { executeNardoPersonalisedAdvicePrompt } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
@@ -79,7 +80,8 @@ export default async function NardoAiPage() {
     // ---------------------------------------------------------------------------------------------
 
     const defaultValues = {
-        personalisedAdvice: settings[personalisedAdvicePrompt.metadata.setting],
+        id: 'nardo-personalised-advice',
+        prompt: settings[personalisedAdvicePrompt.metadata.setting],
     };
 
     return (
@@ -90,12 +92,12 @@ export default async function NardoAiPage() {
                 </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-                <FormGrid action={actions.updateNardo} defaultValues={defaultValues}>
+                <FormGrid action={actions.updatePrompt} defaultValues={defaultValues}>
                     <Grid size={{ xs: 12 }}>
                         <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
-                        <TextareaAutosizeElement
-                            name="personalisedAdvice" label="Personalised advice" size="small"
-                            fullWidth sx={{ mt: 2 }} />
+                        <HiddenInput name="id" />
+                        <TextareaAutosizeElement name="prompt" label="Personalised advice"
+                                                 size="small" fullWidth sx={{ mt: 2 }} />
                     </Grid>
                 </FormGrid>
             </Grid>

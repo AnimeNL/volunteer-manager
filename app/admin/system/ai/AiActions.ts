@@ -4,7 +4,6 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvice';
 import { PromptValidator } from '@lib/ai/PromptValidator';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
@@ -19,19 +18,19 @@ import * as prompts from '@lib/ai/prompts';
 /**
  * Zod type that describes information required in order to execute a model.
  */
-const kExecuteModelData = z.object({
+const kExecuteModelPlaygroundData = z.object({
     model: z.enum([ 'image', 'text' ]),
     prompt: z.string().nonempty(),
     attachment: z.array(z.instanceof(File)).optional(),
 });
 
 /**
- * Server action to execute a selected AI model.
+ * Server action to execute a selected AI model from the Model Playground.
  */
-export async function executeModel(formData: unknown) {
+export async function executeModelPlayground(formData: unknown) {
     'use server';
 
-    return executeServerAction(formData, kExecuteModelData, async (data, props) => {
+    return executeServerAction(formData, kExecuteModelPlaygroundData, async (data, props) => {
         await requireAuthenticationContext({
             check: 'admin',
             permission: 'system.internals.ai',
@@ -163,48 +162,6 @@ export async function updateModelSettings(formData: unknown) {
 }
 
 /**
- * Zod type that describes information required in order to update the Del a Rie Advies settings.
- */
-const kUpdateNardoData = z.object({
-    personalisedAdvice: z.string().nonempty(),
-});
-
-/**
- * Server action to update the prompts and settings used for Del a Rie Advies functionality.
- */
-export async function updateNardo(formData: unknown) {
-    'use server';
-    return executeServerAction(formData, kUpdateNardoData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
-
-        const prompt = new NardoPersonalisedAdvicePrompt(data.personalisedAdvice);
-        const promptValidator = PromptValidator.forPrompt(prompt);
-
-        const validation = await promptValidator.validate();
-        if (!validation.ok)
-            return { success: false, error: validation.errors.join('\n') };
-
-        await writeSettings({
-            'ai-nardo-personalised-advice': data.personalisedAdvice,
-        });
-
-        RecordLog({
-            type: kLogType.AdminUpdateAiSetting,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                setting: 'Del a Rie Advies prompts',
-            },
-        });
-
-        return { success: true };
-    });
-}
-
-/**
  * Zod type that describes information required in order to update a particular prompt.
  */
 const kUpdatePromptData = z.object({
@@ -238,30 +195,16 @@ export async function updatePrompt(formData: unknown) {
         if (!validation.ok)
             return { success: false, error: validation.errors.join('\n') };
 
-        await writeSetting(prompt.metadata.setting, data.prompt);
-        return { success: true };
-    });
-}
-
-/**
- * Zod type that describes information required in order to update the system prompt.
- */
-const kUpdateSystemPromptData = z.object({
-    systemPrompt: z.string().nonempty(),
-});
-
-/**
- * Server action to update the system prompt used in generated communication.
- */
-export async function updateSystemPrompt(formData: unknown) {
-    'use server';
-    return executeServerAction(formData, kUpdateSystemPromptData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
+        RecordLog({
+            type: kLogType.AdminUpdateAiSetting,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            data: {
+                setting: `${prompt.metadata.label} prompt`,
+            },
         });
 
-        await writeSetting('ai-communication-system-prompt', data.systemPrompt);
+        await writeSetting(prompt.metadata.setting, data.prompt);
         return { success: true };
     });
 }

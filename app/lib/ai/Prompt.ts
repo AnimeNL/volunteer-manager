@@ -19,6 +19,11 @@ type Metadata = {
     id: string;
 
     /**
+     * Whether the prompt should be hidden from the Communication page.
+     */
+    hidden?: true;
+
+    /**
      * Label that describes that this prompt is about.
      */
     label: string;

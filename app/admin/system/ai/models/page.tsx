@@ -121,7 +121,7 @@ export default async function ModelsAiPage() {
                           padding: 2,
                       }}>
                     <ModelPlayground label="Text generation prompt" model="text"
-                                     serverAction={actions.executeModel} />
+                                     serverAction={actions.executeModelPlayground} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}
                       sx={{
@@ -129,8 +129,8 @@ export default async function ModelsAiPage() {
                           borderRadius: 1,
                           padding: 2,
                       }}>
-                    <ModelPlayground label="Image generation prompt" model="image"
-                                     enableAttachment serverAction={actions.executeModel} />
+                    <ModelPlayground label="Image generation prompt" model="image" enableAttachment
+                                     serverAction={actions.executeModelPlayground} />
                 </Grid>
             </Grid>
         </>

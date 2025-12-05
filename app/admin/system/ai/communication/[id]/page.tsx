@@ -36,7 +36,7 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
 
     const promptInstances = Object.values(prompts).map(promptConstructor => new promptConstructor);
     const prompt = promptInstances.find(promptInstance => promptInstance.metadata.id === promptId);
-    if (!prompt)
+    if (!prompt || 'hidden' in prompt.metadata)
         notFound();
 
     const settings = await readSettings([
@@ -69,6 +69,7 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
                                              fullWidth />
                 </Grid>
             </FormGrid>
+            <Divider sx={{ mt: 2 }} />
             <Example id={prompt.metadata.id} />
         </>
     );

@@ -14,19 +14,13 @@ import Typography from '@mui/material/Typography';
 import type { Prompt } from '@lib/ai/Prompt';
 
 /**
- * Props accepted by the <TokenOverviewAlert> component. This component either accepts a prompt, or
- * a record of token names together with their example values, but not both.
+ * Props accepted by the <TokenOverviewAlert> component.
  */
-type TokenOverviewAlertProps = {
+interface TokenOverviewAlertProps {
     /**
      * The prompt for which available token information should be displayed.
      */
     prompt: Prompt<any>;
-} | {
-    /**
-     * The tokens that are available for use in this prompt.
-     */
-    tokens: Record<string, string>;
 };
 
 /**
@@ -35,13 +29,7 @@ type TokenOverviewAlertProps = {
  * see both the tokens and example values that can be associated with those tokens.
  */
 export function TokenOverviewAlert(props: TokenOverviewAlertProps) {
-    let parameters: [ string, string ][];
-    if ('prompt' in props) {
-        parameters = [ ...props.prompt.parameters.entries() ];
-    } else {
-        parameters = Object.entries(props.tokens);
-    }
-
+    const parameters: [ string, string ][] = [ ...props.prompt.parameters.entries() ];
     if (!parameters.length) {
         return (
             <Alert icon={ <FindReplaceIcon fontSize="inherit" /> } severity="info">

@@ -5,7 +5,7 @@
 
 import { z } from 'zod/v4';
 
-import { NardoPersonalisedAdvicePrompt } from './prompts/NardoPersonalisedAdvice';
+import { NardoPersonalisedAdvicePrompt } from './prompts/NardoPersonalisedAdvicePrompt';
 import { PromptExecutor } from './PromptExecutor';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';

@@ -74,7 +74,7 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
     // biome-ignore-start lint/performance/noImgElement: intentional usage
     return (
         <>
-            <FormGrid action={executeModel} callToAction="Execute" spacing={1}
+            <FormGrid action={executeModel} callToAction="Execute" spacing={2}
                       defaultValues={defaultValues}>
                 <Grid size={{ xs: 12 }}>
                     <HiddenInput name="model" />
