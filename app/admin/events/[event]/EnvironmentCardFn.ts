@@ -37,6 +37,7 @@ const kHistoricEventCount = kComparisonEditionColours.length - 1;
  */
 export async function fetchTeamGrowth(
     eventId: number, eventSlug: string, teamIds: number[], cumulative: boolean)
+        : Promise<RemoteGraphFnReturn>
 {
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         const permission = props.access.can('event.visible', {
@@ -48,7 +49,8 @@ export async function fetchTeamGrowth(
             return { success: false, error: 'No access to team information…' };
 
         return actuallyFetchTeamGrowth(eventId, teamIds, cumulative);
-    });
+
+    }) as Promise<RemoteGraphFnReturn>;
 }
 
 /**

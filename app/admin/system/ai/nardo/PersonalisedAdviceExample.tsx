@@ -56,11 +56,14 @@ interface PersonalisedAdviceExampleProps {
  * customised to project this in most significant situations.
  */
 export function PersonalisedAdviceExample(props: PersonalisedAdviceExampleProps) {
-    const defaultValues = useMemo(() => ({
-        advice: props.advice[0]?.id,
-        event: props.events[0]?.id,
-        volunteer: props.userId,
-    }), [ props.advice, props.events, props.userId ]);
+    const defaultValues = useMemo(() => {
+        const randomAdviceIndex = Math.floor(Math.random() * props.advice.length);
+        return {
+            advice: props.advice[randomAdviceIndex]?.id,
+            event: props.events[0]?.id,
+            volunteer: props.userId,
+        };
+    }, [ props.advice, props.events, props.userId ]);
 
     const [ generatedMessage, setGeneratedMessage ] = useState<string | undefined>();
 
@@ -89,15 +92,18 @@ export function PersonalisedAdviceExample(props: PersonalisedAdviceExampleProps)
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <SelectElement name="advice" label="Advice" fullWidth size="small"
-                                   options={props.advice} />
+                                   options={props.advice}
+                                   sx={{ backgroundColor: 'background.paper' }} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <SelectElement name="event" label="Event" fullWidth size="small"
-                                   options={props.events} />
+                                   options={props.events}
+                                   sx={{ backgroundColor: 'background.paper' }} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <SelectElement name="volunteer" label="Volunteer" fullWidth size="small"
-                                   options={props.volunteers} />
+                                   options={props.volunteers}
+                                   sx={{ backgroundColor: 'background.paper' }} />
                 </Grid>
             </FormGrid>
             { !!generatedMessage &&

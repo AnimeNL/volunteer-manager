@@ -48,7 +48,7 @@ export default async function NardoAiPage() {
             id: tNardo.nardoId,
             label: tNardo.nardoAdvice,
         })
-        .orderBy(dbInstance.rawFragment`rand()`)
+        .orderBy(tNardo.nardoAuthorDate, 'desc')
         .executeSelectMany();
 
     const events = await dbInstance.selectFrom(tEvents)

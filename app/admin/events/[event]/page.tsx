@@ -7,7 +7,6 @@ import Stack from '@mui/material/Stack';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventRecentChangeUpdate, EventRecentChangesProps } from './EventRecentChanges';
 import type { NextPageParams } from '@lib/NextRouterParams';
-import type { RemoteGraphFn } from './finance/graphs/RemoteGraphFn';
 import { EnvironmentCard, type EnvironmentCardProps } from './EnvironmentCard';
 import { EventDeadlines } from './EventDeadlines';
 import { EventIdentityCard } from './EventIdentityCard';
@@ -416,7 +415,7 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                 </Grid>
                 { participatingEnvironments.map(environment =>
                     <Grid key={`environment-${environment.id}`} size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <EnvironmentCard partialFetchDataFn={partialFetchDataFn as RemoteGraphFn}
+                        <EnvironmentCard partialFetchDataFn={partialFetchDataFn}
                                          {...environment} />
                     </Grid> )}
             </Grid>
@@ -435,8 +434,7 @@ export default async function EventPage(props: NextPageParams<'event'>) {
                         { deadlines.length > 0 &&
                             <EventDeadlines event={event} deadlines={deadlines} /> }
                         { recentVolunteers.length > 0 &&
-                            <EventRecentVolunteers event={event.slug}
-                                                   fetchDataFn={fetchDataFn as RemoteGraphFn}
+                            <EventRecentVolunteers event={event.slug} fetchDataFn={fetchDataFn}
                                                    timelineDescription={growthChartTeamDescription}
                                                    volunteers={recentVolunteers} /> }
                         { (eventSalesCard || ticketSalesCard) &&

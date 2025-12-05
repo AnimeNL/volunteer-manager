@@ -3,7 +3,6 @@
 
 'use client';
 
-import type { RemoteGraphFn } from './RemoteGraphFn';
 import { type RemoteGraphProps, RemoteGraph } from './RemoteGraph';
 import { fetchProductSales } from './ProductSalesGraphFn';
 
@@ -29,6 +28,6 @@ interface ProductSalesGraphProps extends Omit<RemoteGraphProps, 'fetchDataFn'> {
 export function ProductSalesGraph(props: ProductSalesGraphProps) {
     const { eventId, products, ...rest } = props;
 
-    const fetchDataFn = fetchProductSales.bind(null, eventId, products) as RemoteGraphFn;
+    const fetchDataFn = fetchProductSales.bind(null, eventId, products);
     return <RemoteGraph fetchDataFn={fetchDataFn} {...rest} />;
 }

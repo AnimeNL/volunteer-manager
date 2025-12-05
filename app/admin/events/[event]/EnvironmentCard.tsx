@@ -69,7 +69,7 @@ export interface EnvironmentCardProps {
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    partialFetchDataFn: (teamIds: number[]) => Promise<RemoteGraphFnReturn>;
+    partialFetchDataFn: (teamIds: number[], cumulative: boolean) => Promise<RemoteGraphFnReturn>;
 
     /**
      * The teams that are part of this environment. It's assumed that the signed in user has access

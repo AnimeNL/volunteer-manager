@@ -34,7 +34,7 @@ export interface EventRecentVolunteersProps {
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    fetchDataFn: () => Promise<RemoteGraphFnReturn>;
+    fetchDataFn: (cumulative: boolean) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Description that should be displayed on the timeline, if any.

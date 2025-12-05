@@ -28,13 +28,16 @@ const kMaximumWastedVerticalSpace = 0.4;
  * the given |eventId|. Called when the chart is being requested by the client. Will complete the
  * necessary security checks, specifically to verify access to financial statistics.
  */
-export async function fetchProductSales(eventId: number, products: number[], cumulative: boolean) {
+export async function fetchProductSales(eventId: number, products: number[], cumulative: boolean)
+    : Promise<RemoteGraphFnReturn>
+{
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         if (!props.access.can('statistics.finances'))
             return { success: false, error: 'No access to sales information…' };
 
         return actuallyFetchProductSales(eventId, products, cumulative);
-    });
+
+    }) as Promise<RemoteGraphFnReturn>;
 }
 
 /**

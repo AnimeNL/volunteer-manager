@@ -119,7 +119,7 @@ interface SalesDataGridProps {
     /**
      * Server action through which the data associated with the remote graph can be obtained.
      */
-    partialFetchDataFn: (products: number[]) => Promise<RemoteGraphFnReturn>;
+    partialFetchDataFn: (products: number[], cumulative: boolean) => Promise<RemoteGraphFnReturn>;
 
     /**
      * Kind of products displayed by this data table.

@@ -6,7 +6,6 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 
-import type { RemoteGraphFn } from './graphs/RemoteGraphFn';
 import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
 import { FinanceProcessor } from './FinanceProcessor';
@@ -47,7 +46,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     }
 
     // Server Action through which remote graph data can be obtained.
-    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId) as RemoteGraphFn;
+    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId);
 
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;
