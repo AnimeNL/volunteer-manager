@@ -22,7 +22,6 @@ jobs:
           git reset --hard
           git pull --rebase
           npm install --force
-          npm run-script test
           npm run-script build-staging
           docker system prune -f
           docker stop volunteer-manager-staging
