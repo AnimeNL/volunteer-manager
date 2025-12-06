@@ -10,8 +10,8 @@ import { PromptExecutor } from './PromptExecutor';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
-import { kRegistrationStatus } from '@lib/database/Types';
 
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Zod type that describes information required in order to execute a model.
@@ -94,5 +94,35 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
         } catch (error: any) {
             return { success: false, error: error.message };
         }
+    });
+}
+
+/**
+ * Zod type that describes information required in order to execute a prompt with exampl parameters.
+ */
+const kPromptWithExampleParametersData = z.object({
+    id: z.string().nonempty(),
+    language: z.string(),
+    personalisation: z.boolean(),
+});
+
+/**
+ * Server action to execute a prompt with the configured example parameters. The ID of the prompt
+ * must be known, and both the language and personalisation options are available as payload.
+ */
+export async function executePromptWithExampleParameters(formData: unknown) {
+    'use server';
+
+    return executeServerAction(formData, kPromptWithExampleParametersData, async (data, props) => {
+        await requireAuthenticationContext({
+            check: 'admin',
+            permission: 'system.internals.ai',
+        });
+
+        // TODO: Compose the prompt including the system prompt
+        // TODO: Compose the example messages, and attach them to the prompt
+        // TODO: Execute the composed package
+
+        return { success: false, message: 'Not implemented yet' };
     });
 }

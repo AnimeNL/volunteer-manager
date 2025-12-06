@@ -16,10 +16,11 @@ import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
+import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { updatePrompt } from '../../AiActions';
 
-import * as actions from '../../AiActions';
 import * as prompts from '@lib/ai/prompts';
 
 /**
@@ -50,7 +51,7 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
 
     return (
         <>
-            <FormGrid action={actions.updatePrompt} defaultValues={defaultValues}>
+            <FormGrid action={updatePrompt} defaultValues={defaultValues}>
                 <BackButtonGrid href="/admin/system/ai/communication">
                     Back to overview
                 </BackButtonGrid>
@@ -70,7 +71,7 @@ export default async function CommunicationPromptAiPage(props: NextPageParams<'i
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2 }} />
-            <Example id={prompt.metadata.id} />
+            <Example action={executePromptWithExampleParameters} id={prompt.metadata.id} />
         </>
     );
 }
