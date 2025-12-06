@@ -13,7 +13,8 @@
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
     "lint": "biome check",
     "lint:fix": "biome lint --write",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test --reporter=html"
   },
   "repository": {
