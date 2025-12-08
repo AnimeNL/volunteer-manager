@@ -9,7 +9,6 @@ import { z } from 'zod/v4';
 import { NardoPersonalisedAdvicePrompt } from './prompts/NardoPersonalisedAdvicePrompt';
 import { PromptExecutor } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
-import { Temporal } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
@@ -106,7 +105,7 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
 const kPromptWithExampleParametersData = z.object({
     id: z.string().nonempty(),
     language: z.string(),
-    personalisation: z.boolean(),
+    personalisation: z.boolean(),  // TODO: Take a User ID
 });
 
 /**
@@ -122,24 +121,26 @@ export async function executePromptWithExampleParameters(formData: unknown) {
             permission: 'system.internals.ai',
         });
 
-        const prompt = PromptFactory.createById(data.id);
-        const systemPrompt = PromptFactory.createById('system-prompt');
-
-        if (!prompt || !systemPrompt)
+        const promptInstance = PromptFactory.createById(data.id);
+        if (!promptInstance)
             notFound();
 
-        const evaluatedPrompt = await prompt.evaluate(prompt.exampleParameters);
-        const evaluatedSystemPrompt = await systemPrompt.evaluate({
-            date: Temporal.Now.plainDateISO().toString(),
+        const executor = PromptExecutor.forPrompt(promptInstance);
+
+        if (data.personalisation)
+            await executor.prepareExampleMessages(props.user.id);
+
+        await executor.prepareSystemPrompt({
             language: data.language,
         });
 
-        // TODO: Compose the example messages, and attach them to the prompt
-        // TODO: Execute the composed package
+        const response = await executor.execute(promptInstance.exampleParameters);
+        if (!response.success)
+            return response;
 
         return {
             success: true,
-            message: [ evaluatedPrompt, evaluatedSystemPrompt ].join('\n\n'),
+            message: response.text,
         };
     });
 }

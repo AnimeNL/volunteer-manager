@@ -10,6 +10,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
@@ -97,11 +98,7 @@ export async function updateExampleMessages(formData: unknown) {
             permission: 'system.internals.ai',
         });
 
-        const exampleMessages = data.exampleMessages.filter(message => {
-            return typeof message === 'string' && message.length > 0;
-        });
-
-        await writeSetting('ai-example-messages', JSON.stringify(exampleMessages));
+        await writeExampleMessages(data.exampleMessages as string[]);
 
         return {
             success: true,

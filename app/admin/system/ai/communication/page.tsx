@@ -54,7 +54,7 @@ export default async function CommunicationAiPage() {
     const settings =
         await readSettings([ 'ai-communication-system-prompt', 'ai-example-messages' ]);
 
-    const exampleMessages = JSON.parse(settings['ai-example-messages'] || '[]');
+    const exampleMessages = settings['ai-example-messages'] || [ /* no example messages */ ];
 
     const systemPromptTemplate = settings['ai-communication-system-prompt'] || '';
     const systemPrompt = new SystemPrompt();

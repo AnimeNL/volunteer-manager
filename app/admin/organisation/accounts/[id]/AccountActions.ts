@@ -12,7 +12,7 @@ import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
-import { setExampleMessagesForUser } from '@app/admin/lib/getExampleMessagesForUser';
+import { writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { writeSealedSessionCookieToStore } from '@lib/auth/Session';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
@@ -655,9 +655,8 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
             'user-admin-experimental-responsive': !!data.experimentalResponsive,
         });
 
-        // Write the example messages to the database. The filter operation ensures that only string
-        // values remain, but TypeScript is not yet smart enough to detect this.
-        await setExampleMessagesForUser(userId, data.exampleMessages.filter(Boolean) as string[]);
+        // Write the example messages to the database.
+        await writeExampleMessagesForUser(userId, data.exampleMessages as string[]);
 
         return {
             success: true,

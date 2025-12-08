@@ -64,7 +64,7 @@ export type Settings = {
     'ai-communication-system-prompt': string;
     'ai-communication-type-hotel-confirmation': string;
     'ai-communication-type-retention': string;
-    'ai-example-messages': string;
+    'ai-example-messages': string[];  // can be overridden by a user setting
 
     // Del a Rie Advies:
     'ai-nardo-personalised-advice': string;

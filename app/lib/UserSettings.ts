@@ -34,6 +34,8 @@ export type UserSettingsMap = {
     // AI settings
     // ---------------------------------------------------------------------------------------------
 
+    'ai-example-messages': string[];  // overrides a regular setting
+
     'user-ai-example-messages': string;
     'user-ai-example-messages-promo-time': number;
 };
@@ -59,7 +61,8 @@ export async function readUserSetting<T extends keyof UserSettingsMap>(userId: n
  * cannot be loaded or have no defaults. This function will end up issuing a database call.
  */
 export async function readUserSettings<T extends keyof UserSettingsMap>(
-    userId: number, settings: T[]): Promise<{ [k in T]: UserSettingsMap[k] | undefined }>
+    userId: number, settings: T[], disableFallback?: boolean)
+        : Promise<{ [k in T]: UserSettingsMap[k] | undefined }>
 {
     const usersSettingsJoin = tUsersSettings.forUseInLeftJoin();
     const storedValues = await db.selectFrom(tSettings)
@@ -69,13 +72,14 @@ export async function readUserSettings<T extends keyof UserSettingsMap>(
         .where(tSettings.settingName.in(settings))
         .select({
             name: tSettings.settingName,
-            value: usersSettingsJoin.settingValue.valueWhenNull(tSettings.settingValue)
+            value: usersSettingsJoin.settingValue.valueWhenNull(
+                tSettings.settingValue.onlyWhenOrNull(disableFallback !== true)),
         })
         .executeSelectMany();
 
     const result: { [k in T]: UserSettingsMap[k] | undefined } = { /* empty */ } as any;
     for (const { name, value } of storedValues)
-        result[name as keyof typeof result] = JSON.parse(value);
+        result[name as keyof typeof result] = value ? JSON.parse(value) : undefined;
 
     return result;
 }

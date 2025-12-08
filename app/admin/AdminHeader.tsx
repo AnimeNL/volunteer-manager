@@ -16,13 +16,12 @@ import { AdminHeaderSettingsButton } from './AdminHeaderSettingsButton';
 import { AdminHeaderPromoDialog } from './AdminHeaderPromoDialog';
 import { Temporal } from '@lib/Temporal';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
-import { getExampleMessagesForUser } from './lib/getExampleMessagesForUser';
 import { updateAccountSettings } from './organisation/accounts/[id]/AccountActions';
+import { writeUserSetting } from '@lib/UserSettings';
 import db, { tEvents } from '@lib/database';
 
 import { kAnyTeam, type AccessControl } from '@lib/auth/AccessControl';
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
-import { writeUserSetting } from '@lib/UserSettings';
 
 /**
  * Number of seconds between reminders to fill in their example AI messages.
@@ -42,9 +41,9 @@ interface AdminHeaderProps {
      * User settings that should be provided to the header.
      */
     settings: {
+        'ai-example-messages'?: string[];
         'user-admin-experimental-dark-mode'?: boolean;
         'user-admin-experimental-responsive'?: boolean;
-        'user-ai-example-messages'?: string;
         'user-ai-example-messages-promo-time'?: number;
     };
 
@@ -88,8 +87,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
     // ---------------------------------------------------------------------------------------------
 
     const accountSettings: AccountSettings = {
-        exampleMessages:
-            await getExampleMessagesForUser(user.id, props.settings['user-ai-example-messages']),
+        exampleMessages: props.settings['ai-example-messages'] ?? [ /* no example messages */ ],
         experimentalDarkMode: !!props.settings['user-admin-experimental-dark-mode'],
         experimentalResponsive: !!props.settings['user-admin-experimental-responsive'],
     };

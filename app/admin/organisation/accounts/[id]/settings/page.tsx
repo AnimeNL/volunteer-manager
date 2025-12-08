@@ -7,7 +7,6 @@ import type { NextPageParams } from '@lib/NextRouterParams';
 import { AccountSettingsForm, type AccountSettings } from './AccountSettings';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { getExampleMessagesForUser } from '@app/admin/lib/getExampleMessagesForUser';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { updateAccountSettings } from '../AccountActions';
 import { readUserSettings } from '@lib/UserSettings';
@@ -30,14 +29,13 @@ export default async function AccountSettingsPage(props: NextPageParams<'id'>) {
         notFound();
 
     const userSettings = await readUserSettings(userId, [
+        'ai-example-messages',
         'user-admin-experimental-dark-mode',
         'user-admin-experimental-responsive',
-        'user-ai-example-messages',
-    ]);
+    ], /* disableFallback= */ true);
 
     const defaultValues: AccountSettings = {
-        exampleMessages:
-            await getExampleMessagesForUser(userId, userSettings['user-ai-example-messages']),
+        exampleMessages: userSettings['ai-example-messages'] ?? [ /* no example messages */ ],
         experimentalDarkMode: !!userSettings['user-admin-experimental-dark-mode'],
         experimentalResponsive: !!userSettings['user-admin-experimental-responsive'],
     };

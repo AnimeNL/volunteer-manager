@@ -69,6 +69,9 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         'user-admin-volunteers-expand-shifts': 'boolean',
         'user-ai-example-messages': 'string',
         'user-ai-example-messages-promo-time': 'number',
+
+        // User settings that cannot be updated through this mechanism:
+        'ai-example-messages': 'unknown',
     };
 
     const settingsToUpdate: { [k in keyof UserSettingsMap]?: UserSettingsMap[k] } = {};
@@ -78,7 +81,11 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
             continue;
         }
 
-        if (typeof value !== kAllowedUserSettings[setting as keyof UserSettingsMap]) {
+        const expectedType = kAllowedUserSettings[setting as keyof UserSettingsMap];
+        if (expectedType === 'unknown')
+            return { success: false, error: 'Attempting to update an immutable user setting' };
+
+        if (expectedType !== typeof value) {
             console.error(`Invalid setting value type: ${setting}, ${value}`);
             continue;
         }
