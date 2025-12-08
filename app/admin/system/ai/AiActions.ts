@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptValidator } from '@lib/ai/PromptValidator';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
@@ -12,8 +13,6 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
-
-import * as prompts from '@lib/ai/prompts';
 
 /**
  * Zod type that describes information required in order to execute a model.
@@ -180,20 +179,15 @@ export async function updatePrompt(formData: unknown) {
             permission: 'system.internals.ai',
         });
 
-        const relevantPromptConstructor = Object.values(prompts).find(promptConstructor => {
-            const instance = new promptConstructor();
-            return instance.metadata.id === data.id;
-        });
-
-        if (!relevantPromptConstructor)
+        const prompt = PromptFactory.createById(data.id);
+        if (!prompt)
             notFound();
 
-        const prompt = new relevantPromptConstructor(data.prompt);
         const promptValidator = PromptValidator.forPrompt(prompt);
 
-        const validation = await promptValidator.validate();
-        if (!validation.ok)
-            return { success: false, error: validation.errors.join('\n') };
+        const verdict = await promptValidator.validate();
+        if (!verdict.ok)
+            return { success: false, error: verdict.errors.join('\n') };
 
         RecordLog({
             type: kLogType.AdminUpdateAiSetting,

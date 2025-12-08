@@ -3,10 +3,13 @@
 
 'use server';
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { NardoPersonalisedAdvicePrompt } from './prompts/NardoPersonalisedAdvicePrompt';
 import { PromptExecutor } from './PromptExecutor';
+import { PromptFactory } from './PromptFactory';
+import { Temporal } from '@lib/Temporal';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
@@ -119,10 +122,24 @@ export async function executePromptWithExampleParameters(formData: unknown) {
             permission: 'system.internals.ai',
         });
 
-        // TODO: Compose the prompt including the system prompt
+        const prompt = PromptFactory.createById(data.id);
+        const systemPrompt = PromptFactory.createById('system-prompt');
+
+        if (!prompt || !systemPrompt)
+            notFound();
+
+        const evaluatedPrompt = await prompt.evaluate(prompt.exampleParameters);
+        const evaluatedSystemPrompt = await systemPrompt.evaluate({
+            date: Temporal.Now.plainDateISO().toString(),
+            language: data.language,
+        });
+
         // TODO: Compose the example messages, and attach them to the prompt
         // TODO: Execute the composed package
 
-        return { success: false, message: 'Not implemented yet' };
+        return {
+            success: true,
+            message: [ evaluatedPrompt, evaluatedSystemPrompt ].join('\n\n'),
+        };
     });
 }

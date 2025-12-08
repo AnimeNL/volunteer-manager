@@ -87,7 +87,7 @@ export default async function CommunicationAiPage() {
             </Stack>
             <Divider sx={{ my: 1 }} />
             <FormGrid action={actions.updatePrompt}
-                      defaultValues={{ id: 'system', prompt: systemPromptTemplate }}>
+                      defaultValues={{ id: 'system-prompt', prompt: systemPromptTemplate }}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="h6" sx={{ mb: 1 }}>
                         System prompt
