@@ -27,7 +27,8 @@ export type ConfigurableSetting = {
 } & (
     { type: 'boolean'; defaultValue: boolean; value?: boolean; } |
     { type: 'number'; defaultValue: number; value?: number; } |
-    { type: 'string'; defaultValue: string; value?: string; }
+    { type: 'string'; defaultValue: string; value?: string; } |
+    { type: 'stringArray'; defaultValue: string[]; value?: string[]; }
 );
 
 /**
@@ -82,7 +83,7 @@ export function SettingSection(props: SettingSectionProps) {
         }
     }, [ props.settings ]);
 
-    const defaultValues: Record<string, boolean | number | string | undefined> = {};
+    const defaultValues: Record<string, boolean | number | string | string[] | undefined> = {};
     for (const { setting, defaultValue, value } of Object.values(props.settings))
         defaultValues[setting] = value ?? defaultValue;
 
