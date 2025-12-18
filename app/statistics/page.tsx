@@ -5,7 +5,6 @@ import { forbidden } from 'next/navigation';
 
 import Grid from '@mui/material/Grid';
 
-import type { NextSearchParams } from '@lib/NextRouterParams';
 import { LineGraph } from './components/LineGraph';
 import { StatisticsFilters } from './components/StatisticsFilters';
 import { StatisticsSection } from './components/StatisticsSection';
@@ -64,8 +63,9 @@ const kDescriptions = {
  * environments, contents are the same across them. People with access to the statistics are able
  * to drill in to each one of them, across events and teams.
  */
-export default async function StatisticsPage(params: NextSearchParams) {
-    const searchParams = new URLSearchParams(await params.searchParams);
+export default async function StatisticsPage(params: PageProps<'/statistics'>) {
+    // TODO: We probably need a toUrlSearchParams() utility function somewhere to make this stable.
+    const searchParams = new URLSearchParams(await params.searchParams as any);
 
     const filters = await determineFilters(searchParams);
     if (!filters.access.basic)

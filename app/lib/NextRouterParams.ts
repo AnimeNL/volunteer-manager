@@ -4,7 +4,7 @@
 /**
  * Props accepted by pages using the NextJS router component, without having path-based parameters.
  */
-export interface NextSearchParams {
+interface NextSearchParams {
     /**
      * Search parameters given in the URL.
      */
