@@ -4,7 +4,6 @@
 import type { NextRequest } from 'next/server';
 import { executeAction } from '../../../../../../Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { createScheduleEntry, kCreateScheduleEntryDefinition } from '../../../createScheduleEntry';
 import { deleteScheduleEntry, kDeleteScheduleEntryDefinition } from '../../../deleteScheduleEntry';
 import { getSchedule, kGetScheduleDefinition } from '../../../getSchedule';
@@ -13,12 +12,12 @@ import { updateScheduleEntry, kUpdateScheduleEntryDefinition } from '../../../up
 /**
  * Params accepted by this route implementation. Only the path exists, using NextJS dynamic routing.
  */
-type RouteParams = NextRouteParams<'event' | 'team', 'id'>;
+type Context = RouteContext<'/api/admin/event/schedule/[event]/[team]/[[...id]]'>;
 
 /**
  * The DELETE /api/event/schedule endpoint can be used to delete existing schedule entries.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<Response> {
+export async function DELETE(request: NextRequest, { params }: Context) {
     return executeAction(
         request, kDeleteScheduleEntryDefinition, deleteScheduleEntry, await params);
 }
@@ -26,14 +25,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
 /**
  * The GET /api/event/schedule endpoint can be used to retrieve existing schedule entries.
  */
-export async function GET(request: NextRequest, { params }: RouteParams): Promise<Response> {
+export async function GET(request: NextRequest, { params }: Context) {
     return executeAction(request, kGetScheduleDefinition, getSchedule, await params);
 }
 
 /**
  * The POST /api/event/schedule endpoint can be used to create new schedule entries.
  */
-export async function POST(request: NextRequest, { params }: RouteParams): Promise<Response> {
+export async function POST(request: NextRequest, { params }: Context) {
     return executeAction(
         request, kCreateScheduleEntryDefinition, createScheduleEntry, await params);
 }
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
 /**
  * The PUT /api/event/schedule endpoint can be used to create new schedule entries.
  */
-export async function PUT(request: NextRequest, { params }: RouteParams): Promise<Response> {
+export async function PUT(request: NextRequest, { params }: Context) {
     return executeAction(
         request, kUpdateScheduleEntryDefinition, updateScheduleEntry, await params);
 }

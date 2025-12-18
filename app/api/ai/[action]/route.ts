@@ -4,16 +4,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '@app/api/Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { updateSettings, kUpdateAiSettingsDefinition } from '../updateSettings';
 
 /**
  * PUT /api/ai/settings
  */
-export async function PUT(request: NextRequest, props: NextRouteParams<'action'>)
-    : Promise<Response>
-{
-    const params = await props.params;
+export async function PUT(request: NextRequest, context: RouteContext<'/api/ai/[action]'>) {
+    const params = await context.params;
 
     switch (params.action) {
         case 'settings':

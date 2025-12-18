@@ -6,7 +6,6 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../../Types';
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { executeAction } from '../../../Action';
 import db, { tEvents, tHotels } from '@lib/database';
 
@@ -119,6 +118,8 @@ async function hotels(request: Request, props: ActionProps): Promise<Response> {
 /**
  * The /api/event/hotels/[event] endpoint exposes a read-only version of the hotel data.
  */
-export async function GET(request: NextRequest, props: NextRouteParams<'event'>) {
-    return executeAction(request, kHotelsDefinition, hotels, await props.params);
+export async function GET(
+    request: NextRequest, context: RouteContext<'/api/event/hotels/[event]'>)
+{
+    return executeAction(request, kHotelsDefinition, hotels, await context.params);
 }

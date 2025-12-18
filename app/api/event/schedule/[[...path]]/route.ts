@@ -4,14 +4,13 @@
 import type { NextRequest } from 'next/server';
 import { executeAction } from '../../../Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { getSchedule, kPublicScheduleDefinition } from '../getSchedule';
 
 /**
  * The /api/event/schedule endpoint can be used to acquire information about an event's schedule.
  */
-export async function GET(request: NextRequest, props: NextRouteParams<never, 'path'>)
-    : Promise<Response>
+export async function GET(
+    request: NextRequest, context: RouteContext<'/api/event/schedule/[[...path]]'>)
 {
-    return executeAction(request, kPublicScheduleDefinition, getSchedule, await props.params);
+    return executeAction(request, kPublicScheduleDefinition, getSchedule, await context.params);
 }

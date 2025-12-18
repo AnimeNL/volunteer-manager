@@ -4,7 +4,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '../../../Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { createChallenge, kCreateChallengeDefinition } from '../createChallenge';
 import { deletePasskey, kDeletePasskeyDefinition } from '../deletePasskey';
 import { listPasskeys, kListPasskeysDefinition } from '../listPasskeys';
@@ -13,13 +12,13 @@ import { registerPasskey, kRegisterPasskeyDefinition } from '../registerPasskey'
 /**
  * Params accepted by this route implementation. Only the path exists, using NextJS dynamic routing.
  */
-type RouteParams = NextRouteParams<'action'>;
+type Context = RouteContext<'/api/auth/passkeys/[action]'>;
 
 /**
  * The /api/auth/passkeys endpoint exposes the ability for a user to manage their passkeys.
  */
-export async function DELETE(request: NextRequest, props: RouteParams): Promise<Response> {
-    const params = await props.params;
+export async function DELETE(request: NextRequest, context: Context) {
+    const params = await context.params;
     const action = Object.hasOwn(params, 'action') ? params.action : null;
     switch (action) {
         case 'delete':
@@ -32,8 +31,8 @@ export async function DELETE(request: NextRequest, props: RouteParams): Promise<
 /**
  * The /api/auth/passkeys endpoint exposes the ability for a user to manage their passkeys.
  */
-export async function GET(request: NextRequest, props: RouteParams): Promise<Response> {
-    const params = await props.params;
+export async function GET(request: NextRequest, context: Context) {
+    const params = await context.params;
     const action = Object.hasOwn(params, 'action') ? params.action : null;
     switch (action) {
         case 'list':
@@ -46,8 +45,8 @@ export async function GET(request: NextRequest, props: RouteParams): Promise<Res
 /**
  * The /api/auth/passkeys endpoint exposes the ability for a user to manage their passkeys.
  */
-export async function POST(request: NextRequest, props: RouteParams): Promise<Response> {
-    const params = await props.params;
+export async function POST(request: NextRequest, context: Context) {
+    const params = await context.params;
     const action = Object.hasOwn(params, 'action') ? params.action : null;
     switch (action) {
         case 'create-challenge':

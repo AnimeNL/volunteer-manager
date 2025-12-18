@@ -4,16 +4,13 @@
 import type { NextRequest } from 'next/server';
 import { notFound } from 'next/navigation';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { readBlobDataByHash } from '@lib/database/BlobStore';
 
 /**
  * The /blob/ endpoint exposes access to blob based on their file hashes.
  */
-export async function GET(request: NextRequest, props: NextRouteParams<never, 'hash'>)
-    : Promise<Response>
-{
-    const params = await props.params;
+export async function GET(request: NextRequest, context: RouteContext<'/blob/[[...hash]]'>) {
+    const params = await context.params;
 
     if (Array.isArray(params.hash) && params.hash.length && params.hash[0].endsWith('.png')) {
         const hash = params.hash[0].substring(0, params.hash[0].length - 4);

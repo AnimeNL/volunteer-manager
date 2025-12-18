@@ -6,7 +6,6 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../../Types';
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { executeAction } from '../../../Action';
 import { formatDate } from '@lib/Temporal';
 import db, { tEvents, tTrainings } from '@lib/database';
@@ -71,6 +70,8 @@ async function trainings(request: Request, props: ActionProps): Promise<Response
 /**
  * The /api/event/trainings/[event] endpoint exposes a read-only version of the training data.
  */
-export async function GET(request: NextRequest, props: NextRouteParams<'event'>) {
-    return executeAction(request, kTrainingsDefinition, trainings, await props.params);
+export async function GET(
+    request: NextRequest, context: RouteContext<'/api/event/trainings/[event]'>)
+{
+    return executeAction(request, kTrainingsDefinition, trainings, await context.params);
 }

@@ -4,28 +4,18 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '@app/api/Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { updateApplication, kUpdateApplicationDefinition } from '../../updateApplication';
 
 /**
  * Params accepted by this route implementation. Only the path exists, using NextJS dynamic routing.
  */
-type RouteParams = NextRouteParams<'event', 'path'>;
-
-/**
- * POST /api/application/:event
- */
-export async function POST(request: NextRequest, props: RouteParams): Promise<Response> {
-    // TODO: createApplication
-
-    return NextResponse.json({ success: false }, { status: 404 });
-}
+type Context = RouteContext<'/api/application/[event]/[[...path]]'>;
 
 /**
  * PUT /api/application/:event/:team/:userId
  */
-export async function PUT(request: NextRequest, props: RouteParams): Promise<Response> {
-    const params = await props.params;
+export async function PUT(request: NextRequest, context: Context) {
+    const params = await context.params;
 
     if (params.path!.length === 2) {
         return executeAction(request, kUpdateApplicationDefinition, updateApplication, {

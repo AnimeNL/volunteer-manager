@@ -4,7 +4,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '../../Action';
 
-import type { NextRouteParams } from '@lib/NextRouterParams';
 import { confirmIdentity, kConfirmIdentityDefinition } from '../confirmIdentity';
 import { passwordChange, kPasswordChangeDefinition } from '../passwordChange';
 import { passwordReset, kPasswordResetDefinition } from '../passwordReset';
@@ -24,10 +23,8 @@ import { updateAvatar, kUpdateAvatarDefinition } from '../updateAvatar';
  * The /api/auth endpoint exposes the API for providing user authentication and associated
  * functionality, including registration, password reset and so on.
  */
-export async function POST(request: NextRequest, props: NextRouteParams<never, 'path'>)
-    : Promise<Response>
-{
-    const params = await props.params;
+export async function POST(request: NextRequest, context: RouteContext<'/api/auth/[[...path]]'>) {
+    const params = await context.params;
     const action = Object.hasOwn(params, 'path') ? params.path!.join('/') : null;
     switch (action) {
         case 'confirm-identity':
