@@ -34,7 +34,6 @@ interface EnvironmentHeaderProps extends BoxProps {
  * identity, with a font colour that provides an appropriate amount of context.
  */
 const EnvironmentHeader = styled((props: EnvironmentHeaderProps) => {
-    // biome-ignore lint/correctness/noUnusedVariables: strip internal prop
     const { color, ...boxProps } = props;
     return <Box {...boxProps} />;
 })(({ color, theme }) => ({
