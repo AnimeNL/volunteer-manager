@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AreaList } from './AreaList';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
 
@@ -10,7 +9,7 @@ import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
  * event's location, and the events that are active therein.  Authentication is skipped as this page
  * only consumes data already shared with the client.
  */
-export default function ScheduleAreasPage(props: NextPageParams<'event'>) {
+export default function ScheduleAreasPage(props: PageProps<'/schedule/[event]/areas'>) {
     return <AreaList />;
 }
 

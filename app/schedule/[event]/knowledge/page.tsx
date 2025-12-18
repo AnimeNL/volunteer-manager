@@ -3,7 +3,6 @@
 
 import Box from '@mui/material/Box';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { KnowledgeBaseCategories } from './KnowledgeBaseCategories';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
@@ -15,7 +14,9 @@ import { kThemeImageVersion } from '@app/config';
  * The <ScheduleKnowledgePage> component displays a list of categories available in the knowledge
  * base, each of which links through to a page containing all associated questions.
  */
-export default async function ScheduleKnowledgePage(props: NextPageParams<'event'>) {
+export default async function ScheduleKnowledgePage(
+    props: PageProps<'/schedule/[event]/knowledge'>)
+{
     await requireAuthenticationContext({ check: 'event', event: (await props.params).event });
     return (
         <>

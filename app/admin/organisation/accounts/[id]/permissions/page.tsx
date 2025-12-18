@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AccountPermissions } from './AccountPermissions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -12,7 +11,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * The <AccountPermissions> component displays the permissions that have been set for this account.
  * When the signed in user has sufficient rights, they can modify the permissions as well.
  */
-export default async function AccountPermissionsPage(props: NextPageParams<'id'>) {
+export default async function AccountPermissionsPage(
+    props: PageProps<'/admin/organisation/accounts/[id]/permissions'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {

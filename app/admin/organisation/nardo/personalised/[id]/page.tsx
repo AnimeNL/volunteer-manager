@@ -13,7 +13,6 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Markdown } from '@components/Markdown';
@@ -25,7 +24,9 @@ import db, { tNardoPersonalised, tUsers } from '@lib/database';
  * This page displays an individual piece of personalised advice to the reader, to inspect whether
  * the AI is generating reasonable results based on the given input.
  */
-export default async function NardoPersonalisedAdvicePage(props: NextPageParams<'id'>) {
+export default async function NardoPersonalisedAdvicePage(
+    props: PageProps<'/admin/organisation/nardo/personalised/[id]'>)
+{
     const { id } = await props.params;
 
     await requireAuthenticationContext({

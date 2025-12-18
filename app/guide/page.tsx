@@ -4,7 +4,6 @@
 import type { Metadata } from 'next';
 import { forbidden, notFound } from 'next/navigation'
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { Markdown } from '@components/Markdown';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from '../registration/RegistrationLayout';
@@ -16,7 +15,7 @@ import { getStaticContent } from '@lib/Content';
  * Root component for the /guide page, which displays the personalised Volunteer Guide. The goal
  * of this guide is to answer the most frequently asked questions by participating volunteers.
  */
-export default async function GuidePage(props: NextPageParams<never, never>) {
+export default async function GuidePage(props: PageProps<'/guide'>) {
     const searchParams = await props.searchParams;
 
     const environment = await determineEnvironment();
@@ -29,7 +28,8 @@ export default async function GuidePage(props: NextPageParams<never, never>) {
 
     let guideTeamSlug: string;
     if (searchParams.hasOwnProperty('environment')) {
-        guideTeamSlug = searchParams['environment'];
+        // TODO: `guideTeamSlug` can end up being string[] or undefined as well
+        guideTeamSlug = searchParams['environment'] as string;
     } else {
         // TODO: This is a very fragile way of determining the most recent team
         const mostRecentEventSlug = [ ...authenticationContext.events.keys() ].sort().pop()!;

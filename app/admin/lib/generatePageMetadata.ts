@@ -3,7 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import db, { tEnvironments, tTeams, tUsers } from '@lib/database';
 
 /**
@@ -82,7 +81,7 @@ type PathValue = string | { environment: string } | { team: string } | { user: s
  *   createGenerateMetadataFn('Settings', { user: 'id' }, 'Area');
  */
 export function createGenerateMetadataFn(...path: PathValue[]) {
-    return (props: NextPageParams<any>) => generateMetadata(props, path);
+    return (props: PageProps<any>) => generateMetadata(props, path);
 }
 
 /**
@@ -90,7 +89,7 @@ export function createGenerateMetadataFn(...path: PathValue[]) {
  * values are loaded from the database, they will automatically be cached indefinitely until the
  * cache is manually pruned.
  */
-async function generateMetadata(props: NextPageParams<any>, path: PathValue[]): Promise<Metadata> {
+async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promise<Metadata> {
     let lazyParamsInitialised: boolean = false;
     let lazyParams!: Awaited<typeof props['params']>;
 

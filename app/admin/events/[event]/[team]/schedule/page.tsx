@@ -8,7 +8,6 @@ import Alert from '@mui/material/Alert';
 import HistoryIcon from '@mui/icons-material/History';
 import Paper from '@mui/material/Paper';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { ScheduleContextImpl } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
@@ -27,7 +26,9 @@ const kExpandSection = z.record(z.string(), z.boolean());
  * will be helping out throughout the event. This is one of the most complex pages in our app, which
  * relies on the timeline component as well as data from many different sources.
  */
-export default async function EventTeamSchedulePage(props: NextPageParams<'event' | 'team'>) {
+export default async function EventTeamSchedulePage(
+    props: PageProps<'/admin/events/[event]/[team]/schedule'>)
+{
     const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
     if (!access.can('event.schedule.planning', 'read', { event: event.slug, team: team.slug }))
         notFound();

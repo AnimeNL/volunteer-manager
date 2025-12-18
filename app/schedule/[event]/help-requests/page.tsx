@@ -22,7 +22,6 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { Alert } from '../components/Alert';
 import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/database/Types';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
@@ -143,7 +142,9 @@ function HelpRequestSummary(props: HelpRequestSummaryProps) {
  * The <ScheduleHelpRequestsPage> component displays a page containing the recent help requests. It
  * is only available to a subset of volunteers.
  */
-export default async function ScheduleHelpRequestsPage(props: NextPageParams<'event'>) {
+export default async function ScheduleHelpRequestsPage(
+    props: PageProps<'/schedule/[event]/help-requests'>)
+{
     const params = await props.params;
 
     await requireAuthenticationContext({

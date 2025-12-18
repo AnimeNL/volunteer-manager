@@ -8,7 +8,6 @@ import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AvailabilityExpectations } from './AvailabilityExpectations';
 import { AvailabilityPreferencesForm } from './AvailabilityPreferencesForm';
 import { FormProvider } from '@components/FormProvider';
@@ -30,7 +29,7 @@ import * as actions from '../../ApplicationActions';
  * these preferences in mind when making our schedules.
  */
 export default async function EventApplicationAvailabilityPage(
-    props: NextPageParams<'slug' | 'team'>)
+    props: PageProps<'/registration/[slug]/application/[team]/availability'>)
 {
     const { access, event, team, user } = await getApplicationContext(props);
 

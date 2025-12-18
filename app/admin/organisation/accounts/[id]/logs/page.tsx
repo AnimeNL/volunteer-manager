@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { LogsDataTable } from '@app/admin/system/logs/LogsDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -12,7 +11,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * The <AccountLogsPage> component displays log events that were recorded by the holder of this
  * account, both through their own actions and through actions that affected them.
  */
-export default async function AccountLogsPage(props: NextPageParams<'id'>) {
+export default async function AccountLogsPage(
+    props: PageProps<'/admin/organisation/accounts/[id]/logs'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {

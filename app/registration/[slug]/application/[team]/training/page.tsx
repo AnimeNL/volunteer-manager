@@ -10,7 +10,6 @@ import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
@@ -31,7 +30,9 @@ import * as actions from '../../ApplicationActions';
  * training session they would like to participate in, if any. Not all volunteers are eligible
  * to participate in the trainings.
  */
-export default async function EventApplicationTrainingPage(props: NextPageParams<'slug' | 'team'>) {
+export default async function EventApplicationTrainingPage(
+    props: PageProps<'/registration/[slug]/application/[team]/training'>)
+{
     const { access, event, team, user } = await getApplicationContext(props);
 
     const currentTime = Temporal.Now.zonedDateTimeISO('utc');

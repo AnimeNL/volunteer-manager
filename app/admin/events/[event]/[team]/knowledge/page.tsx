@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { CreateQuestionForm } from './CreateQuestionForm';
 import { KnowledgeCategories } from './KnowledgeCategories';
 import { KnowledgeList } from './KnowledgeList';
@@ -20,7 +19,9 @@ import db, { tContentCategories } from '@lib/database';
  * is made available through the Volunteer Portal for all volunteers to be able to conveniently
  * answer any questions that they may receive from Staff, visitors and guests alike.
  */
-export default async function EventTeamFaqPage(props: NextPageParams<'event' | 'team'>) {
+export default async function EventTeamFaqPage(
+    props: PageProps<'/admin/events/[event]/[team]/knowledge'>)
+{
     const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesFaq)
         notFound();

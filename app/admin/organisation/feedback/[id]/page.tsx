@@ -15,7 +15,6 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { RecordLog, kLogType } from '@lib/Log';
@@ -86,7 +85,9 @@ const kResponseOptions: { id: FeedbackResponse, label: string }[] = [
  * This page displays an individual piece of received feedback to the user. Display is trimmed by
  * default, so gaining access to the comprehensive feedback is important.
  */
-export default async function FeedbackDetailPage(props: NextPageParams<'id'>) {
+export default async function FeedbackDetailPage(
+    props: PageProps<'/admin/organisation/feedback/[id]'>)
+{
     const { id } = await props.params;
 
     await requireAuthenticationContext({

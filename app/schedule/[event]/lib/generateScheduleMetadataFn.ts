@@ -1,9 +1,9 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { ParamMap } from '../../../../.next/types/routes';
 import type { Metadata } from 'next';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { Temporal } from '@lib/Temporal';
 import db, { tEvents } from '@lib/database';
 
@@ -16,6 +16,11 @@ declare namespace globalThis {
     let animeConScheduleEventNameCache: Map<string, string>;
     let animeConScheduleTitleCache: Map<string, TitleCache>;
 }
+
+/**
+ * Prop information necessary for the `generateScheduleMetadata()` functionality to work.
+ */
+type ExpectedProps = { params: Promise<ParamMap['/schedule/[event]']> };
 
 /**
  * Cache from event slug to event short name to avoid repeated requests. May be stale when events
@@ -38,7 +43,7 @@ globalThis.animeConScheduleTitleCache = new Map;
  * Generates metadata for a page with the given `title`. A Next.js `Metadata` object will be
  * returned that can be used directly on a page.
  */
-export async function generateScheduleMetadata(props: NextPageParams<'event'>, title?: string[])
+export async function generateScheduleMetadata<T extends ExpectedProps>(props: T, title?: string[])
     : Promise<Metadata>
 {
     const params = await props.params;
@@ -64,8 +69,7 @@ export async function generateScheduleMetadata(props: NextPageParams<'event'>, t
  * the event's slug, for which we will substitute the event's short name in the title.
  */
 export function generateScheduleMetadataFn(title?: string[]) {
-    return (props: NextPageParams<'event'>): Promise<Metadata> =>
-        generateScheduleMetadata(props, title);
+    return <T extends ExpectedProps>(props: T) => generateScheduleMetadata(props, title);
 }
 
 /**

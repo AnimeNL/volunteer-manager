@@ -10,7 +10,6 @@ import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { CollapsableSection } from '@app/admin/components/CollapsableSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -25,7 +24,9 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
  * assigned to our volunteers. Shifts linked to program entries will automatically warn when they
  * end up out of sync.
  */
-export default async function EventTeamShiftsPage(props: NextPageParams<'event' | 'team'>) {
+export default async function EventTeamShiftsPage(
+    props: PageProps<'/admin/events/[event]/[team]/shifts'>)
+{
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
 
     const accessScope = { event: event.slug, team: team.slug };

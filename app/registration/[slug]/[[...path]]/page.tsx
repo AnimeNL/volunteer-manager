@@ -8,7 +8,6 @@ import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { Markdown } from '@components/Markdown';
 import { determineEnvironment } from '@lib/Environment';
 import { generatePortalMetadataFn } from '../../generatePortalMetadataFn';
@@ -19,7 +18,9 @@ import { getEnvironmentContext } from '@lib/EnvironmentContext';
  * The <EventContentPage> component displays arbitrary content for a particular event. Senior+
  * volunteers can freely create content as they see fit, which will be served by this component.
  */
-export default async function EventContentPage(props: NextPageParams<'slug', 'path'>) {
+export default async function EventContentPage(
+    props: PageProps<'/registration/[slug]/[[...path]]'>)
+{
     const environment = await determineEnvironment();
     if (!environment)
         notFound();

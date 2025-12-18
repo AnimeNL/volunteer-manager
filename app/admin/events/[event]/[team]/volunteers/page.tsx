@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { type VolunteerInfo, VolunteerTable } from './VolunteerTable';
 import { CancelledVolunteers } from './CancelledVolunteers';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
@@ -18,7 +17,9 @@ import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Typ
  * accepted into the team. Each volunteer has a detailed page that will be linked to as well. Users
  * who have event administrator permission can "import" any volunteer into this event.
  */
-export default async function VolunteersPage(props: NextPageParams<'event' | 'team'>) {
+export default async function VolunteersPage(
+    props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
+{
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
 
     if (!access.can('event.volunteers.information', 'read', { event: event.slug, team: team.slug }))

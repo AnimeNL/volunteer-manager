@@ -10,7 +10,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { FinanceDashboard } from './FinanceDashboard';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
@@ -23,7 +22,7 @@ import db, { tEventsSales } from '@lib/database';
  * The <FinancePage> component represents the financial dashboard of a certain AnimeCon event. This
  * data is only accessible to a subset of our users, as it's not usually applicable.
  */
-export default async function FinancePage(props: NextPageParams<'event'>) {
+export default async function FinancePage(props: PageProps<'/admin/events/[event]/finance'>) {
     const { access, event } = await verifyAccessAndFetchPageInfo(props.params, {
         permission: 'statistics.finances',
     });

@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { EventApplicationStatus } from './EventApplicationStatus';
 import { determineEnvironment } from '@lib/Environment';
 import { generatePortalMetadataFn } from '@app/registration/generatePortalMetadataFn';
@@ -13,7 +12,9 @@ import { getEnvironmentContext } from '@lib/EnvironmentContext';
  * The <EventApplicationStatusPage> displays the status of an individual application the visitor has
  * made for one of our events and teams, incidated through params in the URL.
  */
-export default async function EventApplicationStatusPage(props: NextPageParams<'slug' | 'team'>) {
+export default async function EventApplicationStatusPage(
+    props: PageProps<'/registration/[slug]/application/[team]'>)
+{
     const environment = await determineEnvironment();
     if (!environment)
         notFound();

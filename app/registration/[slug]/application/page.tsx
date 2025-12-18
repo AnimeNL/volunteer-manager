@@ -18,7 +18,6 @@ import ListItemText from '@mui/material/ListItemText';
 import SendIcon from '@mui/icons-material/Send';
 
 import type { EnvironmentContext, EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
-import type { NextPageParams } from '@lib/NextRouterParams';
 import type { RegistrationStatus, ShirtFit, ShirtSize } from '@lib/database/Types';
 import { EventApplicationForm, type EventApplicationFormProps } from './EventApplicationForm';
 import { EventApplicationStatus } from './[team]/EventApplicationStatus';
@@ -41,7 +40,9 @@ import * as actions from './ApplicationActions';
  * being presently considerer, second, to accept applications, and third, to inform the visitor of
  * the status of their application in case one has already been made.
  */
-export default async function EventApplicationPage(props: NextPageParams<'slug'>) {
+export default async function EventApplicationPage(
+    props: PageProps<'/registration/[slug]/application'>)
+{
     const environment = await determineEnvironment();
     if (!environment)
         notFound();

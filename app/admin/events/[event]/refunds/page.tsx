@@ -6,7 +6,6 @@ import { z } from 'zod/v4';
 
 import Grid from '@mui/material/Grid';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AvailabilityToggle } from '@app/admin/components/AvailabilityToggle';
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
@@ -75,7 +74,7 @@ async function updateRefundConfiguration(eventId: number, formData: unknown) {
  * The <EventRefundsPage> page allows select volunteers who are both event administrators and have
  * access to the volunteering refunds to see the overview of requested refunds for a given event.
  */
-export default async function EventRefundsPage(props: NextPageParams<'event'>) {
+export default async function EventRefundsPage(props: PageProps<'/admin/events/[event]/refunds'>) {
     const params = await props.params;
 
     const { access, event } = await verifyAccessAndFetchPageInfo(props.params, {

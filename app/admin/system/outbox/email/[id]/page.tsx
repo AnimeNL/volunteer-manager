@@ -3,7 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { EmailMessage } from './EmailMessage';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -12,7 +11,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * Manager. It includes all metainformation, including logs regarding the result. This entire page
  * is rendered client-side as it depends on an API.
  */
-export default async function OutboxEmailPage(props: NextPageParams<'id'>) {
+export default async function OutboxEmailPage(props: PageProps<'/admin/system/outbox/email/[id]'>) {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',

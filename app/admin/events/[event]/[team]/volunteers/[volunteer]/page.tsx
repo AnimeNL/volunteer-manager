@@ -10,7 +10,6 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import Grid from '@mui/material/Grid';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import type { ServerAction } from '@lib/serverAction';
 import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
 import { ApplicationParticipationForm } from '@app/registration/[slug]/application/ApplicationParticipation';
@@ -65,7 +64,7 @@ const kTriBooleanSelectOptions = [
  * more limited number of people.
  */
 export default async function EventVolunteerPage(
-    props: NextPageParams<'event' | 'team' | 'volunteer'>)
+    props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
     const { access, user, event, team } = await verifyAccessAndFetchPageInfo(props.params);
 
@@ -513,7 +512,9 @@ export default async function EventVolunteerPage(
     );
 }
 
-export async function generateMetadata(props: NextPageParams<'event' | 'volunteer'>) {
+export async function generateMetadata(
+    props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
+{
     const userName = await db.selectFrom(tUsers)
         .where(tUsers.userId.equals(parseInt((await props.params).volunteer, 10)))
         .selectOneColumn(tUsers.name)

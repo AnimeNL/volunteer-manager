@@ -8,7 +8,6 @@ import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { HotelConfirmation } from './HotelConfirmation';
@@ -29,7 +28,9 @@ import * as actions from '../../ApplicationActions';
  * they would like to stay in during the event. Not all volunteers have the ability to make this
  * selection, as the number of available hotel rooms is limited.
  */
-export default async function EventApplicationHotelsPage(props: NextPageParams<'slug' | 'team'>) {
+export default async function EventApplicationHotelsPage(
+    props: PageProps<'/registration/[slug]/application/[team]/hotel'>)
+{
     const { access, event, team, user } = await getApplicationContext(props);
 
     const currentTime = Temporal.Now.zonedDateTimeISO('utc');

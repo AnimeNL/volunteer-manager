@@ -12,7 +12,6 @@ import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AcknowledgeForm } from './AcknowledgeForm';
 import { CloseForm } from './CloseForm';
 import { HeaderSectionCard } from '../../components/HeaderSectionCard';
@@ -33,7 +32,9 @@ import { kThemeImageVersion } from '@app/config';
  * available for volunteers with a specific permission, as it potentially could contain sensitive
  * information.
  */
-export default async function ScheduleHelpRequestPage(props: NextPageParams<'event' | 'id'>) {
+export default async function ScheduleHelpRequestPage(
+    props: PageProps<'/schedule/[event]/help-requests/[id]'>)
+{
     const params = await props.params;
 
     await requireAuthenticationContext({
@@ -182,7 +183,7 @@ export default async function ScheduleHelpRequestPage(props: NextPageParams<'eve
     );
 }
 
-export async function generateMetadata(props: NextPageParams<'event' | 'id'>) {
+export async function generateMetadata(props: PageProps<'/schedule/[event]/help-requests/[id]'>) {
     const cache = getTitleCache('help-requests');
     const id = (await props.params).id;
 

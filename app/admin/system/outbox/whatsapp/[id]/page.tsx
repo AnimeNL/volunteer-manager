@@ -3,7 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -13,7 +12,9 @@ import { kTwilioOutboxType } from '@lib/database/Types';
  * The outbox page details an outgoing WhatsApp message, with all information we have collected in
  * the database regarding delivery of that message.
  */
-export default async function OutboxWhatsAppDetailsPage(props: NextPageParams<'id'>) {
+export default async function OutboxWhatsAppDetailsPage(
+    props: PageProps<'/admin/system/outbox/whatsapp/[id]'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',

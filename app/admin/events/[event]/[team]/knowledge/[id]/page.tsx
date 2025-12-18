@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ContentEditor } from '@app/admin/content/ContentEditor';
 import { createKnowledgeBaseScope } from '@app/admin/content/ContentScope';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
@@ -14,7 +13,9 @@ import db, { tContentCategories } from '@lib/database';
  * This page displays an individual FAQ entry, which allows the volunteer to change both the
  * question and the answer to the question. A rich text editing component is made available.
  */
-export default async function EventFaqEntryPage(props: NextPageParams<'event' | 'team' | 'id'>) {
+export default async function EventFaqEntryPage(
+    props: PageProps<'/admin/events/[event]/[team]/knowledge/[id]'>)
+{
     const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesFaq)
         notFound();

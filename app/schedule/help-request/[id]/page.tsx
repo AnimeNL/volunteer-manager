@@ -3,7 +3,6 @@
 
 import { notFound, redirect } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tDisplaysRequests, tEvents, tTeams, tUsersEvents } from '@lib/database';
 
@@ -13,7 +12,9 @@ import { kRegistrationStatus } from '@lib/database/Types';
  * The <EventlessHelpRequestPageWithId> component redirects the user to the latest available
  * schedule tool for a particular help request. This link is included in WhatsApp messages.
  */
-export default async function EventlessHelpRequestPageWithId(props: NextPageParams<'id'>) {
+export default async function EventlessHelpRequestPageWithId(
+    props: PageProps<'/schedule/help-request/[id]'>)
+{
     const { access, user } = await getAuthenticationContext();
 
     const params = await props.params;

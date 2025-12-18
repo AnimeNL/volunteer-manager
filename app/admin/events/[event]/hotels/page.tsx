@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 
 import Collapse from '@mui/material/Collapse';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { HotelAssignment } from './HotelAssignment';
 import { HotelConfiguration } from './HotelConfiguration';
 import { HotelPendingAssignment } from './HotelPendingAssignment';
@@ -17,7 +16,7 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
  * The <EventHotelsPage> page allows event administrators to see and make changes to the hotel room
  * situation for a particular event, including assigning rooms (and roommates!) to volunteers.
  */
-export default async function EventHotelsPage(props: NextPageParams<'event'>) {
+export default async function EventHotelsPage(props: PageProps<'/admin/events/[event]/hotels'>) {
     const params = await props.params;
 
     const { event } = await verifyAccessAndFetchPageInfo(props.params, {

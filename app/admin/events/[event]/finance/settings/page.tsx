@@ -3,7 +3,6 @@
 
 import EuroIcon from '@mui/icons-material/Euro';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { SettingsDataTable } from './SettingsDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -14,7 +13,9 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
  * The <FinanceSettingsPage> component represents the settings related to the financial information
  * of a particular event, such as ticket prices and event associations.
  */
-export default async function FinancePage(props: NextPageParams<'event'>) {
+export default async function FinancePage(
+    props: PageProps<'/admin/events/[event]/finance/settings'>)
+{
     const { event } = await verifyAccessAndFetchPageInfo(props.params, {
         permission: 'event.settings',
         scope: {

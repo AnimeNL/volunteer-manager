@@ -6,7 +6,6 @@ import Stack from '@mui/material/Stack';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventRecentChangeUpdate, EventRecentChangesProps } from './EventRecentChanges';
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { EnvironmentCard, type EnvironmentCardProps } from './EnvironmentCard';
 import { EventDeadlines } from './EventDeadlines';
 import { EventIdentityCard } from './EventIdentityCard';
@@ -361,7 +360,7 @@ async function getRecentVolunteers(access: AccessControl, event: string, eventId
  * The <EventPage> component gathers the required information for the event-specific dashboard,
  * which concisely displays the status and progress of organising an individual event.
  */
-export default async function EventPage(props: NextPageParams<'event'>) {
+export default async function EventPage(props: PageProps<'/admin/events/[event]'>) {
     const { access, event } = await verifyAccessAndFetchPageInfo(props.params);
 
     const deadlines = await getEventDeadlines(event.id);

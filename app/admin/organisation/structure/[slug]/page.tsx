@@ -14,7 +14,6 @@ import List from '@mui/material/List';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import Stack from '@mui/material/Stack';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ColorInput } from '@app/admin/components/ColorInput';
@@ -31,7 +30,7 @@ import * as actions from '../TeamsActions';
  * The <TeamPage> component shows to the volunteer information about one very specific team, as has
  * been indicated in the URL's parameters. The team's settings can be updated from here too.
  */
-export default async function TeamPage(props: NextPageParams<'slug'>) {
+export default async function TeamPage(props: PageProps<'/admin/organisation/structure/[slug]'>) {
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.teams',

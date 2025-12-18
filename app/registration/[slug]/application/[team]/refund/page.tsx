@@ -8,7 +8,6 @@ import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { type Content, getStaticContent } from '@lib/Content';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
@@ -26,7 +25,9 @@ import * as actions from '../../ApplicationActions';
  * The <EventApplicationRefundPage> component allows volunteers to request a refund for their ticket
  * after the event has finished. Availability of this page is time limited.
  */
-export default async function EventApplicationRefundPage(props: NextPageParams<'slug' | 'team'>) {
+export default async function EventApplicationRefundPage(
+    props: PageProps<'/registration/[slug]/application/[team]/refund'>)
+{
     const { event, team, user } = await getApplicationContext(props);
 
     const dbInstance = db;

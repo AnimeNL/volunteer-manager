@@ -3,11 +3,9 @@
 
 import { redirect } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
-
 /**
  * The <ScheduleEventsPage> is not supported right now, and redirects the user back to the overview.
  */
-export default async function ScheduleEventsPage(props: NextPageParams<'event'>) {
+export default async function ScheduleEventsPage(props: PageProps<'/schedule/[event]/events'>) {
     redirect(`/schedule/${(await props.params).event}`);
 }

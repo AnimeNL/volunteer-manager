@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VendorSchedule } from '../first-aid/VendorSchedule';
@@ -19,7 +18,9 @@ import { kVendorTeam } from '@lib/database/Types';
  * The security team (normally supporting the Stewards) is responsible for the physical security of
  * our visitors and volunteers. They're a vendor team, and therefore not considered volunteers.
  */
-export default async function EventTeamSecurityPage(props: NextPageParams<'event' | 'team'>) {
+export default async function EventTeamSecurityPage(
+    props: PageProps<'/admin/events/[event]/[team]/security'>)
+{
     const params = await props.params;
 
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params, {

@@ -16,7 +16,6 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 
 import type { EnvironmentPurpose } from '@lib/database/Types';
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ColorInput } from '@app/admin/components/ColorInput';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
@@ -39,7 +38,9 @@ const kEnvironmentPurposeOptions: { [key in EnvironmentPurpose]: string } = {
  * The <EnvironmentPage> component shows to the volunteer information about a specific environment
  * they would like to inspect or update.
  */
-export default async function EnvironmentPage(props: NextPageParams<'domain'>) {
+export default async function EnvironmentPage(
+    props: PageProps<'/admin/organisation/structure/environments/[domain]'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.environments',

@@ -3,9 +3,9 @@
 
 import { forbidden, notFound, unauthorized } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { determineEnvironment } from '@lib/Environment';
 import { getEnvironmentContext, type EnvironmentContext } from '@lib/EnvironmentContext';
+import type { ParamMap } from '../../../../../.next/types/routes';
 
 /**
  * Type that defines the properties available on an application context.
@@ -36,8 +36,9 @@ type ApplicationContext = EnvironmentContext & {
  * Gathers and returns context associated with a particular event and application, and raises the
  * appropriate HTTP errors when access issues are found.
  */
-export async function getApplicationContext(props: NextPageParams<'slug' | 'team'>)
-    : Promise<ApplicationContext>
+export async function getApplicationContext<
+    T extends { params: Promise<ParamMap['/registration/[slug]/application/[team]']> }>(props: T)
+        : Promise<ApplicationContext>
 {
     const environment = await determineEnvironment();
     if (!environment)

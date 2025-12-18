@@ -7,7 +7,6 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import type { ServerAction } from '@lib/serverAction';
 import { AccountInformation } from './AccountInformation';
 import { AnonymizationButton } from './AnonymizationButton';
@@ -58,7 +57,9 @@ async function AccountParticipationTable(props: { userId: number }) {
  * The <AccountInformationPage> component displays the basic account information, together with a
  * series of actions that are available to this account, for example to toggle its availability.
  */
-export default async function AccountInformationPage(props: NextPageParams<'id'>) {
+export default async function AccountInformationPage(
+    props: PageProps<'/admin/organisation/accounts/[id]'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {

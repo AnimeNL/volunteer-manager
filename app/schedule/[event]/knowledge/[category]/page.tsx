@@ -11,7 +11,6 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { HeaderSectionCard } from '../../components/HeaderSectionCard';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { Markdown } from '@components/Markdown';
@@ -28,7 +27,7 @@ import { kThemeImageVersion } from '@app/config';
  * category of the knowledge base. All questions will be alphabetically listed on this page.
  */
 export default async function ScheduleKnowledgeCategoryPage(
-    props: NextPageParams<'category' | 'event'>)
+    props: PageProps<'/schedule/[event]/knowledge/[category]'>)
 {
     const params = await props.params;
 
@@ -96,7 +95,7 @@ export default async function ScheduleKnowledgeCategoryPage(
     );
 }
 
-export async function generateMetadata(props: NextPageParams<'category' | 'event'>) {
+export async function generateMetadata(props: PageProps<'/schedule/[event]/knowledge/[category]'>) {
     const cache = getTitleCache('knowledge-base');
     const category = (await props.params).category;
 

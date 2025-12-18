@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AccountSettingsForm, type AccountSettings } from './AccountSettings';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -15,7 +14,9 @@ import { readUserSettings } from '@lib/UserSettings';
  * The <AccountSettingsPage> component displays the settings that have been associated with this
  * profile. It defers to a component that's available in other places of the admin area as well.
  */
-export default async function AccountSettingsPage(props: NextPageParams<'id'>) {
+export default async function AccountSettingsPage(
+    props: PageProps<'/admin/organisation/accounts/[id]/settings'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {

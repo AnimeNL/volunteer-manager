@@ -14,7 +14,6 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
@@ -26,7 +25,9 @@ import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database
  * The display request page provides detailed access to an individual help request received from one
  * of the displays, providing a detailed timeline and insights in what happened, and when.
  */
-export default async function DisplayRequestPage(props: NextPageParams<'id'>) {
+export default async function DisplayRequestPage(
+    props: PageProps<'/admin/organisation/displays/requests/[id]'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.displays',

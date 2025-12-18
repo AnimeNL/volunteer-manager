@@ -8,7 +8,6 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { formatDate } from '@lib/Temporal';
@@ -21,7 +20,9 @@ import { kLogType } from '@lib/Log';
  * This page provides details about a particular database error, such as the full error and the
  * query that was being executed.
  */
-export default async function DatabaseErrorLogPage(props: NextPageParams<'id'>) {
+export default async function DatabaseErrorLogPage(
+    props: PageProps<'/admin/system/logs/database-error/[id]'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: {

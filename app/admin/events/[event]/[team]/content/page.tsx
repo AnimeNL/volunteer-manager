@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ContentCreate } from '@app/admin/content/ContentCreate';
 import { ContentList } from '@app/admin/content/ContentList';
 import { Section } from '@app/admin/components/Section';
@@ -16,7 +15,9 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
  * The <EventContentPage> page lists the content that's associated with a particular team and a
  * particular event. It includes a mixture of required (fixed) content and dynamic content.
  */
-export default async function EventContentPage(props: NextPageParams<'event' | 'team'>) {
+export default async function EventContentPage(
+    props: PageProps<'/admin/events/[event]/[team]/content'>)
+{
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesContent)
         notFound();

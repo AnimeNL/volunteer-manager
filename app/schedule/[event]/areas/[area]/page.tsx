@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { LocationList } from './LocationList';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
 import db, { tActivitiesAreas } from '@lib/database';
@@ -11,11 +10,11 @@ import db, { tActivitiesAreas } from '@lib/database';
  * area, together with information on what's currently happening within them. Authentication is
  * skipped as this page only consumes data already shared with the client.
  */
-export default async function ScheduleAreaPage(props: NextPageParams<'area' | 'event'>) {
+export default async function ScheduleAreaPage(props: PageProps<'/schedule/[event]/areas/[area]'>) {
     return <LocationList areaId={(await props.params).area} />;
 }
 
-export async function generateMetadata(props: NextPageParams<'area' | 'event'>) {
+export async function generateMetadata(props: PageProps<'/schedule/[event]/areas/[area]'>) {
     const cache = getTitleCache('areas');
     const area = (await props.params).area;
 

@@ -15,7 +15,6 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import type { TwilioOutboxType } from '@lib/database/Types';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { Temporal } from '@lib/Temporal';
@@ -37,7 +36,9 @@ function createOutboxLink(info: { id?: number; type?: TwilioOutboxType }): strin
  * The webhooks page for Twilio messages details all information known about a particular message we
  * received from, you guessed it, Twilio. These generally are SMS and WhatsApp messages.
  */
-export default async function TwilioWebhooksPage(props: NextPageParams<'id'>) {
+export default async function TwilioWebhooksPage(
+    props: PageProps<'/admin/system/webhooks/twilio/[id]'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',

@@ -3,7 +3,6 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { FinanceDashboard } from '@app/admin/events/[event]/finance/FinanceDashboard';
 import { determineFilters } from '../../Filters';
 import { getEventBySlug } from '@lib/EventLoader';
@@ -13,7 +12,7 @@ import { getEventBySlug } from '@lib/EventLoader';
  * who have permission to see financial information, and its layout and capabilities are shared with
  * the financial overview page in the administration area.
  */
-export default async function StatisticsPage(props: NextPageParams<'event'>) {
+export default async function StatisticsPage(props: PageProps<'/statistics/sales/[event]'>) {
     const filters = await determineFilters();
     if (!filters.access.basic || !filters.access.finances)
         forbidden();

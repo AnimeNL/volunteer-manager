@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { EventDatesTable } from './EventDatesTable';
 import { EventParticipatingTeams } from './EventParticipatingTeams';
 import { EventSettings } from './EventSettings';
@@ -18,7 +17,9 @@ import db, { tEventsTeams, tTeams } from '@lib/database';
  * The <EventSettingsPage> page allows event administrators to make changes to an event, such as its
  * name, slug, target team sizes and so on. These have an effect on the entire Volunteer Manager.
  */
-export default async function EventSettingsPage(props: NextPageParams<'event'>) {
+export default async function EventSettingsPage(
+    props: PageProps<'/admin/events/[event]/settings'>)
+{
     const params = await props.params;
 
     const { event } = await verifyAccessAndFetchPageInfo(props.params, {

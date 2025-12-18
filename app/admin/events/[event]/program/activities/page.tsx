@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ActivityDataTable } from './ActivityDataTable';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
@@ -13,7 +12,9 @@ import db, { tActivitiesLocations } from '@lib/database';
  * The <ProgramActivitiesPage> component contains the activities that are part of the program of a
  * particular event. Each activity can link through to a detail page.
  */
-export default async function ProgramActivitiesPage(props: NextPageParams<'event'>) {
+export default async function ProgramActivitiesPage(
+    props: PageProps<'/admin/events/[event]/program/activities'>)
+{
     const { event } = await verifyAccessAndFetchPageInfo(props.params);
     if (!event.festivalId)
         notFound();

@@ -13,7 +13,6 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
 import { formatDate } from '@lib/Temporal';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
@@ -31,7 +30,9 @@ const kUpdateFormat = ' dddd, MMMM D, [at] HH:mm';
  * The <ProgramLayout> component contains the common elements between the different pages that make
  * up the Program section of the Volunteer Manager. A program is bound to an event.
  */
-export default async function ProgramActivityPage(props: NextPageParams<'event' | 'id'>) {
+export default async function ProgramActivityPage(
+    props: PageProps<'/admin/events/[event]/program/activities/[id]'>)
+{
     const { access, event } = await verifyAccessAndFetchPageInfo(props.params);
     const { id } = await props.params;
 
@@ -232,7 +233,9 @@ export default async function ProgramActivityPage(props: NextPageParams<'event' 
     );
 }
 
-export async function generateMetadata(props: NextPageParams<'event' | 'id'>) {
+export async function generateMetadata(
+    props: PageProps<'/admin/events/[event]/program/activities/[id]'>)
+{
     const activityTitle = await db.selectFrom(tActivities)
         .where(tActivities.activityId.equals(parseInt((await props.params).id, 10)))
         .selectOneColumn(tActivities.activityTitle)

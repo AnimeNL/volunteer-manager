@@ -9,7 +9,6 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import type { PartialServerAction, ServerAction } from '@lib/serverAction';
 import { Application } from './Application';
 import { ApplicationForm } from './ApplicationForm';
@@ -49,7 +48,9 @@ function NoPendingApplications() {
  * their teams, and, when sufficient permission has been granted, to approve or reject such
  * applications.
  */
-export default async function ApplicationsPage(props: NextPageParams<'event' | 'team'>) {
+export default async function ApplicationsPage(
+    props: PageProps<'/admin/events/[event]/[team]/applications'>)
+{
     const params = await props.params;
     const accessScope = {
         event: params.event,

@@ -14,7 +14,6 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import UpdateDisabledIcon from '@mui/icons-material/UpdateDisabled';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { AccessLogsDataTable } from './AccessLogsDataTable';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
@@ -32,7 +31,9 @@ import * as actions from '../ExportsActions';
  * The <OrganisationExportsLogPage> component displays the information associated with a singular
  * data export entry, with a focus on the motivation and access logs.
  */
-export default async function OrganisationExportsLogPage(props: NextPageParams<'id'>) {
+export default async function OrganisationExportsLogPage(
+    props: PageProps<'/admin/organisation/exports/[id]'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.exports'

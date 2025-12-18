@@ -3,7 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import type { NextPageParams } from '@lib/NextRouterParams';
 import { ContentEditor } from '@app/admin/content/ContentEditor';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createEventScope } from '@app/admin/content/ContentScope';
@@ -14,7 +13,8 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
  * The <EventContentEntryPage> page displays an individual piece of content that can be edited by
  * the volunteer. The <ContentEditor> component takes care of the actual behaviour.
  */
-export default async function EventContentEntryPage(props: NextPageParams<'event' | 'team' | 'id'>)
+export default async function EventContentEntryPage(
+    props: PageProps<'/admin/events/[event]/[team]/content/[id]'>)
 {
     const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesContent)
