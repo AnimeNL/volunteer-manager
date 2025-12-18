@@ -17,7 +17,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * The <NardoLayout> is the layout wrapper that provides navigation for the Del a Rie Advies section
  * of the Volunteer Manager. A couple of tabs are included.
  */
-export default async function NardoLayout(props: React.PropsWithChildren) {
+export default async function NardoLayout(props: LayoutProps<'/admin/organisation/nardo'>) {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.nardo',

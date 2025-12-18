@@ -18,7 +18,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * set of pages encapsulates the ability for GDPR-compliant data exports to be created for a set
  * of predetermined reasons.
  */
-export default async function OrganisationExportsLayout(props: React.PropsWithChildren) {
+export default async function OrganisationExportsLayout(
+    props: LayoutProps<'/admin/organisation/exports'>)
+{
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.exports',

@@ -18,7 +18,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * The <ArtificialIntelligenceLayout> is the core layout through which different parts of our AI
  * settings are exposed in the administration area.
  */
-export default async function ArtificialIntelligenceLayout(props: React.PropsWithChildren) {
+export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/admin/system/ai'>) {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.ai',

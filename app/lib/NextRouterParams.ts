@@ -14,8 +14,8 @@ export interface NextSearchParams {
 /**
  * Props accepted by layouts using the NextJS router component.
  */
-export interface NextLayoutParams<SingleComponentParams extends string,
-                                  MultiComponentParams extends string = never>
+interface NextLayoutParams<SingleComponentParams extends string,
+                           MultiComponentParams extends string = never>
 {
     /**
      * Parameters passed to the component by the NextJS router.

@@ -16,7 +16,6 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { NextLayoutParams } from '@lib/NextRouterParams';
 import type { ServerAction } from '@lib/serverAction';
 import { AccountHeaderActions } from './AccountHeaderActions';
 import { AccountRestrictedChip } from './AccountRestrictedChip';
@@ -30,8 +29,7 @@ import * as actions from './AccountActions';
  * The <AccountLayout> component contains the layout surrounding the account page. The page is built
  * up of one or more tabs, each of which provides access to a separate section of account details.
  */
-export default async function AccountLayout(
-    props: React.PropsWithChildren<NextLayoutParams<'id'>>)
+export default async function AccountLayout(props: LayoutProps<'/admin/organisation/accounts/[id]'>)
 {
     const { access } = await requireAuthenticationContext({
         check: 'admin',

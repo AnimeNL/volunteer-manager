@@ -16,7 +16,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * The <DisplaysLayout> is the layout wrapper that provides navigation for the Display management,
  * which also includes visualising the received help requests.
  */
-export default async function DisplaysLayout(props: React.PropsWithChildren) {
+export default async function DisplaysLayout(props: LayoutProps<'/admin/organisation/displays'>) {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.displays',

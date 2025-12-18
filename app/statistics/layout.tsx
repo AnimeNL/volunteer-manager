@@ -16,7 +16,7 @@ import db, { tEvents, tEventsSales } from '@lib/database';
  * Root layout for the statistics interface, displaying year-on-year data on the key performance
  * indicators of the AnimeCon Volunteering Teams.
  */
-export default async function StatisticsLayout(props: React.PropsWithChildren) {
+export default async function StatisticsLayout(props: LayoutProps<'/statistics'>) {
     const environment = await determineEnvironment();
     if (!environment)
         notFound();

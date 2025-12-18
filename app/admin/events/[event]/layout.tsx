@@ -22,7 +22,6 @@ import SecurityIcon from '@mui/icons-material/Security';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import type { AccessScope } from '@lib/auth/AccessControl';
-import type { NextLayoutParams } from '@lib/NextRouterParams';
 import type { User } from '@lib/auth/User';
 import { AdminContent } from '../../AdminContent';
 import { AdminPageContainer } from '../../AdminPageContainer';
@@ -116,7 +115,7 @@ async function fetchEventSidebarInformation(user: User, eventSlug: string) {
  * Layout of the event overview page in the volunteer portal administration area. This shows the
  * options available to Senior+ volunteers for the organisation of a particular event.
  */
-export default async function EventLayout(props: React.PropsWithChildren<NextLayoutParams<'event'>>)
+export default async function EventLayout(props: LayoutProps<'/admin/events/[event]'>)
 {
     const params = await props.params;
 

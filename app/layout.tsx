@@ -38,7 +38,7 @@ export const viewport: Viewport = {
  * The root layout of the Volunteer Manager application. Content will be rendered in here based on
  * the path that has been requested by the client, allowing for middleware routing.
  */
-export default async function RootLayout(props: React.PropsWithChildren) {
+export default async function RootLayout(props: LayoutProps<'/'>) {
     const environment = await determineEnvironment();
 
     return (

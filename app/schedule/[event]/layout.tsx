@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type React from 'react';
 import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
@@ -9,7 +8,6 @@ import type { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 
-import type { NextLayoutParams } from '@lib/NextRouterParams';
 import { ApplicationBar } from './components/ApplicationBar';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
@@ -46,16 +44,11 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
 };
 
 /**
- * Props accepted by the <ScheduleLayout> component.
- */
-type ScheduleLayoutProps = NextLayoutParams<'event'>;
-
-/**
  * The <ScheduleLayout> component is the main page of the scheduling tool, that allows volunteers to
  * access both their schedule and the program of the entire event. The layout supports both light
  * and dark mode, and is accessible on both desktop and mobile devices.
  */
-export default async function ScheduleLayout(props: React.PropsWithChildren<ScheduleLayoutProps>) {
+export default async function ScheduleLayout(props: LayoutProps<'/schedule/[event]'>) {
     const authenticationContext = await getAuthenticationContext();
     if (!authenticationContext.user)
         unauthorized();  // only signed in users can access the schedule

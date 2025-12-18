@@ -3,19 +3,16 @@
 
 import { notFound, unauthorized } from 'next/navigation';
 
-import type { NextLayoutParams } from '@lib/NextRouterParams';
 import { ApplicationProgressHeader } from '@app/welcome/ApplicationProgressHeader';
 import { RegistrationContentContainer } from '../RegistrationContentContainer';
 import { RegistrationLayout } from '../RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
 import { getEnvironmentContext, type EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
 
-type RegistrationEventLayoutProps = React.PropsWithChildren<NextLayoutParams<'slug'>>;
-
 /**
  * Root layout for the registration page belonging to a particular event.
  */
-export default async function RegistrationEventLayout(props: RegistrationEventLayoutProps) {
+export default async function RegistrationEventLayout(props: LayoutProps<'/registration/[slug]'>) {
     const environment = await determineEnvironment();
     if (!environment)
         notFound();

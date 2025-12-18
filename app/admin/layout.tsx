@@ -23,7 +23,7 @@ const kVersionLink = 'https://github.com/beverloo/volunteer-manager';
  * Layout of the administration section of the Volunteer Manager. The layout is the same for every
  * (signed in) user, although the available options will depend on the user's access level.
  */
-export default async function RootAdminLayout(props: React.PropsWithChildren) {
+export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const { access, user } = await requireAuthenticationContext({ check: 'admin' });
 
     const environment = await determineEnvironment();

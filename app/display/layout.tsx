@@ -14,7 +14,7 @@ import { DisplayHeader } from './DisplayHeader';
  * the System UI substitute and the container within which the content is displayed. Most of the
  * interaction with the device—including the ability to request help—will be provided here.
  */
-export default function DisplayLayout(props: React.PropsWithChildren) {
+export default function DisplayLayout(props: LayoutProps<'/display'>) {
     return (
         <DisplayController>
             <Stack direction="column" spacing={4} sx={{ p: 4, height: '100%' }}>

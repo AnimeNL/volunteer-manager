@@ -23,7 +23,7 @@ import { readUserSetting } from '@lib/UserSettings';
  * of people, roles and teams, each of which have information, permission and settings associated
  * with them. This area follows our canonical structure of a sidebar with page content.
  */
-export default async function OrganisationLayout(props: React.PropsWithChildren) {
+export default async function OrganisationLayout(props: LayoutProps<'/admin/organisation'>) {
     const { access, user } = await requireAuthenticationContext({
         check: 'admin',
         permission: kDashboardPermissions,

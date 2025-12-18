@@ -21,7 +21,9 @@ import { requireAuthenticationContext, or } from '@lib/auth/AuthenticationContex
  * roles and teams that exist as part of the Volunteer Manager. Each is guarded behind a separate
  * permission, and will be displayed in a tabbed manner.
  */
-export default async function OrganisationEntitiesLayout(props: React.PropsWithChildren) {
+export default async function OrganisationEntitiesLayout(
+    props: LayoutProps<'/admin/organisation/structure'>)
+{
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: or(
