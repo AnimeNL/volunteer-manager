@@ -5,6 +5,10 @@
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
+    'gemini-3-flash-preview': {
+        name: 'Gemini 3 Flash (Preview)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-flash',
+    },
     'gemini-3-pro-image-preview': {
         name: 'Gemini 3 Pro (Nano Banana Pro) (Preview)',
         url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-pro-image',

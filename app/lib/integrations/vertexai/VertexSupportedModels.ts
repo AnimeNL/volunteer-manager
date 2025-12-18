@@ -5,8 +5,12 @@
  * Enumeration of the models that are supported by the Vertex AI API.
  */
 export const kVertexSupportedModels = {
+    'gemini-3-flash-preview': {
+        name: 'Gemini 3 Flash (Preview)',
+        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-flash',
+    },
     'gemini-3-pro-image-preview': {
-        name: 'Gemini 3 Pro (Image) (Preview)',
+        name: 'Gemini 3 Pro (Nano Banana Pro) (Preview)',
         url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-pro-image',
     },
     'gemini-3-pro-preview': {
@@ -18,7 +22,7 @@ export const kVertexSupportedModels = {
         url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash',
     },
     'gemini-2.5-flash-image': {
-        name: 'Gemini 2.5 Flash (Image)',
+        name: 'Gemini 2.5 Flash (Nano Banana)',
         url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-image',
     },
     'gemini-2.5-flash-lite': {
