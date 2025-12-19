@@ -176,7 +176,7 @@ export async function updatePrompt(formData: unknown) {
             permission: 'system.internals.ai',
         });
 
-        const prompt = PromptFactory.createById(data.id);
+        const prompt = PromptFactory.createById(data.id, data.prompt);
         if (!prompt)
             notFound();
 

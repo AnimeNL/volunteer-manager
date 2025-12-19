@@ -13,7 +13,7 @@ type Prompts = InstanceType<typeof prompts[keyof typeof prompts]>;
 /**
  * Type to define the constructor types for one or more prompts.
  */
-type Constructor<T> = T extends Prompt<any> ? new () => T : never;
+type Constructor<T> = T extends Prompt<any> ? new (templateText?: string) => T : never;
 
 /**
  * Unique constructors that exist within the Volunteer Manager.
@@ -40,14 +40,15 @@ export class PromptFactory {
      * prompt ID then a typed instance will be returned, otherwise it will be an untyped Prompt
      * instance, or undefined when no prompt could be identified.
      */
-    static createById<K extends PromptId>(id: K): Extract<Prompts, { metadata: { id: K } }>;
-    static createById(id: string): Prompt<any> | undefined;
-    static createById(id: string): Prompt<any> | undefined {
+    static createById<K extends PromptId>(id: K, templateText?: string)
+        : Extract<Prompts, { metadata: { id: K } }>;
+    static createById(id: string, templateText?: string): Prompt<any> | undefined;
+    static createById(id: string, templateText?: string): Prompt<any> | undefined {
         if (PromptFactory.#constructorCache === undefined)
             PromptFactory.buildConstructorCache();
 
         const constructor = PromptFactory.#constructorCache?.get(id as PromptId);
-        return constructor ? new constructor()
+        return constructor ? new constructor(templateText)
                            : undefined;
     }
 
