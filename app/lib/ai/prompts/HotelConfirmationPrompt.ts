@@ -1,12 +1,12 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { type AuthorContextParameters, kAuthorContextExampleParameters } from './AuthorContextParameters';
-import { type EventContextParameters, kEventContextExampleParameters } from './EventContextParameters';
-import { type HotelBookingContextParameters, kHotelBookingContextExampleParameters } from './HotelBookingContextParameters';
+import { type AuthorContextParameters, kAuthorContextExampleParameters } from './context/AuthorContextParameters';
+import { type EventContextParameters, kEventContextExampleParameters } from './context/EventContextParameters';
+import { type HotelBookingContextParameters, kHotelBookingContextExampleParameters } from './context/HotelBookingContextParameters';
 import { Prompt } from '../Prompt';
-import { type RecipientContextParameters, kRecipientContextExampleParameters } from './RecipientContextParameters';
-import { type TeamContextParameters, kTeamContextExampleParameters } from './TeamContextParameters';
+import { type RecipientContextParameters, kRecipientContextExampleParameters } from './context/RecipientContextParameters';
+import { type TeamContextParameters, kTeamContextExampleParameters } from './context/TeamContextParameters';
 
 /**
  * Parameters accepted by this prompt.
