@@ -6,12 +6,12 @@
  */
 export type EventContextParameters = {
     event: {
-        endTime: string;
+        endDate: string;
         location?: string;
         name: string;
         shortName: string;
         slug: string;
-        startTime: string;
+        startDate: string;
     };
 };
 
@@ -20,11 +20,11 @@ export type EventContextParameters = {
  */
 export const kEventContextExampleParameters: EventContextParameters = {
     event: {
-        endTime: '2026-04-19 20:00:00',
+        endDate: '2026-04-19',
         location: 'De Broodfabriek, Rijswijk',
         name: 'AnimeCon 2026: Hidden Spirits',
         shortName: 'AnimeCon 2026',
         slug: '2026',
-        startTime: '2026-04-17 14:00:00',
+        startDate: '2026-04-17',
     },
 };

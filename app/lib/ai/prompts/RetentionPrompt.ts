@@ -6,13 +6,14 @@ import { type EventContextParameters, kEventContextExampleParameters } from './E
 import { Prompt } from '../Prompt';
 import { type RecipientContextParameters, kRecipientContextExampleParameters } from './RecipientContextParameters';
 import { type TeamContextParameters, kTeamContextExampleParameters } from './TeamContextParameters';
+import { type TeamInviteKeyContextParameters , kTeamInviteKeyContextExampleParameters} from './TeamInviteKeyContextParameters';
 
 /**
  * Parameters accepted by this prompt.
  */
 type RetentionPromptParameters =
     AuthorContextParameters & EventContextParameters & RecipientContextParameters &
-    TeamContextParameters
+    TeamContextParameters & TeamInviteKeyContextParameters;
 
 /**
  * This prompt will be used when reminding people who volunteered in past years, but haven't yet
@@ -34,6 +35,7 @@ export class RetentionPrompt extends Prompt<RetentionPromptParameters> {
             ...kEventContextExampleParameters,
             ...kRecipientContextExampleParameters,
             ...kTeamContextExampleParameters,
+            ...kTeamInviteKeyContextExampleParameters,
         };
     }
 }
