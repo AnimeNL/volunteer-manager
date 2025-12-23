@@ -63,7 +63,7 @@ export type Settings = {
     // Communication:
     'ai-communication-system-prompt': string;
     'ai-communication-type-hotel-confirmation': string;
-    'ai-communication-type-retention': string;
+    'ai-communication-type-participation-reminder': string;
     'ai-example-messages': string[];  // can be overridden by a user setting
 
     // Del a Rie Advies:

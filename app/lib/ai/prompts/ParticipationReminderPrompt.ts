@@ -11,7 +11,7 @@ import { type TeamInviteKeyContextParameters , kTeamInviteKeyContextExampleParam
 /**
  * Parameters accepted by this prompt.
  */
-type RetentionPromptParameters =
+type ParticipationReminderPromptParameters =
     AuthorContextParameters & EventContextParameters & RecipientContextParameters &
     TeamContextParameters & TeamInviteKeyContextParameters;
 
@@ -19,13 +19,13 @@ type RetentionPromptParameters =
  * This prompt will be used when reminding people who volunteered in past years, but haven't yet
  * applied ot participate in the latest event, to apply again in case they're still interested.
  */
-export class RetentionPrompt extends Prompt<RetentionPromptParameters> {
+export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPromptParameters> {
     override get metadata() {
         return {
-            id: 'retention',
+            id: 'participation-reminder',
             label: 'Participation reminder',
             description: 'Message to remind volunteers to participate again in the latest event.',
-            setting: 'ai-communication-type-retention',
+            setting: 'ai-communication-type-participation-reminder',
         } as const;
     }
 
