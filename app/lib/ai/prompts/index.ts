@@ -3,5 +3,5 @@
 
 export { HotelConfirmationPrompt } from './HotelConfirmationPrompt';
 export { NardoPersonalisedAdvicePrompt } from './NardoPersonalisedAdvicePrompt';
-export { RetentionPrompt } from './RetentionPrompt';
+export { ParticipationReminderPrompt } from './ParticipationReminderPrompt';
 export { SystemPrompt } from './SystemPrompt';

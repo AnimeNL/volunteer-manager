@@ -9,17 +9,16 @@ import { TextareaAutosizeElement } from 'react-hook-form-mui';
 import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
-import HotelIcon from '@mui/icons-material/Hotel';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import RepeatIcon from '@mui/icons-material/Repeat';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
+import { PromptIcon } from './PromptIcon';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
@@ -32,14 +31,6 @@ import * as prompts from '@lib/ai/prompts';
  * Maximum number of example messages that can be provided to the model.
  */
 const kMaximumExampleMessages = 5;
-
-/**
- * Icons to visually identify the prompts with. They're indexed by the name of the constructor.
- */
-const kPromptIcons: { [k in keyof typeof prompts]?: React.JSX.Element } = {
-    HotelConfirmationPrompt: <HotelIcon color="primary" />,
-    RetentionPrompt: <RepeatIcon color="primary" />
-};
 
 /**
  * The communication page contains the settings and prompts used for generated messages coming from
@@ -78,7 +69,7 @@ export default async function CommunicationAiPage() {
                         <ListItemButton key={metadata.id} LinkComponent={Link}
                                         href={`./communication/${metadata.id}`}>
                             <ListItemIcon>
-                                {kPromptIcons[name as keyof typeof prompts]}
+                                <PromptIcon id={name as keyof typeof prompts} />
                             </ListItemIcon>
                             <ListItemText primary={metadata.label}
                                           secondary={metadata.description} />
