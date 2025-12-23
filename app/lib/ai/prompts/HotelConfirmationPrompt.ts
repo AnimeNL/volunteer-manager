@@ -1,14 +1,19 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { type AuthorContextParameters, kAuthorContextExampleParameters } from './AuthorContextParameters';
+import { type EventContextParameters, kEventContextExampleParameters } from './EventContextParameters';
+import { type HotelBookingContextParameters, kHotelBookingContextExampleParameters } from './HotelBookingContextParameters';
 import { Prompt } from '../Prompt';
+import { type RecipientContextParameters, kRecipientContextExampleParameters } from './RecipientContextParameters';
+import { type TeamContextParameters, kTeamContextExampleParameters } from './TeamContextParameters';
 
 /**
  * Parameters accepted by this prompt.
  */
-type HotelConfirmationPromptParameters = {
-    name: string;
-}
+type HotelConfirmationPromptParameters =
+    AuthorContextParameters & EventContextParameters & HotelBookingContextParameters &
+    RecipientContextParameters & TeamContextParameters;
 
 /**
  * This prompt will be used when reminding people who volunteered in past years, but haven't yet
@@ -27,7 +32,11 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
 
     override get exampleParameters() {
         return {
-            name: 'example',
+            ...kAuthorContextExampleParameters,
+            ...kEventContextExampleParameters,
+            ...kHotelBookingContextExampleParameters,
+            ...kRecipientContextExampleParameters,
+            ...kTeamContextExampleParameters,
         };
     }
 }
