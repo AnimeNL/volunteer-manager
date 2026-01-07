@@ -13,6 +13,7 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import InputIcon from '@mui/icons-material/Input';
+import LinkIcon from '@mui/icons-material/Link';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -121,6 +122,17 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
                             <AccountTreeIcon color="primary" />
                         </ListItemIcon>
                         <ListItemText primary="Domain" secondary={source.origin} />
+                    </ListItem> }
+                { !!source.pathname &&
+                    <ListItem>
+                        <ListItemIcon sx={{ minWidth: '48px' }}>
+                            <LinkIcon color="primary" />
+                        </ListItemIcon>
+                        <ListItemText primary="Path" secondary={
+                            <MuiLink component={Link} href={source.pathname}>
+                                {source.pathname}
+                            </MuiLink>
+                        } />
                     </ListItem> }
                 { !!source.ipAddress &&
                     <ListItem>

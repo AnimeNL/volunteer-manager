@@ -250,7 +250,13 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
     allowVisitors?: AllowVisitors, userForTesting?: User | null)
         : Promise<ServerActionResult>
 {
+    const requestHeaders = userForTesting !== undefined ? new Headers : await headers();
+
     let authenticationContext: AuthenticationContext | undefined;
+    let requestUrl: URL | undefined;
+
+    if (requestHeaders.has('referer'))
+        requestUrl = URL.parse(requestHeaders.get('referer')!) ?? undefined;
 
     try {
         // -----------------------------------------------------------------------------------------
@@ -269,7 +275,7 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         if (!data.success) {
             RecordErrorLog({
                 error: data.error,
-                requestUrl: undefined,  // not known for server actions
+                requestUrl,
                 user: undefined,
             });
 
@@ -284,8 +290,6 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         // depends on whether a test is being executed, in which case we don't want to cause either
         // Next.js state access or database access directly.
         // -----------------------------------------------------------------------------------------
-
-        const requestHeaders = userForTesting !== undefined ? new Headers : await headers();
 
         authenticationContext =
             userForTesting ?
@@ -321,7 +325,7 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
     } catch (error: any) {
         RecordErrorLog({
             error,
-            requestUrl: undefined,  // not known for server actions
+            requestUrl,
             user: authenticationContext?.user,
         });
 
