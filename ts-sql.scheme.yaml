@@ -2839,6 +2839,12 @@ tables:
   - name: error_date
     type: datetime
     nullable: false
+  - name: error_source
+    type: enum('Client','Server')
+    nullable: false
+  - name: error_severity
+    type: enum('Debug','Info','Warning','Error')
+    nullable: false
   - name: error_user_id
     type: int(8) unsigned
     nullable: true
@@ -2884,6 +2890,8 @@ tables:
     CREATE TABLE `error_logs` (
       `error_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `error_date` datetime NOT NULL,
+      `error_source` enum('Client','Server') NOT NULL,
+      `error_severity` enum('Debug','Info','Warning','Error') NOT NULL,
       `error_user_id` int(8) unsigned DEFAULT NULL,
       `error_ip_address` varchar(64) DEFAULT NULL,
       `error_origin` varchar(64) NOT NULL,

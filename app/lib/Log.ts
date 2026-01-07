@@ -6,12 +6,15 @@ import { headers } from 'next/headers';
 
 import type { User } from '@lib/auth/User';
 import { PlaywrightHooks } from './PlaywrightHooks';
-import db, { tLogs } from '@lib/database';
+import db, { tErrorLogs, tLogs } from '@lib/database';
+
+import { kErrorSource } from './database/Types';
 
 /**
  * Enumeration containing all the valid log severities. Will be stored as a string, and must be kept
  * in sync with the column definition in the database.
  *
+ * @see Table `error_logs`
  * @see Table `logs`
  */
 export type LogSeverity = typeof kLogSeverity[keyof typeof kLogSeverity];
@@ -239,4 +242,72 @@ export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
             logTargetUserId: targetUserId,
             logData: data,
         }).executeInsert();
+}
+
+/**
+ * Delegate that should be used to override the function used to defer writing error logs.
+ */
+let errorLogDeferDelegate: typeof after = after;
+
+/**
+ * Provides the ability to override the delegate through which writing logs will be deferred.
+ */
+export function SetRecordErrorLogDeferDelegate(delegate?: typeof after) {
+    errorLogDeferDelegate = delegate ?? after;
+}
+
+/**
+ * Information about what happened that should be logged for future inspection.
+ */
+interface ErrorLogEntry {
+    /**
+     * The error that should be logged in the database.
+     */
+    error: Error;
+
+    /**
+     * The request URL associated with this error log, when known.
+     */
+    requestUrl?: URL;
+
+    /**
+     * Severity of the log entry that's being logged. Defaults to "Info".
+     */
+    severity?: LogSeverity,
+
+    /**
+     * The user whom triggered the error.
+     */
+    user?: User | number;
+}
+
+/**
+ * Logs the given |error| in the database, making it possible to inspect issues with the system
+ * out-of-band, even when no (easy) reproduction steps are available.
+ */
+export function RecordErrorLog(entry: ErrorLogEntry): void {
+    let userId: number | null = null;
+    if (entry.user)
+        userId = typeof entry.user === 'number' ? entry.user : entry.user.id;
+
+    errorLogDeferDelegate(async () => {
+        const requestHeaders = await headers();
+
+        const errorIpAddress = requestHeaders.get('x-forwarded-for') || '0.0.0.0';
+        const errorOrigin = requestHeaders.get('host') || 'undefined';
+
+        await db.insertInto(tErrorLogs)
+            .values({
+                errorDate: db.currentZonedDateTime(),
+                errorSource: kErrorSource.Server,
+                errorSeverity: entry.severity ?? kLogSeverity.Info,
+                errorUserId: userId,
+                errorIpAddress,
+                errorOrigin,
+                errorPathname: entry.requestUrl?.pathname || '',
+                errorName: entry.error.name,
+                errorMessage: entry.error.message,
+                errorStack: entry.error.stack,
+            }).executeInsert();
+    });
 }

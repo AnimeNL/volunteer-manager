@@ -9,6 +9,9 @@ import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { type ActionProps, executeAction } from '../Action';
 import db, { tErrorLogs } from '@lib/database';
 
+import { kLogSeverity } from '@lib/Log';
+import { kErrorSource } from '@lib/database/Types';
+
 /**
  * Interface definition for the Error API, exposed through /api/error.
  */
@@ -62,6 +65,8 @@ async function error(request: Request, props: ActionProps): Promise<Response> {
     await dbInstance.insertInto(tErrorLogs)
         .set({
             errorDate: dbInstance.currentZonedDateTime(),
+            errorSource: kErrorSource.Client,
+            errorSeverity: kLogSeverity.Info,
             errorUserId: props.user?.id,
             errorIpAddress: props.ip,
             errorOrigin: props.origin,

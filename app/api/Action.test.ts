@@ -7,6 +7,7 @@ import { serialize } from 'cookie';
 import { z } from 'zod/v4';
 
 import type { User } from '@lib/auth/User';
+import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
 import { type ActionProps, executeAction } from './Action';
 import { expectAuthenticationQuery } from '@lib/auth/AuthenticationTestHelpers';
 import { kSessionCookieName, sealSession } from '@lib/auth/Session';
@@ -14,6 +15,15 @@ import { useMockConnection } from '@lib/database/Connection';
 
 describe('Action', () => {
     const mockConnection = useMockConnection();
+
+    let errorLogDelegateInvoked: boolean = false;
+
+    beforeEach(() => {
+        errorLogDelegateInvoked = false;
+        SetRecordErrorLogDeferDelegate(async () => { errorLogDelegateInvoked = true });
+    });
+
+    afterEach(() => SetRecordErrorLogDeferDelegate(/* default= */ undefined));
 
     /**
      * Creates a NextRequest instance based on the given `body`, which will be stored as the request
@@ -380,5 +390,104 @@ describe('Action', () => {
             const responseBody = await response.json();
             expect(responseBody.value).toEqual('21-Joe');
         }
+    });
+
+    it('logs exceptions thrown during API input validation in the database', async () => {
+        const interfaceDefinition = z.object({
+            request: z.object({
+                value: z.number(),
+            }),
+            response: z.object({
+                value: z.boolean(),
+            }),
+        });
+
+        type RequestType = z.infer<typeof interfaceDefinition>['request'];
+        type ResponseType = z.infer<typeof interfaceDefinition>['response'];
+
+        async function MyAction(request: RequestType, props: ActionProps): Promise<ResponseType> {
+            return { value: true };
+        }
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Issue the request with an invalid payload (string instead of number)
+        const request = createRequest('POST', { value: '21' }, 'https://example.com/api');
+        const response = await executeAction(request, interfaceDefinition, MyAction);
+
+        expect(response.ok).toBeFalsy();
+        expect(response.status).toBe(500);
+
+        const responseBody = await response.json();
+        expect(responseBody.error).toContain('The server was not able to validate the request');
+
+        // Step 2: Validate that a database query was issued by the Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
+
+    it('logs exceptions thrown during API output validation in the database', async () => {
+        const interfaceDefinition = z.object({
+            request: z.object({
+                value: z.number(),
+            }),
+            response: z.object({
+                value: z.boolean(),
+            }),
+        });
+
+        type RequestType = z.infer<typeof interfaceDefinition>['request'];
+        type ResponseType = z.infer<typeof interfaceDefinition>['response'];
+
+        async function MyAction(request: RequestType, props: ActionProps): Promise<ResponseType> {
+            return { value: 21 } as any;  // note: number (actual) rather than boolean (expected)
+        }
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Issue the request with an invalid response data
+        const request = createRequest('POST', { value: 21 }, 'https://example.com/api');
+        const response = await executeAction(request, interfaceDefinition, MyAction);
+
+        expect(response.ok).toBeFalsy();
+        expect(response.status).toBe(500);
+
+        const responseBody = await response.json();
+        expect(responseBody.error).toContain('Action response validation failed');
+
+        // Step 2: Validate that a database query was issued by the Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
+
+    it('logs exceptions thrown in API actions in the database', async () => {
+        const interfaceDefinition = z.object({
+            request: z.object({ /* no data */ }),
+            response: z.object({ /* no data */ }),
+        });
+
+        type RequestType = z.infer<typeof interfaceDefinition>['request'];
+        type ResponseType = z.infer<typeof interfaceDefinition>['response'];
+
+        async function MyAction(request: RequestType, props: ActionProps): Promise<ResponseType> {
+            throw new Error('Something went wrong');
+        }
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Issue the request, with the action throwing an exception
+        const request = createRequest('GET', /* payload= */ undefined, 'https://example.com/api');
+        const response = await executeAction(request, interfaceDefinition, MyAction);
+
+        expect(response.ok).toBeFalsy();
+        expect(response.status).toBe(500);
+
+        const responseBody = await response.json();
+        expect(responseBody.error).toContain('The server was not able to handle the request');
+        expect(responseBody.error).toContain('Something went wrong');
+
+        // Step 2: Validate that a database query was issued by the Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
     });
 });

@@ -4,6 +4,7 @@
 import { z, type ZodObject, type ZodRawShape } from 'zod/v4';
 
 import type { User } from './auth/User';
+import { SetRecordErrorLogDeferDelegate } from './Log';
 import { executeServerAction, type ServerActionImplementation } from './serverAction';
 
 describe('serverAction', () => {
@@ -37,6 +38,15 @@ describe('serverAction', () => {
         return async (formData: unknown) =>
             executeServerAction(formData, scheme, action, /* allowVisitor= */ undefined, user);
     }
+
+    let errorLogDelegateInvoked: boolean = false;
+
+    beforeEach(() => {
+        errorLogDelegateInvoked = false;
+        SetRecordErrorLogDeferDelegate(async () => { errorLogDelegateInvoked = true });
+    });
+
+    afterEach(() => SetRecordErrorLogDeferDelegate(/* default= */ undefined));
 
     it('should reject invalid form data types', async () => {
         let invocations = 0;
@@ -819,5 +829,69 @@ describe('serverAction', () => {
             expect(value.size).toBe(8);
             expect(value.type).toBe('image/jpg');
         }
+    });
+
+    it('logs exceptions thrown during input validation in the database', async () => {
+        const scheme = z.object({
+            a: z.boolean(),
+        });
+
+        let invocations = 0;
+
+        const action = serverAction(scheme, async (data) => { ++invocations; });
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Execute the Server Action and verify the input could not be validated
+        const result = await action(toFormData({ a: 42 }));
+        expect(result.success).toBeFalsy();
+        expect(result.error).toContain('Invalid input: expected boolean, received string');
+
+        expect(invocations).toBe(0);
+
+        // Step 2: Validate that a database query was issued by the Server Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
+
+    it('logs access exceptions for unidentified users in the database', async () => {
+        const scheme = z.object({ /* no data */ });
+
+        let invocations = 0;
+
+        const action = async (formData: unknown) =>
+            executeServerAction(formData, scheme, async (data) => { ++invocations; }, false, null);
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Execute the Server Action and verify the input could not be validated
+        const result = await action(new FormData);
+        expect(result.success).toBeFalsy();
+        expect(result.error).toContain('NEXT_HTTP_ERROR_FALLBACK;401');
+
+        expect(invocations).toBe(0);
+
+        // Step 2: Validate that a database query was issued by the Server Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
+
+    it('logs exceptions thrown in server actions in the database', async () => {
+        const scheme = z.object({ /* no data */ });
+
+        const action = serverAction(scheme, async (data) => {
+            throw new Error('Something went wrong')
+        });
+
+        // Step 0: Validate preconditions
+        expect(errorLogDelegateInvoked).toBeFalsy();
+
+        // Step 1: Execute the Server Action and verify the input could not be validated
+        const result = await action(new FormData);
+        expect(result.success).toBeFalsy();
+        expect(result.error).toContain('Something went wrong');
+
+        // Step 2: Validate that a database query was issued by the Server Action runner
+        expect(errorLogDelegateInvoked).toBeTruthy();
     });
 });

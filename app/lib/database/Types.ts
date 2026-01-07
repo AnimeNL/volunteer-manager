@@ -89,6 +89,16 @@ export const kEnvironmentPurpose = {
 } as const;
 
 /**
+ * Source of a generated error, i.e. was it client or server-side JavaScript?
+ * @see Table `error_logs`
+ */
+export type ErrorSource = Values<typeof kErrorSource>;
+export const kErrorSource = {
+    Client: 'Client',
+    Server: 'Server',
+} as const;
+
+/**
  * Status indicating whether volunteers can share their availability preferences.
  * @see Table `events`
  */

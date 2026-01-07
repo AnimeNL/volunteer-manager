@@ -4,12 +4,12 @@
 import { headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
 
-import type { ZodObject, ZodRawShape, z } from 'zod/v4';
+import type { ZodError, ZodObject, ZodRawShape, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
-import { ZodError } from 'zod/v4';
 
 import type { User } from './auth/User';
 import { AccessControl } from './auth/AccessControl';
+import { RecordErrorLog } from './Log';
 import { getAuthenticationContextFromHeaders, type AuthenticationContext }
     from './auth/AuthenticationContext';
 
@@ -247,9 +247,11 @@ export function formatZodError(error: ZodError): string {
 export async function executeServerAction<T extends ZodObject<ZodRawShape>,
                                           AllowVisitors extends boolean = false>(
     formData: unknown, scheme: T, action: ServerActionImplementation<T, AllowVisitors>,
-    allowVisitors?: AllowVisitors, userForTesting?: User)
+    allowVisitors?: AllowVisitors, userForTesting?: User | null)
         : Promise<ServerActionResult>
 {
+    let authenticationContext: AuthenticationContext | undefined;
+
     try {
         // -----------------------------------------------------------------------------------------
         // (1) Validate the input data for the incoming action
@@ -263,7 +265,19 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         else
             return { success: false, error: 'Invalid data received from Next.js' };
 
-        const data = scheme.parse(unverifiedData);
+        const data = scheme.safeParse(unverifiedData);
+        if (!data.success) {
+            RecordErrorLog({
+                error: data.error,
+                requestUrl: undefined,  // not known for server actions
+                user: undefined,
+            });
+
+            return {
+                success: false,
+                error: formatZodError(data.error)
+            };
+        }
 
         // -----------------------------------------------------------------------------------------
         // (2) Compose the request properties part of this action. The behaviour of this section
@@ -271,9 +285,9 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         // Next.js state access or database access directly.
         // -----------------------------------------------------------------------------------------
 
-        const requestHeaders = userForTesting ? new Headers : await headers();
+        const requestHeaders = userForTesting !== undefined ? new Headers : await headers();
 
-        const authenticationContext =
+        authenticationContext =
             userForTesting ?
                 {
                     access: new AccessControl({ /* todo? */ }),
@@ -298,15 +312,18 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         // (3) Execute the actual server action with all validated and gathered data
         // -----------------------------------------------------------------------------------------
 
-        const result = await action(data, props);
+        const result = await action(data.data, props);
         if (typeof result === 'object')
             return result;
 
         return { success: true };
 
     } catch (error: any) {
-        if (error instanceof ZodError)
-            return { success: false, error: formatZodError(error) };
+        RecordErrorLog({
+            error,
+            requestUrl: undefined,  // not known for server actions
+            user: authenticationContext?.user,
+        });
 
         return {
             success: false,

@@ -10,6 +10,7 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
 import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { User } from '@lib/auth/User';
 import { AccessControl } from '@lib/auth/AccessControl';
+import { RecordErrorLog } from '@lib/Log';
 import { getAuthenticationContextFromHeaders } from '@lib/auth/AuthenticationContext';
 
 import { kAuthType } from '@lib/database/Types';
@@ -179,17 +180,25 @@ export async function executeAction<T extends ActionZodObject>(
     const requestInterfaceDefinition = interfaceDefinition.pick({ request: true });
     const responseInterfaceDefinition = interfaceDefinition.pick({ response: true });
 
+    let authenticationContext: AuthenticationContext | undefined;
+
     try {
         const result =
             await distillAndValidateRequestParams(request, requestInterfaceDefinition, routeParams);
         if (!result.success) {
+            RecordErrorLog({
+                error: result.error,
+                requestUrl: request.nextUrl,
+                user: undefined,
+            });
+
             return createResponse(500, {
                 success: false,
                 error: `The server was not able to validate the request. (${result.error.message})`,
             });
         }
 
-        const authenticationContext =
+        authenticationContext =
             userForTesting ?
                 {
                     access: new AccessControl({ /* todo? */ }),
@@ -231,6 +240,12 @@ export async function executeAction<T extends ActionZodObject>(
 
         if (!process.env.VITEST_POOL_ID)
             console.error(`Action(${request.nextUrl.pathname}) threw an Exception:`, error);
+
+        RecordErrorLog({
+            error,
+            requestUrl: request.nextUrl,
+            user: authenticationContext?.user,
+        });
 
         return createResponse(500, {
             success: false,
