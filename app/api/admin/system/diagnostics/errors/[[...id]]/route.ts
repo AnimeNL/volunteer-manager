@@ -95,6 +95,8 @@ export const { GET } = createDataTableApi(kErrorLogsRowModel, kErrorLogsContext,
         const errors = await db.selectFrom(tErrorLogs)
             .leftJoin(usersJoin)
                 .on(usersJoin.userId.equals(tErrorLogs.errorUserId))
+            .where(tErrorLogs.errorIpAddress.notEquals('::1').onlyWhen(
+                !process.env.APP_ENVIRONMENT_OVERRIDE))
             .select({
                 id: tErrorLogs.errorId,
                 date: db.dateTimeAsString(tErrorLogs.errorDate),
