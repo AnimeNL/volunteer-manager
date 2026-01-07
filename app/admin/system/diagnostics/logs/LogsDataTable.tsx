@@ -93,11 +93,12 @@ export function LogsDataTable(props: LogsDataTableProps) {
                 if (params.row.type !== 'database-error')
                     return params.value;
 
+                const href = `/admin/system/diagnostics/logs/database-error/${params.row.id}`;
+
                 return (
                     <>
                         {params.value}
-                        <MuiLink sx={{ mt: 0.5, ml: 1 }} component={Link}
-                                 href={`/admin/system/logs/database-error/${params.row.id}`}>
+                        <MuiLink sx={{ mt: 0.5, ml: 1 }} component={Link} href={href}>
                             <ReadMoreIcon color="info" fontSize="small" />
                         </MuiLink>
                     </>

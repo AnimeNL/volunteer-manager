@@ -11,7 +11,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * with a variety of filtering options available. All log entries are made accessible to the client,
  * however they will be streamed by the server to deal with ~infinitely large data sets.
  */
-export default async function LogsPage() {
+export default async function SystemLogsPage() {
     const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {
@@ -24,5 +24,5 @@ export default async function LogsPage() {
 }
 
 export const metadata: Metadata = {
-    title: 'Logs | AnimeCon Volunteer Manager',
+    title: 'System logs | AnimeCon Volunteer Manager',
 };

@@ -4,12 +4,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tLogs } from '@lib/database';
@@ -50,42 +51,42 @@ export default async function DatabaseErrorLogPage(
     const { message, query, stack, params } = JSON.parse(entry.data);
 
     return (
-        <>
-            <Section title="Database Error">
-                <SectionIntroduction>
-                    Error seen on { formatDate(entry.date, 'dddd, MMMM Do, YYYY [at] HH:mm:ss') }.
-                </SectionIntroduction>
-            </Section>
-            <Section noHeader>
-                <SectionIntroduction important>
-                    {message}
-                </SectionIntroduction>
-                <Typography>
-                    { query.split(/(\?)/g).map((part: string, index: number) =>
-                        part === '?' ? <mark key={index}>{part}</mark>
-                                     : <span key={index}>{part}</span> )}
-                </Typography>
-                { (params && Array.isArray(params)) &&
-                    <>
-                        <Divider />
-                        <Stack>
-                            { params.map((param: string, index: number) =>
-                                <Typography key={index}>
-                                    <strong>Param {index}</strong>: {param}
-                                </Typography> )}
-                        </Stack>
-                    </> }
-            </Section>
+        <Stack direction="column" spacing={2}>
+            <Grid container>
+                <BackButtonGrid href="/admin/system/diagnostics/logs" />
+            </Grid>
+            <Typography variant="h6" sx={{ mt: '8px !important' }}>
+                Database error seen on {formatDate(entry.date, 'dddd, MMMM Do, YYYY [at] HH:mm:ss')}
+            </Typography>
+            <Alert severity="warning">
+                {message}
+            </Alert>
+            <Typography variant="body1">
+                { query.split(/(\?)/g).map((part: string, index: number) =>
+                    part === '?' ? <mark key={index}>{part}</mark>
+                                    : <span key={index}>{part}</span> )}
+            </Typography>
+            { (params && Array.isArray(params)) &&
+                <>
+                    <Divider />
+                    <Stack>
+                        { params.map((param: string, index: number) =>
+                            <Typography key={index}>
+                                <strong>Param {index}</strong>: {param}
+                            </Typography> )}
+                    </Stack>
+                </> }
             { !!stack &&
-                <Section noHeader>
+                <>
+                    <Divider />
                     <Typography variant="body2" sx={{ whiteSpace: 'pre' }}>
                         {stack}
                     </Typography>
-                </Section> }
-        </>
+                </> }
+        </Stack>
     );
 }
 
 export const metadata: Metadata = {
-    title: 'Database Error | Logs | AnimeCon Volunteer Manager',
+    title: 'Database Error | System logs | AnimeCon Volunteer Manager',
 };

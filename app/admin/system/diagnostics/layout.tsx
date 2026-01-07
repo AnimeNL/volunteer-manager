@@ -9,7 +9,8 @@ import Paper from '@mui/material/Paper';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
-import { SectionHeader } from '@app/admin/components/SectionHeader';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -37,18 +38,25 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
             icon: <InfoOutlineIcon color="info" />,
             label: 'System logs',
             url: '/admin/system/diagnostics/logs',
+            urlMatchMode: 'prefix',
         },
     ];
 
     return (
-        <Paper>
-            <SectionHeader icon={ <DvrIcon color="primary" /> } title="Diagnostics" sx={{ m: 2 }} />
-            <Divider sx={{ mt: 3 }} />
-            <NavigationTabs tabs={tabs} />
-            <Divider />
-            <Box sx={{ p: 2 }}>
-                {props.children}
-            </Box>
-        </Paper>
+        <>
+            <Section icon={ <DvrIcon color="primary" /> } title="Diagnostics">
+                <SectionIntroduction>
+                    Information about events, issues and perceived performance of the Volunteer
+                    Manager.
+                </SectionIntroduction>
+            </Section>
+            <Paper>
+                <NavigationTabs tabs={tabs} />
+                <Divider />
+                <Box sx={{ p: 2 }}>
+                    {props.children}
+                </Box>
+            </Paper>
+        </>
     );
 }
