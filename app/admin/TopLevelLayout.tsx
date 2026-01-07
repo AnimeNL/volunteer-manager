@@ -106,19 +106,19 @@ export default async function TopLevelLayout(props: React.PropsWithChildren) {
                     urlPrefix: '/admin/system/ai/',
                 },
                 {
-                    icon: <ApiIcon />,
-                    label: 'Integrations',
-                    permission: 'system.internals.settings',
-                    url: '/admin/system/integrations',
-                },
-                {
                     icon: <DvrIcon />,
-                    label: 'Logs',
+                    label: 'Diagnostics',
                     permission: {
                         permission: 'system.logs',
                         operation: 'read',
                     },
-                    url: '/admin/system/logs',
+                    url: '/admin/system/diagnostics/logs',
+                },
+                {
+                    icon: <ApiIcon />,
+                    label: 'Integrations',
+                    permission: 'system.internals.settings',
+                    url: '/admin/system/integrations',
                 },
                 {
                     icon: <ManageHistoryIcon />,

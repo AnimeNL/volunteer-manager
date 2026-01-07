@@ -3,7 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
-import { LogsDataTable } from '@app/admin/system/logs/LogsDataTable';
+import { LogsDataTable } from '@app/admin/system/diagnostics/logs/LogsDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 

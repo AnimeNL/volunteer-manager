@@ -3,9 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-
 import { LogsDataTable } from './LogsDataTable';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -23,14 +20,7 @@ export default async function LogsPage() {
         },
     });
 
-    return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" sx={{ pb: 2 }}>
-                Logs
-            </Typography>
-            <LogsDataTable enableDelete={ access.can('system.logs', 'delete') } />
-        </Paper>
-    );
+    return <LogsDataTable enableDelete={ access.can('system.logs', 'delete') } />;
 }
 
 export const metadata: Metadata = {

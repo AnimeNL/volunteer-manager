@@ -21,7 +21,7 @@ import { kLogType } from '@lib/Log';
  * query that was being executed.
  */
 export default async function DatabaseErrorLogPage(
-    props: PageProps<'/admin/system/logs/database-error/[id]'>)
+    props: PageProps<'/admin/system/diagnostics/logs/database-error/[id]'>)
 {
     await requireAuthenticationContext({
         check: 'admin',
