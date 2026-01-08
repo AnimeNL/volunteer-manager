@@ -39,6 +39,8 @@ export function RegisterForm() {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
+                { /* Note: not using <LocalDatePickerElement> because the value is manually
+                     transformed in the submit function of <RegisterDialog>. */ }
                 <DatePickerElement name="rawBirthdate" label="Date of birth"
                                    disableFuture disableHighlightToday openTo="year"
                                    inputProps={{ fullWidth: true, size: 'small' }}

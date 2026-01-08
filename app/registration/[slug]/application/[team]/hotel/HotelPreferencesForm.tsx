@@ -5,12 +5,12 @@
 
 import { useEffect, useState } from 'react';
 
-import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
 import { SelectElement, TextFieldElement, useFormContext } from '@proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
 
 import { CollapsableGrid } from '@components/CollapsableGrid';
+import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
 import { Temporal, formatDate } from '@lib/Temporal';
 import { dayjs } from '@lib/DateTime';
 
@@ -102,16 +102,16 @@ export function HotelPreferencesForm(props: HotelPreferencesFormProps) {
                     </Grid>
 
                     <Grid size={{ xs: 6 }}>
-                        <DatePickerElement name="checkIn" label="Check in" textReadOnly
-                                           inputProps={{ fullWidth: true, size: 'small' }}
-                                           minDate={minDate} maxDate={maxDate} required
-                                           disabled={readOnly} />
+                        <LocalDatePickerElement name="checkIn" label="Check in" textReadOnly
+                                                inputProps={{ fullWidth: true, size: 'small' }}
+                                                minDate={minDate} maxDate={maxDate} required
+                                                disabled={readOnly} />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                        <DatePickerElement name="checkOut" label="Check out" textReadOnly
-                                           inputProps={{ fullWidth: true, size: 'small' }}
-                                           minDate={minDate} maxDate={maxDate} required
-                                           disabled={readOnly} />
+                        <LocalDatePickerElement name="checkOut" label="Check out" textReadOnly
+                                                inputProps={{ fullWidth: true, size: 'small' }}
+                                                minDate={minDate} maxDate={maxDate} required
+                                                disabled={readOnly} />
                     </Grid>
                 </Grid>
             </CollapsableGrid>

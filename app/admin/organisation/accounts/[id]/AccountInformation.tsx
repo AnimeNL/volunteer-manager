@@ -6,7 +6,6 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Box from '@mui/material/Box';
@@ -18,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import type { ServerAction } from '@lib/serverAction';
 import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
 import { DiscordIcon } from './DiscordIcon';
+import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
 
 import { kGenderOptions } from '@app/registration/authentication/RegisterForm';
 
@@ -94,10 +94,10 @@ export function AccountInformation(props: AccountInformationProps) {
             </Grid>
 
             <Grid size={{ xs: 6 }}>
-                <DatePickerElement name="birthdate" label="Date of birth"
-                                   disableFuture disableHighlightToday openTo="year"
-                                   inputProps={{ fullWidth: true, size: 'small' }}
-                                   readOnly={!!props.readOnly} />
+                <LocalDatePickerElement name="birthdate" label="Date of birth"
+                                        disableFuture disableHighlightToday openTo="year"
+                                        inputProps={{ fullWidth: true, size: 'small' }}
+                                        readOnly={!!props.readOnly} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="gender" label="Gender" options={kGenderOptions}
