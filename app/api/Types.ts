@@ -36,8 +36,8 @@ export const kTemporalPlainDate =
             return Temporal.PlainDate.from(value);
         } catch (error: any) {
             context.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Only plain dates are accepted (YYYY-MM-DD)',
+                code: 'custom',
+                message: `Only plain dates are accepted (YYYY-MM-DD), got "${value}"`,
                 _error: error,
             });
         }
@@ -54,8 +54,8 @@ export const kTemporalPlainTime =
             return Temporal.PlainTime.from(value);
         } catch (error: any) {
             context.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Only plain times are accepted (HH:mm:ss)',
+                code: 'custom',
+                message: `Only plain times are accepted (HH:mm:ss), got "${value}"`,
                 _error: error,
             });
         }
@@ -72,8 +72,9 @@ export const kTemporalZonedDateTime =
             return Temporal.Instant.from(value).toZonedDateTimeISO('UTC');
         } catch (error: any) {
             context.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Only zoned dates and times are accepted (YYYY-MM-DD HH:mm:ss Z)',
+                code: 'custom',
+                message:
+                    `Only zoned date + time are accepted (YYYY-MM-DD HH:mm:ss Z), got "${value}"`,
                 _error: error,
             });
         }
