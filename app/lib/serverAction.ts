@@ -9,7 +9,7 @@ import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodT
 
 import type { User } from './auth/User';
 import { AccessControl } from './auth/AccessControl';
-import { RecordErrorLog } from './Log';
+import { RecordErrorLog, kLogSeverity } from './Log';
 import { getAuthenticationContextFromHeaders, type AuthenticationContext }
     from './auth/AuthenticationContext';
 
@@ -276,6 +276,7 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
             RecordErrorLog({
                 error: data.error,
                 requestUrl,
+                severity: kLogSeverity.Warning,
                 user: undefined,
             });
 
@@ -326,6 +327,7 @@ export async function executeServerAction<T extends ZodObject<ZodRawShape>,
         RecordErrorLog({
             error,
             requestUrl,
+            severity: kLogSeverity.Error,
             user: authenticationContext?.user,
         });
 

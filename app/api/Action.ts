@@ -10,7 +10,7 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
 import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { User } from '@lib/auth/User';
 import { AccessControl } from '@lib/auth/AccessControl';
-import { RecordErrorLog } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { getAuthenticationContextFromHeaders } from '@lib/auth/AuthenticationContext';
 
 import { kAuthType } from '@lib/database/Types';
@@ -189,6 +189,7 @@ export async function executeAction<T extends ActionZodObject>(
             RecordErrorLog({
                 error: result.error,
                 requestUrl: request.nextUrl,
+                severity: kLogSeverity.Warning,
                 user: undefined,
             });
 
@@ -244,6 +245,7 @@ export async function executeAction<T extends ActionZodObject>(
         RecordErrorLog({
             error,
             requestUrl: request.nextUrl,
+            severity: kLogSeverity.Error,
             user: authenticationContext?.user,
         });
 

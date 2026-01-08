@@ -271,9 +271,9 @@ interface ErrorLogEntry {
     requestUrl?: URL;
 
     /**
-     * Severity of the log entry that's being logged. Defaults to "Info".
+     * Severity of the log entry that's being logged.
      */
-    severity?: LogSeverity,
+    severity: LogSeverity;
 
     /**
      * The user whom triggered the error.
