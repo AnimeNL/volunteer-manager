@@ -435,9 +435,9 @@ export async function updateHotelPreferences(
         const dbInstance = db;
         const affectedRows = await dbInstance.insertInto(tHotelsPreferences)
             .set({
-                userId: props.user!.id,
-                eventId: eventId,
-                teamId: teamId,  // TODO: remove the team association
+                userId,
+                eventId,
+                teamId,  // TODO: remove the team association
                 ...update,
                 hotelPreferencesUpdated: dbInstance.currentZonedDateTime()
             })
