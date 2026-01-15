@@ -58,7 +58,7 @@
     "mui-color-input": "^7.0.0",
     "mui-markdown": "^2.1.0",
     "nanoid": "^5.1.6",
-    "next": "^16.1.1",
+    "next": "^16.1.2",
     "nodemailer": "^7.0.12",
     "nuqs": "^2.8.6",
     "react": "^19.2.3",
@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "@next/bundle-analyzer": "^16.1.1",
+    "@next/bundle-analyzer": "^16.1.2",
     "@playwright/test": "^1.57.0",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "@testing-library/dom": "^10.4.1",
