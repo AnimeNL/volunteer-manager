@@ -105,7 +105,7 @@ export async function remindParticipation(request: Request, props: ActionProps):
     });
 
     if (!props.user)
-        unauthorized();
+        unauthorized();  // not reachable
 
     const event = await getEventBySlug(request.event);
     if (!event)

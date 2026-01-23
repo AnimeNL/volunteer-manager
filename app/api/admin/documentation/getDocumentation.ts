@@ -50,7 +50,7 @@ export async function getDocumentation(request: Request, props: ActionProps): Pr
     executeAccessCheck(props.authenticationContext, { check: 'admin' });
 
     if (!props.user)
-        unauthorized();
+        unauthorized();  // not reachable
 
     const content = await getStaticContent([ 'documentation', request.topic ], {
         // Documentation can include substitutions to contextualise it to the signed in user. The

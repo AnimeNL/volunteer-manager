@@ -7,10 +7,18 @@ import { z } from 'zod/v4';
 
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { type ActionProps, executeAction } from '../Action';
-import db, { tErrorLogs } from '@lib/database';
 
-import { kLogSeverity } from '@lib/Log';
-import { kErrorSource } from '@lib/database/Types';
+import { kLogSeverity, RecordErrorLog } from '@lib/Log';
+import { kErrorSource, type LogSeverity } from '@lib/database/Types';
+
+/**
+ * HTTP Status codes for which this API route may be invoked.
+ */
+const kStatusCodes: { [k: number]: string } = {
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+};
 
 /**
  * Interface definition for the Error API, exposed through /api/error.
@@ -21,7 +29,7 @@ const kErrorDefinition = z.object({
          * Request path on which the error was thrown.
          */
         pathname: z.string(),
-
+    }).and(z.object({
         /**
          * Name of the exception that was thrown.
          * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
@@ -44,7 +52,14 @@ const kErrorDefinition = z.object({
          * Digest of the error message, injected by Next.js.
          */
         digest: z.string().optional(),
-    }),
+
+    }).or(z.object({
+        /**
+         * Status code for which the error page was shown.
+         */
+        statusCode: z.number(),
+
+    }))),
     response: z.object({ /* no response */ }),
 });
 
@@ -61,22 +76,38 @@ async function error(request: Request, props: ActionProps): Promise<Response> {
     if (!props.ip)
         forbidden();
 
-    const dbInstance = db;
-    await dbInstance.insertInto(tErrorLogs)
-        .set({
-            errorDate: dbInstance.currentZonedDateTime(),
-            errorSource: kErrorSource.Client,
-            errorSeverity: kLogSeverity.Info,
-            errorUserId: props.user?.id,
-            errorIpAddress: props.ip,
-            errorOrigin: props.origin,
-            errorPathname: request.pathname,
-            errorName: request.name,
-            errorMessage: request.message,
-            errorStack: request.stack,
-            errorDigest: request.digest,
-        })
-        .executeInsert();
+    let severity: LogSeverity = kLogSeverity.Info;
+    let error: {
+        name: string;
+        message: string;
+        stack?: string;
+    };
+
+    if ('statusCode' in request) {
+        if (!!props.user)
+            severity = kLogSeverity.Error;
+
+        error = {
+            name: kStatusCodes[request.statusCode] ?? `HTTP Error (${request.statusCode})`,
+            message: 'The visitor was shown an error page.',
+        };
+    } else {
+        error = {
+            name: request.name,
+            message: request.message,
+            stack: request.stack,
+        };
+    }
+
+    RecordErrorLog({
+        error,
+        requestUrl: {
+            pathname: request.pathname,
+        },
+        severity,
+        source: kErrorSource.Client,
+        user: props.user,
+    });
 
     return { };
 }

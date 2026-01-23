@@ -8,7 +8,7 @@ import type { User } from '@lib/auth/User';
 import { PlaywrightHooks } from './PlaywrightHooks';
 import db, { tErrorLogs, tLogs } from '@lib/database';
 
-import { kErrorSource } from './database/Types';
+import { kErrorSource, type ErrorSource } from './database/Types';
 
 /**
  * Enumeration containing all the valid log severities. Will be stored as a string, and must be kept
@@ -263,17 +263,26 @@ interface ErrorLogEntry {
     /**
      * The error that should be logged in the database.
      */
-    error: Error;
+    error: Error | {
+        name: string;
+        message: string;
+        stack?: string;
+    };
 
     /**
      * The request URL associated with this error log, when known.
      */
-    requestUrl?: URL;
+    requestUrl?: URL | { pathname: string };
 
     /**
      * Severity of the log entry that's being logged.
      */
     severity: LogSeverity;
+
+    /**
+     * Source from where the error originated, when known.
+     */
+    source?: ErrorSource;
 
     /**
      * The user whom triggered the error.
@@ -299,7 +308,7 @@ export function RecordErrorLog(entry: ErrorLogEntry): void {
         await db.insertInto(tErrorLogs)
             .values({
                 errorDate: db.currentZonedDateTime(),
-                errorSource: kErrorSource.Server,
+                errorSource: entry.source ?? kErrorSource.Server,
                 errorSeverity: entry.severity ?? kLogSeverity.Info,
                 errorUserId: userId,
                 errorIpAddress,
