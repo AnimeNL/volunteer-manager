@@ -5,6 +5,7 @@ import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { Temporal } from '@lib/Temporal';
+import { clearContentCache } from '@lib/Content';
 import { createDataTableApi, type DataTableEndpoints } from '../../../createDataTableApi';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventSlugForId } from '@lib/EventLoader';
@@ -175,6 +176,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
             .returningLastInsertedId()
             .executeInsert();
 
+        clearContentCache();
+
         return {
             success: true,
             row: {
@@ -198,6 +201,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
                 .and(tContent.contentType.equals(context.type))
                 .and(tContent.contentProtected.equals(/* false= */ 0))
             .executeUpdate(/* min= */ 0, /* max= */ 1);
+
+        clearContentCache();
 
         return { success: !!affectedRows };
     },
@@ -329,6 +334,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
                 .and(tContent.teamId.equals(context.teamId))
                 .and(tContent.contentType.equals(context.type))
             .executeUpdate();
+
+        clearContentCache();
 
         return { success: !!affectedRows };
     },

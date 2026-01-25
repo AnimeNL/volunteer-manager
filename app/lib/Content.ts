@@ -4,6 +4,10 @@
 import type { EnvironmentDomain } from './Environment';
 import db, { tContent, tTeams } from './database';
 
+declare namespace globalThis {
+    let animeConContentCache: Map<string, Content> | undefined;
+}
+
 /**
  * Interface defining the information that will be made available for a particular piece of content
  * that can be shown on the volunteer manager.
@@ -19,6 +23,13 @@ export interface Content {
      * the <Markdown> element to ensure proper display.
      */
     markdown: string;
+}
+
+/**
+ * Clears the cached content cache. Should be called when the state is being invalidated.
+ */
+export function clearContentCache() {
+    globalThis.animeConContentCache = new Map();
 }
 
 /**
@@ -42,21 +53,31 @@ export async function getContent(
     substitutions?: ContentSubstitutions)
         : Promise<Content | undefined>
 {
-    const content = await db.selectFrom(tContent)
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tContent.teamId))
-                .and(tTeams.teamEnvironment.equals(environment))
-                .and(tTeams.teamFlagManagesContent.equals(/* true= */ 1))
-        .where(tContent.eventId.equals(eventId))
-            .and(tContent.contentPath.equals(path.join('/')))
-            .and(tContent.revisionVisible.equals(/* true= */ 1))
-        .select({
-            title: tContent.contentTitle,
-            markdown: tContent.content,
-        })
-        .orderBy(tContent.revisionDate, 'desc')
-        .limit(1)
-        .executeSelectNoneOrOne();
+    globalThis.animeConContentCache ??= new Map;
+
+    const uniqueContentKey = `${environment}-${eventId}-${path.join('/')}`;
+
+    let content = globalThis.animeConContentCache.get(uniqueContentKey) || null;
+    if (!content) {
+        content = await db.selectFrom(tContent)
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tContent.teamId))
+                    .and(tTeams.teamEnvironment.equals(environment))
+                    .and(tTeams.teamFlagManagesContent.equals(/* true= */ 1))
+            .where(tContent.eventId.equals(eventId))
+                .and(tContent.contentPath.equals(path.join('/')))
+                .and(tContent.revisionVisible.equals(/* true= */ 1))
+            .select({
+                title: tContent.contentTitle,
+                markdown: tContent.content,
+            })
+            .orderBy(tContent.revisionDate, 'desc')
+            .limit(1)
+            .executeSelectNoneOrOne();
+
+        if (!!content)
+            globalThis.animeConContentCache.set(uniqueContentKey, content);
+    }
 
     if (!content)
         return undefined;

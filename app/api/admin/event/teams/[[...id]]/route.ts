@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { clearContentCache } from '@lib/Content';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
@@ -182,6 +183,8 @@ export const { GET, PUT } = createDataTableApi(kEventTeamRowModel, kEventTeamCon
                     })))
                     .onConflictDoNothing()
                     .executeInsert();
+
+                clearContentCache();
             }
 
             return !!affectedRows;
