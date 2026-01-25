@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cache } from 'react';
+
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
@@ -27,6 +29,11 @@ const kFatalErrorContent =
     'to help out.';
 
 /**
+ * Caches the ability to get the authentication context to at most once per request.
+ */
+const getCachedAuthenticationContext = cache(getAuthenticationContext);
+
+/**
  * Props accepted by the ErrorPage component.
  */
 interface ErrorPageProps {
@@ -39,6 +46,13 @@ interface ErrorPageProps {
 /**
  * Root component shown when an error has occurred, as indicated by the given status code in the
  * `props`. No detailed information is provided.
+ *
+ * Note that a peculiarity in Next.js, at least as of v16, is that all error pages will be included
+ * as part of a full (initial) page load. Given that we support three error pages, this code will be
+ * called trice, as opposed to on demand when an actual error is necessary.
+ *
+ * This is relevant in case of automated reporting, as well as server load considerations when there
+ * is a need for one or more database queries.
  */
 export async function ErrorPage(props: ErrorPageProps) {
     const environment = await determineEnvironment();
@@ -57,7 +71,7 @@ export async function ErrorPage(props: ErrorPageProps) {
         );
     }
 
-    const { user } = await getAuthenticationContext();
+    const { user } = await getCachedAuthenticationContext();
 
     const content = await getStaticContent([ `errors/${props.statusCode}` ]) || {
         title: kFatalErrorTitle,

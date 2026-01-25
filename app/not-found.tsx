@@ -9,9 +9,7 @@ import { ErrorPage } from './ErrorPage';
  * Root component shown when the requested page could not be found..
  */
 export default async function NotFoundPage() {
-    return (
-        <ErrorPage statusCode={404} />
-    );
+    return <ErrorPage statusCode={404} />;
 }
 
 export const metadata: Metadata = {

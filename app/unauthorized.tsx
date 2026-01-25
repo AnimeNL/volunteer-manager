@@ -9,9 +9,7 @@ import { ErrorPage } from './ErrorPage';
  * Root component shown when the requested page required authentication.
  */
 export default async function ForbiddenPage() {
-    return (
-        <ErrorPage statusCode={401} />
-    );
+    return <ErrorPage statusCode={401} />;
 }
 
 export const metadata: Metadata = {

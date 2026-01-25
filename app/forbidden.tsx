@@ -9,9 +9,7 @@ import { ErrorPage } from './ErrorPage';
  * Root component shown when the signed in user has no access to the requested page.
  */
 export default async function ForbiddenPage() {
-    return (
-        <ErrorPage statusCode={403} />
-    );
+    return <ErrorPage statusCode={403} />;
 }
 
 export const metadata: Metadata = {
