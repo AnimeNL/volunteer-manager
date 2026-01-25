@@ -89,7 +89,7 @@ async function error(request: Request, props: ActionProps): Promise<Response> {
 
         error = {
             name: kStatusCodes[request.statusCode] ?? `HTTP Error (${request.statusCode})`,
-            message: 'The visitor was shown an error page.',
+            message: `HTTP ${request.statusCode}: ${request.pathname}`,
         };
     } else {
         error = {
