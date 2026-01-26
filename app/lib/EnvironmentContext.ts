@@ -163,24 +163,29 @@ interface AvailabilityWindowRequest {
 
 /**
  * Returns the status of the availability window contained within the given `request`, relative to
- * the givn `currentTime`. Overrides will be considered when the window is not normally opened.
+ * the givn `currentTime`. Indeterminate statuses will be resolved based on the end time of the
+ * event, automatically considering the availability window to be in the past once the event has
+ * completed.  Overrides will be considered when the window is not normally opened.
  */
 export function determineAvailabilityStatus(
-    currentTime: Temporal.ZonedDateTime, request: AvailabilityWindowRequest)
-        : EnvironmentContextEventAvailabilityStatus
+    currentTime: Temporal.ZonedDateTime, eventEndTime: Temporal.ZonedDateTime,
+    request: AvailabilityWindowRequest): EnvironmentContextEventAvailabilityStatus
 {
     let statusBeforeOverride: EnvironmentContextEventAvailabilityStatus;
     if (!request.start) {
-        statusBeforeOverride = 'future';  // indeterminate without a start date
+        statusBeforeOverride =
+            !!request.end ? isBefore(currentTime, request.end) ? 'active' : 'past'
+                          : isBefore(eventEndTime, currentTime) ? 'past' : 'future';
     } else {
         if (!request.end) {
             statusBeforeOverride =
-                isBefore(currentTime, request.start) ? 'future' : 'active';
-
+                isBefore(currentTime, request.start)
+                    ? 'future'
+                    : isBefore(eventEndTime, currentTime) ? 'past' : 'active';
         } else {
             statusBeforeOverride =
                 isBefore(currentTime, request.start)
-                    ? 'future'
+                    ? isBefore(request.end, request.start) ? 'past' : 'future'
                     : isBefore(currentTime, request.end) ? 'active' : 'past';
         }
     }
@@ -270,7 +275,7 @@ async function determineEventAccess(
         const teams: EnvironmentContextEventAccess['teams'] = [ /* no teams yet */ ];
 
         for (const team of event.teams) {
-            const applications = determineAvailabilityStatus(currentTime, {
+            const applications = determineAvailabilityStatus(currentTime, event.endTime, {
                 ...team.applicationsWindow,
                 override: access.can('event.visible', {
                     event: event.slug,
@@ -278,7 +283,7 @@ async function determineEventAccess(
                 }),
             });
 
-            const registration = determineAvailabilityStatus(currentTime, {
+            const registration = determineAvailabilityStatus(currentTime, event.endTime, {
                 ...team.registrationWindow,
                 override: access.can('event.visible', {
                     event: event.slug,
@@ -286,7 +291,7 @@ async function determineEventAccess(
                 })
             });
 
-            const schedule = determineAvailabilityStatus(currentTime, {
+            const schedule = determineAvailabilityStatus(currentTime, event.endTime, {
                 ...team.scheduleWindow,
                 override: access.can('event.schedule.access', { event: event.slug }),
             });

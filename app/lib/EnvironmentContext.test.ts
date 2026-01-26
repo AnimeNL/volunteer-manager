@@ -11,6 +11,9 @@ describe('EnvironmentContext', () => {
     it('should be able to correctly determine availability statuses', () => {
         const currentTime = Temporal.Now.zonedDateTimeISO('utc');
 
+        const eventEndTimeInThePast = currentTime.subtract({ hours: 1 });
+        const eventEndTimeInTheFuture = currentTime.add({ hours: 1 });
+
         const startInTheFuture = currentTime.add({ days: 1 });
         const startInThePast = currentTime.subtract({ days: 2 });
         const startUndefined = undefined;
@@ -19,60 +22,48 @@ describe('EnvironmentContext', () => {
         const endInThePast = currentTime.subtract({ days: 1 });
         const endUndefined = undefined;
 
-        // Past
-        {
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startInThePast,
-                end: endInThePast,
-                override: false,
-            })).toBe('past');
-        }
+        const kAvailabilityWindowPermutations = [
+            [ startUndefined,   endUndefined,   eventEndTimeInThePast,   'past' ],    // 0
+            [ startUndefined,   endUndefined,   eventEndTimeInTheFuture, 'future' ],  // 1
+            [ startUndefined,   endInThePast,   eventEndTimeInThePast,   'past' ],    // 2
+            [ startUndefined,   endInThePast,   eventEndTimeInTheFuture, 'past' ],    // 3
+            [ startUndefined,   endInTheFuture, eventEndTimeInThePast,   'active' ],  // 4
+            [ startUndefined,   endInTheFuture, eventEndTimeInTheFuture, 'active' ],  // 5
 
-        // Active
-        {
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startInThePast,
-                end: endInTheFuture,
-                override: false,
-            })).toBe('active');
+            [ startInThePast,   endUndefined,   eventEndTimeInThePast,   'past' ],    // 6
+            [ startInThePast,   endUndefined,   eventEndTimeInTheFuture, 'active' ],  // 7
+            [ startInThePast,   endInThePast,   eventEndTimeInThePast,   'past' ],    // 8
+            [ startInThePast,   endInThePast,   eventEndTimeInTheFuture, 'past' ],    // 9
+            [ startInThePast,   endInTheFuture, eventEndTimeInThePast,   'active' ],  // 10
+            [ startInThePast,   endInTheFuture, eventEndTimeInTheFuture, 'active' ],  // 11
 
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startInThePast,
-                end: endUndefined,
-                override: false,
-            })).toBe('active');
-        }
+            [ startInTheFuture, endUndefined,   eventEndTimeInThePast,   'future' ],  // 12
+            [ startInTheFuture, endUndefined,   eventEndTimeInTheFuture, 'future' ],  // 13
+            [ startInTheFuture, endInThePast,   eventEndTimeInThePast,   'past' ],    // 14
+            [ startInTheFuture, endInThePast,   eventEndTimeInTheFuture, 'past' ],    // 15
+            [ startInTheFuture, endInTheFuture, eventEndTimeInThePast,   'future' ],  // 16
+            [ startInTheFuture, endInTheFuture, eventEndTimeInTheFuture, 'future' ],  // 17
+        ] as const;
 
-        // Future
-        {
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startInTheFuture,
-                end: endUndefined,
-                override: false,
-            })).toBe('future');
+        for (let testIndex = 0; testIndex < kAvailabilityWindowPermutations.length; ++testIndex) {
+            const [ start, end, eventTime, expected ] = kAvailabilityWindowPermutations[testIndex];
 
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startUndefined,
-                end: endUndefined,
+            expect(determineAvailabilityStatus(currentTime, eventTime, {
+                start,
+                end,
                 override: false,
-            })).toBe('future');
-
-            expect(determineAvailabilityStatus(currentTime, {
-                start: startUndefined,
-                end: endInTheFuture,
-                override: false,
-            })).toBe('future');
+            }), `permutation test (${testIndex})`).toBe(expected);
         }
 
         // Override
         {
-            expect(determineAvailabilityStatus(currentTime, {
+            expect(determineAvailabilityStatus(currentTime, eventEndTimeInThePast, {
                 start: startInThePast,
                 end: endInThePast,
                 override: true,  // <-- past becomes override
             })).toBe('override');
 
-            expect(determineAvailabilityStatus(currentTime, {
+            expect(determineAvailabilityStatus(currentTime, eventEndTimeInThePast, {
                 start: startUndefined,
                 end: endUndefined,
                 override: true,  // <-- future becomes override

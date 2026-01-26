@@ -64,6 +64,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
         const eventInfo = await dbInstance.selectFrom(tEvents)
             .where(tEvents.eventId.equals(eventId))
             .select({
+                endTime: tEvents.eventEndTime,
                 shortName: tEvents.eventShortName,
                 slug: tEvents.eventSlug,
             })
@@ -107,7 +108,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
 
         const currentTime = Temporal.Now.zonedDateTimeISO('utc');
 
-        const availabilityStatus = determineAvailabilityStatus(currentTime, {
+        const availabilityStatus = determineAvailabilityStatus(currentTime, eventInfo.endTime, {
             ...teamInfo.applicationWindow,
             override: props.access.can('event.visible', {
                 event: eventInfo.slug,
