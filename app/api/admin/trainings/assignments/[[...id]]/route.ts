@@ -254,7 +254,7 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
         };
     },
 
-    async update({ context, id, row }) {
+    async update({ context, id, row }, props) {
         const event = await getEventBySlug(context.event);
         if (!event)
             notFound();
@@ -309,28 +309,17 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
             })
             .executeInsert();
 
-        return { success: true };
-    },
-
-    async writeLog({ context, id }, mutation, props) {
-        const event = await getEventBySlug(context.event);
-        if (!event)
-            return;
-
-        const targetUserId = await db.selectFrom(tTrainingsAssignments)
-            .where(tTrainingsAssignments.assignmentId.equals(id))
-            .selectOneColumn(tTrainingsAssignments.assignmentUserId)
-            .executeSelectNoneOrOne();
-
         RecordLog({
             type: kLogType.AdminEventTrainingAssignment,
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
-            targetUser: targetUserId ?? undefined,
+            targetUser: userId ?? undefined,
             data: {
-                eventName: event!.shortName,
-                mutation,
+                eventName: event.shortName,
+                mutation: 'Updated',
             },
         });
+
+        return { success: true };
     },
 });

@@ -159,7 +159,7 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
             </Alert>
             <RemoteDataTable columns={columns} endpoint="/api/admin/trainings/assignments"
                              defaultSort={{ field: 'name', sort: 'asc' }} context={context}
-                             enableUpdate pageSize={100} disableFooter />
+                             enableUpdate pageSize={100} disableFooter refreshOnUpdate />
             <Collapse in={!!props.warnings.length}>
                 <Alert severity="warning" sx={{ mt: 2 }}>
                     <Stack direction="column" spacing={0} sx={{ maxWidth: '100%' }}>

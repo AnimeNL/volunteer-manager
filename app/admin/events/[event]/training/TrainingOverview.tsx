@@ -118,7 +118,7 @@ export function TrainingOverview(props: TrainingOverviewProps) {
     }, [ router ])
 
     return (
-        <Accordion disableGutters sx={{ mt: 2, '& >:first-child': { mt: 2 } }}>
+        <Accordion disableGutters sx={{ mt: '16px !important', '& >:first-child': { mt: 2 } }}>
             <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
                 <Stack direction="row" alignItems="center" justifyContent="space-between"
                        spacing={2} sx={{ flexGrow: 1, pr: 2 }}>
