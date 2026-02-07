@@ -13,9 +13,10 @@ import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { getBlobUrl } from '@lib/database/BlobStore';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tTeams, tUsers, tUsersEvents } from '@lib/database';
+import db, { tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';
 import { kGenderOptions } from '@app/registration/authentication/RegisterForm';
@@ -42,6 +43,7 @@ export default async function AccountsPage() {
     // Volunteer information from the database:
     // ---------------------------------------------------------------------------------------------
 
+    const storageJoin = tStorage.forUseInLeftJoin();
     const teamsJoin = tTeams.forUseInLeftJoin();
     const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
@@ -51,6 +53,8 @@ export default async function AccountsPage() {
                     .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted)))
             .leftJoin(teamsJoin)
                 .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
+            .leftJoin(storageJoin)
+                .on(storageJoin.fileId.equals(tUsers.avatarId))
             .where(tUsers.anonymized.isNull())
             .select({
                 id: tUsers.userId,
@@ -58,6 +62,7 @@ export default async function AccountsPage() {
                 firstName: tUsers.firstName,
                 lastName: tUsers.lastName,
                 displayName: tUsers.displayName,
+                avatar: storageJoin.fileHash,
                 name: tUsers.name,
                 gender: tUsers.gender,
                 phoneNumber: tUsers.phoneNumber,
@@ -70,6 +75,9 @@ export default async function AccountsPage() {
             .groupBy(tUsers.userId)
             .orderBy(tUsers.name, 'asc')
             .executeSelectMany();
+
+    for (let index = 0; index < volunteers.length; ++index)
+        volunteers[index].avatar = getBlobUrl(volunteers[index].avatar);
 
     // ---------------------------------------------------------------------------------------------
     // Team information from the database:
@@ -101,7 +109,6 @@ export default async function AccountsPage() {
             <SectionIntroduction>
                 This table lists all volunteers who helped us out since 2010—not all information
                 is complete, and these accounts are separate from the information stored in AnPlan.
-                Columns and filtering can be altered through the column menu.
             </SectionIntroduction>
             <AccountDataTable initialFilterModel={filterModel}
                               initialHiddenFields={hiddenFields}

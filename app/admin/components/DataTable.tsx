@@ -5,8 +5,11 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import type { GridColDef, GridFilterModel, GridPaginationModel, GridValidRowModel } from '@mui/x-data-grid-pro';
+import type { GridColDef, GridFilterModel, GridPaginationModel, GridRenderCellParams, GridValidRowModel } from '@mui/x-data-grid-pro';
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
+
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 /**
  * Type describing a column definition in the DataTable API.
@@ -66,6 +69,12 @@ interface DataTableProps<RowModel extends GridValidRowModel> {
     initialFilters?: GridFilterModel;
 
     /**
+     * Optional component through which individual rows will be displayed in list view. This will
+     * allow the data table to be responsive. Will automatically switch based on screen width.
+     */
+    listViewCell?: (params: GridRenderCellParams<RowModel>) => React.ReactNode;
+
+    /**
      * The default number of rows that can be displayed per page. Defaults to 50.
      */
     pageSize?: 10 | 25 | 50 | 100;
@@ -117,12 +126,29 @@ export function DataTable<RowModel extends GridValidRowModel = GridValidRowModel
 
     }, [ props.hiddenFields ]);
 
+    const theme = useTheme();
+    const isListView = useMediaQuery(theme.breakpoints.down('md')) && !!props.listViewCell;
+
+    const listViewColumn = useMemo(() => {
+        if (!props.listViewCell)
+            return undefined;
+
+        return {
+            field: 'listColumn',
+            renderCell: props.listViewCell,
+        };
+
+    }, [ props.listViewCell ]);
+
     return (
         <DataGridPro rows={props.rows} columns={props.columns}
 
                      pageSizeOptions={[ 10, 25, 50, 100 ]}
                      paginationModel={paginationModel} pagination
                      onPaginationModelChange={onPaginationModelChange}
+
+                     listView={isListView} listViewColumn={listViewColumn}
+                     getRowHeight={ isListView ? () => 'auto' : undefined }
 
                      showToolbar={!!props.enableFilter}
                      slotProps={{
