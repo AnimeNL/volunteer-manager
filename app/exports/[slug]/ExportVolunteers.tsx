@@ -51,6 +51,7 @@ function extractIntercalation(lastName: string) {
     const kIntercalations = [
         'der',
         'de',
+        'de la',
         'ten',
         'ter',
         'van der',
