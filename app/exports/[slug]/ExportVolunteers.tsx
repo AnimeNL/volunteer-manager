@@ -50,8 +50,8 @@ function formatShirtFit(shirtFit?: string): string {
 function extractIntercalation(lastName: string) {
     const kIntercalations = [
         'der',
-        'de',
         'de la',
+        'de',
         'ten',
         'ter',
         'van der',
