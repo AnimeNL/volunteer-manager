@@ -44,6 +44,41 @@ function formatShirtFit(shirtFit?: string): string {
 }
 
 /**
+ * Extracts the intercalation from a volunteer's |lastName|, which is a surname prefix positioned
+ * between a given name and the main surname such as "de" and "van de".
+ */
+function extractIntercalation(lastName: string) {
+    const kIntercalations = [
+        'der',
+        'de',
+        'ten',
+        'ter',
+        'van der',
+        'van de',
+        'van',
+    ];
+
+    const normalisedLastName = lastName.toLowerCase();
+    for (const intercalation of kIntercalations) {
+        if (!normalisedLastName.startsWith(intercalation))
+            continue;
+
+        if (normalisedLastName[intercalation.length] !== ' ')
+            continue;  // John DeFoo
+
+        return {
+            intercalation,
+            lastName: lastName.substring(intercalation.length),
+        };
+    }
+
+    return {
+        intercalation: '',
+        lastName,
+    };
+}
+
+/**
  * Props accepted by the <ExportVolunteers> component.
  */
 interface ExportVolunteersProps {
@@ -77,7 +112,7 @@ export function ExportVolunteers(props: ExportVolunteersProps) {
                 <TableHead>
                     <TableRow>
                         <TableCell>Department</TableCell>
-                        <TableCell>Role</TableCell>
+                        <TableCell>Function</TableCell>
                         <TableCell>E-mail</TableCell>
                         <TableCell>First name</TableCell>
                         <TableCell>Prefix</TableCell>
@@ -95,8 +130,12 @@ export function ExportVolunteers(props: ExportVolunteersProps) {
                             <TableCell>{volunteer.role}</TableCell>
                             <TableCell>{volunteer.email}</TableCell>
                             <TableCell>{volunteer.firstName}</TableCell>
-                            <TableCell>{volunteer.prefix}</TableCell>
-                            <TableCell>{volunteer.lastName}</TableCell>
+                            <TableCell>
+                                {extractIntercalation(volunteer.lastName).intercalation}
+                            </TableCell>
+                            <TableCell>
+                                {extractIntercalation(volunteer.lastName).lastName}
+                            </TableCell>
                             <TableCell>{formatGender(volunteer.gender)}</TableCell>
                             <TableCell>{volunteer.age}</TableCell>
                             <TableCell>{volunteer.shirtSize}</TableCell>
