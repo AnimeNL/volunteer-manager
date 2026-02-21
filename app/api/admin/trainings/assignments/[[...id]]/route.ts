@@ -8,7 +8,7 @@ import { type DataTableEndpoints, createDataTableApi } from '@app/api/createData
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import db, { tRoles, tTeams, tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsers }
+import db, { tRoles, tTeams, tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsers, tEvents }
     from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -27,6 +27,11 @@ const kTrainingAssignmentRowModel = z.object({
      * Full name of the participant.
      */
     name: z.string(),
+
+    /**
+     * Whether this is the first time that the resource might participate in the training.
+     */
+    new: z.boolean(),
 
     /**
      * For volunteers who participate, their unique user ID and team identity, to link them.
@@ -108,9 +113,19 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
         if (!event)
             notFound();
 
+        const dbInstance = db;
+        const experiencedUsers = new Set(await dbInstance.selectDistinctFrom(tTrainingsAssignments)
+            .innerJoin(tEvents)
+                .on(tEvents.eventId.equals(tTrainingsAssignments.eventId))
+            .where(tTrainingsAssignments.assignmentUserId.isNotNull())
+                .and(tTrainingsAssignments.assignmentTrainingId.isNotNull())
+                .and(tTrainingsAssignments.assignmentConfirmed.isNotNull())
+                .and(tEvents.eventStartTime.lessThan(event.temporalStartTime))
+            .selectOneColumn(tTrainingsAssignments.assignmentUserId)
+            .executeSelectMany());
+
         const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
 
-        const dbInstance = db;
         const assignments = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
@@ -187,6 +202,7 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
                 trainingAssignments.push({
                     id: kExtraIdentifierOffset + assignment.id,
                     name: assignment.trainingExtraName,
+                    new: false,  // unable to determine
 
                     preferredTrainingId, assignedTrainingId,
                     confirmed: !!assignment.confirmed,
@@ -195,6 +211,7 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
                 trainingAssignments.push({
                     id: assignment.userId,
                     name: assignment.name,
+                    new: !experiencedUsers.has(assignment.userId),
 
                     userId: assignment.userId,
                     team: assignment.team,

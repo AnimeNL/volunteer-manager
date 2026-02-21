@@ -131,6 +131,7 @@ export default async function EventTrainingPage(
         if ('trainingExtraName' in assignment) {
             trainingAssignments.push({
                 name: assignment.trainingExtraName,
+                new: false,  // unused
 
                 // userId: none
                 // team: none
@@ -141,6 +142,7 @@ export default async function EventTrainingPage(
         } else {
             trainingAssignments.push({
                 name: assignment.name,
+                new: false,  // unused
 
                 userId: assignment.userId,
                 team: assignment.team,

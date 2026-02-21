@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Collapse from '@mui/material/Collapse';
@@ -68,9 +69,21 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
 
                 const href = `./${params.row.team}/volunteers/${params.row.userId}`;
                 return (
-                    <MuiLink component={Link} href={href}>
-                        {params.value}
-                    </MuiLink>
+                    <>
+                        <MuiLink component={Link} href={href}>
+                            {params.value}
+                        </MuiLink>
+                        { params.row.new &&
+                            <Box component="span" sx={{
+                                position: 'absolute',
+                                width: '8px',
+                                height: '8px',
+                                backgroundColor: '#00B8D4',
+                                borderRadius: '4px',
+                                marginTop: '14px',
+                                marginLeft: '8px',
+                            }} /> }
+                    </>
                 );
             },
         },
@@ -155,7 +168,8 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
             </Typography>
             <Alert severity="info" sx={{ mb: 2 }}>
                 Preferences must be indicated by volunteers and cannot be updated here. Assignments
-                will be tentative until the confirmation box is checked.
+                will not be communicated until confirmed. A blue dot indicates that they've not done
+                the training before.
             </Alert>
             <RemoteDataTable columns={columns} endpoint="/api/admin/trainings/assignments"
                              defaultSort={{ field: 'name', sort: 'asc' }} context={context}
