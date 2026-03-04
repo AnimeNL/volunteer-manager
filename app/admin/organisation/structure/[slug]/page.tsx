@@ -54,6 +54,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
             id: tTeams.teamId,
             colorDarkMode: tTeams.teamColourDarkTheme,
             colorLightMode: tTeams.teamColourLightTheme,
+            department: tTeams.teamDepartment,
             description: tTeams.teamDescription,
             environment: tTeams.teamEnvironmentId,
             name: tTeams.teamName,
@@ -210,8 +211,12 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                                slotProps={{ select: { readOnly: !!readOnly } }} />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 6, md: 3 }}>
                 <TextFieldElement name="title" label="Team title" fullWidth size="small" required
+                                  slotProps={{ input: { readOnly: !!readOnly } }} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+                <TextFieldElement name="department" label="Team department" fullWidth size="small"
                                   slotProps={{ input: { readOnly: !!readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6, md: 3 }}>

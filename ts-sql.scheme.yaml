@@ -2392,6 +2392,10 @@ tables:
   - name: team_description
     type: text
     nullable: false
+  - name: team_department
+    type: text
+    nullable: true
+    default: "NULL"
   - name: team_environment
     type: varchar(32)
     nullable: false
@@ -2470,6 +2474,7 @@ tables:
       `team_plural` varchar(32) NOT NULL,
       `team_title` varchar(128) NOT NULL,
       `team_description` text NOT NULL,
+      `team_department` text DEFAULT NULL,
       `team_environment` varchar(32) NOT NULL,
       `team_environment_id` int(8) unsigned DEFAULT NULL,
       `team_invite_key` varchar(32) NOT NULL,

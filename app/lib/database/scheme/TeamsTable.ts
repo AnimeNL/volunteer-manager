@@ -22,6 +22,7 @@ export class TeamsTable extends Table<DBConnection, 'TeamsTable'> {
     teamPlural = this.column('team_plural', 'string');
     teamTitle = this.column('team_title', 'string');
     teamDescription = this.column('team_description', 'string');
+    teamDepartment = this.optionalColumnWithDefaultValue('team_department', 'string');
     teamEnvironment = this.column('team_environment', 'string');
     teamEnvironmentId = this.optionalColumnWithDefaultValue('team_environment_id', 'int');
     teamInviteKey = this.column('team_invite_key', 'string');

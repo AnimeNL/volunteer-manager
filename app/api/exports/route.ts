@@ -344,6 +344,11 @@ type Request = ApiRequest<typeof kExportsDefinition>;
 type Response = ApiResponse<typeof kExportsDefinition>;
 
 /**
+ * Default department to assign people to when none has been explicitly set.
+ */
+const kDefaultDepartment = 'HR & Security';
+
+/**
  * Threshold, in milliseconds, within which reloads of the data will be ignored for logging
  * purposes. This ensures that fast subsequent access does not needlessly affect view limits.
  */
@@ -748,9 +753,6 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
         const firstAidEmailAddress =
             await readSetting('vendor-first-aid-email-address') ?? 'crew@animecon.nl';
 
-        // What is the department that all our volunteers should be part of?
-        const kDepartment = 'HR & Security';
-
         // Full names of volunteers who have already been seen in the list.
         const seenVolunteers = new Set<string>;
 
@@ -776,10 +778,13 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
             .where(tUsersEvents.eventId.equals(metadata.eventId))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
             .select({
+                department: tTeams.teamDepartment,
                 role: tRoles.roleName,
                 username: tUsers.username,
                 firstName: tUsers.firstName,
@@ -809,7 +814,7 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
             seenVolunteers.add(`${volunteer.firstName} ${volunteer.lastName}`);
 
             volunteers.push({
-                department: kDepartment,
+                department: volunteer.department ?? kDefaultDepartment,
                 role: volunteer.role,
                 email: volunteer.username!,
                 firstName: volunteer.firstName,
@@ -853,7 +858,7 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
                 continue;
 
             volunteers.push({
-                department: kDepartment,
+                department: kDefaultDepartment,
                 role: kVendorTeamToRoleMapping[vendor.team],
                 email: firstAidEmailAddress,
                 firstName: vendor.firstName,
