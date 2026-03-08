@@ -17,6 +17,7 @@ import {
 import {
     ErrorSource,
     LogSeverity,
+    LogUserIdConfidence,
 } from "../Types";
 
 export class ErrorLogsTable extends Table<DBConnection, 'ErrorLogsTable'> {
@@ -25,6 +26,7 @@ export class ErrorLogsTable extends Table<DBConnection, 'ErrorLogsTable'> {
     errorSource = this.column<ErrorSource>('error_source', 'enum', 'ErrorSource');
     errorSeverity = this.column<LogSeverity>('error_severity', 'enum', 'LogSeverity');
     errorUserId = this.optionalColumnWithDefaultValue('error_user_id', 'int');
+    errorUserIdConfidence = this.columnWithDefaultValue<LogUserIdConfidence>('error_user_id_confidence', 'enum', 'LogUserIdConfidence');
     errorIpAddress = this.optionalColumnWithDefaultValue('error_ip_address', 'string');
     errorOrigin = this.column('error_origin', 'string');
     errorPathname = this.column('error_pathname', 'string');

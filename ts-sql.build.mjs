@@ -228,6 +228,10 @@ do {
                 },
                 { field: [ 'error_logs', 'error_source' ], type: 'ErrorSource' },
                 { field: [ 'error_logs', 'error_severity' ], type: 'LogSeverity' },
+                {
+                    field: [ 'error_logs', 'error_user_id_confidence' ],
+                    type: 'LogUserIdConfidence',
+                },
                 { field: [ 'events_dates', 'date_type' ], type: 'DateType' },
                 {
                     field: [ 'events_sales_configuration', 'sale_category' ],

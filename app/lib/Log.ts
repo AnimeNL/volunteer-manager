@@ -311,6 +311,7 @@ export function RecordErrorLog(entry: ErrorLogEntry): void {
                 errorSource: entry.source ?? kErrorSource.Server,
                 errorSeverity: entry.severity ?? kLogSeverity.Info,
                 errorUserId: userId,
+                errorUserIdConfidence: userId ? 'Certain' : 'Undefined',
                 errorIpAddress,
                 errorOrigin,
                 errorPathname: entry.requestUrl?.pathname || '',

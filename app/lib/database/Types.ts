@@ -167,6 +167,18 @@ export const kFileType = {
 } as const;
 
 /**
+ * Certainty we have in the user ID associated with a log entry, which can be guessed after the
+ * entry has been written to the database.
+ * @see Table `error_logs`
+ */
+export type LogUserIdConfidence = Values<typeof kLogUserIdConfidence>;
+export const kLogUserIdConfidence = {
+    Certain: 'Certain',
+    Likely: 'Likely',
+    Undefined: 'Undefined',
+} as const;
+
+/**
  * The type of (activity) mutation that happened in the AnPlan program.
  * @see Table `activities_logs`
  * @see Table `schedule_logs`

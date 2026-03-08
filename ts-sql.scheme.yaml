@@ -2774,6 +2774,119 @@ tables:
       KEY `booking_id` (`booking_id`),
       KEY `event_id` (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: shifts
+  type: BASE TABLE
+  columns:
+  - name: shift_id
+    type: int(4) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: team_id
+    type: int(4) unsigned
+    nullable: false
+  - name: shift_category_id
+    type: int(8) unsigned
+    nullable: false
+  - name: shift_name
+    type: text
+    nullable: false
+  - name: shift_activity_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: shift_location_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: shift_colour
+    type: varchar(32)
+    nullable: true
+    default: "NULL"
+  - name: shift_description
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: shift_demand
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: shift_demand_overlap
+    type: enum('None','Partial','Cover')
+    nullable: false
+    default: "'Cover'"
+  - name: shift_excitement
+    type: double
+    nullable: false
+  - name: shift_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: event_id
+    def: KEY event_id (event_id, team_id) USING BTREE
+    table: shifts
+    columns:
+    - event_id
+    - team_id
+  - name: shifts_team_id
+    def: KEY shifts_team_id (team_id) USING BTREE
+    table: shifts
+    columns:
+    - team_id
+  - name: PRIMARY
+    def: PRIMARY KEY (shift_id) USING BTREE
+    table: shifts
+    columns:
+    - shift_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (shift_id)
+    table: shifts
+    columns:
+    - shift_id
+  - name: shifts_event_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (event_id) REFERENCES events (event_id)
+    table: shifts
+    referencedTable: events
+    columns:
+    - event_id
+    referencedColumns:
+    - event_id
+  - name: shifts_team_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
+    table: shifts
+    referencedTable: teams
+    columns:
+    - team_id
+    referencedColumns:
+    - team_id
+  def: |-
+    CREATE TABLE `shifts` (
+      `shift_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
+      `event_id` int(4) unsigned NOT NULL,
+      `team_id` int(4) unsigned NOT NULL,
+      `shift_category_id` int(8) unsigned NOT NULL,
+      `shift_name` text NOT NULL,
+      `shift_activity_id` int(8) unsigned DEFAULT NULL,
+      `shift_location_id` int(8) unsigned DEFAULT NULL,
+      `shift_colour` varchar(32) DEFAULT NULL,
+      `shift_description` text DEFAULT NULL,
+      `shift_demand` text DEFAULT NULL,
+      `shift_demand_overlap` enum('None','Partial','Cover') NOT NULL DEFAULT 'Cover',
+      `shift_excitement` double NOT NULL,
+      `shift_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`shift_id`),
+      KEY `event_id` (`event_id`,`team_id`),
+      KEY `shifts_team_id` (`team_id`),
+      CONSTRAINT `shifts_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
+      CONSTRAINT `shifts_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: activities_locations
   type: BASE TABLE
   columns:
@@ -2854,6 +2967,10 @@ tables:
     type: int(8) unsigned
     nullable: true
     default: "NULL"
+  - name: error_user_id_confidence
+    type: enum('Certain','Likely','Undefined')
+    nullable: false
+    default: "'Undefined'"
   - name: error_ip_address
     type: varchar(64)
     nullable: true
@@ -2898,6 +3015,7 @@ tables:
       `error_source` enum('Client','Server') NOT NULL,
       `error_severity` enum('Debug','Info','Warning','Error') NOT NULL,
       `error_user_id` int(8) unsigned DEFAULT NULL,
+      `error_user_id_confidence` enum('Certain','Likely','Undefined') NOT NULL DEFAULT 'Undefined',
       `error_ip_address` varchar(64) DEFAULT NULL,
       `error_origin` varchar(64) NOT NULL,
       `error_pathname` text NOT NULL,
@@ -3553,119 +3671,6 @@ tables:
       `task_invocation_logs` text DEFAULT NULL,
       `task_invocation_time_ms` double DEFAULT NULL,
       PRIMARY KEY (`task_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: shifts
-  type: BASE TABLE
-  columns:
-  - name: shift_id
-    type: int(4) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: event_id
-    type: int(4) unsigned
-    nullable: false
-  - name: team_id
-    type: int(4) unsigned
-    nullable: false
-  - name: shift_category_id
-    type: int(8) unsigned
-    nullable: false
-  - name: shift_name
-    type: varchar(64)
-    nullable: false
-  - name: shift_activity_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: shift_location_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: shift_colour
-    type: varchar(32)
-    nullable: true
-    default: "NULL"
-  - name: shift_description
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: shift_demand
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: shift_demand_overlap
-    type: enum('None','Partial','Cover')
-    nullable: false
-    default: "'Cover'"
-  - name: shift_excitement
-    type: double
-    nullable: false
-  - name: shift_deleted
-    type: datetime
-    nullable: true
-    default: "NULL"
-  indexes:
-  - name: event_id
-    def: KEY event_id (event_id, team_id) USING BTREE
-    table: shifts
-    columns:
-    - event_id
-    - team_id
-  - name: shifts_team_id
-    def: KEY shifts_team_id (team_id) USING BTREE
-    table: shifts
-    columns:
-    - team_id
-  - name: PRIMARY
-    def: PRIMARY KEY (shift_id) USING BTREE
-    table: shifts
-    columns:
-    - shift_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (shift_id)
-    table: shifts
-    columns:
-    - shift_id
-  - name: shifts_event_id
-    type: FOREIGN KEY
-    def: FOREIGN KEY (event_id) REFERENCES events (event_id)
-    table: shifts
-    referencedTable: events
-    columns:
-    - event_id
-    referencedColumns:
-    - event_id
-  - name: shifts_team_id
-    type: FOREIGN KEY
-    def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
-    table: shifts
-    referencedTable: teams
-    columns:
-    - team_id
-    referencedColumns:
-    - team_id
-  def: |-
-    CREATE TABLE `shifts` (
-      `shift_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
-      `event_id` int(4) unsigned NOT NULL,
-      `team_id` int(4) unsigned NOT NULL,
-      `shift_category_id` int(8) unsigned NOT NULL,
-      `shift_name` varchar(64) NOT NULL,
-      `shift_activity_id` int(8) unsigned DEFAULT NULL,
-      `shift_location_id` int(8) unsigned DEFAULT NULL,
-      `shift_colour` varchar(32) DEFAULT NULL,
-      `shift_description` text DEFAULT NULL,
-      `shift_demand` text DEFAULT NULL,
-      `shift_demand_overlap` enum('None','Partial','Cover') NOT NULL DEFAULT 'Cover',
-      `shift_excitement` double NOT NULL,
-      `shift_deleted` datetime DEFAULT NULL,
-      PRIMARY KEY (`shift_id`),
-      KEY `event_id` (`event_id`,`team_id`),
-      KEY `shifts_team_id` (`team_id`),
-      CONSTRAINT `shifts_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
-      CONSTRAINT `shifts_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: outbox_email
   type: BASE TABLE
