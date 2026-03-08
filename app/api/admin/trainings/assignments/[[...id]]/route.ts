@@ -37,7 +37,11 @@ const kTrainingAssignmentRowModel = z.object({
      * For volunteers who participate, their unique user ID and team identity, to link them.
      */
     userId: z.number().optional(),
-    team: z.string().optional(),
+    team: z.object({
+        color: z.string(),
+        name: z.string(),
+        slug: z.string(),
+    }).optional(),
 
     /**
      * Their preferred training ID. `null` means that they would like to skip. `undefined` means
@@ -145,7 +149,11 @@ createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
                 userId: tUsersEvents.userId,
 
                 name: tUsers.name,
-                team: tTeams.teamSlug,
+                team: {
+                    color: tTeams.teamColourLightTheme,
+                    name: tTeams.teamName,
+                    slug: tTeams.teamSlug,
+                },
 
                 preferenceTrainingId: trainingsAssignmentsJoin.preferenceTrainingId,
                 preferenceUpdated: trainingsAssignmentsJoin.preferenceUpdated,

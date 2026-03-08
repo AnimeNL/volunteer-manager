@@ -61,26 +61,37 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
             headerName: 'Participant',
             editable: false,
             sortable: true,
+            display: 'flex',
             flex: 1,
 
             renderCell: params => {
                 if (!params.row.userId || !params.row.team)
                     return params.value;
 
-                const href = `./${params.row.team}/volunteers/${params.row.userId}`;
+                const href = `./${params.row.team.slug}/volunteers/${params.row.userId}`;
                 return (
                     <>
+                        { params.row.team &&
+                            <Tooltip title={params.row.team.name}>
+                                <Box sx={{
+                                    position: 'absolute',
+                                    width: '4px',
+                                    height: '35px',
+                                    backgroundColor: params.row.team.color,
+                                    marginLeft: '-10px',
+                                    marginTop: '0px',
+                                }} />
+                            </Tooltip> }
                         <MuiLink component={Link} href={href}>
                             {params.value}
                         </MuiLink>
                         { params.row.new &&
-                            <Box component="span" sx={{
-                                position: 'absolute',
+                            <Box sx={{
+                                position: 'relative',
                                 width: '8px',
                                 height: '8px',
                                 backgroundColor: '#00B8D4',
                                 borderRadius: '4px',
-                                marginTop: '14px',
                                 marginLeft: '8px',
                             }} /> }
                     </>
