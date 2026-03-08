@@ -59,7 +59,11 @@ export default async function EventTrainingPage(
             userId: tUsersEvents.userId,
 
             name: tUsers.name,
-            team: tTeams.teamSlug,
+            team: {
+                color: tTeams.teamColourLightTheme,
+                name: tTeams.teamName,
+                slug: tTeams.teamSlug,
+            },
 
             preferenceTrainingId: trainingsAssignmentsJoin.preferenceTrainingId,
             preferenceUpdated: trainingsAssignmentsJoin.preferenceUpdated,
@@ -182,7 +186,7 @@ export default async function EventTrainingPage(
         trainingConfirmations[assignment.assignedTrainingId].participants.push({
             name: assignment.name,
             userId: assignment.userId,
-            team: assignment.team,
+            team: assignment.team?.slug,
             confirmed: assignment.confirmed,
         });
     }
