@@ -3,7 +3,13 @@
 
 'use client';
 
-import { LicenseInfo } from '@mui/x-license';
+import { LicenseInfo, muiXTelemetrySettings } from '@mui/x-license';
+
+/**
+ * Opt out of telemetry. It's only enabled by default during development builds and optimised out
+ * for production builds.
+ */
+muiXTelemetrySettings.disableTelemetry();
 
 /**
  * Install the MUI License key. The key itself is specified as an environment variable. When no key
