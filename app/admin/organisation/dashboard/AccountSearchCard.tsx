@@ -15,6 +15,7 @@ import db, { tUsers } from '@lib/database';
  */
 export async function AccountSearchCard() {
     const accounts = await db.selectFrom(tUsers)
+        .where(tUsers.anonymized.isNull())
         .select({
             id: tUsers.userId,
             name: tUsers.name,
