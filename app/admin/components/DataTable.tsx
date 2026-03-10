@@ -152,6 +152,13 @@ export function DataTable<RowModel extends GridValidRowModel = GridValidRowModel
 
                      showToolbar={!!props.enableFilter}
                      slotProps={{
+                         columnsPanel: {
+                             sx: {
+                                 '& .MuiFormControlLabel-label': {
+                                     color: 'var(--DataGrid-t-color-foreground-base)',
+                                 }
+                             },
+                         },
                          toolbar: {
                              csvOptions: { disableToolbarButton: true },
                              printOptions: { disableToolbarButton: true },
