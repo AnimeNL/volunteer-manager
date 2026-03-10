@@ -4,6 +4,7 @@
 import Link from '@app/LinkProxy';
 
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
+import Badge from '@mui/material/Badge';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -16,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateEventMetadataFn } from '../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEventsSales } from '@lib/database';
+import db, { tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
 /**
  * The <FinancePage> component represents the financial dashboard of a certain AnimeCon event. This
@@ -36,10 +37,18 @@ export default async function FinancePage(props: PageProps<'/admin/events/[event
 
     const headerActions: React.ReactNode[] = [];
     if (access.can('event.settings', { event: event.slug })) {
+        const pendingCategorisationCount = await dbInstance.selectFrom(tEventsSalesConfiguration)
+            .where(tEventsSalesConfiguration.eventId.equals(event.id))
+                .and(tEventsSalesConfiguration.saleCategory.isNull())
+            .selectCountAll()
+            .executeSelectOne();
+
         headerActions.push(
             <Tooltip title="Settings" key="settings">
                 <IconButton LinkComponent={Link} href="./finance/settings" size="small">
-                    <SettingsIcon fontSize="small" />
+                    <Badge variant="dot" color="error" invisible={!pendingCategorisationCount}>
+                        <SettingsIcon fontSize="small" />
+                    </Badge>
                 </IconButton>
             </Tooltip>
         )
