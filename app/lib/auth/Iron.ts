@@ -103,7 +103,7 @@ export async function unseal(sealedData: string, password: string): Promise<unkn
 
         const expirationTime = parseInt(expiration, /* radix= */ 10);
         if (expirationTime < Date.now())
-            throw new Error(`Invalid expiration time (in the past)`);
+            throw new Error(`Invalid expiration time (${expirationTime} < ${Date.now()})`);
     }
 
     // (3) Verify the signature

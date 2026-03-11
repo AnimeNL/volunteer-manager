@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
-import { RecordLog, kLogType } from '@lib/Log';
+import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { authenticateUser, getUserSessionToken } from '@lib/auth/Authentication';
 import { determineEnvironment } from '@lib/Environment';
 import { getEventsForUser } from '@lib/EventLoader';
@@ -74,8 +74,17 @@ export async function registerActivate(request: Request, props: ActionProps): Pr
         })
         .executeSelectNoneOrOne();
 
-    if (!unactivatedUser || !!unactivatedUser.activated)
+    if (!unactivatedUser || !!unactivatedUser.activated) {
+        RecordErrorLog({
+            error: new Error('Unable to identify the unactivated user account'),
+            requestUrl: { pathname: '/api/auth/register-activate' },
+            severity: kLogSeverity.Info,
+            source: 'Server',
+            user: props.user,
+        });
+
         return { success: false };  // the account has already been activated
+    }
 
     const affectedRows = await db.update(tUsers)
         .set({ activated: 1 })

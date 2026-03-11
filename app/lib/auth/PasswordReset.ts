@@ -15,7 +15,7 @@ if (!kPasswordResetRequestPassword || !kPasswordResetRequestPassword.length)
 /**
  * Number of seconds that a password reset request is valid for.
  */
-export const kPasswordResetRequestExpirySeconds = 86400;  // one day
+export const kPasswordResetRequestExpirySeconds = 7 * 86400;  // one day
 
 /**
  * Interface describing the information contained within a password reset request. This will be
