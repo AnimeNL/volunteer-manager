@@ -82,17 +82,22 @@ export async function getContent(
     if (!content)
         return undefined;
 
-    if (substitutions) {
-        content.title = content.title.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
-        content.markdown = content.markdown.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
+    // Note: do not use |content| directly, as any applied substitutions would apply to the cached
+    // representation and would thus carry forward to any future calls to `getContent()`.
+    const copiedContent = structuredClone(content);
 
-        for (const [ key, value ] of Object.entries(substitutions)) {
-            content.title = content.title.replaceAll(`{${key}}`, value);
-            content.markdown = content.markdown.replaceAll(`{${key}}`, value);
-        }
+    if (!substitutions)
+        return copiedContent;
+
+    copiedContent.title = copiedContent.title.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
+    copiedContent.markdown = copiedContent.markdown.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
+
+    for (const [ key, value ] of Object.entries(substitutions)) {
+        copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, value);
+        copiedContent.markdown = copiedContent.markdown.replaceAll(`{${key}}`, value);
     }
 
-    return content;
+    return copiedContent;
 }
 
 /**
