@@ -214,7 +214,13 @@ export function VolunteerListPage() {
                         margin: { xs: '-16px -16px -8px -16px', md: 0 },
                     },
                 }}>
-                    <Tabs onChange={handleTeamChange} value={selectedTeam} variant="fullWidth">
+                    <Tabs onChange={handleTeamChange} value={selectedTeam}
+                          variant="scrollable"
+                          scrollButtons="auto" allowScrollButtonsMobile sx={{
+                              '& .MuiTabs-scrollButtons.Mui-disabled': {
+                                  opacity: 0.25,
+                              }
+                          }}>
                         { teams.map(team =>
                             <Tab key={team.id} value={team.id} label={team.label} /> )}
                     </Tabs>
