@@ -108,6 +108,6 @@ describe('Iron', () => {
         const sealedDataExpirationTime = parseInt(sealedDataParts[5], /* radix= */ 10);
         expect(sealedDataExpirationTime).toBeLessThan(Date.now());
 
-        await expect(unseal(sealedData, password)).rejects.toThrow(/in the past/);
+        await expect(unseal(sealedData, password)).rejects.toThrow(/Invalid expiration time/);
     });
 });
