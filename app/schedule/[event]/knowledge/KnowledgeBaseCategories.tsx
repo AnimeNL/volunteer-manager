@@ -14,9 +14,9 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 
 import { Alert } from '../components/Alert';
-import { ScheduleContext } from '../ScheduleContext';
 import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
-import { setTitle } from '../ScheduleTitle';
+import { ScheduleContext } from '../ScheduleContext';
+import { SetTitle } from '../components/SetTitle';
 
 /**
  * The <KnowledgeBaseCategories> component uses the schedule app's context to display an ordered
@@ -34,10 +34,9 @@ export function KnowledgeBaseCategories() {
         );
     }
 
-    setTitle('Knowledge Base');
-
     return (
         <>
+            <SetTitle title="Knowledge Base" />
             { schedule.knowledge.map((category) =>
                 <Card key={category.id}>
                     <CardActionArea LinkComponent={Link} href={`./knowledge/${category.id}`}>

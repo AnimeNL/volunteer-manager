@@ -13,8 +13,8 @@ import { CardTimeslotList } from '../components/CardTimeslotList';
 import { ErrorCard } from '../components/ErrorCard';
 import { HeaderButton } from '../components/HeaderButton';
 import { ScheduleContext } from '../ScheduleContext';
+import { SetTitle } from '../components/SetTitle';
 import { currentZonedDateTime } from '../CurrentTime';
-import { setTitle } from '../ScheduleTitle';
 
 /**
  * The <AreaList> component displays an overview of the areas part of this festival's location. Each
@@ -69,13 +69,12 @@ export function AreaList() {
     if (!schedule)
         return undefined;
 
-    setTitle('Events');
-
     const noEventsText = 'There are no active events in this area';
     const prefix = `/schedule/${schedule.slug}`;
 
     return (
         <>
+            <SetTitle title="Events" />
             { !areas.length &&
                 <ErrorCard title="No areas could be found!">
                     The festival's areas have not been announced yet.

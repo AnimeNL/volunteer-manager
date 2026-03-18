@@ -3,6 +3,8 @@
 
 'use client';
 
+import { useEffect } from 'react';
+
 import { setTitle } from '../ScheduleTitle';
 
 /**
@@ -20,6 +22,9 @@ interface SetTitleProps {
  * to call `setTitle()` directly, server side components do not have that ability.
  */
 export function SetTitle(props: SetTitleProps) {
-    setTitle(props.title);
+    useEffect(() => {
+        setTitle(props.title);
+    }, []);
+
     return undefined;
 }

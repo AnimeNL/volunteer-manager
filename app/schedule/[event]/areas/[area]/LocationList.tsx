@@ -13,8 +13,8 @@ import { CardTimeslotList } from '../../components/CardTimeslotList';
 import { ErrorCard } from '../../components/ErrorCard';
 import { HeaderButton } from '../../components/HeaderButton';
 import { ScheduleContext } from '../../ScheduleContext';
+import { SetTitle } from '../../components/SetTitle';
 import { currentZonedDateTime } from '../../CurrentTime';
-import { setTitle } from '../../ScheduleTitle';
 
 /**
  * Props accepted by the <LocationList> component.
@@ -111,12 +111,11 @@ export function LocationList(props: LocationListProps) {
         );
     }
 
-    setTitle(schedule.program.areas[props.areaId].name);
-
     const prefix = `/schedule/${schedule.slug}`;
 
     return (
         <>
+            <SetTitle title={schedule.program.areas[props.areaId].name} />
             { !locations.length &&
                 <ErrorCard title="No locations could be found!">
                     The locations in this area have not been announced yet.
