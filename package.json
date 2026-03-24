@@ -37,7 +37,7 @@
     "@beverloo/volunteer-manager-timeline": "^3.0.2",
     "@google-cloud/vertexai": "^1.10.2",
     "@google/genai": "^1.46.0",
-    "@mdxeditor/editor": "^3.52.5",
+    "@mdxeditor/editor": "^3.53.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/lab": "^7.0.1-beta.23",
     "@mui/material": "^7.3.9",
@@ -70,7 +70,7 @@
     "swr": "^2.4.1",
     "temporal-polyfill": "^0.3.2",
     "ts-sql-query": "^1.67.0",
-    "twilio": "^5.13.0",
+    "twilio": "^5.13.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
