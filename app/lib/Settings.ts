@@ -44,6 +44,7 @@ export type Settings = {
     // Schedule:
     'schedule-day-view-start-time': string;
     'schedule-day-view-end-time': string;
+    'schedule-enable-sidebar': boolean;
     'schedule-event-view-start-hours': number;
     'schedule-event-view-end-hours': number;
     'schedule-recent-shift-count': number;

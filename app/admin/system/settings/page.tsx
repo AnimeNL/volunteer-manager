@@ -197,6 +197,14 @@ export default async function IntegrationsPage() {
                 description: 'Number of recent shifts to display in the context menu',
             },
             {
+                setting: 'schedule-enable-sidebar',
+                type: 'boolean',
+                defaultValue: false,
+
+                label: 'Schedule - sidebar',
+                description: 'Whether to display a tally of scheduled hours on the scheduling tool',
+            },
+            {
                 setting: 'schedule-time-step-minutes',
                 type: 'number',
                 defaultValue: 15,

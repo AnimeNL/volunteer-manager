@@ -65,6 +65,11 @@ interface ScheduleImplProps {
     enableHistoryProfileLinks?: boolean;
 
     /**
+     * Whether there should be a right-hand sidebar displaying a tally of scheduled hours.
+     */
+    enableSidebar?: boolean;
+
+    /**
      * Context that should be provided to the history dialog.
      */
     historyContext: EventScheduleHistoryContext['context'];
@@ -386,7 +391,8 @@ export function ScheduleImpl(props: ScheduleImplProps) {
                       onChange={context.processMutation} onRightClick={handleRightClick}
                       onResourceExpansionChange={handleExpansionChange} height={height}
                       onDoubleClick={handleDoubleClick} markers={markers} resources={resources}
-                      displayTimezone={context.schedule.timezone} subject="shift" />
+                      displayTimezone={context.schedule.timezone} subject="shift"
+                      renderSidebar={props.enableSidebar} />
 
             { !!dialogEvent &&
                 <SettingDialog title="Select a shift" open delete

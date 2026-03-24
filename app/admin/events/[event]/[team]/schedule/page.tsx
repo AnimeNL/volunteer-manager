@@ -11,10 +11,11 @@ import Paper from '@mui/material/Paper';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { ScheduleContextImpl } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
+import { ScheduleImpl } from './ScheduleImpl';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import { ScheduleImpl } from './ScheduleImpl';
 
 /**
  * Data validation type for user-specific section expand settings.
@@ -35,6 +36,8 @@ export default async function EventTeamSchedulePage(
 
     if (!team.flagEnableScheduling)
         notFound();
+
+    const settings = await readSettings([ 'schedule-enable-sidebar' ]);
 
     const userSettings = await readUserSettings(user.id, [
         'user-admin-schedule-date',
@@ -84,7 +87,8 @@ export default async function EventTeamSchedulePage(
                 <ScheduleImpl readOnly={readOnly} sections={sections}
                               historyContext={{ event: event.slug, team: team.slug }}
                               enableHistoryDelete={enableHistoryDelete}
-                              enableHistoryProfileLinks={enableHistoryProfileLinks} />
+                              enableHistoryProfileLinks={enableHistoryProfileLinks}
+                              enableSidebar={!!settings['schedule-enable-sidebar']} />
 
                 <ExpandableSection
                     defaultExpanded={ !!userSettings['user-admin-schedule-expand-history'] }
