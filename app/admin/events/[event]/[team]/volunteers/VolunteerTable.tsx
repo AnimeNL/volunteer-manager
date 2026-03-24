@@ -137,19 +137,22 @@ export function VolunteerTable(props: VolunteerTableProps) {
             flex: 1,
         },
         {
-            field: 'shiftCount',
+            field: 'shiftSeconds',
             headerName: 'Shifts',
             sortable: true,
             width: 200,
 
             renderCell: params =>
-                <>
-                    {params.value}
-                    {params.row.shiftSeconds &&
-                        <Typography variant="body2" sx={{ pl: 0.5, color: 'action.active' }}>
-                            ({formatSeconds(params.row.shiftSeconds)} hours)
-                        </Typography> }
-                </>,
+                !!params.value
+                    ? <Typography component="span" variant="body2">
+                          {formatSeconds(params.value)} hour{params.value === 3600 ? '' : 's'}
+                          <Typography component="span" variant="inherit" color="textDisabled">
+                              {' '}(x{params.row.shiftCount})
+                          </Typography>
+                      </Typography>
+                    : <Typography component="span" variant="body2" color="textDisabled">
+                          -
+                      </Typography>,
         },
         {
             field: 'status',
