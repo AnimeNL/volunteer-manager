@@ -18,8 +18,20 @@ import { validateTime } from './fn/validateTime';
 import { writeUserSetting } from '@lib/UserSettings';
 import db, { tRoles, tSchedule, tUsers, tUsersEvents } from '@lib/database';
 
+import type { kServiceHoursProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
+
+/**
+ * Valid options for the number of hours volunteers are willing to work, with the range of hours
+ * that roughly maps to those indicated values.
+ */
+const kServiceHoursOptions: { [k in z.TypeOf<typeof kServiceHoursProperty>]: [number, number] } = {
+    '12': [ 8, 12 ],
+    '16': [ 12, 16 ],
+    '20': [ 16, 20 ],
+    '24': [ 20, 40 ],
+} as const;
 
 /**
  * Type that describes the contents of a schedule as it will be consumed by the client.
@@ -166,6 +178,11 @@ export const kScheduleDefinition = z.object({
              * Whether this is the first time that the resource helps us out.
              */
             new: z.boolean(),
+
+            /**
+             * The volunteer's preferred number of hours as an array of minimum and maximum.
+             */
+            preferredHours: z.tuple([ z.number(), z.number() ]).optional(),
         })),
 
         /**
@@ -481,10 +498,20 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
 
             humanResources.push(humanResource.id);
 
+            let preferredHours: [number, number] | undefined;
+            if (typeof humanResource.hours === 'number') {
+                const preferredHoursStr =
+                    `${humanResource.hours}` as keyof typeof kServiceHoursOptions;
+
+                if (preferredHoursStr in kServiceHoursOptions)
+                    preferredHours = kServiceHoursOptions[preferredHoursStr];
+            }
+
             children.push({
                 id: humanResource.id,
                 name: humanResource.name,
                 ['new']: firstTimeVolunteers.has(humanResource.id),
+                preferredHours,
             });
 
             users.push(humanResource.id);

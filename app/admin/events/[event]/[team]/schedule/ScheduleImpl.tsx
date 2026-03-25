@@ -384,7 +384,13 @@ export function ScheduleImpl(props: ScheduleImplProps) {
     }
 
     return (
-        <Paper>
+        <Paper sx={theme => ({
+            '& .acon-sidebar-hours': { opacity: 0.75 },
+            '& .acon-sidebar-hours.scant': { color: theme.palette.info.main },
+            '& .acon-sidebar-hours.ideal': { color: theme.palette.success.main },
+            '& .acon-sidebar-hours.surplus': { color: theme.palette.warning.dark },
+            '& .acon-sidebar-hours.excessive': { color: theme.palette.error.main },
+        })}>
 
             <Schedule min={context.schedule.min} max={context.schedule.max} readOnly={readOnly}
                       events={events} eventDefaults={eventDefaults} eventOverlap={false}
