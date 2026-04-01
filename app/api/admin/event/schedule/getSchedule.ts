@@ -230,6 +230,11 @@ export const kScheduleDefinition = z.object({
          * Unique ID of the volunteer for whom this shift exists.
          */
         resource: z.number(),
+
+        /**
+         * When set, time scheduled for this shift will not count towards total contribution.
+         */
+        noContribution: z.literal(true).optional(),
     })),
 
     /**
@@ -589,11 +594,14 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             shiftId: tSchedule.shiftId,
         })
         .executeSelectMany();
-
     for (const scheduledShift of scheduledShifts) {
         const shift =
             !!scheduledShift.shiftId ? shiftsMap.get(scheduledShift.shiftId)
-                                     : { name: 'Unscheduled', colour: '#760707' };
+                                     : {
+                                           name: 'Unscheduled',
+                                           colour: '#760707',
+                                           categoryContributionCounts: false,
+                                       };
 
         if (!shift)
             continue;  // the |scheduledShift| is not associated with a valid shift
@@ -606,6 +614,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             title: shift.name,
             color: shift.colour,
             resource: scheduledShift.resource,
+            noContribution: shift.categoryContributionCounts ? undefined : true,
         });
 
         // TODO: Compute warnings

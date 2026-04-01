@@ -29,6 +29,11 @@ interface Shift {
     category: string;
 
     /**
+     * Whether contributions in this category count towards participation.
+     */
+    categoryContributionCounts: boolean;
+
+    /**
      * Name of the shift. Generally the name of the event it represents.
      */
     name: string;
@@ -115,7 +120,8 @@ function formatMinutes(minutes: number): string {
                             : `${hours}`;
 }
 
-type DemandShift = Omit<Shift, 'category' | 'colour' | 'demandInMinutes' | 'scheduledInMinutes'>;
+type DemandShift = Omit<Shift, 'category' | 'categoryContributionCounts'| 'colour' |
+                               'demandInMinutes' | 'scheduledInMinutes'>;
 
 /**
  * Determines whether a warning for the given |shift| should be displayed.
@@ -169,6 +175,7 @@ export async function getShiftsForEvent(eventId: number, festivalId?: number): P
             id: tShifts.shiftId,
             category: {
                 colour: tShiftsCategories.shiftCategoryColour,
+                countContribution: tShiftsCategories.shiftCategoryCountContribution,
                 name: tShiftsCategories.shiftCategoryName,
             },
             name: tShifts.shiftName,
@@ -258,6 +265,7 @@ export async function getShiftsForEvent(eventId: number, festivalId?: number): P
         return {
             ...shift,
             category: shift.category.name,
+            categoryContributionCounts: !!shift.category.countContribution,
             colour: colour!,
             demandInMinutes,
             scheduledInMinutes,

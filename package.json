@@ -29,7 +29,7 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@beverloo/volunteer-manager-timeline": "^3.1.0",
+    "@beverloo/volunteer-manager-timeline": "^3.1.1",
     "@google-cloud/vertexai": "^1.10.4",
     "@google/genai": "^1.48.0",
     "@mdxeditor/editor": "^3.53.1",
