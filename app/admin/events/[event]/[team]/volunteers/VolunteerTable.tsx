@@ -45,7 +45,6 @@ export interface VolunteerInfo {
     status: RegistrationStatus;
     name: string;
     role: string;
-    shiftCount: number;
     shiftSeconds?: number;
 
     availabilityEligible: boolean;
@@ -146,9 +145,6 @@ export function VolunteerTable(props: VolunteerTableProps) {
                 !!params.value
                     ? <Typography component="span" variant="body2">
                           {formatSeconds(params.value)} hour{params.value === 3600 ? '' : 's'}
-                          <Typography component="span" variant="inherit" color="textDisabled">
-                              {' '}(x{params.row.shiftCount})
-                          </Typography>
                       </Typography>
                     : <Typography component="span" variant="body2" color="textDisabled">
                           -

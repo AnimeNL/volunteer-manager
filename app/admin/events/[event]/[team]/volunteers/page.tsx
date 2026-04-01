@@ -8,7 +8,9 @@ import { CancelledVolunteers } from './CancelledVolunteers';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tRefunds, tRoles,
-    tSchedule, tTrainingsAssignments, tUsersEvents, tUsers } from '@lib/database';
+    tSchedule, tTrainingsAssignments, tUsersEvents, tUsers,
+    tShifts,
+    tShiftsCategories} from '@lib/database';
 
 import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
 
@@ -28,14 +30,26 @@ export default async function VolunteersPage(
     const dbInstance = db;
 
     const refundsJoin = tRefunds.forUseInLeftJoin();
-    const scheduleJoin = tSchedule.forUseInLeftJoin();
 
     // ---------------------------------------------------------------------------------------------
     // Step (1): Gather a list of all volunteers
     // ---------------------------------------------------------------------------------------------
 
     const shiftSecondsFragment = dbInstance.fragmentWithType('int', 'optional').sql`
-        TIMESTAMPDIFF(SECOND, ${scheduleJoin.scheduleTimeStart}, ${scheduleJoin.scheduleTimeEnd})`;
+        TIMESTAMPDIFF(SECOND, ${tSchedule.scheduleTimeStart}, ${tSchedule.scheduleTimeEnd})`;
+
+    const shiftSecondsSubSelect = dbInstance.subSelectUsing(tUsersEvents)
+        .from(tSchedule)
+        .innerJoin(tShifts)
+            .on(tShifts.shiftId.equals(tSchedule.shiftId))
+        .innerJoin(tShiftsCategories)
+            .on(tShiftsCategories.shiftCategoryId.equals(tShifts.shiftCategoryId))
+        .where(tSchedule.userId.equals(tUsersEvents.userId))
+            .and(tSchedule.eventId.equals(tUsersEvents.eventId))
+            .and(tSchedule.scheduleDeleted.isNull())
+            .and(tShiftsCategories.shiftCategoryCountContribution.equals(/* true= */ 1))
+        .selectOneColumn(dbInstance.sum(shiftSecondsFragment))
+        .forUseAsInlineQueryValue();
 
     const volunteers = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
@@ -47,10 +61,6 @@ export default async function VolunteersPage(
         .leftJoin(refundsJoin)
             .on(refundsJoin.eventId.equals(tUsersEvents.eventId))
                 .and(refundsJoin.userId.equals(tUsersEvents.userId))
-        .leftJoin(scheduleJoin)
-            .on(scheduleJoin.eventId.equals(event.id))
-                .and(scheduleJoin.userId.equals(tUsersEvents.userId))
-                .and(scheduleJoin.scheduleDeleted.isNull())
         .groupBy(tUsersEvents.userId)
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
@@ -62,8 +72,8 @@ export default async function VolunteersPage(
             status: tUsersEvents.registrationStatus,
             name: tUsers.name,
             role: tRoles.roleName,
-            shiftCount: dbInstance.count(scheduleJoin.scheduleId),
-            shiftSeconds: dbInstance.sum(shiftSecondsFragment),
+
+            shiftSeconds: shiftSecondsSubSelect,
 
             availabilityEligible:
                 tEvents.eventAvailabilityStatus.notEquals(kEventAvailabilityStatus.Unavailable),
