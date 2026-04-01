@@ -55,6 +55,11 @@ interface ScheduleHighlightDialogProps {
     onChange?: (shiftId: number) => Promise<void>;
 
     /**
+     * Callback that should be invoked when the selection should be cleared.
+     */
+    onClear?: () => Promise<void>;
+
+    /**
      * Callback that should be invoked when the dialog is requested to be closed.
      */
     onClose?: () => void;
@@ -66,7 +71,7 @@ interface ScheduleHighlightDialogProps {
  * where additional scheduling work is still expected.
  */
 export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
-    const onChange = props.onChange;
+    const { onChange, onClear } = props;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -78,7 +83,21 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const [ isClearing, setIsClearing ] = useState<boolean>(false);
     const [ isUpdating, setIsUpdating ] = useState<boolean>(false);
+
+    const handleClear = useCallback(async () => {
+        setIsClearing(true);
+        try {
+            if (!!onClear)
+                await onClear();
+
+        } catch (error: any) {
+            console.error(`Unable to change the highlighted shifts: ${error}`);
+        } finally {
+            setIsClearing(false);
+        }
+    }, [ onClear ]);
 
     const handleUpdate = useCallback(async (shiftId: number) => {
         setIsUpdating(true);
@@ -152,8 +171,11 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
                     } )}
                 </List>
             </DialogContent>
-            <DialogActions sx={{ pt: 0, mr: 1, mb: 0 }}>
-                <Button onClick={props.onClose} variant="text">
+            <DialogActions sx={{ pt: 2, mr: 1, mb: 1 }}>
+                <Button onClick={handleClear} loading={isClearing} variant="text" size="small">
+                    Clear all
+                </Button>
+                <Button onClick={props.onClose} variant="contained" size="small">
                     Close
                 </Button>
             </DialogActions>

@@ -256,6 +256,12 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
 
     }, [ highlightedShifts, mutate ]);
 
+    const handleClearShiftHighlight = useCallback(async () => {
+        setHighlightedShifts(/* none= */ '');
+        await mutate();  // invalidate the `schedule`
+
+    }, [ mutate ]);
+
     // ---------------------------------------------------------------------------------------------
 
     // Set of highlighted shifts. Always an instance, only set to the right shifts when at least a
@@ -330,6 +336,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
                                          shifts={scheduleContext.schedule.metadata.shifts}
                                          teams={scheduleContext.schedule.metadata.teams}
                                          onChange={handleToggleShiftHighlight}
+                                         onClear={handleClearShiftHighlight}
                                          onClose={handleHighlightDialogClose} /> }
 
             <Snackbar autoHideDuration={3000} onClose={doCloseError} open={!!processingError}>
