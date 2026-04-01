@@ -108,7 +108,7 @@ function readPaletteModeFromCache(): SchedulePaletteMode {
             case 'dark':
                 return paletteMode;
         }
-    } catch (error) { /* nothing to do */ }
+    } catch (_error) { /* nothing to do */ }
 
     return 'auto';
 }
@@ -129,7 +129,7 @@ function storePaletteModeToCache(mode: SchedulePaletteMode) {
                 localStorage.removeItem(kCacheKey);
                 break;
         }
-    } catch (error) { /* nothing to do */ }
+    } catch (_error) { /* nothing to do */ }
 }
 
 /**

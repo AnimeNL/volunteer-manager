@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ChartContainerProProps, ChartsReferenceLineProps, XAxis, YAxis }
+import type { ChartsContainerProProps, ChartsReferenceLineProps, XAxis, YAxis }
     from '@mui/x-charts-pro';
 
 /**
@@ -80,7 +80,7 @@ export interface RemoteGraphFnResult {
     /**
      * Series and raw information that should be displayed on the graph.
      */
-    series: NonNullable<ChartContainerProProps['series']>;
+    series: NonNullable<ChartsContainerProProps['series']>;
 
     /**
      * Singular x axis that should be displayed on the graph.

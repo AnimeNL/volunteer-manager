@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -40,6 +40,7 @@
                 "noInnerDeclarations": "error",
                 "noInvalidBuiltinInstantiation": "error",
                 "noInvalidConstructorSuper": "error",
+                "noNextAsyncClientComponent": "warn",
                 "noPrecisionLoss": "warn",
                 "noReactPropAssignments": "error",
                 "noSelfAssign": "error",
@@ -61,8 +62,6 @@
                 "useValidTypeof": "error"
             },
             "nursery": {
-                "noDeprecatedImports": "warn",
-                "noNextAsyncClientComponent": "warn",
                 "useExhaustiveSwitchCases": "warn"
             },
             "performance": {
@@ -87,6 +86,7 @@
             "suspicious": {
                 "noApproximativeNumericConstant": "warn",
                 "noAssignInExpressions": "error",
+                "noDeprecatedImports": "warn",
                 "noDoubleEquals": "error",
                 "noDuplicateJsxProps": "error",
                 "noDuplicateParameters": "error",

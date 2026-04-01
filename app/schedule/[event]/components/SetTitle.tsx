@@ -24,7 +24,7 @@ interface SetTitleProps {
 export function SetTitle(props: SetTitleProps) {
     useEffect(() => {
         setTitle(props.title);
-    }, []);
+    }, [ props.title ]);
 
     return undefined;
 }

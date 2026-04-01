@@ -28,22 +28,17 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "overrides": {
-    "nodemailer-mock": {
-      "nodemailer": "^6.x || ^7.x || ^8.x"
-    }
-  },
   "dependencies": {
     "@beverloo/volunteer-manager-timeline": "^3.1.0",
-    "@google-cloud/vertexai": "^1.10.2",
-    "@google/genai": "^1.46.0",
+    "@google-cloud/vertexai": "^1.10.4",
+    "@google/genai": "^1.48.0",
     "@mdxeditor/editor": "^3.53.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/lab": "^7.0.1-beta.23",
     "@mui/material": "^7.3.9",
     "@mui/material-nextjs": "^7.3.9",
-    "@mui/x-charts-pro": "^8.28.0",
-    "@mui/x-data-grid-pro": "^8.28.0",
+    "@mui/x-charts-pro": "^8.28.2",
+    "@mui/x-data-grid-pro": "^8.28.2",
     "@mui/x-date-pickers": "^8.27.2",
     "@mui/x-license": "^8.26.0",
     "@simplewebauthn/browser": "^13.3.0",
@@ -58,8 +53,8 @@
     "mui-color-input": "^7.0.0",
     "mui-markdown": "^2.1.1",
     "nanoid": "^5.1.7",
-    "next": "^16.2.1",
-    "nodemailer": "^8.0.3",
+    "next": "^16.2.2",
+    "nodemailer": "^8.0.4",
     "nuqs": "^2.8.9",
     "react": "^19.2.4",
     "react-avatar-editor": "14.0.0",
@@ -74,8 +69,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.8",
-    "@next/bundle-analyzer": "^16.2.1",
+    "@biomejs/biome": "^2.4.10",
+    "@next/bundle-analyzer": "^16.2.2",
     "@playwright/test": "^1.58.2",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "@testing-library/dom": "^10.4.1",
@@ -92,7 +87,7 @@
     "cross-env": "^10.1.0",
     "jsdom": "^29.0.1",
     "next-build-id": "^3.0.0",
-    "nodemailer-mock": "^2.0.9",
+    "nodemailer-mock": "^2.0.10",
     "ts-sql-codegen": "^3.23.1",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^6.1.1",
