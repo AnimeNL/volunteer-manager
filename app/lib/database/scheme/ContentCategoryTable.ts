@@ -21,6 +21,8 @@ export class ContentCategoryTable extends Table<DBConnection, 'ContentCategoryTa
     categoryTitle = this.column('category_title', 'string');
     categoryIcon = this.column('category_icon', 'string');
     categoryDescription = this.optionalColumnWithDefaultValue('category_description', 'string');
+    categoryRoles = this.columnWithDefaultValue('category_roles', 'string');
+    categoryTeams = this.columnWithDefaultValue('category_teams', 'string');
     categoryPermission = this.optionalColumnWithDefaultValue('category_permission', 'string');
     categoryOrder = this.column('category_order', 'int');
     categoryCreated = this.column<ZonedDateTime>('category_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);

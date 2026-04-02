@@ -499,6 +499,11 @@ export const kPublicSchedule = z.strictObject({
         role: z.string(),
 
         /**
+         * Unique ID of the role that the volunteer has been assigned to during the event.
+         */
+        roleId: z.string(),
+
+        /**
          * Whether the role that they're assigned to implies a senior position.
          */
         roleLeader: z.boolean().optional(),

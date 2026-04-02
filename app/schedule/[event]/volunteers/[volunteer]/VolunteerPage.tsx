@@ -417,6 +417,7 @@ export function VolunteerPage(props: VolunteerPageProps) {
             name: 'Your favourited events',
             team: 'Guests',
             role: schedule.event,
+            roleId: /* Crew= */ '1',
         };
     }
 

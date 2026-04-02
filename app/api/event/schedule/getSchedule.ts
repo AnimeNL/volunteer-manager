@@ -4,6 +4,7 @@
 import { z } from 'zod/v4';
 import { forbidden, notFound } from 'next/navigation';
 
+import type { AccessControl } from '@lib/auth/AccessControl';
 import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
 import type { DBConnection } from '@lib/database/Connection';
@@ -21,8 +22,6 @@ import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } 
 import { kAnyTeam } from '@lib/auth/AccessList';
 import { kAvailabilityException } from '@app/api/admin/event/schedule/fn/determineAvailability';
 import { kPublicSchedule } from './PublicSchedule';
-import type { AccessControl } from '@lib/auth/AccessControl';
-import type { BooleanPermission } from '@lib/auth/Access';
 
 /**
  * Interface definition for the public Schedule API, exposed through /api/event/schedule.
@@ -155,10 +154,8 @@ function determineVolunteerUnavailability(
  * Populates the activities that the given `userId` has favourited in the `schedule`, specific to
  * the given `event`. Uses a cached mechanism that avoids running a database query.
  */
-async function populateFavourites(
-    dbInstance: DBConnection, schedule: Response, eventId: number, userId: number)
-{
-    schedule.favourites = await FavouriteCache.read(dbInstance, eventId, userId);
+async function populateFavourites(dbInstance: DBConnection, schedule: Response, eventId: number) {
+    schedule.favourites = await FavouriteCache.read(dbInstance, eventId, schedule.userId);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -171,6 +168,13 @@ async function populateFavourites(
 async function populateKnowledgeBase(
     dbInstance: DBConnection, access: AccessControl, schedule: Response, eventId: number)
 {
+    const volunteerRoleIdStr = schedule.volunteers[`${schedule.userId}`].roleId;
+    const volunteerTeamIdStr = schedule.volunteers[`${schedule.userId}`].team;
+
+    const hasUnrestrictedAccess = access.can('event.knowledge', {
+        event: schedule.slug,
+    });
+
     const knowledge = await dbInstance.selectFrom(tContentCategories)
         .innerJoin(tContent)
             .on(tContent.contentCategoryId.equals(tContentCategories.categoryId))
@@ -182,7 +186,10 @@ async function populateKnowledgeBase(
             icon: tContentCategories.categoryIcon,
             title: tContentCategories.categoryTitle,
             description: tContentCategories.categoryDescription,
-            permission: tContentCategories.categoryPermission,
+
+            roles: tContentCategories.categoryRoles,
+            teams: tContentCategories.categoryTeams,
+
             questions: dbInstance.aggregateAsArray({
                 id: tContent.contentPath,
                 question: tContent.contentTitle,
@@ -193,17 +200,21 @@ async function populateKnowledgeBase(
         .executeSelectMany();
 
     schedule.knowledge = knowledge.map(category => {
-        const { permission, ...rest } = category;
+        const { roles, teams, ...rest } = category;
 
         let limited: true | undefined;
 
-        if (!!permission) {
-            const granted = access.can(permission as BooleanPermission, {
-                event: schedule.event,
-                team: kAnyTeam,
-            });
+        if (!!roles.length) {
+            const restrictedRoles = roles.split(',');
+            if (!restrictedRoles.includes(volunteerRoleIdStr) && !hasUnrestrictedAccess)
+                return undefined;
 
-            if (!granted)
+            limited = true;
+        }
+
+        if (!!teams.length) {
+            const restrictedTeams = teams.split(',');
+            if (!restrictedTeams.includes(volunteerTeamIdStr) && !hasUnrestrictedAccess)
                 return undefined;
 
             limited = true;
@@ -545,6 +556,7 @@ async function populateVolunteers(
                 preferenceTimingEnd: tUsersEvents.preferenceTimingEnd,
 
                 role: {
+                    id: tRoles.roleId,
                     name: tRoles.roleName,
                     isLeader: tRoles.rolePermissionGrant.isNotNull(),
                 },
@@ -581,6 +593,7 @@ async function populateVolunteers(
             avatar: getBlobUrl(volunteer.user.avatar),
             name: volunteer.user.name,
             role: volunteer.user.role.name,
+            roleId: `${volunteer.user.role.id}`,
             roleLeader: !!volunteer.user.role.isLeader ? true : undefined,
             team: `${volunteer.user.team.id}`,
             notes: notesAccess ? volunteer.user.notes : undefined,
@@ -960,10 +973,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
     const dbInstance = db;
 
     if (schedule.config.enableFavourites)
-        await populateFavourites(dbInstance, schedule, event.id, props.user.id);
-
-    if (schedule.config.enableKnowledgeBase)
-        await populateKnowledgeBase(dbInstance, access, schedule, event.id);
+        await populateFavourites(dbInstance, schedule, event.id);
 
     await populateMetadata(
         dbInstance, schedule, event.id, !!settings['schedule-del-a-rie-advies'],
@@ -1004,6 +1014,9 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
     await populateVolunteers(
         dbInstance, schedule, currentTime, event.id, unavailabilityFn, notesAccess,
         phoneNumberAccess, teamAccess, team);
+
+    if (schedule.config.enableKnowledgeBase)
+        await populateKnowledgeBase(dbInstance, access, schedule, event.id);
 
     // ---------------------------------------------------------------------------------------------
 

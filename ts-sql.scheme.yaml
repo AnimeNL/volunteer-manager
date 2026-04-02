@@ -4196,6 +4196,14 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: category_roles
+    type: text
+    nullable: false
+    default: "''"
+  - name: category_teams
+    type: text
+    nullable: false
+    default: "''"
   - name: category_permission
     type: text
     nullable: true
@@ -4238,6 +4246,8 @@ tables:
       `category_title` text NOT NULL,
       `category_icon` text NOT NULL,
       `category_description` text DEFAULT NULL,
+      `category_roles` text NOT NULL DEFAULT '',
+      `category_teams` text NOT NULL DEFAULT '',
       `category_permission` text DEFAULT NULL,
       `category_order` int(8) unsigned NOT NULL,
       `category_created` datetime NOT NULL,

@@ -12,7 +12,7 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
 import { createKnowledgeBaseScope } from '@app/admin/content/ContentScope';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { readUserSetting } from '@lib/UserSettings';
-import db, { tContentCategories } from '@lib/database';
+import db, { tContentCategories, tEventsTeams, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 /**
  * The FAQ provides a library of questions that we've received, or may receive from our visitors. It
@@ -35,6 +35,34 @@ export default async function EventTeamFaqPage(
             label: tContentCategories.categoryTitle,
         })
         .orderBy(tContentCategories.categoryOrder, 'asc')
+        .executeSelectMany();
+
+    // Select the roles that categories can be restricted to.
+    const roles = await db.selectFrom(tEventsTeams)
+        .innerJoin(tTeamsRoles)
+            .on(tTeamsRoles.teamId.equals(tEventsTeams.teamId))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tTeamsRoles.roleId))
+        .where(tEventsTeams.eventId.equals(event.id))
+            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .select({
+            value: tRoles.roleId,
+            label: tRoles.roleName,
+        })
+        .orderBy('label')
+        .executeSelectMany();
+
+    // Select the teams that categories can be restricted to.
+    const teams = await db.selectFrom(tEventsTeams)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+        .where(tEventsTeams.eventId.equals(event.id))
+            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .select({
+            value: tTeams.teamId,
+            label: tTeams.teamName,
+        })
+        .orderBy('label')
         .executeSelectMany();
 
     // Whether the `<KnowledgeCategories>` section should be expanded by default.
@@ -65,7 +93,8 @@ export default async function EventTeamFaqPage(
                 <Section title="Create a new question">
                     <CreateQuestionForm categories={categories} scope={scope} />
                 </Section> }
-            <KnowledgeCategories defaultExpanded={expandCategories} event={event.slug} />
+            <KnowledgeCategories defaultExpanded={expandCategories} event={event.slug}
+                                 roles={roles} teams={teams} />
         </>
     );
 }

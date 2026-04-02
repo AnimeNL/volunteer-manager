@@ -68,6 +68,15 @@ export const kPermissions = {
         type: 'boolean',
     },
 
+    'event.knowledge': {
+        name: 'Knowledge base',
+        description:
+            'This permission describes whether they have unrestricted access to the knowledge ' +
+            'base of this particular event, regardless of role and/or team restrictions.',
+        requireEvent: true,
+        type: 'boolean',
+    },
+
     'event.requests': {
         name: 'Program request management',
         description:
@@ -539,6 +548,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.applications',
         'event.help-requests',
         'event.hotels',
+        'event.knowledge',
         'event.requests',
         'event.retention',
         'event.schedule',

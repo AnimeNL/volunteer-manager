@@ -37,9 +37,18 @@ const kContentCategoryRowModel = z.object({
     description: z.string().optional(),
 
     /**
-     * Permission necessary to access the category.
+     * Roles that content in the category should be restricted to.
+     *
+     * @todo Update to an array of numbers
      */
-    permission: z.string().optional(),
+    roles: z.string(),
+
+    /**
+     * Teams that content in the category should be restricted to.
+     *
+     * @todo Update to an array of numbers
+     */
+    teams: z.string(),
 
     /**
      * Ordering for this category.
@@ -112,7 +121,6 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 eventId: event.id,
                 categoryTitle: kDefaultTitle,
                 categoryIcon: kDefaultIcon,
-                categoryPermission: null,
                 categoryOrder,
                 categoryCreated: dbInstance.currentZonedDateTime(),
                 categoryUpdated: dbInstance.currentZonedDateTime(),
@@ -125,6 +133,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 id: insertId,
                 icon: kDefaultIcon,
                 title: kDefaultTitle,
+                roles: /* no restrictions= */ '',
+                teams: /* no restrictions= */ '',
                 order: categoryOrder,
             },
         };
@@ -172,7 +182,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 icon: tContentCategories.categoryIcon,
                 title: tContentCategories.categoryTitle,
                 description: tContentCategories.categoryDescription,
-                permission: tContentCategories.categoryPermission,
+                roles: tContentCategories.categoryRoles,
+                teams: tContentCategories.categoryTeams,
                 order: tContentCategories.categoryOrder,
             })
             .orderBy(sort?.field ?? 'title', sort?.sort ?? 'asc')
@@ -214,7 +225,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 categoryTitle: row.title,
                 categoryIcon: row.icon,
                 categoryDescription: !!row.description ? row.description : null,
-                categoryPermission: !!row.permission ? row.permission : null,
+                categoryRoles: row.roles,
+                categoryTeams: row.teams,
                 categoryUpdated: dbInstance.currentZonedDateTime(),
             })
             .where(tContentCategories.categoryId.equals(row.id))

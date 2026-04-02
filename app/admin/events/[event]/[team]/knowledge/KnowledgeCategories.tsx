@@ -3,6 +3,9 @@
 
 'use client';
 
+import type { ValueOptions } from '@mui/x-data-grid-pro';
+import { default as MuiLink } from '@mui/material/Link';
+import Alert from '@mui/material/Alert';
 import CatchingPokemonIcon from '@mui/icons-material/CatchingPokemon';
 import CategoryIcon from '@mui/icons-material/Category';
 import Tooltip from '@mui/material/Tooltip';
@@ -26,6 +29,16 @@ interface KnowledgeCategoriesProps {
      * Unique slug of the event for which the categories are being shown.
      */
     event: string;
+
+    /**
+     * Roles that categories can be limited to.
+     */
+    roles: ValueOptions[];
+
+    /**
+     * Teams that categories can be limited to.
+     */
+    teams: ValueOptions[];
 }
 
 /**
@@ -92,30 +105,37 @@ export function KnowledgeCategories(props: KnowledgeCategoriesProps) {
             },
         },
         {
-            field: 'permission',
-            headerName: 'Permission',
+            field: 'roles',
+            headerName: 'Restrict to roles…',
             editable: true,
             sortable: false,
             flex: 1,
 
-            renderCell: params => {
-                if (!!params.value)
-                    return params.value;
+            // TODO: Upgrade to `multiSelect`: https://github.com/mui/mui-x/pull/21157
+            type: 'string',
+        },
+        {
+            field: 'teams',
+            headerName: 'Restrict to teams…',
+            editable: true,
+            sortable: false,
+            flex: 1,
 
-                return (
-                    <Typography component="span" variant="body2"
-                                sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-                        No restrictions…
-                    </Typography>
-                );
-            },
-        }
+            // TODO: Upgrade to `multiSelect`: https://github.com/mui/mui-x/pull/21157
+            type: 'string',
+        },
     ];
 
     return (
         <ExpandableSection defaultExpanded={defaultExpanded}
                            setting="user-admin-knowledge-expand-categories"
                            icon={ <CategoryIcon color="info" /> } title="Categories">
+
+            <Alert severity="warning">
+                Role and team restrictions are a bit wonky until{' '}
+                <MuiLink href="https://github.com/mui/mui-x/pull/21157">this PR</MuiLink> is merged,
+                please ask Peter to make any changes to those columns for now.
+            </Alert>
 
             <RemoteDataTable columns={columns} endpoint="/api/admin/content/categories"
                              context={{ event }} defaultSort={{ field: 'order', sort: 'asc' }}
