@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getAnPlanAreaUrl } from '@lib/AnPlan';
 import { getEventBySlug } from '@lib/EventLoader';
@@ -124,6 +125,8 @@ createDataTableApi(kProgramAreaRowModel, kProgramAreaContext, {
         if (!insertedRows)
             return { success: false, error: 'Unable to write the new area to the database…' };
 
+        ScheduleCache.clear('program', event.festivalId);
+
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
                 festivalId: event.festivalId,
@@ -160,6 +163,8 @@ createDataTableApi(kProgramAreaRowModel, kProgramAreaContext, {
                 .and(tActivitiesAreas.areaType.equals(kActivityType.Internal))
                 .and(tActivitiesAreas.areaDeleted.isNull())
             .executeUpdate();
+
+        ScheduleCache.clear('program', event.festivalId);
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -226,6 +231,8 @@ createDataTableApi(kProgramAreaRowModel, kProgramAreaContext, {
                 .and(tActivitiesAreas.areaId.equals(id))
                 .and(tActivitiesAreas.areaType.equals(kActivityType.Internal))
             .executeUpdate();
+
+        ScheduleCache.clear('program', event.festivalId);
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({

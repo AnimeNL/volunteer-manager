@@ -4,19 +4,30 @@
 /**
  * Enumeration of the types of cache that the ScheduleCache can contain.
  */
-type ScheduleCacheType = 'knowledge';
+type ScheduleCacheType = 'knowledge' | 'program';
+
+/**
+ * Maximum time-to-live of any entry in the schedule cache, in nanoseconds. This allows the system
+ * to self-recover in case invalidation isn't implemented somewhere properly.
+ */
+const kCacheExpirationTimeNs = 10n * 60n * 1000n * 1000n * 1000n;  // 10 minutes
 
 /**
  * Implementation of a generic cache that allows query data to be cached until the cache is cleared.
  */
 export class ScheduleCache {
     static #cache: Map<string, ScheduleCache> = new Map;
+    static #cacheTime: Map<string, bigint> = new Map;
+
 
     /**
      * Clears any data that's stored for the given `type` and `eventId` tuple.
      */
     static clear(type: ScheduleCacheType, eventId: number) {
-        ScheduleCache.#cache.delete(ScheduleCache.getCacheKey(type, eventId));
+        const cacheKey = ScheduleCache.getCacheKey(type, eventId);
+
+        ScheduleCache.#cache.delete(cacheKey);
+        ScheduleCache.#cacheTime.delete(cacheKey);
     }
 
     /**
@@ -24,8 +35,20 @@ export class ScheduleCache {
      */
     static for(type: ScheduleCacheType, eventId: number) {
         const cacheKey = ScheduleCache.getCacheKey(type, eventId);
-        if (!ScheduleCache.#cache.has(cacheKey))
+
+        if (ScheduleCache.#cacheTime.has(cacheKey)) {
+            const cacheAge = process.hrtime.bigint() - ScheduleCache.#cacheTime.get(cacheKey)!
+
+            if (cacheAge > kCacheExpirationTimeNs) {
+                ScheduleCache.#cache.delete(cacheKey);
+                ScheduleCache.#cacheTime.delete(cacheKey);
+            }
+        }
+
+        if (!ScheduleCache.#cache.has(cacheKey)) {
             ScheduleCache.#cache.set(cacheKey, new ScheduleCache());
+            ScheduleCache.#cacheTime.set(cacheKey, process.hrtime.bigint());
+        }
 
         return ScheduleCache.#cache.get(cacheKey)!;
     }

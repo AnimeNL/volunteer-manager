@@ -347,43 +347,44 @@ async function populateProgram(
             products.clear();
     }
 
-    const activities = await dbInstance.selectFrom(tActivities)
-        .innerJoin(tActivitiesTimeslots)
-            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
-                .and(tActivitiesTimeslots.timeslotDeleted.isNull())
-        .innerJoin(tActivitiesLocations)
-            .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
-                .and(tActivitiesLocations.locationDeleted.isNull())
-        .innerJoin(tActivitiesAreas)
-            .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
-                .and(tActivitiesAreas.areaDeleted.isNull())
-        .where(tActivities.activityFestivalId.equals(festivalId))
-            .and(tActivities.activityType.equals(kActivityType.Program))
-            .and(tActivities.activityDeleted.isNull())
-        .select({
-            id: tActivities.activityId,
-            title: tActivities.activityTitle,
-            visible: tActivities.activityVisible.equals(/* true= */ 1),
+    const activities = await ScheduleCache.for('program', festivalId).getOrCreate(() =>
+        dbInstance.selectFrom(tActivities)
+            .innerJoin(tActivitiesTimeslots)
+                .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
+                    .and(tActivitiesTimeslots.timeslotDeleted.isNull())
+            .innerJoin(tActivitiesLocations)
+                .on(tActivitiesLocations.locationId.equals(tActivitiesTimeslots.timeslotLocationId))
+                    .and(tActivitiesLocations.locationDeleted.isNull())
+            .innerJoin(tActivitiesAreas)
+                .on(tActivitiesAreas.areaId.equals(tActivitiesLocations.locationAreaId))
+                    .and(tActivitiesAreas.areaDeleted.isNull())
+            .where(tActivities.activityFestivalId.equals(festivalId))
+                .and(tActivities.activityType.equals(kActivityType.Program))
+                .and(tActivities.activityDeleted.isNull())
+            .select({
+                id: tActivities.activityId,
+                title: tActivities.activityTitle,
+                visible: tActivities.activityVisible.equals(/* true= */ 1),
 
-            timeslots: dbInstance.aggregateAsArray({
-                id: tActivitiesTimeslots.timeslotId,
-                start: tActivitiesTimeslots.timeslotStartTime,
-                end: tActivitiesTimeslots.timeslotEndTime,
+                timeslots: dbInstance.aggregateAsArray({
+                    id: tActivitiesTimeslots.timeslotId,
+                    start: tActivitiesTimeslots.timeslotStartTime,
+                    end: tActivitiesTimeslots.timeslotEndTime,
 
-                area: {
-                    id: tActivitiesAreas.areaId,
-                    name: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
-                },
+                    area: {
+                        id: tActivitiesAreas.areaId,
+                        name: tActivitiesAreas.areaDisplayName.valueWhenNull(tActivitiesAreas.areaName),
+                    },
 
-                location: {
-                    id: tActivitiesLocations.locationId,
-                    name: tActivitiesLocations.locationDisplayName.valueWhenNull(
-                        tActivitiesLocations.locationName),
-                },
-            }),
-        })
-        .groupBy(tActivities.activityId)
-        .executeSelectMany();
+                    location: {
+                        id: tActivitiesLocations.locationId,
+                        name: tActivitiesLocations.locationDisplayName.valueWhenNull(
+                            tActivitiesLocations.locationName),
+                    },
+                }),
+            })
+            .groupBy(tActivities.activityId)
+            .executeSelectMany());
 
     for (const activity of activities) {
         const activityId = `${activity.id}`;

@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { getEventBySlug } from '@lib/EventLoader';
@@ -155,6 +156,8 @@ createDataTableApi(kProgramActivityRowModel, kProgramActivityContext, {
         if (!insertedRows)
             return { success: false, error: 'Unable to write the new activity to the database…' };
 
+        ScheduleCache.clear('program', event.festivalId);
+
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
                 festivalId: event.festivalId,
@@ -196,6 +199,8 @@ createDataTableApi(kProgramActivityRowModel, kProgramActivityContext, {
                 .and(tActivities.activityType.equals(kActivityType.Internal))
                 .and(tActivities.activityDeleted.isNull())
             .executeUpdate();
+
+        ScheduleCache.clear('program', event.festivalId);
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
@@ -336,6 +341,8 @@ createDataTableApi(kProgramActivityRowModel, kProgramActivityContext, {
             .executeUpdate();
 
         if (!!affectedRows) {
+            ScheduleCache.clear('program', event.festivalId);
+
             await dbInstance.insertInto(tActivitiesLogs)
                 .set({
                     festivalId: event.festivalId,
