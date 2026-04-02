@@ -9,6 +9,7 @@ import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
 import type { DBConnection } from '@lib/database/Connection';
 import { FavouriteCache } from './FavouriteCache';
+import { ScheduleCache } from './ScheduleCache';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEventBySlug } from '@lib/EventLoader';
@@ -175,29 +176,30 @@ async function populateKnowledgeBase(
         event: schedule.slug,
     });
 
-    const knowledge = await dbInstance.selectFrom(tContentCategories)
-        .innerJoin(tContent)
-            .on(tContent.contentCategoryId.equals(tContentCategories.categoryId))
-                .and(tContent.revisionVisible.equals(/* true= */ 1))
-        .where(tContentCategories.eventId.equals(eventId))
-            .and(tContentCategories.categoryDeleted.isNull())
-        .select({
-            id: tContentCategories.categoryId,
-            icon: tContentCategories.categoryIcon,
-            title: tContentCategories.categoryTitle,
-            description: tContentCategories.categoryDescription,
+    const knowledge = await ScheduleCache.for('knowledge', eventId).getOrCreate(() =>
+        dbInstance.selectFrom(tContentCategories)
+            .innerJoin(tContent)
+                .on(tContent.contentCategoryId.equals(tContentCategories.categoryId))
+                    .and(tContent.revisionVisible.equals(/* true= */ 1))
+            .where(tContentCategories.eventId.equals(eventId))
+                .and(tContentCategories.categoryDeleted.isNull())
+            .select({
+                id: tContentCategories.categoryId,
+                icon: tContentCategories.categoryIcon,
+                title: tContentCategories.categoryTitle,
+                description: tContentCategories.categoryDescription,
 
-            roles: tContentCategories.categoryRoles,
-            teams: tContentCategories.categoryTeams,
+                roles: tContentCategories.categoryRoles,
+                teams: tContentCategories.categoryTeams,
 
-            questions: dbInstance.aggregateAsArray({
-                id: tContent.contentPath,
-                question: tContent.contentTitle,
-            }),
-        })
-        .groupBy(tContentCategories.categoryId)
-        .orderBy(tContentCategories.categoryOrder, 'asc')
-        .executeSelectMany();
+                questions: dbInstance.aggregateAsArray({
+                    id: tContent.contentPath,
+                    question: tContent.contentTitle,
+                }),
+            })
+            .groupBy(tContentCategories.categoryId)
+            .orderBy(tContentCategories.categoryOrder, 'asc')
+            .executeSelectMany());
 
     schedule.knowledge = knowledge.map(category => {
         const { roles, teams, ...rest } = category;

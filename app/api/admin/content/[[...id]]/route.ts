@@ -4,6 +4,7 @@
 import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { Temporal } from '@lib/Temporal';
 import { clearContentCache } from '@lib/Content';
 import { createDataTableApi, type DataTableEndpoints } from '../../../createDataTableApi';
@@ -11,7 +12,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventSlugForId } from '@lib/EventLoader';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
-import { kContentType } from '@lib/database/Types';
+import { type ContentType, kContentType } from '@lib/database/Types';
 
 /**
  * Row model for a piece of content, as can be shown or edited through the administration panel.
@@ -116,6 +117,16 @@ export type ContentRowModel = z.infer<typeof kContentRowModel>;
 export type ContentScope = z.infer<typeof kContentContext>['context'];
 
 /**
+ * Clears all content caches for the given `eventId` and `type`.
+ */
+function clearContentCacheForEventAndType(eventId: number, type: ContentType) {
+    if (type === 'FAQ')
+        ScheduleCache.clear('knowledge', eventId);
+
+    clearContentCache();
+}
+
+/**
  * The Content API is implemented as a regular, editable DataTable API. All operations are gated on
  * permissions specific to the content's context, and changes will be logged as appropriate.
  *
@@ -176,7 +187,7 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
             .returningLastInsertedId()
             .executeInsert();
 
-        clearContentCache();
+        clearContentCacheForEventAndType(context.eventId, context.type);
 
         return {
             success: true,
@@ -202,7 +213,7 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
                 .and(tContent.contentProtected.equals(/* false= */ 0))
             .executeUpdate(/* min= */ 0, /* max= */ 1);
 
-        clearContentCache();
+        clearContentCacheForEventAndType(context.eventId, context.type);
 
         return { success: !!affectedRows };
     },
@@ -335,7 +346,7 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
                 .and(tContent.contentType.equals(context.type))
             .executeUpdate();
 
-        clearContentCache();
+        clearContentCacheForEventAndType(context.eventId, context.type);
 
         return { success: !!affectedRows };
     },

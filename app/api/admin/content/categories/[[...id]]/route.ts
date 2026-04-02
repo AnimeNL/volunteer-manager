@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tContentCategories, tContent } from '@lib/database';
@@ -127,6 +128,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
             })
             .executeInsert();
 
+        ScheduleCache.clear('knowledge', event.id);
+
         return {
             success: true,
             row: {
@@ -165,6 +168,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 .and(tContentCategories.eventId.equals(event.id))
                 .and(tContentCategories.categoryDeleted.isNull())
             .executeUpdate();
+
+        ScheduleCache.clear('knowledge', event.id);
 
         return { success: !!affectedRows };
     },
@@ -211,6 +216,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
             }
         });
 
+        ScheduleCache.clear('knowledge', event.id);
+
         return { success: true };
     },
 
@@ -233,6 +240,8 @@ createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
                 .and(tContentCategories.eventId.equals(event.id))
                 .and(tContentCategories.categoryDeleted.isNull())
             .executeUpdate();
+
+        ScheduleCache.clear('knowledge', event.id);
 
         return { success: !!affectedRows };
     },
