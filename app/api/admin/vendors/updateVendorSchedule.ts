@@ -8,6 +8,7 @@ import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
 import { type VendorTeam, kVendorTeam } from '@lib/database/Types';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
@@ -175,6 +176,8 @@ export async function updateVendorSchedule(request: Request, props: ActionProps)
             }
         }
     });
+
+    ScheduleCache.clear('vendors', event.id);
 
     const kVendorTeamName: { [k in VendorTeam]: string } = {
         [kVendorTeam.FirstAid]: 'First Aid',

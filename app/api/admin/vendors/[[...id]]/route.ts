@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '@app/api/createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
 import { readSetting } from '@lib/Settings';
@@ -180,6 +181,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kVendorRowModel, kV
             .returningLastInsertedId()
             .executeInsert();
 
+        ScheduleCache.clear('vendors', event.eventId);
+
         return {
             success: true,
             row: {
@@ -204,6 +207,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kVendorRowModel, kV
                 .and(tVendors.vendorTeam.equals(context.team))
                 .and(tVendors.vendorVisible.equals(/* true= */ 1))
             .executeUpdate();
+
+        ScheduleCache.clear('vendors', event.eventId);
 
         return { success: !!affectedRows };
     },
@@ -260,6 +265,8 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kVendorRowModel, kV
                 .and(tVendors.vendorTeam.equals(context.team))
                 .and(tVendors.vendorVisible.equals(/* true= */ 1))
             .executeUpdate();
+
+        ScheduleCache.clear('vendors', event.eventId);
 
         return { success: !!affectedRows };
     },

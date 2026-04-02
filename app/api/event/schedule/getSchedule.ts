@@ -476,25 +476,26 @@ async function populateVendors(
         schedule.vendors[kVendorTeam.Security] = { active: [ /* empty */ ], schedule: [] };
 
     const vendorsScheduleJoin = tVendorsSchedule.forUseInLeftJoin();
-    const vendors = await dbInstance.selectFrom(tVendors)
-        .leftJoin(vendorsScheduleJoin)
-            .on(vendorsScheduleJoin.vendorId.equals(tVendors.vendorId))
-                .and(vendorsScheduleJoin.vendorsScheduleDeleted.isNull())
-        .where(tVendors.eventId.equals(eventId))
-            .and(tVendors.vendorVisible.equals(/* true= */ 1))
-        .select({
-            id: tVendors.vendorId,
-            firstName: tVendors.vendorFirstName,
-            team: tVendors.vendorTeam,
-            shifts: dbInstance.aggregateAsArray({
-                start: vendorsScheduleJoin.vendorsScheduleStart,
-                end: vendorsScheduleJoin.vendorsScheduleEnd,
-            }),
-        })
-        .groupBy(tVendors.vendorId)
-        .orderBy(tVendors.vendorFirstName, 'asc')
-            .orderBy(tVendors.vendorLastName, 'asc')
-        .executeSelectMany();
+    const vendors = await ScheduleCache.for('vendors', eventId).getOrCreate(() =>
+        dbInstance.selectFrom(tVendors)
+            .leftJoin(vendorsScheduleJoin)
+                .on(vendorsScheduleJoin.vendorId.equals(tVendors.vendorId))
+                    .and(vendorsScheduleJoin.vendorsScheduleDeleted.isNull())
+            .where(tVendors.eventId.equals(eventId))
+                .and(tVendors.vendorVisible.equals(/* true= */ 1))
+            .select({
+                id: tVendors.vendorId,
+                firstName: tVendors.vendorFirstName,
+                team: tVendors.vendorTeam,
+                shifts: dbInstance.aggregateAsArray({
+                    start: vendorsScheduleJoin.vendorsScheduleStart,
+                    end: vendorsScheduleJoin.vendorsScheduleEnd,
+                }),
+            })
+            .groupBy(tVendors.vendorId)
+            .orderBy(tVendors.vendorFirstName, 'asc')
+                .orderBy(tVendors.vendorLastName, 'asc')
+            .executeSelectMany());
 
     for (const vendor of vendors) {
         if (fullAccess) {

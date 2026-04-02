@@ -4,7 +4,7 @@
 /**
  * Enumeration of the types of cache that the ScheduleCache can contain.
  */
-type ScheduleCacheType = 'knowledge' | 'program';
+type ScheduleCacheType = 'knowledge' | 'program' | 'vendors';
 
 /**
  * Maximum time-to-live of any entry in the schedule cache, in nanoseconds. This allows the system
