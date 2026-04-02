@@ -13,6 +13,7 @@ describe('getShiftsForEvent', () => {
                 id: 1,
                 category: {
                     colour: '#000000,#ffffff',
+                    countContribution: 1,
                     name: 'My category',
                 },
                 name: 'My shift',
@@ -39,6 +40,7 @@ describe('getShiftsForEvent', () => {
         const shiftTemplate = {
             category: {
                 colour: '#000000,#ffffff',
+                countContribution: 1,
                 name: 'My category',
             },
             team: {
@@ -71,6 +73,7 @@ describe('getShiftsForEvent', () => {
         const shiftTemplate = {
             category: {
                 colour: '#000000,#ffffff',
+                countContribution: 1,
                 name: 'My category',
             },
             team: {
@@ -110,6 +113,7 @@ describe('getShiftsForEvent', () => {
         const shiftTemplate = {
             category: {
                 colour: '#000000,#ffffff',
+                countContribution: 1,
                 name: 'My category',
             },
             activity: undefined,
@@ -139,6 +143,7 @@ describe('getShiftsForEvent', () => {
         const shiftTemplate = {
             category: {
                 colour: '#ff00ff',
+                countContribution: 1,
                 name: 'My category',
             },
             team: {
