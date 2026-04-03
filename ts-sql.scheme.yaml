@@ -3333,6 +3333,74 @@ tables:
       `publication_created` datetime NOT NULL,
       PRIMARY KEY (`publication_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: duty_book
+  type: BASE TABLE
+  columns:
+  - name: duty_book_id
+    type: int(4) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: duty_book_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: duty_book_event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: duty_book_incident
+    type: text
+    nullable: false
+  - name: duty_book_ai_summary
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: duty_book_created
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: duty_book_updated
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: duty_book_hidden
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: duty_book_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: duty_book_event_id
+    def: KEY duty_book_event_id (duty_book_event_id) USING BTREE
+    table: duty_book
+    columns:
+    - duty_book_event_id
+  - name: PRIMARY
+    def: PRIMARY KEY (duty_book_id) USING BTREE
+    table: duty_book
+    columns:
+    - duty_book_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (duty_book_id)
+    table: duty_book
+    columns:
+    - duty_book_id
+  def: |-
+    CREATE TABLE `duty_book` (
+      `duty_book_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
+      `duty_book_user_id` int(4) unsigned NOT NULL,
+      `duty_book_event_id` int(4) unsigned NOT NULL,
+      `duty_book_incident` text NOT NULL,
+      `duty_book_ai_summary` text DEFAULT NULL,
+      `duty_book_created` datetime NOT NULL DEFAULT current_timestamp(),
+      `duty_book_updated` datetime NOT NULL DEFAULT current_timestamp(),
+      `duty_book_hidden` datetime DEFAULT NULL,
+      `duty_book_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`duty_book_id`),
+      KEY `duty_book_event_id` (`duty_book_event_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: subscriptions
   type: BASE TABLE
   columns:
@@ -4564,6 +4632,47 @@ tables:
       `sale_event_id` int(4) unsigned DEFAULT NULL,
       UNIQUE KEY `event_id` (`event_id`,`sale_id`),
       KEY `event_id_2` (`event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: duty_book_viewers
+  type: BASE TABLE
+  columns:
+  - name: duty_book_id
+    type: int(4) unsigned
+    nullable: false
+  - name: duty_book_viewer_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: duty_book_viewer_date
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  indexes:
+  - name: duty_book_id_2
+    def: KEY duty_book_id_2 (duty_book_id) USING BTREE
+    table: duty_book_viewers
+    columns:
+    - duty_book_id
+  - name: duty_book_id
+    def: UNIQUE KEY duty_book_id (duty_book_id, duty_book_viewer_user_id) USING BTREE
+    table: duty_book_viewers
+    columns:
+    - duty_book_id
+    - duty_book_viewer_user_id
+  constraints:
+  - name: duty_book_id
+    type: UNIQUE
+    def: UNIQUE KEY duty_book_id (duty_book_id, duty_book_viewer_user_id)
+    table: duty_book_viewers
+    columns:
+    - duty_book_id
+    - duty_book_viewer_user_id
+  def: |-
+    CREATE TABLE `duty_book_viewers` (
+      `duty_book_id` int(4) unsigned NOT NULL,
+      `duty_book_viewer_user_id` int(4) unsigned NOT NULL,
+      `duty_book_viewer_date` datetime NOT NULL DEFAULT current_timestamp(),
+      UNIQUE KEY `duty_book_id` (`duty_book_id`,`duty_book_viewer_user_id`),
+      KEY `duty_book_id_2` (`duty_book_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
 - table: users_events

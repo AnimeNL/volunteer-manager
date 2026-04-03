@@ -12,6 +12,8 @@ export { tContentCategory as tContentCategories } from './scheme/ContentCategory
 export { tContent } from './scheme/ContentTable';
 export { tDisplays } from './scheme/DisplaysTable';
 export { tDisplaysRequests } from './scheme/DisplaysRequestsTable';
+export { tDutyBookViewers } from './scheme/DutyBookViewersTable';
+export { tDutyBook } from './scheme/DutyBookTable';
 export { tEnvironments } from './scheme/EnvironmentsTable';
 export { tErrorLogs } from './scheme/ErrorLogsTable';
 export { tEvents } from './scheme/EventsTable';
