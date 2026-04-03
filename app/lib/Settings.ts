@@ -156,7 +156,6 @@ export type Settings = {
     'schedule-del-a-rie-advies-time-limit': number;
     'schedule-favourite-events': boolean;
     'schedule-knowledge-base': boolean;
-    'schedule-knowledge-base-search': boolean;
     'schedule-logical-days': boolean;
     'schedule-sales-product-panel': boolean;
     'schedule-sales-sold-out': boolean;

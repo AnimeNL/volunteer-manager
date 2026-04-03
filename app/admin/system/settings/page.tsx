@@ -303,14 +303,6 @@ export default async function IntegrationsPage() {
                 description: 'Whether the knowledge base should be enabled',
             },
             {
-                setting: 'schedule-knowledge-base-search',
-                type: 'boolean',
-                defaultValue: true,
-
-                label: 'Knowledge base (search)',
-                description: 'Whether the search function should consider questions',
-            },
-            {
                 setting: 'schedule-logical-days',
                 type: 'boolean',
                 defaultValue: false,

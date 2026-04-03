@@ -146,20 +146,18 @@ function Search(schedule: PublicSchedule, query: string, limit: number) {
         }
     }
 
-    if (schedule.config.enableKnowledgeBaseSearch) {
-        for (const category of schedule.knowledge) {
-            for (const [ question, id ] of Object.entries(category.questions)) {
-                const score = stringScoreEx(
-                    question, query, normalisedQuery, schedule.config.searchResultFuzziness);
+    for (const category of schedule.knowledge) {
+        for (const [ question, id ] of Object.entries(category.questions)) {
+            const score = stringScoreEx(
+                question, query, normalisedQuery, schedule.config.searchResultFuzziness);
 
-                if (score >= schedule.config.searchResultMinimumScore) {
-                    results.push({
-                        type: 'knowledge',
-                        href: `${scheduleBaseUrl}/knowledge/${category.id}?q=${id}#${id}`,
-                        label: question,
-                        score: score + kSearchScoreTypeBonus.knowledge,
-                    });
-                }
+            if (score >= schedule.config.searchResultMinimumScore) {
+                results.push({
+                    type: 'knowledge',
+                    href: `${scheduleBaseUrl}/knowledge/${category.id}?q=${id}#${id}`,
+                    label: question,
+                    score: score + kSearchScoreTypeBonus.knowledge,
+                });
             }
         }
     }

@@ -101,11 +101,6 @@ export const kPublicSchedule = z.strictObject({
         enableKnowledgeBase: z.boolean(),
 
         /**
-         * Whether searching through the knowledge base should be enabled.
-         */
-        enableKnowledgeBaseSearch: z.boolean(),
-
-        /**
          * Whether convention days should be "logical" days rather than calendar days, i.e. shifts
          * that finish before 4AM will be counted as part of the previous day.
          */
