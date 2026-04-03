@@ -602,7 +602,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: event.duty-book omitted
         // note: event.help-requests omitted
         // note: event.hotels omitted
-        // note: event.knowledge omitted
+        'event.knowledge',
         // note: event.refunds omitted
         // note: event.requests omitted
         'event.retention',
