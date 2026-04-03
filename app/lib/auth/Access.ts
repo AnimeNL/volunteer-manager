@@ -559,6 +559,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.help-requests',
         'event.hotels',
         'event.knowledge',
+        // note: event.refunds omitted
         'event.requests',
         'event.retention',
         'event.schedule',
@@ -595,15 +596,34 @@ export const kPermissionGroups: Record<string, string[]> = {
     ],
 
     senior: [
+        // note: event.applications:create omitted
         'event.applications:read',
+        // note: event.applications:update omitted
+        // note: event.duty-book omitted
+        // note: event.help-requests omitted
+        // note: event.hotels omitted
+        // note: event.knowledge omitted
+        // note: event.refunds omitted
+        // note: event.requests omitted
         'event.retention',
         'event.schedule.access',
         'event.schedule.planning:read',
+        // note: event.schedule.planning:update omitted
+        // note: event.settings omitted
         // note: event.shift-categories omitted
+        // note: event.shifts:create omitted
+        // note: event.shifts:delete omitted
         'event.shifts:read',
+        // note: event.shifts:update omitted
+        // note: event.trainings omitted
+        // note: event.vendors:create omitted
+        // note: event.vendors:delete omitted
         'event.vendors:read',
+        // note: event.vendors:update omitted
         'event.visible',
         'event.volunteers.information',
+        // note: event.volunteers.overrides omitted
+        // note: event.volunteers.participation omitted
 
         // note: organisation.accounts omitted
         'organisation.avatars',
