@@ -128,6 +128,6 @@ export function KnowledgeList(props: KnowledgeListProps) {
     return (
         <RemoteDataTable columns={columns} endpoint="/api/admin/content" context={props.scope}
                          defaultSort={{ field: 'categoryOrder', sort: 'asc' }} pageSize={25}
-                         enableDelete subject="knowledge base article" />
+                         enableDelete subject="knowledge base article" enableQueryParams />
     );
 }

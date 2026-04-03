@@ -19,6 +19,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import MapIcon from '@mui/icons-material/Map';
+import PeopleIcon from '@mui/icons-material/People';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import SecurityIcon from '@mui/icons-material/Security';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
@@ -34,6 +35,7 @@ export const kKnowledgeBaseIconTable: { [k: string]: typeof SvgIcon } = {
     Food: RamenDiningIcon,
     Money: EuroIcon,
     Neighbourhood: MapIcon,
+    People: PeopleIcon,
     Rules: GavelIcon,
     Security: SecurityIcon,
     Senior: WhatshotIcon,
