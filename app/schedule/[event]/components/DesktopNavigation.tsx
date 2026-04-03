@@ -11,6 +11,7 @@ import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import BookIcon from '@mui/icons-material/Book';
 import Box from '@mui/material/Box';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import GroupIcon from '@mui/icons-material/Group';
@@ -256,6 +257,12 @@ export function DesktopNavigation() {
                                                 href={area.url}
                                                 icon={ <ArrowRightIcon /> } label={area.name} /> )}
                 </List>
+                { !!schedule.config.enableDutyBook &&
+                    <DesktopNavigationEntry active={ schedulePathname.startsWith('/duty-book') }
+                                            href={ scheduleBaseUrl + '/duty-book' }
+                                            icon={ <BookIcon /> }
+                                            label="Duty book" /> }
+
                 { !!schedule.config.enableHelpRequests &&
                     <DesktopNavigationEntry active={ schedulePathname.startsWith('/help-requests') }
                                             badge={ schedule.helpRequestsPending }

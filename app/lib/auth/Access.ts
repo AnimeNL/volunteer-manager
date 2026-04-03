@@ -38,7 +38,7 @@ export const kPermissions = {
     // ---------------------------------------------------------------------------------------------
 
     'event.applications': {
-        name: 'Event volunteer applications',
+        name: 'Application management',
         description:
             'This permission determines whether the volunteer is able to deal with incoming ' +
             'participation applications.',
@@ -46,6 +46,15 @@ export const kPermissions = {
         requireEvent: true,
         requireTeam: true,
         type: 'crud',
+    },
+
+    'event.duty-book': {
+        name: 'Duty Book',
+        description:
+            'This permission controls whether they have the ability access the Duty Book, ' +
+            'regardless of which team they are part of. Revoking this permission does not ' +
+            'override the regular team-based access rules.',
+        type: 'boolean',
     },
 
     'event.help-requests': {
@@ -546,6 +555,7 @@ export const kPermissionGroups: Record<string, string[]> = {
 
     staff: [
         'event.applications',
+        'event.duty-book',
         'event.help-requests',
         'event.hotels',
         'event.knowledge',

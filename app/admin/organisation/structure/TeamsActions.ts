@@ -403,6 +403,7 @@ const kUpdateTeamData = z.object({
     defaultRoleId: z.number(),
     availableRoleIds: z.array(z.number()),
 
+    flagEnableDutyBook: z.boolean(),
     flagEnableScheduling: z.boolean(),
     flagGrowthCharts: z.boolean(),
     flagManagesContent: z.boolean(),
@@ -442,6 +443,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
                     teamPlural: data.plural,
                     teamTitle: data.title,
 
+                    teamFlagEnableDutyBook: !!data.flagEnableDutyBook ? 1 : 0,
                     teamFlagEnableScheduling: !!data.flagEnableScheduling ? 1 : 0,
                     teamFlagGrowthCharts: !!data.flagGrowthCharts ? 1 : 0,
                     teamFlagManagesContent: !!data.flagManagesContent ? 1 : 0,

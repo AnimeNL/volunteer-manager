@@ -197,6 +197,11 @@ export interface PageInfoWithTeam extends PageInfo {
         _environment: string;
 
         /**
+         * Whether this team has access to the Duty Book.
+         */
+        flagEnableDutyBook: boolean;
+
+        /**
          * Whether this team has access to volunteer scheduling tools.
          */
         flagEnableScheduling: boolean;
@@ -332,6 +337,7 @@ export async function verifyAccessAndFetchPageInfo(
             slug: tTeams.teamSlug,
             _environment: tTeams.teamEnvironment,
 
+            flagEnableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
             flagEnableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
             flagManagesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
             flagManagesFaq: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),

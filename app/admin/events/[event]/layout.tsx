@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
+import BookIcon from '@mui/icons-material/Book';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
 import GridViewIcon from '@mui/icons-material/GridView';
@@ -26,6 +27,7 @@ import type { User } from '@lib/auth/User';
 import { AdminContent } from '../../AdminContent';
 import { AdminPageContainer } from '../../AdminPageContainer';
 import { type AdminSidebarMenuEntry, AdminSidebar } from '../../AdminSidebar';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import db, { tActivities, tEvents, tEventsSalesConfiguration, tEventsTeams, tHotelsAssignments,
@@ -95,6 +97,7 @@ async function fetchEventSidebarInformation(user: User, eventSlug: string) {
                 slug: teamsJoin.teamSlug,
                 color: teamsJoin.teamColourLightTheme,
 
+                flagEnableDutyBook: teamsJoin.teamFlagEnableDutyBook.equals(/* true= */ 1),
                 flagEnableScheduling: teamsJoin.teamFlagEnableScheduling.equals(/* true= */ 1),
                 flagManagesContent: teamsJoin.teamFlagManagesContent.equals(/* true= */ 1),
                 flagManagesFaq: teamsJoin.teamFlagManagesFaq.equals(/* true= */ 1),
@@ -130,6 +133,9 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
     const info = await fetchEventSidebarInformation(user, event);
     if (!info)
         notFound();
+
+    // Whether the Duty Book functionality is enabled in the Volunteer Portal.
+    const dutyBookEnabled = await readSetting('schedule-duty-book');
 
     // Sort the teams included in the |info|. While JSON_ARRAYAGG accepts its own ORDER BY clause,
     // this is not yet supported by `ts-sql-query`. This'll do in the mean time.
@@ -329,6 +335,12 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
                     label: 'Content',
                     url: `/admin/events/${event}/${team.slug}/content`,
                     condition: team.flagManagesContent,
+                },
+                {
+                    icon: <BookIcon />,
+                    label: 'Duty book',
+                    url: `/admin/events/${event}/${team.slug}/duty-book`,
+                    condition: dutyBookEnabled && team.flagEnableDutyBook,
                 },
                 {
                     icon: <InfoOutlinedIcon />,

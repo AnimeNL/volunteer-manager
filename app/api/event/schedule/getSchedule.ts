@@ -169,8 +169,8 @@ async function populateFavourites(dbInstance: DBConnection, schedule: Response, 
 async function populateKnowledgeBase(
     dbInstance: DBConnection, access: AccessControl, schedule: Response, eventId: number)
 {
-    const volunteerRoleIdStr = schedule.volunteers[`${schedule.userId}`].roleId;
-    const volunteerTeamIdStr = schedule.volunteers[`${schedule.userId}`].team;
+    const volunteerRoleIdStr = schedule.volunteers[`${schedule.userId}`]?.roleId;
+    const volunteerTeamIdStr = schedule.volunteers[`${schedule.userId}`]?.team;
 
     const hasUnrestrictedAccess = access.can('event.knowledge', {
         event: schedule.slug,
@@ -568,6 +568,8 @@ async function populateVolunteers(
                     id: tTeams.teamId,
                     name: tTeams.teamName,
                     colour: tTeams.teamColourLightTheme,
+
+                    teamFlagEnableDutyBook: tTeams.teamFlagEnableDutyBook,
                 },
             },
         })
@@ -584,6 +586,7 @@ async function populateVolunteers(
                 id: teamId,
                 name: volunteer.user.team.name,
                 colour: volunteer.user.team.colour,
+                enableDutyBook: !!volunteer.user.team.teamFlagEnableDutyBook,
             };
         }
 
@@ -599,7 +602,7 @@ async function populateVolunteers(
             role: volunteer.user.role.name,
             roleId: `${volunteer.user.role.id}`,
             roleLeader: !!volunteer.user.role.isLeader ? true : undefined,
-            team: `${volunteer.user.team.id}`,
+            team: teamId,
             notes: notesAccess ? volunteer.user.notes : undefined,
             phoneNumber: includePhoneNumber ? volunteer.user.phoneNumber : undefined,
             schedule: [ /* empty */ ],
@@ -910,6 +913,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         'schedule-del-a-rie-advies',
         'schedule-del-a-rie-advies-genai',
         'schedule-del-a-rie-advies-time-limit',
+        'schedule-duty-book',
         'schedule-favourite-events',
         'schedule-knowledge-base',
         'schedule-logical-days',
@@ -931,6 +935,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         config: {
             activityListLimit: settings['schedule-activity-list-limit'] ?? 5,
             enableAvatarManagement: access.can('organisation.avatars'),
+            enableDutyBook: false,
             enableFavourites: settings['schedule-favourite-events'] ?? false,
             enableGeneratedAdvice: settings['schedule-del-a-rie-advies-genai'] ?? false,
             enableHelpRequests: access.can('event.help-requests', { event: event.slug }),
@@ -1019,6 +1024,16 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
 
     if (schedule.config.enableKnowledgeBase)
         await populateKnowledgeBase(dbInstance, access, schedule, event.id);
+
+    if (!!settings['schedule-duty-book']) {
+        if (access.can('event.duty-book')) {
+            schedule.config.enableDutyBook = true;
+        } else if (Object.hasOwn(schedule.volunteers, `${schedule.userId}`)) {
+            const volunteer = schedule.volunteers[`${schedule.userId}`];
+            if (schedule.teams[volunteer.team].enableDutyBook)
+                schedule.config.enableDutyBook = true;
+        }
+    }
 
     // ---------------------------------------------------------------------------------------------
 

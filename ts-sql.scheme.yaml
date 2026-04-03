@@ -2406,6 +2406,10 @@ tables:
   - name: team_invite_key
     type: varchar(32)
     nullable: false
+  - name: team_flag_enable_duty_book
+    type: tinyint(1)
+    nullable: false
+    default: "0"
   - name: team_flag_enable_scheduling
     type: tinyint(1) unsigned
     nullable: false
@@ -2478,6 +2482,7 @@ tables:
       `team_environment` varchar(32) NOT NULL,
       `team_environment_id` int(8) unsigned DEFAULT NULL,
       `team_invite_key` varchar(32) NOT NULL,
+      `team_flag_enable_duty_book` tinyint(1) NOT NULL DEFAULT 0,
       `team_flag_enable_scheduling` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `team_flag_growth_charts` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `team_flag_manages_content` tinyint(1) unsigned NOT NULL DEFAULT 0,

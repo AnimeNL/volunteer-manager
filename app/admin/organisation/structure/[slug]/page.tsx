@@ -65,6 +65,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
             defaultRoleId: teamsRolesDefaultJoin.roleId,
             availableRoleIds: db.aggregateAsArrayOfOneColumn(teamsRolesJoin.roleId),
 
+            flagEnableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
             flagEnableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
             flagGrowthCharts: tTeams.teamFlagGrowthCharts.equals(/* true= */ 1),
             flagManagesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
@@ -111,6 +112,10 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
     // ---------------------------------------------------------------------------------------------
 
     const kFlags: FlagProps[] = [
+        {
+            field: 'flagEnableDutyBook',
+            title: 'Enable access to the Duty Book',
+        },
         {
             field: 'flagEnableScheduling',
             title: 'Enable volunteer scheduling tools',

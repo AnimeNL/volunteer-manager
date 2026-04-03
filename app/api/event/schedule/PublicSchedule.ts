@@ -81,6 +81,11 @@ export const kPublicSchedule = z.strictObject({
         enableAvatarManagement: z.boolean().optional(),
 
         /**
+         * Whether the duty book should be enabled and accessible.
+         */
+        enableDutyBook: z.boolean().optional(),
+
+        /**
          * Whether the ability for volunteer to favourite events should be enabled.
          */
         enableFavourites: z.boolean().optional(),
@@ -449,6 +454,11 @@ export const kPublicSchedule = z.strictObject({
          * Colour associated with the team, used to emphasise their identity.
          */
         colour: z.string(),
+
+        /**
+         * Whether this team has access to the Duty Book.
+         */
+        enableDutyBook: z.boolean(),
     })),
 
     /**

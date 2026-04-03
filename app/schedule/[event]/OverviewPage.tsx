@@ -7,6 +7,7 @@ import { useContext, useMemo } from 'react';
 
 import type { VolunteerShiftInfo } from './Types';
 import { ActiveShiftCard } from './components/ActiveShiftCard';
+import { DutyBookCard } from './components/DutyBookCard';
 import { HelpRequestsCard } from './components/HelpRequestsCard';
 import { HelpRequestsUrgentCard } from './components/HelpRequestsUrgentCard';
 import { JobCompletedCard } from './components/JobCompletedCard';
@@ -95,6 +96,8 @@ export function OverviewPage() {
                 <UpcomingShiftCard shift={upcomingShift} slug={schedule.slug} /> }
             { /* TODO: Available back-up volunteers */ }
             { /* TODO: Available senior volunteers */ }
+            { (!!isMobile && !!schedule?.config.enableDutyBook) &&
+                <DutyBookCard slug={schedule.slug} /> }
             { (!!isMobile && !!schedule?.knowledge?.length) &&
                 <KnowledgeBaseCard slug={schedule.slug} /> }
             { (!!isMobile && !!schedule?.config.enableHelpRequests) &&

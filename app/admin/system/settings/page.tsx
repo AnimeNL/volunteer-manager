@@ -173,6 +173,14 @@ export default async function IntegrationsPage() {
                     'finish on the next day',
             },
             {
+                setting: 'schedule-duty-book',
+                type: 'boolean',
+                defaultValue: false,
+
+                label: 'Schedule - Duty Book',
+                description: 'Whether to display the Duty Book for teams that have access to it',
+            },
+            {
                 setting: 'schedule-event-view-start-hours',
                 type: 'number',
                 defaultValue: 4,
