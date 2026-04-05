@@ -117,7 +117,10 @@ export function FeedbackPage(props: FeedbackPageProps) {
                                                            icon={icon}
                                                            summary={feedback.text} />
                                     <AccordionDetails sx={{ pt: 0 }}>
-                                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                        <Typography variant="body2" sx={{
+                                            fontStyle: 'italic',
+                                            whiteSpace: 'pre-line',
+                                        }}>
                                             {feedback.text}
                                         </Typography>
                                         { (!response || !response.text) &&
@@ -144,7 +147,10 @@ export function FeedbackPage(props: FeedbackPageProps) {
                                                 <Typography variant="subtitle2">
                                                     {response.author} responded on {responseDate}:
                                                 </Typography>
-                                                <Typography variant="body2" sx={{ pt: 0.5 }}>
+                                                <Typography variant="body2" sx={{
+                                                    whiteSpace: 'pre-line',
+                                                    pt: 0.5
+                                                }}>
                                                     {response.text}
                                                 </Typography>
 
