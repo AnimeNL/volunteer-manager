@@ -8,7 +8,7 @@ import { type DataTableEndpoints, createDataTableApi } from '@app/api/createData
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import db, { tHotels } from '@lib/database';
+import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tUsers } from '@lib/database';
 
 /**
  * Row model for an hotel entry, as can be shown and modified in the administration area.
@@ -126,6 +126,46 @@ createDataTableApi(kHotelRowModel, kHotelContext, {
             notFound();
 
         const dbInstance = db;
+
+        // Confirm that there are no users who have selected this room as their preference:
+        const usersWithPreference = await dbInstance.selectFrom(tHotelsPreferences)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tHotelsPreferences.userId))
+            .where(tHotelsPreferences.hotelId.equals(id))
+            .selectOneColumn(tUsers.name)
+            .orderBy(tUsers.name, 'asc')
+            .executeSelectMany();
+
+        if (usersWithPreference.length > 1000) {
+            return {
+                success: false,
+                error: 'One or more user(s) have selected this hotel room as their preference (' +
+                    usersWithPreference.join(', ') + ').',
+            };
+        }
+
+        const usersJoin = tUsers.forUseInLeftJoin();
+
+        // Confirm that there are no users who have been assigned to this hotel room:
+        const usersWithBookings = await dbInstance.selectFrom(tHotelsBookings)
+            .innerJoin(tHotelsAssignments)
+                .on(tHotelsAssignments.bookingId.equals(tHotelsBookings.bookingId))
+            .leftJoin(usersJoin)
+                .on(usersJoin.userId.equals(tHotelsAssignments.assignmentUserId))
+            .where(tHotelsBookings.bookingHotelId.equals(id))
+            .selectOneColumn(tHotelsAssignments.assignmentName.valueWhenNull(usersJoin.name))
+            .executeSelectMany();
+
+        if (usersWithBookings.length > 0) {
+            const uniqueNamesWithBookings = [ ...new Set(usersWithBookings) ].sort();
+            return {
+                success: false,
+                error: 'One or more user(s) have bookings for this hotel room (' +
+                    uniqueNamesWithBookings.join(', ') + ').',
+            };
+        }
+
+        // Only now (soft) delete the actual hotel room:
         const affectedRows = await dbInstance.update(tHotels)
             .set({
                 hotelRoomDeleted: dbInstance.currentZonedDateTime()

@@ -5,6 +5,7 @@ import { z } from 'zod/v4';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 
 import { AvailabilityToggle } from '@app/admin/components/AvailabilityToggle';
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
@@ -116,7 +117,9 @@ export async function HotelConfiguration(props: HotelConfigurationProps) {
                 <Divider />
             </Grid>
             <Grid size={{ xs: 12 }}>
-                <HotelConfigurationTable event={props.event.slug} />
+                <Stack direction="column" spacing={2}>
+                    <HotelConfigurationTable event={props.event.slug} />
+                </Stack>
             </Grid>
         </FormGridSection>
     );
