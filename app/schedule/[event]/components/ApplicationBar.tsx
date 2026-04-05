@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
@@ -25,12 +25,12 @@ import Typography from '@mui/material/Typography';
 import { alpha, styled } from '@mui/material/styles';
 
 import { DarkModeMenuItem } from './DarkModeMenuItem';
+import { ScheduleContext } from '../ScheduleContext';
 import { SearchResults } from './SearchResults';
 import { callApi } from '@lib/callApi';
 import { useTitle } from '../ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
-import FeedbackDialog from './FeedbackDialog';
 
 /**
  * Containing element for the search field. Provides relative positioning, and a hover effect on
@@ -140,6 +140,7 @@ export function ApplicationBar() {
     const router = useRouter();
     const title = useTitle();
 
+    const { schedule } = useContext(ScheduleContext);
     const searchBarRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -224,13 +225,14 @@ export function ApplicationBar() {
 
     // ---------------------------------------------------------------------------------------------
 
-    const [ feedbackOpen, setFeedbackOpen ] = useState<boolean>(false);
+    const navigateToFeedback = useCallback(() => {
+        if (!schedule || !schedule.slug)
+            return;  // the portal has not finished loading yet
 
-    const handleFeedbackClose = useCallback(() => setFeedbackOpen(false), [ /* no deps */ ]);
-    const handleFeedback = useCallback(() => {
-        setFeedbackOpen(true);
         setUserMenuOpen(false);
-    }, [ /* no deps */ ]);
+        router.push(`/schedule/${schedule.slug}/feedback`);
+
+    }, [ router, schedule ]);
 
     // Signs the user out of their account, and forwards them back to the home page since the
     // schedule app is only available to signed in and participating volunteers.
@@ -279,12 +281,12 @@ export function ApplicationBar() {
 
                 <DarkModeMenuItem />
 
-                <MenuItem onClick={handleFeedback}>
+                <MenuItem onClick={navigateToFeedback}>
                     <ListItemIcon>
                         <FeedbackOutlinedIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>
-                        Feedback
+                        Feedback…
                     </ListItemText>
                 </MenuItem>
 
@@ -300,8 +302,6 @@ export function ApplicationBar() {
                 </MenuItem>
 
             </Menu>
-
-            <FeedbackDialog open={feedbackOpen} onClose={handleFeedbackClose} />
         </>
     );
 }

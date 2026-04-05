@@ -36,7 +36,7 @@ interface FeedbackDialogProps {
  * The <FeedbackDialog> component displays a dialog, when opened, in which a volunteer is able to
  * submit feedback about the Volunteer Portal. All feedback will be recorded in the database.
  */
-export default function FeedbackDialog(props: FeedbackDialogProps) {
+export function FeedbackDialog(props: FeedbackDialogProps) {
     const { onClose, open } = props;
 
     const [ error, setError ] = useState<string | false>(false);
