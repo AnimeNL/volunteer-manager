@@ -4,6 +4,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -53,11 +54,15 @@ interface FeedbackPageProps {
  * quickly and conveniently file additional feedback that we should (eventually) respond to.
  */
 export function FeedbackPage(props: FeedbackPageProps) {
+    const router = useRouter();
 
     const [ feedbackOpen, setFeedbackOpen ] = useState<boolean>(false);
 
-    const closeFeedbackDialog = useCallback(() => setFeedbackOpen(false), [ /* no deps */ ]);
     const openFeedbackDialog = useCallback(() => setFeedbackOpen(true), [ /* no deps */ ]);
+    const closeFeedbackDialog = useCallback(() => {
+        router.refresh();  // make sure new entries show up in the list
+        setFeedbackOpen(false)
+    }, [ router ]);
 
     return (
         <>
