@@ -11,6 +11,7 @@ export async function getHotelRoomOptions(eventId: number) {
     const hotelOptions = await db.selectFrom(tHotels)
         .where(tHotels.eventId.equals(eventId))
             .and(tHotels.hotelRoomVisible.equals(/* true= */ 1))
+            .and(tHotels.hotelRoomDeleted.isNull())
         .select({
             hotelId: tHotels.hotelId,
             hotelName: tHotels.hotelName,

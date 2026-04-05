@@ -101,6 +101,7 @@ export class HotelProcessor {
 
         const hotels = await db.selectFrom(tHotels)
             .where(tHotels.eventId.equals(this.#eventId))
+                .and(tHotels.hotelRoomDeleted.isNull())
             .select({
                 id: tHotels.hotelId,
                 hotelName: tHotels.hotelName,

@@ -40,6 +40,7 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
                 .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
         .innerJoin(tHotels)
             .on(tHotels.hotelId.equals(tHotelsBookings.bookingHotelId))
+                .and(tHotels.hotelRoomDeleted.isNull())
         .leftJoin(assignmentsJoin)
             .on(assignmentsJoin.bookingId.equals(tHotelsBookings.bookingId))
         .leftJoin(usersJoin)

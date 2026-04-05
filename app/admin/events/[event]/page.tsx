@@ -81,6 +81,7 @@ async function getEventMetadata(eventId: number) {
     const hotelOptionsQuery = dbInstance.selectFrom(tHotels)
         .where(tHotels.eventId.equals(eventId))
             .and(tHotels.hotelRoomVisible.equals(/* true= */ 1))
+            .and(tHotels.hotelRoomDeleted.isNull())
         .selectCountAll()
         .forUseAsInlineQueryValue();
 

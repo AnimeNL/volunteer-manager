@@ -487,6 +487,14 @@ tables:
     type: tinyint(1)
     nullable: false
     default: "1"
+  - name: hotel_room_created
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: hotel_room_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
   indexes:
   - name: event_id
     def: KEY event_id (event_id) USING BTREE
@@ -524,6 +532,8 @@ tables:
       `hotel_room_people` int(8) NOT NULL DEFAULT 1,
       `hotel_room_price` int(8) NOT NULL DEFAULT 0,
       `hotel_room_visible` tinyint(1) NOT NULL DEFAULT 1,
+      `hotel_room_created` datetime NOT NULL DEFAULT current_timestamp(),
+      `hotel_room_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`hotel_id`),
       KEY `event_id` (`event_id`),
       CONSTRAINT `hotels_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE

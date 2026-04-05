@@ -75,6 +75,7 @@ async function hotels(request: Request, props: ActionProps): Promise<Response> {
     const configuration = await db.selectFrom(tEvents)
         .innerJoin(tHotels)
             .on(tHotels.eventId.equals(tEvents.eventId))
+                .and(tHotels.hotelRoomDeleted.isNull())
         .where(tEvents.eventSlug.equals(request.event))
             .and(tHotels.hotelRoomVisible.equals(/* visible= */ 1))
         .select({

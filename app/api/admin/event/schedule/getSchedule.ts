@@ -594,6 +594,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             shiftId: tSchedule.shiftId,
         })
         .executeSelectMany();
+
     for (const scheduledShift of scheduledShifts) {
         const shift =
             !!scheduledShift.shiftId ? shiftsMap.get(scheduledShift.shiftId)

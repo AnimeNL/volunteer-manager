@@ -125,11 +125,16 @@ createDataTableApi(kHotelRowModel, kHotelContext, {
         if (!event)
             notFound();
 
-        const affectedRows = await db.deleteFrom(tHotels)
+        const dbInstance = db;
+        const affectedRows = await dbInstance.update(tHotels)
+            .set({
+                hotelRoomDeleted: dbInstance.currentZonedDateTime()
+            })
             .where(tHotels.hotelId.equals(id))
                 .and(tHotels.eventId.equals(event.id))
                 .and(tHotels.hotelRoomVisible.equals(/* true= */ 1))
-            .executeDelete();
+                .and(tHotels.hotelRoomDeleted.isNull())
+            .executeUpdate();
 
         return { success: !!affectedRows };
     },
