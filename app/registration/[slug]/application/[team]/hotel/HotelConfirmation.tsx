@@ -62,6 +62,7 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
             }),
         })
         .groupBy(tHotelsAssignments.bookingId)
+        .orderBy('booking.checkIn', 'asc')
         .executeSelectMany();
 
     return (
@@ -79,7 +80,7 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
                 const otherNames = others.map(v => v.name);
 
                 const tertiary =
-                    !!sharing.length
+                    !!otherNames.length
                         ? `You'll share this room with ${otherNames.join(' & ')}`
                         : 'You won\'t share this room with anyone';
 
