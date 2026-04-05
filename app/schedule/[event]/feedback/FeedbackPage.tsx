@@ -120,9 +120,23 @@ export function FeedbackPage(props: FeedbackPageProps) {
                                         <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
                                             {feedback.text}
                                         </Typography>
+                                        { (!response || !response.text) &&
+                                            <Box sx={{
+                                                borderLeft: theme =>
+                                                    `4px solid ${theme.palette.warning.main}`,
+                                                paddingLeft: 1.5,
+                                                marginTop: 2,
+                                            }}>
+                                                <Typography variant="subtitle2"
+                                                            sx={{ fontStyle: 'italic' }}>
+                                                    We'll respond to your feedback as soon as
+                                                    possible!
+                                                </Typography>
+                                            </Box> }
                                         { (!!response && !!response.text) &&
                                             <Box sx={{
-                                                borderLeft: theme => `4px solid ${theme.palette.success.main}`,
+                                                borderLeft: theme =>
+                                                    `4px solid ${theme.palette.success.main}`,
                                                 paddingLeft: 1.5,
                                                 marginTop: 2,
                                             }}>
