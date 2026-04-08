@@ -10,4 +10,4 @@
  * Version of the theme images used on the Volunteer Manager. Should be updated annually after the
  * images have been refreshed to bust caches on client devices.
  */
-export const kThemeImageVersion = 2025;
+export const kThemeImageVersion = 2026;
