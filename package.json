@@ -19,12 +19,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beverloo/volunteer-manager.git"
+    "url": "git+https://github.com/AnimeNL/volunteer-manager.git"
   },
   "author": "Peter Beverloo <peter@animecon.nl>",
   "license": "MIT",
   "private": true,
-  "homepage": "https://github.com/beverloo/volunteer-manager#readme",
+  "homepage": "https://github.com/AnimeNL/volunteer-manager#readme",
   "engines": {
     "node": ">=24.0.0"
   },
