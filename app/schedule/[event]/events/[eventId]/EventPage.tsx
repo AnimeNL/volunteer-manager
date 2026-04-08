@@ -243,11 +243,15 @@ export function EventPage(props: EventPageProps) {
                 const volunteer = schedule.volunteers[scheduledShift.volunteer];
 
                 if (!!shift.description && !descriptionSet.has(shift.team)) {
+                    // Note that |team| may be undefined when the signed in volunteer doesn't have
+                    // access to the given |shift.team|, but has been scheduled for a shift that
+                    // belongs to that team. This could be the case for e.g. the Briefing.
                     const team = schedule.teams[shift.team];
+
                     descriptions.push({
                         id: shift.id,
-                        team: team.name,
-                        teamColour: team.colour,
+                        team: team?.name ?? 'Description',
+                        teamColour: team?.colour ?? '#78909C',
                         description: shift.description,
                     });
 
