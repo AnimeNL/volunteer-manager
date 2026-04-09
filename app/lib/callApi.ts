@@ -8,6 +8,7 @@ import type { CreateScheduleEntryDefinition } from '@app/api/admin/event/schedul
 import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePasskey';
 import type { DeleteScheduleEntryDefinition } from '@app/api/admin/event/schedule/deleteScheduleEntry';
 import type { DisplayDefinition } from '@app/api/display/route';
+import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyBookMarkAsRead';
 import type { ErrorDefinition } from '@app/api/error/route';
 import type { ExportsDefinition } from '@app/api/exports/route';
 import type { GeneratePromptDefinition } from '@app/api/ai/generatePrompt';
@@ -241,6 +242,7 @@ export type ApiEndpoints = {
         '/api/admin/vendors/:id': VendorEndpoints['update'],
         '/api/ai/settings': UpdateAiSettingsDefinition,
         '/api/application/:event/:team/:userId': UpdateApplicationDefinition,
+        '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
         '/api/event/schedule/help-request': UpdateHelpRequestDefinition,
         '/api/event/schedule/notes': UpdateNotesDefinition,

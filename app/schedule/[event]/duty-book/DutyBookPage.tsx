@@ -28,6 +28,7 @@ import { ReportIncidentDialog } from './ReportIncidentDialog';
 import { ScheduleContext } from '../ScheduleContext';
 import { SetTitle } from '../components/SetTitle';
 import { TimedAccordionSummary } from '../components/TimedAccordionSummary';
+import { callApi } from '@lib/callApi';
 
 import { kEnforceSingleLine } from '../Constants';
 
@@ -109,7 +110,17 @@ export function DutyBookPage(props: DutyBookPageProps) {
         if (kReadIncidentCache.has(incidentId))
             return;  // already reported
 
-        // TODO: Report
+        try {
+            const response = await callApi('put', '/api/event/schedule/duty-book', {
+                id: incidentId,
+            });
+
+            if (!response || !response.success)
+                throw new Error('The API returned an invalid response');
+
+        } catch (error) {
+            console.error('Unable to record the duty book access', error);
+        }
 
         kReadIncidentCache.add(incidentId);
         setOpenedIncidentSet(new Set([ ...kReadIncidentCache ]));  // cause an invalidation

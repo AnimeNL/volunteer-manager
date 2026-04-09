@@ -7,7 +7,7 @@ import { DutyBookPage } from './DutyBookPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
 import { getEventBySlug } from '@lib/EventLoader';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tDutyBook, tUsers } from '@lib/database';
+import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
 
 /**
  * The <DutyBookPage> component displays an overview of the Duty Book entries, including the ability
@@ -16,7 +16,7 @@ import db, { tDutyBook, tUsers } from '@lib/database';
 export default async function DutyBookServerPage(props: PageProps<'/schedule/[event]/duty-book'>) {
     const params = await props.params;
 
-    const { access } = await requireAuthenticationContext({
+    const { access, user } = await requireAuthenticationContext({
         check: 'event',
         event: params.event
     });
@@ -27,10 +27,15 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
 
     const hasUnrestrictedAccess = access.can('event.duty-book');
 
+    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
+
     const dbInstance = db;
     const incidents = await dbInstance.selectFrom(tDutyBook)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
+        .leftJoin(dutyBookViewersJoin)
+            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
+                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(user.id))
         .where(tDutyBook.dutyBookEventId.equals(event.id))
             .and(tDutyBook.dutyBookDeleted.isNull())
         .select({
@@ -38,10 +43,11 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
             author: tUsers.name,
             authorUserId: tUsers.userId,
             date: dbInstance.dateTimeAsString(tDutyBook.dutyBookCreated),
-            read: dbInstance.const(false, 'boolean'),
+            read: dutyBookViewersJoin.dutyBookViewerDate,
 
             summary: tDutyBook.dutyBookAiSummary,
             text: tDutyBook.dutyBookIncident,
+
 
             isHidden: tDutyBook.dutyBookHidden.isNotNull(),
         })
@@ -53,7 +59,8 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
 
         return {
             ...incident,
-            read: false,
+
+            read: !!incident.read,
 
             summary: incident.summary || incident.text,
             text: canAccessContent ? incident.text : undefined,
