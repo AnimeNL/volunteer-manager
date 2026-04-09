@@ -11,6 +11,8 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CardHeader from '@mui/material/CardHeader';
+import ForumIcon from '@mui/icons-material/Forum';
 import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
 import Tooltip from '@mui/material/Tooltip';
@@ -68,12 +70,19 @@ export function FeedbackPage(props: FeedbackPageProps) {
         <>
             <SetTitle title="Feedback" />
             <HeaderSectionCard>
-                <Typography variant="body2" sx={{ p: 2 }}>
-                    Whether it's a suggestion, a compliment, or a complaint, your insights help us
-                    improve and we want to hear them. Each of your submissions will receive a
-                    response, and in many cases lead to changes in how we work. Thank you!
-                </Typography>
+                <CardHeader title="Feedback"
+                            subheader={
+                                'Whether it\'s a suggestion, a compliment, or a complaint, your ' +
+                                'insights help us improve and we want to hear them. Each of your ' +
+                                'submissions will receive a response, and in many cases lead to ' +
+                                'changes in how we work. Thank you!'
+                            }
+                            slotProps={{ title: { variant: 'subtitle2' } }}
+                            avatar={
+                                <ForumIcon />
+                            } />
             </HeaderSectionCard>
+
             <Button fullWidth startIcon={ <AddCommentIcon /> } variant="contained" color="success"
                     onClick={openFeedbackDialog}>
                 Submit feedback

@@ -10,14 +10,14 @@ import { useRouter } from 'next/navigation';
 import { default as MuiLink } from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AlertTitle from '@mui/material/AlertTitle';
 import BookIcon from '@mui/icons-material/Book';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import CardHeader from '@mui/material/CardHeader';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import IconButton from '@mui/material/IconButton';
+import FlagIcon from '@mui/icons-material/Flag';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
@@ -30,8 +30,6 @@ import { ScheduleContext } from '../ScheduleContext';
 import { SetTitle } from '../components/SetTitle';
 import { TimedAccordionSummary } from '../components/TimedAccordionSummary';
 import { callApi } from '@lib/callApi';
-
-import { kEnforceSingleLine } from '../Constants';
 
 /**
  * Local cache storing which incidents have already been read, and don't have to be updated to the
@@ -162,22 +160,22 @@ export function DutyBookPage(props: DutyBookPageProps) {
             <SetTitle title="Duty book" />
             <HeaderSectionCard>
                 <CardHeader title="Duty book"
-                            subheader={schedule.event}
-                            slotProps={{ title: { variant: 'subtitle2' } }}
-                            sx={{ '& .MuiCardHeader-action': { alignSelf: 'center' },
-                                  '& .MuiCardHeader-content': kEnforceSingleLine,
-                                  '& .MuiCardHeader-content>:first-child': { display: 'inline' } }}
-                            action={
-                                <Tooltip title="Report an incident">
-                                    <IconButton onClick={openReportIncidentDialog} sx={{ mr: 1 }}>
-                                        <AddCircleIcon color="primary" />
-                                    </IconButton>
-                                </Tooltip>
+                            subheader={
+                                'Whether it\'s a minor mishap, a safety concern, or an official ' +
+                                'reportable incident, your detailed accounts are vital to the ' +
+                                'festival\'s security and success—as is your awareness of the ' +
+                                'incidents reported by other volunteers.'
                             }
+                            slotProps={{ title: { variant: 'subtitle2' } }}
                             avatar={
                                 <BookIcon />
                             } />
             </HeaderSectionCard>
+
+            <Button fullWidth startIcon={ <FlagIcon /> } variant="contained" color="primary"
+                    onClick={openReportIncidentDialog}>
+                Report an incident
+            </Button>
 
             { !props.incidents.length &&
                 <Alert elevation={1} severity="info">
