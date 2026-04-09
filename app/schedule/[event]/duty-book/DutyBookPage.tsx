@@ -217,29 +217,52 @@ export function DutyBookPage(props: DutyBookPageProps) {
                                     timezone={props.timezone} />
 
                                 <AccordionDetails sx={{ pt: 0 }}>
+                                    <Typography variant="body2" sx={{
+                                        display: { xs: 'block', md: 'none' },
+                                        fontStyle: 'italic',
+                                    }}>
+                                        {incident.summary}
+                                    </Typography>
+
                                     { !incident.text &&
-                                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}
-                                                    color="textDisabled">
-                                            The details of this incident have been hidden.
-                                        </Typography> }
+                                        <Box sx={{
+                                            borderLeft: theme =>
+                                                `4px solid ${theme.palette.warning.main}`,
+                                            paddingLeft: 1.5,
+                                            marginTop: { xs: 2, md: 0 },
+                                        }}>
+                                            <Typography variant="subtitle2">
+                                                The details of this incident have been hidden.
+                                            </Typography>
+                                        </Box> }
+
                                     { !!incident.text &&
-                                        <Typography variant="body2">
-                                            "<Typography variant="inherit" component="span"
-                                                         sx={{ fontStyle: 'italic' }}>
+                                        <Box sx={{
+                                            borderLeft: theme =>
+                                                `4px solid ${theme.palette.success.main}`,
+                                            paddingLeft: 1.5,
+                                            marginTop: { xs: 2, md: 0 },
+                                        }}>
+                                            <Typography variant="subtitle2">
+                                                { !!canAccessAuthorProfile &&
+                                                    <MuiLink component={Link}
+                                                             href={`./volunteers/${authorUserId}`}>
+                                                        {incident.author}
+                                                    </MuiLink> }
+                                                { !canAccessAuthorProfile && incident.author }
+                                                {' '}reported
+                                                { !!incident.hidden &&
+                                                    <Typography variant="inherit" color="warning"
+                                                                component="span">
+                                                        {' '}(hidden)
+                                                    </Typography> }:
+                                            </Typography>
+                                            <Typography variant="body2"
+                                                        sx={{ whiteSpace: 'pre-line' }}>
                                                 {incident.text}
-                                            </Typography>" —{' '}
-                                            { !!canAccessAuthorProfile &&
-                                                <MuiLink component={Link}
-                                                         href={`./volunteers/${authorUserId}`}>
-                                                    {incident.author}
-                                                </MuiLink> }
-                                            { !canAccessAuthorProfile && incident.author }
-                                            { !!incident.hidden &&
-                                                <Typography variant="inherit" component="span"
-                                                            color="warning">
-                                                    {' '}(hidden)
-                                                </Typography> }
-                                        </Typography> }
+                                            </Typography>
+                                        </Box> }
+
                                 </AccordionDetails>
                             </Accordion>
                         );
