@@ -102,6 +102,7 @@ async function getSubscriptionTypes() {
             typeId: typeId,
             label: `Help request (${type})`,
         })),
+        { type: kSubscriptionType.Incident, typeId: null, label: 'Duty Book incidents' },
         { type: kSubscriptionType.Registration, typeId: null, label: 'New user registrations' },
         { type: kSubscriptionType.Test, typeId: null, label: 'Test messages' },
     ];

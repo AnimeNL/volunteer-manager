@@ -6,9 +6,12 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
+import { Publish } from '@lib/subscriptions';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
+
+import { kSubscriptionType } from '@lib/subscriptions';
 
 /**
  * Interface definition for the Duty Book API, exposed through /api/event/schedule/duty-book
@@ -79,11 +82,19 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         .onConflictDoNothing()
         .executeInsert();
 
-    // Step 3: Publish existence of the summary to subscribed volunteers
-    // TODO
-
     // Step 4: Generate an AI summary for the incident
     // TODO
+
+    // Step 4: Publish existence of the summary to subscribed volunteers
+    await Publish({
+        type: kSubscriptionType.Incident,
+        sourceUserId: props.user.id,
+        message: {
+            author: props.user.name,
+            summary: 'There is a leak',  // TODO: Use the AI-generated summary
+            requestId: incidentId,
+        },
+    });
 
     // Step 5: Log that a new incident has been reported
     RecordLog({

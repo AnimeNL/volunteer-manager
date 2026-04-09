@@ -280,6 +280,7 @@ export type SubscriptionType = Values<typeof kSubscriptionType>;
 export const kSubscriptionType = {
     Application: 'Application',
     Help: 'Help',
+    Incident: 'Incident',
     Registration: 'Registration',
     Test: 'Test',
 } as const;

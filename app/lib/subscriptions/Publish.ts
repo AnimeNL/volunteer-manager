@@ -3,6 +3,7 @@
 
 import type { ApplicationMessage } from './drivers/ApplicationDriver';
 import type { HelpMessage } from './drivers/HelpDriver';
+import type { IncidentMessage } from './drivers/IncidentDriver';
 import type { RegistrationMessage } from './drivers/RegistrationDriver';
 import type { TestMessage } from './drivers/TestDriver';
 import db, { tSubscriptions, tSubscriptionsPublications, tUsers } from '@lib/database';
@@ -25,6 +26,7 @@ interface PublicationBase {
 export type Publication = PublicationBase & (
     { type: 'Application'; typeId: number; message: ApplicationMessage } |
     { type: 'Help'; typeId: number; message: HelpMessage } |
+    { type: 'Incident', typeId?: number; message: IncidentMessage } |
     { type: 'Registration'; typeId?: undefined; message: RegistrationMessage } |
     { type: 'Test'; typeId?: undefined; message: TestMessage }
 );

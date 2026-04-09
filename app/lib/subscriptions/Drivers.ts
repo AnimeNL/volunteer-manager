@@ -5,6 +5,7 @@ import type { Driver } from './Driver';
 
 import { ApplicationDriver } from './drivers/ApplicationDriver';
 import { HelpDriver } from './drivers/HelpDriver';
+import { IncidentDriver } from './drivers/IncidentDriver';
 import { RegistrationDriver } from './drivers/RegistrationDriver';
 import { type SubscriptionType, kSubscriptionType } from '@lib/database/Types';
 import { TestDriver } from './drivers/TestDriver';
@@ -16,6 +17,7 @@ import { TestDriver } from './drivers/TestDriver';
 export const kSubscriptionFactories = {
     [kSubscriptionType.Application]: () => new ApplicationDriver,
     [kSubscriptionType.Help]: () => new HelpDriver,
+    [kSubscriptionType.Incident]: () => new IncidentDriver,
     [kSubscriptionType.Registration]: () => new RegistrationDriver,
     [kSubscriptionType.Test]: () => new TestDriver,
 } as const satisfies { [k in SubscriptionType]: () => Driver<any> };
