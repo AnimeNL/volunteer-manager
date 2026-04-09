@@ -36,6 +36,7 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         .select({
             id: tDutyBook.dutyBookId,
             author: tUsers.name,
+            authorUserId: tUsers.userId,
             date: dbInstance.dateTimeAsString(tDutyBook.dutyBookCreated),
             read: dbInstance.const(false, 'boolean'),
 

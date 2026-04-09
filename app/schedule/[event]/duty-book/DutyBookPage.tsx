@@ -3,10 +3,11 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useContext, useState } from 'react';
 
+import { default as MuiLink } from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
-import AccordionSummary, { accordionSummaryClasses } from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AlertTitle from '@mui/material/AlertTitle';
@@ -17,7 +18,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IconButton from '@mui/material/IconButton';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
-import Stack from '@mui/material/Stack';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -27,7 +27,7 @@ import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { ReportIncidentDialog } from './ReportIncidentDialog';
 import { ScheduleContext } from '../ScheduleContext';
 import { SetTitle } from '../components/SetTitle';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { TimedAccordionSummary } from '../components/TimedAccordionSummary';
 
 import { kEnforceSingleLine } from '../Constants';
 
@@ -58,6 +58,11 @@ export interface DutyBookPageProps {
         author: string;
 
         /**
+         * User ID of the author of this entry, in case we can link through to their profile.
+         */
+        authorUserId: number;
+
+        /**
          * Date at which the incident was reported, in a Temporal ZonedDateTime-compatible format.
          */
         date: string;
@@ -86,51 +91,6 @@ export interface DutyBookPageProps {
 }
 
 /**
- * Component that renders an individual summary entry for a duty book entry. It's formatted to be
- * dense with information, and immediately signal to the user whether they've seen it before.
- */
-function DutyBookEntrySummary(props: {
-    incident: DutyBookPageProps['incidents'][number];
-    timezone: string;
-}) {
-    const { incident, timezone } = props;
-
-    const date = Temporal.ZonedDateTime.from(incident.date);
-    const read = incident.read || kReadIncidentCache.has(incident.id);
-
-    return (
-        <AccordionSummary expandIcon={
-                              !!incident.text ? <ExpandMoreIcon />
-                                              : <CloseIcon color="disabled" /> }
-                          sx={{ pr: 3 }}>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-                <Typography variant="body2" sx={{
-                    ...kEnforceSingleLine,
-                    pr: 2,
-                }}>
-                    {incident.summary}
-                </Typography>
-                <Stack direction="row" alignItems="center" sx={{ ml: 'auto !important', pr: 1 }}>
-
-                    { !read &&
-                        <Tooltip title="This incident is new to you">
-                            <NewReleasesIcon color="error" fontSize="small" />
-                        </Tooltip> }
-                    { !!read &&
-                        <Tooltip title="You've read this incident">
-                            <TaskAltIcon color="success" fontSize="small" />
-                        </Tooltip> }
-
-                    <Typography variant="body2" sx={{ width: '88px', textAlign: 'right' }}>
-                        { formatDate(date.withTimeZone(timezone), 'ddd, HH:mm') }
-                    </Typography>
-                </Stack>
-            </Stack>
-        </AccordionSummary>
-    );
-}
-
-/**
  * The <DutyBookPage> component is the client-side component that provides the Duty Book UI, which
  * is complemented with data provided from the server component.
  */
@@ -139,6 +99,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const [ openedIncidentSet, setOpenedIncidentSet ] = useState<Set<number>>(kReadIncidentCache);
     const [ reportIncidentDialogOpen, setReportIncidentDialogOpen ] = useState<boolean>(false);
 
     const closeReportIncidentDialog = useCallback(() => setReportIncidentDialogOpen(false), []);
@@ -151,6 +112,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
         // TODO: Report
 
         kReadIncidentCache.add(incidentId);
+        setOpenedIncidentSet(new Set([ ...kReadIncidentCache ]));  // cause an invalidation
 
     }, [ /* no deps */ ]);
 
@@ -201,16 +163,33 @@ export function DutyBookPage(props: DutyBookPageProps) {
                         if (incident.read)
                             kReadIncidentCache.add(incident.id);
 
+                        const read =
+                            openedIncidentSet.has(incident.id) ||
+                            kReadIncidentCache.has(incident.id);
+
+                        const authorUserId = `${incident.authorUserId}`;
+                        const canAccessAuthorProfile =
+                            schedule.volunteers.hasOwnProperty(authorUserId);
+
                         return (
-                            <Accordion key={incident.date}
-                                    onChange={handleIncidentToggle.bind(null, incident.id)}
-                                    sx={{
-                                        [`& .${accordionSummaryClasses.content}`]: {
-                                            width: '100%',
-                                            paddingLeft: 1.5,
-                                        },
-                            }}>
-                                <DutyBookEntrySummary incident={incident} timezone={props.timezone} />
+                            <Accordion key={incident.id}
+                                       onChange={handleIncidentToggle.bind(null, incident.id)}>
+
+                                <TimedAccordionSummary
+                                    date={incident.date}
+                                    expandIcon={ !!incident.text ? <ExpandMoreIcon />
+                                                                 : <CloseIcon color="disabled" /> }
+                                    icon={
+                                        !read ? <Tooltip title="This incident is new to you">
+                                                   <NewReleasesIcon color="error" fontSize="small"/>
+                                                </Tooltip>
+                                              : <Tooltip title="You've read this incident">
+                                                   <TaskAltIcon color="success" fontSize="small"/>
+                                               </Tooltip>
+                                    }
+                                    summary={incident.summary}
+                                    timezone={props.timezone} />
+
                                 <AccordionDetails sx={{ pt: 0 }}>
                                     { !incident.text &&
                                         <Typography variant="body2" sx={{ fontStyle: 'italic' }}
@@ -222,7 +201,13 @@ export function DutyBookPage(props: DutyBookPageProps) {
                                             "<Typography variant="inherit" component="span"
                                                          sx={{ fontStyle: 'italic' }}>
                                                 {incident.text}
-                                            </Typography>" — {incident.author}
+                                            </Typography>" —{' '}
+                                            { !!canAccessAuthorProfile &&
+                                                <MuiLink component={Link}
+                                                         href={`./volunteers/${authorUserId}`}>
+                                                    {incident.author}
+                                                </MuiLink> }
+                                            { !canAccessAuthorProfile && incident.author }
                                         </Typography> }
                                 </AccordionDetails>
                             </Accordion>
