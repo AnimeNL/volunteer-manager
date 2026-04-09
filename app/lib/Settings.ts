@@ -78,6 +78,9 @@ export type Settings = {
     // Del a Rie Advies:
     'ai-nardo-personalised-advice': string;
 
+    // Incident reports:
+    'ai-incident-summary-prompt': string;
+
     // Settings:
     'ai-setting-backend': 'gemini' | 'vertexai';
     'ai-setting-gemini-api-key': string;

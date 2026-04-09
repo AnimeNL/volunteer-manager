@@ -6,12 +6,19 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
+import { IncidentSummaryPrompt } from '@lib/ai/prompts';
 import { Publish } from '@lib/subscriptions';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { createAiClient } from '@lib/integrations/genai';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
 
 import { kSubscriptionType } from '@lib/subscriptions';
+
+/**
+ * Summary to use when no AI summary could be generated in a reasonable amount of time.
+ */
+const kUnableToGenerateSummary = 'No summary is available for this incident.';
 
 /**
  * Interface definition for the Duty Book API, exposed through /api/event/schedule/duty-book
@@ -83,7 +90,39 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         .executeInsert();
 
     // Step 4: Generate an AI summary for the incident
-    // TODO
+    let incidentSummary = request.incident;
+
+    try {
+        const promptInstance = new IncidentSummaryPrompt();
+        const prompt = await promptInstance.evaluate({
+            incident: request.incident,
+        });
+
+        const client = await createAiClient();
+        const summary = await client.generateText({ prompt });
+
+        if (summary.success)
+            incidentSummary = summary.text;
+
+    } catch (error: any) {
+        incidentSummary = kUnableToGenerateSummary;
+
+        RecordErrorLog({
+            error,
+            requestUrl: { pathname: '/api/event/schedule/duty-book' },
+            severity: kLogSeverity.Error,
+            source: 'Server',
+            user: props.user,
+        });
+
+    } finally {
+        await dbInstance.update(tDutyBook)
+            .set({
+                dutyBookAiSummary: incidentSummary,
+            })
+            .where(tDutyBook.dutyBookId.equals(incidentId))
+            .executeUpdate();
+    }
 
     // Step 4: Publish existence of the summary to subscribed volunteers
     await Publish({

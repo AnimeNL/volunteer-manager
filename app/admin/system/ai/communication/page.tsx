@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
+import { IncidentSummaryPrompt } from '@lib/ai/prompts/IncidentSummaryPrompt';
 import { PromptIcon } from './PromptIcon';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
@@ -42,13 +43,19 @@ export default async function CommunicationAiPage() {
         permission: 'system.internals.ai',
     });
 
-    const settings =
-        await readSettings([ 'ai-communication-system-prompt', 'ai-example-messages' ]);
+    const settings = await readSettings([
+        'ai-communication-system-prompt',
+        'ai-example-messages',
+        'ai-incident-summary-prompt',
+    ]);
 
     const exampleMessages = settings['ai-example-messages'] || [ /* no example messages */ ];
 
     const systemPromptTemplate = settings['ai-communication-system-prompt'] || '';
     const systemPrompt = new SystemPrompt();
+
+    const incidentSummaryPromptTemplate = settings['ai-incident-summary-prompt'] || '';
+    const incidentSummaryPrompt = new IncidentSummaryPrompt();
 
     // Infer the available prompts from the ones exported from the //lib/ai/ library,
     // which is the source of truth. Icons are complemented by this component.
@@ -92,6 +99,28 @@ export default async function CommunicationAiPage() {
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2, mb: 1 }} />
+
+            { /* TODO: Move this elsewhere ---------------------------------------------------- */ }
+            <FormGrid action={actions.updatePrompt}
+                      defaultValues={{
+                          id: 'incident-summary-prompt',
+                          prompt: incidentSummaryPromptTemplate
+                      }}>
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                        Incident summary prompt
+                    </Typography>
+                    <TokenOverviewAlert prompt={incidentSummaryPrompt} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <HiddenInput name="id" />
+                    <TextareaAutosizeElement name="prompt" label="Incident summary prompt" fullWidth
+                                             size="small" />
+                </Grid>
+            </FormGrid>
+            <Divider sx={{ mt: 2, mb: 1 }} />
+            { /* TODO: ------------------------------------------------------------------------ */ }
+
             <FormGrid action={actions.updateExampleMessages} defaultValues={{ exampleMessages }}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="h6">
