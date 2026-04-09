@@ -72,7 +72,7 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
             dutyBookUserId: props.user.id,
             dutyBookEventId: event.id,
             dutyBookIncident: request.incident,
-            dutyBookAiSummary: /* will be generated later= */ null,
+            dutyBookAiSummary: kUnableToGenerateSummary,
             dutyBookCreated: dbInstance.currentZonedDateTime(),
             dutyBookUpdated: dbInstance.currentZonedDateTime(),
         })
@@ -90,7 +90,7 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         .executeInsert();
 
     // Step 4: Generate an AI summary for the incident
-    let incidentSummary = request.incident;
+    let incidentSummary = kUnableToGenerateSummary;
 
     try {
         const promptInstance = new IncidentSummaryPrompt();
@@ -101,9 +101,16 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         const client = await createAiClient();
         const summary = await client.generateText({ prompt });
 
-        if (summary.success)
+        if (summary.success) {
             incidentSummary = summary.text;
 
+            await dbInstance.update(tDutyBook)
+                .set({
+                    dutyBookAiSummary: incidentSummary,
+                })
+                .where(tDutyBook.dutyBookId.equals(incidentId))
+                .executeUpdate();
+        }
     } catch (error: any) {
         incidentSummary = kUnableToGenerateSummary;
 
@@ -114,14 +121,6 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
             source: 'Server',
             user: props.user,
         });
-
-    } finally {
-        await dbInstance.update(tDutyBook)
-            .set({
-                dutyBookAiSummary: incidentSummary,
-            })
-            .where(tDutyBook.dutyBookId.equals(incidentId))
-            .executeUpdate();
     }
 
     // Step 4: Publish existence of the summary to subscribed volunteers
@@ -130,7 +129,7 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         sourceUserId: props.user.id,
         message: {
             author: props.user.name,
-            summary: 'There is a leak',  // TODO: Use the AI-generated summary
+            summary: incidentSummary,
             requestId: incidentId,
         },
     });
