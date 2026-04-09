@@ -115,6 +115,7 @@ export const kLogType = {
     EventApplication: 'event-application',
     EventFeedbackSubmitted: 'event-feedback-submitted',
     EventHelpRequestUpdate: 'event-help-request-update',
+    EventIncidentReported: 'event-incident-reported',
     EventVolunteerNotes: 'event-volunteer-notes',
     ExportDataAccess: 'export-data-access',
     NardoPersonalisedAdvice: 'nardo-personalised-advice',

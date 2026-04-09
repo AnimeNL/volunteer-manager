@@ -18,9 +18,9 @@ import { useTheme } from '@mui/material/styles';
 import { Alert } from '../components/Alert';
 
 /**
- * Minimum number of words that comprise an incident.
+ * Minimum number of characters that comprise an incident.
  */
-const kMinimumIncidentWords = 5;
+const kMinimumIncidentLength = 8;
 
 /**
  * Props accepted by the <ReportIncidentDialog> component.
@@ -72,8 +72,8 @@ export function ReportIncidentDialog(props: ReportIncidentDialogProps) {
         setError(false);
         setLoading(true);
         try {
-            if (incident.split(' ').length < kMinimumIncidentWords)
-                throw new Error(`Reports must have at least ${kMinimumIncidentWords} words.`);
+            if (incident.length < kMinimumIncidentLength)
+                throw new Error(`Reports must have at least ${kMinimumIncidentLength} characters.`);
 
             if (!!await onSubmit?.(incident))
                 handleClose();

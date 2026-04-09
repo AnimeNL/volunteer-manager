@@ -5,6 +5,15 @@ import type { NextRequest } from 'next/server';
 import { executeAction } from '../../../Action';
 
 import { dutyBookMarkAsRead, kDutyBookMarkAsReadDefinition } from '../dutyBookMarkAsRead';
+import { dutyBookReport, kDutyBookReportDefinition } from '../dutyBookReport';
+
+/**
+ * The /api/event/schedule/duty-book endpoint can be used to report new incidents.
+ */
+export async function POST(request: NextRequest): Promise<Response> {
+    return executeAction(request, kDutyBookReportDefinition, dutyBookReport);
+}
+
 
 /**
  * The /api/event/schedule/duty-book endpoint can be used by volunteers mark a duty book event as

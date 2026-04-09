@@ -9,6 +9,7 @@ import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePassk
 import type { DeleteScheduleEntryDefinition } from '@app/api/admin/event/schedule/deleteScheduleEntry';
 import type { DisplayDefinition } from '@app/api/display/route';
 import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyBookMarkAsRead';
+import type { DutyBookReportDefinition } from '@app/api/event/schedule/dutyBookReport';
 import type { ErrorDefinition } from '@app/api/error/route';
 import type { ExportsDefinition } from '@app/api/exports/route';
 import type { GeneratePromptDefinition } from '@app/api/ai/generatePrompt';
@@ -189,6 +190,7 @@ export type ApiEndpoints = {
         '/api/auth/update-avatar': UpdateAvatarDefinition,
         '/api/display/help-request': HelpRequestDefinition,
         '/api/error': ErrorDefinition,
+        '/api/event/schedule/duty-book': DutyBookReportDefinition,
         '/api/event/schedule/feedback': SubmitFeedbackDefinition,
         '/api/exports': ExportsDefinition,
         '/api/nardo': NardoEndpoints['create'],

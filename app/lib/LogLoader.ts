@@ -317,6 +317,9 @@ const kLogMessageFormatter: {
     [kLogType.EventHelpRequestUpdate]: (source, target, { event, display, mutation }) => {
         return `${mutation} a help request from ${display} for ${event}`;
     },
+    [kLogType.EventIncidentReported]: (source, target, { event }) => {
+        return `Reported a Duty Book incident for ${event}`;
+    },
     [kLogType.EventVolunteerNotes]: (source, target, { event }) => {
         return `Updated notes for ${target?.name} during ${event}`;
     },

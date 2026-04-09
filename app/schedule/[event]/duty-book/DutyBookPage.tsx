@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { useCallback, useContext, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
@@ -101,7 +102,8 @@ export interface DutyBookPageProps {
  * is complemented with data provided from the server component.
  */
 export function DutyBookPage(props: DutyBookPageProps) {
-    const { refresh, schedule } = useContext(ScheduleContext);
+    const router = useRouter();
+    const { schedule } = useContext(ScheduleContext);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -133,12 +135,22 @@ export function DutyBookPage(props: DutyBookPageProps) {
     }, [ /* no deps */ ]);
 
     const handleIncidentSubmission = useCallback(async (incident: string) => {
-        // TODO: Submit
-        // TODO: Refresh
+        if (!schedule)
+            return false;  // unable to report incidents before the schedule is loaded
+
+        const response = await callApi('post', '/api/event/schedule/duty-book', {
+            event: schedule.slug,
+            incident,
+        });
+
+        if (!response.success)
+            throw new Error(response.error || 'Unable to save the incident in the database');
+
+        router.refresh();  // ensure the incident is displayed
 
         return true;
 
-    }, [ /* no deps */ ]);
+    }, [ router, schedule ]);
 
     // ---------------------------------------------------------------------------------------------
 
