@@ -45,24 +45,22 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
             date: dbInstance.dateTimeAsString(tDutyBook.dutyBookCreated),
             read: dutyBookViewersJoin.dutyBookViewerDate,
 
+            hidden: tDutyBook.dutyBookHidden.isNotNull(),
+
             summary: tDutyBook.dutyBookAiSummary,
             text: tDutyBook.dutyBookIncident,
-
-
-            isHidden: tDutyBook.dutyBookHidden.isNotNull(),
         })
         .orderBy(tDutyBook.dutyBookCreated, 'desc')
         .executeSelectMany();
 
     const processedIncidents = incidents.map(incident => {
-        const canAccessContent = !incident.isHidden || hasUnrestrictedAccess;
+        const canAccessContent = !incident.hidden || hasUnrestrictedAccess;
 
         return {
             ...incident,
-
             read: !!incident.read,
 
-            summary: incident.summary || incident.text,
+            summary: incident.summary || (canAccessContent ? incident.text : 'Unavailable entry'),
             text: canAccessContent ? incident.text : undefined,
         };
     });

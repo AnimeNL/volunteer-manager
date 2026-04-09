@@ -69,6 +69,11 @@ export interface DutyBookPageProps {
         date: string;
 
         /**
+         * Whether the entry has been hidden from regular users.
+         */
+        hidden: boolean;
+
+        /**
          * Whether the signed in user has already read this incident.
          */
         read: boolean;
@@ -219,6 +224,11 @@ export function DutyBookPage(props: DutyBookPageProps) {
                                                     {incident.author}
                                                 </MuiLink> }
                                             { !canAccessAuthorProfile && incident.author }
+                                            { !!incident.hidden &&
+                                                <Typography variant="inherit" component="span"
+                                                            color="warning">
+                                                    {' '}(hidden)
+                                                </Typography> }
                                         </Typography> }
                                 </AccordionDetails>
                             </Accordion>
