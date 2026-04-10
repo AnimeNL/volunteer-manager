@@ -10,6 +10,7 @@ import Collapse from '@mui/material/Collapse';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -92,7 +93,11 @@ export function ReportIncidentDialog(props: ReportIncidentDialogProps) {
             <DialogTitle sx={{ mb: -1 }}>
                 Please describe what happened
             </DialogTitle>
-            <DialogContent sx={{ pt: '8px !important' }}>
+            <DialogContent>
+                <DialogContentText sx={{ mb: 2 }}>
+                    Be clear and concise, and include enough information for the report to be
+                    informative to others without sharing sensitive information.
+                </DialogContentText>
                 <TextField fullWidth multiline label="Incident…" size="small"
                            value={incident} onChange={handleUpdateIncident} />
                 <Collapse in={!!error}>
