@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 
 import AccordionSummary, { accordionSummaryClasses } from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -46,9 +47,10 @@ interface TimedAccordionSummaryProps {
     icon?: React.ReactNode;
 
     /**
-     * Summary that should be displayed on this element. Will overflow by displaying ellipsis.
+     * Summary that should be displayed on this element. Will overflow by displaying ellipsis. When
+     * omitted, a skeleton component will be displayed instead.
      */
-    summary: string;
+    summary?: string;
 
     /**
      * Timezone in which the summary should be displayed.
@@ -80,12 +82,15 @@ export function TimedAccordionSummary(props: TimedAccordionSummaryProps) {
                               justifyContent: 'flex-start',
                           }}>
             <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-                <Typography variant="body2" sx={{
-                    ...kEnforceSingleLine,
-                    pr: !!props.icon ? 2 : 0,
-                }}>
-                    {props.summary}
-                </Typography>
+                { !props.summary &&
+                    <Skeleton animation="wave" sx={{ flex: 1, marginRight: '16px !important' }} /> }
+                { !!props.summary &&
+                    <Typography variant="body2" sx={{
+                        ...kEnforceSingleLine,
+                        pr: !!props.icon ? 2 : 0,
+                    }}>
+                        {props.summary}
+                    </Typography> }
                 <Stack direction="row" alignItems="center" sx={{ ml: 'auto !important', pr: 1 }}>
                     {props.icon}
                     <Typography variant="body2"

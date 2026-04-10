@@ -59,8 +59,6 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         return {
             ...incident,
             read: !!incident.read,
-
-            summary: incident.summary || (canAccessContent ? incident.text : 'Unavailable entry'),
             text: canAccessContent ? incident.text : undefined,
         };
     });
