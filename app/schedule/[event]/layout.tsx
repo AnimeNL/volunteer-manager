@@ -13,11 +13,14 @@ import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleContextManager } from './ScheduleContextManager';
 import { ScheduleTheme } from './ScheduleTheme';
+import { Temporal, isAfter } from '@lib/Temporal';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
+import db, { tEventsTeams, tUsersEvents } from '@lib/database';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Styling rules used for <ScheduleLayout> and friends.
@@ -53,7 +56,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule/[even
     if (!authenticationContext.user)
         unauthorized();  // only signed in users can access the schedule
 
-    const { access } = authenticationContext;
+    const { access, user } = authenticationContext;
 
     const environment = await determineEnvironment();
     if (!environment)
@@ -65,16 +68,38 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule/[even
     if (!event)
         notFound();  // the requested |event| does not exist
 
-    const eventData = event.getEnvironmentData(environment.domain);
-    if (!eventData)
-        notFound();  // the |environment| does not participate in the |event|
-
     if (!access.can('event.schedule.access', { event: event.slug })) {
         if (!authenticationContext.events.has(event.slug))
             forbidden();  // the |user| is not participating in the |event|
 
-        if (!eventData.enableSchedule)
-            forbidden();  // the |event| has not been published for the |environment|
+        const scheduleAvailabilityWindows = await db.selectFrom(tUsersEvents)
+            .innerJoin(tEventsTeams)
+                .on(tEventsTeams.teamId.equals(tUsersEvents.teamId))
+                    .and(tEventsTeams.eventId.equals(tUsersEvents.eventId))
+            .where(tUsersEvents.userId.equals(user.id))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .select({
+                start: tEventsTeams.enableScheduleStart,
+                end: tEventsTeams.enableScheduleEnd,
+            })
+            .executeSelectMany();
+
+        const currentTime = Temporal.Now.zonedDateTimeISO();
+
+        let identifiedWindowWithAccess = false;
+        for (const { start, end } of scheduleAvailabilityWindows) {
+            if (!start || isAfter(start, currentTime))
+                continue;  // the window has not opened yet
+
+            if (!end || isAfter(end, currentTime)) {
+                identifiedWindowWithAccess = true;
+                break;
+            }
+        }
+
+        if (!identifiedWindowWithAccess)
+            forbidden();
     }
 
     return (

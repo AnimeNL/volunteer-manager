@@ -8,7 +8,6 @@ import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { authenticateUser, getUserSessionToken } from '@lib/auth/Authentication';
 import { determineEnvironment } from '@lib/Environment';
-import { getEventsForUser } from '@lib/EventLoader';
 import { unsealRegistrationRequest } from '@lib/auth/RegistrationRequest';
 import { writeSealedSessionCookie } from '@lib/auth/Session';
 import db, { tUsers } from '@lib/database';
@@ -94,8 +93,7 @@ export async function registerActivate(request: Request, props: ActionProps): Pr
     if (!affectedRows)
         return { success: false };  // unable to update the user in the database?
 
-    const { access, user } =
-        await authenticateUser({ type: 'userId', userId: registrationRequest.id });
+    const { user } = await authenticateUser({ type: 'userId', userId: registrationRequest.id });
     const sessionToken = await getUserSessionToken(registrationRequest.id);
 
     if (!user || !sessionToken)
@@ -108,24 +106,10 @@ export async function registerActivate(request: Request, props: ActionProps): Pr
         data: { ip: props.ip },
     });
 
-    const availableEvents = await getEventsForUser(environment.domain, access, user);
-
-    let applicationUrl: string | undefined;
-    for (const availableEvent of availableEvents) {
-        const eventEnvironmentData = availableEvent.getEnvironmentData(environment.domain);
-        if (!eventEnvironmentData)
-            continue;  // the current team does not participate in this event
-
-        if (!eventEnvironmentData.enableApplications)
-            continue;  // this event does not currently accept applications
-
-        applicationUrl = `/registration/${availableEvent.slug}/application`;
-    }
-
     return {
         success: true,
         firstName: user.firstName,
         teamName: environment.title,
-        redirectUrl: applicationUrl ?? registrationRequest.redirectUrl,
+        redirectUrl: registrationRequest.redirectUrl ?? '/registration',
     };
 }
