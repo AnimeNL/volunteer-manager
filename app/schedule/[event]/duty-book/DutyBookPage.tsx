@@ -4,7 +4,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
@@ -36,6 +36,12 @@ import { callApi } from '@lib/callApi';
  * server to maintain state.
  */
 const kReadIncidentCache = new Set<number>;
+
+/**
+ * Number of milliseconds after which we have a good degree of confidence that the AI-generated
+ * summary for the Duty Book entry is available.
+ */
+const kRevealSummaryTimeoutMs = 10_000;
 
 /**
  * Message to display when the summary is still being generated. We use an (external) AI service for
@@ -139,6 +145,8 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
     }, [ /* no deps */ ]);
 
+    const refreshTimer = useRef<NodeJS.Timeout | number | null>(null);
+
     const handleIncidentSubmission = useCallback(async (incident: string) => {
         if (!schedule)
             return false;  // unable to report incidents before the schedule is loaded
@@ -151,11 +159,26 @@ export function DutyBookPage(props: DutyBookPageProps) {
         if (!response.success)
             throw new Error(response.error || 'Unable to save the incident in the database');
 
+        // The refresh logic is a little bit complex here: we refresh the page immediately to make
+        // sure that the new entry is visible, and then we refresh the page again after a set
+        // timeout hoping that the AI-generated summary has been made available by then.
+        if (refreshTimer.current)
+            clearTimeout(refreshTimer.current);
+
         router.refresh();  // ensure the incident is displayed
+
+        refreshTimer.current = setTimeout(() => router.refresh(), kRevealSummaryTimeoutMs);
 
         return true;
 
     }, [ router, schedule ]);
+
+    useEffect(() => {
+        return /* cleanup function= */ () => {
+            if (refreshTimer.current)
+                clearTimeout(refreshTimer.current);
+        };
+    }, [ /* no dependencies */ ]);
 
     // ---------------------------------------------------------------------------------------------
 
