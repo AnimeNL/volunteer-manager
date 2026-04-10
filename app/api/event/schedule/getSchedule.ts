@@ -15,8 +15,9 @@ import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEventBySlug } from '@lib/EventLoader';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
-    tContentCategories, tDisplaysRequests, tEventsSales, tEventsSalesConfiguration, tNardo, tRoles,
-    tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents, tVendors, tVendorsSchedule }
+    tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsSales,
+    tEventsSalesConfiguration, tNardo, tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers,
+    tUsersEvents, tVendors, tVendorsSchedule }
     from '@lib/database';
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
@@ -245,6 +246,17 @@ async function populateMetadata(
     if (!schedule.config.enableHelpRequests && !includeAdvice)
         return;  // no information is requested to be provided to the schedule...
 
+    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
+
+    const dutyBookUnreadSubQuery = dbInstance.selectFrom(tDutyBook)
+        .leftJoin(dutyBookViewersJoin)
+            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
+                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(schedule.userId))
+        .where(tDutyBook.dutyBookEventId.equals(eventId))
+            .and(dutyBookViewersJoin.dutyBookId.isNull())
+        .selectCountAll()
+        .forUseAsInlineQueryValue();
+
     const helpRequestsPendingSubQuery = dbInstance.selectFrom(tDisplaysRequests)
         .where(tDisplaysRequests.requestEventId.equals(eventId))
             .and(tDisplaysRequests.requestAcknowledgedBy.isNull())
@@ -266,15 +278,21 @@ async function populateMetadata(
 
     const metadata = await db.selectFromNoTable()
         .select({
+            dutyBookUnread: dutyBookUnreadSubQuery,
             helpRequestsPending: helpRequestsPendingSubQuery,
             nardoAdvice: nardoAdviceSubQuery,
         })
         .executeSelectNoneOrOne();
 
-    if (schedule.config.enableHelpRequests && metadata)
+    if (!metadata)
+        return;
+
+    schedule.dutyBookUnread = metadata.dutyBookUnread;
+
+    if (schedule.config.enableHelpRequests)
         schedule.helpRequestsPending = metadata.helpRequestsPending;
 
-    if (includeAdvice && metadata)
+    if (includeAdvice)
         schedule.nardo = metadata.nardoAdvice;
 }
 
@@ -1034,6 +1052,9 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
                 schedule.config.enableDutyBook = true;
         }
     }
+
+    if (!schedule.config.enableDutyBook)
+        schedule.dutyBookUnread = undefined;
 
     // ---------------------------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@
 
 import Link from '@app/LinkProxy';
 
+import Badge from '@mui/material/Badge';
 import BookIcon from '@mui/icons-material/Book';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
@@ -16,9 +17,19 @@ import ReadMoreIcon from '@mui/icons-material/ReadMore';
  */
 interface DutyBookCardProps {
     /**
+     * Short name of the event for which the card is being shown.
+     */
+    event: string;
+
+    /**
      * Slug of the event for which the card is being shown.
      */
     slug: string;
+
+    /**
+     * Number of unread Duty Book items that the signed in user hasn't seen yet.
+     */
+    unread?: number;
 }
 
 /**
@@ -32,10 +43,13 @@ export function DutyBookCard(props: DutyBookCardProps) {
                             sx={{ '& .MuiCardHeader-action': { alignSelf: 'center',
                                                                pr: 1, pt: 0.5 } }}>
 
-                <CardHeader action={ <ReadMoreIcon color="disabled" /> }
+                <CardHeader action={
+                                <Badge badgeContent={props.unread} color="error">
+                                    <ReadMoreIcon color="disabled" />
+                                </Badge> }
                             avatar={ <BookIcon color="primary" /> }
                             title="Duty book" titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader="Share incident information with the team" />
+                            subheader={`${props.event} incident records`} />
 
             </CardActionArea>
         </Card>

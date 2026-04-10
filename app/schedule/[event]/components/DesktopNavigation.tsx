@@ -259,6 +259,7 @@ export function DesktopNavigation() {
                 </List>
                 { !!schedule.config.enableDutyBook &&
                     <DesktopNavigationEntry active={ schedulePathname.startsWith('/duty-book') }
+                                            badge={ schedule.dutyBookUnread }
                                             href={ scheduleBaseUrl + '/duty-book' }
                                             icon={ <BookIcon /> }
                                             label="Duty book" /> }

@@ -160,6 +160,12 @@ export const kPublicSchedule = z.strictObject({
     }),
 
     /**
+     * Number of unread entries in the Duty Book, if any. Only included when the signed in user has
+     * access to the Duty Book.
+     */
+    dutyBookUnread: z.number().optional(),
+
+    /**
      * Activity IDs that have been favourited by the volunteer.
      */
     favourites: z.record(z.string(), z.literal(true)).optional(),

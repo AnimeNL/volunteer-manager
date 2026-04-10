@@ -97,7 +97,9 @@ export function OverviewPage() {
             { /* TODO: Available back-up volunteers */ }
             { /* TODO: Available senior volunteers */ }
             { (!!isMobile && !!schedule?.config.enableDutyBook) &&
-                <DutyBookCard slug={schedule.slug} /> }
+                <DutyBookCard event={schedule.event}
+                              slug={schedule.slug}
+                              unread={schedule.dutyBookUnread} /> }
             { (!!isMobile && !!schedule?.knowledge?.length) &&
                 <KnowledgeBaseCard slug={schedule.slug} /> }
             { (!!isMobile && !!schedule?.config.enableHelpRequests) &&

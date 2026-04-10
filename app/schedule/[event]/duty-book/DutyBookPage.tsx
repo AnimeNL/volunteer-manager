@@ -141,10 +141,13 @@ export function DutyBookPage(props: DutyBookPageProps) {
             console.error('Unable to record the duty book access', error);
         }
 
+        if (!!schedule?.dutyBookUnread)
+            schedule.dutyBookUnread = Math.max(0, schedule.dutyBookUnread - 1);
+
         kReadIncidentCache.add(incidentId);
         setOpenedIncidentSet(new Set([ ...kReadIncidentCache ]));  // cause an invalidation
 
-    }, [ /* no deps */ ]);
+    }, [ schedule ]);
 
     const refreshTimer = useRef<NodeJS.Timeout | number | null>(null);
 
