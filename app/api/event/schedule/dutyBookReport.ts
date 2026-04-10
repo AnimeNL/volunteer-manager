@@ -6,19 +6,11 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
-import { IncidentSummaryPrompt } from '@lib/ai/prompts';
-import { Publish } from '@lib/subscriptions';
-import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { createAiClient } from '@lib/integrations/genai';
+import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { getEventBySlug } from '@lib/EventLoader';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
 
-import { kSubscriptionType } from '@lib/subscriptions';
-
-/**
- * Summary to use when no AI summary could be generated in a reasonable amount of time.
- */
-const kUnableToGenerateSummary = 'No summary is available for this incident.';
+import { DutyBookSummaryTask } from '@lib/scheduler/tasks/DutyBookSummaryTask';
 
 /**
  * Interface definition for the Duty Book API, exposed through /api/event/schedule/duty-book
@@ -77,7 +69,7 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
             dutyBookUserId: props.user.id,
             dutyBookEventId: event.id,
             dutyBookIncident: request.incident,
-            dutyBookAiSummary: kUnableToGenerateSummary,
+            dutyBookAiSummary: /* will be asynchronously generated= */ null,
             dutyBookCreated: dbInstance.currentZonedDateTime(),
             dutyBookUpdated: dbInstance.currentZonedDateTime(),
         })
@@ -94,52 +86,14 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         .onConflictDoNothing()
         .executeInsert();
 
-    // Step 4: Generate an AI summary for the incident
-    let incidentSummary = kUnableToGenerateSummary;
-
-    try {
-        const promptInstance = new IncidentSummaryPrompt();
-        const prompt = await promptInstance.evaluate({
-            incident: request.incident,
-        });
-
-        const client = await createAiClient();
-        const summary = await client.generateText({ prompt });
-
-        if (summary.success) {
-            incidentSummary = summary.text;
-
-            await dbInstance.update(tDutyBook)
-                .set({
-                    dutyBookAiSummary: incidentSummary,
-                })
-                .where(tDutyBook.dutyBookId.equals(incidentId))
-                .executeUpdate();
-        }
-    } catch (error: any) {
-        incidentSummary = kUnableToGenerateSummary;
-
-        RecordErrorLog({
-            error,
-            requestUrl: { pathname: '/api/event/schedule/duty-book' },
-            severity: kLogSeverity.Error,
-            source: 'Server',
-            user: props.user,
-        });
-    }
-
-    // Step 4: Publish existence of the summary to subscribed volunteers
-    await Publish({
-        type: kSubscriptionType.Incident,
-        sourceUserId: props.user.id,
-        message: {
-            author: props.user.name,
-            summary: incidentSummary,
-            requestId: incidentId,
-        },
+    // Step 3: Schedule a DutyBookSummaryTask to generate a summary and publish availability of a
+    // new incident to subscribed leads. This is done out-of-bands because generating an AI summary
+    // can take a substantial amount of time, and we want our user interface to be opportunistic.
+    await DutyBookSummaryTask.Schedule({
+        id: incidentId,
     });
 
-    // Step 5: Log that a new incident has been reported
+    // Step 4: Log that a new incident has been reported
     RecordLog({
         type: kLogType.EventIncidentReported,
         severity: kLogSeverity.Warning,

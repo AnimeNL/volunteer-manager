@@ -19,6 +19,25 @@ import Typography from '@mui/material/Typography';
 import { callApi } from '@lib/callApi';
 
 /**
+ * Panel that enables the administrator to create the `DutyBookSummaryTask`.
+ */
+function CreateDutyBookSummaryTaskPanel() {
+    const kPublishEntryOptions = [
+        { id: 'false', label: 'Only generate a summary' },
+        { id: 'true', label: 'Publish the incident' },
+    ];
+
+    return (
+        <Stack sx={{ mt: 2 }} spacing={2}>
+            <TextFieldElement name="id" label="Duty Book ID" size="small" fullWidth required
+                              type="number" />
+            <SelectElement name="publish" label="Publish?" size="small" fullWidth required
+                           options={kPublishEntryOptions} />
+        </Stack>
+    );
+}
+
+/**
  * Panel that enables the administrator to create the `ImportActivitiesTask`.
  */
 function CreateImportActivitiesTaskPanel() {
@@ -58,6 +77,7 @@ function CreateNoopComplexTaskPanel() {
  * Set of tasks that can be created using the Web interface.
  */
 const kTaskOptions = [
+    { id: 'DutyBookSummaryTask', label: 'DutyBookSummaryTask' },
     { id: 'ImportActivitiesTask', label: 'ImportActivitiesTask' },
     { id: 'ImportYourTicketProviderTask', label: 'ImportYourTicketProviderTask' },
     { id: 'NoopComplexTask', label: 'NoopComplexTask' },
@@ -142,6 +162,9 @@ export function SchedulerCreateTaskPanel() {
             <FormContainer context={form} onSuccess={handleCreateTask}>
                 <SelectElement name="task" label="Task" size="small" fullWidth required
                                options={kTaskOptions} onChange={handleSelectTask} />
+                <Collapse in={selectedTask === 'DutyBookSummaryTask'} mountOnEnter unmountOnExit>
+                    <CreateDutyBookSummaryTaskPanel />
+                </Collapse>
                 <Collapse in={selectedTask === 'ImportActivitiesTask'} mountOnEnter unmountOnExit>
                     <CreateImportActivitiesTaskPanel />
                 </Collapse>
