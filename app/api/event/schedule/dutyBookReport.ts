@@ -45,6 +45,11 @@ export const kDutyBookReportDefinition = z.object({
          * Optional error message in case the incident could not be reported.
          */
         error: z.string().optional(),
+
+        /**
+         * Optional unique ID of the reported incident, when it could be created successfully.
+         */
+        incidentId: z.number().optional(),
     }),
 });
 
@@ -145,5 +150,8 @@ export async function dutyBookReport(request: Request, props: ActionProps): Prom
         },
     });
 
-    return { success: true };
+    return {
+        success: true,
+        incidentId,
+    };
 }

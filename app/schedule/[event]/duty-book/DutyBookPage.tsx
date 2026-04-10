@@ -118,6 +118,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const [ createdIncidentId, setCreatedIncidentId ] = useState<number | undefined>(undefined);
     const [ openedIncidentSet, setOpenedIncidentSet ] = useState<Set<number>>(kReadIncidentCache);
     const [ reportIncidentDialogOpen, setReportIncidentDialogOpen ] = useState<boolean>(false);
 
@@ -158,6 +159,9 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
         if (!response.success)
             throw new Error(response.error || 'Unable to save the incident in the database');
+
+        // Automatically expand the newly added incident in the user interface.
+        setCreatedIncidentId(response.incidentId);
 
         // The refresh logic is a little bit complex here: we refresh the page immediately to make
         // sure that the new entry is visible, and then we refresh the page again after a set
@@ -229,6 +233,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
                         return (
                             <Accordion key={incident.id}
+                                       defaultExpanded={incident.id === createdIncidentId}
                                        onChange={handleIncidentToggle.bind(null, incident.id)}>
 
                                 <TimedAccordionSummary
