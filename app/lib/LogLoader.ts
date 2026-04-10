@@ -124,6 +124,8 @@ const kLogMessageFormatter: {
     [kLogType.AdminDeleteAvatar]: (source, target) => {
         return `Deleted an avatar from ${target?.name}'s account`;
     },
+    [kLogType.AdminDeleteDutyBook]: (source, target, { event }) =>
+        `Deleted a Duty Book incident for ${event}`,
     [kLogType.AdminEnvironmentCreate]: (source, target, { domain }) => {
         return `Created a new environment for ${domain}`;
     },
@@ -256,6 +258,10 @@ const kLogMessageFormatter: {
         return `Updated ${action ?? 'settings'} for ${event}`;
     },
     [kLogType.AdminUpdateAvatar]: (source, target) => `Updated ${target?.name}'s avatar`,
+    [kLogType.AdminUpdateDutyBookDetails]: (source, target, { event }) =>
+        `Updated the details of a Duty Book incident for ${event}`,
+    [kLogType.AdminUpdateDutyBookVisibility]: (source, target, { event }) =>
+        `Updated the visibility status of a Duty Book incident for ${event}`,
     [kLogType.AdminUpdateEnvironment]: 'Updated Volunteer Manager environment configuration',
     [kLogType.AdminUpdateHotelPreferences]: (source, target, { event }) => {
         return `Updated their hotel preferences for ${event}`;

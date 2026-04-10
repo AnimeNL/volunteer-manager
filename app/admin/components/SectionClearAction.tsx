@@ -5,6 +5,7 @@
 
 import { useCallback, useState } from 'react';
 import { useFormContext } from '@components/proxy/react-hook-form-mui';
+import { useRouter } from 'next/navigation';
 
 import ClearIcon from '@mui/icons-material/Clear';
 import DialogContentText from '@mui/material/DialogContentText';
@@ -24,6 +25,12 @@ interface SectionClearActionProps {
     action: ServerAction;
 
     /**
+     * The icon to use for clearing the information.
+     * @default <ClearIcon />
+     */
+    icon?: React.ReactNode;
+
+    /**
      * The subject of the contents of this section.
      * @example 'Are you sure that you want to clear the {subject}'
      * @default 'section'
@@ -34,6 +41,12 @@ interface SectionClearActionProps {
      * Title to display in the header.
      */
     title: string;
+
+    /**
+     * The verb to use in regards to this operation.
+     * @default 'clear'
+     */
+    verb?: string;
 }
 
 /**
@@ -44,6 +57,10 @@ export function SectionClearAction(props: SectionClearActionProps) {
     const { action, subject, title } = props;
 
     const form = useFormContext();
+    const router = useRouter();
+
+    const icon = props.icon ?? <ClearIcon fontSize="small" />;
+    const verb = props.verb ?? 'clear';
 
     const [ confirmationOpen, setConfirmationOpen ] = useState<boolean>(false);
 
@@ -51,33 +68,38 @@ export function SectionClearAction(props: SectionClearActionProps) {
         try {
             const result = await action(new FormData);
             if (!result.success)
-                return { error: result.error || 'Unable to clear the data on the server…' };
+                return { error: result.error || `Unable to ${verb} the data on the server…` };
 
             if (!!result.clear && !!form) {
                 for (const field of Object.keys(form.getValues()))
                     form.setValue(field, /* clear= */ '');
             }
 
+            if (result.redirect)
+                router.push(result.redirect);
+            else if (result.refresh)
+                router.refresh();
+
             return true;
 
         } catch (error: any) {
             return { error: error.message };
         }
-    }, [ action, form ]);
+    }, [ action, form, router, verb ]);
 
     return (
         <>
             <Tooltip title={`Clear the ${subject}`}>
                 <IconButton onClick={ () => setConfirmationOpen(true) } size="small">
-                    <ClearIcon fontSize="small" />
+                    {icon}
                 </IconButton>
             </Tooltip>
             { confirmationOpen &&
                 <ConfirmationDialog onClose={ () => setConfirmationOpen(false) }
                                     onConfirm={handleCommit} title={title} open={confirmationOpen}>
                     <DialogContentText>
-                        Are you sure that you want to clear the {subject}? This action will
-                        permanently remove the currently stored information.
+                        Are you sure that you want to {verb} the {subject}? This action will
+                        remove the currently stored information.
                     </DialogContentText>
                 </ConfirmationDialog> }
         </>
