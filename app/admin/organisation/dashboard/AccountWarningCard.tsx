@@ -31,6 +31,7 @@ const kPhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 export async function AccountWarningCard() {
     const volunteers = await db.selectFrom(tUsers)
         .where(tUsers.anonymized.isNull())
+            .and(tUsers.participationSuspended.isNull())
         .select({
             id: tUsers.userId,
             name: tUsers.name,
