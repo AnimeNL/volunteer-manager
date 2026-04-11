@@ -301,6 +301,21 @@ export function DutyBookPage(props: DutyBookPageProps) {
                                             </Typography>
                                         </Box> }
 
+                                    { incident.authorUserId === schedule.userId &&
+                                        <Box sx={{
+                                            borderLeft: theme =>
+                                                `4px solid ${theme.palette.info.main}`,
+                                            paddingLeft: 1.5,
+                                            marginTop: 2,
+                                        }}>
+                                            <Typography variant="body2"
+                                                        sx={{ fontStyle: 'italic' }}>
+                                                Thank you for reporting this incident. Please talk
+                                                to a Senior Steward if you would like to make any
+                                                changes.
+                                            </Typography>
+                                        </Box> }
+
                                 </AccordionDetails>
                             </Accordion>
                         );
