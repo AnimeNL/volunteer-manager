@@ -253,6 +253,7 @@ async function populateMetadata(
             .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
                 .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(schedule.userId))
         .where(tDutyBook.dutyBookEventId.equals(eventId))
+            .and(tDutyBook.dutyBookDeleted.isNull())
             .and(dutyBookViewersJoin.dutyBookId.isNull())
         .selectCountAll()
         .forUseAsInlineQueryValue();
