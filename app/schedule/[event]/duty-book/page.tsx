@@ -54,7 +54,8 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         .executeSelectMany();
 
     const processedIncidents = incidents.map(incident => {
-        const canAccessContent = !incident.hidden || hasUnrestrictedAccess;
+        const canAccessContent =
+            incident.authorUserId === user.id || !incident.hidden || hasUnrestrictedAccess;
 
         return {
             ...incident,
