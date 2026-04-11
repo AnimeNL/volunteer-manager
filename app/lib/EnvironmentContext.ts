@@ -74,6 +74,12 @@ export interface EnvironmentContextEventAccess {
     endTime: Temporal.ZonedDateTime;
 
     /**
+     * Whether a Festival ID has been associated with this event. Availability of the portal depends
+     * on this, as there is no program to display without.. a program.
+     */
+    hasFestivalId: boolean;
+
+    /**
      * Set of applications that exist for the user. There may be zero or more, with no upper limit
      * as environments can have any number of teams associated with them.
      */
@@ -240,6 +246,8 @@ async function determineEventAccess(
             shortName: tEvents.eventShortName,
             startTime: tEvents.eventStartTime,
             endTime: tEvents.eventEndTime,
+
+            hasFestivalId: tEvents.eventFestivalId.isNotNull(),
 
             applications: applicationsJoin,
 

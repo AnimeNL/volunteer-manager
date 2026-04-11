@@ -86,7 +86,7 @@ export function EventsContent(props: EventsContentProps) {
             }
         }
 
-        if (!!scheduleStatus) {
+        if (!!scheduleStatus && event.hasFestivalId) {
             const scheduleHighlight =
                 scheduleStatus === 'active' && isBefore(currentTime, event.endTime);
 
