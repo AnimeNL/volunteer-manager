@@ -3,6 +3,7 @@
 
 import type React from 'react';
 import Link from '@app/LinkProxy';
+import { redirect } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
@@ -51,6 +52,11 @@ interface EventsContentProps {
      * The events that should be shown on this page. At most two events will be included.
      */
     events: EnvironmentContextEventAccess[];
+
+    /**
+     * Whether to redirect the user to an active schedule when one exists.
+     */
+    redirectToActiveSchedule: boolean;
 }
 
 /**
@@ -89,6 +95,9 @@ export function EventsContent(props: EventsContentProps) {
         if (!!scheduleStatus && event.hasFestivalId) {
             const scheduleHighlight =
                 scheduleStatus === 'active' && isBefore(currentTime, event.endTime);
+
+            if (scheduleHighlight && props.redirectToActiveSchedule)
+                redirect(`/schedule/${event.slug}`);
 
             buttons.push(
                 <Button key={`${event.slug}-schedule`} component={Link}

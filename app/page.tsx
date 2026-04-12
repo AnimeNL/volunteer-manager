@@ -14,14 +14,14 @@ import { kEnvironmentPurpose } from '@lib/database/Types';
  * The entry point of the AnimeCon Volunteer Manager. Determines what to do based on the purpose of
  * the current environment, when said environment could be identified.
  */
-export default async function RootPage() {
+export default async function RootPage(params: PageProps<'/'>) {
     const environment = await determineEnvironment();
     if (!environment)
         notFound();
 
     switch (environment.purpose) {
         case kEnvironmentPurpose.LandingPage:
-            return <LandingPage environment={environment} />;
+            return <LandingPage environment={environment} searchParams={params.searchParams} />;
         case kEnvironmentPurpose.Placeholder:
             return <PlaceholderPage />;
     }
