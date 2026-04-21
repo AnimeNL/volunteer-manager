@@ -35,6 +35,7 @@ export async function ApplicationForm(props: ApplicationFormProps) {
             .on(usersEventsJoin.userId.equals(tUsers.userId))
                 .and(usersEventsJoin.eventId.equals(props.eventId))
                 .and(usersEventsJoin.teamId.equals(props.teamId))
+        .where(tUsers.anonymized.isNull())
         .select({
             id: tUsers.userId,
             label: tUsers.name,
