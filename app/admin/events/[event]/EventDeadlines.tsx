@@ -48,7 +48,7 @@ export function EventDeadlines(props: EventDeadlinesProps) {
         <Card>
             <CardHeader avatar={ <FlagIcon color="primary" /> }
                         title={`${props.event.shortName} deadlines`}
-                        titleTypographyProps={{ variant: 'subtitle2' }} />
+                        slotProps={{ title: { variant: 'subtitle2' } }} />
             <Divider sx={{ visibility: 'hidden' }} />
             { props.deadlines.map(deadline => {
                 const deadlineDate = Temporal.PlainDate.from(deadline.date);

@@ -97,7 +97,7 @@ export async function EventRecentChanges(props: EventRecentChangesProps) {
         <Card>
             <CardHeader avatar={ <RssFeedIcon color="primary" /> }
                         title="Latest changes made by volunteers"
-                        titleTypographyProps={{ variant: 'subtitle2' }} />
+                        slotProps={{ title: { variant: 'subtitle2' } }} />
             <Divider />
             <Stack direction="column" divider={ <Divider flexItem /> }>
                 { props.changes.map((change, index) => {

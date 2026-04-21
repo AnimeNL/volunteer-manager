@@ -77,8 +77,8 @@ export default async function ScheduleKnowledgeCategoryPage(
             <Card>
                 <CardHeader avatar={ <KnowledgeBaseIcon variant={category.icon} /> }
                             title={category.title}
-                            titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader={category.description} />
+                            subheader={category.description}
+                            slotProps={{ title: { variant: 'subtitle2' } }} />
             </Card>
             <Box sx={{ '& .MuiAccordionDetails-root': { paddingTop: 0 } }}>
                 { category.questions.map(({ id, question, answer }) =>

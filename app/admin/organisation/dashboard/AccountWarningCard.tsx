@@ -108,7 +108,7 @@ export async function AccountWarningCard() {
                     <ListItemButton LinkComponent={Link}
                                     href={`/admin/organisation/accounts/${warning.userId}`}
                                     key={index}>
-                        <ListItemIcon>
+                        <ListItemIcon sx={{ minWidth: '40px' }}>
                             {warning.icon}
                         </ListItemIcon>
                         <ListItemText primary={warning.name}

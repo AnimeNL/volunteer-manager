@@ -48,7 +48,6 @@ export function KnowledgeBaseCategories() {
                                             </Tooltip> : undefined
                                     }
                                     title={category.title}
-                                    titleTypographyProps={{ variant: 'subtitle2' }}
                                     subheader={category.description}
                                     slotProps={{
                                         action: {

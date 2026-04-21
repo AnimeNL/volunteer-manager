@@ -144,7 +144,11 @@ export function EventRecentVolunteers(props: EventRecentVolunteersProps) {
                             </Tooltip>
                         }
                         title="Latest volunteers to apply"
-                        titleTypographyProps={{ variant: 'subtitle2' }} />
+                        slotProps={{
+                            title: {
+                                variant: 'subtitle2',
+                            }
+                        }} />
             <Divider />
             <CardContent sx={{ pb: '16px !important' }}>
                 <VolunteerStack {...props} />

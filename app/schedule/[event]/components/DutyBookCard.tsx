@@ -48,8 +48,9 @@ export function DutyBookCard(props: DutyBookCardProps) {
                                     <ReadMoreIcon color="disabled" />
                                 </Badge> }
                             avatar={ <BookIcon color="primary" /> }
-                            title="Duty book" titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader={`${props.event} incident records`} />
+                            title="Duty book"
+                            subheader={`${props.event} incident records`}
+                            slotProps={{ title: { variant: 'subtitle2' } }} />
 
             </CardActionArea>
         </Card>

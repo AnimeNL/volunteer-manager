@@ -52,7 +52,7 @@ export function UpcomingShiftCard(props: UpcomingShiftCardProps) {
         <Card>
             <CardActionArea LinkComponent={Link} href={`/schedule/${slug}/shifts`}>
                 <CardContent>
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                    <Typography sx={{ color: 'text.secondary', fontSize: 14 }} gutterBottom>
                         Your next shift will be…
                     </Typography>
                     <Typography variant="h5">

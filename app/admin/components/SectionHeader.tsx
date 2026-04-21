@@ -60,7 +60,7 @@ export function SectionHeader(props: SectionHeaderProps) {
         <Stack direction="row" sx={{
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBototm: '-8px !important',
+            marginBottom: '-8px !important',
             ...props.sx
         }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -68,8 +68,8 @@ export function SectionHeader(props: SectionHeaderProps) {
                 <Typography variant="h5">
                     { props.title }
                     { props.subtitle &&
-                        <Typography component="span" variant="h5" color="action.active"
-                                    sx={{ pl: 1 }}>
+                        <Typography component="span" variant="h5"
+                                    sx={{ color: 'action.active', paddingLeft: 1 }}>
                             ({ props.subtitle })
                         </Typography> }
                 </Typography>

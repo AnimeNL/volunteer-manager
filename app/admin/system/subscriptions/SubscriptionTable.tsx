@@ -83,7 +83,7 @@ export function SubscriptionTable() {
                 }
 
                 return (
-                    <Typography variant="body2" color="text.disabled">
+                    <Typography variant="body2" sx={{ color: 'text.disabled' }}>
                         No subscriptions
                     </Typography>
                 );

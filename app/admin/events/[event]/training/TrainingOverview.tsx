@@ -124,12 +124,14 @@ export function TrainingOverview(props: TrainingOverviewProps) {
                     alignItems: 'center',
                     flexGrow: 1,
                     justifyContent: 'space-between',
-                    pddingRight: 2
+                    paddingRight: 2
                 }}>
                     <Typography variant="h5">
                         Confirmed participation
-                        <Typography component="span" variant="h5" color="action.active"
-                                    sx={{ pl: 1 }}>
+                        <Typography component="span" variant="h5" sx={{
+                            color: 'action.active',
+                            paddingLeft: 1
+                        }}>
                             ({totalCount})
                         </Typography>
                     </Typography>

@@ -3,7 +3,7 @@
 
 import ApiIcon from '@mui/icons-material/Api';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import ChatBubbleOutlinedIcon from '@mui/icons-material/ChatBubbleOutlined';
+import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import DeviceHubIcon from '@mui/icons-material/DeviceHub';
 import DvrIcon from '@mui/icons-material/Dvr';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -59,7 +59,7 @@ export default async function TopLevelLayout(props: React.PropsWithChildren) {
             ],
         },
         {
-            icon: <ChatBubbleOutlinedIcon />,
+            icon: <ChatBubbleOutlineOutlinedIcon />,
             label: 'Communication',
             permission: [
                 'system.internals',

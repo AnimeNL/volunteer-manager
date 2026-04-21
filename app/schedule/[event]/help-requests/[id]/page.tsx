@@ -124,8 +124,8 @@ export default async function ScheduleHelpRequestPage(
             <Card>
                 <CardHeader avatar={ <HelpRequestTarget target={request.target} /> }
                             title={`${request.display} asks for ${target}`}
-                            titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader="Request received from their Volunteering Display" />
+                            subheader="Request received from their Volunteering Display"
+                            slotProps={{ title: { variant: 'subtitle2' } }} />
             </Card>
             <Card sx={{ px: 2, py: 1 }}>
                 <Stepper orientation="vertical" activeStep={activeStep}

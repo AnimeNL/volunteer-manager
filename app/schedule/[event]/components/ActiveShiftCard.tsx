@@ -49,7 +49,7 @@ export function ActiveShiftCard(props: ActiveShiftCardProps) {
         <Card sx={{ backgroundColor: 'animecon.activeBackground' }}>
             <CardActionArea LinkComponent={Link} href={`/schedule/${slug}/shifts`}>
                 <CardContent>
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                    <Typography sx={{ color: 'text.secondary', fontSize: 14 }} gutterBottom>
                         You're currently busy with…
                     </Typography>
                     <Typography variant="h5">

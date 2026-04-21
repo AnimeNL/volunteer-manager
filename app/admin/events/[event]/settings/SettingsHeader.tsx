@@ -156,7 +156,7 @@ export function SettingsHeader(props: SettingsHeaderProps) {
         <Paper sx={{ p: 2 }}>
             <Typography variant="h5">
                 Settings
-                <Typography component="span" variant="h5" color="action.active" sx={{ pl: 1 }}>
+                <Typography component="span" variant="h5" sx={{ color: 'action.active', pl: 1 }}>
                     ({event.shortName})
                 </Typography>
             </Typography>

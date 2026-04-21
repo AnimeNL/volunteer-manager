@@ -48,8 +48,8 @@ export function HelpRequestsCard(props: HelpRequestsCardProps) {
 
                 <CardHeader action={ <ReadMoreIcon color="disabled" /> }
                             avatar={ <NotListedLocationOutlinedIcon color="primary" /> }
-                            title="Help requests" titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader={subheader} />
+                            title="Help requests" subheader={subheader}
+                            slotProps={{ title: { variant: 'subtitle2' } }} />
 
             </CardActionArea>
         </Card>

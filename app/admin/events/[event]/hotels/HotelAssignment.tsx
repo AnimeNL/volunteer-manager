@@ -243,7 +243,7 @@ export function HotelAssignment(props: HotelAssignmentProps) {
         <Paper sx={{ p: 2 }}>
             <Typography variant="h5" sx={{ pb: 1 }}>
                 Hotel rooms
-                <Typography component="span" variant="h5" color="action.active" sx={{ pl: 1 }}>
+                <Typography component="span" variant="h5" sx={{ color: 'action.active', pl: 1 }}>
                     ({event.shortName})
                 </Typography>
             </Typography>

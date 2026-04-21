@@ -74,7 +74,10 @@ export default async function EventTeamRetentionPage(
             <Paper sx={{ p: 2 }}>
                 <Typography variant="h5">
                     {team.name.replace(/s$/, '')} retention
-                    <Typography component="span" variant="h5" color="action.active" sx={{ pl: 1 }}>
+                    <Typography component="span" variant="h5" sx={{
+                        color: 'action.active',
+                        paddingLeft: 1
+                    }}>
                         ({event.shortName})
                     </Typography>
                 </Typography>

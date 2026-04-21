@@ -110,7 +110,10 @@ export const PaperHeader = styled((props: PaperHeaderProps) => {
             <Typography variant="h5">
                 { title }
                 { subtitle &&
-                    <Typography component="span" variant="h5" color="action.active" sx={{ pl: 1 }}>
+                    <Typography component="span" variant="h5" sx={{
+                        color: 'action.active',
+                        paddingLeft: 1,
+                    }}>
                         ({subtitle})
                     </Typography> }
             </Typography>

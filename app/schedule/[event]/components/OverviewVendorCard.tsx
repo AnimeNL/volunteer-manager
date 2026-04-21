@@ -87,8 +87,8 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
         return (
             <Card>
                 <CardHeader avatar={ kVendorCardIcon[props.team] }
-                            title={title} titleTypographyProps={{ variant: 'subtitle2' }}
-                            subheader={subheader} />
+                            title={title} subheader={subheader}
+                            slotProps={{ title: { variant: 'subtitle2' } }} />
             </Card>
         );
     }
@@ -102,8 +102,8 @@ export function OverviewVendorCard(props: OverviewVendorCardProps) {
 
                     <CardHeader action={ <ReadMoreIcon color="disabled" /> }
                                 avatar={ kVendorCardIcon[props.team] }
-                                title={title} titleTypographyProps={{ variant: 'subtitle2' }}
-                                subheader={subheader} />
+                                title={title} subheader={subheader}
+                                slotProps={{ title: { variant: 'subtitle2' } }} />
 
                 </CardActionArea>
             </Card>

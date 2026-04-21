@@ -127,7 +127,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
                        paddingY: 1,
                    }}>
 
-                <Typography color="primary.contrastText" variant="h6">
+                <Typography variant="h6" sx={{ color: 'primary.contrastText' }}>
                     AnimeCon Volunteer Manager
                 </Typography>
 
@@ -135,7 +135,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
                     alignItems: 'center',
                 }}>
 
-                    <Typography color="primary.contrastText">
+                    <Typography sx={{ color: 'primary.contrastText' }}>
                         { user.displayName ?? user.firstName }
                     </Typography>
 

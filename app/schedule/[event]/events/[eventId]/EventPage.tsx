@@ -448,8 +448,9 @@ export function EventPage(props: EventPageProps) {
                                                     <>
                                                         {product.sold}{' '}
                                                         <Typography variant="inherit"
-                                                                    component="span"
-                                                                    color="text.disabled">
+                                                                    component="span" sx={{
+                                                                        color: 'text.disabled',
+                                                                    }}>
                                                             / {product.limit}
                                                         </Typography>
                                                     </> }

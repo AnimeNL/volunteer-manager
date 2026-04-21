@@ -59,12 +59,16 @@ export function HeaderButton(props: HeaderButtonProps) {
     return (
         <CardActionArea LinkComponent={Link} href={props.href}>
             <CardHeader action={props.action} avatar={props.icon} sx={kHeaderButtonStyles}
-                        title={props.title}
-                        titleTypographyProps={{
-                            color: 'primary',
-                            fontWeight: 'normal',
-                            noWrap: true,
-                            variant: 'h6'
+                        title={props.title} slotProps={{
+                            title: {
+                                noWrap: true,
+                                variant: 'h6',
+                                sx: {
+                                    color: 'primary',
+                                    fontWeight: 'normal',
+
+                                },
+                            }
                         }} />
         </CardActionArea>
     );

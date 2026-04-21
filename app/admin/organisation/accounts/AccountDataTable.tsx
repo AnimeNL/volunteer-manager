@@ -251,10 +251,11 @@ function AccountDataTableListCell(params: GridRenderCellParams<VolunteerRowModel
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {params.row.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {params.row.teams?.replaceAll(',', ', ')}
                     { !params.row.teams &&
-                        <Typography component="span" variant="inherit" color="text.disabled" sx={{
+                        <Typography component="span" variant="inherit" sx={{
+                            color: 'text.disabled',
                             fontStyle: 'italic',
                         }}>
                             No known teams
