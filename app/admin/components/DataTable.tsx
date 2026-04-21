@@ -3,13 +3,12 @@
 
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 
 import type { GridColDef, GridFilterModel, GridPaginationModel, GridRenderCellParams, GridValidRowModel } from '@mui/x-data-grid-pro';
 import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
 
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { AdminClientContext } from '@app/admin/AdminClientContext';
 
 /**
  * Type describing a column definition in the DataTable API.
@@ -126,8 +125,10 @@ export function DataTable<RowModel extends GridValidRowModel = GridValidRowModel
 
     }, [ props.hiddenFields ]);
 
-    const theme = useTheme();
-    const isListView = useMediaQuery(theme.breakpoints.down('md')) && !!props.listViewCell;
+    const isListView =
+        !!props.listViewCell &&
+        // biome-ignore lint/correctness/useHookAtTopLevel: intentional violation for opt-in feature
+        useContext(AdminClientContext).isMobile;
 
     const listViewColumn = useMemo(() => {
         if (!props.listViewCell)

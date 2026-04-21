@@ -44,7 +44,10 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     return (
         <>
             <MuiLicense />
-            <AdminClientProviders paletteMode={paletteMode} palette={environment.colours}>
+            <AdminClientProviders
+                enableResponsiveLayout={!!settings['user-admin-experimental-responsive']}
+                paletteMode={paletteMode} palette={environment.colours}>
+
                 <Box sx={{ overflow: 'auto' }}>
                     <Box sx={{
                         backgroundColor: 'background.default',
@@ -68,6 +71,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
 
                     </Box>
                 </Box>
+
             </AdminClientProviders>
         </>
     );

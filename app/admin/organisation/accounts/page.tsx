@@ -107,8 +107,8 @@ export default async function AccountsPage() {
     return (
         <Section icon={ <PersonIcon color="primary" /> } title="Accounts">
             <SectionIntroduction>
-                This table lists all volunteers who helped us out since 2010—not all information
-                is complete, and these accounts are separate from the information stored in AnPlan.
+                This table lists all volunteers who helped us out since 2010. Note that our
+                accounts are separate from any that exist in AnPlan.
             </SectionIntroduction>
             <AccountDataTable initialFilterModel={filterModel}
                               initialHiddenFields={hiddenFields}

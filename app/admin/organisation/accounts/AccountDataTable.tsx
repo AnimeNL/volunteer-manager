@@ -10,8 +10,6 @@ import { useRouter } from 'next/navigation';
 import type { GridFilterModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
 import { default as MuiLink } from '@mui/material/Link';
 import BlockIcon from '@mui/icons-material/Block';
-import IconButton from '@mui/material/IconButton';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -20,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import { Avatar } from '@components/Avatar';
 import { Chip } from '@app/admin/components/Chip';
 import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { ListViewCell } from '@app/admin/components/ListViewCell';
 import { callApi } from '@lib/callApi';
 
 /**
@@ -242,29 +241,24 @@ export function AccountDataTable(props: AccountDataTableProps) {
  * Provides a responsive view for the account data table.
  */
 function AccountDataTableListCell(params: GridRenderCellParams<VolunteerRowModel>) {
-    return (
-        <Stack direction="row" sx={{ alignItems: 'center', height: '64px' }} spacing={2}>
-            <Avatar src={params.row.avatar}>
-                {params.row.name}
-            </Avatar>
-            <Stack direction="column" sx={{ flexGrow: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {params.row.name}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {params.row.teams?.replaceAll(',', ', ')}
-                    { !params.row.teams &&
-                        <Typography component="span" variant="inherit" sx={{
-                            color: 'text.disabled',
-                            fontStyle: 'italic',
-                        }}>
-                            No known teams
-                        </Typography> }
-                </Typography>
-            </Stack>
-            <IconButton LinkComponent={Link} href={`/admin/organisation/accounts/${params.row.id}`}>
-                <NavigateNextIcon />
-            </IconButton>
-        </Stack>
-    );
+    let teams: React.ReactNode;
+    if (params.row.teams?.length) {
+        teams = params.row.teams.replaceAll(',', ', ');
+    } else {
+        teams = (
+            <Typography component="span" variant="inherit" sx={{
+                color: 'text.disabled',
+                fontStyle: 'italic',
+            }}>
+                No known teams
+            </Typography>
+        );
+    }
+
+    return <ListViewCell avatar={ <Avatar src={params.row.avatar}>
+                                      {params.row.name}
+                                  </Avatar> }
+                         href={`/admin/organisation/accounts/${params.row.id}`}
+                         primary={params.row.name}
+                         secondary={teams} />
 }

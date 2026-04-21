@@ -6,13 +6,20 @@
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { ThemeProvider, type PaletteMode } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
+import { AdminClientContext } from './AdminClientContext';
 import { createAdminTheme } from './AdminClientTheme';
 
 /**
  * Props accepted by the <AdminClientProviders> component.
  */
 interface AdminClientProvidersProps {
+    /**
+     * Whether to enable responsive layout capabilities throughout the administration area.
+     */
+    enableResponsiveLayout?: boolean;
+
     /**
      * Palette mode that should be active for the admin area.
      */
@@ -31,11 +38,18 @@ interface AdminClientProvidersProps {
  * Client-side providers that need to be set as part of the administration area layout.
  */
 export function AdminClientProviders(props: React.PropsWithChildren<AdminClientProvidersProps>) {
+    const isMobile =
+        !!props.enableResponsiveLayout &&
+        // biome-ignore lint/correctness/useHookAtTopLevel: intentional violation
+        useMediaQuery(theme => theme.breakpoints.down('md'));
+
     return (
         <ThemeProvider theme={createAdminTheme(props.paletteMode, props.palette)}>
-            <NuqsAdapter>
-                {props.children}
-            </NuqsAdapter>
+            <AdminClientContext.Provider value={{ isMobile }}>
+                <NuqsAdapter>
+                    {props.children}
+                </NuqsAdapter>
+            </AdminClientContext.Provider>
         </ThemeProvider>
     );
 }
