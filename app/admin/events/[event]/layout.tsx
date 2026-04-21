@@ -6,11 +6,11 @@ import { notFound } from 'next/navigation';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import BookIcon from '@mui/icons-material/Book';
 import EventNoteIcon from '@mui/icons-material/EventNote';
-import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
 import GridViewIcon from '@mui/icons-material/GridView';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import LanguageIcon from '@mui/icons-material/Language';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
@@ -331,12 +331,6 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
                     badgeSeverity: 'error',
                 },
                 {
-                    icon: <FeedOutlinedIcon />,
-                    label: 'Content',
-                    url: `/admin/events/${event}/${team.slug}/content`,
-                    condition: team.flagManagesContent,
-                },
-                {
                     icon: <BookIcon />,
                     label: 'Duty book',
                     url: `/admin/events/${event}/${team.slug}/duty-book`,
@@ -411,6 +405,12 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
                         scope: teamPermissionScope,
                     },
                     url: `/admin/events/${event}/${team.slug}/volunteers`,
+                },
+                {
+                    icon: <LanguageIcon />,
+                    label: 'Website',
+                    url: `/admin/events/${event}/${team.slug}/website`,
+                    condition: team.flagManagesContent,
                 },
             ],
         });

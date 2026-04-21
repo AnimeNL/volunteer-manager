@@ -33,6 +33,12 @@ export function validateContentPath(value: FieldValue<FieldValues>): true | stri
  */
 interface ContentCreateProps {
     /**
+     * Prefix to apply to links to content management pages shown in the table.
+     * @default "./content/"
+     */
+    linkPrefix?: string;
+
+    /**
      * Prefix to display at the beginning of the content's path.
      */
     pathPrefix?: string;
@@ -68,7 +74,7 @@ export function ContentCreate(props: ContentCreateProps) {
             });
 
             if (response.success)
-                router.push(`./content/${response.row.id}`);
+                router.push(`${props.linkPrefix ?? './content/'}${response.row.id}`);
             else
                 setError(response.error ?? 'Unable to create the new content');
         } catch (error: any) {
@@ -76,7 +82,7 @@ export function ContentCreate(props: ContentCreateProps) {
         } finally {
             setLoading(false);
         }
-    }, [ props.scope, router ]);
+    }, [ props.linkPrefix, props.scope, router ]);
 
     return (
         <FormContainer onSuccess={handleSubmit}>

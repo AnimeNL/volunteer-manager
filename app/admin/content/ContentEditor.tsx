@@ -3,8 +3,8 @@
 
 'use client';
 
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';
@@ -14,6 +14,7 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -36,9 +37,9 @@ import '@mdxeditor/editor/style.css';
 const ContentEditorMdx = dynamic(() => import('./ContentEditorMdx'), { ssr: false });
 
 /**
- * Props accepted by the <ContentEditor> component.
+ * Props directly accepted by the <ContentEditor> component.
  */
-interface ContentEditorProps extends SectionHeaderProps {
+interface ContentEditorOwnProps {
     /**
      * Categories that can be assigned to the editor. Will be ignored when absent.
      */
@@ -67,6 +68,13 @@ interface ContentEditorProps extends SectionHeaderProps {
 }
 
 /**
+ * Composited props accepted by the editor.
+ */
+type ContentEditorProps =
+    (ContentEditorOwnProps & SectionHeaderProps) |
+    (ContentEditorOwnProps & { noSections: true });
+
+/**
  * The <ContentEditor> component is a fully functional content editor, built upon an MDX editor that
  * provides near-WYSIWYG editing capabilities. The editor will be lazily loaded to not contribute
  * to the bundle size, while still being available when it needs to be.
@@ -76,6 +84,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         = props;
 
     const ref = useRef<MDXEditorMethods>(null);
+    const useSections = !('noSections' in props);
 
     const [ defaultValues, setDefaultValues ] = useState<ContentRowModel>();
 
@@ -143,9 +152,13 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         });
     }, [ contentId, scope ]);
 
+    const SectionComponent =
+        useSections ? Section as React.ElementType
+                    : React.Fragment;
+
     if (!defaultValues) {
         return (
-            <Section {...sectionHeaderProps}>
+            <SectionComponent {...sectionHeaderProps}>
                 {children}
                 <Collapse in={!!error} unmountOnExit>
                     <Alert severity="error" sx={{ mb: 2 }}>
@@ -159,14 +172,14 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                     <Skeleton variant="text" animation="wave" width="70%" height={16} />
                     <Skeleton variant="text" animation="wave" width="40%" height={16} />
                 </Box>
-            </Section>
+            </SectionComponent>
         );
     }
 
     return (
         <FormContainer defaultValues={defaultValues} onSuccess={handleSave}>
             <Stack direction="column" spacing={2}>
-                <Section {...sectionHeaderProps}>
+                <SectionComponent {...sectionHeaderProps}>
                     {children}
                     <Grid container spacing={2} sx={{ margin: '8px -8px -8px -8px !important' }}>
                         { !!categories &&
@@ -198,11 +211,15 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                                 </Stack>
                             </Grid> }
                     </Grid>
-                </Section>
-                <Section noHeader>
+                </SectionComponent>
+                { !useSections &&
+                    <Divider sx={{ pt: 1, mb: 2 }} /> }
+                <SectionComponent noHeader>
                     <ContentEditorMdx innerRef={ref} markdown={markdown} />
-                </Section>
-                <Section noHeader>
+                </SectionComponent>
+                { !useSections &&
+                    <Divider sx={{ marginTop: '8px !important' }} /> }
+                <SectionComponent noHeader>
                     <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                         <Button loading={!!loading} variant="contained" type="submit">
                             Save changes
@@ -216,7 +233,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                                 {success}
                             </Typography> }
                     </Stack>
-                </Section>
+                </SectionComponent>
             </Stack>
         </FormContainer>
     );

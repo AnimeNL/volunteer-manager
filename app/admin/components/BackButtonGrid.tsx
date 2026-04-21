@@ -18,6 +18,7 @@ interface BackButtonGridProps {
 
     /**
      * Size of the grid. Defaults to full width, i.e. 12.
+     * @default 12
      */
     size?: number;
 }

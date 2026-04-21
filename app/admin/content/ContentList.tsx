@@ -23,6 +23,12 @@ interface ContentListProps {
     enableAuthorLink?: boolean;
 
     /**
+     * Prefix to apply to links to content management pages shown in the table.
+     * @default "./content/"
+     */
+    linkPrefix?: string;
+
+    /**
      * Prefix to display at the beginning of the content's path.
      */
     pathPrefix?: string;
@@ -56,7 +62,9 @@ export function ContentList(props: ContentListProps) {
             flex: 3,
 
             renderCell: params => {
-                const href = `./content/${params.row.id}`;
+                const prefix = props.linkPrefix ?? './content/';
+                const href = `${prefix}${params.row.id}`;
+
                 if (!props.pathPrefix) {
                     return (
                         <MuiLink component={Link} href={href}>
