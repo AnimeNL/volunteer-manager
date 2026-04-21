@@ -72,7 +72,9 @@ export function TokenOverviewAlert(props: TokenOverviewAlertProps) {
                 <AccordionDetails sx={{ p: 0, pb: 1 }}>
                     <Stack direction="column">
                         { sortedParameters.map(([ parameter, example ]) =>
-                            <Stack key={parameter} direction="row" alignItems="center" spacing={1}>
+                            <Stack key={parameter} direction="row" spacing={1} sx={{
+                                alignItems: 'center'
+                            }}>
                                 <ChevronRightIcon fontSize="inherit" />
                                 <Typography variant="body2">
                                     {'{{'}{parameter}{'}}'}

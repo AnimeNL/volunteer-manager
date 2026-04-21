@@ -144,7 +144,7 @@ export function EnvironmentCard(props: EnvironmentCardProps) {
 
     return (
         <Paper elevation={1} sx={{ minHeight: '100%', height: '100%' }}>
-            <Stack direction="column" justifyContent="space-between" sx={{ height: '100%' }}>
+            <Stack direction="column" sx={{ height: '100%', justifyContent: 'space-between' }}>
                 <EnvironmentHeader color={props.teams[0].color} sx={{ px: 2, py: 1 }}>
                     <Typography noWrap>
                         {props.title}

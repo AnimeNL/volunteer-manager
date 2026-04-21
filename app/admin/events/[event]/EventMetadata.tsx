@@ -209,7 +209,7 @@ export function EventMetadata(props: EventMetadataProps) {
 
     return (
         <Paper sx={{ display: 'flex', minHeight: '100%', p: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center"
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}
                    divider={ <Divider orientation="vertical" flexItem /> }>
                 <EventDateTicker startTime={event.startTime} endTime={event.endTime} />
                 <Box>

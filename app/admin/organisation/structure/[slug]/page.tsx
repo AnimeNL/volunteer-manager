@@ -6,12 +6,12 @@ import { notFound } from 'next/navigation';
 import { AutocompleteElement, SelectElement, TextareaAutosizeElement, TextFieldElement }
     from '@components/proxy/react-hook-form-mui';
 
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import KeyIcon from '@mui/icons-material/Key';
 import List from '@mui/material/List';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Stack from '@mui/material/Stack';
 
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
@@ -178,7 +178,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
             </BackButtonGrid>
             { (canResetInviteKey || canDisableTeam) &&
                 <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={2} justifyContent="flex-end">
+                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
                         { canResetInviteKey &&
                             <ConfirmationButton callToAction="Reset" action={resetTeamKeyFn}
                                                 icon={ <KeyIcon /> } color="info"
@@ -189,7 +189,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                             </ConfirmationButton> }
                         { (canDisableTeam && !!team.enabled) &&
                             <ConfirmationButton callToAction="Disable" action={disableTeamFn}
-                                                icon={ <RemoveCircleOutlineIcon /> }
+                                                icon={ <RemoveCircleOutlinedIcon /> }
                                                 label="Disable this team…">
                                 Are you sure you want to disable the <strong>{team.name} </strong>
                                 team? This will stop the team from being considered for any future
@@ -197,7 +197,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                             </ConfirmationButton> }
                         { (canDisableTeam && !team.enabled) &&
                             <ConfirmationButton callToAction="Enable" action={enableTeamFn}
-                                                color="success" icon={ <AddCircleOutlineIcon /> }
+                                                color="success" icon={ <AddCircleOutlinedIcon /> }
                                                 label="Enable this team…">
                                 Are you sure you want to enable the <strong>{team.name} </strong>
                                 team? This means that they can be considered for future events

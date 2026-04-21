@@ -41,7 +41,11 @@ export function SettingUtilitiesSection() {
                 <Typography variant="h6">
                     Time offset calculator (UTC)
                 </Typography>
-                <Stack direction="row" alignItems="center" spacing={2} sx={{ pt: 1, pb: .5 }}>
+                <Stack direction="row" spacing={2} sx={{
+                    alignItems: 'center',
+                    paddingTop: 1,
+                    paddingBottom: .5
+                }}>
                     <DateTimePicker slotProps={{ textField: { size: 'small' } }}
                                     onChange={handleDateTimePicked} />
                     { !!dateTimeOffset &&

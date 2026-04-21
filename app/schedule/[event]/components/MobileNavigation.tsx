@@ -140,9 +140,12 @@ export function MobileNavigation() {
             <Menu anchorEl={anchorElement}
                   anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
                   transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                  MenuListProps={{ sx: { minWidth: '35vw' } }}
                   onClose={ () => setAnchorElement(/* value= */ null) }
-                  open={!!anchorElement}>
+                  open={!!anchorElement} slotProps={{
+                list: {
+                    sx: { minWidth: '35vw' },
+                },
+            }}>
 
                 { areas.map((area, index) =>
                     <MenuItem key={index} divider={index === areas.length - 1}

@@ -83,7 +83,7 @@ export interface EventRecentVolunteersProps {
 export function VolunteerStack(props: EventRecentVolunteersProps) {
     const { event, volunteers } = props;
     return (
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
             { volunteers.map((volunteer, index) => {
                 const avatarSrc = volunteer.avatarHash ? `/blob/${volunteer.avatarHash}.png`
                                                        : undefined;

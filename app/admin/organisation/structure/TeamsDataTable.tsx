@@ -7,7 +7,7 @@ import Link from '@app/LinkProxy';
 
 import { default as MuiChip } from '@mui/material/Chip';
 import { default as MuiLink } from '@mui/material/Link';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
 import { Chip } from '../../components/Chip';
@@ -91,8 +91,8 @@ export function TeamsDataTable(props: TeamsDataTableProps) {
                 return (
                     <>
                         <Tooltip title="This team has been disabled">
-                            <RemoveCircleOutlineIcon color="error" fontSize="small"
-                                                     sx={{ mr: 1 }} />
+                            <RemoveCircleOutlinedIcon color="error" fontSize="small"
+                                                      sx={{ mr: 1 }} />
                         </Tooltip>
                         {link}
                     </>

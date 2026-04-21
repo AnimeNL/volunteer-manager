@@ -40,9 +40,8 @@ export function Header(props: HeaderProps) {
         <Paper sx={{ maxWidth: '100vw' }}>
             <List>
                 <ListItem>
-                    <ListItemText primary={title}
-                                  primaryTypographyProps={{ sx: kEnforceSingleLine }}
-                                  secondary={subtitle} />
+                    <ListItemText primary={title} secondary={subtitle}
+                                  slotProps={{ primary: { sx: kEnforceSingleLine } }} />
                 </ListItem>
             </List>
         </Paper>

@@ -33,16 +33,21 @@ export function ExportLayout(props: React.PropsWithChildren<ExportLayoutProps>) 
     ]);
 
     return (
-        <Stack direction="column" alignItems="center" justifyContent="center"
-               sx={{
-                   p: 2,
-                   minHeight: '100vh',
-                   backgroundColor:
-                       theme => theme.palette.mode === 'light' ? '#ECEFF1' : '#424242',
-               }}>
+        <Stack direction="column" sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            minHeight: '100vh',
+            backgroundColor:
+                theme => theme.palette.mode === 'light' ? '#ECEFF1' : '#424242',
+        }}>
 
-            <Stack direction="column" alignItems="stretch" justifyContent="center"
-                   sx={{ minWidth: '85%', maxWidth: 'min-content' }} spacing={2}>
+            <Stack direction="column" spacing={2} sx={{
+                alignItems: 'stretch',
+                justifyContent: 'center',
+                minWidth: '85%',
+                maxWidth: 'min-content'
+            }}>
 
                 <Box component="header" sx={{ alignSelf: 'center' }}>
                     <Link href="/" style={{ display: 'inline-block' }}>

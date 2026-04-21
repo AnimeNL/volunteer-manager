@@ -23,8 +23,12 @@ import { RequestHelpCard } from './cards/RequestHelpCard';
  */
 function LoadingDisplayPage() {
     return (
-        <Stack component={Paper} direction="column" alignItems="center" justifyContent="center"
-               spacing={4} sx={{ p: 2, flexGrow: 1 }}>
+        <Stack component={Paper} direction="column" spacing={4} sx={{
+            alignItems: 'center',
+            flexGrow: 1,
+            justifyContent: 'center',
+            padding: 2
+        }}>
             <CircularProgress color="secondary" size={80} thickness={2} />
             <Typography>
                 The display is being provisioned…
@@ -39,8 +43,12 @@ function LoadingDisplayPage() {
  */
 function UnprovisionedDisplayPage(props: { identifier: string }) {
     return (
-        <Stack component={Paper} direction="column" alignItems="center" justifyContent="center"
-               spacing={2} sx={{ p: 2, flexGrow: 1 }}>
+        <Stack component={Paper} direction="column" spacing={2} sx={{
+            alignItems: 'center',
+            flexGrow: 1,
+            justifyContent: 'center',
+            padding: 2
+        }}>
             <Typography variant="button" sx={{ fontSize: '8rem' }}>
                 {props.identifier}
             </Typography>

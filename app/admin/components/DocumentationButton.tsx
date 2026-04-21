@@ -8,7 +8,7 @@ import { useCallback, useState } from 'react';
 import { useQueryState, parseAsBoolean } from 'nuqs';
 
 import type { SvgIconProps } from '@mui/material/SvgIcon';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -67,7 +67,7 @@ export function DocumentationButton(props: DocumentationButtonProps) {
         <>
             <Tooltip title="Learn more">
                 <IconButton onClick={handleShowDocumentation} size={size}>
-                    <HelpOutlineIcon color={props.color} fontSize={size} />
+                    <HelpOutlinedIcon color={props.color} fontSize={size} />
                 </IconButton>
             </Tooltip>
             { dialogRequested &&

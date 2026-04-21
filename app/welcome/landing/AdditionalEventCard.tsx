@@ -46,7 +46,7 @@ export function AdditionalEventCard(props: AdditionalEventCardProps) {
                 </Typography>
             </CardContent>
             <CardActions sx={{ pt: { md: 2 } }}>
-                <Stack direction="column" alignItems="stretch" flexGrow={1}>
+                <Stack direction="column" sx={{ alignItems: 'center', flexGrow: 1 }}>
                     { !!enableRegistration &&
                         <Button LinkComponent={Link} size="small" startIcon={ <HowToRegIcon /> }
                                 href={`/registration/${props.event.slug}`}

@@ -19,7 +19,7 @@ import NotesIcon from '@mui/icons-material/Notes';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import StarIcon from '@mui/icons-material/Star';
-import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import StarOutlinedIcon from '@mui/icons-material/StarOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -364,7 +364,7 @@ export function EventPage(props: EventPageProps) {
                 { !favourited &&
                     <Tooltip title="Star this event">
                         <IconButton onClick={handleFavouriteChange}>
-                            <StarOutlineIcon color="primary" />
+                            <StarOutlinedIcon color="primary" />
                         </IconButton>
                     </Tooltip> }
                 { !!favourited &&
@@ -434,7 +434,9 @@ export function EventPage(props: EventPageProps) {
                                 <ListItemText primary={product.product}
                                               slotProps={{ primary: { sx: kEnforceSingleLine} }} />
                                 <ListItemDetails>
-                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <Stack direction="row" spacing={0.5} sx={{
+                                        alignItems: 'center'
+                                    }}>
                                         { (!!product.limit && product.sold >= product.limit) &&
                                             <Typography variant="caption" color="error">
                                                 sold out ({product.sold})

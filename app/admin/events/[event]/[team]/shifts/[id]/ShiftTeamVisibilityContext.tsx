@@ -54,7 +54,10 @@ export function ShiftTeamVisibilityContext(
     return (
         <>
             <Paper sx={{ px: 2, py: 1 }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack direction="row" sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}>
                     <FormControlLabel control={<Checkbox defaultChecked={props.includeAllTeams} />}
                                       label="Display shifts planned by the other teams"
                                       onChange={handleChange} />

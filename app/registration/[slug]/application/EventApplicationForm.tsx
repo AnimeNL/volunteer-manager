@@ -35,6 +35,7 @@ export const kStyles: { [key: string]: SxProps<Theme> } = {
         paddingLeft: 2,
     },
     identity: {
+        alignItems: 'center',
         paddingBottom: 2,
         '& > .MuiBox-root': {
             width: 'fit-content',
@@ -130,10 +131,10 @@ export function EventApplicationForm(props: EventApplicationFormProps) {
                 Personal information
             </Typography>
 
-            <Stack direction="row" alignItems="center" spacing={2} sx={kStyles.identity}>
+            <Stack direction="row" spacing={2} sx={kStyles.identity}>
                 { user &&
                     <Box sx={kStyles.identityKnown} onClick={requestAuthenticationFlow}>
-                        <Stack alignItems="center" direction="row" spacing={2}>
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             <Avatar src={user.avatarUrl}>
                                 {user.name}
                             </Avatar>
@@ -145,7 +146,7 @@ export function EventApplicationForm(props: EventApplicationFormProps) {
 
                 { !user &&
                     <Box sx={kStyles.identityUnknown} onClick={requestAuthenticationFlow}>
-                        <Stack alignItems="center" direction="row" spacing={2}>
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             <MuiAvatar>
                                 <FaceIcon />
                             </MuiAvatar>

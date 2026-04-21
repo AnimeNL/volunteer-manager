@@ -430,9 +430,10 @@ export async function AccountPermissions(props: AccountPermissionsProps) {
                 </Typography>
             </Grid>
             <Grid size={{ xs: 10 }}>
-                <SelectElement name="events" label="Event access" SelectProps={{ multiple: true }}
-                               options={eventsOptions} size="small" fullWidth
-                               disabled={readOnly} />
+                <SelectElement name="events" label="Event access" options={eventsOptions}
+                               size="small" fullWidth disabled={readOnly} slotProps={{
+                                   select: { multiple: true },
+                               }} />
             </Grid>
 
             <Grid size={{ xs: 2 }}>
@@ -441,9 +442,10 @@ export async function AccountPermissions(props: AccountPermissionsProps) {
                 </Typography>
             </Grid>
             <Grid size={{ xs: 10 }}>
-                <SelectElement name="teams" label="Team access" SelectProps={{ multiple: true }}
-                               options={teamsOptions} size="small" fullWidth
-                               disabled={readOnly} />
+                <SelectElement name="teams" label="Team access" options={teamsOptions} size="small"
+                               fullWidth disabled={readOnly} slotProps={{
+                                   select: { multiple: true },
+                               }} />
             </Grid>
 
             <Grid size={{ xs: 12 }}>

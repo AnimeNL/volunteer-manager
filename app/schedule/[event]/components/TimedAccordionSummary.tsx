@@ -81,7 +81,10 @@ export function TimedAccordionSummary(props: TimedAccordionSummaryProps) {
                               },
                               justifyContent: 'flex-start',
                           }}>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
+            <Stack direction="row" spacing={2} sx={{
+                alignItems: 'center',
+                width: '100%'
+            }}>
                 { !props.summary &&
                     <Skeleton animation="wave" sx={{ flex: 1, marginRight: '16px !important' }} /> }
                 { !!props.summary &&
@@ -91,7 +94,11 @@ export function TimedAccordionSummary(props: TimedAccordionSummaryProps) {
                     }}>
                         {props.summary}
                     </Typography> }
-                <Stack direction="row" alignItems="center" sx={{ ml: 'auto !important', pr: 1 }}>
+                <Stack direction="row" sx={{
+                    alignItems: 'center',
+                    marginLeft: 'auto !important',
+                    paddingRight: 1
+                }}>
                     {props.icon}
                     <Typography variant="body2"
                                 sx={{

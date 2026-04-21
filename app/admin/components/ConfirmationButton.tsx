@@ -8,7 +8,7 @@ import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Button, { type ButtonProps } from '@mui/material/Button';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import Typography from '@mui/material/Typography';
 
 import type { ServerAction } from '@lib/serverAction';
@@ -34,7 +34,7 @@ interface ConfirmationButtonProps {
     color?: 'error' | 'info' | 'success';
 
     /**
-     * The icon that should be shown on the button. Defaults to <DeleteOutlineIcon />.
+     * The icon that should be shown on the button. Defaults to <DeleteOutlinedIcon />.
      */
     icon?: React.ReactNode;
 
@@ -59,7 +59,7 @@ export function ConfirmationButton(props: React.PropsWithChildren<ConfirmationBu
 
     const callToAction = props.callToAction ?? 'Delete';
     const color = props.color ?? 'error';
-    const icon = props.icon ?? <DeleteOutlineIcon />;
+    const icon = props.icon ?? <DeleteOutlinedIcon />;
 
     const router = useRouter();
 

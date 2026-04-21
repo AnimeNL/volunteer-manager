@@ -109,7 +109,10 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
                 <Typography sx={{ color: 'text.secondary', fontSize: 14, mb: -0.5 }}>
                     {title}
                 </Typography>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack direction="row" sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}>
                     <Typography variant="h6">
                         { formatMetric(headline.figure, format) }
                     </Typography>

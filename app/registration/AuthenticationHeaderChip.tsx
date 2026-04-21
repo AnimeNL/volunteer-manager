@@ -27,10 +27,10 @@ export const AuthenticationHeaderChip = styled(Chip)(({ theme }) => {
                 backgroundColor: lighten(chipBackground, 0.1),
             }
         },
-        [`& .${chipClasses.avatarMedium}`]: {
+        [`& .${chipClasses.avatar}`]: {
             color: 'inherit !important',
         },
-        [`& .${chipClasses.iconMedium}`]: {
+        [`& .${chipClasses.icon}`]: {
             color: 'inherit !important',
         },
     };

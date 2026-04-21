@@ -183,7 +183,7 @@ export function AiExplorer(props: AiExplorerProps) {
 
                     <Grid size={{ xs: 2 }}>{ /* ... */ }</Grid>
                     <Grid size={{ xs: 10 }}>
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             <Button startIcon={ <SmartToyIcon /> } loading={loading} type="submit"
                                     variant="outlined">
                                 Generate responses

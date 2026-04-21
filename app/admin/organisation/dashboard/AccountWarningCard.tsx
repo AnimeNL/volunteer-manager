@@ -10,7 +10,7 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import PauseCircleOutlinedIcon from '@mui/icons-material/PauseCircleOutlined';
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 import Typography from '@mui/material/Typography';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -62,7 +62,7 @@ export async function AccountWarningCard() {
                 userId: volunteer.id,
                 name: volunteer.name,
                 priority: 3,
-                icon: <PauseCircleOutlineIcon color="disabled" />,
+                icon: <PauseCircleOutlinedIcon color="disabled" />,
                 text: 'Their account has not been activated yet',
             })
         }

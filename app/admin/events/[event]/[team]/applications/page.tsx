@@ -33,7 +33,7 @@ import * as actions from './ApplicationActions';
 function NoPendingApplications() {
     return (
         <PlaceholderPaper sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} justifyContent="flex-start">
+            <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-start' }}>
                 <TaskAltIcon color="disabled" />
                 <Typography sx={{ color: 'text.disabled' }}>
                     There are no pending applications
@@ -221,7 +221,7 @@ export default async function ApplicationsPage(
 
             { applications.length === 0 && <NoPendingApplications /> }
             { applications.length > 0 &&
-                <Grid container alignItems="stretch" spacing={2}>
+                <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                     { applications.map(application => {
                         const approveFn = approveApplicationFn?.bind(null, application.userId);
                         const moveFn = moveApplicationFn?.bind(null, application.userId);

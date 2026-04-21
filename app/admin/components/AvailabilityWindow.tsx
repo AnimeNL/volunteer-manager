@@ -40,7 +40,7 @@ interface AvailabilityWindowProps {
 export function AvailabilityWindow(props: AvailabilityWindowProps) {
     return (
         <Grid size={{ xs: 12 }}>
-            <Stack direction="row" alignItems="center" spacing={2}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                 <Typography variant="body2" sx={{ flexShrink: 0, width: '150px' }}>
                     {props.label}:
                 </Typography>

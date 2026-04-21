@@ -9,7 +9,7 @@ import { useContext } from 'react';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardHeader from '@mui/material/CardHeader';
-import LockOutlineIcon from '@mui/icons-material/LockOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -44,7 +44,7 @@ export function KnowledgeBaseCategories() {
                                     action={
                                         category.limited ?
                                             <Tooltip title="Access is limited">
-                                                <LockOutlineIcon color="warning" />
+                                                <LockOutlinedIcon color="warning" />
                                             </Tooltip> : undefined
                                     }
                                     title={category.title}

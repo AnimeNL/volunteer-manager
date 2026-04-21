@@ -162,7 +162,7 @@ function PermissionDetailPanel(props: { record: PermissionRecord }) {
         <Stack direction="column" spacing={1} sx={{ bgcolor: 'background.paper', px: 2, py: 1 }}
                divider={ <Divider flexItem /> }>
             { groups.map(group =>
-                <Stack direction="row" alignItems="center" key={group.id} spacing={1}>
+                <Stack direction="row" key={group.id} spacing={1} sx={{ alignItems: 'center' }}>
                     { (!!group.event && !!group.team) &&
                         <Stack direction="column" sx={{ width: 85 }}>
                             <Typography variant="h6">
@@ -225,7 +225,7 @@ export function PermissionsTable(props: PermissionsTableProps) {
                     return params.value;
 
                 return (
-                    <Stack direction="row" alignItems="center" spacing={1}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         <Typography variant="body2">
                             {params.value}
                         </Typography>

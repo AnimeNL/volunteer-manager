@@ -15,7 +15,7 @@ import ChildCareIcon from '@mui/icons-material/ChildCare';
 import EuroIcon from '@mui/icons-material/Euro';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import GavelIcon from '@mui/icons-material/Gavel';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import MapIcon from '@mui/icons-material/Map';
@@ -45,7 +45,7 @@ export const kKnowledgeBaseIconTable: { [k: string]: typeof SvgIcon } = {
     Venue: LocationCityIcon,
 
     // Do not change the following icon, as it's the fallback:
-    Unknown: HelpOutlineIcon,
+    Unknown: HelpOutlinedIcon,
 };
 
 /**

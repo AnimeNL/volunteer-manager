@@ -85,7 +85,7 @@ export function RemoteGraph(props: RemoteGraphProps) {
 
     if (!result) {
         return (
-            <Stack sx={{ height: props.height || kDefaultGraphHeightPx }} justifyContent="center">
+            <Stack sx={{ height: props.height || kDefaultGraphHeightPx, justifyContent: 'center' }}>
                 { !!error &&
                     <Alert severity="error">
                         {error}

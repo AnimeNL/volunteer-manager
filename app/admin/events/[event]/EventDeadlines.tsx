@@ -67,7 +67,7 @@ export function EventDeadlines(props: EventDeadlinesProps) {
                 return (
                     <Accordion key={deadline.id} disableGutters>
                         <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
-                            <Stack direction="row" alignItems="center" spacing={2}>
+                            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                                 <Chip color={color} label={formatDate(deadlineDate, 'MMMM Do')}
                                       size="small" />
                                 <Typography variant="body2">

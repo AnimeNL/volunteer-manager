@@ -65,12 +65,14 @@ export function StatisticsSection(props: React.PropsWithChildren<StatisticsSecti
     return (
         <Grid size={{ xs: 12, lg: 6 }}>
             <Paper component={Stack} elevation={2} sx={{ p: 2 }} spacing={1}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between"
-                       spacing={2}>
+                <Stack direction="row" spacing={2} sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                       }}>
                     <Typography variant="h6" noWrap>
                         {props.title}
                     </Typography>
-                    <Stack direction="row" alignItems="center" spacing={1}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         { !!props.kpi &&
                             <Tooltip title="Key Performance Indicator">
                                 <StarIcon fontSize="small" htmlColor="#ffa000" />
@@ -82,7 +84,10 @@ export function StatisticsSection(props: React.PropsWithChildren<StatisticsSecti
                 </Stack>
                 <Box>{props.children}</Box>
                 { !!moreDetailsLink &&
-                    <Stack alignItems="flex-end" sx={{ margin: '8px -8px -8px 0 !important' }}>
+                    <Stack sx={{
+                        alignItems: 'flex-end',
+                        margin: '8px -8px -8px 0 !important'
+                    }}>
                         <Button component={Link} href={moreDetailsLink} color="primary">
                             More details
                         </Button>

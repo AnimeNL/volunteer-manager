@@ -107,8 +107,12 @@ export async function EventRecentChanges(props: EventRecentChangesProps) {
                             : `./${props.event.slug}/${change.team}/volunteers/${change.userId}`;
 
                     return (
-                        <Stack key={index} direction="row" justifyContent="space-between"
-                               alignItems="center" sx={{ mx: 2, my: 1 }}>
+                        <Stack key={index} direction="row" sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginX: 2,
+                            marginY: 1
+                        }}>
                             <Typography variant="body2" sx={{
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',

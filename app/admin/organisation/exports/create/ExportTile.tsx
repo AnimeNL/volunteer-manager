@@ -72,7 +72,7 @@ export function ExportTile(props: React.PropsWithChildren<ExportTileProps>) {
                 padding: 2,
                 width: '250px',
             }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
+                <Stack direction="column" spacing={2} sx={{ alignItems: 'center' }}>
                     {props.icon}
                     <Typography variant="button">
                         {props.label}

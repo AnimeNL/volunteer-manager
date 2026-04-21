@@ -207,7 +207,9 @@ export default async function ProgramActivityPage(
                     </Typography>
                     <Stack divider={ <Divider flexItem /> } spacing={1} sx={{ mt: 1 }}>
                         { shifts.map(({ shift, team }, index) =>
-                            <Stack key={index} direction="row" spacing={1} alignContent="center">
+                            <Stack key={index} direction="row" spacing={1} sx={{
+                                alignContent: 'center'
+                            }}>
                                 <Tooltip title={team.name}>
                                     <PeopleIcon fontSize="small" htmlColor={team.colour} />
                                 </Tooltip>

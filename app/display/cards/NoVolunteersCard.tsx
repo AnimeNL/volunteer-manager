@@ -13,13 +13,14 @@ import Typography from '@mui/material/Typography';
  */
 export function NoVolunteersCard() {
     return (
-        <Stack component={Paper} variant="outlined" alignItems="center" justifyContent="center"
-               sx={{
-                   minHeight: '224px',  // aligned with the "request help" card
-                   backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                   borderStyle: 'dashed',
-                   p: 2
-               }}>
+        <Stack component={Paper} variant="outlined" sx={{
+            minHeight: '224px',  // aligned with the "request help" card
+            alignItems: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            borderStyle: 'dashed',
+            justifyContent: 'center',
+            p: 2
+        }}>
             <Typography sx={{ color: 'text.disabled' }}>
                 No volunteers are currently scheduled at this location.
             </Typography>

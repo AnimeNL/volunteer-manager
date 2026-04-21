@@ -203,7 +203,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                     <ContentEditorMdx innerRef={ref} markdown={markdown} />
                 </Section>
                 <Section noHeader>
-                    <Stack direction="row" spacing={2} alignItems="center">
+                    <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                         <Button loading={!!loading} variant="contained" type="submit">
                             Save changes
                         </Button>

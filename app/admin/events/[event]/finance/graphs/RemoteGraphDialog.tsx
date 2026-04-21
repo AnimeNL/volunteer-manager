@@ -55,7 +55,7 @@ export function RemoteGraphDialog(props: RemoteGraphDialogProps) {
     return (
         <Dialog open onClose={props.onClose} maxWidth="md" fullWidth>
             <DialogTitle sx={{ pb: !!props.description ? 0 : undefined }}>
-                <Stack direction="row" justifyContent="space-between">
+                <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="inherit">
                         {props.title}
                     </Typography>

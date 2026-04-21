@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert';
 import Badge from '@mui/material/Badge';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -283,11 +283,15 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     return (
         <ScheduleContext.Provider value={scheduleContext}>
 
-            <Stack component={Paper} direction="row" spacing={2} sx={{ px: 2, py: '13px' }}
-                   justifyContent="space-between" alignItems="center">
+            <Stack component={Paper} direction="row" spacing={2} sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingX: 2,
+                paddingY: '13px'
+            }}>
                 <SectionHeader title="Schedule" subtitle={props.team.name} sx={{ mb: 0 }} />
                 <Stack direction="row" divider={ <Divider orientation="vertical" flexItem /> }
-                       spacing={2} alignItems="center">
+                       spacing={2} sx={{ alignItems: 'center' }}>
                     { (!!isLoading || !!isProcessingChange) &&
                         <Tooltip title="The schedule is being updated…">
                             <CircularProgress size={16} sx={{ mr: '2px !important' }} />
@@ -298,7 +302,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
                         </Tooltip> }
                     { ((!isLoading && !isProcessingChange) && !!error) &&
                         <Tooltip title={ error?.message || 'The schedule could not be updated' }>
-                            <ErrorOutlineIcon fontSize="small" color="error" />
+                            <ErrorOutlinedIcon fontSize="small" color="error" />
                         </Tooltip> }
                     <Tooltip title="Allow scheduling other teams' shifts">
                         <FormControlLabel control={ <Switch size="small"

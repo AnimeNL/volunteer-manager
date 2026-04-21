@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import EventIcon from '@mui/icons-material/Event';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -310,7 +310,7 @@ export function SearchResults(props: SearchResultsProps) {
                             case 'knowledge':
                                 avatar = (
                                     <ListItemCenteredIcon>
-                                        <HelpOutlineIcon color="primary" />
+                                        <HelpOutlinedIcon color="primary" />
                                     </ListItemCenteredIcon>
                                 );
                                 break;
@@ -341,8 +341,8 @@ export function SearchResults(props: SearchResultsProps) {
                             <ListItemButton key={result.href}
                                             onClick={ () => handleCommit(result.href) }>
                                 {avatar}
-                                <ListItemText primaryTypographyProps={{ sx: kEnforceSingleLine }}
-                                              primary={result.label} />
+                                <ListItemText primary={result.label}
+                                              slotProps={{ primary: { sx: kEnforceSingleLine } }} />
                             </ListItemButton>
                         );
                     }) }

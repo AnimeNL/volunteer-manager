@@ -102,7 +102,7 @@ export function SettingSection(props: SettingSectionProps) {
                                         {setting.description}
                                     </Typography> }
                             </Grid>
-                            <Grid size={{ xs: 8 }} alignSelf="center">
+                            <Grid size={{ xs: 8 }} sx={{ alignSelf: 'center' }}>
                                 { setting.type === 'boolean' &&
                                     <CheckboxElement name={setting.setting} size="small"
                                                      onChange={handleChange} /> }

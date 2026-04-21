@@ -156,8 +156,7 @@ function DesktopNavigationEntry(props: DesktopNavigationEntryProps) {
                     {icon}
                 </ListItemIcon> }
 
-            <ListItemText primaryTypographyProps={{ color: 'text.secondary' }}
-                          primary={label} />
+            <ListItemText primary={label} slotProps={{ primary: { color: 'secondary' } }} />
 
             { !!badge && badge === true && <SolidBadge /> }
             { !!badge && typeof badge === 'number' && <NumberBadge>{badge}</NumberBadge> }

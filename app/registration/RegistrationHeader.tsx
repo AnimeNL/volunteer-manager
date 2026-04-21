@@ -33,6 +33,8 @@ export const kStyles: { [key: string]: SxProps<Theme> } = {
             color: theme.palette.getContrastText(backgroundColor),
             display: 'flex',
 
+            justifyContent: 'space-between',
+
             borderTopLeftRadius: `${theme.shape.borderRadius}px`,
             borderTopRightRadius: `${theme.shape.borderRadius}px`,
 
@@ -79,7 +81,7 @@ export function RegistrationHeader(props: RegistrationHeaderProps) {
         user ? determineInitials(`${user.firstName} ${user.lastName}`) : undefined;
 
     return (
-        <Stack direction="row" justifyContent="space-between" sx={kStyles.header}>
+        <Stack direction="row" sx={kStyles.header}>
             <Typography sx={kStyles.text} variant="h5" component="h1" noWrap>
                 {props.title}
             </Typography>

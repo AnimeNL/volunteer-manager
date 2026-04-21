@@ -13,7 +13,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -117,8 +117,10 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
     return (
         <Dialog open fullWidth onClose={props.onClose}>
             <DialogTitle>
-                <Stack direction="row" spacing={2} alignItems="center"
-                       justifyContent="space-between">
+                <Stack direction="row" spacing={2} sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}>
                     <Typography variant="inherit">
                         Shifts to highlight
                     </Typography>
@@ -143,7 +145,9 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
                                     slotProps={{
                                         secondary: {
                                             color: 'textSecondary',
-                                            pt: !!props.inclusiveShifts ? 0.25 : 0,
+                                            sx: {
+                                                pt: !!props.inclusiveShifts ? 0.25 : 0,
+                                            },
                                         }
                                     }}
                                     primary={
@@ -161,7 +165,7 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
                                     }
                                     secondary={shift.warning} />
                                 { shift.status === 'error' &&
-                                    <ErrorOutlineIcon fontSize="small" color="error" /> }
+                                    <ErrorOutlinedIcon fontSize="small" color="error" /> }
                                 { shift.status === 'warning' &&
                                     <WarningAmberIcon fontSize="small" color="warning" /> }
                                 { shift.status === 'complete' &&

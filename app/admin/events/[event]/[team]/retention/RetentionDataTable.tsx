@@ -14,7 +14,7 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -228,13 +228,13 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                 };
 
                 return (
-                    <Stack direction="row" alignItems="center">
+                    <Stack direction="row" sx={{ alignItems: 'center' }}>
                         <Typography component="span" variant="body2"
                                     sx={{ color: 'text.disabled', fontStyle: 'italic', mr: 1 }}>
                             Unassigned
                         </Typography>
                         <IconButton size="small" onClick={openEmailDialog}>
-                            <MailOutlineIcon color="action" fontSize="inherit" />
+                            <MailOutlinedIcon color="action" fontSize="inherit" />
                         </IconButton>
                         <IconButton size="small" onClick={openWhatsAppDialog}>
                             <WhatsAppIcon color="success" fontSize="inherit" />

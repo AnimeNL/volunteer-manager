@@ -98,12 +98,15 @@ interface PaperHeaderProps extends PaperHeaderClearButtonProps, Omit<BoxProps, '
  * actions available to a particular section, hosted in the parenting <Paper> component.
  */
 export const PaperHeader = styled((props: PaperHeaderProps) => {
-    const { title, subtitle, permission, onClear, onExport, ...containerProps } = props;
+    const { title, subtitle, permission, onClear, onExport, sx, ...containerProps } = props;
     const subject = props.subject ?? 'section';
 
     return (
-        <Box component={Stack} direction="row" justifyContent="space-between" alignItems="center"
-             spacing={2} {...containerProps}>
+        <Box component={Stack} direction="row" spacing={2} sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            ...sx,
+        }} {...containerProps}>
             <Typography variant="h5">
                 { title }
                 { subtitle &&
@@ -114,7 +117,7 @@ export const PaperHeader = styled((props: PaperHeaderProps) => {
             { (!!permission || !!onClear || !!onExport) &&
                 <Stack direction="row" spacing={1}>
                     { !!permission &&
-                        <Stack justifyContent="center" component={Tooltip} sx={{ px: 0.5 }}
+                        <Stack component={Tooltip} sx={{ justifyContent: 'center', px: 0.5 }}
                                title="You have a permission granting you access">
                             <Box>
                                 <LockOpenIcon fontSize="small" color="warning" />

@@ -57,9 +57,13 @@ export interface SectionHeaderProps {
  */
 export function SectionHeader(props: SectionHeaderProps) {
     return (
-        <Stack direction="row" alignItems="center" justifyContent="space-between"
-               sx={{ mb: '-8px !important', ...props.sx }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBototm: '-8px !important',
+            ...props.sx
+        }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 {props.icon}
                 <Typography variant="h5">
                     { props.title }

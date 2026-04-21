@@ -137,8 +137,8 @@ export function VolunteerIdentity(props: VolunteerIdentityProps) {
 
     return (
         <Paper sx={{ p: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Stack direction="row" spacing={2} alignItems="center"
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}
                     divider={ <Divider orientation="vertical" flexItem /> }>
                     <Avatar editable onChange={handleUploadAvatar} src={avatarSrc}>
                         {volunteer.name}
@@ -176,7 +176,7 @@ export function VolunteerIdentity(props: VolunteerIdentityProps) {
                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
                 { !contactInfo && <ContactInfoLoadingSkeleton /> }
                 { !!contactInfo &&
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2 }}>
+                    <Stack direction="row" spacing={2} sx={{ alignItems: 'center', p: 2 }}>
                         <TextField name="emailAddress" label="E-mail address"
                                    value={contactInfo.username} size="small"
                                    slotProps={{ input: { autoFocus: true, readOnly: true } }} />
@@ -192,7 +192,7 @@ export function VolunteerIdentity(props: VolunteerIdentityProps) {
                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
                 { !contactInfo && <ContactInfoLoadingSkeleton /> }
                 { !!contactInfo &&
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2 }}>
+                    <Stack direction="row" spacing={2} sx={{ alignItems: 'center', p: 2 }}>
                         <TextField name="phoneNumber" label="Phone number"
                                    value={contactInfo.phoneNumber} size="small"
                                    slotProps={{ input: { autoFocus: true, readOnly: true } }} />

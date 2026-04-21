@@ -67,7 +67,7 @@ export function ContentList(props: ContentListProps) {
 
                 return (
                     <MuiLink component={Link} href={href} noWrap>
-                        <Typography component="span" variant="body2" paragraph={false}>
+                        <Typography component="span" variant="body2">
                             <Typography component="span" variant="body2"
                                         sx={{ color: 'text.disabled' }}>
                                 {props.pathPrefix}

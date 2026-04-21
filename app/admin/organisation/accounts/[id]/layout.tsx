@@ -130,8 +130,10 @@ export default async function AccountLayout(props: LayoutProps<'/admin/organisat
     return (
         <>
             <Paper component={Stack} direction="column" spacing={2} sx={{ p: 2 }}>
-                <Stack direction="row" alignItems="center" spacing={1}
-                       sx={{ mb: '-8px !important' }}>
+                <Stack direction="row" spacing={1} sx={{
+                    alignItems: 'center',
+                    marginBottom: '-8px !important'
+                }}>
                     <Typography variant="h5">
                         {account.name}
                     </Typography>

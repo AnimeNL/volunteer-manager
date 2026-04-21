@@ -109,8 +109,11 @@ export function IdentityDialog(props: IdentityDialogProps) {
         <>
             <DialogContent>
                 <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, md: 3 }} display="flex" justifyContent="center"
-                            alignItems="center">
+                    <Grid size={{ xs: 12, md: 3 }} sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        justifyContent: 'center',
+                    }}>
                         <Avatar editable onChange={requestAvatarUpdate} size="large"
                                 src={user.avatarUrl}>
                             {user.firstName} {user.lastName}

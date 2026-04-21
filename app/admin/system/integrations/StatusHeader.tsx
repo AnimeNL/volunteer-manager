@@ -86,8 +86,12 @@ function ServiceStatus(props: ServiceStatusProps) {
     }
 
     return (
-        <Stack direction="column" spacing={1} sx={{ width: '100px', color }}
-               justifyContent="center" alignItems="center">
+        <Stack direction="column" spacing={1} sx={{
+            alignItems: 'center',
+            color,
+            justifyContent: 'center',
+            width: '100px'
+        }}>
             {props.icon}
             <Typography>
                 {props.label}

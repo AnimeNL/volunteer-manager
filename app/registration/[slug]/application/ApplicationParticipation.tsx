@@ -207,14 +207,17 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                     paddingY: 1,
                 }}>
                     <Stack direction="column" spacing={1}>
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             <DomainAddIcon fontSize="small" />
                             <Typography>
                                 Will you help with build-up?
                             </Typography>
                         </Stack>
                         <Divider />
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Stack direction="row" sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
                             <Typography variant="body2">
                                 { formatRelativeDate(props.eventStartDate!, /* offsetDays= */ -1) }
                             </Typography>
@@ -227,7 +230,10 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                                 <ToggleButton value="No">No</ToggleButton>
                             </ToggleButtonGroup>
                         </Stack>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Stack direction="row" sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
                             <Typography variant="body2">
                                 { formatRelativeDate(props.eventStartDate!, /* offsetDays= */ 0) }
                             </Typography>
@@ -251,14 +257,17 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                     paddingY: 1,
                 }}>
                     <Stack direction="column" spacing={1}>
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             <DomainDisabledIcon fontSize="small" />
                             <Typography>
                                 Will you help with tear-down?
                             </Typography>
                         </Stack>
                         <Divider />
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Stack direction="row" sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
                             <Typography variant="body2">
                                 { formatRelativeDate(props.eventEndDate!, /* offsetDays= */ 0) }
                             </Typography>
@@ -271,7 +280,10 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                                 <ToggleButton value="No">No</ToggleButton>
                             </ToggleButtonGroup>
                         </Stack>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Stack direction="row" sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
                             <Typography variant="body2">
                                 { formatRelativeDate(props.eventEndDate!, /* offsetDays= */ 1) }
                             </Typography>

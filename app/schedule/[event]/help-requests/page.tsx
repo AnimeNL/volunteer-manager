@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import Divider from '@mui/material/Divider';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
@@ -109,16 +109,16 @@ function HelpRequestSummary(props: HelpRequestSummaryProps) {
 
     return (
         <AccordionSummary expandIcon={ !!expandable ? <ExpandMoreIcon /> : <NavigateNextIcon /> }>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flex: 1 }}>
                 <HelpRequestTarget target={request.target} />
                 <Typography variant="body2">
                     {target} — {request.display}
                 </Typography>
-                <Stack direction="row" alignItems="center" sx={{ ml: 'auto !important', pr: 1 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', ml: 'auto !important', pr: 1 }}>
 
                     { state === 'pending' &&
                         <Tooltip title="This request is yet to be acknowledged">
-                            <ErrorOutlineIcon color="error" fontSize="small" />
+                            <ErrorOutlinedIcon color="error" fontSize="small" />
                         </Tooltip> }
                     { state === 'acknowledged' &&
                         <Tooltip title={`${request.acknowledgedBy} is on their way`}>

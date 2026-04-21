@@ -106,10 +106,15 @@ function VolunteerList(props: VolunteerListProps) {
                                 {volunteer.name}
                             </Avatar>
                         </ListItemAvatar>
-                        <ListItemText primary={volunteer.name}
-                                      primaryTypographyProps={{ variant: 'subtitle2' }}
-                                      secondary={secondary}
-                                      secondaryTypographyProps={{ sx: kEnforceSingleLine }} />
+                        <ListItemText primary={volunteer.name} secondary={secondary}
+                                      slotProps={{
+                                          primary: {
+                                              variant: 'subtitle2',
+                                          },
+                                          secondary: {
+                                              sx: kEnforceSingleLine,
+                                          },
+                                      }} />
                         { isBackup &&
                             <Tooltip title="This volunteer may be available to help">
                                 <HourglassBottomOutlinedIcon fontSize="small" color="primary" />

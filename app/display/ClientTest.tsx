@@ -70,7 +70,7 @@ export function ClientTest() {
                 Display test component
             </Typography>
             <Stack direction="column" spacing={2} sx={{ my: 2 }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Brightness
                     </Typography>
@@ -79,14 +79,14 @@ export function ClientTest() {
                     <Button variant="outlined" onClick={ () => setBrightness(150) }>150</Button>
                     <Button variant="outlined" onClick={ () => setBrightness(255) }>255</Button>
                 </Stack>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Kiosk
                     </Typography>
                     <Button variant="outlined" onClick={ () => setKiosk(true) }>Enable</Button>
                     <Button variant="outlined" onClick={ () => setKiosk(false) }>Disable</Button>
                 </Stack>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Light
                     </Typography>
@@ -103,13 +103,13 @@ export function ClientTest() {
                         White
                     </Button>
                 </Stack>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Light²
                     </Typography>
                     <Button variant="outlined" onClick={ () => reconnectLight() }>Reconnect</Button>
                 </Stack>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Volume
                     </Typography>
@@ -118,7 +118,7 @@ export function ClientTest() {
                     <Button variant="outlined" onClick={ () => setVolume(150) }>150</Button>
                     <Button variant="outlined" onClick={ () => setVolume(255) }>255</Button>
                 </Stack>
-                <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1">
                         Misc
                     </Typography>

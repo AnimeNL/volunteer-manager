@@ -4,7 +4,7 @@
 
 import { createRef, useState } from 'react';
 
-import ReactAvatarEditor from 'react-avatar-editor';
+import ReactAvatarEditor, { type AvatarEditorRef } from 'react-avatar-editor';
 
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -95,7 +95,7 @@ export default function AvatarEditor(props: AvatarEditorProps) {
     const { open, src, requestClose, requestUpload, title } = props;
 
     // Reference to the editor that's being used for the avatar. May be NULL.
-    const editorRef = createRef<ReactAvatarEditor>();
+    const editorRef = createRef<AvatarEditorRef>();
 
     // The image that has been selected by the file upload component.
     const [ selectedImage, setSelectedImage ] = useState<File | null>(null);
@@ -187,8 +187,9 @@ export default function AvatarEditor(props: AvatarEditorProps) {
     // The <ReactAvatarEditor>'s background should either be lit up (for light mode) or be further
     // darkened (for dark mode). We use the theme's mode to detect that.
     const theme = useTheme();
-    const themedBackground = theme.palette.mode === 'light' ? [ 255, 255, 255, .75 ]
-                                                            : [ 0, 0, 0, .68 ];
+    const themedBackground: [ number, number, number, number ] =
+        theme.palette.mode === 'light' ? [ 255, 255, 255, .75 ]
+                                       : [ 0, 0, 0, .68 ];
 
     return (
         <Dialog onClose={handleDialogClose} open={!!open}>
@@ -201,8 +202,7 @@ export default function AvatarEditor(props: AvatarEditorProps) {
                                    /** @ts-ignore */
                                    ref={editorRef} />
 
-                <Stack direction="row"
-                       justifyContent="center">
+                <Stack direction="row" sx={{ justifyContent: 'center' }}>
                     <label htmlFor="avatar-editor-file">
                         <InvisibleInput type="file" accept="image/*"
                                         onChange={onSelectedImageChange}

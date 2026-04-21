@@ -281,8 +281,11 @@ export function VolunteerTable(props: VolunteerTableProps) {
 
     return (
         <Paper sx={{ p: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}
-                   sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={2} sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 1
+            }}>
                 <Typography variant="h5">
                     {props.title} ({props.volunteers.length} people)
                 </Typography>

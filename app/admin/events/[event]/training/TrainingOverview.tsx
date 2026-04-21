@@ -120,8 +120,12 @@ export function TrainingOverview(props: TrainingOverviewProps) {
     return (
         <Accordion disableGutters sx={{ mt: '16px !important', '& >:first-child': { mt: 2 } }}>
             <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
-                <Stack direction="row" alignItems="center" justifyContent="space-between"
-                       spacing={2} sx={{ flexGrow: 1, pr: 2 }}>
+                <Stack direction="row" spacing={2} sx={{
+                    alignItems: 'center',
+                    flexGrow: 1,
+                    justifyContent: 'space-between',
+                    pddingRight: 2
+                }}>
                     <Typography variant="h5">
                         Confirmed participation
                         <Typography component="span" variant="h5" color="action.active"

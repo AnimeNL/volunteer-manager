@@ -242,8 +242,11 @@ export function CommunicationDialog(props: CommunicationDialogProps) {
                         <Typography>
                             In which language should the message be written?
                         </Typography>
-                        <Stack direction="row" justifyContent="space-between" spacing={2}
-                               alignItems="stretch" sx={{ mt: 2 }}>
+                        <Stack direction="row" spacing={2} sx={{
+                                alignItems: 'stretch',
+                                justifyContent: 'space-between',
+                                marginTop: 2
+                            }}>
                             <LanguageButton onClick={handleLanguageChoice} variant="Dutch" />
                             <LanguageButton onClick={handleLanguageChoice} variant="English" />
                             { props.allowSilent &&
@@ -258,8 +261,10 @@ export function CommunicationDialog(props: CommunicationDialogProps) {
                         </Collapse>
                     </Collapse>
                     <Collapse in={state === 'message'}>
-                        <Stack direction="row" spacing={1} justifyContent="space-between"
-                               sx={{ mb: 1 }}>
+                        <Stack direction="row" spacing={1} sx={{
+                            justifyContent: 'space-between',
+                            marginBottom: 1
+                        }}>
                             <TextFieldElement name="subject" fullWidth size="small"
                                               disabled={messageLoading} />
                             <IconButton onClick={handleRefreshMessage} disabled={messageLoading}>
@@ -384,9 +389,11 @@ function LanguageButton(props: LanguageButtonProps) {
     }, [ onClick, variant ]);
 
     return (
-        <Stack component={ContrastBox} direction="column" flexBasis="100%"
-               justifyContent="center" alignItems="center" sx={{
+        <Stack component={ContrastBox} direction="column" sx={{
+                   alignItems: 'center',
                    cursor: 'pointer',
+                   flexBasis: '100%',
+                   justifyContent: 'center',
                    padding: 2,
                    userSelect: 'none',
                    '&:hover': {

@@ -409,7 +409,7 @@ export default async function EventPage(props: PageProps<'/admin/events/[event]'
 
     return (
         <>
-            <Grid container spacing={2} alignItems="stretch">
+            <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                 <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                     <EventIdentityCard event={event} />
                 </Grid>
@@ -419,7 +419,7 @@ export default async function EventPage(props: PageProps<'/admin/events/[event]'
                                          {...environment} />
                     </Grid> )}
             </Grid>
-            <Grid container spacing={2} alignItems="stretch">
+            <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Stack direction="column" spacing={2}>
                         <EventMetadata event={event} metadata={eventMetadata}

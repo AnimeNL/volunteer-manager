@@ -9,7 +9,7 @@ import Divider from '@mui/material/Divider';
 import GroupsIcon from '@mui/icons-material/Groups';
 import Paper from '@mui/material/Paper';
 import PublicIcon from '@mui/icons-material/Public';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import WorkOutlinedIcon from '@mui/icons-material/WorkOutlined';
 
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
@@ -49,7 +49,7 @@ export default async function OrganisationEntitiesLayout(
 
     if (access.can('organisation.roles')) {
         tabs.push({
-            icon: <WorkOutlineIcon />,
+            icon: <WorkOutlinedIcon />,
             label: 'Roles',
             url: '/admin/organisation/structure/roles',
         });

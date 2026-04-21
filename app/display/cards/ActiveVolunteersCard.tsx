@@ -38,7 +38,7 @@ function ActiveVolunteerCard(props: ActiveVolunteerCardProps) {
 
     return (
         <Paper sx={{ px: 2, py: 1.5, backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-            <Stack direction="row" alignItems="center" spacing={2}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                 <Avatar src={props.volunteer.avatar}>{props.volunteer.name}</Avatar>
                 <Stack direction="column" sx={{ minWidth: 0 }}>
                     <Typography variant="body1">

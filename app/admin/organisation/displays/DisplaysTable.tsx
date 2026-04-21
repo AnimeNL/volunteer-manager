@@ -5,7 +5,7 @@
 
 import Chip, { type ChipProps } from '@mui/material/Chip';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import Tooltip from '@mui/material/Tooltip';
@@ -101,7 +101,7 @@ export function DisplaysTable(props: DisplaysTableProps) {
                         </Typography>
                         { (!!params.row.eventId || !!params.row.locationId) &&
                             <Tooltip title="The display cannot work without a name">
-                                <ErrorOutlineIcon fontSize="small" color="warning" sx={{ ml:.5 }} />
+                                <ErrorOutlinedIcon fontSize="small" color="warning" sx={{ ml:.5 }} />
                             </Tooltip> }
                     </>
                 );

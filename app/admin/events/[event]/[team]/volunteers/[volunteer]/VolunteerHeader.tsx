@@ -335,8 +335,8 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
                                 <ListItemIcon>
                                     <PeopleIcon htmlColor={team.teamColour} />
                                 </ListItemIcon>
-                                <ListItemText primaryTypographyProps={{ variant: 'subtitle2' }}
-                                              primary={team.teamName} secondary={secondary} />
+                                <ListItemText primary={team.teamName} secondary={secondary}
+                                              slotProps={{ primary: { variant: 'subtitle2' } }} />
                             </ListItemButton>
                         );
                     }) }

@@ -64,7 +64,7 @@ function RequestHelpButton(props: RequestHelpButtonProps) {
                 aspectRatio: 2,
                 width: '100%',
             }} />
-            <Typography variant="body1" textAlign="center" sx={{ color: 'text.secondary' }}>
+            <Typography variant="body1" sx={{ color: 'text.secondary', textAlign: 'center' }}>
                 {props.label}
             </Typography>
         </CardActionArea>
@@ -191,7 +191,10 @@ export function RequestHelpCard(props: RequestHelpCardProps) {
                         will come by at their earliest convenience.
                     </DialogContentText>
                     <Divider sx={{ mt: 2 }} />
-                    <Stack direction="row" justifyContent="space-evenly" spacing={2} sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={2} sx={{
+                        justifyContent: 'space-evenly',
+                        marginTop: 2
+                    }}>
                         <RequestHelpButton onClick={handleRequestCrew}
                                            image="/images/request-help-crew.jpg"
                                            label="Volunteers" />

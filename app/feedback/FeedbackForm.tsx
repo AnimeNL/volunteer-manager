@@ -126,7 +126,10 @@ export function FeedbackForm(props: FeedbackFormProps) {
                                                         size: 'small',
                                                     }} />
                             </Grid>
-                            <Grid size={{ xs: 2 }} alignContent="center" textAlign="center">
+                            <Grid size={{ xs: 2 }} sx={{
+                                alignContent: 'center',
+                                textAlign: 'center'
+                            }}>
                                 or
                             </Grid>
                             <Grid size={{ xs: 5 }}>

@@ -126,7 +126,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                                 Execution result
                             </TableCell>
                             <TableCell>
-                                <Stack direction="row" spacing={2} alignItems="center">
+                                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                                     <Typography variant="body2">
                                         {task.result}
                                     </Typography>

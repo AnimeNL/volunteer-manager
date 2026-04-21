@@ -128,7 +128,7 @@ export function ExportAvailable(props: ExportAvailableProps) {
             <Collapse in={!buildUp && !credits && !discord && !tearDown && !trainings &&
                           !volunteers && !whatsapp}
                       unmountOnExit>
-                <Paper component={Stack} alignItems="center" sx={{ p: 2 }}>
+                <Paper component={Stack} sx={{ alignItems: 'center', p: 2 }}>
                     <Button loading={loading} variant="contained" onClick={handleAccessData}
                             startIcon={ <LaunchIcon /> }>
                         Access data

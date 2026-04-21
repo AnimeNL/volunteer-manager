@@ -5,7 +5,7 @@
 
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -65,8 +65,8 @@ export function EventParticipatingTeams(props: EventParticipatingTeamsProps) {
                             {params.value}
                         </Typography>
                         <Tooltip title="This team has been disabled">
-                            <RemoveCircleOutlineIcon color="error" fontSize="small"
-                                                     sx={{ ml: 1 }} />
+                            <RemoveCircleOutlinedIcon color="error" fontSize="small"
+                                                      sx={{ ml: 1 }} />
                         </Tooltip>
                     </>
                 );

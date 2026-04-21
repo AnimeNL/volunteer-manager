@@ -116,11 +116,13 @@ export async function AdminHeader(props: AdminHeaderProps) {
 
     return (
         <Paper>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}
+            <Stack direction="row" spacing={2}
                    sx={{
+                       alignItems: 'center',
                        backgroundColor: 'animecon.adminHeaderBackground',
                        borderTopLeftRadius: '4px',
                        borderTopRightRadius: '4px',
+                       justifyContent: 'space-between',
                        paddingX: 2,
                        paddingY: 1,
                    }}>
@@ -129,7 +131,9 @@ export async function AdminHeader(props: AdminHeaderProps) {
                     AnimeCon Volunteer Manager
                 </Typography>
 
-                <Stack direction="row" spacing={2} alignItems="center">
+                <Stack direction="row" spacing={2} sx={{
+                    alignItems: 'center',
+                }}>
 
                     <Typography color="primary.contrastText">
                         { user.displayName ?? user.firstName }
@@ -145,7 +149,10 @@ export async function AdminHeader(props: AdminHeaderProps) {
                 </Stack>
 
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ p: 1 }}>
+            <Stack direction="row" spacing={2} sx={{
+                alignItems: 'center',
+                padding: 1
+            }}>
 
                 <Button component={Link} href="/admin" variant="text" color="inherit">
                     Dashboard

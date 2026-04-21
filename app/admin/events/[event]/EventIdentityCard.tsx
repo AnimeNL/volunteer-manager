@@ -39,7 +39,7 @@ export function EventIdentityCard(props: EventIdentityCardProps) {
 
     return (
         <Paper sx={{ p: 2, minHeight: '100%', height: '100%' }}>
-            <Stack direction="column" justifyContent="center" sx={{ height: '100%' }}>
+            <Stack direction="column" sx={{ height: '100%', justifyContent: 'center' }}>
                 <Typography variant="h5" align="center">
                     {name}
                 </Typography>

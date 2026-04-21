@@ -13,8 +13,11 @@ import Typography from '@mui/material/Typography';
  */
 export function SoldOutWarning() {
     return (
-        <Stack component={Paper} direction="row" spacing={2} alignItems="center"
-               sx={{ px: 2, py: 1 }}>
+        <Stack component={Paper} direction="row" spacing={2} sx={{
+            alignItems: 'center',
+            paddingX: 2,
+            paddingY: 1
+        }}>
             <LocalActivityIcon color="error" />
             <Typography variant="body2" color="error">
                 All tickets for this event have been sold

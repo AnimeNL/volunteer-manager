@@ -37,7 +37,7 @@ export async function AccountSearchCard() {
     });
 
     return (
-        <Stack component={Card} direction="row" spacing={2} sx={{ p: 2 }} alignItems="center">
+        <Stack component={Card} direction="row" spacing={2} sx={{ alignItems: 'center', p: 2 }}>
             <SearchIcon />
             <AccountSearchInput accounts={normalisedAccounts} />
         </Stack>

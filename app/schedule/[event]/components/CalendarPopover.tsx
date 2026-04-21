@@ -105,7 +105,10 @@ export default function CalendarPopover(props: CalendarPopoverProps) {
 
     return (
         <Dialog open={!!open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="md">
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            }}>
                 <DialogTitle sx={{ pb: 2 }}>
                     {title}
                 </DialogTitle>

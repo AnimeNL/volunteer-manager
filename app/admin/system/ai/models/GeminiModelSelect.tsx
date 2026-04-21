@@ -49,7 +49,7 @@ export function GeminiModelSelect(props: GeminiModelSelectProps) {
     const model = kAiSupportedModels[value as keyof typeof kAiSupportedModels];
 
     return (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
             <SelectElement name={props.name} label={props.label} fullWidth size="small"
                            options={options} />
             <Tooltip title="Model details…">

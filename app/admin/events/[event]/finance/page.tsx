@@ -68,7 +68,7 @@ export default async function FinancePage(props: PageProps<'/admin/events/[event
         <>
             <Section title="Finances" subtitle={event.shortName}
                      icon={ <AnalyticsOutlinedIcon color="primary" /> } headerAction={
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                             {headerActions}
                         </Stack>
                      }>

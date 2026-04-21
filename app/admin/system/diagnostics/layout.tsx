@@ -4,7 +4,7 @@
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import DvrIcon from '@mui/icons-material/Dvr';
-import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Paper from '@mui/material/Paper';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 
@@ -35,7 +35,7 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
         },
         // TODO: Performance?
         {
-            icon: <InfoOutlineIcon color="info" />,
+            icon: <InfoOutlinedIcon color="info" />,
             label: 'System logs',
             url: '/admin/system/diagnostics/logs',
             urlMatchMode: 'prefix',

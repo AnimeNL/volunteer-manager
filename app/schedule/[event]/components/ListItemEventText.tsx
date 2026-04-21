@@ -31,8 +31,7 @@ interface ListItemEventTextProps {
 export function ListItemEventText(props: ListItemEventTextProps) {
     if (!!props.invisible) {
         return (
-            <ListItemText primaryTypographyProps={{ sx: kEnforceSingleLine }}
-                          primary={
+            <ListItemText primary={
                               <>
                                   <em>{props.title}</em>
                                   <Tooltip title="Hidden from visitors">
@@ -41,12 +40,13 @@ export function ListItemEventText(props: ListItemEventTextProps) {
                                                             verticalAlign: 'middle' }} />
                                   </Tooltip>
                               </>
-                          } />
+                          }
+                          slotProps={{ primary: { sx: kEnforceSingleLine } }} />
         );
     }
 
     return (
-        <ListItemText primaryTypographyProps={{ sx: kEnforceSingleLine }}
-                      primary={props.title} />
+        <ListItemText primary={props.title}
+                      slotProps={{ primary: { sx: kEnforceSingleLine } }} />
     );
 }

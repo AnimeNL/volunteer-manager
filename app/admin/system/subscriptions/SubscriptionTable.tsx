@@ -9,7 +9,7 @@ import type { GridCellParams, GridGroupingColDefOverride } from '@mui/x-data-gri
 import { default as MuiLink } from '@mui/material/Link';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -102,7 +102,7 @@ export function SubscriptionTable() {
 
             renderHeader: () =>
                 <Tooltip title="Distribute using e-mail">
-                    <MailOutlineIcon color="primary" fontSize="small" />
+                    <MailOutlinedIcon color="primary" fontSize="small" />
                 </Tooltip>,
 
             renderCell: params => {

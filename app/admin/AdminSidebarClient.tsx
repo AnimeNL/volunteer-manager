@@ -212,8 +212,8 @@ export function RenderSidebarClient(props: RenderSidebarMenuProps) {
                                         {entry.icon}
                                     </ListItemIcon> }
 
-                                <ListItemText primaryTypographyProps={{ noWrap: true }}
-                                              primary={entry.label} />
+                                <ListItemText primary={entry.label}
+                                              slotProps={{ primary: { noWrap: true } }} />
 
                                 { open ? <ExpandLess /> : <ExpandMore /> }
 
@@ -240,8 +240,8 @@ export function RenderSidebarClient(props: RenderSidebarMenuProps) {
                                 {entry.icon}
                             </ListItemIcon> }
 
-                        <ListItemText primaryTypographyProps={{ noWrap: true }}
-                                      primary={entry.label} />
+                        <ListItemText primary={entry.label}
+                                      slotProps={{ primary: { noWrap: true } }} />
 
                         { (typeof entry.badge === 'number' && entry.badge > 0) &&
                             <Badge badgeContent={entry.badge} sx={{ mx: 2 }}

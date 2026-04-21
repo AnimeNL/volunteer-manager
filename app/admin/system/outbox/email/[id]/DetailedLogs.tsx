@@ -120,7 +120,7 @@ export function DetailedLogs(props: DetailedLogsProps) {
         <Paper variant={ props.variant ?? 'elevation' }>
             <Accordion>
                 <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                         <TroubleshootIcon color="info" />
                         <Typography variant="body1">
                             Detailed logs

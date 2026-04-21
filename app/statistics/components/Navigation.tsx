@@ -90,7 +90,7 @@ export function Navigation(props: NavigationProps) {
 
     return (
         <Stack direction="row" divider= { <Divider orientation="vertical" flexItem /> }
-               alignItems="center" spacing={2}>
+               spacing={2} sx={{ alignItems: 'center' }}>
             <Button LinkComponent={Link} href="/statistics" color={dashboardColor}>
                 Dashboard
             </Button>

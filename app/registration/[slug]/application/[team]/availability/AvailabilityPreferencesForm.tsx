@@ -98,7 +98,9 @@ export function AvailabilityPreferencesForm(props: AvailabilityPreferencesFormPr
                     </Grid>
                     { [ ...Array(props.exceptionEventLimit) ].map((_, index) =>
                         <React.Fragment key={index}>
-                            <Grid size={{ xs: 12, sm: 4, md: 3, lg: 2  }} alignSelf="center">
+                            <Grid size={{ xs: 12, sm: 4, md: 3, lg: 2  }} sx={{
+                                alignSelf: 'center'
+                            }}>
                                 {index + 1}{ordinal(index + 1)} preference
                             </Grid>
                             <Grid size={{ xs: 12, sm: 8, md: 9, lg: 10 }}>

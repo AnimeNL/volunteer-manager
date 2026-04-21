@@ -67,7 +67,7 @@ export function SalesDataGridGroupingCell(props: SalesDataGridGroupingCellParams
     };
 
     return (
-        <Stack direction="row" alignItems="center" sx={{ height: '100%' }}>
+        <Stack direction="row" sx={{ alignItems: 'center', height: '100%' }}>
             <Box sx={{ width: '40px', flexShrink: 0 }}>
                 { filteredDescendantCount > 0 &&
                     <rootProps.slots.baseIconButton

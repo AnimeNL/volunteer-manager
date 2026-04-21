@@ -113,7 +113,12 @@ export function PasswordField(props: TextFieldElementProps) {
     return (
         <Box>
             <TextFieldElement onChange={onChange}
-                              inputProps={{ passwordrules: kPasswordRules, minLength: 8 }}
+                              slotProps={{
+                                  htmlInput: {
+                                      minLength: 8,
+                                      passwordrules: kPasswordRules,
+                                  },
+                              }}
                               {...props} />
             <Collapse in={!!password.length}>
                 <List dense disablePadding sx={{ pt: 1 }}>
@@ -135,7 +140,7 @@ export function PasswordField(props: TextFieldElementProps) {
                             { !state.passedNumberRequirement &&
                                 <CancelIcon color="error" fontSize="small" /> }
                         </ListItemIcon>
-                        <ListItemText primaryTypographyProps={{ variant: 'body2' }}>
+                        <ListItemText slotProps={{ primary: { variant: 'body2' } }}>
                             Contains at least one number
                         </ListItemText>
                     </ListItem>
@@ -146,7 +151,7 @@ export function PasswordField(props: TextFieldElementProps) {
                             { !state.passedCasingRequirement &&
                                 <CancelIcon color="error" fontSize="small" /> }
                         </ListItemIcon>
-                        <ListItemText primaryTypographyProps={{ variant: 'body2' }}>
+                        <ListItemText slotProps={{ primary: { variant: 'body2' } }}>
                             Contains both lowercase and uppercase characters
                         </ListItemText>
                     </ListItem>

@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { BarPlot, ChartContainerPro, ChartsAxisHighlight, ChartsAxisTooltipContent,
+import { BarPlot, ChartsContainerPro, ChartsAxisHighlight, ChartsAxisTooltipContent,
     ChartsTooltipContainer, useAxesTooltip, type BarSeriesType }
     from '@components/proxy/mui-x-charts-pro';
 
@@ -50,21 +50,21 @@ export function KeyMetricGraph(props: KeyMetricGraphProps) {
     }, [ props.series, props.type ]);
 
     return (
-        <ChartContainerPro height={100} series={series}
-                           margin={{
-                               top: 8,
-                               right: 0,
-                               bottom: 0,
-                               left: 0,
-                           }}
-                           yAxis={[ { domainLimit: 'strict', position: 'none' } ]}
-                           xAxis={[
-                               {
-                                   data: props.labels,
-                                   position: 'none',
-                                   scaleType: 'band',
-                               }
-                           ]}>
+        <ChartsContainerPro height={100} series={series}
+                            margin={{
+                                top: 8,
+                                right: 0,
+                                bottom: 0,
+                                left: 0,
+                            }}
+                            yAxis={[ { domainLimit: 'strict', position: 'none' } ]}
+                            xAxis={[
+                                {
+                                    data: props.labels,
+                                    position: 'none',
+                                    scaleType: 'band',
+                                }
+                            ]}>
             <BarPlot />
             <ChartsAxisHighlight x="band" />
             <ChartsTooltipContainer>
@@ -74,7 +74,7 @@ export function KeyMetricGraph(props: KeyMetricGraphProps) {
                 }} />
                 <ChartsAxisTooltipTotals type={props.type} />
             </ChartsTooltipContainer>
-        </ChartContainerPro>
+        </ChartsContainerPro>
     );
 }
 
@@ -107,7 +107,7 @@ function ChartsAxisTooltipTotals(props: { type: KeyMetricGraphProps['type'] }) {
             borderTopRightRadius: 0,
             marginTop: '-1px',
         }}>
-            <Stack direction="row" justifyContent="space-between" sx={{ px: 1.5, py: 0.75 }}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', px: 1.5, py: 0.75 }}>
                 <Typography>
                     Total
                 </Typography>

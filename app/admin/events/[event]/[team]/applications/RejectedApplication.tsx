@@ -82,10 +82,15 @@ export function RejectedApplication(props: RejectedApplicationProps) {
     }, [ reconsiderFn, router ]);
 
     return (
-        <Stack component={ContrastBox} direction="row" alignItems="center"
-               justifyContent="space-between" sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center"
-                    divider={ <Divider orientation="vertical" flexItem /> }>
+        <Stack component={ContrastBox} direction="row" sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 2
+        }}>
+            <Stack direction="row" spacing={2}
+                   divider={ <Divider orientation="vertical" flexItem /> } sx={{
+                alignItems: 'center',
+            }}>
                 <Avatar src={application.avatar}>
                     {application.name}
                 </Avatar>

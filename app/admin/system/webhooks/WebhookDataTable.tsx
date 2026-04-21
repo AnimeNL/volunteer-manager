@@ -7,7 +7,7 @@ import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Chip from '@mui/material/Chip';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
@@ -161,7 +161,7 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
                 } else {
                     return (
                         <Tooltip title="The call coult not be authenticated">
-                            <ErrorOutlineIcon color="error" fontSize="small" />
+                            <ErrorOutlinedIcon color="error" fontSize="small" />
                         </Tooltip>
                     );
                 }

@@ -23,6 +23,7 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
     },
 
     timeline: {
+        alignItems: 'stretch',
         border: '1px solid red',
         borderColor: 'divider',
         borderRadius: theme => Number(theme.shape.borderRadius) / 2,
@@ -130,7 +131,7 @@ export interface AvailabilityDayInfo {
 export function AvailabilityExpectationDay(props: { info: AvailabilityDayInfo }) {
     return (
         <Box>
-            <Stack direction="row" alignItems="stretch" sx={kStyles.timeline}
+            <Stack direction="row" sx={kStyles.timeline}
                    divider={ <Divider orientation="vertical" flexItem /> }>
                 { [ ...Array(24) ].map((_, index) =>
                     <AvailabilityExpectation hour={index} key={index}

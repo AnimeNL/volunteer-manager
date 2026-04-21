@@ -355,8 +355,11 @@ export function SalesDataGrid(props: SalesDataGridProps) {
  */
 function OverlayWithoutLabel(label: string) {
     return (
-        <Stack direction="column" alignItems="center" justifyContent="center"
-               sx={{ height: '100%' }}>
+        <Stack direction="column" sx={{
+            alignItems: 'center',
+            height: '100%',
+            justifyContent: 'center',
+        }}>
             <LocalActivityIcon color="disabled" fontSize="large" />
             <Typography color="textDisabled" variant="body2">
                 {label}

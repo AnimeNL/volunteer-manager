@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Chip from '@mui/material/Chip';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -146,7 +146,7 @@ export function HelpRequestTable() {
                 } else if (!!params.row.acknowledgedBy) {
                     return (
                         <Tooltip title="Request has been acknowledged">
-                            <ErrorOutlineIcon fontSize="small" color="warning" />
+                            <ErrorOutlinedIcon fontSize="small" color="warning" />
                         </Tooltip>
                     );
                 } else {

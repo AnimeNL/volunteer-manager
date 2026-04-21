@@ -13,7 +13,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
@@ -76,7 +76,7 @@ export function AdminHeaderEventsMenu(props: AdminHeaderEventsMenuProps) {
                             { !!event.finished &&
                                 <TaskAltIcon color="disabled" fontSize="small" /> }
                             { !event.finished &&
-                                <PlayCircleOutlineIcon color="success" fontSize="small" /> }
+                                <PlayCircleOutlinedIcon color="success" fontSize="small" /> }
                         </ListItemIcon>
                         <ListItemText primary={event.shortName} />
                     </MenuItem> )}

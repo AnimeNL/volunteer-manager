@@ -102,16 +102,18 @@ export function FutureVolunteersCard(props: FutureVolunteersCardProps) {
                         <Typography variant="body1" sx={{ pt: 1, width: '100px' }}>
                             { formatDate(upcoming.dt, 'HH:mm') }
                         </Typography>
-                        <Grid container flexGrow={1} spacing={2}>
+                        <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                             { upcoming.volunteers.map(volunteer =>
                                 <Grid key={volunteer.id} size={{ xs: 4 }}>
                                     <Paper variant="outlined"
                                            sx={{ p: 1, borderColor: 'transparent '}}>
-                                        <Stack direction="row" justifyContent="space-between">
+                                        <Stack direction="row"
+                                               sx={{ justifyContent: 'space-between' }}>
                                             <Typography variant="body1">
                                                 {volunteer.name}
                                             </Typography>
-                                            <Stack direction="row" alignItems="center" spacing={1}>
+                                            <Stack direction="row" spacing={1}
+                                                   sx={{ alignItems: 'center' }}>
                                                 { volunteer.team.includes('Host') &&
                                                     <LightbulbOutlinedIcon htmlColor="#455a64"
                                                                            fontSize="small" /> }

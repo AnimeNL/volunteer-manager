@@ -282,7 +282,7 @@ function DisplayHeaderMenu(props: { display: DisplayContextInfo }) {
     }, [ context?.config.devEnvironment, router ]);
 
     return (
-        <Stack direction="column" justifyContent="space-between" sx={{ height: '100%' }}>
+        <Stack direction="column" sx={{ justifyContent: 'space-between', height: '100%' }}>
             <Stack direction="column" spacing={2}>
                 { !context &&
                     <DisplayHeaderMenuWarning>
@@ -312,7 +312,7 @@ function DisplayHeaderMenu(props: { display: DisplayContextInfo }) {
                 <DisplayHeaderMenuVolume
                     confirmVolumeChanges={context?.config.confirmVolumeChanges} />
             </Stack>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
                     { !!context &&
                         <Chip label={context.identifier} size="small" sx={{ pt: 0.25 }} /> }
@@ -346,7 +346,10 @@ export function DisplayHeader() {
     return (
         <>
             <Paper elevation={0} sx={{ px: 2, py: 1, background: 'none' }}>
-                <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
+                <Stack direction="row" sx={{
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                }}>
                     <Box>
                         <Typography variant="h1" sx={{ pb: .5 }}>
                             { display.context?.label ?? 'AnimeCon Display' }
@@ -356,8 +359,10 @@ export function DisplayHeader() {
                         </Typography>
                     </Box>
                     <Box>
-                        <Stack direction="row" alignItems="center" spacing={3}
-                            divider={ <Divider orientation="vertical" flexItem /> }>
+                        <Stack direction="row" spacing={3}
+                               divider={ <Divider orientation="vertical" flexItem /> } sx={{
+                            alignItems: 'center',
+                        }}>
                             <Typography variant="h2" sx={{ pr: 1.75 }}>
                                 <CurrentTime timezone={display.context?.config.timezone} />
                             </Typography>
@@ -370,8 +375,14 @@ export function DisplayHeader() {
                     </Box>
                 </Stack>
             </Paper>
-            <Drawer anchor="right" onClose={handleCloseMenu} open={menuOpen}
-                    PaperProps={{ sx: { width: '350px', p: 4 } }}>
+            <Drawer anchor="right" onClose={handleCloseMenu} open={menuOpen} slotProps={{
+                paper: {
+                    sx: {
+                        padding: 4,
+                        width: '350px'
+                    },
+                },
+            }}>
                 <DisplayHeaderMenu display={display} />
             </Drawer>
         </>

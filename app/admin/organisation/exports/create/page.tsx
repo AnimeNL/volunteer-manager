@@ -85,8 +85,10 @@ export default async function OrganisationExportsCreatePage() {
     return (
         <Grid container spacing={2}>
             <Grid size={{ xs: 12 }}>
-                <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap"
-                       useFlexGap>
+                <Stack direction="row" spacing={2} useFlexGap sx={{
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                }}>
                     <ExportTile action={exportBuildUpFn}
                                 icon={ <DomainAddIcon color="primary" /> }
                                 label="Build-up volunteers">

@@ -41,7 +41,7 @@ export function KnowledgeBaseCard(props: KnowledgeBaseCardProps) {
                     width: '100%',
                     aspectRatio: 4 }} />
                 <CardContent>
-                    <Stack direction="row" alignItems="center">
+                    <Stack direction="row" sx={{ alignItems: 'center' }}>
                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Check out the <strong>Knowledge Base</strong>, where you can find
                             answers to the most frequently asked questions by visitors!

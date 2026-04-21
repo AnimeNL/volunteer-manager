@@ -128,7 +128,7 @@ export function AdviceContainer() {
     return (
         <Card sx={{ p: 2 }}>
             <Collapse in={!data}>
-                <Stack alignItems="center" spacing={2} sx={{ py: 2 }}>
+                <Stack spacing={2} sx={{ alignItems: 'center', paddingY: 2 }}>
                     <Image src="/images/advice.png" alt="Del a Rie Advies Logo"
                            height={128} width={175} />
                     <Typography sx={{ textAlign: 'center', textWrap: 'balance' }}>

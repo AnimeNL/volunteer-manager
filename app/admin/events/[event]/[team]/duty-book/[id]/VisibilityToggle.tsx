@@ -53,8 +53,7 @@ export function VisibilityToggle(props: VisibilityToggleProps) {
                    },
                    transition: 'background-color ease-in .3s'
                }} >
-            <Stack direction="row" alignItems="center" justifyContent="space-between"
-                   sx={{ widtxh: '100%' }}>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="inherit">
                     { !props.hidden &&
                         'The details of this incident are visible to all volunteers.' }

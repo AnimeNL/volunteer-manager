@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
  */
 export function DisplayContainer(props: React.PropsWithChildren) {
     return (
-        <Stack direction="column" spacing={2} flexGrow={1} sx={{ overflow: 'auto' }}>
+        <Stack direction="column" spacing={2} sx={{ flexGrow: 1, overflow: 'auto' }}>
             {props.children}
         </Stack>
     );

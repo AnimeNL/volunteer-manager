@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
@@ -23,7 +23,7 @@ export function OutboxNavigation() {
     const navigationOptions = useMemo(() => ([
         {
             label: 'E-mail',
-            icon: <MailOutlineIcon />,
+            icon: <MailOutlinedIcon />,
             url: '/admin/system/outbox/email'
         },
         {

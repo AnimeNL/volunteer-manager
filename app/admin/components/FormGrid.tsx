@@ -68,13 +68,13 @@ function InnerFormGrid(props: { callToAction?: string }) {
     return (
         <Collapse in={!!formState.isDirty} sx={{ width: '100%' }}>
             <Grid size={{ xs: 12 }}>
-                <Stack direction="row" spacing={1} alignItems="center"
-                        sx={{
-                            backgroundColor: 'animecon.adminSubmitBackground',
-                            borderRadius: 2,
-                            padding: 1,
-                            mb: 2,
-                        }}>
+                <Stack direction="row" spacing={1} sx={{
+                    alignItems: 'center',
+                    backgroundColor: 'animecon.adminSubmitBackground',
+                    borderRadius: 2,
+                    padding: 1,
+                    mb: 2,
+                }}>
                     <Button variant="contained" type="submit" loading={!!formContext.isPending}>
                         { props.callToAction ?? 'Save changes' }
                     </Button>

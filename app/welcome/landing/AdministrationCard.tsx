@@ -23,7 +23,7 @@ export function AdministrationCard() {
     return (
         <Card elevation={2}>
             <CardContent sx={{ pb: 0 }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <Typography variant="h5" component="p">
                         Administration
                     </Typography>

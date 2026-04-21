@@ -15,7 +15,7 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Divider from '@mui/material/Divider';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import IconButton from '@mui/material/IconButton';
 import InfoIcon from '@mui/icons-material/Info';
 import List from '@mui/material/List';
@@ -59,7 +59,7 @@ interface ApplicationBulletPoint {
 function composeAgeBulletPoint(application: ApplicationProps['application']) {
     return {
         icon: application.age >= 18 ? <CheckCircleIcon fontSize="small" color="success" />
-                                    : <HelpOutlineIcon fontSize="small" color="warning" />,
+                                    : <HelpOutlinedIcon fontSize="small" color="warning" />,
         message:
             <>
                 {application.firstName} will be {application.age} years old during the event.
@@ -73,7 +73,7 @@ function composeAgeBulletPoint(application: ApplicationProps['application']) {
 function composeAvailabilityBulletPoint(application: ApplicationProps['application']) {
     return {
         icon: application.fullyAvailable ? <CheckCircleIcon fontSize="small" color="success" />
-                                         : <HelpOutlineIcon fontSize="small" color="warning" />,
+                                         : <HelpOutlinedIcon fontSize="small" color="warning" />,
         message:
             <>
                 They indicated that they

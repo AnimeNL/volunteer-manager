@@ -22,6 +22,7 @@ import { Markdown } from '@components/Markdown';
  */
 const kStyles: { [key: string]: SxProps<Theme> } = {
     landingPage: {
+        alignItems: 'center',
         minHeight: { md: 340 },
         mt: 0,
         mr: '-0.5px' /* ... */
@@ -125,7 +126,7 @@ export function EventsContent(props: EventsContentProps) {
     }
 
     return (
-        <Grid container spacing={2} alignItems="center" sx={kStyles.landingPage}>
+        <Grid container spacing={2} sx={kStyles.landingPage}>
             <Grid size={{ xs: 12, md: 5 }}>
                 <Markdown sx={{ pt: 1, px: 2 }}>
                     {props.environment.description}
