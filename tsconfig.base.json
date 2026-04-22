@@ -6,7 +6,6 @@
       "esnext"
     ],
     "allowJs": true,
-    "baseUrl": "./app",
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -24,10 +23,10 @@
     "erasableSyntaxOnly": true,
     "jsx": "preserve",
     "paths": {
-      "@components/*": [ "components/*" ],
-      "@lib/*": [ "lib/*" ],
-      "@proxy/*": [ "components/proxy/*" ],
-      "@app/*": [ "*" ]
+      "@components/*": [ "./app/components/*" ],
+      "@lib/*": [ "./app/lib/*" ],
+      "@proxy/*": [ "./app/components/proxy/*" ],
+      "@app/*": [ "./app/*" ]
     },
     "plugins": [
       {
