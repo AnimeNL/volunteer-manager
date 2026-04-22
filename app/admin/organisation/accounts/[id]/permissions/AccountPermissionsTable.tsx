@@ -7,9 +7,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { CheckboxElement } from '@components/proxy/react-hook-form-mui';
 
-import type { GridColDef, GridGroupNode, GridGroupingColDefOverride, GridRowId, DataGridProProps }
-    from '@mui/x-data-grid-pro';
-import { DataGridPro } from '@mui/x-data-grid-pro';
+import type { GridColDef, GridGroupNode, GridGroupingColDefOverride, GridRowId,
+    DataGridPremiumProps } from '@mui/x-data-grid-premium';
+import { DataGridPremium } from '@mui/x-data-grid-premium';
 
 import BlockIcon from '@mui/icons-material/Block';
 import Button from '@mui/material/Button';
@@ -322,7 +322,7 @@ export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
         }
     ];
 
-    const getTreeDataPath: DataGridProProps['getTreeDataPath'] = useCallback((row: any) => {
+    const getTreeDataPath: DataGridPremiumProps['getTreeDataPath'] = useCallback((row: any) => {
         return row.id.split('.');
 
     }, [ /* no dependencies */ ]);
@@ -337,12 +337,12 @@ export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
 
     return (
         <>
-            <DataGridPro columns={columns} rows={props.permissions}
-                         treeData getTreeDataPath={getTreeDataPath} groupingColDef={grouping}
-                         isGroupExpandedByDefault={isGroupExpandedByDefault}
-                         initialState={{ density: 'compact' }}
-                         autoHeight disableColumnMenu hideFooterSelectedRowCount
-                         hideFooter />
+            <DataGridPremium columns={columns} rows={props.permissions}
+                             treeData getTreeDataPath={getTreeDataPath} groupingColDef={grouping}
+                             isGroupExpandedByDefault={isGroupExpandedByDefault}
+                             initialState={{ density: 'compact' }}
+                             autoHeight disableColumnMenu hideFooterSelectedRowCount
+                             hideFooter />
             <Dialog fullWidth open={learnMoreOpen} onClose={closeLearnMore}>
                 <DialogTitle>
                     {learnMoreTitle} permission

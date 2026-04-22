@@ -5,7 +5,7 @@
 
 import Link from '@app/LinkProxy';
 
-import type { GridCellParams, GridGroupingColDefOverride } from '@mui/x-data-grid-pro';
+import type { GridCellParams, GridGroupingColDefOverride } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

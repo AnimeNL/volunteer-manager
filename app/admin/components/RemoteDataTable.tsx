@@ -10,9 +10,9 @@ import { useRouter } from 'next/navigation';
 import type {
     GridCellParams, GridColDef, GridGroupingColDefOverride, GridPaginationModel,
     GridRenderCellParams, GridRowModesModel, GridRowOrderChangeParams, GridSortModel,
-    GridValidRowModel } from '@mui/x-data-grid-pro';
+    GridValidRowModel } from '@mui/x-data-grid-premium';
 
-import { DataGridPro, GridRowModes, GRID_REORDER_COL_DEF } from '@mui/x-data-grid-pro';
+import { DataGridPremium, GridRowModes, GRID_REORDER_COL_DEF } from '@mui/x-data-grid-premium';
 
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Alert from '@mui/material/Alert';
@@ -554,28 +554,29 @@ export function RemoteDataTable<
                 </Alert>
             </Collapse>
 
-            <DataGridPro columns={columns} rows={rows} rowCount={rowCount}
-                         rowModesModel={rowModesModel} onRowModesModelChange={setRowModesModel}
-                         processRowUpdate={handleUpdate} editMode={enableUpdate ? 'row' : undefined}
-                         isCellEditable={props.isCellEditable}
+            <DataGridPremium
+                columns={columns} rows={rows} rowCount={rowCount}
+                rowModesModel={rowModesModel} onRowModesModelChange={setRowModesModel}
+                processRowUpdate={handleUpdate} editMode={enableUpdate ? 'row' : undefined}
+                isCellEditable={props.isCellEditable}
 
-                         rowReordering={enableReorder} onRowOrderChange={handleReorder}
-                         slots={{ rowReorderIcon: RemoteDataTableMoveIcon }}
+                rowReordering={enableReorder} onRowOrderChange={handleReorder}
+                slots={{ rowReorderIcon: RemoteDataTableMoveIcon }}
 
-                         pageSizeOptions={[ 10, 25, 50, 100 ]} paginationMode="server"
-                         paginationModel={paginationModel} pagination
-                         onPaginationModelChange={handlePaginationModelChange}
+                pageSizeOptions={[ 10, 25, 50, 100 ]} paginationMode="server"
+                paginationModel={paginationModel} pagination
+                onPaginationModelChange={handlePaginationModelChange}
 
-                         sortingMode="server"
-                         sortModel={ enableReorder ? undefined : sortModel }
-                         onSortModelChange={ enableReorder ? undefined : handleSortModelChange }
+                sortingMode="server"
+                sortModel={ enableReorder ? undefined : sortModel }
+                onSortModelChange={ enableReorder ? undefined : handleSortModelChange }
 
-                         treeData={!!props.treeData} getTreeDataPath={getTreeDataPath}
-                         groupingColDef={props.treeDataColumn}
+                treeData={!!props.treeData} getTreeDataPath={getTreeDataPath}
+                groupingColDef={props.treeDataColumn}
 
-                         initialState={{ density: 'compact' }}
-                         autoHeight disableColumnMenu hideFooterSelectedRowCount
-                         loading={loading} hideFooter={!!props.disableFooter} />
+                initialState={{ density: 'compact' }}
+                autoHeight disableColumnMenu hideFooterSelectedRowCount
+                loading={loading} hideFooter={!!props.disableFooter} />
 
             <Dialog open={!!deleteCandidate} onClose={resetDeleteCandidate}>
                 <DialogTitle>

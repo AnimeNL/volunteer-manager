@@ -6,7 +6,7 @@
 import Link from '@app/LinkProxy';
 import { useCallback } from 'react';
 
-import type { GridCellParams, ValueOptions } from '@mui/x-data-grid-pro';
+import type { GridCellParams, ValueOptions } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import ErrorIcon from '@mui/icons-material/Error';

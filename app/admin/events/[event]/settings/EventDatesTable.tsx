@@ -3,7 +3,7 @@
 
 'use client';
 
-import type { ValueOptions } from '@mui/x-data-grid-pro';
+import type { ValueOptions } from '@mui/x-data-grid-premium';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';

@@ -5,7 +5,8 @@
 
 import { useMemo } from 'react';
 
-import { PieChartPro, type PieChartProProps, type PieValueType } from '@components/proxy/mui-x-charts-pro';
+import { PieChartPro, type PieChartProProps, type PieValueType }
+    from '@components/proxy/mui-x-charts-premium';
 
 /**
  * Props accepted by the <DoublePieChart> component.

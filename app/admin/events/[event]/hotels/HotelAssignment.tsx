@@ -7,7 +7,7 @@ import type React from 'react';
 import Link from '@app/LinkProxy';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 
-import type { GridRenderEditCellParams } from '@mui/x-data-grid-pro';
+import type { GridRenderEditCellParams } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -18,7 +18,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useGridApiContext } from '@mui/x-data-grid-pro';
+import { useGridApiContext } from '@mui/x-data-grid-premium';
 
 import type { HotelsAssignmentsRowModel } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';

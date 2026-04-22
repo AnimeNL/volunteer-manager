@@ -7,7 +7,7 @@ import Link from '@app/LinkProxy';
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { GridFilterModel, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import type { GridFilterModel, GridRenderCellParams } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import BlockIcon from '@mui/icons-material/Block';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';

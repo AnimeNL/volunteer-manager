@@ -3,5 +3,5 @@
 
 'use client';
 
-export type { LineChartProps } from '@mui/x-charts-pro';
-export { LineChart } from '@mui/x-charts-pro';
+export type { LineChartProps } from '@mui/x-charts-premium';
+export { LineChart } from '@mui/x-charts-premium';

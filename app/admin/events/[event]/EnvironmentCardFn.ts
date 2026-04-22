@@ -5,7 +5,8 @@
 
 import { z } from 'zod/v4';
 
-import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType } from '@mui/x-charts-pro';
+import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
+    from '@mui/x-charts-premium';
 
 import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
 import { Temporal, isAfter, isBefore } from '@lib/Temporal';

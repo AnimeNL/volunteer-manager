@@ -5,8 +5,9 @@
 
 import { useCallback, useContext, useMemo, useState } from 'react';
 
-import type { GridColDef, GridFilterModel, GridPaginationModel, GridRenderCellParams, GridValidRowModel } from '@mui/x-data-grid-pro';
-import { DataGridPro, type DataGridProProps } from '@mui/x-data-grid-pro';
+import type { GridColDef, GridFilterModel, GridPaginationModel, GridRenderCellParams,
+    GridValidRowModel } from '@mui/x-data-grid-premium';
+import { DataGridPremium, type DataGridPremiumProps } from '@mui/x-data-grid-premium';
 
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 
@@ -86,12 +87,12 @@ interface DataTableProps<RowModel extends GridValidRowModel> {
     /**
      * Called when column visibility has changed.
      */
-    onColumnVisibilityModelChange?: DataGridProProps['onColumnVisibilityModelChange'];
+    onColumnVisibilityModelChange?: DataGridPremiumProps['onColumnVisibilityModelChange'];
 
     /**
      * Called when the filter model has changed.
      */
-    onFilterModelChange?: DataGridProProps['onFilterModelChange'];
+    onFilterModelChange?: DataGridPremiumProps['onFilterModelChange'];
 }
 
 /**
@@ -142,38 +143,38 @@ export function DataTable<RowModel extends GridValidRowModel = GridValidRowModel
     }, [ props.listViewCell ]);
 
     return (
-        <DataGridPro rows={props.rows} columns={props.columns}
+        <DataGridPremium rows={props.rows} columns={props.columns}
 
-                     pageSizeOptions={[ 10, 25, 50, 100 ]}
-                     paginationModel={paginationModel} pagination
-                     onPaginationModelChange={onPaginationModelChange}
+                         pageSizeOptions={[ 10, 25, 50, 100 ]}
+                         paginationModel={paginationModel} pagination
+                         onPaginationModelChange={onPaginationModelChange}
 
-                     listView={isListView} listViewColumn={listViewColumn}
-                     getRowHeight={ isListView ? () => 'auto' : undefined }
+                         listView={isListView} listViewColumn={listViewColumn}
+                         getRowHeight={ isListView ? () => 'auto' : undefined }
 
-                     showToolbar={!!props.enableFilter}
-                     slotProps={{
-                         columnsPanel: {
-                             sx: {
-                                 '& .MuiFormControlLabel-label': {
-                                     color: 'var(--DataGrid-t-color-foreground-base)',
-                                 }
+                         showToolbar={!!props.enableFilter}
+                         slotProps={{
+                             columnsPanel: {
+                                 sx: {
+                                     '& .MuiFormControlLabel-label': {
+                                         color: 'var(--DataGrid-t-color-foreground-base)',
+                                     }
+                                 },
                              },
-                         },
-                         toolbar: {
-                             csvOptions: { disableToolbarButton: true },
-                             printOptions: { disableToolbarButton: true },
-                         }
-                     }}
+                             toolbar: {
+                                 csvOptions: { disableToolbarButton: true },
+                                 printOptions: { disableToolbarButton: true },
+                             }
+                         }}
 
-                     onColumnVisibilityModelChange={props.onColumnVisibilityModelChange}
-                     onFilterModelChange={props.onFilterModelChange}
-                     initialState={{
-                         columns: { columnVisibilityModel },
-                         filter: { filterModel: props.initialFilters },
-                         density: 'compact' }}
+                         onColumnVisibilityModelChange={props.onColumnVisibilityModelChange}
+                         onFilterModelChange={props.onFilterModelChange}
+                         initialState={{
+                             columns: { columnVisibilityModel },
+                             filter: { filterModel: props.initialFilters },
+                             density: 'compact' }}
 
-                     autoHeight disableColumnMenu={!props.enableColumnMenu}
-                     hideFooterSelectedRowCount hideFooter={!!props.disableFooter} />
+                         autoHeight disableColumnMenu={!props.enableColumnMenu}
+                         hideFooterSelectedRowCount hideFooter={!!props.disableFooter} />
     );
 }

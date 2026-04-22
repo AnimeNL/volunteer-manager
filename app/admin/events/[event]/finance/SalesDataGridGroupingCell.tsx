@@ -5,9 +5,9 @@
 
 import Link from 'next/link';
 
-import type { GridKeyValue, GridRenderCellParams } from '@mui/x-data-grid-pro';
+import type { GridKeyValue, GridRenderCellParams } from '@mui/x-data-grid-premium';
 import { gridFilteredDescendantCountLookupSelector, useGridApiContext, useGridRootProps,
-    useGridSelector } from '@mui/x-data-grid-pro';
+    useGridSelector } from '@mui/x-data-grid-premium';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';

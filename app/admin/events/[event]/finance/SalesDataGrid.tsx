@@ -6,7 +6,8 @@
 import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 
-import { DataGridPro, GRID_TREE_DATA_GROUPING_FIELD, type DataGridProProps } from '@mui/x-data-grid-pro';
+import { DataGridPremium, GRID_TREE_DATA_GROUPING_FIELD, type DataGridPremiumProps }
+    from '@mui/x-data-grid-premium';
 
 import { default as MuiLink } from '@mui/material/Link';
 import IconButton from '@mui/material/IconButton';
@@ -143,7 +144,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     const closeSalesDialog = useCallback(() => setSalesDialogRow(null), [ /* no dependencies */ ]);
 
-    const columnDefinitions: DataGridProProps<SalesDataGridRow>['columns'] = useMemo(() => [
+    const columnDefinitions: DataGridPremiumProps<SalesDataGridRow>['columns'] = useMemo(() => [
         {
             field: 'product',
             headerName: 'Product',
@@ -282,7 +283,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
         const [ _, ...columns ] = columnDefinitions;
 
-        const groupingColDef: DataGridProProps['groupingColDef'] = {
+        const groupingColDef: DataGridPremiumProps['groupingColDef'] = {
             headerName: 'Product',
             sortable: true,
             flex: 3,
@@ -316,27 +317,27 @@ export function SalesDataGrid(props: SalesDataGridProps) {
 
     return (
         <>
-            <DataGridPro density="compact" disableColumnMenu disableColumnReorder
-                         disableColumnResize hideFooter columns={columns} rows={rows}
-                         slots={{ noRowsOverlay }}
-                         initialState={{
-                            sorting: {
-                                sortModel: [
-                                    {
-                                        field: requiresCategoryGrouping
-                                            ? GRID_TREE_DATA_GROUPING_FIELD
-                                            : 'product',
-                                        sort: 'asc',
-                                    }
-                                ]
-                            }
-                         }}
-                         sx={{
-                             '--DataGrid-overlayHeight': '120px',  // increase empty-state height
-                             borderColor: 'transparent',  // remove the grid's default border
-                         }}
-                         treeData={requiresCategoryGrouping} groupingColDef={groupingColDef}
-                         getTreeDataPath={getTreeDataPathForCategories} />
+            <DataGridPremium density="compact" disableColumnMenu disableColumnReorder
+                             disableColumnResize hideFooter columns={columns} rows={rows}
+                             slots={{ noRowsOverlay }}
+                             initialState={{
+                                 sorting: {
+                                     sortModel: [
+                                         {
+                                             field: requiresCategoryGrouping
+                                                 ? GRID_TREE_DATA_GROUPING_FIELD
+                                                 : 'product',
+                                             sort: 'asc',
+                                         }
+                                     ]
+                                 }
+                             }}
+                             sx={{
+                                 '--DataGrid-overlayHeight': '120px', // increase empty-state height
+                                 borderColor: 'transparent', // remove the grid's default border
+                             }}
+                             treeData={requiresCategoryGrouping} groupingColDef={groupingColDef}
+                             getTreeDataPath={getTreeDataPathForCategories} />
             { !!salesDialogRow &&
                 <RemoteGraphDialog
                     fetchDataFn={ props.partialFetchDataFn.bind(null, salesDialogRow.productIds) }

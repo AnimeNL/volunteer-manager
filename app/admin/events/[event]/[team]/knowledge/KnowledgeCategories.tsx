@@ -3,7 +3,7 @@
 
 'use client';
 
-import type { ValueOptions } from '@mui/x-data-grid-pro';
+import type { ValueOptions } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import CatchingPokemonIcon from '@mui/icons-material/CatchingPokemon';

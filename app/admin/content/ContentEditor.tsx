@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic';
 import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';
 
-import type { ValueOptions } from '@mui/x-data-grid-pro';
+import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';

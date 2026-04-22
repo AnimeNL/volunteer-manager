@@ -3,4 +3,4 @@
 
 'use client';
 
-export * from '@mui/x-charts-pro';
+export * from '@mui/x-charts-premium';

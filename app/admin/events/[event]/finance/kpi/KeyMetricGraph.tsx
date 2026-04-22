@@ -5,9 +5,9 @@
 
 import { useMemo } from 'react';
 
-import { BarPlot, ChartsContainerPro, ChartsAxisHighlight, ChartsAxisTooltipContent,
+import { BarPlot, ChartsContainerPremium, ChartsAxisHighlight, ChartsAxisTooltipContent,
     ChartsTooltipContainer, useAxesTooltip, type BarSeriesType }
-    from '@components/proxy/mui-x-charts-pro';
+    from '@components/proxy/mui-x-charts-premium';
 
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -50,21 +50,21 @@ export function KeyMetricGraph(props: KeyMetricGraphProps) {
     }, [ props.series, props.type ]);
 
     return (
-        <ChartsContainerPro height={100} series={series}
-                            margin={{
-                                top: 8,
-                                right: 0,
-                                bottom: 0,
-                                left: 0,
-                            }}
-                            yAxis={[ { domainLimit: 'strict', position: 'none' } ]}
-                            xAxis={[
-                                {
-                                    data: props.labels,
-                                    position: 'none',
-                                    scaleType: 'band',
-                                }
-                            ]}>
+        <ChartsContainerPremium height={100} series={series}
+                                margin={{
+                                    top: 8,
+                                    right: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                }}
+                                yAxis={[ { domainLimit: 'strict', position: 'none' } ]}
+                                xAxis={[
+                                    {
+                                        data: props.labels,
+                                        position: 'none',
+                                        scaleType: 'band',
+                                    }
+                                ]}>
             <BarPlot />
             <ChartsAxisHighlight x="band" />
             <ChartsTooltipContainer>
@@ -74,7 +74,7 @@ export function KeyMetricGraph(props: KeyMetricGraphProps) {
                 }} />
                 <ChartsAxisTooltipTotals type={props.type} />
             </ChartsTooltipContainer>
-        </ChartsContainerPro>
+        </ChartsContainerPremium>
     );
 }
 

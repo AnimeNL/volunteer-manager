@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';
 
-import type { ValueOptions } from '@mui/x-data-grid-pro';
+import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
 import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';

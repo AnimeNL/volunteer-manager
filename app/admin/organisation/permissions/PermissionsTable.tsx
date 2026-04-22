@@ -6,8 +6,8 @@
 import Link from '@app/LinkProxy';
 import { useCallback, useMemo, useState } from 'react';
 
-import type { GridColDef, GridRowParams } from '@mui/x-data-grid-pro';
-import { DataGridPro } from '@mui/x-data-grid-pro';
+import type { GridColDef, GridRowParams } from '@mui/x-data-grid-premium';
+import { DataGridPremium } from '@mui/x-data-grid-premium';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
@@ -301,12 +301,12 @@ export function PermissionsTable(props: PermissionsTableProps) {
 
     return (
         <>
-            <DataGridPro columns={columns} rows={props.permissions}
-                         getDetailPanelContent={getDetailPanelContent}
-                         getDetailPanelHeight={getDetailPanelHeight}
-                         initialState={{ density: 'compact' }}
-                         autoHeight disableColumnMenu hideFooterSelectedRowCount
-                         hideFooter />
+            <DataGridPremium columns={columns} rows={props.permissions}
+                             getDetailPanelContent={getDetailPanelContent}
+                             getDetailPanelHeight={getDetailPanelHeight}
+                             initialState={{ density: 'compact' }}
+                             autoHeight disableColumnMenu hideFooterSelectedRowCount
+                             hideFooter />
             <Dialog fullWidth open={learnMoreOpen} onClose={closeLearnMore}>
                 <DialogTitle>
                     {learnMoreTitle} permission

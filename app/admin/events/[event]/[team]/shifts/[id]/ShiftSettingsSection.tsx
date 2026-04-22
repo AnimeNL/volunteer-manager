@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { FieldValues } from '@proxy/react-hook-form-mui';
-import type { ValueOptions } from '@mui/x-data-grid-pro';
+import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
 import { MuiColorInput } from 'mui-color-input';

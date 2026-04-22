@@ -5,7 +5,7 @@
 
 import Link from '@app/LinkProxy';
 
-import { BarChartPro } from '@proxy/mui-x-charts-pro';
+import { BarChartPro } from '@proxy/mui-x-charts-premium';
 
 import { default as MuiLink } from '@mui/material/Link';
 import { Section } from '@app/admin/components/Section';
