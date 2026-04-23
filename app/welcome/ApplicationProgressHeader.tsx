@@ -35,11 +35,7 @@ export function ApplicationProgressHeader(props: ApplicationProgressHeaderProps)
         if (!event.applications.length)
             continue;  // the visitor has not applied for this event (yet)
 
-        let hasAccessToRegistration: boolean = false;
-        for (const team of event.teams)
-            hasAccessToRegistration ||= team.registration !== 'past';
-
-        if (!hasAccessToRegistration)
+        if (event.publishContent !== 'active' && event.publishContent !== 'override')
             continue;  // the visitor does not have access to this event anymore
 
         applications = event.applications.map(application => ({

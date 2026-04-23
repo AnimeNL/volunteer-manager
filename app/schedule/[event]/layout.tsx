@@ -17,7 +17,7 @@ import { Temporal, isAfter } from '@lib/Temporal';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import db, { tEventsTeams, tUsersEvents } from '@lib/database';
+import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -72,16 +72,24 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule/[even
         if (!authenticationContext.events.has(event.slug))
             forbidden();  // the |user| is not participating in the |event|
 
+        const environmentsEventsJoin = tEnvironmentsEvents.forUseInLeftJoin();
+
         const scheduleAvailabilityWindows = await db.selectFrom(tUsersEvents)
             .innerJoin(tEventsTeams)
                 .on(tEventsTeams.teamId.equals(tUsersEvents.teamId))
                     .and(tEventsTeams.eventId.equals(tUsersEvents.eventId))
+                    .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .leftJoin(environmentsEventsJoin)
+                .on(environmentsEventsJoin.environmentId.equals(tTeams.teamEnvironmentId))
+                    .and(environmentsEventsJoin.eventId.equals(event.id))
             .where(tUsersEvents.userId.equals(user.id))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
             .select({
-                start: tEventsTeams.enableScheduleStart,
-                end: tEventsTeams.enableScheduleEnd,
+                start: environmentsEventsJoin.environmentPublishPortalStart,
+                end: environmentsEventsJoin.environmentPublishPortalEnd,
             })
             .executeSelectMany();
 

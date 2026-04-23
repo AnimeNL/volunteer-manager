@@ -56,15 +56,11 @@ export default async function EventContentPage(
 
     const { access } = context;
 
-    const acceptsApplications = event.teams.some(team => {
-        if (team.applications === 'active' || team.applications === 'override')
-            return true;
-
-        if (access.can('event.applications', 'create', { event: event.slug, team: team.slug }))
-            return true;
-
-        return false;
-    });
+    const acceptsApplications =
+        event.acceptApplications === 'active' ||
+        event.acceptApplications === 'override' ||
+        event.teams.some(team =>
+            access.can('event.applications', 'create', { event: event.slug, team: team.slug }));
 
     return (
         <Stack spacing={2} sx={{ p: 2 }}>

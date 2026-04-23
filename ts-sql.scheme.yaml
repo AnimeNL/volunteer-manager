@@ -1587,6 +1587,66 @@ tables:
       KEY `event_id` (`event_id`),
       KEY `assignment_user_id` (`assignment_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: environments_events
+  type: BASE TABLE
+  columns:
+  - name: environment_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: environment_accept_applications_start
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: environment_accept_applications_end
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: environment_publish_content_start
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: environment_publish_content_end
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: environment_publish_portal_start
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: environment_publish_portal_end
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: environment_id
+    def: UNIQUE KEY environment_id (environment_id, event_id) USING BTREE
+    table: environments_events
+    columns:
+    - environment_id
+    - event_id
+  constraints:
+  - name: environment_id
+    type: UNIQUE
+    def: UNIQUE KEY environment_id (environment_id, event_id)
+    table: environments_events
+    columns:
+    - environment_id
+    - event_id
+  def: |-
+    CREATE TABLE `environments_events` (
+      `environment_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `environment_accept_applications_start` datetime DEFAULT NULL,
+      `environment_accept_applications_end` datetime DEFAULT NULL,
+      `environment_publish_content_start` datetime DEFAULT NULL,
+      `environment_publish_content_end` datetime DEFAULT NULL,
+      `environment_publish_portal_start` datetime DEFAULT NULL,
+      `environment_publish_portal_end` datetime DEFAULT NULL,
+      UNIQUE KEY `environment_id` (`environment_id`,`event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: displays_requests
   type: BASE TABLE
   columns:
@@ -3300,49 +3360,6 @@ tables:
       PRIMARY KEY (`outbox_twilio_id`),
       KEY `outbox_result_sid` (`outbox_result_sid`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: subscriptions_publications
-  type: BASE TABLE
-  columns:
-  - name: publication_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: publication_user_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: publication_subscription_type
-    type: enum('Application','Help','Registration','Test')
-    nullable: false
-  - name: publication_subscription_type_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: publication_created
-    type: datetime
-    nullable: false
-  indexes:
-  - name: PRIMARY
-    def: PRIMARY KEY (publication_id) USING BTREE
-    table: subscriptions_publications
-    columns:
-    - publication_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (publication_id)
-    table: subscriptions_publications
-    columns:
-    - publication_id
-  def: |-
-    CREATE TABLE `subscriptions_publications` (
-      `publication_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `publication_user_id` int(8) unsigned DEFAULT NULL,
-      `publication_subscription_type` enum('Application','Help','Registration','Test') NOT NULL,
-      `publication_subscription_type_id` int(8) unsigned DEFAULT NULL,
-      `publication_created` datetime NOT NULL,
-      PRIMARY KEY (`publication_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: duty_book
   type: BASE TABLE
   columns:
@@ -3410,66 +3427,6 @@ tables:
       `duty_book_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`duty_book_id`),
       KEY `duty_book_event_id` (`duty_book_event_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: subscriptions
-  type: BASE TABLE
-  columns:
-  - name: subscription_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: subscription_user_id
-    type: int(8) unsigned
-    nullable: false
-  - name: subscription_type
-    type: enum('Application','Help','Registration','Test')
-    nullable: false
-  - name: subscription_type_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: subscription_channel_email
-    type: tinyint(1) unsigned
-    nullable: false
-  - name: subscription_channel_notification
-    type: tinyint(1) unsigned
-    nullable: false
-  - name: subscription_channel_sms
-    type: tinyint(1) unsigned
-    nullable: false
-  - name: subscription_channel_whatsapp
-    type: tinyint(1) unsigned
-    nullable: false
-  indexes:
-  - name: whatsapp_user_id
-    def: KEY whatsapp_user_id (subscription_user_id) USING BTREE
-    table: subscriptions
-    columns:
-    - subscription_user_id
-  - name: PRIMARY
-    def: PRIMARY KEY (subscription_id) USING BTREE
-    table: subscriptions
-    columns:
-    - subscription_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (subscription_id)
-    table: subscriptions
-    columns:
-    - subscription_id
-  def: |-
-    CREATE TABLE `subscriptions` (
-      `subscription_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `subscription_user_id` int(8) unsigned NOT NULL,
-      `subscription_type` enum('Application','Help','Registration','Test') NOT NULL,
-      `subscription_type_id` int(8) unsigned DEFAULT NULL,
-      `subscription_channel_email` tinyint(1) unsigned NOT NULL,
-      `subscription_channel_notification` tinyint(1) unsigned NOT NULL,
-      `subscription_channel_sms` tinyint(1) unsigned NOT NULL,
-      `subscription_channel_whatsapp` tinyint(1) unsigned NOT NULL,
-      PRIMARY KEY (`subscription_id`),
-      KEY `whatsapp_user_id` (`subscription_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: events
   type: BASE TABLE
@@ -3993,6 +3950,66 @@ tables:
       PRIMARY KEY (`whatsapp_message_id`),
       KEY `whatsapp_message_recipient_user_id` (`whatsapp_recipient_user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: subscriptions
+  type: BASE TABLE
+  columns:
+  - name: subscription_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: subscription_user_id
+    type: int(8) unsigned
+    nullable: false
+  - name: subscription_type
+    type: enum('Application','Help','Incident','Registration','Test')
+    nullable: false
+  - name: subscription_type_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: subscription_channel_email
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: subscription_channel_notification
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: subscription_channel_sms
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: subscription_channel_whatsapp
+    type: tinyint(1) unsigned
+    nullable: false
+  indexes:
+  - name: whatsapp_user_id
+    def: KEY whatsapp_user_id (subscription_user_id) USING BTREE
+    table: subscriptions
+    columns:
+    - subscription_user_id
+  - name: PRIMARY
+    def: PRIMARY KEY (subscription_id) USING BTREE
+    table: subscriptions
+    columns:
+    - subscription_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (subscription_id)
+    table: subscriptions
+    columns:
+    - subscription_id
+  def: |-
+    CREATE TABLE `subscriptions` (
+      `subscription_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `subscription_user_id` int(8) unsigned NOT NULL,
+      `subscription_type` enum('Application','Help','Incident','Registration','Test') NOT NULL,
+      `subscription_type_id` int(8) unsigned DEFAULT NULL,
+      `subscription_channel_email` tinyint(1) unsigned NOT NULL,
+      `subscription_channel_notification` tinyint(1) unsigned NOT NULL,
+      `subscription_channel_sms` tinyint(1) unsigned NOT NULL,
+      `subscription_channel_whatsapp` tinyint(1) unsigned NOT NULL,
+      PRIMARY KEY (`subscription_id`),
+      KEY `whatsapp_user_id` (`subscription_user_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: users_events_favourites
   type: BASE TABLE
   columns:
@@ -4684,6 +4701,49 @@ tables:
       UNIQUE KEY `duty_book_id` (`duty_book_id`,`duty_book_viewer_user_id`),
       KEY `duty_book_id_2` (`duty_book_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: subscriptions_publications
+  type: BASE TABLE
+  columns:
+  - name: publication_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: publication_user_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: publication_subscription_type
+    type: enum('Application','Help','Incident','Registration','Test')
+    nullable: false
+  - name: publication_subscription_type_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: publication_created
+    type: datetime
+    nullable: false
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (publication_id) USING BTREE
+    table: subscriptions_publications
+    columns:
+    - publication_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (publication_id)
+    table: subscriptions_publications
+    columns:
+    - publication_id
+  def: |-
+    CREATE TABLE `subscriptions_publications` (
+      `publication_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `publication_user_id` int(8) unsigned DEFAULT NULL,
+      `publication_subscription_type` enum('Application','Help','Incident','Registration','Test') NOT NULL,
+      `publication_subscription_type_id` int(8) unsigned DEFAULT NULL,
+      `publication_created` datetime NOT NULL,
+      PRIMARY KEY (`publication_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
 - table: users_events
   columns:

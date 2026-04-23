@@ -13,7 +13,7 @@ import Stack from '@mui/material/Stack';
 import { deepmerge } from '@mui/utils';
 
 import type { Environment } from '@lib/Environment';
-import type { EnvironmentContextEventAccess, EnvironmentContextEventAvailabilityStatus } from '@lib/EnvironmentContext';
+import type { EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
 import { Temporal, isBefore } from '@lib/Temporal';
 import { Markdown } from '@components/Markdown';
 
@@ -76,49 +76,37 @@ export function EventsContent(props: EventsContentProps) {
 
     const buttons: React.ReactNode[] = [ /* no buttons yet */ ];
     for (const event of props.events) {
-        let registrationStatus: EnvironmentContextEventAvailabilityStatus | undefined;
-        let scheduleStatus: EnvironmentContextEventAvailabilityStatus | undefined;
+        const publishContentStatus =
+            event.publishContent === 'active' || event.publishContent === 'override';
+        const publishPortalStatus =
+            event.publishPortal === 'active' || event.publishPortal === 'override';
 
-        // Escalate the |registrationStatus| and |scheduleStatus| values to "active" when feasible,
-        // "override" when possible otherwise, or leave them untouched.
-        for (const team of event.teams) {
-            if (team.registration === 'active' || team.registration === 'override') {
-                if (registrationStatus !== 'active')
-                    registrationStatus = team.registration;
-            }
+        if (!!publishPortalStatus && event.hasFestivalId) {
+            const portalHighlight =
+                event.publishPortal === 'active' && isBefore(currentTime, event.endTime);
 
-            if (team.schedule === 'active' || team.schedule === 'override') {
-                if (scheduleStatus !== 'active')
-                    scheduleStatus = team.schedule;
-            }
-        }
-
-        if (!!scheduleStatus && event.hasFestivalId) {
-            const scheduleHighlight =
-                scheduleStatus === 'active' && isBefore(currentTime, event.endTime);
-
-            if (scheduleHighlight && props.redirectToActiveSchedule)
+            if (portalHighlight && props.redirectToActiveSchedule)
                 redirect(`/schedule/${event.slug}`);
 
             buttons.push(
                 <Button key={`${event.slug}-schedule`} component={Link}
                         href={`/schedule/${event.slug}`}
-                        color={ scheduleStatus === 'active' ? 'primary' : 'hidden' }
-                        variant={ scheduleHighlight ? 'contained' : 'outlined' }>
+                        color={ event.publishPortal === 'active' ? 'primary' : 'hidden' }
+                        variant={ portalHighlight ? 'contained' : 'outlined' }>
                     {event.shortName} Volunteer Portal
                 </Button>
             );
         }
 
-        if (!!registrationStatus) {
-            const registrationHighlight =
-                registrationStatus === 'active' && isBefore(currentTime, event.endTime);
+        if (!!publishContentStatus) {
+            const contentHighlight =
+                event.publishContent === 'active' && isBefore(currentTime, event.endTime);
 
             buttons.push(
                 <Button key={`${event.slug}-registration`} component={Link}
                         href={`/registration/${event.slug}`}
-                        color={ registrationStatus === 'active' ? 'primary' : 'hidden' }
-                        variant={ registrationHighlight ? 'contained' : 'outlined' }>
+                        color={ event.publishContent === 'active' ? 'primary' : 'hidden' }
+                        variant={ contentHighlight ? 'contained' : 'outlined' }>
                     Join the {event.shortName} team!
                 </Button>
             );

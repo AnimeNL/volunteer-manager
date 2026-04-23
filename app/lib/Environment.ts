@@ -27,6 +27,11 @@ export type EnvironmentDomain = `${string}.${string}`;
  */
 export interface Environment {
     /**
+     * Unique ID of this environment as it exists in the database.
+     */
+    id: number;
+
+    /**
      * Theme colours assigned to the environment, which decide the manager's appearance.
      */
     colours: { [key in PaletteMode]: string };
@@ -80,6 +85,7 @@ async function loadEnvironmentsFromDatabase(): Promise<void> {
                 .and(teamsJoin.teamDeleted.isNull())
         .where(tEnvironments.environmentDeleted.isNull())
         .select({
+            id: tEnvironments.environmentId,
             colours: {
                 dark: tEnvironments.environmentColourDarkMode,
                 light: tEnvironments.environmentColourLightMode,

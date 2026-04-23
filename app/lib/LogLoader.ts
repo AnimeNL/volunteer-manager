@@ -183,6 +183,9 @@ const kLogMessageFormatter: {
     [kLogType.AdminEventTrainingExtraMutation]: (source, target, { eventName, mutation }) => {
         return `${mutation} an extra participant to ${eventName} trainings`;
     },
+    [kLogType.AdminEventWebsiteSettingsUpdate]: (source, target, { domain, eventName }) => {
+        return `Updated the ${domain} website settings for ${eventName}`;
+    },
 
     [kLogType.AdminExportMutation]: (source, target, { eventName, type, mutation }) => {
         return `${mutation} a ${type.replace(/s$/, '').toLowerCase()} data export for ${eventName}`;

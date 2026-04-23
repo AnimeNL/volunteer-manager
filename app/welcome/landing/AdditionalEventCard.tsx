@@ -30,32 +30,29 @@ interface AdditionalEventCardProps {
  * reference. Inclusion is determined by the SSR app.
  */
 export function AdditionalEventCard(props: AdditionalEventCardProps) {
-    let enableRegistration = false;
-    let enableSchedule = false;
+    const { event } = props;
 
-    for (const team of props.event.teams) {
-        enableRegistration ||= team.registration === 'active' || team.registration === 'override';
-        enableSchedule ||= team.schedule === 'active' || team.schedule === 'override';
-    }
+    const enableContent = event.publishContent === 'active' || event.publishContent === 'override';
+    const enablePortal = event.publishPortal === 'active' || event.publishPortal === 'override';
 
     return (
         <Card elevation={2}>
             <CardContent sx={{ pb: 0 }}>
                 <Typography variant="h5" component="p" noWrap>
-                    {props.event.name}
+                    {event.name}
                 </Typography>
             </CardContent>
             <CardActions sx={{ pt: { md: 2 } }}>
                 <Stack direction="column" sx={{ alignItems: 'flex-start', flexGrow: 1 }}>
-                    { !!enableRegistration &&
+                    { !!enableContent &&
                         <Button LinkComponent={Link} size="small" startIcon={ <HowToRegIcon /> }
-                                href={`/registration/${props.event.slug}`}
+                                href={`/registration/${event.slug}`}
                                 sx={{ justifyContent: 'flex-start', pl: 1 }}>
                             Registration
                         </Button> }
-                    { !!enableSchedule &&
+                    { !!enablePortal &&
                         <Button LinkComponent={Link} size="small" startIcon={ <EventNoteIcon /> }
-                                href={`/schedule/${props.event.slug}`}
+                                href={`/schedule/${event.slug}`}
                                 sx={{ justifyContent: 'flex-start', pl: 1 }}>
                             Volunteer Portal
                         </Button> }

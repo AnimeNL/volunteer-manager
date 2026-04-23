@@ -43,16 +43,9 @@ export async function LandingPage(props: LandingPageProps) {
     const context = await getEnvironmentContext(props.environment);
 
     const primaryEvents = context.events.slice(0, 2);
-    const secondaryEvents = context.events.slice(2).filter(event => {
-        for (const team of event.teams) {
-            if (team.registration === 'active' || team.registration === 'override')
-                return true;  // registration portal is available
-            if (team.schedule === 'active' || team.schedule === 'override')
-                return true;  // schedule portal is available
-        }
-
-        return false;
-    });
+    const secondaryEvents = context.events.slice(2).filter(event =>
+        event.publishContent === 'active' || event.publishContent === 'override' ||
+        event.publishPortal === 'active' || event.publishPortal === 'override');
 
     let redirectToActiveSchedule: boolean = false;
 

@@ -21,22 +21,16 @@ export default async function RegistrationEventLayout(props: LayoutProps<'/regis
     const params = await props.params;
 
     let event: EnvironmentContextEventAccess | undefined;
-    for (const eventCandidate of context.events) {
-        if (eventCandidate.slug !== params.slug)
+    for (const candidate of context.events) {
+        if (candidate.slug !== params.slug)
             continue;
 
-        let access: boolean = false;
-        for (const team of eventCandidate.teams) {
-            if (team.registration === 'active' || team.registration === 'override')
-                access = true;
-        }
-
-        if (!access) {
+        if (candidate.publishContent !== 'active' && candidate.publishContent !== 'override') {
             !!context.user ? forbidden()
                            : unauthorized();
         }
 
-        event = eventCandidate;
+        event = candidate;
         break;
     }
 

@@ -76,15 +76,11 @@ export default async function EventApplicationPage(
 
     const { access } = context;
 
-    const acceptsApplications = event.teams.some(team => {
-        if (team.applications === 'active' || team.applications === 'override')
-            return true;
-
-        if (access.can('event.applications', 'create', { event: event.slug, team: team.slug }))
-            return true;
-
-        return false;
-    });
+    const acceptsApplications =
+        event.acceptApplications === 'active' ||
+        event.acceptApplications === 'override' ||
+        event.teams.some(team =>
+            access.can('event.applications', 'create', { event: event.slug, team: team.slug }));
 
     return acceptsApplications
         ? <EventApplicationFormPage context={context} environment={environment} event={event}

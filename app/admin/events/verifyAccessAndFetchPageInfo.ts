@@ -194,7 +194,7 @@ export interface PageInfoWithTeam extends PageInfo {
         /**
          * Environment of the frontend that this team is serviced by.
          */
-        _environment: string;
+        environmentId: number;
 
         /**
          * Whether this team has access to the Duty Book.
@@ -335,7 +335,8 @@ export async function verifyAccessAndFetchPageInfo(
             name: tTeams.teamName,
             plural: tTeams.teamPlural,
             slug: tTeams.teamSlug,
-            _environment: tTeams.teamEnvironment,
+
+            environmentId: tTeams.teamEnvironmentId.valueWhenNull(/* invalid= */ 0),
 
             flagEnableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
             flagEnableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),

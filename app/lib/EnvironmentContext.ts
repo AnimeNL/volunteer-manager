@@ -7,7 +7,10 @@ import type { Environment } from './Environment';
 import type { RegistrationStatus } from './database/Types';
 import { Temporal, isBefore } from '@lib/Temporal';
 import { getAuthenticationContext, type AuthenticationContext } from './auth/AuthenticationContext';
-import db, { tEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
+import db, { tEnvironmentsEvents, tEvents, tEventsTeams, tTeams, tUsersEvents }
+    from '@lib/database';
+
+import { kAnyTeam } from './auth/AccessList';
 
 /**
  * Status of an availability window within an event context.
@@ -86,6 +89,21 @@ export interface EnvironmentContextEventAccess {
     applications: EnvironmentContextApplication[];
 
     /**
+     * Status of the availability window for applications for participation are accepted.
+     */
+    acceptApplications: EnvironmentContextEventAvailabilityStatus;
+
+    /**
+     * Status of the availability window for publication of event information.
+     */
+    publishContent: EnvironmentContextEventAvailabilityStatus;
+
+    /**
+     * Status of the availability window for publication of Volunteer Portal.
+     */
+    publishPortal: EnvironmentContextEventAvailabilityStatus;
+
+    /**
      * Teams that are participating in this event for the current environment. At least one.
      */
     teams: {
@@ -103,21 +121,6 @@ export interface EnvironmentContextEventAccess {
          * URL-safe slug representing this team.
          */
         slug: string;
-
-        /**
-         * Status of the availability window for applications for participation are accepted.
-         */
-        applications: EnvironmentContextEventAvailabilityStatus;
-
-        /**
-         * Status of the availability window for publication of event information.
-         */
-        registration: EnvironmentContextEventAvailabilityStatus;
-
-        /**
-         * Status of the availability window for publication of event schedules.
-         */
-        schedule: EnvironmentContextEventAvailabilityStatus;
 
     }[];
 }
@@ -230,6 +233,9 @@ async function determineEventAccess(
         .forUseAsInlineAggregatedArrayValue();
 
     const unfilteredEvents = await dbInstance.selectFrom(tEvents)
+        .innerJoin(tEnvironmentsEvents)
+            .on(tEnvironmentsEvents.environmentId.equals(environment.id))
+                .and(tEnvironmentsEvents.eventId.equals(tEvents.eventId))
         .innerJoin(tEventsTeams)
             .on(tEventsTeams.eventId.equals(tEvents.eventId))
                 .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
@@ -251,25 +257,25 @@ async function determineEventAccess(
 
             applications: applicationsJoin,
 
+            acceptApplicationsWindow: {
+                start: tEnvironmentsEvents.environmentAcceptApplicationsStart,
+                end: tEnvironmentsEvents.environmentAcceptApplicationsEnd,
+            },
+
+            publishContentWindow: {
+                start: tEnvironmentsEvents.environmentPublishContentStart,
+                end: tEnvironmentsEvents.environmentPublishContentEnd,
+            },
+
+            publishPortalWindow: {
+                start: tEnvironmentsEvents.environmentPublishPortalStart,
+                end: tEnvironmentsEvents.environmentPublishPortalEnd,
+            },
+
             teams: dbInstance.aggregateAsArray({
                 id: tTeams.teamId,
                 key: tTeams.teamInviteKey,
                 slug: tTeams.teamSlug,
-
-                applicationsWindow: {
-                    start: tEventsTeams.enableApplicationsStart,
-                    end: tEventsTeams.enableApplicationsEnd,
-                },
-
-                registrationWindow: {
-                    start: tEventsTeams.enableRegistrationStart,
-                    end: tEventsTeams.enableRegistrationEnd,
-                },
-
-                scheduleWindow: {
-                    start: tEventsTeams.enableScheduleStart,
-                    end: tEventsTeams.enableScheduleEnd,
-                },
             }),
         })
         .groupBy(tEvents.eventId)
@@ -280,49 +286,48 @@ async function determineEventAccess(
     const currentTime = Temporal.Now.zonedDateTimeISO('utc');
 
     for (const event of unfilteredEvents) {
-        const teams: EnvironmentContextEventAccess['teams'] = [ /* no teams yet */ ];
+        if (!event.teams.length)
+            continue;  // there are no teams assigned to this { environment, event } tuple
 
-        for (const team of event.teams) {
-            const applications = determineAvailabilityStatus(currentTime, event.endTime, {
-                ...team.applicationsWindow,
-                override: access.can('event.visible', {
-                    event: event.slug,
-                    team: team.slug,
-                }),
-            });
+        const acceptApplications = determineAvailabilityStatus(currentTime, event.endTime, {
+            ...event.acceptApplicationsWindow,
+            override: access.can('event.visible', {
+                event: event.slug,
+                team: kAnyTeam,
+            }),
+        });
 
-            const registration = determineAvailabilityStatus(currentTime, event.endTime, {
-                ...team.registrationWindow,
-                override: access.can('event.visible', {
-                    event: event.slug,
-                    team: team.slug,
-                })
-            });
+        const publishContent = determineAvailabilityStatus(currentTime, event.endTime, {
+            ...event.publishContentWindow,
+            override: access.can('event.visible', {
+                event: event.slug,
+                team: kAnyTeam,
+            })
+        });
 
-            const schedule = determineAvailabilityStatus(currentTime, event.endTime, {
-                ...team.scheduleWindow,
-                override: access.can('event.schedule.access', { event: event.slug }),
-            });
+        const publishPortal = determineAvailabilityStatus(currentTime, event.endTime, {
+            ...event.publishPortalWindow,
+            override: access.can('event.schedule.access', { event: event.slug }),
+        });
 
-            if (!applications && !registration && !schedule)
-                continue;  // the |user| is not able to see any aspect of this team
-
-            teams.push({
-                id: team.id,
-                slug: team.slug,
-
-                inviteKey: generateInviteKey(event.slug, team.key),
-
-                applications,
-                registration,
-                schedule,
-            });
+        if (acceptApplications === 'future' && publishContent === 'future' &&
+                publishPortal === 'future') {
+            continue;  // the |user| is not able to access this event
         }
 
-        if (!teams.length)
-            continue;  // the |user| is not able to see any teams within this event
+        events.push({
+            ...event,
 
-        events.push({ ...event, teams });
+            acceptApplications,
+            publishContent,
+            publishPortal,
+
+            teams: event.teams.map(team => ({
+                id: team.id,
+                slug: team.slug,
+                inviteKey: generateInviteKey(event.slug, team.key),
+            })),
+        });
     }
 
     return events;

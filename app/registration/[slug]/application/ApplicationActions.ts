@@ -12,8 +12,9 @@ import { determineAvailabilityStatus } from '@lib/EnvironmentContext';
 import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from './[team]/availability/getPublicEventsForFestival';
 import { getStaticContent } from '@lib/Content';
-import db, { tEnvironments, tEvents, tEventsTeams, tHotelsPreferences, tRefunds, tRoles, tTeams,
-    tTeamsRoles, tTrainingsAssignments, tUsersEvents } from '@lib/database';
+import db, { tEnvironments, tEnvironmentsEvents, tEvents, tEventsTeams, tHotelsPreferences,
+    tRefunds, tRoles, tTeams, tTeamsRoles, tTrainingsAssignments, tUsersEvents }
+    from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
@@ -73,6 +74,8 @@ export async function createApplication(eventId: number, teamId: number, formDat
         if (!eventInfo)
             return { success: false, error: 'Unable to identify the appropriate event…' };
 
+        const environmentsEventsJoin = tEnvironmentsEvents.forUseInLeftJoin();
+
         const teamInfo = await dbInstance.selectFrom(tTeams)
             .innerJoin(tTeamsRoles)
                 .on(tTeamsRoles.teamId.equals(tTeams.teamId))
@@ -83,6 +86,9 @@ export async function createApplication(eventId: number, teamId: number, formDat
                     .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
             .innerJoin(tEnvironments)
                 .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
+            .leftJoin(environmentsEventsJoin)
+                .on(environmentsEventsJoin.environmentId.equals(tTeams.teamEnvironmentId))
+                    .and(environmentsEventsJoin.eventId.equals(eventId))
             .where(tTeams.teamId.equals(teamId))
                 .and(tTeams.teamDeleted.isNull())
             .select({
@@ -92,9 +98,9 @@ export async function createApplication(eventId: number, teamId: number, formDat
                 slug: tTeams.teamSlug,
                 title: tTeams.teamTitle,
 
-                applicationWindow: {
-                    start: tEventsTeams.enableApplicationsStart,
-                    end: tEventsTeams.enableApplicationsEnd,
+                acceptApplicationsWindow: {
+                    start: environmentsEventsJoin.environmentAcceptApplicationsStart,
+                    end: environmentsEventsJoin.environmentAcceptApplicationsEnd,
                 },
             })
             .executeSelectNoneOrOne();
@@ -109,7 +115,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
         const currentTime = Temporal.Now.zonedDateTimeISO('utc');
 
         const availabilityStatus = determineAvailabilityStatus(currentTime, eventInfo.endTime, {
-            ...teamInfo.applicationWindow,
+            ...teamInfo.acceptApplicationsWindow,
             override: props.access.can('event.visible', {
                 event: eventInfo.slug,
                 team: teamInfo.slug,

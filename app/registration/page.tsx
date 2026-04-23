@@ -17,12 +17,10 @@ export default async function RegistrationPage() {
 
     const context = await getEnvironmentContext(environment);
     for (const event of context.events) {
-        for (const team of event.teams) {
-            if (team.registration !== 'active' && team.registration !== 'override')
-                continue;  // the registration page is not accessible
+        if (event.publishContent !== 'active' && event.publishContent !== 'override')
+            continue;
 
-            redirect(`/registration/${event.slug}`);
-        }
+        redirect(`/registration/${event.slug}`);
     }
 
     redirect('/');

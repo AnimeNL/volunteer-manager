@@ -90,16 +90,11 @@ export async function EventApplicationStatus(props: EventApplicationStatusProps)
 
     // ---------------------------------------------------------------------------------------------
 
-    const enableSchedule = event.teams.some(candidateTeam => {
-        if (candidateTeam.slug !== team)
-            return false;
-
-        return candidateTeam.schedule === 'active';
-    });
+    const publishPortal = event.publishPortal === 'active' || event.publishPortal === 'override';
 
     const eventInfo = {
         ...info.event,
-        enableSchedule,
+        enableSchedule: publishPortal,
         shortName: event.shortName,
         slug: event.slug,
     };

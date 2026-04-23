@@ -63,7 +63,7 @@ export default async function EventTeamRetentionPage(
         team: team.slug,
     });
 
-    const whatsAppLink = `https://${team._environment}/registration`;
+    const whatsAppLink = `https://${team.domain}/registration`;
     const whatsAppMessage = await readSetting('retention-whatsapp-message') ?? '{name}, {link}?!';
 
     return (
