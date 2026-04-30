@@ -3,20 +3,13 @@
 
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
- 
+
 export default defineConfig({
     plugins: [ react() ],
     resolve: {
         tsconfigPaths: true,
     },
     test: {
-        css: false,
-        deps: {
-
-            web: {
-                transformCss: false,
-            },
-        },
         environment: 'jsdom',
         env: {
             APP_COOKIE_PASSWORD: '3P72PZv>)v42[GUS%(st[%<(o.^f58Vy',

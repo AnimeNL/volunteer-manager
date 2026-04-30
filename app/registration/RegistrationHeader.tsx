@@ -24,9 +24,13 @@ export const kStyles: { [key: string]: SxProps<Theme> } = {
         color: theme => theme.palette.getContrastText(theme.palette.primary.light),
     },
     header: theme => {
+        const themeColor = theme.palette.hasOwnProperty('theme')
+            ? theme.palette.theme.light
+            : '#ffffff';
+
         const backgroundColor =
-            theme.palette.mode === 'light' ? darken(theme.palette.theme.light, 0.2)
-                                           : darken(theme.palette.theme.light, 0.3);
+            darken(themeColor, theme.palette.mode === 'light' ? 0.2
+                                                              : 0.3);
 
         return {
             backgroundColor,
