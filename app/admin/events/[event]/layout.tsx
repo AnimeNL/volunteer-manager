@@ -85,6 +85,8 @@ async function fetchEventSidebarInformation(user: User, eventSlug: string) {
                 slug: tEvents.eventSlug,
                 festivalId: tEvents.eventFestivalId,
 
+                eventTimingPublished: tEvents.eventTimingPublished,
+
                 hotelEnabled: tEvents.hotelEnabled.equals(/* true= */ 1),
                 refundEnabled: tEvents.refundEnabled.equals(/* true= */ 1),
                 trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
@@ -297,6 +299,8 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
                 scope: { event },
             },
             url: `/admin/events/${event}/settings`,
+            badge: !info.event.eventTimingPublished,
+            badgeSeverity: 'warning',
         },
         {
             divider: true,

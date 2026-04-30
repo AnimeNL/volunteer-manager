@@ -36,6 +36,14 @@ const kAvailabilityStatusOptions = [
 ] satisfies { id: EventAvailabilityStatus; label: string }[];
 
 /**
+ * Options that can be presented regarding publishing event timing information.
+ */
+const kEventTimingPublishedOptions = [
+    { id: 0, label: 'Date announcement is still pending…' },
+    { id: 1, label: 'Event dates have been announced' },
+] satisfies { id: number; label: string }[];;
+
+/**
  * Options that can be presented regarding availability of the Volunteer Manager's services.
  */
 const kServiceStatusOptions = [
@@ -71,6 +79,11 @@ const kEventSettingsData = z.object({
      * Time at which the event will finish, in the local timezone.
      */
     endTime: kTemporalZonedDateTime,
+
+    /**
+     * Whether event timing information has been published.
+     */
+    eventTimingPublished: z.coerce.number(),
 
     /**
      * Physical location at which the event will be taking place.
@@ -142,6 +155,7 @@ async function updateEventSettings(eventId: number, formData: unknown) {
                 // Deliberate omission: `slug`, which has a dedicated update button in the header
                 eventStartTime: data.startTime,
                 eventEndTime: data.endTime,
+                eventTimingPublished: data.eventTimingPublished,
                 eventLocation: data.location,
                 eventTimezone: data.timezone,
                 eventFestivalId: data.festivalId,
@@ -205,6 +219,7 @@ export async function EventSettings(props: EventSettingsProps) {
             slug: tEvents.eventSlug,
             startTime: tEvents.eventStartTime,
             endTime: tEvents.eventEndTime,
+            eventTimingPublished: tEvents.eventTimingPublished,
             location: tEvents.eventLocation,
             timezone: tEvents.eventTimezone,
             festivalId: tEvents.eventFestivalId,
@@ -223,6 +238,13 @@ export async function EventSettings(props: EventSettingsProps) {
     return (
         <FormGridSection action={action} defaultValues={settings} title="Configuration">
             <EventSettingsForm />
+            <Grid size={{ xs: 12 }}>
+                <SelectElement name="eventTimingPublished" label="Publish event timing"
+                               fullWidth size="small" options={kEventTimingPublishedOptions} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+                <Divider />
+            </Grid>
             <Grid size={{ xs: 6 }}>
                 <TextFieldElement name="location" label="Location"
                                   fullWidth size="small" />

@@ -3454,6 +3454,9 @@ tables:
   - name: event_end_time
     type: datetime
     nullable: false
+  - name: event_timing_published
+    type: tinyint(1)
+    nullable: false
   - name: availability_build_up
     type: tinyint(1) unsigned
     nullable: false
@@ -3558,6 +3561,7 @@ tables:
       `event_hidden` tinyint(1) NOT NULL DEFAULT 0,
       `event_start_time` datetime NOT NULL,
       `event_end_time` datetime NOT NULL,
+      `event_timing_published` tinyint(1) NOT NULL,
       `availability_build_up` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `availability_tear_down` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `hotel_enabled` tinyint(1) unsigned NOT NULL DEFAULT 0,

@@ -97,7 +97,7 @@ interface AdminSidebarMenuButtonItem {
     /**
      * Optional badge that should be displayed on the menu item. Must be greater than zero.
      */
-    badge?: number;
+    badge?: number | boolean;
 
     /**
      * Severity of the badge that should be displayed, when included. Defaults to "default".
@@ -242,6 +242,10 @@ export function RenderSidebarClient(props: RenderSidebarMenuProps) {
 
                         <ListItemText primary={entry.label}
                                       slotProps={{ primary: { noWrap: true } }} />
+
+                        { (typeof entry.badge === 'boolean' && !!entry.badge) &&
+                            <Badge variant="dot" sx={{ mx: 1.5 }}
+                                   color={ entry.badgeSeverity ?? 'primary' } /> }
 
                         { (typeof entry.badge === 'number' && entry.badge > 0) &&
                             <Badge badgeContent={entry.badge} sx={{ mx: 2 }}

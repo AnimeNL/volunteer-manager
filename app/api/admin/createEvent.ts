@@ -90,6 +90,7 @@ export async function createEvent(request: Request, props: ActionProps): Promise
             eventTimezone: 'Europe/Amsterdam',
             eventStartTime: request.startTime,
             eventEndTime: request.endTime,
+            eventTimingPublished: /* false= */ 0,
             eventAvailabilityStatus: kEventAvailabilityStatus.Unavailable,
         })
         .executeInsert();

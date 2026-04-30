@@ -31,10 +31,14 @@ export class RemindParticipationPrompt extends TeamEventPrompt {
             'We noticed that their name is still missing from the list of volunteers for the ' +
             'upcoming event.');
 
-        if (context.event.startTime && context.event.endTime) {
+        if (context.event.eventTimingPublished) {
             message.push(
                 `The festival starts on ${formatDate(context.event.startTime, 'YYYY-MM-DD')}, ` +
                     `and ends on ${formatDate(context.event.endTime, 'YYYY-MM-DD')}.`);
+        } else {
+            message.push(
+                'Dates during which the festival will be taking place have not been announced ' +
+                'yet.');
         }
 
         if (context.event.location) {

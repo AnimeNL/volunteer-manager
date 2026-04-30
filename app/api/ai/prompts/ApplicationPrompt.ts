@@ -14,10 +14,14 @@ export abstract class ApplicationPrompt extends TeamEventPrompt {
             `They signed up to help out with the ${context.event.shortName} festival, requesting ` +
                 `to join the ${context.team.name} team.`);
 
-        if (context.event.startTime && context.event.endTime) {
+        if (context.event.eventTimingPublished) {
             message.push(
                 `The festival starts on ${formatDate(context.event.startTime, 'YYYY-MM-DD')}, ` +
                     `and ends on ${formatDate(context.event.endTime, 'YYYY-MM-DD')}.`);
+        } else {
+            message.push(
+                'Dates during which the festival will be taking place have not been announced ' +
+                'yet.');
         }
 
         if (context.event.location) {

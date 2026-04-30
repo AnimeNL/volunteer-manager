@@ -22,8 +22,11 @@ export interface EventPromptContext extends PromptContext {
         slug: string;
 
         location?: string;
-        startTime?: Temporal.ZonedDateTime;
-        endTime?: Temporal.ZonedDateTime;
+
+        startTime: Temporal.ZonedDateTime;
+        endTime: Temporal.ZonedDateTime;
+
+        eventTimingPublished: boolean;
     };
 
     /**
@@ -99,8 +102,11 @@ export abstract class EventPrompt<Context extends EventPromptContext,
                 slug: tEvents.eventSlug,
 
                 location: tEvents.eventLocation,
+
                 startTime: tEvents.eventStartTime,
                 endTime: tEvents.eventEndTime,
+
+                eventTimingPublished: tEvents.eventTimingPublished.equals(/* true= */ 1),
             })
             .executeSelectOne();
 
