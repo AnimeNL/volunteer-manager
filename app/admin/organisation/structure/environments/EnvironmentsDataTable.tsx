@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 
 import type { EnvironmentPurpose } from '@lib/database/Types';
 import { Chip } from '../../../components/Chip';
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 
 /**
  * Human-readable description of the purposes of different environments.
@@ -71,7 +71,7 @@ interface EnvironmentsDataTableProps {
  * The <EnvironmentsDataTable> component displays
  */
 export function EnvironmentsDataTable(props: EnvironmentsDataTableProps) {
-    const columns: DataTableColumn<EnvironmentsDataTableProps['environments'][number]>[] = [
+    const columns: OldDataTableColumn<EnvironmentsDataTableProps['environments'][number]>[] = [
         {
             field: 'domain',
             headerName: 'Environment',
@@ -114,7 +114,7 @@ export function EnvironmentsDataTable(props: EnvironmentsDataTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} rows={props.environments} disableFooter
-                   defaultSort={{ field: 'id', sort: 'asc' }} pageSize={25} />
+        <OldDataTable columns={columns} rows={props.environments} disableFooter
+                      defaultSort={{ field: 'id', sort: 'asc' }} pageSize={25} />
     );
 }

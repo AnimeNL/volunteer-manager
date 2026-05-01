@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 
 import type { RegistrationStatus } from '@lib/database/Types';
 import { Chip } from '@app/admin/components/Chip';
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 
 /**
  * Information about a volunteer's participation in a singular event.
@@ -83,7 +83,7 @@ interface ParticipationTableProps {
 export function ParticipationTable(props: ParticipationTableProps) {
     const { participation, userId } = props;
 
-    const columns: DataTableColumn<ParticipationInfo>[] = [
+    const columns: OldDataTableColumn<ParticipationInfo>[] = [
         {
             field: 'eventShortName',
             headerName: 'Event',
@@ -133,7 +133,7 @@ export function ParticipationTable(props: ParticipationTableProps) {
     ];
 
     return (
-        <DataTable disableFooter rows={participation} columns={columns}
-                   defaultSort={{ field: 'eventStartTime', sort: 'asc' }} />
+        <OldDataTable disableFooter rows={participation} columns={columns}
+                      defaultSort={{ field: 'eventStartTime', sort: 'asc' }} />
     );
 }

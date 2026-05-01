@@ -14,7 +14,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import { Chip } from '@app/admin/components/Chip';
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 import { Temporal, formatDate } from '@lib/Temporal';
 
 /**
@@ -104,7 +104,7 @@ interface EventListProps {
  * cases it will be more complete than the menu drop-down list.
  */
 export function EventList(props: EventListProps) {
-    const columns: DataTableColumn<EventListEntry>[] = [
+    const columns: OldDataTableColumn<EventListEntry>[] = [
         {
             field: 'hidden',
             display: 'flex',
@@ -174,8 +174,8 @@ export function EventList(props: EventListProps) {
             <Typography variant="h5" sx={{ pb: 1 }}>
                 AnimeCon Events
             </Typography>
-            <DataTable columns={columns} rows={props.events}
-                       defaultSort={{ field: 'startTime', sort: 'desc' }} disableFooter />
+            <OldDataTable columns={columns} rows={props.events}
+                          defaultSort={{ field: 'startTime', sort: 'desc' }} disableFooter />
         </Paper>
     );
 }

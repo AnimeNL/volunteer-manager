@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 
 /**
  * Row model for a pending hotel request.
@@ -62,7 +62,7 @@ interface HotelPendingAssignmentProps {
  * having a hotel room booking, but have not been assigned a room just yet.
  */
 export function HotelPendingAssignment(props: HotelPendingAssignmentProps) {
-    const columns: DataTableColumn<HotelPendingRequestRowModel>[] = [
+    const columns: OldDataTableColumn<HotelPendingRequestRowModel>[] = [
         {
             field: 'name',
             headerName: 'Volunteer',
@@ -104,8 +104,8 @@ export function HotelPendingAssignment(props: HotelPendingAssignmentProps) {
             <Typography variant="h5" sx={{ pb: 1 }}>
                 Pending assignment
             </Typography>
-            <DataTable columns={columns} defaultSort={{ field: 'name', sort: 'asc' }} disableFooter
-                       pageSize={100} rows={props.requests} />
+            <OldDataTable columns={columns} defaultSort={{ field: 'name', sort: 'asc' }}
+                          disableFooter pageSize={100} rows={props.requests} />
         </Paper>
     );
 }

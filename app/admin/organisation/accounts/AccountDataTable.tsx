@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography';
 
 import { Avatar } from '@components/Avatar';
 import { Chip } from '@app/admin/components/Chip';
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 import { ListViewCell } from '@app/admin/components/ListViewCell';
 import { callApi } from '@lib/callApi';
 
@@ -82,7 +82,7 @@ export function AccountDataTable(props: AccountDataTableProps) {
 
     }, [ props.teams ]);
 
-    const columns: DataTableColumn<VolunteerRowModel>[] = [
+    const columns: OldDataTableColumn<VolunteerRowModel>[] = [
         {
             field: 'name',
             display: 'flex',
@@ -230,11 +230,12 @@ export function AccountDataTable(props: AccountDataTableProps) {
 
     // ---------------------------------------------------------------------------------------------
 
-    return <DataTable columns={columns} rows={props.volunteers} enableFilter pageSize={25}
-                      defaultSort={{ field: 'name', sort: 'asc' }} enableColumnMenu
-                      hiddenFields={hiddenFields} onColumnVisibilityModelChange={handleColumnChange}
-                      initialFilters={initialFilters} onFilterModelChange={handleFilterChange}
-                      listViewCell={AccountDataTableListCell} />;
+    return <OldDataTable columns={columns} rows={props.volunteers} enableFilter pageSize={25}
+                         defaultSort={{ field: 'name', sort: 'asc' }} enableColumnMenu
+                         hiddenFields={hiddenFields}
+                         onColumnVisibilityModelChange={handleColumnChange}
+                         initialFilters={initialFilters} onFilterModelChange={handleFilterChange}
+                         listViewCell={AccountDataTableListCell} />;
 }
 
 /**

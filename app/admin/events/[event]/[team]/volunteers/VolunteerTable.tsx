@@ -23,7 +23,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { RegistrationStatus } from '@lib/database/Types';
-import { type DataTableColumn, DataTable } from '@app/admin/components/DataTable';
+import { type OldDataTableColumn, OldDataTable } from '@app/admin/components/OldDataTable';
 
 /**
  * Formats the given number of `seconds` to a HH:MM string.
@@ -98,7 +98,7 @@ interface VolunteerTableProps {
 export function VolunteerTable(props: VolunteerTableProps) {
     const kVolunteerBase = `/admin/events/${props.event}/${props.team}/volunteers/`;
 
-    const columns: DataTableColumn<VolunteerInfo>[] = [
+    const columns: OldDataTableColumn<VolunteerInfo>[] = [
         {
             field: 'id',
             display: 'flex',
@@ -296,8 +296,8 @@ export function VolunteerTable(props: VolunteerTableProps) {
                         </IconButton>
                     </Tooltip> }
             </Stack>
-            <DataTable columns={columns} rows={props.volunteers} disableFooter enableFilter
-                       defaultSort={{ field: 'name', sort: 'asc' }} pageSize={100} />
+            <OldDataTable columns={columns} rows={props.volunteers} disableFooter enableFilter
+                          defaultSort={{ field: 'name', sort: 'asc' }} pageSize={100} />
         </Paper>
     )
 }

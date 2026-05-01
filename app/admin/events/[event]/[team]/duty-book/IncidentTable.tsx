@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-import { type DataTableColumn, DataTable } from '@app/admin/components/DataTable';
+import { type OldDataTableColumn, OldDataTable } from '@app/admin/components/OldDataTable';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 
 /**
@@ -70,7 +70,7 @@ interface IncidentTableProps {
  * event. Display, by default, roughly matches what's shown in the Volunteer Portal.
  */
 export function IncidentTable(props: IncidentTableProps) {
-    const columns: DataTableColumn<IncidentTableProps['incidents'][number]>[] = [
+    const columns: OldDataTableColumn<IncidentTableProps['incidents'][number]>[] = [
         {
             display: 'flex',
             field: 'id',
@@ -152,7 +152,7 @@ export function IncidentTable(props: IncidentTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} defaultSort={{ field: 'date', sort: 'desc' }}
-                   rows={props.incidents} />
+        <OldDataTable columns={columns} defaultSort={{ field: 'date', sort: 'desc' }}
+                      rows={props.incidents} />
     );
 }

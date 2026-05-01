@@ -11,7 +11,7 @@ import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
 import { Chip } from '../../components/Chip';
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 
 /**
  * Props accepted by the <TeamsDataTable> component.
@@ -65,7 +65,7 @@ interface TeamsDataTableProps {
  * interface is read-only, and teams cannot be created through this Data Table.
  */
 export function TeamsDataTable(props: TeamsDataTableProps) {
-    const columns: DataTableColumn<TeamsDataTableProps['teams'][number]>[] = [
+    const columns: OldDataTableColumn<TeamsDataTableProps['teams'][number]>[] = [
         {
             display: 'flex',
             field: 'title',
@@ -129,7 +129,7 @@ export function TeamsDataTable(props: TeamsDataTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} rows={props.teams} disableFooter
-                   defaultSort={{ field: 'title', sort: 'asc' }} pageSize={25} />
+        <OldDataTable columns={columns} rows={props.teams} disableFooter
+                      defaultSort={{ field: 'title', sort: 'asc' }} pageSize={25} />
     );
 }

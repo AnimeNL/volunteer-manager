@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 import { default as MuiLink } from '@mui/material/Link';
 
-import { type DataTableColumn, DataTable } from '@app/admin/components/DataTable';
+import { type OldDataTableColumn, OldDataTable } from '@app/admin/components/OldDataTable';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 
 /**
@@ -46,7 +46,7 @@ interface ViewingHistoryTableProps {
  * details of a particular incident at least once.
  */
 export function ViewingHistoryTable(props: ViewingHistoryTableProps) {
-    const columns: DataTableColumn<ViewingHistoryTableProps['viewers'][number]>[] = [
+    const columns: OldDataTableColumn<ViewingHistoryTableProps['viewers'][number]>[] = [
         {
             field: 'date',
             headerName: 'Viewed on',
@@ -75,7 +75,7 @@ export function ViewingHistoryTable(props: ViewingHistoryTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} defaultSort={{ field: 'name', sort: 'asc' }}
-                   rows={props.viewers} pageSize={100} disableFooter />
+        <OldDataTable columns={columns} defaultSort={{ field: 'name', sort: 'asc' }}
+                      rows={props.viewers} pageSize={100} disableFooter />
     );
 }

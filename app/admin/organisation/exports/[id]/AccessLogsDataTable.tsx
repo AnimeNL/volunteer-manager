@@ -8,7 +8,7 @@ import Link from '@app/LinkProxy';
 import { default as MuiLink } from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
-import { DataTable, type DataTableColumn } from '@app/admin/components/DataTable';
+import { OldDataTable, type OldDataTableColumn } from '@app/admin/components/OldDataTable';
 import { Temporal, formatDate } from '@lib/Temporal';
 
 /**
@@ -35,7 +35,7 @@ interface AccessLogsDataTableProps {
 export function AccessLogsDataTable(props: AccessLogsDataTableProps) {
     const localTz = Temporal.Now.timeZoneId();
 
-    const columns: DataTableColumn<AccessLogsDataTableProps['views'][number]>[] = [
+    const columns: OldDataTableColumn<AccessLogsDataTableProps['views'][number]>[] = [
         {
             field: 'date',
             headerName: 'Date',
@@ -81,7 +81,7 @@ export function AccessLogsDataTable(props: AccessLogsDataTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} rows={props.views} pageSize={100} disableFooter
-                   defaultSort={{ field: 'date', sort: 'desc' }} />
+        <OldDataTable columns={columns} rows={props.views} pageSize={100} disableFooter
+                      defaultSort={{ field: 'date', sort: 'desc' }} />
     );
 }

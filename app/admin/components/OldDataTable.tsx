@@ -14,16 +14,16 @@ import { AdminClientContext } from '@app/admin/AdminClientContext';
 /**
  * Type describing a column definition in the DataTable API.
  */
-export type DataTableColumn<RowModel extends GridValidRowModel> = GridColDef<RowModel>;
+export type OldDataTableColumn<RowModel extends GridValidRowModel> = GridColDef<RowModel>;
 
 /**
  * Props accepted by the <RemoteDataTable> component.
  */
-interface DataTableProps<RowModel extends GridValidRowModel> {
+interface OldDataTableProps<RowModel extends GridValidRowModel> {
     /**
      * Columns accepted by the data table.
      */
-    columns: DataTableColumn<RowModel>[];
+    columns: OldDataTableColumn<RowModel>[];
 
     /**
      * Default sort that should be applied to the table. May be overridden by the users unless the
@@ -104,8 +104,8 @@ interface DataTableProps<RowModel extends GridValidRowModel> {
  * the <DataTable> component offers the ability to filter and search its content, out-of-the-box
  * ordering, and additional columns that can be shown by the user.
  */
-export function DataTable<RowModel extends GridValidRowModel = GridValidRowModel>(
-    props: DataTableProps<RowModel>)
+export function OldDataTable<RowModel extends GridValidRowModel = GridValidRowModel>(
+    props: OldDataTableProps<RowModel>)
 {
     const [ paginationModel, setPaginationModel ] = useState<GridPaginationModel>({
         pageSize: props.pageSize ?? 50,
