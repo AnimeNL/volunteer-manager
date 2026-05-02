@@ -47,18 +47,18 @@ const kDataSourceRegistry: Map<string, DataSourceWrapper> = new Map;
 export function createDataSource<ZodRowModel extends ZodObject>(
     dataSourceId: string,
     rowModel: ZodRowModel,
-    instance: DataSource<never>): DataSourceInterface<never, ZodRowModel>;
+    instance: DataSource<never, ZodRowModel>): DataSourceInterface<never, ZodRowModel>;
 export function createDataSource<ZodContext extends ZodObject, ZodRowModel extends ZodObject>(
     dataSourceId: string,
     context: ZodContext,
     rowModel: ZodRowModel,
-    instance: DataSource<ZodContext>): DataSourceInterface<ZodContext, ZodRowModel>;
+    instance: DataSource<ZodContext, ZodRowModel>): DataSourceInterface<ZodContext, ZodRowModel>;
 export function createDataSource(...args: any) {
     const dataSourceId: string = args[0];
 
     let context: ZodObject;
     let rowModel: ZodObject;
-    let instance: DataSource<any>;
+    let instance: DataSource<any, any>;
 
     switch (args.length) {
         case 3:

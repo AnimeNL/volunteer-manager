@@ -27,6 +27,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
                 name: tEvents.eventName,
                 location: tEvents.eventLocation,
             })
+            .orderBy(params.sortModel[0]?.field || 'name', params.sortModel[0]?.sort || 'asc')
             .executeSelectPage();
 
         return {

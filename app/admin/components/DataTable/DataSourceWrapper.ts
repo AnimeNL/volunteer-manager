@@ -22,9 +22,9 @@ export class DataSourceWrapper {
     #context: ZodObject | never;
     #rowModel: ZodObject;
 
-    #dataSource: DataSource<any>;
+    #dataSource: DataSource<any, any>;
 
-    constructor(context: ZodObject, rowModel: ZodObject, dataSource: DataSource<any>) {
+    constructor(context: ZodObject, rowModel: ZodObject, dataSource: DataSource<any, any>) {
         this.#context = context;
         this.#rowModel = rowModel;
 
