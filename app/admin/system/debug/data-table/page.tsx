@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 
-import { type Column, DataTable, createDataSource } from '@app/admin/components/DataTable';
+import { type Column, type ExtractRowModel, DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import db, { tEvents } from '@lib/database';
@@ -11,11 +11,11 @@ import db, { tEvents } from '@lib/database';
 /**
  * Data source for the example <DataTable> component. Provides the data.
  */
-const dataSource = createDataSource('system/debug/data-table', {
+const dataSource = createDataSource('system/debug/data-table', withRowModel({
     id: z.number(),
     name: z.string(),
     location: z.string().optional(),
-}, {
+}), {
     async getRows(params) {
         const results = await db.selectFrom(tEvents)
             .select({
@@ -31,6 +31,8 @@ const dataSource = createDataSource('system/debug/data-table', {
         };
     },
 });
+
+type RowModel = ExtractRowModel<typeof dataSource>;
 
 /**
  * Page that displays a <DataTable> component.

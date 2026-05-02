@@ -12,7 +12,7 @@ import type { BoundDataSourceInterface, DataSourceInterface, UnboundDataSourceIn
  * Registry of `DataSource` instances that are known to the server, each identified by the feature-
  * supplied ID when `createDataSource` is being called.
  */
-const kDataSourceRegistry: Map<string, DataSourceInterface<any>> = new Map;
+const kDataSourceRegistry: Map<string, DataSourceInterface<any, any, any>> = new Map;
 
 async function getRowsProxy(dataSourceId: string, params: any) {
     'use server';
@@ -55,12 +55,12 @@ async function getRowsProxy(dataSourceId: string, params: any) {
 export function createDataSource<ZodRowModel extends ZodObject>(
     dataSourceId: string,
     dataSourceRowModel: ZodRowModel,
-    dataSourceInstance: DataSource): BoundDataSourceInterface;
+    dataSourceInstance: DataSource): BoundDataSourceInterface<never, ZodRowModel>;
 export function createDataSource<ZodContext extends ZodObject, ZodRowModel extends ZodObject>(
     dataSourceId: string,
     dataSourceContext: ZodContext,
     dataSourceRowModel: ZodRowModel,
-    dataSourceInstance: DataSource): UnboundDataSourceInterface;
+    dataSourceInstance: DataSource): UnboundDataSourceInterface<ZodContext, ZodRowModel>;
 export function createDataSource(...args: any) {
     const dataSourceId: string = args[0];
 
@@ -85,7 +85,7 @@ export function createDataSource(...args: any) {
             throw new Error(`Invalid signature, expected 3 or 4 arguments, got ${args.length}`);
     }
 
-    kDataSourceRegistry.set(dataSourceId, dataSourceInstance);
+    kDataSourceRegistry.set(dataSourceId, dataSourceInstance as any);
 
     return {
         getRows: getRowsProxy.bind(null, dataSourceId),
