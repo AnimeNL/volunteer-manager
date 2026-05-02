@@ -24,6 +24,28 @@ interface DataTableClientCommonProps<Interface extends DataSourceInterface<any, 
     columns: Column<ExtractRowModel<Interface>>[];
 
     /**
+     * Default sort that should be applied to the table. May be overridden by the users unless the
+     * column definition explicitly disallows sorting.
+     */
+    defaultSort: {
+        /**
+         * Field on which the results should be sorted.
+         */
+        field: keyof ExtractRowModel<Interface> & string;
+
+        /**
+         * Direction in which the results should be sorted.
+         */
+        sort: 'asc' | 'desc' | null;
+    };
+
+    /**
+     * The default number of rows that can be displayed per page.
+     * @default 50
+     */
+    pageSize?: 10 | 25 | 50 | 100;
+
+    /**
      * Server-side source through which the data table's contents will be acquired.
      */
     source: Interface;
@@ -90,6 +112,16 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             <DataGridPremium
                 columns={props.columns}
                 dataSource={dataSource}
+
+                initialState={{
+                    pagination: {
+                        paginationModel: { pageSize: props.pageSize ?? 50, page: 0 },
+                    },
+                    sorting: {
+                        sortModel: [ props.defaultSort ],
+                    }
+                }}
+
                 onDataSourceError={handleDataSourceError} />
         </>
     );

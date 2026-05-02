@@ -58,7 +58,8 @@ export default function DataTablePage() {
             <SectionIntroduction>
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
-            <DataTable columns={columns} source={dataSource} context={{ value: 42 }} />
+            <DataTable columns={columns} source={dataSource} context={{ value: 42 }}
+                       defaultSort={{ field: 'name', sort: 'desc' }} />
         </Section>
     );
 }
