@@ -5,23 +5,22 @@ import { type ZodObject, z } from 'zod';
 import { notFound } from 'next/navigation';
 
 import type { DataSource } from './DataSource';
-import type { BoundDataSourceInterface, DataSourceInterface, UnboundDataSourceInterface }
-    from './DataSourceInterface';
+import type { DataSourceInterface } from './DataSourceInterface';
 
 /**
  * Registry of `DataSource` instances that are known to the server, each identified by the feature-
  * supplied ID when `createDataSource` is being called.
  */
-const kDataSourceRegistry: Map<string, DataSourceInterface<any, any, any>> = new Map;
+const kDataSourceRegistry: Map<string, DataSource<any>> = new Map;
 
-async function getRowsProxy(dataSourceId: string, params: any) {
+async function getRowsProxy(dataSourceId: string, params: any, context: unknown) {
     'use server';
 
     const dataSourceInstance = kDataSourceRegistry.get(dataSourceId);
     if (!dataSourceInstance)
         notFound();
 
-    return dataSourceInstance.getRows(params);
+    return dataSourceInstance.getRows(params, context);
 }
 
 /**
@@ -55,18 +54,18 @@ async function getRowsProxy(dataSourceId: string, params: any) {
 export function createDataSource<ZodRowModel extends ZodObject>(
     dataSourceId: string,
     dataSourceRowModel: ZodRowModel,
-    dataSourceInstance: DataSource): BoundDataSourceInterface<never, ZodRowModel>;
+    dataSourceInstance: DataSource<never>): DataSourceInterface<never, ZodRowModel>;
 export function createDataSource<ZodContext extends ZodObject, ZodRowModel extends ZodObject>(
     dataSourceId: string,
     dataSourceContext: ZodContext,
     dataSourceRowModel: ZodRowModel,
-    dataSourceInstance: DataSource): UnboundDataSourceInterface<ZodContext, ZodRowModel>;
+    dataSourceInstance: DataSource<ZodContext>): DataSourceInterface<ZodContext, ZodRowModel>;
 export function createDataSource(...args: any) {
     const dataSourceId: string = args[0];
 
     let dataSourceContext: ZodObject;
     let dataSourceRowModel: ZodObject;
-    let dataSourceInstance: DataSource;
+    let dataSourceInstance: DataSource<any>;
 
     switch (args.length) {
         case 3:
@@ -85,7 +84,7 @@ export function createDataSource(...args: any) {
             throw new Error(`Invalid signature, expected 3 or 4 arguments, got ${args.length}`);
     }
 
-    kDataSourceRegistry.set(dataSourceId, dataSourceInstance as any);
+    kDataSourceRegistry.set(dataSourceId, dataSourceInstance);
 
     return {
         getRows: getRowsProxy.bind(null, dataSourceId),

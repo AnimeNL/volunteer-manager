@@ -6,4 +6,10 @@ import type { GridColDef, GridValidRowModel } from '@mui/x-data-grid-premium';
 /**
  * Interface that defines an individual column to include in a <DataTable>.
  */
-export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = GridColDef<RowModel>;
+export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = GridColDef<RowModel> &
+{
+    /**
+     * The unique identifier of the column. Strictly typed based on the `RowModel`.
+     */
+    field: keyof RowModel;
+}

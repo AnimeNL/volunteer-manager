@@ -3,7 +3,9 @@
 
 import { z } from 'zod';
 
-import { type Column, type ExtractRowModel, DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
+import type { Column, ExtractContext, ExtractRowModel } from '@app/admin/components/DataTable';
+import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import db, { tEvents } from '@lib/database';
@@ -11,12 +13,14 @@ import db, { tEvents } from '@lib/database';
 /**
  * Data source for the example <DataTable> component. Provides the data.
  */
-const dataSource = createDataSource('system/debug/data-table', withRowModel({
+const dataSource = createDataSource('system/debug/data-table', withContext({
+    value: z.number(),
+}), withRowModel({
     id: z.number(),
     name: z.string(),
     location: z.string().optional(),
 }), {
-    async getRows(params) {
+    async getRows(params, context) {
         const results = await db.selectFrom(tEvents)
             .select({
                 id: tEvents.eventId,
@@ -32,13 +36,14 @@ const dataSource = createDataSource('system/debug/data-table', withRowModel({
     },
 });
 
+type Context = ExtractContext<typeof dataSource>;
 type RowModel = ExtractRowModel<typeof dataSource>;
 
 /**
  * Page that displays a <DataTable> component.
  */
 export default function DataTablePage() {
-    const columns: Column[] = [
+    const columns: Column<RowModel>[] = [
         {
             field: 'name',
         },
@@ -52,7 +57,7 @@ export default function DataTablePage() {
             <SectionIntroduction>
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
-            <DataTable columns={columns} source={dataSource} />
+            <DataTable columns={columns} source={dataSource} context={{ value: 42 }} />
         </Section>
     );
 }
