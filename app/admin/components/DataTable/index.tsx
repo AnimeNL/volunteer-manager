@@ -20,8 +20,13 @@
 //   - Permission checks
 //   - Zod validation
 
+import { z } from 'zod';
+
 export * from './Column';
 export * from './DataSource';
 export * from './DataTable';
 
 export { createDataSource } from './createDataSource';
+
+export const withContext = z.object;
+export const withRowModel = z.object;

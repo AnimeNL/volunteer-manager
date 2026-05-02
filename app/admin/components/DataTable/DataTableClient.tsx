@@ -9,8 +9,8 @@ import { DataGridPremium, type GridDataSource } from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
 
+import type { BoundDataSourceInterface } from './DataSourceInterface';
 import type { Column } from './Column';
-import type { DataSourceInterface } from './DataSource';
 
 /**
  * Props available for the <DataTableClient> component.
@@ -24,7 +24,7 @@ interface DataTableClientProps {
     /**
      * Server-side source through which the data table's contents will be acquired.
      */
-    source: DataSourceInterface</* IsBound= */ true>;
+    source: BoundDataSourceInterface;
 }
 
 /**

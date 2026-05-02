@@ -5,8 +5,8 @@
 
 import dynamic from 'next/dynamic';
 
+import type { BoundDataSourceInterface } from './DataSourceInterface';
 import type { Column } from './Column';
-import type { DataSourceInterface } from './DataSource';
 
 const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false });
 
@@ -22,7 +22,7 @@ interface DataTableProps {
     /**
      * Server-side source through which the data table's contents will be acquired.
      */
-    source: DataSourceInterface</* IsBound= */ true>;
+    source: BoundDataSourceInterface;
 }
 
 /**
