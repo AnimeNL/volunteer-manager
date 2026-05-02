@@ -23,5 +23,5 @@ const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false 
 export function DataTable<Interface extends DataSourceInterface<any, any>>(
     props: DataTableClientProps<Interface>)
 {
-    return <DataTableClient {...props} />;
+    return <DataTableClient {...props as any} />;
 }

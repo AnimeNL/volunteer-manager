@@ -56,7 +56,11 @@ export type DataTableClientProps<Interface extends DataSourceInterface<any, any>
 export default function DataTableClient<Interface extends DataSourceInterface<any, any>>(
     props: DataTableClientProps<Interface>)
 {
-    const context = 'context' in props ? props.context : null;
+    // ---------------------------------------------------------------------------------------------
+    // Use a memoized version of the context, which may be set to an empty object when absent.
+    // ---------------------------------------------------------------------------------------------
+
+    const context = useMemo(() => 'context' in props ? props.context : {}, [ props ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the `GridDataSource` based on the available Server Actions in the `props`.
@@ -64,7 +68,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
     const dataSource = useMemo((): GridDataSource => ({
         getRows: async (params) => {
-            return props.source.getRows(params, context);
+            return props.source.getRows(context, params);
         },
     }), [ context, props.source ]);
 

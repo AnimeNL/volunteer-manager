@@ -20,7 +20,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     name: z.string(),
     location: z.string().optional(),
 }), {
-    async getRows(params, context) {
+    async getRows(params, props, context) {
         const results = await db.selectFrom(tEvents)
             .select({
                 id: tEvents.eventId,

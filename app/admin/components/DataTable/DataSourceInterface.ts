@@ -26,5 +26,5 @@ export interface DataSourceInterface<
     /**
      * Retrieves the rows in accordance with the `params`.
      */
-    getRows(params: GridGetRowsParams, context: unknown): Promise<GridGetRowsResponse>;
+    getRows(context: unknown, params: GridGetRowsParams): Promise<GridGetRowsResponse>;
 }

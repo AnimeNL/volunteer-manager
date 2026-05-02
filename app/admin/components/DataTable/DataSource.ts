@@ -5,6 +5,8 @@ import type { z } from 'zod';
 
 import type { GridGetRowsParams, GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
+import type { DataSourceProps } from './DataSourceProps';
+
 /**
  * Interface that has to be provided in order for a <DataTable> component to be able to gather or
  * mutate a particular data source. Must remain compatible with the serialisation protocol used for
@@ -14,5 +16,6 @@ export interface DataSource<Context> {
     /**
      * Retrieves the rows in accordance with the `params`.
      */
-    getRows(params: GridGetRowsParams, context: z.infer<Context>): Promise<GridGetRowsResponse>;
+    getRows(params: GridGetRowsParams, props: DataSourceProps, context: z.infer<Context>)
+        : Promise<GridGetRowsResponse>;
 }

@@ -15,7 +15,6 @@
 //       - Ability to update rows through a dialog
 //     - Tree data?
 // - Server side:
-//   - Bound (w/ context) and unbound data sources
 //   - Logging (for mutations)
 //   - Permission checks
 //   - Zod validation
