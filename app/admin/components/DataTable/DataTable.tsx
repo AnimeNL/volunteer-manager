@@ -8,7 +8,9 @@ import dynamic from 'next/dynamic';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { DataTableClientProps } from './DataTableClient';
 
-const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false });
+const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false }) as
+    <Interface extends DataSourceInterface<any, any>>(props: DataTableClientProps<Interface>)
+        => React.ReactNode;
 
 /**
  * The <DataTable> component is a wrapped implementation of the MUI X `<DataGrid>` component with
@@ -23,5 +25,5 @@ const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false 
 export function DataTable<Interface extends DataSourceInterface<any, any>>(
     props: DataTableClientProps<Interface>)
 {
-    return <DataTableClient {...props as any} />;
+    return <DataTableClient<Interface> {...props} />;
 }

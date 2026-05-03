@@ -3,25 +3,28 @@
 
 'use client';
 
-import type { z } from 'zod';
 import { useMemo, useState } from 'react';
 
-import { DataGridPremium, type GridDataSource } from '@mui/x-data-grid-premium';
+import { DataGridPremium, type GridDataSource, type GridValidRowModel }
+    from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
 
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
-import type { ExtractRowModel } from './Types';
+import type { ExtractContext, ExtractRowModel } from './Types';
 
 /**
  * Props accepted by the <DataTableClient> component.
  */
-interface DataTableClientCommonProps<Interface extends DataSourceInterface<any, any>> {
+interface DataTableClientCommonProps<
+    Interface extends DataSourceInterface<any, any>,
+    RowModel extends GridValidRowModel = ExtractRowModel<Interface>>
+{
     /**
      * Columns to include in the data table. Not all may be displayed by default.
      */
-    columns: Column<ExtractRowModel<Interface>>[];
+    columns: Column<RowModel>[];
 
     /**
      * Default sort that should be applied to the table. May be overridden by the users unless the
@@ -31,7 +34,7 @@ interface DataTableClientCommonProps<Interface extends DataSourceInterface<any, 
         /**
          * Field on which the results should be sorted.
          */
-        field: keyof ExtractRowModel<Interface> & string;
+        field: keyof RowModel & string;
 
         /**
          * Direction in which the results should be sorted.
@@ -55,20 +58,20 @@ interface DataTableClientCommonProps<Interface extends DataSourceInterface<any, 
  * Props accepted by the <DataTableClient> component, including `context` for data sources that
  * require additional context to operate.
  */
-export type DataTableClientProps<Interface extends DataSourceInterface<any, any>> =
-    DataTableClientCommonProps<Interface> &
+export type DataTableClientProps<
+    Interface extends DataSourceInterface<any, any>,
+    Context = ExtractContext<Interface>> =
+    Omit<DataTableClientCommonProps<Interface> &
     (
-        Interface extends DataSourceInterface<infer Context, any>
-            ? [Context] extends [never]
-                ? { /* no additional props */ }
-                : {
-                      /**
-                       * Context necessary to bind the interface to the specific use.
-                       */
-                      context: z.infer<Context>
-                  }
-            : { /* no additional props */ }
-    );
+        [Context] extends [never]
+            ? { /* no additional props */ }
+            : {
+                  /**
+                   * Context necessary to bind the interface to the specific use.
+                   */
+                  context: Context;
+              }
+    ), never>;
 
 /**
  * The <DataTable> component is a wrapped implementation of the MUI X <DataGrid> component with new
