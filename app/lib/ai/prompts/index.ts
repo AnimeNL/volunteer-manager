@@ -10,5 +10,6 @@ export { ParticipationReinstatedPrompt } from './ParticipationReinstatedPrompt';
 export { ParticipationReminderPrompt } from './ParticipationReminderPrompt';
 export { TeamChangePrompt } from './TeamChangePrompt';
 
+export { DutyBookSummaryPrompt } from './DutyBookSummaryPrompt';
 export { IncidentSummaryPrompt } from './IncidentSummaryPrompt';
 export { SystemPrompt } from './SystemPrompt';

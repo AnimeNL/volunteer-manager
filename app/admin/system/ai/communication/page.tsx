@@ -16,6 +16,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { IncidentSummaryPrompt } from '@lib/ai/prompts/IncidentSummaryPrompt';
@@ -45,6 +46,7 @@ export default async function CommunicationAiPage() {
 
     const settings = await readSettings([
         'ai-communication-system-prompt',
+        'ai-duty-book-summary-prompt',
         'ai-example-messages',
         'ai-incident-summary-prompt',
     ]);
@@ -53,6 +55,9 @@ export default async function CommunicationAiPage() {
 
     const systemPromptTemplate = settings['ai-communication-system-prompt'] || '';
     const systemPrompt = new SystemPrompt();
+
+    const dutyBookSummaryPromptTemplate = settings['ai-duty-book-summary-prompt'] || '';
+    const dutyBookSummaryPrompt = new DutyBookSummaryPrompt();
 
     const incidentSummaryPromptTemplate = settings['ai-incident-summary-prompt'] || '';
     const incidentSummaryPrompt = new IncidentSummaryPrompt();
@@ -116,6 +121,25 @@ export default async function CommunicationAiPage() {
                     <HiddenInput name="id" />
                     <TextareaAutosizeElement name="prompt" label="Incident summary prompt" fullWidth
                                              size="small" />
+                </Grid>
+            </FormGrid>
+            <Divider sx={{ mt: 2, mb: 1 }} />
+            { /* TODO: Move this elsewhere ---------------------------------------------------- */ }
+            <FormGrid action={actions.updatePrompt}
+                      defaultValues={{
+                          id: 'duty-book-summary-prompt',
+                          prompt: dutyBookSummaryPromptTemplate,
+                      }}>
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                        Duty book summary prompt
+                    </Typography>
+                    <TokenOverviewAlert prompt={dutyBookSummaryPrompt} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <HiddenInput name="id" />
+                    <TextareaAutosizeElement name="prompt" label="Duty book summary prompt"
+                                             fullWidth size="small" />
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2, mb: 1 }} />

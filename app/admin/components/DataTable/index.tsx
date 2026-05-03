@@ -3,7 +3,6 @@
 
 // TODO:
 // - Client side:
-//   - Default sort
 //   - Functionality:
 //     - Create rows
 //     - Delete rows (w/ refresh on update?)

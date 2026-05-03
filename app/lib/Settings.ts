@@ -78,6 +78,9 @@ export type Settings = {
     // Del a Rie Advies:
     'ai-nardo-personalised-advice': string;
 
+    // Duty Book summaries:
+    'ai-duty-book-summary-prompt': string;
+
     // Incident reports:
     'ai-incident-summary-prompt': string;
 
