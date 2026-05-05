@@ -32,14 +32,16 @@ const kDeleteIncidentData = z.object({ /* nothing */ });
 /**
  * Server action that soft deletes a Duty Book entry. Data remains in the database.
  */
-export async function deleteIncident(eventId: number, dutyBookId: number, formData: unknown) {
+export async function deleteIncident(
+    eventId: number, team: string, dutyBookId: number, formData: unknown)
+{
     'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
         const event = await getEventNameAndSlug(eventId);
         if (!event)
             notFound();
 
-        if (!props.access.can('event.duty-book', { event: event.slug }))
+        if (!props.access.can('event.duty-book', 'delete', { event: event.slug, team }))
             forbidden();
 
         const dbInstance = db;
@@ -83,14 +85,16 @@ const kUpdateDetailsData = z.object({
 /**
  * Server action that updates the details associated with a Duty Book entry.
  */
-export async function updateDetails(eventId: number, dutyBookId: number, formData: unknown) {
+export async function updateDetails(
+    eventId: number, team: string, dutyBookId: number, formData: unknown)
+{
     'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
         const event = await getEventNameAndSlug(eventId);
         if (!event)
             notFound();
 
-        if (!props.access.can('event.duty-book', { event: event.slug }))
+        if (!props.access.can('event.duty-book', 'update', { event: event.slug, team }))
             forbidden();
 
         const dbInstance = db;
@@ -133,14 +137,18 @@ const kUpdateVisibilityData = z.object({
  * Server action that updates the visibility status of a Duty Book entry. Hidden entries don't
  * reveal all information to volunteers, useful in case they contain sensitive information.
  */
-export async function updateVisibility(eventId: number, dutyBookId: number, formData: unknown) {
+export async function updateVisibility(
+    eventId: number, team: string, dutyBookId: number, formData: unknown)
+{
     'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
         const event = await getEventNameAndSlug(eventId);
         if (!event)
             notFound();
 
-        if (!props.access.can('event.duty-book', { event: event.slug }))
+        // Note: All (senior) volunteers with read access to Duty Book entries can hide them,
+        // although the ability to delete and/or edit them is separately restricted.
+        if (!props.access.can('event.duty-book', 'read', { event: event.slug, team }))
             forbidden();
 
         const dbInstance = db;

@@ -54,7 +54,10 @@ export const kPermissions = {
             'This permission controls whether they have the ability access the Duty Book, ' +
             'regardless of which team they are part of. Revoking this permission does not ' +
             'override the regular team-based access rules.',
-        type: 'boolean',
+        hide: [ 'create' ],  // any volunteer is able to create Duty Book entries
+        requireEvent: true,
+        requireTeam: true,
+        type: 'crud',
     },
 
     'event.help-requests': {
@@ -599,7 +602,9 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: event.applications:create omitted
         'event.applications:read',
         // note: event.applications:update omitted
-        // note: event.duty-book omitted
+        'event.duty-book:read',
+        'event.duty-book:update',
+        // note: event.duty-book:delete omitted
         // note: event.help-requests omitted
         // note: event.hotels omitted
         'event.knowledge',

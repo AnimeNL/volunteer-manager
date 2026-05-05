@@ -9,6 +9,8 @@ import { getEventBySlug } from '@lib/EventLoader';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
+
 /**
  * The <DutyBookPage> component displays an overview of the Duty Book entries, including the ability
  * to log a new entry in the Duty Book for others to be aware of.
@@ -25,7 +27,10 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
     if (!event)
         notFound();
 
-    const hasUnrestrictedAccess = access.can('event.duty-book');
+    const hasUnrestrictedAccess = access.can('event.duty-book', 'read', {
+        event: event.slug,
+        team: kAnyTeam,  // todo: Scope this to the specific team page
+    });
 
     const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
 

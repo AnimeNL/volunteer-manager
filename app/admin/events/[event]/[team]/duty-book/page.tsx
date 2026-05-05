@@ -29,7 +29,7 @@ const kNoDataRequired = z.object({ /* no parameters */ });
 async function generateSummary(event: string, team: string) {
     'use server';
     return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
-        if (!props.access.can('event.duty-book'))
+        if (!props.access.can('event.duty-book', 'read', { event, team }))
             forbidden();
 
         const dutyBookJoin = tDutyBook.forUseInLeftJoin();
@@ -89,8 +89,16 @@ async function generateSummary(event: string, team: string) {
 export default async function EventTeamDutyBookPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book'>)
 {
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    // TODO: Check for "event.duty-book" permission?
+    const params = await props.params;
+
+    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params, {
+        permission: 'event.duty-book',
+        operation: 'read',
+        scope: {
+            event: params.event,
+            team: params.team,
+        },
+    });
 
     const dutyBookEnabled = await readSetting('schedule-duty-book');
     if (!dutyBookEnabled || !team.flagEnableDutyBook)

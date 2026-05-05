@@ -1045,7 +1045,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         await populateKnowledgeBase(dbInstance, access, schedule, event.id);
 
     if (!!settings['schedule-duty-book']) {
-        if (access.can('event.duty-book')) {
+        if (access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
             schedule.config.enableDutyBook = true;
         } else if (Object.hasOwn(schedule.volunteers, `${schedule.userId}`)) {
             const volunteer = schedule.volunteers[`${schedule.userId}`];

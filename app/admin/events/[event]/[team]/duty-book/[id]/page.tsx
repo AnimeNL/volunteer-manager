@@ -86,27 +86,38 @@ export default async function EventTeamDutyBookIncidentPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
-    const visibilityToggleServerFn = actions.updateVisibility.bind(null, event.id, incident.id);
+    const deleteIncidentFn = actions.deleteIncident.bind(null, event.id, team.slug, incident.id);
+    const updateDetailsFn = actions.updateDetails.bind(null, event.id, team.slug, incident.id);
+    const visibilityToggleFn =
+        actions.updateVisibility.bind(null, event.id, team.slug, incident.id);
+
+    let sectionClearAction: React.ReactNode = undefined;
+    if (access.can('event.duty-book', 'delete', { event: event.slug, team: team.slug })) {
+        sectionClearAction = (
+            <SectionClearAction action={deleteIncidentFn}
+                                icon={ <DeleteIcon color="error" fontSize="small" /> }
+                                subject="incident"
+                                title="Remove this incident"
+                                verb="remove" />
+        );
+    }
+
+    const canUpdate = access.can('event.duty-book', 'update', {
+        event: event.slug,
+        team: team.slug
+    });
 
     return (
         <>
             <Section title="Duty book incident" subtitle={event.shortName}
-                     headerAction={
-                         <SectionClearAction
-                            action={ actions.deleteIncident.bind(null, event.id, incident.id )}
-                            icon={ <DeleteIcon color="error" fontSize="small" /> }
-                            subject="incident"
-                            title="Remove this incident"
-                            verb="remove" />
-                     }>
+                     headerAction={sectionClearAction}>
                 <VisibilityToggle
                     hidden={incident.hidden}
-                    toggleFn={visibilityToggleServerFn} />
-                <FormGrid action={ actions.updateDetails.bind(null, event.id, incident.id) }
-                          defaultValues={incident.defaultValues}>
+                    toggleFn={visibilityToggleFn} />
+                <FormGrid action={updateDetailsFn} defaultValues={incident.defaultValues}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextFieldElement name="author" label="Author" size="small" fullWidth
-                                          disabled/>
+                                          disabled />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextFieldElement name="event" label="Event" size="small" fullWidth
@@ -121,11 +132,13 @@ export default async function EventTeamDutyBookIncidentPage(
                                           disabled />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="summary" label="Summary" size="small" fullWidth />
+                        <TextFieldElement name="summary" label="Summary" size="small" fullWidth
+                                          slotProps={{ input: { readOnly: !canUpdate } }} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TextFieldElement name="incident" label="Incident" size="small" fullWidth
-                                          multiline />
+                                          multiline
+                                          slotProps={{ input: { readOnly: !canUpdate } }} />
                     </Grid>
                 </FormGrid>
             </Section>
