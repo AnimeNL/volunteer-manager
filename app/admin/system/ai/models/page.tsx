@@ -3,7 +3,7 @@
 
 import type { Metadata } from 'next';
 
-import { SelectElement, SliderElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
+import { SliderElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
@@ -31,7 +31,6 @@ export default async function ModelsAiPage() {
     });
 
     const settings = await readSettings([
-        'ai-setting-backend',
         'ai-setting-gemini-api-key',
         'ai-setting-image-model',
         'ai-setting-text-model-high',
@@ -51,7 +50,6 @@ export default async function ModelsAiPage() {
         textModelHigh: settings['ai-setting-text-model-high'] ?? kDefaultTextModel,
         textModelLow: settings['ai-setting-text-model-low'] ?? kDefaultTextModel,
         textModelMedium: settings['ai-setting-text-model-medium'] ?? kDefaultTextModel,
-        backend: settings['ai-setting-backend'],
         geminiApiKey: settings['ai-setting-gemini-api-key'],
 
         candidateCount: settings['ai-setting-candidate-count'] ?? 0,
@@ -83,16 +81,9 @@ export default async function ModelsAiPage() {
                     <GeminiModelSelect name="textModelLow"
                                        label="Text Generation (low complexity)" />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <SelectElement name="backend" label="Backend" size="small" fullWidth
-                                   options={[
-                                       { id: 'gemini', label: 'Google AI Studio' },
-                                       { id: 'vertexai', label: 'VertexAI' },
-                                   ]}/>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="geminiApiKey" label="Gemini API Key" size="small"
-                                      fullWidth />
+                                      fullWidth type="password" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <Divider />

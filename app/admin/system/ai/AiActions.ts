@@ -43,7 +43,7 @@ export async function executeModelPlayground(formData: unknown) {
 
         switch (data.model) {
             case 'image': {
-                const response = await client.generateImage({
+                const response = await client.safeGenerateImage({
                     aspectRatio: '4:3',
                     attachments: data.attachment?.map(entry => ({
                         bytes: entry.bytes(),
@@ -60,7 +60,8 @@ export async function executeModelPlayground(formData: unknown) {
             }
 
             case 'text': {
-                const response = await client.generateText({
+                const response = await client.safeGenerateText({
+                    complexity: 'low',
                     prompt: data.prompt,
                 });
 

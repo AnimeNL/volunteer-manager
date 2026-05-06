@@ -70,7 +70,7 @@ async function generateSummary(event: string, team: string) {
         });
 
         const client = await createAiClient();
-        const summary = await client.generateText({ prompt });
+        const summary = await client.safeGenerateText({ prompt });
 
         if (!summary.success)
             return { success: false, error: summary.error };

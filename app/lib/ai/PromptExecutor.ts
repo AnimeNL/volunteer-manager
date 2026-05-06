@@ -95,7 +95,7 @@ export class PromptExecutor<T extends Prompt<any>> {
         const prompt = await this.#prompt.evaluate(parameters);
 
         const client = await createAiClient();
-        return await client.generateText({
+        return await client.safeGenerateText({
             attachments: this.#exampleMessages?.map(exampleMessage => ({
                 bytes: kTextEncoder.encode(exampleMessage),
                 mimeType: 'text/plain',

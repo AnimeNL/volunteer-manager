@@ -94,7 +94,10 @@ export class DutyBookSummaryTask extends TaskWithParams<TaskParams> {
         });
 
         const client = await createAiClient();
-        const summary = await client.generateText({ prompt });
+        const summary = await client.safeGenerateText({
+            complexity: 'low',
+            prompt
+        });
 
         if (!summary.success) {
             this.log.error('Unable to generate a summary using Gemini: ' + summary.error);

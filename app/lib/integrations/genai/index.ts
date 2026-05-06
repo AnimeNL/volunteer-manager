@@ -1,9 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ClientSettings } from './Client';
-import { Client } from './Client';
-import { createGoogleClient } from '../google';
+import { type ClientSettings, Client } from './Client';
 import { readSettings } from '@lib/Settings';
 
 /**
@@ -12,14 +10,6 @@ import { readSettings } from '@lib/Settings';
  */
 export async function createAiClient(partialSettings?: Partial<ClientSettings>) {
     const configuration = await readSettings([
-        // GoogleClient configuration:
-        'integration-google-apikey',
-        'integration-google-credentials',
-        'integration-google-location',
-        'integration-google-project-id',
-
-        // Gen AI SDK configuration:
-        'ai-setting-backend',
         'ai-setting-candidate-count',
         'ai-setting-gemini-api-key',
         'ai-setting-image-model',
@@ -41,12 +31,6 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
     return new Client({
         apiKey: configuration['ai-setting-gemini-api-key']!,
         candidateCount: configuration['ai-setting-candidate-count']!,
-        googleClient: await createGoogleClient({
-            apiKey: configuration['integration-google-apikey']!,
-            credentials: configuration['integration-google-credentials']!,
-            location: configuration['integration-google-location']!,
-            projectId: configuration['integration-google-project-id']!,
-        }),
         models: {
             image: configuration['ai-setting-image-model']!,
             text: {
@@ -60,7 +44,6 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
             topK: configuration['ai-setting-top-k'],
             topP: configuration['ai-setting-top-p'],
         },
-        vertexAi: configuration['ai-setting-backend'] === 'vertexai',
         ...partialSettings,
     });
 }
