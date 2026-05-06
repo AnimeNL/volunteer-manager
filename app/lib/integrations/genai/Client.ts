@@ -245,6 +245,21 @@ export class Client {
     }
 
     /**
+     * Lists the models that are available for use through the Google Generative AI APIs.
+     */
+    async listModels() {
+        const models: { name: string; version: string }[] = [ /* none yet */ ];
+        for await (const model of await this.#ai.models.list()) {
+            models.push({
+                name: model.name ?? 'Undefined',
+                version: model.version ?? 'default',
+            });
+        }
+
+        return models;
+    }
+
+    /**
      * Private method that actually interacts with the model to generate the requested content. Will
      * inject the prompt and any attachments into the prompt, and verify that the required
      * information (unique ID and candidates) are present.
