@@ -24,7 +24,9 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
         'ai-setting-gemini-api-key',
         'ai-setting-image-model',
         'ai-setting-temperature',
-        'ai-setting-text-model',
+        'ai-setting-text-model-high',
+        'ai-setting-text-model-low',
+        'ai-setting-text-model-medium',
         'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
@@ -47,7 +49,11 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
         }),
         models: {
             image: configuration['ai-setting-image-model']!,
-            text: configuration['ai-setting-text-model']!,
+            text: {
+                low: configuration['ai-setting-text-model-low']!,
+                medium: configuration['ai-setting-text-model-medium']!,
+                high: configuration['ai-setting-text-model-high']!,
+            },
         },
         quality: {
             temperature: configuration['ai-setting-temperature'],

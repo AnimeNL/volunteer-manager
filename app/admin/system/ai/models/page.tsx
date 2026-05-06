@@ -34,18 +34,23 @@ export default async function ModelsAiPage() {
         'ai-setting-backend',
         'ai-setting-gemini-api-key',
         'ai-setting-image-model',
-        'ai-setting-text-model',
+        'ai-setting-text-model-high',
+        'ai-setting-text-model-low',
+        'ai-setting-text-model-medium',
         'ai-setting-candidate-count',
         'ai-setting-temperature',
         'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
 
+    const kDefaultImageModel = kAiSupportedModelIdentifiers['gemini-2.5-flash-image'];
+    const kDefaultTextModel = kAiSupportedModelIdentifiers['gemini-2.5-flash'];
+
     const defaultValues = {
-        imageModel: settings['ai-setting-image-model']
-            ?? kAiSupportedModelIdentifiers['gemini-2.5-flash-image'],
-        textModel: settings['ai-setting-text-model']
-            ?? kAiSupportedModelIdentifiers['gemini-2.5-flash'],
+        imageModel: settings['ai-setting-image-model'] ?? kDefaultImageModel,
+        textModelHigh: settings['ai-setting-text-model-high'] ?? kDefaultTextModel,
+        textModelLow: settings['ai-setting-text-model-low'] ?? kDefaultTextModel,
+        textModelMedium: settings['ai-setting-text-model-medium'] ?? kDefaultTextModel,
         backend: settings['ai-setting-backend'],
         geminiApiKey: settings['ai-setting-gemini-api-key'],
 
@@ -67,7 +72,16 @@ export default async function ModelsAiPage() {
                     <GeminiModelSelect name="imageModel" label="Image Generation Model" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <GeminiModelSelect name="textModel" label="Text Generation Model" />
+                    <GeminiModelSelect name="textModelHigh"
+                                       label="Text Generation (high complexity)" />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <GeminiModelSelect name="textModelMedium"
+                                       label="Text Generation (medium complexity)" />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <GeminiModelSelect name="textModelLow"
+                                       label="Text Generation (low complexity)" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SelectElement name="backend" label="Backend" size="small" fullWidth

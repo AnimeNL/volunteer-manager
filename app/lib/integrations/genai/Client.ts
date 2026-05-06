@@ -8,6 +8,12 @@ import type { AiSupportedModel } from './Models';
 import type { GoogleClient } from '../google/GoogleClient';
 
 /**
+ * Complexity levels for text generation that's expected to be available within configuration, and
+ * can be picked when executing a `generateText()` query.
+ */
+export type TextGenerationComplexity = 'low' | 'medium' | 'high';
+
+/**
  * Settings accepted by the GenAI client.
  */
 export interface ClientSettings {
@@ -38,7 +44,7 @@ export interface ClientSettings {
         /**
          * Model to use when generating text.
          */
-        text: AiSupportedModel;
+        text: { [k in TextGenerationComplexity]: AiSupportedModel };
     };
 
     /**
@@ -157,6 +163,17 @@ interface GenerateImageRequest extends GenerateRequest {
 }
 
 /**
+ * Parameters that can be passed when requesting a model to generate text.
+ */
+interface GenerateTextRequest extends GenerateRequest {
+    /**
+     * Complexity of the query, which helps define the specific model to use.
+     * @default "medium"
+     */
+    complexity?: TextGenerationComplexity;
+}
+
+/**
  * Client to the Google Gen AI SDK for TypeScript and JavaScript, through which new Gemini features
  * will consistently be exposed. Can switch between the VertexAI and Google AI Studio backends.
  * 
@@ -220,9 +237,12 @@ export class Client {
      * Uses the model to generate text, in accordance with the given |request|. This causes an API
      * call over the internet, and may take an arbitrary amount of time to complete.
      */
-    async generateText(request: GenerateRequest): Promise<ModelTextResponse> {
+    async generateText(request: GenerateTextRequest): Promise<ModelTextResponse> {
+        const complexity = request.complexity ?? 'medium';
+        const model = this.#settings.models.text[complexity];
+
         const generator = await this.generateContent(request, {
-            model: this.#settings.models.text,
+            model,
             config: {
                 candidateCount: this.#settings.candidateCount,
                 temperature: this.#settings.quality.temperature,

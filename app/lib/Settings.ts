@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { AiSupportedModel } from './integrations/genai/Models';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
 import type { VertexSupportedModels } from './integrations/vertexai/VertexSupportedModels';
 import db, { tSettings } from '@lib/database';
@@ -87,8 +88,10 @@ export type Settings = {
     // Settings:
     'ai-setting-backend': 'gemini' | 'vertexai';
     'ai-setting-gemini-api-key': string;
-    'ai-setting-image-model': VertexSupportedModels;
-    'ai-setting-text-model': VertexSupportedModels;
+    'ai-setting-image-model': AiSupportedModel;
+    'ai-setting-text-model-high': AiSupportedModel;
+    'ai-setting-text-model-low': AiSupportedModel;
+    'ai-setting-text-model-medium': AiSupportedModel;
     'ai-setting-candidate-count': number;
     'ai-setting-temperature': number;
     'ai-setting-top-k': number;

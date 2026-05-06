@@ -112,7 +112,9 @@ export async function updateExampleMessages(formData: unknown) {
  */
 const kUpdateModelSettingsData = z.object({
     imageModel: z.enum(kAiSupportedModelIdentifiers),
-    textModel: z.enum(kAiSupportedModelIdentifiers),
+    textModelHigh: z.enum(kAiSupportedModelIdentifiers),
+    textModelLow: z.enum(kAiSupportedModelIdentifiers),
+    textModelMedium: z.enum(kAiSupportedModelIdentifiers),
     backend: z.enum([ 'gemini', 'vertexai' ]),
     geminiApiKey: z.string().nonempty(),
 
@@ -137,7 +139,9 @@ export async function updateModelSettings(formData: unknown) {
             'ai-setting-backend': data.backend,
             'ai-setting-gemini-api-key': data.geminiApiKey,
             'ai-setting-image-model': data.imageModel,
-            'ai-setting-text-model': data.textModel,
+            'ai-setting-text-model-high': data.textModelHigh,
+            'ai-setting-text-model-low': data.textModelLow,
+            'ai-setting-text-model-medium': data.textModelMedium,
             'ai-setting-candidate-count': data.candidateCount,
             'ai-setting-temperature': data.temperature,
             'ai-setting-top-k': data.topK,
