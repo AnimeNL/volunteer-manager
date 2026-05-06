@@ -9,7 +9,7 @@ import type { DataSourceInterface } from './DataSourceInterface';
  * Utility type to extract the Context from a DataSourceInterface.
  */
 export type ExtractContext<T> = T extends DataSourceInterface<infer Context, any>
-    ? Context extends never ? never : z.infer<Context>
+    ? Context extends never ? never : z.input<Context>
     : never;
 
 /**

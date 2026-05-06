@@ -42,7 +42,7 @@ export class DataSourceWrapper {
 
         const props: DataSourceProps = { /* not implemented */ };
 
-        const verifiedContextResult = z.safeParse(this.#context, context);
+        const verifiedContextResult = await z.safeParseAsync(this.#context, context);
         if (!verifiedContextResult.success)
             notFound();
 

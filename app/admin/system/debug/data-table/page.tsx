@@ -4,7 +4,7 @@
 import { z } from 'zod';
 
 import type { Column, ExtractContext, ExtractRowModel } from '@app/admin/components/DataTable';
-import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { DataTable, createDataSource, withContext, withRowModel, kEventTransformer } from '@app/admin/components/DataTable';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -14,7 +14,7 @@ import db, { tEvents } from '@lib/database';
  * Data source for the example <DataTable> component. Provides the data.
  */
 const dataSource = createDataSource('system/debug/data-table', withContext({
-    value: z.number(),
+    event: kEventTransformer,
 }), withRowModel({
     id: z.number(),
     name: z.string(),
@@ -58,7 +58,7 @@ export default function DataTablePage() {
             <SectionIntroduction>
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
-            <DataTable columns={columns} source={dataSource} context={{ value: 42 }}
+            <DataTable columns={columns} source={dataSource} context={{ event: '2026' }}
                        defaultSort={{ field: 'name', sort: 'desc' }} />
         </Section>
     );
