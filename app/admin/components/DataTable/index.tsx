@@ -7,6 +7,7 @@
 //     - Create rows
 //     - Delete rows (w/ refresh on update?)
 //     - Reorder rows
+//     - Search for rows (opt-in)
 //     - Update rows (w/ refresh on update?)
 //   - Presentation:
 //     - Responsive display by default

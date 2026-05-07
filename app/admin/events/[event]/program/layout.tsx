@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 
 import Paper from '@mui/material/Paper';
 
-import { ProgramHistory } from './ProgramHistory';
 import { ProgramNavigation } from './ProgramNavigation';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
@@ -24,7 +23,7 @@ export default async function ProgramLayout(props: LayoutProps<'/admin/events/[e
                 <ProgramNavigation slug={event.slug} />
                 {props.children}
             </Paper>
-            <ProgramHistory context={{ event: event.slug, festivalId: event.festivalId }} />
+            {props.history}
         </>
     );
 }

@@ -6,11 +6,9 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
-import Alert from '@mui/material/Alert';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
@@ -129,18 +127,8 @@ export function ProgramHistory(props: ProgramHistoryProps) {
     ];
 
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5">
-                Recent changes to the program
-            </Typography>
-            <Alert severity="info" sx={{ mt: 1, mb: 2 }}>
-                This table summarises changes made across the Volunteer Portal and{' '}
-                <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>, the official AnimeCon
-                planning tool.
-            </Alert>
-            <RemoteDataTable columns={columns} endpoint="/api/admin/program/changes"
-                             context={props.context} pageSize={10}
-                             defaultSort={{ field: 'date', sort: 'desc' }} />
-        </Paper>
+        <RemoteDataTable columns={columns} endpoint="/api/admin/program/changes"
+                         context={props.context} pageSize={10}
+                         defaultSort={{ field: 'date', sort: 'desc' }} />
     );
 }
