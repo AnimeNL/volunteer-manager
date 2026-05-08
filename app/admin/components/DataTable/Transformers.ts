@@ -16,6 +16,7 @@ export const kEventTransformer = z.string().transform(async event => {
         .select({
             id: tEvents.eventId,
             slug: tEvents.eventSlug,
+            festivalId: tEvents.eventFestivalId,
         })
         .executeSelectNoneOrOne();
 

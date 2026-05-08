@@ -73,7 +73,6 @@ import type { OutboxEmailEndpoints } from '@app/api/admin/outbox/email/[[...id]]
 import type { OutboxTwilioEndpoints } from '@app/api/admin/outbox/twilio/route';
 import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
 import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id]]/route';
-import type { ProgramChangesEndpoints } from '@app/api/admin/program/changes/route';
 import type { ProgramLocationsEndpoints } from '@app/api/admin/program/locations/[[...id]]/route';
 import type { ProgramRequestEndpoints } from '@app/api/admin/program/requests/[[...id]]/route';
 import type { RefundRequestEndpoints } from '@app/api/admin/refunds/[[...id]]/route';
@@ -123,7 +122,6 @@ export type ApiEndpoints = {
         '/api/admin/outbox/twilio': OutboxTwilioEndpoints['list'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
         '/api/admin/program/areas': ProgramAreasEndpoints['list'],
-        '/api/admin/program/changes': ProgramChangesEndpoints['list'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['list'],
         '/api/admin/program/requests': ProgramRequestEndpoints['list'],
         '/api/admin/refunds': RefundRequestEndpoints['list'],
