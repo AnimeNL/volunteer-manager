@@ -48,12 +48,15 @@ function formatActivityChange(change: {
 interface HistoryQuery {
     festivalId: number;
     activityId?: number;  // only for activity queries
+    search?: string;
     sort: {
         field: 'id' | 'severity' | 'date';
         direction?: 'asc' | 'desc';
     };
-    page: number;
-    pageSize: number;
+    page: {
+        limit: number;
+        offset: number;
+    };
 }
 
 /**
@@ -76,6 +79,8 @@ async function queryActivitiesHistory(query: HistoryQuery): Promise<HistoryQuery
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(query.festivalId))
             .and(tActivitiesLogs.activityId.isNotNull())
+            .and(tActivities.activityTitle.containsIfValue(query.search).or(
+                usersJoin.name.containsIfValue(query.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -96,8 +101,8 @@ async function queryActivitiesHistory(query: HistoryQuery): Promise<HistoryQuery
             },
         })
         .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.pageSize)
-            .offset(query.pageSize * query.page)
+        .limit(query.page.limit)
+            .offset(query.page.offset)
         .executeSelectPage();
 
     return {
@@ -129,6 +134,9 @@ async function queryActivityHistory(query: HistoryQuery): Promise<HistoryQueryRe
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(query.festivalId))
             .and(tActivitiesLogs.activityId.equals(query.activityId!))
+            .and(tActivities.activityTitle.containsIfValue(query.search).or(
+                tActivitiesLogs.mutationFields.containsIfValue(query.search).or(
+                usersJoin.name.containsIfValue(query.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -149,8 +157,8 @@ async function queryActivityHistory(query: HistoryQuery): Promise<HistoryQueryRe
             },
         })
         .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.pageSize)
-            .offset(query.pageSize * query.page)
+        .limit(query.page.limit)
+            .offset(query.page.offset)
         .executeSelectPage();
 
     return {
@@ -182,6 +190,9 @@ async function queryAreasHistory(query: HistoryQuery): Promise<HistoryQueryResul
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(query.festivalId))
             .and(tActivitiesLogs.areaId.isNotNull())
+            .and(tActivitiesAreas.areaName.containsIfValue(query.search).or(
+                tActivitiesAreas.areaDisplayName.containsIfValue(query.search).or(
+                usersJoin.name.containsIfValue(query.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -199,8 +210,8 @@ async function queryAreasHistory(query: HistoryQuery): Promise<HistoryQueryResul
             },
         })
         .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.pageSize)
-            .offset(query.pageSize * query.page)
+        .limit(query.page.limit)
+            .offset(query.page.offset)
         .executeSelectPage();
 
     return {
@@ -232,6 +243,9 @@ async function queryLocationsHistory(query: HistoryQuery): Promise<HistoryQueryR
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(query.festivalId))
             .and(tActivitiesLogs.locationId.isNotNull())
+            .and(tActivitiesLocations.locationName.containsIfValue(query.search).or(
+                tActivitiesLocations.locationDisplayName.containsIfValue(query.search).or(
+                usersJoin.name.containsIfValue(query.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -250,8 +264,8 @@ async function queryLocationsHistory(query: HistoryQuery): Promise<HistoryQueryR
             },
         })
         .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.pageSize)
-            .offset(query.pageSize * query.page)
+        .limit(query.page.limit)
+            .offset(query.page.offset)
         .executeSelectPage();
 
     return {
@@ -285,6 +299,8 @@ async function queryRequestsHistory(query: HistoryQuery): Promise<HistoryQueryRe
             .and(tActivitiesLogs.activityId.isNotNull())
             .and(tActivitiesLogs.mutation.equals(kMutation.Updated))
             .and(tActivitiesLogs.mutationFields.contains('help needed'))
+            .and(tActivities.activityTitle.containsIfValue(query.search).or(
+                usersJoin.name.containsIfValue(query.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -301,8 +317,8 @@ async function queryRequestsHistory(query: HistoryQuery): Promise<HistoryQueryRe
             },
         })
         .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.pageSize)
-            .offset(query.pageSize * query.page)
+        .limit(query.page.limit)
+            .offset(query.page.offset)
         .executeSelectPage();
 
     return {
@@ -390,23 +406,26 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
         if (!context.event.festivalId)
             notFound();
 
+        if (typeof params.start !== 'number')
+            throw new Error(`Invalid type for "start" (${typeof params.start}), expected a number`);
+
         const query: HistoryQuery = {
             festivalId: context.event.festivalId,
             sort: {
                 field: 'date',
                 direction: 'desc',
             },
-            page: 0,
-            pageSize: 50,
+            page: {
+                limit: 1 + (params.end - params.start),
+                offset: params.start,
+            },
         };
 
         if (context.scope.category === 'activity')
             query.activityId = context.scope.activityId;
 
-        if (!!params.paginationModel) {
-            query.page = params.paginationModel.page;
-            query.pageSize = params.paginationModel.pageSize;
-        }
+        if (!!params.filterModel.quickFilterValues?.length)
+            query.search = params.filterModel.quickFilterValues[0];
 
         if (!!params.sortModel.length) {
             switch (params.sortModel[0].field) {
@@ -483,7 +502,7 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
                 the official AnimeCon planning tool.
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
-                       defaultSort={{ field: 'date', sort: 'desc' }} />
+                       defaultSort={{ field: 'date', sort: 'desc' }} enableToolbar pageSize={10} />
         </Section>
     );
 }

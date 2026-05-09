@@ -45,6 +45,11 @@ interface DataTableClientCommonProps<
     };
 
     /**
+     * Whether to enable the toolbar that allows
+     */
+    enableToolbar?: boolean;
+
+    /**
      * The default number of rows that can be displayed per page.
      * @default 50
      */
@@ -139,6 +144,20 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 columns={columns}
                 dataSource={dataSource}
 
+                pageSizeOptions={[ 10, 25, 50, 100 ]}
+                pagination
+
+                disableColumnFilter
+                disableColumnMenu
+                disableColumnReorder
+                disableColumnSelector
+                disableMultipleColumnsSorting
+                disablePivoting
+                disableRowGrouping
+
+                showToolbar={props.enableToolbar}
+
+                density="compact"
                 initialState={{
                     pagination: {
                         paginationModel: { pageSize: props.pageSize ?? 50, page: 0 },
@@ -146,6 +165,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     sorting: {
                         sortModel: [ props.defaultSort ],
                     }
+                }}
+                slotProps={{
+                    toolbar: {
+                        csvOptions: { disableToolbarButton: true },
+                        excelOptions: { disableToolbarButton: true },
+                        printOptions: { disableToolbarButton: true },
+                    },
                 }}
 
                 onDataSourceError={handleDataSourceError} />
