@@ -447,9 +447,11 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
     const columns: Column<ExtractRowModel<typeof historyDataSource>>[] = [
         {
             field: 'severity',
+            template: 'severity',
         },
         {
             field: 'date',
+            template: 'localDate',
         },
         {
             field: 'change',

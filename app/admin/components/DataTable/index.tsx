@@ -16,8 +16,6 @@
 //     - Tree data?
 // - Server side:
 //   - Logging (for mutations)
-//   - Permission checks
-//   - Zod validation
 
 import { z } from 'zod';
 

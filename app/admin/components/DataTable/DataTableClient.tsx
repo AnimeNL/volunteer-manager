@@ -5,7 +5,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { DataGridPremium, type GridDataSource, type GridValidRowModel }
+import { DataGridPremium, type GridColDef, type GridDataSource, type GridValidRowModel }
     from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
@@ -13,6 +13,8 @@ import Alert from '@mui/material/Alert';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { ExtractContext, ExtractRowModel } from './Types';
+
+import { kColumnTemplates } from './ColumnTemplates';
 
 /**
  * Props accepted by the <DataTableClient> component.
@@ -88,6 +90,27 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const context = useMemo(() => 'context' in props ? props.context : {}, [ props ]);
 
     // ---------------------------------------------------------------------------------------------
+    // Compose the columns. Various common, canonical column types have templates to avoid having to
+    // redefine their interface several times, which are handled here.
+    //
+    // TODO: Automatically generated columns (e.g. reordering, deletion)
+    // TODO: Column amendments (e.g. addition)
+    // ---------------------------------------------------------------------------------------------
+
+    const columns = useMemo(() => {
+        const columns: GridColDef[] = [ /* none yet */ ];
+        for (const column of props.columns) {
+            if ('template' in column && !!column.template)
+                columns.push(kColumnTemplates[column.template](column));
+            else
+                columns.push(column);
+        }
+
+        return columns;
+
+    }, [ props.columns ]);
+
+    // ---------------------------------------------------------------------------------------------
     // Compose the `GridDataSource` based on the available Server Actions in the `props`.
     // ---------------------------------------------------------------------------------------------
 
@@ -113,7 +136,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     {error}
                 </Alert> }
             <DataGridPremium
-                columns={props.columns}
+                columns={columns}
                 dataSource={dataSource}
 
                 initialState={{

@@ -3,6 +3,8 @@
 
 import type { GridColDef, GridValidRowModel } from '@mui/x-data-grid-premium';
 
+import type { ColumnTemplate } from './ColumnTemplates';
+
 /**
  * Interface that defines an individual column to include in a <DataTable>.
  */
@@ -11,5 +13,15 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
     /**
      * The unique identifier of the column. Strictly typed based on the `RowModel`.
      */
-    field: keyof RowModel;
-}
+    field: keyof RowModel & string;
+
+    /**
+     * Optional predefined column templates supported by our <DataTableClient> implementation.
+     * Available values include:
+     *
+     * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
+     * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
+     * * `severity`         Fixed-width column for an icon-based severity indication.
+     */
+    template?: ColumnTemplate;
+};
