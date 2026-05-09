@@ -2,17 +2,13 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { type ZodObject, z } from 'zod';
-import { notFound } from 'next/navigation';
+import { notFound, unauthorized } from 'next/navigation';
 
 import type { GridGetRowsParams, GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
-import type { DataSource } from './DataSource';
+import type { DataSource, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
-
-/**
- * Types of operations that can be executed through the DataSourceWrapper.
- */
-type Operation = 'list';
+import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
  * Wrapper class around data source implementations, which provide visitor authentication, input
@@ -28,6 +24,11 @@ export class DataSourceWrapper {
         this.#context = context;
         this.#rowModel = rowModel;
 
+        // Data sources are predominantely expected to be used with MUI X's DataGrid, which requires
+        // that an `id` field exists because those will be used as React keys for stable iteration.
+        if (!Object.hasOwn(this.#rowModel.shape, 'id'))
+            throw new Error('Data source row models are required to have an "id" field');
+
         this.#dataSource = dataSource;
     }
 
@@ -37,10 +38,15 @@ export class DataSourceWrapper {
      */
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
-    async call(operation: Operation, context: unknown, ...args: any) {
-        // TODO: Init?
+    async call(operation: DataSourceOperation, context: unknown, ...args: any) {
+        const authenticationContext = await getAuthenticationContext();
+        if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.())
+            unauthorized();
 
-        const props: DataSourceProps = { /* not implemented */ };
+        const props: DataSourceProps = {
+            access: authenticationContext.access,
+            authenticationContext,
+        };
 
         const verifiedContextResult = await z.safeParseAsync(this.#context, context);
         if (!verifiedContextResult.success)
@@ -48,11 +54,16 @@ export class DataSourceWrapper {
 
         const verifiedContext = verifiedContextResult.data;
 
+        // Require the operation to be authorized. The implementation of this method will throw an
+        // exception when this fails (usually `forbidden()`), so no need to catch.
+        await this.#dataSource.authorize(operation, props, verifiedContext);
+
         switch (operation) {
             case 'list':
-                return this.#dataSource.list(args[0], props, verifiedContext);
+                return this.#dataSource.list?.(args[0], props, verifiedContext) ?? {
+                    rows: [],
+                    rowCount: 0,
+                };
         }
-
-        // TODO: Postfix?
     }
 }

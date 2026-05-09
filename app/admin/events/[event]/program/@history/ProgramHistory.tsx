@@ -11,9 +11,11 @@ import { type Column, type ExtractContext, type ExtractRowModel, DataTable, crea
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs, tUsers }
     from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
 import { kMutation, kMutationSeverity } from '@lib/database/Types';
 
 /**
@@ -376,7 +378,13 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
         z.object({ category: z.literal('requests') }),
     ]),
 }), historyDataSourceRowModel, {
-    // TODO: Authentication
+    async authorize(operation, props, context) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: context.event.slug,
+            team: kAnyTeam,
+        });
+    },
 
     async list(params, props, context) {
         if (!context.event.festivalId)

@@ -1,6 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden } from 'next/navigation';
 import { z } from 'zod';
 
 import type { Column, ExtractContext, ExtractRowModel } from '@app/admin/components/DataTable';
@@ -20,6 +21,11 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     name: z.string(),
     location: z.string().optional(),
 }), {
+    async authorize(operation, props, context) {
+        if (!props.access.can('admin'))
+            forbidden();
+    },
+
     async list(params, props, context) {
         const results = await db.selectFrom(tEvents)
             .select({
