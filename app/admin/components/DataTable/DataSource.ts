@@ -17,10 +17,9 @@ export interface DataSource<ZodContext, ZodRowModel> {
     /**
      * Retrieves the rows in accordance with the `params`.
      */
-    getRows(params: DataSourceGetRowsParams<ZodRowModel>,
-            props: DataSourceProps,
-            context: z.infer<ZodContext>)
-        : Promise<DataSourceGetRowsResponse<ZodRowModel>>;
+    list(params: DataSourceGetRowsParams<ZodRowModel>,
+         props: DataSourceProps,
+         context: z.infer<ZodContext>): Promise<DataSourceGetRowsResponse<ZodRowModel>>;
 }
 
 /**

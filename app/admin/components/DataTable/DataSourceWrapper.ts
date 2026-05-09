@@ -10,9 +10,9 @@ import type { DataSource } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 
 /**
- * Types of calls that can be passed through the DataSourceWrapper.
+ * Types of operations that can be executed through the DataSourceWrapper.
  */
-type CallType = 'getRows';
+type Operation = 'list';
 
 /**
  * Wrapper class around data source implementations, which provide visitor authentication, input
@@ -32,12 +32,12 @@ export class DataSourceWrapper {
     }
 
     /**
-     * Calls into the given `action` on the data sourced wrapped by `this`. The `context` will be
+     * Calls into the given `operation` on the data sourced wrapped by `this`. The `context` will be
      * validated, whereas the parameters will be trusted to the extent possible.
      */
-    async call(action: 'getRows', context: unknown, params: GridGetRowsParams)
+    async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
-    async call(action: CallType, context: unknown, ...args: any) {
+    async call(operation: Operation, context: unknown, ...args: any) {
         // TODO: Init?
 
         const props: DataSourceProps = { /* not implemented */ };
@@ -48,9 +48,9 @@ export class DataSourceWrapper {
 
         const verifiedContext = verifiedContextResult.data;
 
-        switch (action) {
-            case 'getRows':
-                return this.#dataSource.getRows(args[0], props, verifiedContext);
+        switch (operation) {
+            case 'list':
+                return this.#dataSource.list(args[0], props, verifiedContext);
         }
 
         // TODO: Postfix?

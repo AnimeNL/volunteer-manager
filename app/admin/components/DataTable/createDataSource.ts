@@ -29,7 +29,7 @@ const kDataSourceRegistry: Map<string, DataSourceWrapper> = new Map;
  *   id: z.number(),
  *   name: z.string(),
  * }), {
- *   async getRows(params, props, context) {
+ *   async list(params, props, context) {
  *     return {
  *       rows: [],
  *       rowCount: 0,
@@ -81,20 +81,20 @@ export function createDataSource(...args: any) {
     kDataSourceRegistry.set(dataSourceId, dataSourceWrapper);
 
     return {
-        getRows: getRowsProxy.bind(null, dataSourceId),
+        list: listProxy.bind(null, dataSourceId),
     };
 }
 
 /**
  * Proxy Server Action function towards the `DataSourceWrapper` associated with the given
- * `dataSourceId` for a `getRows()` call.
+ * `dataSourceId` for a `list()` call.
  */
-async function getRowsProxy(dataSourceId: string, context: unknown, params: GridGetRowsParams) {
+async function listProxy(dataSourceId: string, context: unknown, params: GridGetRowsParams) {
     'use server';
 
     const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
     if (!dataSourceWrapper)
         notFound();
 
-    return dataSourceWrapper.call('getRows', context, params);
+    return dataSourceWrapper.call('list', context, params);
 }

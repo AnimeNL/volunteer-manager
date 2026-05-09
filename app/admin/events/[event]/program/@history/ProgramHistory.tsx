@@ -378,7 +378,7 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
 }), historyDataSourceRowModel, {
     // TODO: Authentication
 
-    async getRows(params, props, context) {
+    async list(params, props, context) {
         if (!context.event.festivalId)
             notFound();
 

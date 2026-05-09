@@ -93,7 +93,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
     const dataSource = useMemo((): GridDataSource => ({
         getRows: async (params) => {
-            return props.source.getRows(context, params);
+            return props.source.list(context, params);
         },
     }), [ context, props.source ]);
 
