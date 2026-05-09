@@ -25,4 +25,9 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
      * * `severity`         Fixed-width column for an icon-based severity indication.
      */
     template?: ColumnTemplate;
+
+    /**
+     * Props that should passed to template transformer functions.
+     */
+    templateProps?: Record<string, string | number>;
 };

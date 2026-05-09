@@ -36,7 +36,7 @@ export const kColumnTemplates = {
                 return (
                     <Typography component="span" variant="body2"
                                 sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-                        Unknown
+                        {column.templateProps?.noAccountLabel ?? 'Unknown'}
                     </Typography>
                 );
             }
@@ -134,7 +134,9 @@ export const kColumnTemplates = {
 
     // ---------------------------------------------------------------------------------------------
 
-} as const satisfies { [k: string]: (column: GridColDef) => GridColDef };
+} as const satisfies { [k: string]: (column: GridColDef & {
+    templateProps?: Record<string, string | number>
+}) => GridColDef };
 
 /**
  * List of column templates that are predefined and available for generic use.

@@ -482,6 +482,10 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
         {
             field: 'user',
             template: 'account',
+            templateProps: {
+                noAccountLabel: 'AnPlan',
+            },
+
             flex: 1,
 
             headerName: 'Account',
