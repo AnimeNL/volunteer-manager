@@ -19,6 +19,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
      * Optional predefined column templates supported by our <DataTableClient> implementation.
      * Available values include:
      *
+     * * `account`          Flexible column for displaying a(n optionally linked) user account.
      * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
      * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
      * * `severity`         Fixed-width column for an icon-based severity indication.

@@ -16,6 +16,11 @@ import { createAdminTheme } from './AdminClientTheme';
  */
 interface AdminClientProvidersProps {
     /**
+     * Whether the signed in user has the ability to access account pages.
+     */
+    canAccessAccounts: boolean;
+
+    /**
      * Whether to enable responsive layout capabilities throughout the administration area.
      */
     enableResponsiveLayout?: boolean;
@@ -38,6 +43,8 @@ interface AdminClientProvidersProps {
  * Client-side providers that need to be set as part of the administration area layout.
  */
 export function AdminClientProviders(props: React.PropsWithChildren<AdminClientProvidersProps>) {
+    const { canAccessAccounts } = props;
+
     const isMobile =
         !!props.enableResponsiveLayout &&
         // biome-ignore lint/correctness/useHookAtTopLevel: intentional violation
@@ -45,7 +52,7 @@ export function AdminClientProviders(props: React.PropsWithChildren<AdminClientP
 
     return (
         <ThemeProvider theme={createAdminTheme(props.paletteMode, props.palette)}>
-            <AdminClientContext.Provider value={{ isMobile }}>
+            <AdminClientContext.Provider value={{ canAccessAccounts, isMobile }}>
                 <NuqsAdapter>
                     {props.children}
                 </NuqsAdapter>

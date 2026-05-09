@@ -455,9 +455,18 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
         },
         {
             field: 'change',
+            flex: 3,
+
+            headerName: 'Change',
+            sortable: false,
         },
         {
             field: 'user',
+            template: 'account',
+            flex: 1,
+
+            headerName: 'Account',
+            sortable: false,
         },
     ];
 
