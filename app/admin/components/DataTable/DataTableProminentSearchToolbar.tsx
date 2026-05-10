@@ -33,7 +33,7 @@ const StyledQuickFilter = styled(QuickFilter)({
  *
  * Context is derived from the MUI X DataGrid context API, no props are necessary.
  */
-export function DataTableProminentToolbar() {
+export function DataTableProminentSearchToolbar() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {

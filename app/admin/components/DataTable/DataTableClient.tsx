@@ -13,7 +13,8 @@ import Alert from '@mui/material/Alert';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { ExtractContext, ExtractRowModel } from './Types';
-import { DataTableProminentToolbar } from './DataTableProminentToolbar';
+import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
+import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
 
 import { kColumnTemplates } from './ColumnTemplates';
 
@@ -176,7 +177,14 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 }}
 
                 slots={{
-                    toolbar: DataTableProminentToolbar,
+                    footer:
+                        props.enableSearch === 'subtle'
+                            ? DataTableResponsiveFooterWithQuickSearch
+                            : DataTableResponsiveFooter,
+                    toolbar:
+                        props.enableSearch === 'prominent'
+                            ? DataTableProminentSearchToolbar
+                            : undefined,
                 }}
 
                 onDataSourceError={handleDataSourceError} />
