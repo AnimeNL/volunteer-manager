@@ -13,8 +13,10 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -84,10 +86,31 @@ export function DataTableResponsiveFooter(
  * be displayed on desktop, as we don't consider the screen real estate to be worth it on mobile.
  */
 function DataTableResponsivePageSizeSelector() {
+    const apiRef = useGridApiContext();
+    const rootProps = useGridRootProps();
+
+    const paginationModel = useGridSelector(apiRef, gridPaginationModelSelector);
+
+    const handlePageSizeChange = useCallback((event: SelectChangeEvent<number>) => {
+        apiRef.current.setPageSize(event.target.value);
+    }, [ apiRef ]);
+
+    // ---------------------------------------------------------------------------------------------
+
     return (
-        <Typography>
-            TODO: Rows page page?
-        </Typography>
+        <Select size="small" value={paginationModel.pageSize} onChange={handlePageSizeChange}>
+            { rootProps.pageSizeOptions.map(inputPageSize => {
+                const pageSize =
+                    typeof inputPageSize === 'object' ? inputPageSize.value
+                                                      : inputPageSize;
+
+                return (
+                    <MenuItem key={pageSize} value={pageSize}>
+                        {pageSize}
+                    </MenuItem>
+                );
+            } )}
+        </Select>
     );
 }
 
