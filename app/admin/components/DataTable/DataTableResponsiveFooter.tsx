@@ -73,7 +73,7 @@ export function DataTableResponsiveFooter(
                 alignItems: { xs: 'stretch', md: 'center' },
                 justifyContent: 'space-between',
             }} {...otherProps}>
-                { !!quickSearch && <DataTableResponsiveQuickSearch /> }
+                { !!quickSearch && <DataTableResponsiveQuickSearch isMobile={isMobile} /> }
                 { (!quickSearch && !isMobile) && <Box /> }
                 { !rootProps.hideFooterPagination &&
                     <Box>
@@ -203,20 +203,29 @@ type QuickSearchState = { expanded: boolean };
  * Component that provides a responsive quick search experience as part of the footer. On desktop
  * it's collapsed by default but can be expanded, on mobile it's always fully visible.
  */
-function DataTableResponsiveQuickSearch() {
+function DataTableResponsiveQuickSearch(props: { isMobile: boolean }) {
     return (
-        <StyledToolbar>
-            <StyledQuickFilter defaultExpanded>
-                <QuickFilterTrigger render={ (triggerProps: object, state) => (
-                    <Tooltip title="Search" enterDelay={0}>
-                        <StyledToolbarButton {...triggerProps}
-                                             ownerState={{ expanded: state.expanded }}
-                                             color="default"
-                                             aria-disabled={state.expanded}>
-                            <SearchIcon fontSize="small" />
-                        </StyledToolbarButton>
-                    </Tooltip>
-                )} />
+        <StyledToolbar sx={ props.isMobile ? {
+            minHeight: 40,
+            paddingTop: 2,
+            paddingBottom: 1,
+
+            '& > div': { width: '100%' },
+
+        } : { /* empty */ }}>
+
+            <StyledQuickFilter expanded={props.isMobile ? true : undefined}>
+                { !props.isMobile &&
+                    <QuickFilterTrigger render={ (triggerProps: object, state) => (
+                        <Tooltip title="Search" enterDelay={0}>
+                            <StyledToolbarButton {...triggerProps}
+                                                 ownerState={{ expanded: state.expanded }}
+                                                 color="default"
+                                                 aria-disabled={state.expanded}>
+                                <SearchIcon fontSize="small" />
+                            </StyledToolbarButton>
+                        </Tooltip>
+                    )} /> }
 
                 <QuickFilterControl render={({ ref, ...controlProps }, state) => (
                     <StyledTextField {...controlProps}
@@ -248,9 +257,11 @@ function DataTableResponsiveQuickSearch() {
                                              ...controlProps.slotProps?.input,
                                          },
                                          ...controlProps.slotProps,
-                                     }} />
+                                     }}
+                                     sx={{ width: props.isMobile ? '100%' : undefined }} />
                 )} />
             </StyledQuickFilter>
+
         </StyledToolbar>
     );
 }
