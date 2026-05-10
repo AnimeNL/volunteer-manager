@@ -13,8 +13,14 @@ import Alert from '@mui/material/Alert';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { ExtractContext, ExtractRowModel } from './Types';
+import { DataTableProminentToolbar } from './DataTableProminentToolbar';
 
 import { kColumnTemplates } from './ColumnTemplates';
+
+/**
+ * Options that are available for page size selection of data tables.
+ */
+const kPageSizeOptions = [ 10, 25, 50, 100 ] as const;
 
 /**
  * Props accepted by the <DataTableClient> component.
@@ -45,15 +51,17 @@ interface DataTableClientCommonProps<
     };
 
     /**
-     * Whether to enable the toolbar that allows
+     * Whether the ability to search in this data source should be enabled. Prominent search will be
+     * shown in the toolbar above the data table, which will also capture the <ctrl>+<f> keyboard
+     * shortcut. Subtle search will be displayed in the footer, collapsed by default.
      */
-    enableToolbar?: boolean;
+    enableSearch?: 'prominent' | 'subtle';
 
     /**
      * The default number of rows that can be displayed per page.
      * @default 50
      */
-    pageSize?: 10 | 25 | 50 | 100;
+    pageSize?: typeof kPageSizeOptions[number];
 
     /**
      * Server-side source through which the data table's contents will be acquired.
@@ -144,7 +152,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 columns={columns}
                 dataSource={dataSource}
 
-                pageSizeOptions={[ 10, 25, 50, 100 ]}
+                density="compact"
+                pageSizeOptions={kPageSizeOptions}
                 pagination
 
                 disableColumnFilter
@@ -155,9 +164,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 disablePivoting
                 disableRowGrouping
 
-                showToolbar={props.enableToolbar}
+                showToolbar={ props.enableSearch === 'prominent' }
 
-                density="compact"
                 initialState={{
                     pagination: {
                         paginationModel: { pageSize: props.pageSize ?? 50, page: 0 },
@@ -166,12 +174,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                         sortModel: [ props.defaultSort ],
                     }
                 }}
-                slotProps={{
-                    toolbar: {
-                        csvOptions: { disableToolbarButton: true },
-                        excelOptions: { disableToolbarButton: true },
-                        printOptions: { disableToolbarButton: true },
-                    },
+
+                slots={{
+                    toolbar: DataTableProminentToolbar,
                 }}
 
                 onDataSourceError={handleDataSourceError} />

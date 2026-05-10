@@ -506,7 +506,8 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
                 the official AnimeCon planning tool.
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
-                       defaultSort={{ field: 'date', sort: 'desc' }} enableToolbar pageSize={10} />
+                       defaultSort={{ field: 'date', sort: 'desc' }} pageSize={10}
+                       enableSearch="prominent" />
         </Section>
     );
 }
