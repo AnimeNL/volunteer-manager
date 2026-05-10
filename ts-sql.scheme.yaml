@@ -23,6 +23,10 @@ tables:
     type: enum('Registered','Cancelled','Accepted','Rejected')
     nullable: false
     default: "'Registered'"
+  - name: registration_owner_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
   - name: registration_notes
     type: text
     nullable: true
@@ -179,6 +183,7 @@ tables:
       `role_id` int(4) unsigned NOT NULL,
       `registration_date` datetime DEFAULT NULL,
       `registration_status` enum('Registered','Cancelled','Accepted','Rejected') NOT NULL DEFAULT 'Registered',
+      `registration_owner_id` int(4) unsigned DEFAULT NULL,
       `registration_notes` text DEFAULT NULL,
       `shirt_fit` enum('Regular','Girly') NOT NULL DEFAULT 'Regular',
       `shirt_size` enum('XS','S','M','L','XL','XXL','3XL','4XL') DEFAULT NULL,

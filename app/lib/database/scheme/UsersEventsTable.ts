@@ -27,6 +27,7 @@ export class UsersEventsTable extends Table<DBConnection, 'UsersEventsTable'> {
     roleId = this.column('role_id', 'int');
     registrationDate = this.optionalColumnWithDefaultValue<ZonedDateTime>('registration_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     registrationStatus = this.columnWithDefaultValue<RegistrationStatus>('registration_status', 'enum', 'RegistrationStatus');
+    registrationOwnerId = this.optionalColumnWithDefaultValue('registration_owner_id', 'int');
     registrationNotes = this.optionalColumnWithDefaultValue('registration_notes', 'string');
     shirtFit = this.columnWithDefaultValue<ShirtFit>('shirt_fit', 'enum', 'ShirtFit');
     shirtSize = this.optionalColumnWithDefaultValue<ShirtSize>('shirt_size', 'enum', 'ShirtSize');

@@ -41,6 +41,80 @@ async function getTeamId(team: string): Promise<number | undefined> {
 const kNoDataRequired = z.object({ /* no parameters */ });
 
 /**
+ * Server action through which an application can be "claimed", marking it as being in progress so
+ * that other people don't accidentally pick up the same application.
+ */
+export async function claimApplication(
+    event: string, team: string, userId: number, formData: unknown)
+{
+    'use server';
+    return executeServerAction(formData, kApplicationDecisionData, async (data, props) => {
+        await requireAuthenticationContext({
+            check: 'admin',
+            permission: {
+                permission: 'event.applications',
+                operation: 'update',
+                scope: { event, team },
+            },
+        });
+
+        const eventId = await getEventId(event);
+        const teamId = await getTeamId(team);
+
+        if (!eventId || !teamId)
+            notFound();
+
+        const claimedByUsersJoin = tUsers.forUseInLeftJoinAs('cbuj');
+
+        const dbInstance = db;
+        const existingClaim = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .leftJoin(claimedByUsersJoin)
+                .on(claimedByUsersJoin.userId.equals(tUsersEvents.registrationOwnerId))
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(eventId))
+                .and(tUsersEvents.teamId.equals(teamId))
+            .select({
+                name: tUsers.name,
+                claimedBy: claimedByUsersJoin.name,
+            })
+            .executeSelectOne();
+
+        await dbInstance.update(tUsersEvents)
+            .set({
+                registrationOwnerId:
+                    !!existingClaim.claimedBy ? null
+                                              : props.user.id,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(eventId))
+                .and(tUsersEvents.teamId.equals(teamId))
+            .executeUpdate();
+
+        RecordLog({
+            type:
+                !!existingClaim.claimedBy ? kLogType.AdminEventApplicationRelease
+                                          : kLogType.AdminEventApplicationClaim,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+            data: {
+                event, team,
+            },
+        });
+
+        return {
+            success: true,
+            close: true,
+
+            message:
+                `The application has been ${!!existingClaim.claimedBy ? 'released' : 'claimed'}`,
+        };
+    });
+}
+
+/**
  * Zod type that describes that an application decision has been made.
  */
 const kApplicationDecisionData = z.object({

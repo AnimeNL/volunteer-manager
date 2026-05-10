@@ -72,6 +72,11 @@ export type ServerActionResult = {
     clear?: boolean;
 
     /**
+     * Whether any dialog that the form was displayed in should be closed.
+     */
+    close?: boolean;
+
+    /**
      * Optional message that can be presented to the user.
      */
     message?: string;

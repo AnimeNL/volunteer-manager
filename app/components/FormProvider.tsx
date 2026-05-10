@@ -64,6 +64,12 @@ export interface FormProviderProps {
     form?: ReturnType<typeof useForm>;
 
     /**
+     * Optional callback that can be passed when the dialog should be closed in response to the
+     * Server Action.
+     */
+    onClose?: () => void;
+
+    /**
      * Name of the timezone through which dates and times included in the `defaultValues` should be
      * interpret. Defaults to UTC.
      */
@@ -174,6 +180,9 @@ export function FormProvider(props: React.PropsWithChildren<FormProviderProps>) 
                     for (const field of Object.keys(form.getValues()))
                         form.setValue(field, /* clear= */ '');
                 }
+
+                if (!!result.close)
+                    props.onClose?.();
 
                 if (!!result.redirect)
                     router.push(result.redirect);

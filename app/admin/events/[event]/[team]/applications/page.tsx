@@ -57,7 +57,7 @@ export default async function ApplicationsPage(
         team: params.team,
     };
 
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params, {
         permission: 'event.applications',
         operation: 'read',
         scope: accessScope,
@@ -73,6 +73,8 @@ export default async function ApplicationsPage(
     const storageJoin = tStorage.forUseInLeftJoin();
     const usersEventsJoin = tUsersEvents.forUseInLeftJoinAs('previous_events');
 
+    const claimedByUsersJoin = tUsers.forUseInLeftJoinAs('cbuj');
+
     const unfilteredApplications = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))
@@ -83,6 +85,8 @@ export default async function ApplicationsPage(
         .leftJoin(usersEventsJoin)
             .on(usersEventsJoin.userId.equals(tUsersEvents.userId))
             .and(usersEventsJoin.eventId.notEquals(tUsersEvents.eventId))
+        .leftJoin(claimedByUsersJoin)
+            .on(claimedByUsersJoin.userId.equals(tUsersEvents.registrationOwnerId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
             .and(tUsersEvents.registrationStatus.in(
@@ -104,6 +108,10 @@ export default async function ApplicationsPage(
             preferenceTimingStart: tUsersEvents.preferenceTimingStart,
             preferenceTimingEnd: tUsersEvents.preferenceTimingEnd,
             history: dbInstance.count(usersEventsJoin.eventId),
+            claim: {
+                name: claimedByUsersJoin.name,
+                isCurrentUser: claimedByUsersJoin.userId.equals(user.id),
+            },
             suspended: tUsers.participationSuspended,
         })
         .groupBy(tUsersEvents.userId)
@@ -139,11 +147,13 @@ export default async function ApplicationsPage(
     // ---------------------------------------------------------------------------------------------
 
     let approveApplicationFn: PartialServerAction<number> | undefined;
+    let claimApplicationFn: PartialServerAction<number> | undefined;
     let moveApplicationFn: PartialServerAction<number> | undefined;
     let rejectApplicationFn: PartialServerAction<number> | undefined;
 
     if (access.can('event.applications', 'update', accessScope)) {
         approveApplicationFn = actions.decideApplication.bind(null, event.slug, team.slug, true);
+        claimApplicationFn = actions.claimApplication.bind(null, event.slug, team.slug);
         moveApplicationFn = actions.moveApplication.bind(null, event.slug, team.slug);
         rejectApplicationFn = actions.decideApplication.bind(null, event.slug, team.slug, false);
     }
@@ -224,6 +234,7 @@ export default async function ApplicationsPage(
                 <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                     { applications.map(application => {
                         const approveFn = approveApplicationFn?.bind(null, application.userId);
+                        const claimFn = claimApplicationFn?.bind(null, application.userId);
                         const moveFn = moveApplicationFn?.bind(null, application.userId);
                         const rejectFn = rejectApplicationFn?.bind(null, application.userId);
 
@@ -234,7 +245,7 @@ export default async function ApplicationsPage(
                                              canAccessAccounts={canAccessAccounts}
                                              canRespondSilently={canRespondSilently}
                                              event={event.slug} team={team.slug}
-                                             approveFn={approveFn} moveFn={moveFn}
+                                             approveFn={approveFn} claimFn={claimFn} moveFn={moveFn}
                                              rejectFn={rejectFn} />
                             </Grid>
                         );

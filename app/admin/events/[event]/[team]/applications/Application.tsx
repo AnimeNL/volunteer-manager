@@ -14,6 +14,7 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined';
 import IconButton from '@mui/material/IconButton';
@@ -22,6 +23,8 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
+import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 import Paper from '@mui/material/Paper';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import Stack from '@mui/material/Stack';
@@ -203,6 +206,14 @@ interface ApplicationProps {
         preferenceTimingEnd?: number;
 
         /**
+         * Information about the owner of this application, i.e. the user who has claimed it.
+         */
+        claim?: {
+            name: string;
+            isCurrentUser: boolean;
+        };
+
+        /**
          * Reason that this applicant's account has been suspended, if any.
          */
         suspended?: string;
@@ -239,6 +250,11 @@ interface ApplicationProps {
     approveFn?: ServerAction;
 
     /**
+     * Server Action to claim an application as their own.
+     */
+    claimFn?: ServerAction;
+
+    /**
      * Server Action to invoke when the volunteer should be moved to another team.
      */
     moveFn?: ServerAction;
@@ -270,6 +286,9 @@ export function Application(props: ApplicationProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const [ claimEverOpen, setClaimEverOpen ] = useState<boolean>(false);
+    const [ claimOpen, setClaimOpen ] = useState<boolean>(false);
+
     const [ moveEverOpen, setMoveEverOpen ] = useState<boolean>(false);
     const [ moveOpen, setMoveOpen ] = useState<boolean>(false);
 
@@ -285,6 +304,31 @@ export function Application(props: ApplicationProps) {
             </IconButton>
         );
     }
+
+    const handleCloseClaim = useCallback(() => setClaimOpen(false), [ /* no dependencies */ ]);
+    const handleOpenClaim = useCallback(() => {
+        setClaimEverOpen(true);
+        setClaimOpen(true);
+    }, [ /* no dependencies */ ]);
+
+    let claimAction: React.ReactNode;
+    if (!!props.claimFn) {
+        claimAction = (
+            <IconButton onClick={handleOpenClaim} sx={{ mt: 1.5, mr: 1 }}>
+                { !!application.claim &&
+                    <Tooltip title="Release the claim">
+                        <LockOpenOutlinedIcon color="warning" fontSize="small" />
+                    </Tooltip> }
+                { !application.claim &&
+                    <Tooltip title="Claim this application">
+                        <LockPersonOutlinedIcon fontSize="small" />
+                    </Tooltip> }
+            </IconButton>
+        );
+    }
+
+    const claimedByAnotherPerson =
+        !!application.claim && !application.claim.isCurrentUser;
 
     const handleCloseMove = useCallback(() => setMoveOpen(false), [ /* no dependencies */ ]);
     const handleOpenMove = useCallback(() => {
@@ -304,10 +348,11 @@ export function Application(props: ApplicationProps) {
     }
 
     let actions: React.ReactNode;
-    if (!!accountAction && !!moveAction) {
+    if (!!accountAction || !!claimAction || !!moveAction) {
         actions = (
             <Stack direction="row">
                 {moveAction}
+                {claimAction}
                 {accountAction}
             </Stack>
         );
@@ -402,24 +447,51 @@ export function Application(props: ApplicationProps) {
                     <>
                         <Divider />
                         <CardActions disableSpacing sx={{ justifyContent: 'flex-end', gap: 2 }}>
+                            { !!application.claim &&
+                                <Chip color="warning" label={`Claimed by ${application.claim.name}`}
+                                      size="small" sx={{ ml: 1, mr: 'auto' }} /> }
+
                             { !!application.suspended &&
                                 <AccountRestrictedChip name={application.firstName}
                                                        reason={application.suspended}
                                                        sx={{ ml: 1, mr: 'auto' }} /> }
+
                             { !!props.rejectFn &&
                                 <Button size="small" color="error" startIcon={ <ThumbDownIcon /> }
+                                        disabled={claimedByAnotherPerson}
                                         onClick={handleRejectOpen}>
                                     Reject
                                 </Button> }
                             { !!props.approveFn &&
                                 <Button size="small" color="success" startIcon={ <ThumbUpIcon /> }
-                                        disabled={!!application.suspended}
+                                        disabled={!!application.suspended || claimedByAnotherPerson}
                                         onClick={handleApproveOpen}>
                                     Approve
                                 </Button> }
                         </CardActions>
                     </> }
             </Stack>
+
+            { (!!claimEverOpen && !!props.claimFn) &&
+                <ServerActionDialog action={props.claimFn} open={claimOpen}
+                                    onClose={handleCloseClaim}
+                                    title={`Claim ${application.firstName}'s application`}
+                                    submitLabel={ !application.claim ? 'Claim' : 'Release' }>
+                    <Typography sx={{ mb: 2 }}>
+                        { !application.claim &&
+                            <>
+                                You're about to claim <strong>{application.name}</strong>'s
+                                application, which helps signals to others that you're working on
+                                it. They will not be informed of this.
+                            </> }
+                        { !!application.claim &&
+                            <>
+                                You're about to release the claim on{' '}
+                                <strong>{application.name}</strong>'s application, opening it up for
+                                anyone to decide. They will not be informed of this.
+                            </> }
+                    </Typography>
+                </ServerActionDialog> }
 
             { (!!moveEverOpen && !!props.moveFn) &&
                 <ServerActionDialog action={props.moveFn} open={moveOpen} onClose={handleCloseMove}

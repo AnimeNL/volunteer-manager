@@ -80,7 +80,8 @@ export function ServerActionDialog<TFieldValues extends FieldValues = FieldValue
 
     return (
         <Dialog open={!!open} onClose={handleClose} fullWidth maxWidth={maxWidth}>
-            <FormProvider action={action} defaultValues={defaultValues} form={form}>
+            <FormProvider action={action} defaultValues={defaultValues} form={form}
+                          onClose={handleClose}>
                 <InnerServerActionDialog {...innerProps} onClose={handleClose}>
                     {children}
                 </InnerServerActionDialog>

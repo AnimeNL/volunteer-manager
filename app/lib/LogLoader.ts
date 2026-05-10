@@ -139,8 +139,14 @@ const kLogMessageFormatter: {
     [kLogType.AdminEventApplication]: (source, target, { event }) => {
         return `Applied for ${target?.name} to participate in ${event}`;
     },
+    [kLogType.AdminEventApplicationClaim]: (source, target) => {
+        return `Claimed ${target?.name}'s volunteering application`;
+    },
     [kLogType.AdminEventApplicationMove]: (source, target, { team }) => {
         return `Moved their application to the ${team} team`;
+    },
+    [kLogType.AdminEventApplicationRelease]: (source, target) => {
+        return `Released ${target?.name}'s volunteering application`;
     },
     [kLogType.AdminEventCreate]: (source, target, { event }) => `Created the ${event} event`,
     [kLogType.AdminEventDateMutation]: (source, target, { event, mutation }) => {
