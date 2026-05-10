@@ -6,19 +6,26 @@
 import { useCallback } from 'react';
 
 import type { GridSlotsComponentsProps } from '@mui/x-data-grid-premium';
-import { useGridApiContext, useGridRootProps, useGridSelector, gridPaginationModelSelector,
-    gridPaginationRowCountSelector, gridPageCountSelector } from '@mui/x-data-grid-premium';
+import { Toolbar, ToolbarButton, QuickFilter, QuickFilterControl, QuickFilterClear,
+    QuickFilterTrigger, useGridApiContext, useGridRootProps, useGridSelector,
+    gridPaginationModelSelector, gridPaginationRowCountSelector, gridPageCountSelector }
+        from '@mui/x-data-grid-premium';
 
 import Box from '@mui/material/Box';
+import CancelIcon from '@mui/icons-material/Cancel';
 import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import SearchIcon from '@mui/icons-material/Search';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
@@ -62,21 +69,22 @@ export function DataTableResponsiveFooter(
     return (
         <>
             <Divider />
-            <Grid container sx={{ p: 1 }} {...otherProps}>
-                { !!quickSearch &&
-                    <Grid size={{ xs: 12, md: 5 }}>
-                        <DataTableResponsiveQuickSearch />
-                    </Grid> }
-
+            <Stack direction={{ xs: 'column', md: 'row' }} sx={{
+                alignItems: { xs: 'stretch', md: 'center' },
+                justifyContent: 'space-between',
+            }} {...otherProps}>
+                { !!quickSearch && <DataTableResponsiveQuickSearch /> }
+                { (!quickSearch && !isMobile) && <Box /> }
                 { !rootProps.hideFooterPagination &&
-                    <Grid size={{ xs: 12, md: 7 }}>
+                    <Box>
                         { (!!isMobile && quickSearch) && <Divider sx={{ my: 1 }} /> }
                         <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
                             { !isMobile && <DataTableResponsivePageSizeSelector /> }
+                            { !isMobile && <Divider flexItem orientation="vertical" /> }
                             <DataTableResponsivePageNavigation isMobile={isMobile} />
                         </Stack>
-                    </Grid> }
-            </Grid>
+                    </Box>}
+            </Stack>
         </>
     );
 }
@@ -165,7 +173,7 @@ function DataTableResponsivePageNavigation(props: { isMobile: boolean }) {
 
     if (!props.isMobile) {
         return (
-            <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
+            <Stack sx={{ alignItems: 'center', pr: 1 }} direction="row" spacing={2}>
                 {pageCountComponent}
                 <Box>
                     {previousPageComponent}
@@ -187,13 +195,107 @@ function DataTableResponsivePageNavigation(props: { isMobile: boolean }) {
 }
 
 /**
+ * State of the quick search box.
+ */
+type QuickSearchState = { expanded: boolean };
+
+/**
  * Component that provides a responsive quick search experience as part of the footer. On desktop
  * it's collapsed by default but can be expanded, on mobile it's always fully visible.
  */
 function DataTableResponsiveQuickSearch() {
     return (
-        <Typography>
-            TODO: Quick search
-        </Typography>
+        <StyledToolbar>
+            <StyledQuickFilter defaultExpanded>
+                <QuickFilterTrigger render={ (triggerProps: object, state) => (
+                    <Tooltip title="Search" enterDelay={0}>
+                        <StyledToolbarButton {...triggerProps}
+                                             ownerState={{ expanded: state.expanded }}
+                                             color="default"
+                                             aria-disabled={state.expanded}>
+                            <SearchIcon fontSize="small" />
+                        </StyledToolbarButton>
+                    </Tooltip>
+                )} />
+
+                <QuickFilterControl render={({ ref, ...controlProps }, state) => (
+                    <StyledTextField {...controlProps}
+                                     ownerState={{ expanded: state.expanded }}
+                                     inputRef={ref}
+                                     aria-label="Search"
+                                     placeholder="Search..."
+                                     size="small"
+                                     slotProps={{
+                                         input: {
+                                             startAdornment: (
+                                                 <InputAdornment position="start">
+                                                     <SearchIcon fontSize="small" />
+                                                 </InputAdornment>
+                                             ),
+                                             endAdornment:
+                                                 state.value ? (
+                                                     <InputAdornment position="end">
+                                                         <QuickFilterClear
+                                                             edge="end"
+                                                             size="small"
+                                                             aria-label="Clear search"
+                                                             material={{ sx: { mr: -0.75 } }}>
+
+                                                             <CancelIcon fontSize="small" />
+                                                         </QuickFilterClear>
+                                                     </InputAdornment>) : null,
+
+                                             ...controlProps.slotProps?.input,
+                                         },
+                                         ...controlProps.slotProps,
+                                     }} />
+                )} />
+            </StyledQuickFilter>
+        </StyledToolbar>
     );
 }
+
+/**
+ * Styled variant of the MUI <Toolbar> component with the border removed.
+ */
+const StyledToolbar = styled(Toolbar)({
+    borderBottom: 0,
+});
+
+/**
+ * Styled variant of the MUI <QuickFilter> component to display the search button and box.
+ */
+const StyledQuickFilter = styled(QuickFilter)({
+    display: 'grid',
+    alignItems: 'center',
+    marginLeft: 'auto',
+});
+
+/**
+ * Styled variant of the MUI <ToolbarButton> so that it can expand outwards into a <TextField>
+ * component that takes text input, based on what the user wants to search for.
+ */
+const StyledToolbarButton = styled(ToolbarButton)<{ ownerState: QuickSearchState }>(
+    ({ theme, ownerState }) => ({
+        gridArea: '1 / 1',
+        width: 'min-content',
+        height: 'min-content',
+        zIndex: 1,
+        opacity: ownerState.expanded ? 0 : 1,
+        pointerEvents: ownerState.expanded ? 'none' : 'auto',
+        transition: theme.transitions.create(['opacity']),
+        marginLeft: 6,
+    }));
+
+/**
+ * Styled variant of the MUI <TextField> component so that it flows well into the available space,
+ * up to a defined maximum width.
+ */
+const StyledTextField = styled(TextField)<{ ownerState: QuickSearchState; }>(
+    ({ theme, ownerState }) => ({
+        gridArea: '1 / 1',
+        overflowX: 'clip',
+        width: ownerState.expanded ? 260 : 'var(--trigger-width)',
+        opacity: ownerState.expanded ? 1 : 0,
+        transition: theme.transitions.create(['width', 'opacity']),
+    }));
