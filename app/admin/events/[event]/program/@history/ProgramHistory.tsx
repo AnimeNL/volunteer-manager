@@ -6,8 +6,9 @@ import { z } from 'zod';
 
 import { default as MuiLink } from '@mui/material/Link';
 
-import { type Column, type ExtractContext, type ExtractRowModel, DataTable, createDataSource,
-    withContext, withRowModel, kEventTransformer } from '@app/admin/components/DataTable';
+import { type Column, type DataSourceListParams, type ExtractContext, type ExtractRowModel,
+    DataTable, createDataSource, withContext, withRowModel, kEventTransformer }
+        from '@app/admin/components/DataTable';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -43,23 +44,6 @@ function formatActivityChange(change: {
 }
 
 /**
- * Information that must be known when issuing a program history query.
- */
-interface HistoryQuery {
-    festivalId: number;
-    activityId?: number;  // only for activity queries
-    search?: string;
-    sort: {
-        field: 'id' | 'severity' | 'date';
-        direction?: 'asc' | 'desc';
-    };
-    page: {
-        limit: number;
-        offset: number;
-    };
-}
-
-/**
  * Information that must be returned when responding to a program history query.
  */
 interface HistoryQueryResult {
@@ -70,17 +54,19 @@ interface HistoryQueryResult {
 /**
  * Queries the history of all activities for a particular festival from the database.
  */
-async function queryActivitiesHistory(query: HistoryQuery): Promise<HistoryQueryResult> {
+async function queryActivitiesHistory(params: DataSourceListParams, festivalId: number)
+    : Promise<HistoryQueryResult>
+{
     const dbInstance = db;
     const history = await dbInstance.selectFrom(tActivitiesLogs)
         .innerJoin(tActivities)
             .on(tActivities.activityId.equals(tActivitiesLogs.activityId))
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
-        .where(tActivitiesLogs.festivalId.equals(query.festivalId))
+        .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.activityId.isNotNull())
-            .and(tActivities.activityTitle.containsIfValue(query.search).or(
-                usersJoin.name.containsIfValue(query.search)))
+            .and(tActivities.activityTitle.containsIfValue(params.search).or(
+                usersJoin.name.containsIfValue(params.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -100,9 +86,9 @@ async function queryActivitiesHistory(query: HistoryQuery): Promise<HistoryQuery
                 name: usersJoin.name,
             },
         })
-        .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.page.limit)
-            .offset(query.page.offset)
+        .orderBy(params.sort.field, params.sort.direction)
+        .limit(params.page.limit)
+            .offset(params.page.offset)
         .executeSelectPage();
 
     return {
@@ -125,18 +111,21 @@ async function queryActivitiesHistory(query: HistoryQuery): Promise<HistoryQuery
 /**
  * Queries the history of a particular activity for a particular festival from the database.
  */
-async function queryActivityHistory(query: HistoryQuery): Promise<HistoryQueryResult> {
+async function queryActivityHistory(
+    params: DataSourceListParams, festivalId: number, activityId: number)
+        : Promise<HistoryQueryResult>
+{
     const dbInstance = db;
     const history = await dbInstance.selectFrom(tActivitiesLogs)
         .innerJoin(tActivities)
             .on(tActivities.activityId.equals(tActivitiesLogs.activityId))
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
-        .where(tActivitiesLogs.festivalId.equals(query.festivalId))
-            .and(tActivitiesLogs.activityId.equals(query.activityId!))
-            .and(tActivities.activityTitle.containsIfValue(query.search).or(
-                tActivitiesLogs.mutationFields.containsIfValue(query.search).or(
-                usersJoin.name.containsIfValue(query.search))))
+        .where(tActivitiesLogs.festivalId.equals(festivalId))
+            .and(tActivitiesLogs.activityId.equals(activityId))
+            .and(tActivities.activityTitle.containsIfValue(params.search).or(
+                tActivitiesLogs.mutationFields.containsIfValue(params.search).or(
+                usersJoin.name.containsIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -156,9 +145,9 @@ async function queryActivityHistory(query: HistoryQuery): Promise<HistoryQueryRe
                 name: usersJoin.name,
             },
         })
-        .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.page.limit)
-            .offset(query.page.offset)
+        .orderBy(params.sort.field, params.sort.direction)
+        .limit(params.page.limit)
+            .offset(params.page.offset)
         .executeSelectPage();
 
     return {
@@ -181,18 +170,20 @@ async function queryActivityHistory(query: HistoryQuery): Promise<HistoryQueryRe
 /**
  * Queries the history of all areas for a particular festival from the database.
  */
-async function queryAreasHistory(query: HistoryQuery): Promise<HistoryQueryResult> {
+async function queryAreasHistory(params: DataSourceListParams, festivalId: number)
+    : Promise<HistoryQueryResult>
+{
     const dbInstance = db;
     const history = await dbInstance.selectFrom(tActivitiesLogs)
         .innerJoin(tActivitiesAreas)
             .on(tActivitiesAreas.areaId.equals(tActivitiesLogs.areaId))
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
-        .where(tActivitiesLogs.festivalId.equals(query.festivalId))
+        .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.areaId.isNotNull())
-            .and(tActivitiesAreas.areaName.containsIfValue(query.search).or(
-                tActivitiesAreas.areaDisplayName.containsIfValue(query.search).or(
-                usersJoin.name.containsIfValue(query.search))))
+            .and(tActivitiesAreas.areaName.containsIfValue(params.search).or(
+                tActivitiesAreas.areaDisplayName.containsIfValue(params.search).or(
+                usersJoin.name.containsIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -209,9 +200,9 @@ async function queryAreasHistory(query: HistoryQuery): Promise<HistoryQueryResul
                 name: usersJoin.name,
             },
         })
-        .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.page.limit)
-            .offset(query.page.offset)
+        .orderBy(params.sort.field, params.sort.direction)
+        .limit(params.page.limit)
+            .offset(params.page.offset)
         .executeSelectPage();
 
     return {
@@ -234,18 +225,20 @@ async function queryAreasHistory(query: HistoryQuery): Promise<HistoryQueryResul
 /**
  * Queries the history of all locations for a particular festival from the database.
  */
-async function queryLocationsHistory(query: HistoryQuery): Promise<HistoryQueryResult> {
+async function queryLocationsHistory(params: DataSourceListParams, festivalId: number)
+    : Promise<HistoryQueryResult>
+{
     const dbInstance = db;
     const history = await dbInstance.selectFrom(tActivitiesLogs)
         .innerJoin(tActivitiesLocations)
             .on(tActivitiesLocations.locationId.equals(tActivitiesLogs.locationId))
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
-        .where(tActivitiesLogs.festivalId.equals(query.festivalId))
+        .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.locationId.isNotNull())
-            .and(tActivitiesLocations.locationName.containsIfValue(query.search).or(
-                tActivitiesLocations.locationDisplayName.containsIfValue(query.search).or(
-                usersJoin.name.containsIfValue(query.search))))
+            .and(tActivitiesLocations.locationName.containsIfValue(params.search).or(
+                tActivitiesLocations.locationDisplayName.containsIfValue(params.search).or(
+                usersJoin.name.containsIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -263,9 +256,9 @@ async function queryLocationsHistory(query: HistoryQuery): Promise<HistoryQueryR
                 name: usersJoin.name,
             },
         })
-        .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.page.limit)
-            .offset(query.page.offset)
+        .orderBy(params.sort.field, params.sort.direction)
+        .limit(params.page.limit)
+            .offset(params.page.offset)
         .executeSelectPage();
 
     return {
@@ -288,19 +281,21 @@ async function queryLocationsHistory(query: HistoryQuery): Promise<HistoryQueryR
 /**
  * Queries the history of all help requests for a particular festival from the database.
  */
-async function queryRequestsHistory(query: HistoryQuery): Promise<HistoryQueryResult> {
+async function queryRequestsHistory(params: DataSourceListParams, festivalId: number)
+    : Promise<HistoryQueryResult>
+{
     const dbInstance = db;
     const history = await dbInstance.selectFrom(tActivitiesLogs)
         .innerJoin(tActivities)
             .on(tActivities.activityId.equals(tActivitiesLogs.activityId))
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
-        .where(tActivitiesLogs.festivalId.equals(query.festivalId))
+        .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.activityId.isNotNull())
             .and(tActivitiesLogs.mutation.equals(kMutation.Updated))
             .and(tActivitiesLogs.mutationFields.contains('help needed'))
-            .and(tActivities.activityTitle.containsIfValue(query.search).or(
-                usersJoin.name.containsIfValue(query.search)))
+            .and(tActivities.activityTitle.containsIfValue(params.search).or(
+                usersJoin.name.containsIfValue(params.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -316,9 +311,9 @@ async function queryRequestsHistory(query: HistoryQuery): Promise<HistoryQueryRe
                 name: usersJoin.name,
             },
         })
-        .orderBy(query.sort.field, query.sort.direction)
-        .limit(query.page.limit)
-            .offset(query.page.offset)
+        .orderBy(params.sort.field, params.sort.direction)
+        .limit(params.page.limit)
+            .offset(params.page.offset)
         .executeSelectPage();
 
     return {
@@ -406,49 +401,18 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
         if (!context.event.festivalId)
             notFound();
 
-        if (typeof params.start !== 'number')
-            throw new Error(`Invalid type for "start" (${typeof params.start}), expected a number`);
-
-        const query: HistoryQuery = {
-            festivalId: context.event.festivalId,
-            sort: {
-                field: 'date',
-                direction: 'desc',
-            },
-            page: {
-                limit: 1 + (params.end - params.start),
-                offset: params.start,
-            },
-        };
-
-        if (context.scope.category === 'activity')
-            query.activityId = context.scope.activityId;
-
-        if (!!params.filterModel.quickFilterValues?.length)
-            query.search = params.filterModel.quickFilterValues[0];
-
-        if (!!params.sortModel.length) {
-            switch (params.sortModel[0].field) {
-                case 'id':
-                case 'date':
-                case 'severity':
-                    query.sort.field = params.sortModel[0].field;
-                    query.sort.direction = params.sortModel[0].sort ?? 'asc';
-                    break;
-            }
-        }
-
         switch (context.scope.category) {
             case 'activities':
-                return await queryActivitiesHistory(query);
+                return await queryActivitiesHistory(params, context.event.festivalId);
             case 'activity':
-                return await queryActivityHistory(query);
+                return await queryActivityHistory(
+                    params, context.event.festivalId, context.scope.activityId);
             case 'areas':
-                return await queryAreasHistory(query);
+                return await queryAreasHistory(params, context.event.festivalId);
             case 'locations':
-                return await queryLocationsHistory(query);
+                return await queryLocationsHistory(params, context.event.festivalId);
             case 'requests':
-                return await queryRequestsHistory(query);
+                return await queryRequestsHistory(params, context.event.festivalId);
         }
     }
 });

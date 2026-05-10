@@ -6,9 +6,26 @@ import { notFound, unauthorized } from 'next/navigation';
 
 import type { GridGetRowsParams, GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
-import type { DataSource, DataSourceOperation } from './DataSource';
+import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+
+/**
+ * Zod validator used to verify that the `GridGetRowsParams` information we get for the `list()`
+ * operation adheres to the expected structure. Not meant to be comprehensive.
+ */
+const kGridGetRowsParamsValidator = z.object({
+    // GridGetRowsParams:
+    end: z.number(),
+    filterModel: z.object({
+        quickFilterValues: z.array(z.string()).optional(),
+    }),
+    sortModel: z.array(z.object({
+        field: z.string(),
+        sort: z.enum([ 'asc', 'desc' ]).nullish(),
+    })),
+    start: z.number(),
+});
 
 /**
  * Wrapper class around data source implementations, which provide visitor authentication, input
@@ -33,15 +50,15 @@ export class DataSourceWrapper {
     }
 
     /**
-     * Calls into the given `operation` on the data sourced wrapped by `this`. The `context` will be
-     * validated, whereas the parameters will be trusted to the extent possible.
+     * Calls into the given `operation` on the data sourced wrapped by `this`. Both the `context`
+     * and all operation-specific parameters will be validated prior to being used.
      */
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
         const authenticationContext = await getAuthenticationContext();
         if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.())
-            unauthorized();
+            unauthorized();  // todo: report an error
 
         const props: DataSourceProps = {
             access: authenticationContext.access,
@@ -50,7 +67,7 @@ export class DataSourceWrapper {
 
         const verifiedContextResult = await z.safeParseAsync(this.#context, context);
         if (!verifiedContextResult.success)
-            notFound();
+            notFound();  // todo: report an error
 
         const verifiedContext = verifiedContextResult.data;
 
@@ -59,11 +76,34 @@ export class DataSourceWrapper {
         await this.#dataSource.authorize(operation, props, verifiedContext);
 
         switch (operation) {
-            case 'list':
-                return this.#dataSource.list?.(args[0], props, verifiedContext) ?? {
+            case 'list': {
+                const inputParams = kGridGetRowsParamsValidator.safeParse(args[0]);
+                if (!inputParams.success)
+                    notFound();  // todo: report an error
+
+                const validatedInputParams = inputParams.data;
+                const validatedSortField = validatedInputParams.sortModel[0]?.field ?? 'id';
+
+                if (!Object.hasOwn(this.#rowModel.shape, validatedSortField))
+                    notFound();  // todo: report an error
+
+                const params: DataSourceListParams<any> = {
+                    page: {
+                        offset: validatedInputParams.start,
+                        limit: (validatedInputParams.end - validatedInputParams.start) + 1,
+                    },
+                    search: validatedInputParams.filterModel.quickFilterValues?.[0],
+                    sort: {
+                        field: validatedSortField,
+                        direction: validatedInputParams.sortModel[0]?.sort ?? 'asc',
+                    },
+                };
+
+                return this.#dataSource.list?.(params, props, verifiedContext) ?? {
                     rows: [],
                     rowCount: 0,
                 };
+            }
         }
     }
 }

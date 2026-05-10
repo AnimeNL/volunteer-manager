@@ -3,8 +3,7 @@
 
 import type { z } from 'zod';
 
-import type { GridGetRowsParams, GridGetRowsResponse, GridSortDirection }
-    from '@mui/x-data-grid-premium';
+import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
 import type { DataSourceProps } from './DataSourceProps';
 
@@ -50,29 +49,51 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A response containing the paginated rows that have been requested.
      */
-    list?(params: DataSourceGetRowsParams<ZodRowModel>,
-          props: DataSourceProps,
-          context: z.infer<ZodContext>): Promise<DataSourceGetRowsResponse<ZodRowModel>>;
+    list?<RowModelSortField = keyof z.infer<ZodRowModel>>(
+        params: DataSourceListParams<RowModelSortField>,
+        props: DataSourceProps,
+        context: z.infer<ZodContext>): Promise<DataSourceGetRowsResponse<ZodRowModel>>;
 }
 
 /**
- * Variant of `GridGetRowsParams` where the `sortModel` property is appropriately typed.
+ * Type that describes the parameters that will be made available to the `list()` operation of
+ * a data source. Derived from the `GridGetRowsParams` type, but simplified for our needs.
  */
-interface DataSourceGetRowsParams<ZodRowModel> extends Omit<GridGetRowsParams, 'sortModel'> {
+export interface DataSourceListParams<RowModelSortField = any> {
     /**
-     * Collection of sort items to apply to the table's data.
+     * Pagination information selecting the portion of data that should be listed.
      */
-    sortModel: readonly {
-         /**
-          * The column field identifier.
-          */
-         field: keyof z.infer<ZodRowModel>;
+    page: {
+        /**
+         * Offset in the data source from which data should be returned.
+         */
+        offset: number;
 
-         /**
-          * The direction of the column that the grid should sort.
-          */
-         sort: GridSortDirection;
-    }[];
+        /**
+         * Maximum number of results to return from the data source.
+         */
+        limit: number;
+    };
+
+    /**
+     * String that should be searched for in the data source, if any.
+     */
+    search?: string;
+
+    /**
+     * Sort field and direction that should be applied to the data.
+     */
+    sort: {
+        /**
+         * Field based on which the data should be sorted.
+         */
+        field: RowModelSortField;
+
+        /**
+         * Direction in which the data should be sorted.
+         */
+        direction: 'asc' | 'desc';
+    };
 }
 
 /**
