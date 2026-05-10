@@ -69,8 +69,8 @@ export function DataTableResponsiveFooter(
     return (
         <>
             <Divider />
-            <Stack direction={{ xs: 'column', md: 'row' }} sx={{
-                alignItems: { xs: 'stretch', md: 'center' },
+            <Stack direction={ isMobile ? 'column' : 'row' } sx={{
+                alignItems: isMobile ? 'stretch' : 'center',
                 justifyContent: 'space-between',
             }} {...otherProps}>
                 { !!quickSearch && <DataTableResponsiveQuickSearch isMobile={isMobile} /> }
@@ -78,7 +78,7 @@ export function DataTableResponsiveFooter(
                 { !rootProps.hideFooterPagination &&
                     <Box>
                         { (!!isMobile && quickSearch) && <Divider sx={{ my: 1 }} /> }
-                        <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
+                        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
                             { !isMobile && <DataTableResponsivePageSizeSelector /> }
                             { !isMobile && <Divider flexItem orientation="vertical" /> }
                             <DataTableResponsivePageNavigation isMobile={isMobile} />
@@ -185,7 +185,9 @@ function DataTableResponsivePageNavigation(props: { isMobile: boolean }) {
         return (
             <Stack sx={{ alignItems: 'center',
                          flexGrow: 1,
-                         justifyContent: "space-between" }} direction="row" spacing={2}>
+                         justifyContent: 'space-between',
+                         paddingBottom: 1,
+                         paddingX: 0.5 }} direction="row" spacing={2}>
                 {previousPageComponent}
                 {pageCountComponent}
                 {nextPageComponent}

@@ -4,8 +4,9 @@
 import { forbidden } from 'next/navigation';
 import { z } from 'zod';
 
-import type { Column, ExtractContext, ExtractRowModel } from '@app/admin/components/DataTable';
-import { DataTable, createDataSource, withContext, withRowModel, kEventTransformer } from '@app/admin/components/DataTable';
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { DataTable, createDataSource, withContext, withRowModel, kEventTransformer }
+    from '@app/admin/components/DataTable';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -33,7 +34,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
                 name: tEvents.eventName,
                 location: tEvents.eventLocation,
             })
-            .orderBy(params.sortModel[0]?.field || 'name', params.sortModel[0]?.sort || 'asc')
+            .orderBy(params.sort.field as any, params.sort.direction)
             .executeSelectPage();
 
         return {
@@ -43,7 +44,6 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     },
 });
 
-type Context = ExtractContext<typeof dataSource>;
 type RowModel = ExtractRowModel<typeof dataSource>;
 
 /**
