@@ -457,6 +457,21 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
         },
     ];
 
+    let listViewLinkTemplate: string | undefined;
+    switch (context.scope.category) {
+        case 'activities':
+        case 'requests':
+            listViewLinkTemplate =
+                `/admin/events/${context.event}/program/activities/{references.activityId}`;
+            break;
+
+        case 'activity':
+        case 'areas':
+        case 'locations':
+            // There is no page for the rows to link to.
+            break;
+    }
+
     const category =
         context.scope.category === 'activity'
             ? 'this activity'
@@ -465,13 +480,17 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
     return (
         <Section title="Recent changes" subtitle={category}>
             <SectionIntroduction>
-                This table summarises changes made to <strong>{category}</strong> across the
-                Volunteer Manager and <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>,
-                the official AnimeCon planning tool.
+                A summary of changes made to <strong>{category}</strong> across the Volunteer
+                Manager and <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>, the
+                official AnimeCon planning tool.
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
                        defaultSort={{ field: 'date', sort: 'desc' }} pageSize={10}
-                       enableSearch="subtle" />
+                       enableSearch="subtle" listViewProps={{
+                           primaryField: 'change',
+                           dateField: 'date',
+                           linkTemplate: listViewLinkTemplate,
+                       }}/>
         </Section>
     );
 }

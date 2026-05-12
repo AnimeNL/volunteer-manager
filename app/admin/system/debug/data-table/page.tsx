@@ -65,7 +65,9 @@ export default function DataTablePage() {
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
             <DataTable columns={columns} source={dataSource} context={{ event: '2026' }}
-                       defaultSort={{ field: 'name', sort: 'desc' }} />
+                       defaultSort={{ field: 'name', sort: 'desc' }} listViewProps={{
+                          primaryField: 'name',
+                       }} />
         </Section>
     );
 }

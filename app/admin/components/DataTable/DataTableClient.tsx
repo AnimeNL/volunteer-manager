@@ -13,8 +13,10 @@ import Alert from '@mui/material/Alert';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { ExtractContext, ExtractRowModel } from './Types';
+import { DataTableListViewButtonRow, DataTableListViewRow } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
+import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 import { kColumnTemplates } from './ColumnTemplates';
 
@@ -59,6 +61,34 @@ interface DataTableClientCommonProps<
     enableSearch?: 'prominent' | 'subtle';
 
     /**
+     * Props given to the default list view component that's used in the responsive mobile display.
+     * All data tables must support a responsive display, with at least the primary field being set.
+     */
+    listViewProps: {
+        /**
+         * Primary text on the list item. Will be displayed in bold and is guaranteed to not wrap.
+         */
+        primaryField: keyof RowModel & string;
+
+        /**
+         * Secondary text on the list item. Guaranteed to not wrap.
+         */
+        secondaryField?: keyof RowModel & string;
+
+        /**
+         * Date (YYYY-MM-DD) to display on the right-hand side of the list item.
+         */
+        dateField?: keyof RowModel & string;
+
+        /**
+         * Template from which the URL to link to can be derived. Can contain any of the fields as
+         * a curly brace-contained string, for example: "/program/event/{id}". Nested references are
+         * allowed as well, for example: "/accounts/{user.id}".
+         */
+        linkTemplate?: string;
+    };
+
+    /**
      * The default number of rows that can be displayed per page.
      * @default 50
      */
@@ -97,6 +127,8 @@ export type DataTableClientProps<
 export default function DataTableClient<Interface extends DataSourceInterface<any, any>>(
     props: DataTableClientProps<Interface>)
 {
+    const isMobile = useIsMobile();
+
     // ---------------------------------------------------------------------------------------------
     // Use a memoized version of the context, which may be set to an empty object when absent.
     // ---------------------------------------------------------------------------------------------
@@ -174,6 +206,17 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     sorting: {
                         sortModel: [ props.defaultSort ],
                     }
+                }}
+
+                listView={isMobile}
+                listViewColumn={{
+                    field: 'id',
+                    renderCell: params =>
+                        props.listViewProps?.linkTemplate ?
+                            <DataTableListViewButtonRow
+                                {...params} listViewProps={props.listViewProps} /> :
+                            <DataTableListViewRow
+                                {...params} listViewProps={props.listViewProps} />,
                 }}
 
                 slots={{
