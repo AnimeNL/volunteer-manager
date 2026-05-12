@@ -54,11 +54,10 @@ interface DataTableClientCommonProps<
     };
 
     /**
-     * Whether the ability to search in this data source should be enabled. Prominent search will be
-     * shown in the toolbar above the data table, which will also capture the <ctrl>+<f> keyboard
-     * shortcut. Subtle search will be displayed in the footer, collapsed by default.
+     * Whether the search functionality should be disabled. All data tables are strongly encouraged
+     * to support search, regardless of whether it's a prominent or subtle user interface.
      */
-    enableSearch?: 'prominent' | 'subtle';
+    disableSearch?: boolean;
 
     /**
      * Props given to the default list view component that's used in the responsive mobile display.
@@ -93,6 +92,15 @@ interface DataTableClientCommonProps<
      * @default 50
      */
     pageSize?: typeof kPageSizeOptions[number];
+
+    /**
+     * User interface for the search functionality. Prominent search will be an always visible
+     * toolbar above the data that captures the <ctrl>+<f> keyboard shortcut. Subtle search will be
+     * an icon in the footer, collapsed by default on desktop.
+     *
+     * @default "subtle"
+     */
+    search?: 'prominent' | 'subtle';
 
     /**
      * Server-side source through which the data table's contents will be acquired.
@@ -134,6 +142,14 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // ---------------------------------------------------------------------------------------------
 
     const context = useMemo(() => 'context' in props ? props.context : {}, [ props ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Decide on the search mode that should be active for the <DataTable>. Subtle by default.
+    // ---------------------------------------------------------------------------------------------
+
+    const search: 'disabled' | 'prominent' | 'subtle' =
+        props.disableSearch ? 'disabled'
+                            : props.search ?? 'subtle';
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -197,7 +213,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 disablePivoting
                 disableRowGrouping
 
-                showToolbar={ props.enableSearch === 'prominent' }
+                showToolbar={ search === 'prominent' }
 
                 initialState={{
                     pagination: {
@@ -221,11 +237,11 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
                 slots={{
                     footer:
-                        props.enableSearch === 'subtle'
+                        search === 'subtle'
                             ? DataTableResponsiveFooterWithQuickSearch
                             : DataTableResponsiveFooter,
                     toolbar:
-                        props.enableSearch === 'prominent'
+                        search === 'prominent'
                             ? DataTableProminentSearchToolbar
                             : undefined,
                 }}

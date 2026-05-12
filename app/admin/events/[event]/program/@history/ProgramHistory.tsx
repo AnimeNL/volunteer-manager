@@ -486,7 +486,7 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
                        defaultSort={{ field: 'date', sort: 'desc' }} pageSize={10}
-                       enableSearch="subtle" listViewProps={{
+                       listViewProps={{
                            primaryField: 'change',
                            dateField: 'date',
                            linkTemplate: listViewLinkTemplate,
