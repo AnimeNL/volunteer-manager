@@ -3,8 +3,6 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -21,6 +19,21 @@ import type { RenderSidebarMenuProps } from './AdminSidebarClient';
  */
 interface AdminSidebarMobileClientProps extends RenderSidebarMenuProps {
     /**
+     * Whether the menu should be opened.
+     */
+    open?: boolean;
+
+    /**
+     * Callback that must be given responding to requests to close the sidebar.
+     */
+    requestClose: () => void;
+
+    /**
+     * Callback that must be given responding to requests to open the sidebar.
+     */
+    requestOpen: () => void;
+
+    /**
      * Title to display at the top of the sidebar.
      */
     title: string;
@@ -33,15 +46,10 @@ interface AdminSidebarMobileClientProps extends RenderSidebarMenuProps {
 export function AdminSidebarMobileClient(
     props: React.PropsWithChildren<AdminSidebarMobileClientProps>)
 {
-    const [ menuOpen, setMenuOpen ] = useState<boolean>(false);
-
-    const handleMenuClose = useCallback(() => setMenuOpen(false), [ /* no dependencies */ ]);
-    const handleMenuOpen = useCallback(() => setMenuOpen(true), [ /* no dependencies */ ]);
-
     return (
         <>
             <List component="nav" disablePadding dense>
-                <ListItemButton sx={{ py: 1 }} onClick={handleMenuOpen}>
+                <ListItemButton sx={{ py: 1 }} onClick={props.requestOpen}>
                     <ListItemIcon sx={{ minWidth: '40px' }}>
                         <MenuOpenIcon sx={{ color: 'primary.contrastText' }} />
                     </ListItemIcon>
@@ -49,7 +57,7 @@ export function AdminSidebarMobileClient(
                                   slotProps={{ primary: { variant: 'body1' } }} />
                 </ListItemButton>
             </List>
-            <Drawer anchor="bottom" open={menuOpen} onClose={handleMenuClose}>
+            <Drawer anchor="bottom" open={props.open} onClose={props.requestClose}>
                 <Box sx={{
                     backgroundColor: 'animecon.adminHeaderBackground',
                     color: 'primary.contrastText',

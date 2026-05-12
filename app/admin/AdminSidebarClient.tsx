@@ -4,7 +4,7 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import React, { useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
@@ -21,9 +21,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { deepmerge } from '@mui/utils';
-import useMediaQuery from '@mui/material/useMediaQuery';
 
 import type { PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
+import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { AdminSidebarMobileClient } from './AdminSidebarMobileClient';
 
 /**
@@ -169,6 +169,11 @@ export interface RenderSidebarMenuProps {
     indent?: boolean;
 
     /**
+     * Callback to invoke when a menu item has been activated.
+     */
+    onActivate?: () => void;
+
+    /**
      * The menu entries that should be displayed as part of this sidebar. Required.
      */
     menu: AdminSidebarMenuEntry[];
@@ -232,7 +237,7 @@ export function RenderSidebarClient(props: RenderSidebarMenuProps) {
                                         indent ? deepmerge(kStyles.active, { pl: 5 })
                                                : kStyles.active
                                     }
-                                    component={Link} href={entry.url}
+                                    component={Link} href={entry.url} onClick={props.onActivate}
                                     selected={shouldHighlightEntry(pathname, entry)}>
 
                         { entry.icon &&
@@ -263,12 +268,6 @@ export function RenderSidebarClient(props: RenderSidebarMenuProps) {
  */
 interface AdminSidebarClientProps extends RenderSidebarMenuProps {
     /**
-     * Whether the sidebar should be rendered in responsive mode, which will optimise for mobile
-     * devices when there is a need for this.
-     */
-    responsive?: boolean;
-
-    /**
      * Title to display at the top of the sidebar.
      */
     title: string;
@@ -279,24 +278,9 @@ interface AdminSidebarClientProps extends RenderSidebarMenuProps {
  * small screen devices.
  */
 export function AdminSidebarClient(props: AdminSidebarClientProps) {
-    const isSmallScreenDevice =
-        !!props.responsive &&
-        // Intentional rule violation because this is a static, transitionary feature:
-        // biome-ignore lint/correctness/useHookAtTopLevel: intentional behaviour
-        useMediaQuery(theme => theme.breakpoints.down('md'));
-
-    if (isSmallScreenDevice) {
-        return (
-            <Paper sx={{
-                backgroundColor: 'animecon.adminHeaderBackground',
-                color: 'primary.contrastText',
-            }}>
-                <AdminSidebarMobileClient menu={props.menu} title={props.title}>
-                    <RenderSidebarClient menu={props.menu} />
-                </AdminSidebarMobileClient>
-            </Paper>
-        );
-    }
+    const isMobile = useContext(AdminClientContext).isMobile;
+    if (isMobile)
+        return <AdminSidebarMobileClientProxy {...props} />;
 
     return (
         <Paper sx={{ alignSelf: 'flex-start', flexShrink: 0, width: '280px', overflow: 'hidden' }}>
@@ -304,6 +288,29 @@ export function AdminSidebarClient(props: AdminSidebarClientProps) {
                 {props.title}
             </Typography>
             <RenderSidebarClient menu={props.menu} />
+        </Paper>
+    );
+}
+
+/**
+ * Proxy component through which the <AdminSidebarMobileClient> component will be shown. Owns the
+ * React state through which the menu can be opened and closed.
+ */
+function AdminSidebarMobileClientProxy(props: AdminSidebarClientProps) {
+    const [ menuOpen, setMenuOpen ] = useState<boolean>(false);
+
+    const handleMenuClose = useCallback(() => setMenuOpen(false), [ /* no dependencies */ ]);
+    const handleMenuOpen = useCallback(() => setMenuOpen(true), [ /* no dependencies */ ]);
+
+    return (
+        <Paper sx={{
+            backgroundColor: 'animecon.adminHeaderBackground',
+            color: 'primary.contrastText',
+        }}>
+            <AdminSidebarMobileClient menu={props.menu} title={props.title} open={menuOpen}
+                                      requestClose={handleMenuClose} requestOpen={handleMenuOpen}>
+                <RenderSidebarClient menu={props.menu} onActivate={handleMenuClose} />
+            </AdminSidebarMobileClient>
         </Paper>
     );
 }

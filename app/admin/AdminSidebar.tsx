@@ -48,12 +48,6 @@ interface AdminSidebarProps extends RenderSidebarMenuProps {
     access: AccessControl;
 
     /**
-     * Whether the sidebar should be rendered in responsive mode, which will optimise for mobile
-     * devices when there is a need for this.
-     */
-    responsive?: boolean;
-
-    /**
      * Title to display at the top of the sidebar.
      */
     title: string;
@@ -66,6 +60,6 @@ interface AdminSidebarProps extends RenderSidebarMenuProps {
 export function AdminSidebar(props: AdminSidebarProps) {
     const menu = filterMenuOptions(props.menu, props.access);
     return (
-        <AdminSidebarClient menu={menu} responsive={props.responsive} title={props.title} />
+        <AdminSidebarClient menu={menu} title={props.title} />
     );
 }
