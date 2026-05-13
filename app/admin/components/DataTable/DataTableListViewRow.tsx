@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { GridRenderCellParams, GridRowModel } from '@mui/x-data-grid-premium';
+import type { GridRowModel } from '@mui/x-data-grid-premium';
 
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Stack from '@mui/material/Stack';
@@ -17,7 +17,7 @@ import { LocalDateTime } from '../LocalDateTime';
 /**
  * Props accepted by the <DataTableListView{Button,}Row> components.
  */
-interface DataTableListViewRowProps extends GridRenderCellParams<any> {
+interface DataTableListViewRowProps {
     /**
      * Props given to the default list view component that's used in the responsive mobile display.
      */
@@ -32,6 +32,11 @@ interface DataTableListViewRowProps extends GridRenderCellParams<any> {
      * URL that should be navigated to when the list item has been activated by the user.
      */
     onClick?: () => void;
+
+    /**
+     * The row that's being rendered in this list view.
+     */
+    row: GridRowModel<any>;
 }
 
 /**

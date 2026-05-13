@@ -230,9 +230,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     renderCell: params =>
                         props.listViewProps?.linkTemplate ?
                             <DataTableListViewButtonRow
-                                {...params} listViewProps={props.listViewProps} /> :
+                                listViewProps={props.listViewProps} row={params.row} /> :
                             <DataTableListViewRow
-                                {...params} listViewProps={props.listViewProps} />,
+                                listViewProps={props.listViewProps} row={params.row} />,
                 }}
 
                 slots={{
