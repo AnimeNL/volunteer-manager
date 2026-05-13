@@ -57,6 +57,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                             !!settings['user-admin-experimental-responsive'] ? undefined
                                                                              : 1280,
                         padding: 2,
+                        scrollbarGutter: 'stable',
                     }}>
 
                         <AdminHeader access={access} user={user} settings={settings} />

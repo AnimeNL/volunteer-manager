@@ -1,5 +1,7 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
+import { z } from 'zod';
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
@@ -8,26 +10,91 @@ import Grid from '@mui/material/Grid';
 import PersonIcon from '@mui/icons-material/Person';
 import Typography from '@mui/material/Typography';
 
-import { AccountDataTable } from './AccountDataTable';
+import { type Column, type ExtractRowModel,DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { Section } from '../../components/Section';
-import { SectionIntroduction } from '../../components/SectionIntroduction';
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { getBlobUrl } from '@lib/database/BlobStore';
-import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tUsers } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';
+
 import { kGenderOptions } from '@app/registration/authentication/RegisterForm';
-import { kRegistrationStatus } from '@lib/database/Types';
+
+/**
+ * Data source through which the Accounts data table can be populated.
+ */
+const accountsDataSource = createDataSource('admin/organisation/accounts', withRowModel({
+    /**
+     * Unique ID assigned to this user upon their registration.
+     */
+    id: z.number(),
+
+    /**
+     * Full name of the account holder, or their display name when one has been set.
+     */
+    name: z.string().optional(),
+
+    /**
+     * E-mail address associated with the account, if any.
+     */
+    email: z.string().optional(),
+
+    /**
+     * Phone number associated with the account, if any.
+     */
+    phoneNumber: z.string().optional(),
+
+    /**
+     * Discord handle associated with the account, if any.
+     */
+    discord: z.string().optional(),
+
+}), {
+    async authorize(operation, props) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: {
+                permission: 'organisation.accounts',
+                operation: 'read',
+            },
+        });
+    },
+
+    async list(params) {
+        const dbInstance = db;
+
+        const pagedVolunteers = await dbInstance.selectFrom(tUsers)
+            .where(tUsers.anonymized.isNull())
+                .and(tUsers.name.containsIfValue(params.search).or(
+                    tUsers.username.containsIfValue(params.search).or(
+                    tUsers.phoneNumber.containsIfValue(params.search).or(
+                    tUsers.discordHandle.containsIfValue(params.search)))))
+            .select({
+                id: tUsers.userId,
+                name: tUsers.name,
+                email: tUsers.username,
+                phoneNumber: tUsers.phoneNumber,
+                discord: tUsers.discordHandle,
+            })
+            .orderBy(params.sort.field as any, params.sort.direction)  // todo
+            .limit(params.page.limit)
+                .offset(params.page.offset)
+            .executeSelectPage();
+
+        return {
+            rowCount: pagedVolunteers.count,
+            rows: pagedVolunteers.data,
+        };
+    }
+});
 
 /**
  * The <AccountsPage> component lists the accounts known to the Volunteer Manager. Each account can
  * be viewed and adjusted providing the right permissions are available to the signed in user.
  */
 export default async function AccountsPage() {
-    const { access, user } = await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'organisation.accounts',
@@ -36,73 +103,34 @@ export default async function AccountsPage() {
     });
 
     const canCreateAccounts = access.can('organisation.accounts', 'create');
+    const columns: Column<ExtractRowModel<typeof accountsDataSource>>[] = [
+        {
+            field: 'name',
+            flex: 1.5,
 
-    const dbInstance = db;
+            headerName: 'Name',
+            // TODO: Linkify
+        },
+        {
+            field: 'email',
+            flex: 1,
 
-    // ---------------------------------------------------------------------------------------------
-    // Volunteer information from the database:
-    // ---------------------------------------------------------------------------------------------
+            headerName: 'E-mail',
+        },
+        {
+            field: 'phoneNumber',
+            flex: 1,
 
-    const storageJoin = tStorage.forUseInLeftJoin();
-    const teamsJoin = tTeams.forUseInLeftJoin();
-    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+            headerName: 'Phone number',
+        },
+        {
+            field: 'discord',
+            flex: 1,
 
-    const volunteers = await dbInstance.selectFrom(tUsers)
-            .leftJoin(usersEventsJoin)
-                .on(usersEventsJoin.userId.equals(tUsers.userId)
-                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted)))
-            .leftJoin(teamsJoin)
-                .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
-            .leftJoin(storageJoin)
-                .on(storageJoin.fileId.equals(tUsers.avatarId))
-            .where(tUsers.anonymized.isNull())
-            .select({
-                id: tUsers.userId,
-                username: tUsers.username,
-                firstName: tUsers.firstName,
-                lastName: tUsers.lastName,
-                displayName: tUsers.displayName,
-                avatar: storageJoin.fileHash,
-                name: tUsers.name,
-                gender: tUsers.gender,
-                phoneNumber: tUsers.phoneNumber,
-                discordHandle: tUsers.discordHandle,
-                birthdate: dbInstance.dateAsString(tUsers.birthdate),
-                teams: dbInstance.stringConcatDistinct(teamsJoin.teamName),
-                activated: tUsers.activated.equals(/* true= */ 1),
-                suspended: tUsers.participationSuspended.isNotNull(),
-            })
-            .groupBy(tUsers.userId)
-            .orderBy(tUsers.name, 'asc')
-            .executeSelectMany();
-
-    for (let index = 0; index < volunteers.length; ++index)
-        volunteers[index].avatar = getBlobUrl(volunteers[index].avatar);
-
-    // ---------------------------------------------------------------------------------------------
-    // Team information from the database:
-    // ---------------------------------------------------------------------------------------------
-
-    const teams = await dbInstance.selectFrom(tTeams)
-        .select({
-            name: tTeams.teamName,
-            themeColor: tTeams.teamColourLightTheme,
-        })
-        .executeSelectMany();
-
-    // ---------------------------------------------------------------------------------------------
-    // Column and filter preferences:
-    // ---------------------------------------------------------------------------------------------
-
-    const userSettings = await readUserSettings(user.id, [
-        'user-admin-volunteers-columns-hidden',
-        'user-admin-volunteers-columns-filter',
-    ]);
-
-    const filterModel = userSettings['user-admin-volunteers-columns-filter'] || undefined;
-    const hiddenFields =
-        userSettings['user-admin-volunteers-columns-hidden']
-            || 'firstName,lastName,displayName,phoneNumber,gender,birthdate,discordHandle';
+            headerName: 'Discord',
+        },
+        // TODO: Teams
+    ];
 
     return (
         <Section icon={ <PersonIcon color="primary" /> } title="Accounts">
@@ -110,10 +138,11 @@ export default async function AccountsPage() {
                 This table lists all volunteers who helped us out since 2010. Note that our
                 accounts are separate from any that exist in AnPlan.
             </SectionIntroduction>
-            <AccountDataTable initialFilterModel={filterModel}
-                              initialHiddenFields={hiddenFields}
-                              teams={teams}
-                              volunteers={volunteers} />
+            <DataTable columns={columns} source={accountsDataSource} search="prominent"
+                       defaultSort={{ field: 'name', sort: 'asc' }} listViewProps={{
+                           primaryField: 'name',
+                           linkTemplate: '/admin/organisation/accounts/{id}',
+                       }} />
             { canCreateAccounts &&
                 <>
                     <Divider />
@@ -146,5 +175,3 @@ export default async function AccountsPage() {
         </Section>
     );
 }
-
-export const generateMetadata = createGenerateMetadataFn('Accounts', 'Organisation');

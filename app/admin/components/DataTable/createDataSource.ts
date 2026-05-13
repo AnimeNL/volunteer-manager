@@ -29,6 +29,7 @@ const kDataSourceRegistry: Map<string, DataSourceWrapper> = new Map;
  *   id: z.number(),
  *   name: z.string(),
  * }), {
+ *   async authorize(operation, props) {},
  *   async list(params, props, context) {
  *     return {
  *       rows: [],

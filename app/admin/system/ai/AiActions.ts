@@ -116,7 +116,6 @@ const kUpdateModelSettingsData = z.object({
     textModelHigh: z.enum(kAiSupportedModelIdentifiers),
     textModelLow: z.enum(kAiSupportedModelIdentifiers),
     textModelMedium: z.enum(kAiSupportedModelIdentifiers),
-    backend: z.enum([ 'gemini', 'vertexai' ]),
     geminiApiKey: z.string().nonempty(),
 
     candidateCount: z.number().min(0).max(8),
@@ -137,7 +136,6 @@ export async function updateModelSettings(formData: unknown) {
         });
 
         await writeSettings({
-            'ai-setting-backend': data.backend,
             'ai-setting-gemini-api-key': data.geminiApiKey,
             'ai-setting-image-model': data.imageModel,
             'ai-setting-text-model-high': data.textModelHigh,

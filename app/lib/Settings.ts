@@ -86,7 +86,6 @@ export type Settings = {
     'ai-incident-summary-prompt': string;
 
     // Settings:
-    'ai-setting-backend': 'gemini' | 'vertexai';
     'ai-setting-gemini-api-key': string;
     'ai-setting-image-model': AiSupportedModel;
     'ai-setting-text-model-high': AiSupportedModel;
