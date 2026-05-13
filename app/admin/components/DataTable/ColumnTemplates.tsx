@@ -19,6 +19,7 @@ import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import type { LogSeverity, MutationSeverity } from '@lib/database/Types';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { resolveTemplatedUrl } from './Utilities';
 
 /**
  * Factory functions to generate a column definition based on a given template.
@@ -48,6 +49,24 @@ export const kColumnTemplates = {
                 <MuiLink component={Link}
                          href={`/admin/organisation/accounts/${params.value.id}`}>
                     {params.value.name}
+                </MuiLink>
+            );
+        },
+
+        ...column,
+    }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    linkedText: column => ({
+        renderCell: params => {
+            let href: string = '#';
+            if (column.templateProps?.href)
+                href = resolveTemplatedUrl(params.row, column.templateProps.href as string);
+
+            return (
+                <MuiLink component={Link} href={href}>
+                    {params.value}
                 </MuiLink>
             );
         },

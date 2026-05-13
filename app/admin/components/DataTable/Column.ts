@@ -20,6 +20,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
      * Available values include:
      *
      * * `account`          Flexible column for displaying a(n optionally linked) user account.
+     * * `linkedText`       Flexible column for which the text will be linked to templateProps.href.
      * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
      * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
      * * `severity`         Fixed-width column for an icon-based severity indication.

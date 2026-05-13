@@ -109,7 +109,11 @@ export default async function AccountsPage() {
             flex: 1.5,
 
             headerName: 'Name',
-            // TODO: Linkify
+
+            template: 'linkedText',
+            templateProps: {
+                href: '/admin/organisation/accounts/{id}',
+            },
         },
         {
             field: 'email',
