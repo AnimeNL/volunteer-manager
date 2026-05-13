@@ -323,7 +323,7 @@ async function queryRequestsHistory(params: DataSourceListParams, festivalId: nu
             severity: row.severity,
             date: row.date,
 
-            change: `Changed the "Staff help requested" flag for ${row.activity.title}`,
+            change: `Help request for ${row.activity.title} has been changed`,
             references: {
                 activityId: row.activity.id,
             },
