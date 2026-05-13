@@ -480,9 +480,9 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
     return (
         <Section title="Recent changes" subtitle={category}>
             <SectionIntroduction>
-                A summary of changes made to <strong>{category}</strong> across the Volunteer
-                Manager and <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>, the
-                official AnimeCon planning tool.
+                Summary of changes made to <strong>{category}</strong> across the Volunteer Manager
+                and <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>, the AnimeCon
+                planning tool.
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
                        defaultSort={{ field: 'date', sort: 'desc' }} pageSize={10}

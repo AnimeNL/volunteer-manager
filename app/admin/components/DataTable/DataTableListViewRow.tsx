@@ -19,6 +19,11 @@ import { LocalDateTime } from '../LocalDateTime';
  */
 interface DataTableListViewRowProps {
     /**
+     * Height, in pixels, to apply to the list view row. Calculated from the `listViewProps`.
+     */
+    height: number;
+
+    /**
      * Props given to the default list view component that's used in the responsive mobile display.
      */
     listViewProps?: {
@@ -51,7 +56,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
         <Stack direction="row" spacing={2} onClick={props.onClick} sx={{
             alignItems: 'center',
             cursor: props.onClick ? 'pointer' : 'default',
-            height: '100%',
+            height: props.height,
         }}>
 
             { /* TODO: Avatar */ }
@@ -68,7 +73,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             </Stack>
 
             { props.listViewProps?.dateField &&
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="textSecondary" sx={{ flexShrink: 0 }}>
                     <LocalDateTime dateTime={props.row[props.listViewProps.dateField]}
                                    format="YYYY-MM-DD" />
                 </Typography>}
@@ -99,8 +104,34 @@ export function DataTableListViewButtonRow(props: DataTableListViewRowProps) {
 }
 
 /**
+ * Calculates the row height for items in a list view based on the given `props`. Will be applied
+ * for both MUI X DataGrid's virtualisation (when used), and for setting a fixed height on each of
+ * the rows part of the list view. We do not support dynamic row sizes at this point.
+ *
+ * We use 40px as minimum height, slightly above MUI's default for compact density, to adhere to
+ * mobile platforms' guidelines regarding touch areas.
+ *
+ * @param props Properties that make up the list view row's composition.
+ * @return Height, in pixels, for each of the list view row items.
+ */
+export function calculateListViewRowHeight(props: DataTableListViewRowProps['listViewProps']) {
+    let listViewRowHeight = /* minimum= */ 40;
+
+    // Increase the height when a secondary field should be displayed on the row:
+    if (!!props?.secondaryField)
+        listViewRowHeight = 56;
+
+    // TODO: Increase height when `props.avatar` or `props.icon` is set.
+    return listViewRowHeight;
+}
+
+/**
  * Resolves the given `template` URL based on the given `row`. All fields in the `row` will be
  * considered as a substitute, and a path may be used to discover nested references.
+ *
+ * @param row The row based on which the URL has to be resolved.
+ * @param template Template from which the URL should be derived.
+ * @return URL based on the `template`, or an empty fragment when absent.
  */
 function resolveListViewUrl(row: GridRowModel<any>, template?: string): string {
     if (!template)

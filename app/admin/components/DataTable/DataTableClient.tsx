@@ -13,7 +13,7 @@ import Alert from '@mui/material/Alert';
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { ExtractContext, ExtractRowModel } from './Types';
-import { DataTableListViewButtonRow, DataTableListViewRow } from './DataTableListViewRow';
+import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
@@ -138,10 +138,12 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const isMobile = useIsMobile();
 
     // ---------------------------------------------------------------------------------------------
-    // Use a memoized version of the context, which may be set to an empty object when absent.
+    // Use memoized versions of certain props that would excessively invalidate the component tree.
     // ---------------------------------------------------------------------------------------------
 
     const context = useMemo(() => 'context' in props ? props.context : {}, [ props ]);
+    const estimatedListViewRowHeight =
+        useMemo(() => calculateListViewRowHeight(props.listViewProps), [ props.listViewProps ]);
 
     // ---------------------------------------------------------------------------------------------
     // Decide on the search mode that should be active for the <DataTable>. Subtle by default.
@@ -230,10 +232,15 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     renderCell: params =>
                         props.listViewProps?.linkTemplate ?
                             <DataTableListViewButtonRow
+                                height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row} /> :
                             <DataTableListViewRow
+                                height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row} />,
                 }}
+
+                getEstimatedRowHeight={ isMobile ? () => estimatedListViewRowHeight : undefined }
+                getRowHeight={ isMobile ? () => 'auto' : params => params.densityFactor * 52 }
 
                 slots={{
                     footer:
