@@ -7,15 +7,12 @@
 //     - Create rows
 //     - Delete rows (w/ refresh on update?)
 //     - Reorder rows
-//     - Search for rows (opt-in)
 //     - Update rows (w/ refresh on update?)
 //   - Presentation:
 //     - Responsive display by default
 //       - Ability to delete rows
 //       - Ability to update rows through a dialog
 //     - Tree data?
-// - Server side:
-//   - Logging (for mutations)
 
 import { z } from 'zod';
 

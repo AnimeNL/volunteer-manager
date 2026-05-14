@@ -27,10 +27,11 @@ interface DataTableListViewRowProps {
     /**
      * Props given to the default list view component that's used in the responsive mobile display.
      */
-    listViewProps?: {
+    listViewProps: {
         primaryField: string;
         secondaryField?: string;
         dateField?: string;
+        dateFieldFormat?: string;
         linkTemplate?: string;
     };
 
@@ -52,7 +53,7 @@ interface DataTableListViewRowProps {
  * date display. Note that individual components are able to provide their own row display.
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
-    const primaryField = props.listViewProps?.primaryField ?? 'id';
+    const primaryField = props.listViewProps.primaryField ?? 'id';
     return (
         <Stack direction="row" spacing={2} onClick={props.onClick} sx={{
             alignItems: 'center',
@@ -67,16 +68,16 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                 <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
                     {props.row[primaryField]}
                 </Typography>
-                { props.listViewProps?.secondaryField &&
+                { !!props.listViewProps.secondaryField &&
                     <Typography noWrap variant="body2" color="textSecondary">
                         {props.row[props.listViewProps.secondaryField]}
                     </Typography> }
             </Stack>
 
-            { props.listViewProps?.dateField &&
+            { !!props.listViewProps.dateField &&
                 <Typography variant="body2" color="textSecondary" sx={{ flexShrink: 0 }}>
                     <LocalDateTime dateTime={props.row[props.listViewProps.dateField]}
-                                   format="YYYY-MM-DD" />
+                                   format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
                 </Typography>}
 
             {props.children}
@@ -91,8 +92,8 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
  */
 export function DataTableListViewButtonRow(props: DataTableListViewRowProps) {
     const router = useRouter();
-    const href = useMemo(() => resolveTemplatedUrl(props.row, props.listViewProps?.linkTemplate), [
-        props.listViewProps,
+    const href = useMemo(() => resolveTemplatedUrl(props.row, props.listViewProps.linkTemplate), [
+        props.listViewProps.linkTemplate,
         props.row,
     ]);
 
@@ -119,7 +120,7 @@ export function calculateListViewRowHeight(props: DataTableListViewRowProps['lis
     let listViewRowHeight = /* minimum= */ 40;
 
     // Increase the height when a secondary field should be displayed on the row:
-    if (!!props?.secondaryField)
+    if (!!props.secondaryField)
         listViewRowHeight = 56;
 
     // TODO: Increase height when `props.avatar` or `props.icon` is set.

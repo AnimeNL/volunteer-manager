@@ -75,9 +75,17 @@ interface DataTableClientCommonProps<
         secondaryField?: keyof RowModel & string;
 
         /**
-         * Date (YYYY-MM-DD) to display on the right-hand side of the list item.
+         * Date to display on the right-hand side of the list item.
          */
         dateField?: keyof RowModel & string;
+
+        /**
+         * Format to display the `dateField` in. Must adhere to the formatting rules that are
+         * supported by the `formatDate()` method.
+         *
+         * @default "YYYY-MM-DD"
+         */
+        dateFieldFormat?: string;
 
         /**
          * Template from which the URL to link to can be derived. Can contain any of the fields as
@@ -230,7 +238,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 listViewColumn={{
                     field: 'id',
                     renderCell: params =>
-                        props.listViewProps?.linkTemplate ?
+                        props.listViewProps.linkTemplate ?
                             <DataTableListViewButtonRow
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row} /> :
