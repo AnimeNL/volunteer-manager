@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { type ZodObject, z } from 'zod';
+import { hash } from 'node:crypto';
 import { notFound } from 'next/navigation';
 
 import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
@@ -56,7 +57,7 @@ export function createDataSource<ZodContext extends ZodObject, ZodRowModel exten
     rowModel: ZodRowModel,
     instance: DataSource<ZodContext, ZodRowModel>): DataSourceInterface<ZodContext, ZodRowModel>;
 export function createDataSource(...args: any) {
-    const dataSourceId: string = args[0];
+    const dataSourceId: string = generateHashedDataSourceId(args[0]);
 
     let context: ZodObject;
     let rowModel: ZodObject;
@@ -116,4 +117,16 @@ async function listProxy(dataSourceId: string, context: unknown, params: GridGet
         notFound();
 
     return dataSourceWrapper.call('list', context, params);
+}
+
+/**
+ * Generates a hashed data source Id based on the given `dataSourceId`, for which we consider the
+ * build hash we inject during the build process. This is used to remove determinism from the IDs
+ * that are shared with the client across builds, making it harder to discover other endpoints.
+ */
+export function generateHashedDataSourceId(dataSourceId: string): string {
+    const buildHash = process.env.buildHash;
+    const serverActionSalt = process.env.APP_SERVER_ACTION_SALT;
+
+    return hash('sha256', dataSourceId + buildHash + serverActionSalt, 'base64url');
 }
