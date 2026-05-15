@@ -4,7 +4,8 @@
 import { type ZodObject, z } from 'zod';
 import { notFound, unauthorized } from 'next/navigation';
 
-import type { GridGetRowsParams, GridGetRowsResponse } from '@mui/x-data-grid-premium';
+import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
+    from '@mui/x-data-grid-premium';
 
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
@@ -53,6 +54,7 @@ export class DataSourceWrapper {
      * Calls into the given `operation` on the data sourced wrapped by `this`. Both the `context`
      * and all operation-specific parameters will be validated prior to being used.
      */
+    async call(operation: 'create', context: unknown): Promise<GridRowModel>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
@@ -76,6 +78,18 @@ export class DataSourceWrapper {
         await this.#dataSource.authorize(operation, props, verifiedContext);
 
         switch (operation) {
+            case 'create': {
+                if (!Object.hasOwn(this.#dataSource, 'create'))
+                    notFound();  // todo: report an error
+
+                const createdRow = await this.#dataSource.create!(props, verifiedContext);
+                const createdRowValidation = await this.#rowModel.safeParseAsync(createdRow);
+                if (!createdRowValidation.success)
+                    {}; // todo: report a warning
+
+                return createdRow;
+            }
+
             case 'list': {
                 const inputParams = kGridGetRowsParamsValidator.safeParse(args[0]);
                 if (!inputParams.success)

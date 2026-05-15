@@ -3,7 +3,8 @@
 
 import type { ZodObject } from 'zod';
 
-import type { GridGetRowsParams, GridGetRowsResponse } from '@mui/x-data-grid-premium';
+import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
+    from '@mui/x-data-grid-premium';
 
 /**
  * Unique symbol used to store metadata on the `DataSourceInterface` type for later retrieval.
@@ -22,6 +23,12 @@ export interface DataSourceInterface<
 {
     [context]: Context;
     [rowModel]: RowModel;
+
+    /**
+     * Creates a new row in the data source. Returns the row model for the newly created row, in
+     * which the new ID must have been populated.
+     */
+    create?(context: unknown): Promise<GridRowModel>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

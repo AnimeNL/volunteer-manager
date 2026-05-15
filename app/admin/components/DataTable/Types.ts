@@ -18,3 +18,11 @@ export type ExtractContext<T> = T extends DataSourceInterface<infer Context, any
 export type ExtractRowModel<T> = T extends DataSourceInterface<any, infer RowModel>
     ? z.infer<RowModel>
     : never;
+
+/**
+ * Utility type to omit the symbol members of the given `T`.
+ * @ignore
+ */
+export type OmitSymbols<T> = {
+    [K in keyof T as K extends symbol ? never : K]: T[K];
+};

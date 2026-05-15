@@ -10,7 +10,7 @@ import type { DataSourceProps } from './DataSourceProps';
 /**
  * Types of operations that can be executed on a data source.
  */
-export type DataSourceOperation = 'list';
+export type DataSourceOperation = 'create' | 'list';
 
 /**
  * Interface that has to be provided in order for a <DataTable> component to be able to gather or
@@ -40,6 +40,15 @@ export interface DataSource<ZodContext, ZodRowModel> {
     authorize(operation: DataSourceOperation,
               props: DataSourceProps,
               context: z.infer<ZodContext>): Promise<void>;
+
+    /**
+     * Creates a new row in the data source.
+     *
+     * @param props Props indicating the circumstances under which this data source is used.
+     * @param context When set, contextual information required by this data source.
+     * @returns A row model representation of the newly created row.
+     */
+    create?(props: DataSourceProps, context: z.infer<ZodContext>): Promise<ZodRowModel>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

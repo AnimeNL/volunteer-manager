@@ -8,6 +8,7 @@ import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
 
 import type { DataSource } from './DataSource';
 import type { DataSourceInterface } from './DataSourceInterface';
+import type { OmitSymbols } from './Types';
 import { DataSourceWrapper } from './DataSourceWrapper';
 
 /**
@@ -81,14 +82,31 @@ export function createDataSource(...args: any) {
     const dataSourceWrapper = new DataSourceWrapper(context, rowModel, instance);
     kDataSourceRegistry.set(dataSourceId, dataSourceWrapper);
 
-    return {
+    const dataSourceInterface: OmitSymbols<DataSourceInterface<any, any>> = {
         list: listProxy.bind(null, dataSourceId),
     };
+
+    if (Object.hasOwn(instance, 'create'))
+        dataSourceInterface.create = createProxy.bind(null, dataSourceId);
+
+    return dataSourceInterface;
 }
 
 /**
- * Proxy Server Action function towards the `DataSourceWrapper` associated with the given
- * `dataSourceId` for a `list()` call.
+ * Proxy Server Action towards creating a new row on the associated data source.
+ */
+async function createProxy(dataSourceId: string, context: unknown) {
+    'use server';
+
+    const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
+    if (!dataSourceWrapper)
+        notFound();
+
+    return dataSourceWrapper.call('create', context);
+}
+
+/**
+ * Proxy Server Action towards listing existing rows on the associated data source.
  */
 async function listProxy(dataSourceId: string, context: unknown, params: GridGetRowsParams) {
     'use server';
