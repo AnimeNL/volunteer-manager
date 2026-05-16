@@ -80,7 +80,7 @@ export function createDataSource(...args: any) {
             throw new Error(`Invalid signature, expected 3 or 4 arguments, got ${args.length}`);
     }
 
-    const dataSourceWrapper = new DataSourceWrapper(context, rowModel, instance);
+    const dataSourceWrapper = new DataSourceWrapper(context, rowModel, dataSourceId, instance);
     kDataSourceRegistry.set(dataSourceId, dataSourceWrapper);
 
     const dataSourceInterface: OmitSymbols<DataSourceInterface<any, any>> = {
@@ -123,6 +123,9 @@ async function listProxy(dataSourceId: string, context: unknown, params: GridGet
  * Generates a hashed data source Id based on the given `dataSourceId`, for which we consider the
  * build hash we inject during the build process. This is used to remove determinism from the IDs
  * that are shared with the client across builds, making it harder to discover other endpoints.
+ *
+ * @param dataSourceId The static, code-provided ID of a given data source.
+ * @return A hashed representation of that ID considering both a per-build and per-instance secret.
  */
 export function generateHashedDataSourceId(dataSourceId: string): string {
     const buildHash = process.env.buildHash;

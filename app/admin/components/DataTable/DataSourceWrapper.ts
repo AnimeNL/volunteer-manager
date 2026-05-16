@@ -9,6 +9,7 @@ import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
 
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
+import { RecordErrorLog } from '@lib/Log';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -36,9 +37,16 @@ export class DataSourceWrapper {
     #context: ZodObject | never;
     #rowModel: ZodObject;
 
+    #dataSourceId: string;
     #dataSource: DataSource<any, any>;
 
-    constructor(context: ZodObject, rowModel: ZodObject, dataSource: DataSource<any, any>) {
+    constructor(
+        context: ZodObject,
+        rowModel: ZodObject,
+        dataSourceId: string,
+        dataSource: DataSource<any, any>,
+        )
+    {
         this.#context = context;
         this.#rowModel = rowModel;
 
@@ -47,6 +55,7 @@ export class DataSourceWrapper {
         if (!Object.hasOwn(this.#rowModel.shape, 'id'))
             throw new Error('Data source row models are required to have an "id" field');
 
+        this.#dataSourceId = dataSourceId;
         this.#dataSource = dataSource;
     }
 
@@ -59,8 +68,12 @@ export class DataSourceWrapper {
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
         const authenticationContext = await getAuthenticationContext();
-        if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.())
-            unauthorized();  // todo: report an error
+        if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.()) {
+            this.reportError(
+                operation, context, 'Unable to access a data source that requires authentication');
+
+            unauthorized();  // does not return
+        }
 
         const props: DataSourceProps = {
             access: authenticationContext.access,
@@ -68,8 +81,13 @@ export class DataSourceWrapper {
         };
 
         const verifiedContextResult = await z.safeParseAsync(this.#context, context);
-        if (!verifiedContextResult.success)
-            notFound();  // todo: report an error
+        if (!verifiedContextResult.success) {
+            this.reportError(
+                operation, context, 'Unable to validate the context given by the client',
+                verifiedContextResult.error);
+
+            notFound();  // does not return
+        }
 
         const verifiedContext = verifiedContextResult.data;
 
@@ -79,27 +97,42 @@ export class DataSourceWrapper {
 
         switch (operation) {
             case 'create': {
-                if (!Object.hasOwn(this.#dataSource, 'create'))
-                    notFound();  // todo: report an error
+                if (!Object.hasOwn(this.#dataSource, 'create')) {
+                    this.reportError(
+                        operation, context, 'Data source does not support create() operations');
+
+                    notFound();  // does not return
+                }
 
                 const createdRow = await this.#dataSource.create!(props, verifiedContext);
                 const createdRowValidation = await this.#rowModel.safeParseAsync(createdRow);
-                if (!createdRowValidation.success)
-                    {}; // todo: report a warning
+                if (!createdRowValidation.success) {
+                    this.reportWarning(
+                        operation, context, 'Data source creates an invalid row model',
+                        createdRowValidation.error);
+                }
 
                 return createdRow;
             }
 
             case 'list': {
                 const inputParams = kGridGetRowsParamsValidator.safeParse(args[0]);
-                if (!inputParams.success)
-                    notFound();  // todo: report an error
+                if (!inputParams.success) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the params given by the client');
+
+                    notFound();  // does not return
+                }
 
                 const validatedInputParams = inputParams.data;
                 const validatedSortField = validatedInputParams.sortModel[0]?.field ?? 'id';
 
-                if (!Object.hasOwn(this.#rowModel.shape, validatedSortField))
-                    notFound();  // todo: report an error
+                if (!Object.hasOwn(this.#rowModel.shape, validatedSortField)) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the sort key given by the client');
+
+                    notFound();  // does not return
+                }
 
                 const params: DataSourceListParams<any> = {
                     page: {
@@ -119,5 +152,57 @@ export class DataSourceWrapper {
                 };
             }
         }
+    }
+
+    /**
+     * Reports an error that happened while calling through to the data source.
+     *
+     * @param operation Operation during which the error happened.
+     * @param context Context that was given for the invocation. May not have been validated.
+     * @param message Message that describes what exactly happened, in English.
+     * @param error Error that optionally describes the details of what happened.
+     */
+    private reportError(
+        operation: DataSourceOperation, context: unknown, message: string, error?: Error): void
+    {
+        RecordErrorLog({
+            error: {
+                name: 'DataSourceError',
+                message,
+            },
+            requestUrl: {
+                pathname: `/server-action/${this.#dataSourceId}`,
+            },
+            severity: 'Error',
+            source: 'Server',
+
+            // TODO: Store |operation|, |context| and |error| as metadata
+        });
+    }
+
+    /**
+     * Reports a warning that happened while calling through to the data source.
+     *
+     * @param operation Operation during which the error happened.
+     * @param context Context that was given for the invocation. May not have been validated.
+     * @param message Message that describes what exactly happened.
+     * @param error Error that optionally describes the details of what happened.
+     */
+    private reportWarning(
+        operation: DataSourceOperation, context: unknown, message: string, error?: Error): void
+    {
+        RecordErrorLog({
+            error: {
+                name: 'DataSourceError',
+                message,
+            },
+            requestUrl: {
+                pathname: `/server-action/${this.#dataSourceId}`,
+            },
+            severity: 'Warning',
+            source: 'Server',
+
+            // TODO: Store |operation|, |context| and |error| as metadata
+        });
     }
 }
