@@ -1,8 +1,23 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config';
+import fs from 'node:fs/promises';
+import react from '@vitejs/plugin-react';
+
+async function attemptToExtractMuiLicenseFromEnvFiles() {
+    for (const filename of [ '.env.production', '.env.development', '.env' ]) {
+        try {
+            const contents = await fs.readFile(filename, 'utf-8');
+            const match = contents.match(/^NEXT_PUBLIC_MUI_LICENSE_KEY="(.*)"$/m);
+            if (match)
+                return match[1].trim();
+
+        } catch { /* proceed with the next file */ }
+    }
+
+    return undefined;
+}
 
 export default defineConfig({
     plugins: [ react() ],
@@ -19,6 +34,9 @@ export default defineConfig({
             APP_SMTP_PORT: '587',
             APP_SMTP_USERNAME: 'user@example.com',
             APP_SMTP_PASSWORD: 'password',
+
+            // Used for the <DataTable> tests, which rely on MUI X DataGrid Premium:
+            NEXT_PUBLIC_MUI_LICENSE_KEY: await attemptToExtractMuiLicenseFromEnvFiles(),
 
             // TODO: Remove this once Next.js auth interrupts are stable.
             __NEXT_EXPERIMENTAL_AUTH_INTERRUPTS: 'true',
