@@ -23,6 +23,7 @@ export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPro
     override get metadata() {
         return {
             id: 'participation-reminder',
+            type: 'Communication',
             label: 'Participation reminder',
             description: 'Message to remind volunteers to participate again in the latest event.',
             setting: 'ai-communication-type-participation-reminder',

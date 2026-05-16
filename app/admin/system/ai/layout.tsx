@@ -8,6 +8,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import Paper from '@mui/material/Paper';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
@@ -34,6 +35,12 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
             icon: <ModelTrainingIcon />,
             label: 'Models',
             url: '/admin/system/ai/models',
+            urlMatchMode: 'prefix',
+        },
+        {
+            icon: <SmartToyIcon />,
+            label: 'Features',
+            url: '/admin/system/ai/features',
             urlMatchMode: 'prefix',
         },
         {

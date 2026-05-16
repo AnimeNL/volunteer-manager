@@ -17,6 +17,7 @@ export class ApplicationApprovedPrompt extends Prompt<ApplicationApprovedPromptP
     override get metadata() {
         return {
             id: 'application-approved',
+            type: 'Communication',
             label: 'Application approved',
             description: 'Message to announce that someone\'s application has been approved.',
             setting: 'ai-communication-type-application-approved',

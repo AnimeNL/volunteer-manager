@@ -20,7 +20,7 @@ export class SystemPrompt extends Prompt<SystemPromptParameters> {
     override get metadata() {
         return {
             id: 'system-prompt',
-            hidden: true,
+            type: 'Internal',
             label: 'System Prompt',
             description: 'System prompt used for all communication messages.',
             setting: 'ai-communication-system-prompt',

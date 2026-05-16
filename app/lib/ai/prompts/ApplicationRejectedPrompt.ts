@@ -17,6 +17,7 @@ export class ApplicationRejectedPrompt extends Prompt<ApplicationRejectedPromptP
     override get metadata() {
         return {
             id: 'application-rejected',
+            type: 'Communication',
             label: 'Application rejected',
             description: 'Message to announce that someone\'s application has been rejected.',
             setting: 'ai-communication-type-application-rejected',

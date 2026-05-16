@@ -23,6 +23,7 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
     override get metadata() {
         return {
             id: 'hotel-confirmation',
+            type: 'Communication',
             label: 'Hotel confirmation',
             description:
                 'Message to confirm to a volunteer that their hotel booking has been settled.',

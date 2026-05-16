@@ -19,9 +19,9 @@ type Metadata = {
     id: string;
 
     /**
-     * Whether the prompt should be hidden from the Communication page.
+     * Type of prompt, which dictates on which internal maintenance page it should appear.
      */
-    hidden?: true;
+    type: 'Communication' | 'Feature' | 'Internal';
 
     /**
      * Label that describes that this prompt is about.

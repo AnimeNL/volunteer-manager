@@ -5,20 +5,31 @@
 
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
+import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
 import HotelIcon from '@mui/icons-material/Hotel';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import ThumbDownOutlinedIcon from '@mui/icons-material/ThumbDownOutlined';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 
 import type * as prompts from '@lib/ai/prompts';
 
 /**
+ *
+ */
+type PromptId = keyof typeof prompts;
+
+/**
  * Displays one of the prompt icons. This is implemented as a client component as Next.js somehow
  * managed to optimise away the icon, which is not the intended effect.
  */
-export function PromptIcon(props: { id: keyof typeof prompts }) {
+export function PromptIcon(props: { id: PromptId }) {
     switch (props.id) {
+        // -----------------------------------------------------------------------------------------
+        // Communication:
+        // -----------------------------------------------------------------------------------------
+
         case 'ApplicationApprovedPrompt':
             return <ThumbUpOutlinedIcon color="primary" />;
 
@@ -40,6 +51,18 @@ export function PromptIcon(props: { id: keyof typeof prompts }) {
         case 'TeamChangePrompt':
             return <ChangeCircleOutlinedIcon color="primary" />;
 
+        // -----------------------------------------------------------------------------------------
+        // Features:
+        // -----------------------------------------------------------------------------------------
+
+        case 'DutyBookSummaryPrompt':
+            return <SummarizeOutlinedIcon color="primary" />;
+
+        case 'IncidentSummaryPrompt':
+            return <FlagOutlinedIcon color="primary" />;
+
+        // -----------------------------------------------------------------------------------------
+        // Internal:
         // -----------------------------------------------------------------------------------------
 
         case 'NardoPersonalisedAdvicePrompt':

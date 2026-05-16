@@ -76,7 +76,8 @@ export function NavigationTabs(props: NavigationTabsProps) {
     }, [ props.tabs, router ]);
 
     return (
-        <Tabs onChange={handleChange} value={selectedTabIndex} variant="fullWidth">
+        <Tabs onChange={handleChange} value={selectedTabIndex} variant="fullWidth"
+              sx={{ '& .MuiSvgIcon-root': { marginRight: 1 } }}>
             { props.tabs.map(({ label, icon }, index) =>
                 <Tab key={index} icon={icon} iconPosition="start" label={label} /> )}
         </Tabs>

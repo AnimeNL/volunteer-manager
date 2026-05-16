@@ -20,7 +20,7 @@ export class DutyBookSummaryPrompt extends Prompt<DutyBookSummaryPromptParameter
     override get metadata() {
         return {
             id: 'duty-book-summary-prompt',
-            hidden: true,
+            type: 'Feature',
             label: 'Duty Book Summary Prompt',
             description: 'Prompt used to holistically summarise Duty Book entries.',
             setting: 'ai-duty-book-summary-prompt',

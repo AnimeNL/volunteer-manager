@@ -17,6 +17,7 @@ export class TeamChangePrompt extends Prompt<TeamChangePromptParameters> {
     override get metadata() {
         return {
             id: 'team-change',
+            type: 'Communication',
             label: 'Team change confirmation',
             description: 'Message to confirm that someone\'s been moved to another team.',
             setting: 'ai-communication-type-team-change',

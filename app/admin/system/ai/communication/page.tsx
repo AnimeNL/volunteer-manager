@@ -20,7 +20,7 @@ import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { IncidentSummaryPrompt } from '@lib/ai/prompts/IncidentSummaryPrompt';
-import { PromptIcon } from './PromptIcon';
+import { PromptIcon } from '../PromptIcon';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
@@ -70,7 +70,7 @@ export default async function CommunicationAiPage() {
             name: promptConstructor.name,
             metadata: promptInstance.metadata,
         };
-    }).filter(({ metadata }) => { return !('hidden' in metadata)
+    }).filter(({ metadata }) => { return metadata.type === 'Communication'
     }).sort((lhs, rhs) => lhs.metadata.label.localeCompare(rhs.metadata.label));
 
     return (
@@ -80,7 +80,7 @@ export default async function CommunicationAiPage() {
                     { availablePrompts.map(({ name, metadata }) =>
                         <ListItemButton key={metadata.id} LinkComponent={Link}
                                         href={`./communication/${metadata.id}`}>
-                            <ListItemIcon>
+                            <ListItemIcon sx={{ width: 40 }}>
                                 <PromptIcon id={name as keyof typeof prompts} />
                             </ListItemIcon>
                             <ListItemText primary={metadata.label}
@@ -104,47 +104,6 @@ export default async function CommunicationAiPage() {
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2, mb: 1 }} />
-
-            { /* TODO: Move this elsewhere ---------------------------------------------------- */ }
-            <FormGrid action={actions.updatePrompt}
-                      defaultValues={{
-                          id: 'incident-summary-prompt',
-                          prompt: incidentSummaryPromptTemplate
-                      }}>
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                        Incident summary prompt
-                    </Typography>
-                    <TokenOverviewAlert prompt={incidentSummaryPrompt} />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <HiddenInput name="id" />
-                    <TextareaAutosizeElement name="prompt" label="Incident summary prompt" fullWidth
-                                             size="small" />
-                </Grid>
-            </FormGrid>
-            <Divider sx={{ mt: 2, mb: 1 }} />
-            { /* TODO: Move this elsewhere ---------------------------------------------------- */ }
-            <FormGrid action={actions.updatePrompt}
-                      defaultValues={{
-                          id: 'duty-book-summary-prompt',
-                          prompt: dutyBookSummaryPromptTemplate,
-                      }}>
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                        Duty book summary prompt
-                    </Typography>
-                    <TokenOverviewAlert prompt={dutyBookSummaryPrompt} />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <HiddenInput name="id" />
-                    <TextareaAutosizeElement name="prompt" label="Duty book summary prompt"
-                                             fullWidth size="small" />
-                </Grid>
-            </FormGrid>
-            <Divider sx={{ mt: 2, mb: 1 }} />
-            { /* TODO: ------------------------------------------------------------------------ */ }
-
             <FormGrid action={actions.updateExampleMessages} defaultValues={{ exampleMessages }}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="h6">

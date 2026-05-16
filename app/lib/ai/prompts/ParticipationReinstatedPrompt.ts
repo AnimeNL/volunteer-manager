@@ -17,6 +17,7 @@ export class ParticipationReinstatedPrompt extends Prompt<ParticipationReinstate
     override get metadata() {
         return {
             id: 'participation-reinstated',
+            type: 'Communication',
             label: 'Participation reinstated',
             description: 'Message to confirm that someone will once again be participating.',
             setting: 'ai-communication-type-participation-reinstated',

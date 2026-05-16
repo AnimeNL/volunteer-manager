@@ -17,6 +17,7 @@ export class ParticipationCancelledPrompt extends Prompt<ParticipationCancelledP
     override get metadata() {
         return {
             id: 'participation-cancelled',
+            type: 'Communication',
             label: 'Participation cancelled',
             description: 'Message to confirm that someone\'s participation has been cancelled.',
             setting: 'ai-communication-type-participation-cancelled',

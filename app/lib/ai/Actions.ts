@@ -112,7 +112,7 @@ const kPromptWithExampleParametersData = z.object({
  * Server action to execute a prompt with the configured example parameters. The ID of the prompt
  * must be known, and both the language and personalisation options are available as payload.
  */
-export async function executePromptWithExampleParameters(formData: unknown) {
+export async function executeCommunicationPromptWithExampleParameters(formData: unknown) {
     'use server';
 
     return executeServerAction(formData, kPromptWithExampleParametersData, async (data, props) => {

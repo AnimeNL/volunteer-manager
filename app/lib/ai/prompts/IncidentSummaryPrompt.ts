@@ -18,7 +18,7 @@ export class IncidentSummaryPrompt extends Prompt<IncidentSummaryPromptParameter
     override get metadata() {
         return {
             id: 'incident-summary-prompt',
-            hidden: true,
+            type: 'Feature',
             label: 'Incident Summary Prompt',
             description: 'Prompt used to filter and summarise incident reports.',
             setting: 'ai-incident-summary-prompt',

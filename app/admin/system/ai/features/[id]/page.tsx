@@ -10,12 +10,12 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
+import type { ServerAction } from '@lib/serverAction';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
-import { executeCommunicationPromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { updatePrompt } from '../../AiActions';
@@ -23,11 +23,11 @@ import { updatePrompt } from '../../AiActions';
 import * as prompts from '@lib/ai/prompts';
 
 /**
- * This page displays configuration, and provides the ability to try out an individual prompt. The
- * given |id| must exist in the communication prompt configuration, otherwise we'll 404.
+ * This <AiFeaturesPromptPage> page lists the prompt and configuration for an individual feature
+ * that can be changed using the control panel. Examples can be generated on the fly.
  */
-export default async function CommunicationPromptAiPage(
-    props: PageProps<'/admin/system/ai/communication/[id]'>)
+export default async function AiFeaturesPromptPage(
+    props: PageProps<'/admin/system/ai/features/[id]'>)
 {
     await requireAuthenticationContext({
         check: 'admin',
@@ -41,6 +41,11 @@ export default async function CommunicationPromptAiPage(
     if (!prompt || 'hidden' in prompt.metadata)
         notFound();
 
+    let exampleAction: ServerAction | undefined;
+    switch (prompt.metadata.id) {
+        // todo: provide specialised examples for relevant features
+    }
+
     const settings = await readSettings([
         prompt.metadata.setting,
     ]);
@@ -53,7 +58,7 @@ export default async function CommunicationPromptAiPage(
     return (
         <>
             <FormGrid action={updatePrompt} defaultValues={defaultValues}>
-                <BackButtonGrid href="/admin/system/ai/communication">
+                <BackButtonGrid href="/admin/system/ai/features">
                     Back to overview
                 </BackButtonGrid>
                 <Grid size={{ xs: 12 }} sx={{ mt: -1 }}>
@@ -72,12 +77,12 @@ export default async function CommunicationPromptAiPage(
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2 }} />
-            <Example action={executeCommunicationPromptWithExampleParameters}
-                     id={prompt.metadata.id} />
+            { !!exampleAction &&
+                <Example action={exampleAction} id={prompt.metadata.id} /> }
         </>
     );
 }
 
 export const metadata: Metadata = {
-    title: 'Communication | Artificial Intelligence | AnimeCon Volunteer Manager',
+    title: 'Features | Artificial Intelligence | AnimeCon Volunteer Manager',
 };
