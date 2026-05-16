@@ -100,22 +100,25 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
 }
 
 /**
- * Zod type that describes information required in order to execute a prompt with exampl parameters.
+ * Zod type that describes information required in order to execute a prompt with the example
+ * parameters. The "language" and "personalisation" objects are only required for communication-
+ * related prompts, and are otherwise optional.
  */
-const kPromptWithExampleParametersData = z.object({
+const kCommunicationPromptData = z.object({
     id: z.string().nonempty(),
-    language: z.string(),
-    personalisation: z.boolean(),  // TODO: Take a User ID
+
+    language: z.string().optional(),
+    personalisation: z.boolean().optional(),  // TODO: Take a User ID
 });
 
 /**
  * Server action to execute a prompt with the configured example parameters. The ID of the prompt
- * must be known, and both the language and personalisation options are available as payload.
+ * must be known, availability of other data depends on the type of prompt.
  */
-export async function executeCommunicationPromptWithExampleParameters(formData: unknown) {
+export async function executePromptWithExampleParameters(formData: unknown) {
     'use server';
 
-    return executeServerAction(formData, kPromptWithExampleParametersData, async (data, props) => {
+    return executeServerAction(formData, kCommunicationPromptData, async (data, props) => {
         await requireAuthenticationContext({
             check: 'admin',
             permission: 'system.internals.ai',
@@ -127,12 +130,21 @@ export async function executeCommunicationPromptWithExampleParameters(formData: 
 
         const executor = PromptExecutor.forPrompt(promptInstance);
 
-        if (data.personalisation)
-            await executor.prepareExampleMessages(props.user.id);
+        switch (promptInstance.metadata.type) {
+            case 'Communication':
+                if (data.personalisation)
+                    await executor.prepareExampleMessages(props.user.id);
 
-        await executor.prepareSystemPrompt({
-            language: data.language,
-        });
+                await executor.prepareSystemPrompt({
+                    language: data.language,
+                });
+
+                break;
+
+            case 'Feature':
+            case 'Internal':
+                break;
+        }
 
         const response = await executor.execute(promptInstance.exampleParameters);
         if (!response.success)

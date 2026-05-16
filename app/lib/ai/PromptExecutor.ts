@@ -86,22 +86,39 @@ export class PromptExecutor<T extends Prompt<any>> {
      * @returns Response from the model as it executed the prompt.
      */
     async execute(parameters: GetPromptParameters<T>): Promise<ModelTextResponse> {
-        if (this.#exampleMessages === null)
-            await this.prepareExampleMessages();
+        let attachments: Uint8Array<ArrayBuffer>[] = [ /* none */ ];
+        let systemPrompt: string | undefined;
 
-        if (this.#systemPrompt === null)
-            await this.prepareSystemPrompt({ /* use default values */ });
+        switch (this.#prompt.metadata.type) {
+            case 'Communication': {
+                if (this.#exampleMessages === null)
+                    await this.prepareExampleMessages();
+
+                if (this.#systemPrompt === null)
+                    await this.prepareSystemPrompt({ /* use default values */ });
+
+                const exampleMessages = this.#exampleMessages ?? [ /* none */ ];
+
+                attachments = exampleMessages.map(message => kTextEncoder.encode(message));
+                systemPrompt = this.#systemPrompt!;
+                break;
+            }
+
+            case 'Feature':
+            case 'Internal':
+                break
+        }
 
         const prompt = await this.#prompt.evaluate(parameters);
 
         const client = await createAiClient();
         return await client.safeGenerateText({
-            attachments: this.#exampleMessages?.map(exampleMessage => ({
-                bytes: kTextEncoder.encode(exampleMessage),
+            attachments: attachments.map(attachment => ({
+                bytes: attachment,
                 mimeType: 'text/plain',
             })),
             prompt,
-            systemPrompt: this.#systemPrompt!,
+            systemPrompt,
         });
     }
 

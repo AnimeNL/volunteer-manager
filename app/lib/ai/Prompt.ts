@@ -37,6 +37,11 @@ type Metadata = {
      * The setting in which this prompt will be stored.
      */
     setting: StringSettings<Settings>;
+
+    /**
+     * When given, the setting in which the complexity of this prompt will be stored.
+     */
+    settingComplexity?: StringSettings<Settings>;
 };
 
 /**

@@ -166,6 +166,7 @@ export async function updateModelSettings(formData: unknown) {
 const kUpdatePromptData = z.object({
     id: z.string().nonempty(),
     prompt: z.string().nonempty(),
+    complexity: z.enum([ 'low', 'medium', 'high' ]).optional(),
 });
 
 /**
@@ -199,6 +200,9 @@ export async function updatePrompt(formData: unknown) {
         });
 
         await writeSetting(prompt.metadata.setting, data.prompt);
+        if (!!data.complexity && !!prompt.metadata.settingComplexity)
+            await writeSetting(prompt.metadata.settingComplexity, data.complexity);
+
         return { success: true };
     });
 }

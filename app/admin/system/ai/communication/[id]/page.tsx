@@ -15,7 +15,7 @@ import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
-import { executeCommunicationPromptWithExampleParameters } from '@lib/ai/Actions';
+import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { updatePrompt } from '../../AiActions';
@@ -72,8 +72,7 @@ export default async function CommunicationPromptAiPage(
                 </Grid>
             </FormGrid>
             <Divider sx={{ mt: 2 }} />
-            <Example action={executeCommunicationPromptWithExampleParameters}
-                     id={prompt.metadata.id} />
+            <Example action={executePromptWithExampleParameters} id={prompt.metadata.id} />
         </>
     );
 }

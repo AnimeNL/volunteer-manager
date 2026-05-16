@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AiSupportedModel } from './integrations/genai/Models';
+import type { TextGenerationComplexity } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
 import type { VertexSupportedModels } from './integrations/vertexai/VertexSupportedModels';
 import db, { tSettings } from '@lib/database';
@@ -81,9 +82,11 @@ export type Settings = {
 
     // Duty Book summaries:
     'ai-duty-book-summary-prompt': string;
+    'ai-duty-book-summary-prompt-complexity': TextGenerationComplexity;
 
     // Incident reports:
     'ai-incident-summary-prompt': string;
+    'ai-incident-summary-prompt-complexity': TextGenerationComplexity;
 
     // Settings:
     'ai-setting-gemini-api-key': string;

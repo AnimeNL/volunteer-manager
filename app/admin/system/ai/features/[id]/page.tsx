@@ -4,23 +4,36 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { TextareaAutosizeElement } from 'react-hook-form-mui';
+import { SelectElement, TextareaAutosizeElement } from 'react-hook-form-mui';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { ServerAction } from '@lib/serverAction';
+import type { TextGenerationComplexity } from '@lib/integrations/genai/Client';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
-import { readSettings } from '@lib/Settings';
+import { executePromptWithExampleParameters } from '@lib/ai/Actions';
+import { readSettings, type Setting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { updatePrompt } from '../../AiActions';
 
+import { kAiSupportedModels, type AiSupportedModel } from '@lib/integrations/genai/Models';
+
 import * as prompts from '@lib/ai/prompts';
+
+/**
+ * Gets a model label for the given `model` that will be used for the given `complexity`.
+ */
+function getModelLabelForComplexity(complexity: string, model: AiSupportedModel) {
+    if (!Object.hasOwn(kAiSupportedModels, model))
+        return complexity;
+
+    return `${complexity} (${kAiSupportedModels[model].name})`;
+}
 
 /**
  * This <AiFeaturesPromptPage> page lists the prompt and configuration for an individual feature
@@ -41,18 +54,37 @@ export default async function AiFeaturesPromptPage(
     if (!prompt || 'hidden' in prompt.metadata)
         notFound();
 
-    let exampleAction: ServerAction | undefined;
-    switch (prompt.metadata.id) {
-        // todo: provide specialised examples for relevant features
-    }
+    let settingComplexity: Setting | undefined;
+    if ('settingComplexity' in prompt.metadata)
+        settingComplexity = prompt.metadata.settingComplexity;
 
     const settings = await readSettings([
+        'ai-setting-text-model-high',
+        'ai-setting-text-model-low',
+        'ai-setting-text-model-medium',
         prompt.metadata.setting,
+        settingComplexity!,
     ]);
+
+    const complexityOptions: { id: TextGenerationComplexity, label: string }[] = [
+        {
+            id: 'low',
+            label: getModelLabelForComplexity('Low', settings['ai-setting-text-model-low']!),
+        },
+        {
+            id: 'medium',
+            label: getModelLabelForComplexity('Medium', settings['ai-setting-text-model-medium']!),
+        },
+        {
+            id: 'high',
+            label: getModelLabelForComplexity('High', settings['ai-setting-text-model-high']!),
+        },
+    ];
 
     const defaultValues = {
         id: prompt.metadata.id,
         prompt: settings[prompt.metadata.setting],
+        complexity: settings[settingComplexity!],
     };
 
     return (
@@ -75,10 +107,14 @@ export default async function AiFeaturesPromptPage(
                     <TextareaAutosizeElement name="prompt" label="Prompt template" size="small"
                                              fullWidth />
                 </Grid>
+                { !!settingComplexity &&
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="complexity" label="Prompt complexity" size="small"
+                                       fullWidth options={complexityOptions} />
+                    </Grid> }
             </FormGrid>
             <Divider sx={{ mt: 2 }} />
-            { !!exampleAction &&
-                <Example action={exampleAction} id={prompt.metadata.id} /> }
+            <Example action={executePromptWithExampleParameters} id={prompt.metadata.id} />
         </>
     );
 }
