@@ -7,7 +7,6 @@ import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import type { ActionProps } from '../Action';
 import { RecordLog, kLogType } from '@lib/Log';
 
-import { PlaywrightHooks } from '@lib/PlaywrightHooks';
 import { authenticateUser, getUserSessionToken } from '@lib/auth/Authentication';
 import { securePasswordHash } from '@lib/auth/Password';
 import { unsealPasswordResetRequest } from '@lib/auth/PasswordReset';
@@ -56,9 +55,6 @@ type Response = ApiResponse<typeof kPasswordResetDefinition>;
 export async function updateUserPassword(
     userId: number, hashedPassword: string, incrementSession: boolean): Promise<void>
 {
-    if (PlaywrightHooks.isActive())
-        return;  // no need to actually update a password
-
     const securelyHashedPassword = await securePasswordHash(hashedPassword);
 
     const dbInstance = db;

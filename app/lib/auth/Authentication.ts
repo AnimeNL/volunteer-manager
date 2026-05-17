@@ -6,7 +6,6 @@ import type { AuthenticationResult } from './AuthenticationTestHelpers';
 import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type Grant } from './AccessControl';
-import { PlaywrightHooks } from '../PlaywrightHooks';
 import { Temporal } from '@lib/Temporal';
 import { getBlobUrl } from '../database/BlobStore';
 import { securePasswordHash } from './Password';
@@ -76,9 +75,6 @@ export type AuthenticateUserParams =
 export async function authenticateUser(params: AuthenticateUserParams)
     : Promise<AuthenticationContext>
 {
-    if (PlaywrightHooks.isActive())
-        return PlaywrightHooks.authenticateUser(params);
-
     const eventsJoin = tEvents.forUseInLeftJoin();
     const rolesJoin = tRoles.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
@@ -235,9 +231,6 @@ type UserLike = { id: number };
  * security of their account, so it won't be included in the regular User type.
  */
 export async function getUserSessionToken(user: UserLike | number): Promise<number | null> {
-    if (PlaywrightHooks.isActive())
-        return PlaywrightHooks.getUserSessionToken(user);
-
     return db.selectFrom(tUsers)
         .where(tUsers.userId.equals(typeof user === 'number' ? user : user.id))
         .selectOneColumn(tUsers.sessionToken)
@@ -289,9 +282,6 @@ type ValidUserData = { id: number; activated: boolean };
  * Returns whether the given `username` belongs to an activated account.
  */
 export async function isValidActivatedUser(username: string): Promise<ValidUserData | undefined> {
-    if (PlaywrightHooks.isActive())
-        return PlaywrightHooks.isUserActivated(username);
-
     return await db.selectFrom(tUsers)
         .select({
             id: tUsers.userId,

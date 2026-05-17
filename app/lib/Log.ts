@@ -5,7 +5,6 @@ import { after } from 'next/server';
 import { headers } from 'next/headers';
 
 import type { User } from '@lib/auth/User';
-import { PlaywrightHooks } from './PlaywrightHooks';
 import db, { tErrorLogs, tLogs } from '@lib/database';
 
 import { kErrorSource, type ErrorSource } from './database/Types';
@@ -181,9 +180,6 @@ export function RecordLog(entry: LogEntry): void {
     const data = entry.data ? JSON.stringify(entry.data) : null;
     const severity = entry.severity ?? kLogSeverity.Info;
 
-    if (PlaywrightHooks.isActive() && PlaywrightHooks.isPlaywrightUser(sourceUserId, targetUserId))
-        return;  // don't create log entries on behalf of Playwright users
-
     after(async () => {
         const requestHeaders = await headers();
 
@@ -221,9 +217,6 @@ export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
 
     const data = entry.data ? JSON.stringify(entry.data) : null;
     const severity = entry.severity ?? kLogSeverity.Info;
-
-    if (PlaywrightHooks.isActive() && PlaywrightHooks.isPlaywrightUser(sourceUserId, targetUserId))
-        return;  // don't create log entries on behalf of Playwright users
 
     let logSourceIpAddress: string | null = null;
     let logSourceUserAgent: string | null = null;
