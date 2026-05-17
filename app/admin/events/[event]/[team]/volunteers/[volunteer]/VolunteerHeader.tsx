@@ -32,8 +32,8 @@ import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPag
 import type { User } from '@lib/auth/User';
 import type { VolunteerRolesDefinition } from '@app/api/admin/volunteerRoles';
 import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
-import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
+import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
 import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
@@ -268,24 +268,25 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
 
     if (selectedTeam) {
         return (
-            <CommunicationDialog title={`Change ${volunteer.firstName}'s team`}
-                                 open={props.open} onClose={handleClose}
-                                 confirmLabel="Change team" allowSilent={allowSilent} description={
-                                     <>
-                                         You're about to change
-                                         <strong> {volunteer.firstName}</strong>'s team to the
-                                         <strong> {selectedTeam.teamName}</strong>. An e-mail will
-                                         automatically be sent to let them know.
-                                     </>
-                                 } apiParams={{
-                                     type: 'change-team',
-                                     changeTeam: {
-                                         userId: volunteer.userId,
-                                         event: props.event,
-                                         currentTeam: props.currentTeam,
-                                         updatedTeam: selectedTeam.teamSlug,
-                                     },
-                                 }} onSubmit={handleSubmit} />
+            <OldCommunicationDialog title={`Change ${volunteer.firstName}'s team`}
+                                    open={props.open} onClose={handleClose}
+                                    confirmLabel="Change team" allowSilent={allowSilent}
+                                    description={
+                                        <>
+                                            You're about to change
+                                            <strong> {volunteer.firstName}</strong>'s team to the
+                                            <strong> {selectedTeam.teamName}</strong>. An e-mail
+                                            will automatically be sent to let them know.
+                                        </>
+                                    } apiParams={{
+                                        type: 'change-team',
+                                        changeTeam: {
+                                            userId: volunteer.userId,
+                                            event: props.event,
+                                            currentTeam: props.currentTeam,
+                                            updatedTeam: selectedTeam.teamSlug,
+                                        },
+                                    }} onSubmit={handleSubmit} />
         );
     }
 
@@ -581,41 +582,41 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
 
                 </Stack>
             </ContrastBox>
-            <CommunicationDialog title={`Cancel ${volunteer.firstName}'s participation`}
-                                 open={cancelOpen} onClose={handleCancelClose}
-                                 confirmLabel="Proceed" allowSilent={allowSilent} description={
-                                     <>
-                                         You're about to cancel
-                                         <strong> {volunteer.firstName}</strong>'s participation in
-                                         this event. An e-mail will automatically be sent to let
-                                         them know.
-                                     </>
-                                 } apiParams={{
-                                     type: 'cancel-participation',
-                                     cancelParticipation: {
-                                         userId: volunteer.userId,
-                                         event: event.slug,
-                                         team: team.slug,
-                                     }
-                                 }} onSubmit={handleCancelled} />
+            <OldCommunicationDialog title={`Cancel ${volunteer.firstName}'s participation`}
+                                    open={cancelOpen} onClose={handleCancelClose}
+                                    confirmLabel="Proceed" allowSilent={allowSilent} description={
+                                        <>
+                                            You're about to cancel
+                                            <strong> {volunteer.firstName}</strong>'s participation
+                                            in this event. An e-mail will automatically be sent to
+                                            let them know.
+                                        </>
+                                    } apiParams={{
+                                        type: 'cancel-participation',
+                                        cancelParticipation: {
+                                            userId: volunteer.userId,
+                                            event: event.slug,
+                                            team: team.slug,
+                                        }
+                                    }} onSubmit={handleCancelled} />
 
-            <CommunicationDialog title={`Reinstate ${volunteer.firstName}'s participation`}
-                                 open={reinstateOpen} onClose={handleReinstateClose}
-                                 confirmLabel="Reinstate" allowSilent={allowSilent} description={
-                                     <>
-                                         You're about to reinstate
-                                         <strong> {volunteer.firstName}</strong> to participation in
-                                         this event. An e-mail will automatically be sent to let
-                                         them know.
-                                     </>
-                                 } apiParams={{
-                                     type: 'reinstate-participation',
-                                     reinstateParticipation: {
-                                         userId: volunteer.userId,
-                                         event: event.slug,
-                                         team: team.slug,
-                                     }
-                                 }} onSubmit={handleReinstated} />
+            <OldCommunicationDialog title={`Reinstate ${volunteer.firstName}'s participation`}
+                                    open={reinstateOpen} onClose={handleReinstateClose}
+                                    confirmLabel="Reinstate" allowSilent={allowSilent} description={
+                                        <>
+                                            You're about to reinstate
+                                            <strong> {volunteer.firstName}</strong> to participation
+                                            in this event. An e-mail will automatically be sent to
+                                            let them know.
+                                        </>
+                                    } apiParams={{
+                                        type: 'reinstate-participation',
+                                        reinstateParticipation: {
+                                            userId: volunteer.userId,
+                                            event: event.slug,
+                                            team: team.slug,
+                                        }
+                                    }} onSubmit={handleReinstated} />
 
             <ChangeRoleDialog onClose={handleRolesClose} open={roles && rolesOpen}
                               roles={roles!} volunteer={volunteer} eventId={event.id}

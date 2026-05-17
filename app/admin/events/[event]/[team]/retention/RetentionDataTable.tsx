@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import type { RetentionContext, RetentionRowModel } from '@app/api/admin/retention/[[...id]]/route';
-import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
+import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
@@ -333,22 +333,22 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                              defaultSort={{ field: 'id', sort: 'asc' }} pageSize={100}
                              disableFooter />
 
-            <CommunicationDialog title={`Invite ${emailTarget?.name} to volunteer again`}
-                                 open={emailOpen} onClose={handleEmailClose}
-                                 confirmLabel="Send" allowSilent={false} description={
-                                     <>
-                                         You're about to send an e-mail to
-                                         <strong> {emailTarget?.name}</strong> inviting them to help
-                                         out during the upcoming AnimeCon event.
-                                     </>
-                                 } apiParams={{
-                                     type: 'remind-participation',
-                                     remindParticipation: {
-                                         userId: emailTarget?.id ?? 0,
-                                         event: props.event,
-                                         team: props.team,
-                                     },
-                                 }} onSubmit={handleEmailSubmit} />
+            <OldCommunicationDialog title={`Invite ${emailTarget?.name} to volunteer again`}
+                                    open={emailOpen} onClose={handleEmailClose}
+                                    confirmLabel="Send" allowSilent={false} description={
+                                        <>
+                                            You're about to send an e-mail to
+                                            <strong> {emailTarget?.name}</strong> inviting them to
+                                            help out during the upcoming AnimeCon event.
+                                        </>
+                                    } apiParams={{
+                                        type: 'remind-participation',
+                                        remindParticipation: {
+                                            userId: emailTarget?.id ?? 0,
+                                            event: props.event,
+                                            team: props.team,
+                                        },
+                                    }} onSubmit={handleEmailSubmit} />
 
             <SettingDialog title={`Invite ${whatsAppTarget?.name} to volunteer again`}
                            open={whatsAppOpen} onClose={handleWhatsAppClose}

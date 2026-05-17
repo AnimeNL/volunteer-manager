@@ -95,7 +95,7 @@ interface CommunicationDialogProps {
  *
  * Dialogs will be given a type and a payload, which will be used in the to-be-generated message.
  */
-export function CommunicationDialog(props: CommunicationDialogProps) {
+export function OldCommunicationDialog(props: CommunicationDialogProps) {
     const { description, onClose, onSubmit, open, title } = props;
 
     const closeLabel = props.closeLabel ?? 'Close';

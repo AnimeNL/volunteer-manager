@@ -37,7 +37,7 @@ import Typography from '@mui/material/Typography';
 import type { ServerAction } from '@lib/serverAction';
 import { AccountRestrictedChip } from '@app/admin/organisation/accounts/[id]/AccountRestrictedChip';
 import { Avatar } from '@components/Avatar';
-import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
+import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
 import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
 import { Temporal, formatDate } from '@lib/Temporal';
 
@@ -506,42 +506,42 @@ export function Application(props: ApplicationProps) {
                 </ServerActionDialog> }
 
             { !!approveEverOpen &&
-                <CommunicationDialog title={`Approve ${application.firstName}'s application`}
-                                     open={approveOpen} onClose={handleApproveClose}
-                                     confirmLabel="Approve" allowSilent={props.canRespondSilently}
-                                     description={
-                                         <>
-                                             You're about to approve
-                                             <strong> {application.firstName}</strong>'s
-                                             application to help out during this event. An e-mail
-                                             will automatically be sent to let them know.
-                                         </>
-                                     } apiParams={{
-                                         type: 'approve-volunteer',
-                                         approveVolunteer: {
-                                             userId: application.userId ?? 0,
-                                             event, team,
-                                         },
-                                     }} onSubmit={handleApproved} /> }
+                <OldCommunicationDialog title={`Approve ${application.firstName}'s application`}
+                                        open={approveOpen} onClose={handleApproveClose}
+                                        confirmLabel="Approve" allowSilent={props.canRespondSilently}
+                                        description={
+                                            <>
+                                                You're about to approve
+                                                <strong> {application.firstName}</strong>'s
+                                                application to help out during this event. An e-mail
+                                                will automatically be sent to let them know.
+                                            </>
+                                        } apiParams={{
+                                            type: 'approve-volunteer',
+                                            approveVolunteer: {
+                                                userId: application.userId ?? 0,
+                                                event, team,
+                                            },
+                                        }} onSubmit={handleApproved} /> }
 
             { !!rejectEverOpen &&
-                <CommunicationDialog title={`Reject ${application.firstName}'s application`}
-                                     open={rejectOpen} onClose={handleRejectClose}
-                                     confirmLabel="Reject" allowSilent={props.canRespondSilently}
-                                     description={
-                                         <>
-                                             You're about to reject
-                                             <strong> {application.firstName}</strong>'s
-                                             application to help out during this event. An e-mail
-                                             will automatically be sent to let them know.
-                                         </>
-                                     } apiParams={{
-                                         type: 'reject-volunteer',
-                                         rejectVolunteer: {
-                                             userId: application.userId ?? 0,
-                                             event, team,
-                                         },
-                                     }} onSubmit={handleRejected} /> }
+                <OldCommunicationDialog title={`Reject ${application.firstName}'s application`}
+                                        open={rejectOpen} onClose={handleRejectClose}
+                                        confirmLabel="Reject" allowSilent={props.canRespondSilently}
+                                        description={
+                                            <>
+                                                You're about to reject
+                                                <strong> {application.firstName}</strong>'s
+                                                application to help out during this event. An e-mail
+                                                will automatically be sent to let them know.
+                                            </>
+                                        } apiParams={{
+                                            type: 'reject-volunteer',
+                                            rejectVolunteer: {
+                                                userId: application.userId ?? 0,
+                                                event, team,
+                                            },
+                                        }} onSubmit={handleRejected} /> }
         </>
     );
 }
