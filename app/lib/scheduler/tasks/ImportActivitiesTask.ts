@@ -3,7 +3,6 @@
 
 import type { ExecutableInsert } from 'ts-sql-query/expressions/insert';
 import type { ExecutableUpdate } from 'ts-sql-query/expressions/update';
-import symmetricDifference from 'set.prototype.symmetricdifference';
 import { z } from 'zod/v4';
 
 import type { Activity, Location, Timeslot } from '@lib/integrations/animecon';
@@ -316,8 +315,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
         // Step 3: Identify program additions and removals
         // -----------------------------------------------------------------------------------------
 
-        const addedOrRemovedActivities = symmetricDifference(
-            new Set([ ...seenActivitiesInStoredProgram.keys() ]),
+        const addedOrRemovedActivities =
+            new Set([ ...seenActivitiesInStoredProgram.keys() ]).symmetricDifference(
             new Set([ ...seenActivitiesInCurrentProgram.keys() ]));
 
         for (const activityId of addedOrRemovedActivities) {
@@ -387,8 +386,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
 
         // -----------------------------------------------------------------------------------------
 
-        const addedOrRemovedAreas = symmetricDifference(
-            new Set([ ...seenAreasInStoredProgram.keys() ]),
+        const addedOrRemovedAreas =
+            new Set([ ...seenAreasInStoredProgram.keys() ]).symmetricDifference(
             new Set([ ...seenAreasInCurrentProgram.keys() ]));
 
         for (const areaId of addedOrRemovedAreas) {
@@ -441,8 +440,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
 
         // -----------------------------------------------------------------------------------------
 
-        const addedOrRemovedLocations = symmetricDifference(
-            new Set([ ...seenLocationsInStoredProgram.keys() ]),
+        const addedOrRemovedLocations =
+            new Set([ ...seenLocationsInStoredProgram.keys() ]).symmetricDifference(
             new Set([ ...seenLocationsInCurrentProgram.keys() ]));
 
         for (const locationId of addedOrRemovedLocations) {
@@ -496,8 +495,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
 
         // -----------------------------------------------------------------------------------------
 
-        const addedOrRemovedTimeslots = symmetricDifference(
-            new Set([ ...seenTimeslotsInStoredProgram.keys() ]),
+        const addedOrRemovedTimeslots =
+            new Set([ ...seenTimeslotsInStoredProgram.keys() ]).symmetricDifference(
             new Set([ ...seenTimeslotsInCurrentProgram.keys() ]));
 
         for (const timeslotId of addedOrRemovedTimeslots) {

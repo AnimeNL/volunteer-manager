@@ -1,8 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import symmetricDifference from 'set.prototype.symmetricdifference';
-
 import type { HotelPendingRequestRowModel } from './HotelPendingAssignment';
 import { Temporal, formatDate, isBefore } from '@lib/Temporal';
 import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tTeams, tUsers, tUsersEvents }
@@ -266,7 +264,7 @@ export class HotelProcessor {
             const excessDays: string[] = [];
             const missingDays: string[] = [];
 
-            const difference = symmetricDifference(bookedNights, expectedNights);
+            const difference = bookedNights.symmetricDifference(expectedNights);
             for (const day of difference) {
                 if (bookedNights.has(day))
                     excessDays.push(day);
