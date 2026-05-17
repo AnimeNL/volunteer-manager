@@ -89,7 +89,6 @@
     "nodemailer-mock": "^2.0.11",
     "ts-sql-codegen": "^3.23.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6",
-    "whatwg-fetch": "^3.6.20"
+    "vitest": "^4.1.6"
   }
 }
