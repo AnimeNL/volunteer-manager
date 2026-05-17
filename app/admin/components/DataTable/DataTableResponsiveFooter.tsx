@@ -152,14 +152,16 @@ function DataTableResponsivePageNavigation(props: { isMobile: boolean }) {
 
     const previousPageComponent = (
         <IconButton disabled={computedPage === 0}
-                    onClick={ () => handlePageChange(computedPage - 1) }>
+                    onClick={ () => handlePageChange(computedPage - 1) }
+                    data-testid="navigate-back">
             <NavigateBeforeIcon color={computedPage === 0 ? 'disabled' : 'primary'} />
         </IconButton>
     );
 
     const nextPageComponent = (
         <IconButton disabled={computedPage === lastPage}
-                    onClick={ () => handlePageChange(computedPage + 1) }>
+                    onClick={ () => handlePageChange(computedPage + 1) }
+                    data-testid="navigate-next">
             <NavigateNextIcon color={computedPage === lastPage ? 'disabled' : 'primary'} />
         </IconButton>
     );

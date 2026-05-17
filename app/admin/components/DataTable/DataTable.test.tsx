@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { z } from 'zod';
 
 import { LicenseInfo } from '@mui/x-license';
@@ -80,12 +80,12 @@ describe('DataTable', () => {
 
         const dataSource = createDataSource('test/list-rows-regular', kExampleRowModel, {
             async authorize(operation, props, context) { /* no-op */ },
-            async list(context, params) {
+            async list(params) {
                 dataSourceListInvoked = true;
                 return {
                     rowCount: kExampleRowData.length,
                     rows: kExampleRowData.slice(
-                        context.page.offset, context.page.offset + context.page.limit),
+                        params.page.offset, params.page.offset + params.page.limit),
                 };
             },
         });
@@ -119,12 +119,12 @@ describe('DataTable', () => {
 
         const dataSource = createDataSource('test/list-rows-responsive', kExampleRowModel, {
             async authorize(operation, props, context) { /* no-op */ },
-            async list(context, params) {
+            async list(params) {
                 dataSourceListInvoked = true;
                 return {
                     rowCount: kExampleRowData.length,
                     rows: kExampleRowData.slice(
-                        context.page.offset, context.page.offset + context.page.limit),
+                        params.page.offset, params.page.offset + params.page.limit),
                 };
             },
         });
@@ -155,5 +155,96 @@ describe('DataTable', () => {
         });
 
         expect(dataSourceListInvoked).toBeTruthy();
+    });
+
+    it.each([ 'prominent', 'subtle' ])('is able to use the %s quick search toolbar', async p => {
+        const dataSource = createDataSource(`test/search-rows-${p}`, kExampleRowModel, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async list(params) {
+                const filteredExampleRowData = kExampleRowData.filter(({ name }) => {
+                    if (!params.search)
+                        return true;
+
+                    return name.includes(params.search);
+                });
+
+                return {
+                    rowCount: filteredExampleRowData.length,
+                    rows: filteredExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(<DataTable source={dataSource} columns={columns} search={p as 'prominent' | 'subtle'}
+                          defaultSort={{ field: 'name', sort: 'asc' }} pageSize={10}
+                          listViewProps={{ primaryField: 'name' }} />);
+
+        // The data will be made available asynchronously. Wait for it.
+        await waitFor(() => {
+            expect(screen.getByText('Quinn Reyes')).toBeDefined();
+        });
+
+        // The first ten rows are expected to be displayed, but not our target (ID 12):
+        expect(screen.getByText('Sachi Tanaka')).toBeDefined();
+        expect(() => screen.getByText('Wren Xavier')).toThrow();
+
+        // Search for "Xavier":
+        fireEvent.change(screen.getByRole('searchbox'), {
+            target: { value: 'Xavier' },
+        });
+
+        // Wait for the filtered data to be made available asynchronously.
+        await waitFor(() => {
+            expect(screen.getByText('Wren Xavier')).toBeDefined();
+        });
+    });
+
+    it.each([ true, false ])('is able to navigate through the results (isMobile=%s)', async p => {
+        const dataSource = createDataSource(`test/navigate-rows-${p}`, kExampleRowModel, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        mocks.useIsMobile.mockReturnValue(p);
+
+        render(<DataTable source={dataSource} columns={columns} pageSize={10}
+                          defaultSort={{ field: 'name', sort: 'asc' }}
+                          listViewProps={{ primaryField: 'name' }} />);
+
+        // The data's first page will be made available asynchronously. Wait for it.
+        await waitFor(() => {
+            expect(screen.getByText('Quinn Reyes')).toBeDefined();
+        });
+
+        // The first ten rows are expected to be displayed, but not our target (ID 12):
+        expect(screen.getByText('Sachi Tanaka')).toBeDefined();
+        expect(() => screen.getByText('Wren Xavier')).toThrow();
+
+        fireEvent.click(screen.getByTestId('navigate-next'));
+
+        // The remaining rows are now displayed, which means the first ones have been hidden:
+        await waitFor(() => {
+            expect(() => screen.getByText('Sachi Tanaka')).toThrow();
+            expect(screen.getByText('Wren Xavier')).toBeDefined();
+        });
+
+        fireEvent.click(screen.getByTestId('navigate-back'));
+
+        // And we expect to be back to the first ten rows in the view:
+        await waitFor(() => {
+            expect(screen.getByText('Sachi Tanaka')).toBeDefined();
+            expect(() => screen.getByText('Wren Xavier')).toThrow();
+        });
     });
 });
