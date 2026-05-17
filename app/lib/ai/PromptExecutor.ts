@@ -117,6 +117,7 @@ export class PromptExecutor<T extends Prompt<any>> {
                 bytes: attachment,
                 mimeType: 'text/plain',
             })),
+            complexity: this.#prompt.complexity,
             prompt,
             systemPrompt,
         });

@@ -1,7 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { type Settings, readSetting } from '@lib/Settings';
+import type { TextGenerationComplexity } from '@lib/integrations/genai/Client';
+import { type Settings, readSettings } from '@lib/Settings';
 import { type PromptParameters, PromptTemplate } from './PromptTemplate';
 
 /**
@@ -50,10 +51,12 @@ type Metadata = {
  * right set of parameters expected by the prompt. It's not meant to be instantiated directly.
  */
 export abstract class Prompt<T extends PromptParameters> {
+    #complexity: TextGenerationComplexity;
     #templateText: string | undefined;
     #template: PromptTemplate | undefined;
 
     constructor(templateText?: string) {
+        this.#complexity = 'medium';
         this.#templateText = templateText;
         this.#template = undefined;
     }
@@ -69,13 +72,29 @@ export abstract class Prompt<T extends PromptParameters> {
     abstract get exampleParameters(): T;
 
     /**
+     * Returns the intended complexity of this prompt. May be configurable.
+     */
+    get complexity() { return this.#complexity; }
+
+    /**
      * Returns the template for this prompt. Will lazily obtain the prompt's text from settings if
      * this is the first access, which may incur a database operation.
      */
     get template(): Promise<PromptTemplate> {
         return new Promise(async (resolve) => {
             if (this.#template === undefined) {
-                this.#templateText ??= await readSetting(this.metadata.setting) ?? '';
+                const settings = await readSettings([
+                    this.metadata.setting,
+                    this.metadata.settingComplexity!,
+                ]);
+
+                if (!!this.metadata.settingComplexity) {
+                    this.#complexity =
+                        settings[this.metadata.settingComplexity] as TextGenerationComplexity
+                            ?? 'medium';
+                }
+
+                this.#templateText ??= settings[this.metadata.setting] ?? '';
                 this.#template = PromptTemplate.compile(this.#templateText);
             }
 
