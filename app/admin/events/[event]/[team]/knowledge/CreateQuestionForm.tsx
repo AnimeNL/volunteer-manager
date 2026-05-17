@@ -3,7 +3,6 @@
 
 'use client';
 
-import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -51,7 +50,7 @@ export function CreateQuestionForm(props: CreateQuestionFormProps) {
             const response = await callApi('post', '/api/admin/content', {
                 context: props.scope,
                 row: {
-                    path: nanoid(/* size= */ 8),
+                    path: /* intentionally empty= */ '',
                     categoryId: data.category,
                     title: data.question,
                 },

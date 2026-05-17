@@ -1,7 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { nanoid } from 'nanoid';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -9,6 +8,7 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
 import { clearEnvironmentCache } from '@lib/Environment';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
+import { nanoid } from '@lib/nanoid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
 

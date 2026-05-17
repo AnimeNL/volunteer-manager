@@ -55,7 +55,6 @@
     "marked": "^18.0.3",
     "mui-color-input": "^9.0.0",
     "mui-markdown": "^2.1.1",
-    "nanoid": "^5.1.11",
     "next": "^16.2.6",
     "nodemailer": "^8.0.7",
     "nuqs": "^2.8.9",

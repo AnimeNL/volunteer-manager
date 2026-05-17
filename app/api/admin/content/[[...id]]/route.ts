@@ -13,6 +13,7 @@ import { getEventSlugForId } from '@lib/EventLoader';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
 import { type ContentType, kContentType } from '@lib/database/Types';
+import { nanoid } from '@lib/nanoid';
 
 /**
  * Row model for a piece of content, as can be shown or edited through the administration panel.
@@ -154,6 +155,9 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
     },
 
     async create({ context, row }, props) {
+        if (!row.path && context.type === 'FAQ')
+            row.path = nanoid(/* size= */ 8);
+
         if (!row.path || !row.title)
             return { success: false, error: 'The content title and path must be included' };
 
