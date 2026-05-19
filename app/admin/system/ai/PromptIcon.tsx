@@ -5,6 +5,7 @@
 
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
+import DrawIcon from '@mui/icons-material/Draw';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
 import HotelIcon from '@mui/icons-material/Hotel';
 import RepeatIcon from '@mui/icons-material/Repeat';
@@ -60,6 +61,9 @@ export function PromptIcon(props: { id: PromptId }) {
 
         case 'IncidentSummaryPrompt':
             return <FlagOutlinedIcon color="primary" />;
+
+        case 'PersonalityDescriptionPrompt':
+            return <DrawIcon color="primary" />;
 
         // -----------------------------------------------------------------------------------------
         // Internal:

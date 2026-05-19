@@ -16,10 +16,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
-import { IncidentSummaryPrompt } from '@lib/ai/prompts/IncidentSummaryPrompt';
+import { PersonalityDialogAction } from './PersonalityDialogAction';
 import { PromptIcon } from '../PromptIcon';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
@@ -45,6 +44,7 @@ export default async function CommunicationAiPage() {
     });
 
     const settings = await readSettings([
+        'ai-communication-personality-prompt',
         'ai-communication-system-prompt',
         'ai-duty-book-summary-prompt',
         'ai-example-messages',
@@ -56,12 +56,6 @@ export default async function CommunicationAiPage() {
     const systemPromptTemplate = settings['ai-communication-system-prompt'] || '';
     const systemPrompt = new SystemPrompt();
 
-    const dutyBookSummaryPromptTemplate = settings['ai-duty-book-summary-prompt'] || '';
-    const dutyBookSummaryPrompt = new DutyBookSummaryPrompt();
-
-    const incidentSummaryPromptTemplate = settings['ai-incident-summary-prompt'] || '';
-    const incidentSummaryPrompt = new IncidentSummaryPrompt();
-
     // Infer the available prompts from the ones exported from the //lib/ai/ library,
     // which is the source of truth. Icons are complemented by this component.
     const availablePrompts = Object.values(prompts).map(promptConstructor => {
@@ -72,6 +66,15 @@ export default async function CommunicationAiPage() {
         };
     }).filter(({ metadata }) => { return metadata.type === 'Communication'
     }).sort((lhs, rhs) => lhs.metadata.label.localeCompare(rhs.metadata.label));
+
+    // Action to enable visualising the default personality prompt, which in itself is AI generated.
+    let defaultPersonalityAction: React.ReactNode;
+    if (!!settings['ai-communication-personality-prompt']) {
+        defaultPersonalityAction = (
+            <PersonalityDialogAction
+                personality={settings['ai-communication-personality-prompt']} />
+        );
+    }
 
     return (
         <>
@@ -109,7 +112,8 @@ export default async function CommunicationAiPage() {
                     <Typography variant="h6">
                         Example messages
                     </Typography>
-                    <Alert severity="warning" sx={{ mt: '8px !important' }}>
+                    <Alert severity="warning" sx={{ mt: '8px !important' }}
+                           action={defaultPersonalityAction}>
                         These messages will be superseded by those provided in account settings. No
                         tokens are available.
                     </Alert>

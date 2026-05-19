@@ -12,7 +12,7 @@ import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { nanoid } from '@lib/nanoid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
-import { writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
+import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { writeSealedSessionCookieToStore } from '@lib/auth/Session';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
@@ -20,6 +20,8 @@ import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptio
 
 import { kAuthType, kFileType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
+import { PromptFactory } from '@lib/ai/PromptFactory';
+import { PromptExecutor } from '@lib/ai/PromptExecutor';
 
 /**
  * Zod type that describes that no data is expected.
@@ -656,7 +658,30 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
         });
 
         // Write the example messages to the database.
-        await writeExampleMessagesForUser(userId, data.exampleMessages as string[]);
+        const storedExampleMessages =
+            await writeExampleMessagesForUser(userId, data.exampleMessages as string[]);
+
+        // Re-generate the personality prompt for this particular user:
+        let personalityPrompt: string | undefined;
+        if (!!storedExampleMessages) {
+            const prompt = PromptFactory.createById('personality-description-prompt');
+            if (!prompt)
+                notFound();
+
+            const executor = PromptExecutor.forPrompt(prompt);
+            const personality = await executor.execute({
+                input: JSON.stringify(await readExampleMessages(userId)),
+            });
+
+            if (!personality.success)
+                return { success: false, error: 'Unable to generate your style description' };
+
+            personalityPrompt = personality.text;
+        }
+
+        await writeUserSettings(userId, {
+            'ai-communication-personality-prompt': personalityPrompt
+        });
 
         return {
             success: true,

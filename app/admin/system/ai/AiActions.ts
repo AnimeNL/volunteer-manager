@@ -4,13 +4,14 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptValidator } from '@lib/ai/PromptValidator';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
+import { readExampleMessages, writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
@@ -100,6 +101,20 @@ export async function updateExampleMessages(formData: unknown) {
         });
 
         await writeExampleMessages(data.exampleMessages as string[]);
+
+        const prompt = PromptFactory.createById('personality-description-prompt');
+        if (!prompt)
+            notFound();
+
+        const executor = PromptExecutor.forPrompt(prompt);
+        const personality = await executor.execute({
+            input: JSON.stringify(await readExampleMessages()),
+        });
+
+        if (!personality.success)
+            return { success: false, error: 'Unable to generate the default style description' };
+
+        await writeSetting('ai-communication-personality-prompt', personality.text);
 
         return {
             success: true,

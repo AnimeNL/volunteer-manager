@@ -10,6 +10,7 @@ import { NardoPersonalisedAdvicePrompt } from './prompts/NardoPersonalisedAdvice
 import { PromptExecutor } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeServerAction } from '@lib/serverAction';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 
@@ -131,22 +132,25 @@ export async function executePromptWithExampleParameters(formData: unknown) {
         const executor = PromptExecutor.forPrompt(promptInstance);
 
         switch (promptInstance.metadata.type) {
-            case 'Communication':
-                if (data.personalisation)
-                    await executor.prepareExampleMessages(props.user.id);
+            case 'Communication': {
+                let personalityPrompt: string | undefined;
+                if (!data.personalisation)
+                    personalityPrompt = await readSetting('ai-communication-personality-prompt');
 
-                await executor.prepareSystemPrompt({
+                await executor.prepareSystemPrompt(props.user.id, {
                     language: data.language,
+                    ...(!!personalityPrompt ? { personalityPrompt } : { /* nothing */ }),
                 });
 
                 break;
+            }
 
             case 'Feature':
             case 'Internal':
                 break;
         }
 
-        const response = await executor.execute(promptInstance.exampleParameters);
+        const response = await executor.execute(promptInstance.exampleParameters, props.user.id);
         if (!response.success)
             return response;
 

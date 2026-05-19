@@ -68,6 +68,7 @@ export type Settings = {
     'ai-example-messages': string[];  // can be overridden by a user setting
 
     // Communication (prompts):
+    'ai-communication-personality-prompt': string;
     'ai-communication-system-prompt': string;
     'ai-communication-type-application-approved': string;
     'ai-communication-type-application-rejected': string;
@@ -87,6 +88,10 @@ export type Settings = {
     // Incident reports:
     'ai-incident-summary-prompt': string;
     'ai-incident-summary-prompt-complexity': TextGenerationComplexity;
+
+    // Personality description:
+    'ai-personality-description-prompt': string;
+    'ai-personality-description-prompt-complexity': TextGenerationComplexity;
 
     // Settings:
     'ai-setting-gemini-api-key': string;
@@ -182,7 +187,7 @@ export type Settings = {
     // UserSettings defaults
     // ---------------------------------------------------------------------------------------------
 
-    // No user settings exist yet.
+    // None.
 };
 
 /**

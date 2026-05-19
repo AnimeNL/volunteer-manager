@@ -7,17 +7,12 @@ import { PromptValidator } from './PromptValidator';
 import { SystemPrompt } from './prompts';
 import { Temporal } from '@lib/Temporal';
 import { createAiClient } from '@lib/integrations/genai';
-import { readExampleMessages } from './ExampleMessages';
+import { readUserSetting } from '@lib/UserSettings';
 
 /**
  * Helper type to get the parameters that are expected by a particular kind of prompt.
  */
 type GetPromptParameters<T> = T extends Prompt<infer U> ? U : never;
-
-/**
- * Global text encoder instance that will be used by the prompt executor.
- */
-const kTextEncoder = new TextEncoder();
 
 /**
  * The executor has the ability to actually execute a prompt, either using an existing client or
@@ -33,40 +28,33 @@ export class PromptExecutor<T extends Prompt<any>> {
 
     // ---------------------------------------------------------------------------------------------
 
+    #systemPrompt: string | undefined;
     #prompt: T;
 
-    #exampleMessages: string[] | null;
-    #systemPrompt: string | null;
-
     private constructor(prompt: T) {
+        this.#systemPrompt = undefined;
         this.#prompt = prompt;
-
-        this.#exampleMessages = null;
-        this.#systemPrompt = null;
-    }
-
-    /**
-     * Prepares the list of example messages that should be included with the prompt, to help the
-     * model write in the same style as the person they're pretending to be. When |userId| is not
-     * set, or when they don't have personalised messages, default example messages will be used.
-     *
-     * @param userId Unique ID of the user for whom to personalise the prompt.
-     */
-    async prepareExampleMessages(userId?: number) {
-        this.#exampleMessages ??= await readExampleMessages(userId);
     }
 
     /**
      * Executes the system prompt with the given |parameters|. All parameters have sensible defaults
      * so it's entirely valid to execute a prompt without explicitly setting up the system prompt.
      *
+     * @param userId Unique ID of the user for whom this prompt is being executed.
      * @param parameters (Partial) parameters made available to the system prompt
      */
-    async prepareSystemPrompt(parameters: Partial<GetPromptParameters<SystemPrompt>>) {
+    async prepareSystemPrompt(
+        userId: number, parameters: Partial<GetPromptParameters<SystemPrompt>>)
+    {
+        const personalityPrompt =
+            parameters.personalityPrompt ??
+                await readUserSetting(userId, 'ai-communication-personality-prompt');
+
         const systemPrompt = new SystemPrompt();
         this.#systemPrompt = await systemPrompt.evaluate({
             date: Temporal.Now.plainDateISO().toString(),
             language: 'English',
+            personalityPrompt: personalityPrompt!,
             ...parameters,
         });
     }
@@ -83,43 +71,24 @@ export class PromptExecutor<T extends Prompt<any>> {
      * be aware of what it's expected to do.
      *
      * @param parameters Parameters necessary to complete the prompt's template.
+     * @param userId Unique ID of the user for whom this prompt is being executed.
      * @returns Response from the model as it executed the prompt.
      */
-    async execute(parameters: GetPromptParameters<T>): Promise<ModelTextResponse> {
-        let attachments: Uint8Array<ArrayBuffer>[] = [ /* none */ ];
-        let systemPrompt: string | undefined;
+    async execute(parameters: GetPromptParameters<T>, userId?: number): Promise<ModelTextResponse> {
+        if (this.#prompt.metadata.type === 'Communication' && !this.#systemPrompt) {
+            if (!userId)
+                throw new Error('The user ID of the sender must be set for this prompt');
 
-        switch (this.#prompt.metadata.type) {
-            case 'Communication': {
-                if (this.#exampleMessages === null)
-                    await this.prepareExampleMessages();
-
-                if (this.#systemPrompt === null)
-                    await this.prepareSystemPrompt({ /* use default values */ });
-
-                const exampleMessages = this.#exampleMessages ?? [ /* none */ ];
-
-                attachments = exampleMessages.map(message => kTextEncoder.encode(message));
-                systemPrompt = this.#systemPrompt!;
-                break;
-            }
-
-            case 'Feature':
-            case 'Internal':
-                break
+            await this.prepareSystemPrompt(userId, { /* use default values */ });
         }
 
         const prompt = await this.#prompt.evaluate(parameters);
 
         const client = await createAiClient();
         return await client.safeGenerateText({
-            attachments: attachments.map(attachment => ({
-                bytes: attachment,
-                mimeType: 'text/plain',
-            })),
             complexity: this.#prompt.complexity,
             prompt,
-            systemPrompt,
+            systemPrompt: this.#systemPrompt,
         });
     }
 

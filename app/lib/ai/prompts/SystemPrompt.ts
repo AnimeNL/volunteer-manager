@@ -10,6 +10,7 @@ import { Temporal } from '@lib/Temporal';
 type SystemPromptParameters = {
     date: string;
     language: string;
+    personalityPrompt: string;
 }
 
 /**
@@ -31,6 +32,7 @@ export class SystemPrompt extends Prompt<SystemPromptParameters> {
         return {
             date: Temporal.Now.plainDateISO().toString(),
             language: 'English',
+            personalityPrompt: 'Warm, professional language to appeal to volunteers.',
         };
     }
 }

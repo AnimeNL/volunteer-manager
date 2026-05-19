@@ -32,6 +32,7 @@ export type UserSettingsMap = {
     // AI settings
     // ---------------------------------------------------------------------------------------------
 
+    'ai-communication-personality-prompt': string;  // overrides a regular setting
     'ai-example-messages': string[];  // overrides a regular setting
 
     'user-ai-example-messages': string;

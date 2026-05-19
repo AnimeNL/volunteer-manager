@@ -50,7 +50,8 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         forbidden();
 
     // User settings that are allowed to be updated using this interface.
-    const kAllowedUserSettings: { [k in keyof UserSettingsMap]: SettingStringType<k> } = {
+    const kAllowedUserSettings: { [k in keyof UserSettingsMap]: SettingStringType<k> | 'unknown' } =
+    {
         'user-admin-event-finance-configuration': 'boolean',
         'user-admin-experimental-dark-mode': 'boolean',
         'user-admin-experimental-responsive': 'boolean',
@@ -69,6 +70,7 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         'user-ai-example-messages-promo-time': 'number',
 
         // User settings that cannot be updated through this mechanism:
+        'ai-communication-personality-prompt': 'unknown',
         'ai-example-messages': 'unknown',
     };
 

@@ -51,9 +51,12 @@ export async function writeExampleMessages(messages: ExampleMessage[]) {
  *
  * @param userId Unique ID of the user for whom to write example messages.
  * @param messages Array of messages that are their writing examples.
+ * @returns Whether any example messages were written for the user.
  */
 export async function writeExampleMessagesForUser(userId: number, messages: ExampleMessage[]) {
     messages = messages.filter(message => kValidMessage.safeParse(message).success);
-    return writeUserSetting(
+    await writeUserSetting(
         userId, 'ai-example-messages', !!messages.length ? messages : undefined);
+
+    return !!messages.length;
 }
