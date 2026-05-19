@@ -83,18 +83,22 @@ export abstract class Prompt<T extends PromptParameters> {
     get template(): Promise<PromptTemplate> {
         return new Promise(async (resolve) => {
             if (this.#template === undefined) {
-                const settings = await readSettings([
-                    this.metadata.setting,
-                    this.metadata.settingComplexity!,
-                ]);
+                if (this.#templateText === undefined || !!this.metadata.settingComplexity) {
+                    const settings = await readSettings([
+                        this.metadata.setting,
+                        this.metadata.settingComplexity!,
+                    ]);
 
-                if (!!this.metadata.settingComplexity) {
-                    this.#complexity =
-                        settings[this.metadata.settingComplexity] as TextGenerationComplexity
-                            ?? 'medium';
+                    if (!!this.metadata.settingComplexity) {
+                        this.#complexity =
+                            settings[this.metadata.settingComplexity] as TextGenerationComplexity
+                                ?? 'medium';
+                    }
+
+                    if (!this.#templateText)
+                        this.#templateText = settings[this.metadata.setting] ?? '';
                 }
 
-                this.#templateText ??= settings[this.metadata.setting] ?? '';
                 this.#template = PromptTemplate.compile(this.#templateText);
             }
 

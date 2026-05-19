@@ -5,11 +5,19 @@ import { Prompt } from './Prompt';
 import { PromptValidator } from './PromptValidator';
 
 describe('PromptValidator', () => {
+    const kExampleMetadata: Prompt<any>['metadata'] = {
+        id: 'example-prompt',
+        type: 'Internal',
+        label: 'Example prompt',
+        description: 'Example prompt used for this test suite',
+        setting: 'ai-communication-system-prompt',
+    };
+
     it('is able to pass completely fine prompts', async () => {
         type Parameters = { value: 42 };
 
         class CompletePrompt extends Prompt<Parameters> {
-            override get metadata() { return null as any; }
+            override get metadata() { return kExampleMetadata; }
             override get exampleParameters() {
                 return {
                     value: 42,
@@ -27,7 +35,7 @@ describe('PromptValidator', () => {
 
     it('is able to identify compile issues with the template', async () => {
         class IncompleteTemplatePrompt extends Prompt<{ /* no parameters */ }> {
-            override get metadata() { return null as any; }
+            override get metadata() { return kExampleMetadata; }
             override get exampleParameters() { return {}; }
         }
 
@@ -46,7 +54,7 @@ describe('PromptValidator', () => {
         type Parameters = { value: 42 };
 
         class UnknownParameterReferencePrompt extends Prompt<Parameters> {
-            override get metadata() { return null as any; }
+            override get metadata() { return kExampleMetadata; }
             override get exampleParameters() {
                 return {
                     value: 42,
@@ -68,7 +76,7 @@ describe('PromptValidator', () => {
         type Parameters = { value: 42 };
 
         class UnknownParameterConditionReferencePrompt extends Prompt<Parameters> {
-            override get metadata() { return null as any; }
+            override get metadata() { return kExampleMetadata; }
             override get exampleParameters() {
                 return {
                     value: 42,
