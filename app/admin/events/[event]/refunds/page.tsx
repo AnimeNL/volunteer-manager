@@ -15,7 +15,6 @@ import { RefundsTable } from './RefundsTable';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeServerAction } from '@lib/serverAction';
 import { generateEventMetadataFn } from '../generateEventMetadataFn';
-import { getEventNameForId } from '@lib/EventLoader';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents } from '@lib/database';
 
@@ -48,6 +47,11 @@ const kRefundConfigurationData = z.object({
 async function updateRefundConfiguration(eventId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kRefundConfigurationData, async (data, props) => {
+        const eventName = await db.selectFrom(tEvents)
+            .where(tEvents.eventId.equals(eventId))
+            .selectOneColumn(tEvents.eventShortName)
+            .executeSelectOne();
+
         await db.update(tEvents)
             .set({
                 refundInformationPublished: data.refundInformationPublished,
@@ -62,7 +66,7 @@ async function updateRefundConfiguration(eventId: number, formData: unknown) {
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
             data: {
-                event: await getEventNameForId(eventId),
+                event: eventName,
                 published: !!data.refundInformationPublished,
                 type: 'refund',
             },

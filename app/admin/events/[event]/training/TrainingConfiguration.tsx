@@ -12,7 +12,6 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { TrainingConfigurationTable } from './TrainingConfigurationTable';
 import { executeServerAction } from '@lib/serverAction';
-import { getEventNameForId } from '@lib/EventLoader';
 import db, { tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -45,6 +44,11 @@ const kTrainingConfigurationData = z.object({
 async function updateTrainingConfiguration(eventId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kTrainingConfigurationData, async (data, props) => {
+        const eventName = await db.selectFrom(tEvents)
+            .where(tEvents.eventId.equals(eventId))
+            .selectOneColumn(tEvents.eventShortName)
+            .executeSelectOne();
+
         await db.update(tEvents)
             .set({
                 trainingInformationPublished: data.trainingInformationPublished,
@@ -59,7 +63,7 @@ async function updateTrainingConfiguration(eventId: number, formData: unknown) {
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
             data: {
-                event: await getEventNameForId(eventId),
+                event: eventName,
                 published: !!data.trainingInformationPublished,
                 type: 'training',
             },

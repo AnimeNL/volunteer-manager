@@ -14,7 +14,6 @@ import { HotelConfigurationTable } from './HotelConfigurationTable';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeServerAction } from '@lib/serverAction';
-import { getEventNameForId } from '@lib/EventLoader';
 import db, { tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -46,6 +45,11 @@ const kHotelConfigurationData = z.object({
 async function updateHotelConfiguration(eventId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kHotelConfigurationData, async (data, props) => {
+        const eventName = await db.selectFrom(tEvents)
+            .where(tEvents.eventId.equals(eventId))
+            .selectOneColumn(tEvents.eventShortName)
+            .executeSelectOne();
+
         await db.update(tEvents)
             .set({
                 hotelInformationPublished: data.hotelInformationPublished,
@@ -60,7 +64,7 @@ async function updateHotelConfiguration(eventId: number, formData: unknown) {
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
             data: {
-                event: await getEventNameForId(eventId),
+                event: eventName,
                 published: !!data.hotelInformationPublished,
                 type: 'hotel',
             },

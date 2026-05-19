@@ -9,7 +9,6 @@ import { Temporal } from '@lib/Temporal';
 import { clearContentCache } from '@lib/Content';
 import { createDataTableApi, type DataTableEndpoints } from '../../../createDataTableApi';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { getEventSlugForId } from '@lib/EventLoader';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
 import { type ContentType, kContentType } from '@lib/database/Types';
@@ -147,9 +146,14 @@ export const { DELETE, POST, PUT, GET } = createDataTableApi(kContentRowModel, k
                 permission: 'system.content',
             });
         } else {
+            const eventSlug = await db.selectFrom(tEvents)
+                .where(tEvents.eventId.equals(context.eventId))
+                .selectOneColumn(tEvents.eventSlug)
+                .executeSelectOne();
+
             executeAccessCheck(props.authenticationContext, {
                 check: 'admin-event',
-                event: (await getEventSlugForId(context.eventId))!,
+                event: eventSlug,
             })
         }
     },
