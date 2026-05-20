@@ -45,7 +45,10 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
         <>
             <MuiLicense />
             <AdminClientProviders
-                canAccessAccounts={ access.can('organisation.accounts', 'read') }
+                context={{
+                    allowSilentMutations: access.can('organisation.silent'),
+                    canAccessAccounts: access.can('organisation.accounts', 'read')
+                }}
                 enableResponsiveLayout={!!settings['user-admin-experimental-responsive']}
                 paletteMode={paletteMode} palette={environment.colours}>
 

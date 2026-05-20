@@ -8,7 +8,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ThemeProvider, type PaletteMode } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import { AdminClientContext } from './AdminClientContext';
+import { type TAdminClientContext, AdminClientContext } from './AdminClientContext';
 import { createAdminTheme } from './AdminClientTheme';
 
 /**
@@ -16,9 +16,9 @@ import { createAdminTheme } from './AdminClientTheme';
  */
 interface AdminClientProvidersProps {
     /**
-     * Whether the signed in user has the ability to access account pages.
+     * Context that should be provided to all systems part of the administration area.
      */
-    canAccessAccounts: boolean;
+    context: Omit<TAdminClientContext, 'isMobile'>;
 
     /**
      * Whether to enable responsive layout capabilities throughout the administration area.
@@ -43,8 +43,6 @@ interface AdminClientProvidersProps {
  * Client-side providers that need to be set as part of the administration area layout.
  */
 export function AdminClientProviders(props: React.PropsWithChildren<AdminClientProvidersProps>) {
-    const { canAccessAccounts } = props;
-
     const isMobile =
         !!props.enableResponsiveLayout &&
         // biome-ignore lint/correctness/useHookAtTopLevel: intentional violation
@@ -52,7 +50,7 @@ export function AdminClientProviders(props: React.PropsWithChildren<AdminClientP
 
     return (
         <ThemeProvider theme={createAdminTheme(props.paletteMode, props.palette)}>
-            <AdminClientContext.Provider value={{ canAccessAccounts, isMobile }}>
+            <AdminClientContext.Provider value={{ ...props.context, isMobile }}>
                 <NuqsAdapter>
                     {props.children}
                 </NuqsAdapter>

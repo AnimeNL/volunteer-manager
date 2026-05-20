@@ -10,6 +10,11 @@ import { createContext } from 'react';
  */
 export interface TAdminClientContext {
     /**
+     * Whether the signed in user has the ability to make silent mutations.
+     */
+    allowSilentMutations: boolean;
+
+    /**
      * Whether the signed in user has the ability to access account pages.
      */
     canAccessAccounts: boolean;
@@ -25,6 +30,7 @@ export interface TAdminClientContext {
  * example to enable an interactive submission flow to be created.
  */
 export const AdminClientContext = createContext<TAdminClientContext>({
+    allowSilentMutations: false,
     canAccessAccounts: false,
     isMobile: false,
 });
