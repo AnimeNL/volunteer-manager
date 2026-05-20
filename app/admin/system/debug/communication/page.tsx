@@ -32,8 +32,8 @@ export default function CommunicationPage() {
                         <TableCell>ParticipationReminderPrompt</TableCell>
                         <TableCell>
                             <CommunicationButton title="Remind John to participate">
-                                You're about to send an e-mail to <strong>John</strong> inviting
-                                them to help out during the upcoming AnimeCon event.
+                                Compose an e-mail to <strong>John</strong> inviting them to help out
+                                with AnimeCon 2027.
                             </CommunicationButton>
                         </TableCell>
                     </TableRow>

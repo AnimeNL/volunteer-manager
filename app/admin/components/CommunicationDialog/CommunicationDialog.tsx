@@ -3,9 +3,10 @@
 
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import Button from '@mui/material/Button';
+import Collapse from '@mui/material/Collapse';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -13,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 
 import { CommunicationLanguageView, type CommunicationLanguage } from './CommunicationLanguageView';
+import { CommunicationMessageView } from './CommunicationMessageView';
 
 /**
  * Props accepted by the <CommunicationDialog> component.
@@ -44,7 +46,14 @@ export interface CommunicationDialogProps {
 export function CommunicationDialog(props: React.PropsWithChildren<CommunicationDialogProps>) {
     const { onClose, open, title } = props;
 
+    const [ step, setStep ] = useState<'language' | 'message' | 'confirmation'>('message');
+
     const handleLanguageSelected = useCallback(async (language: CommunicationLanguage) => {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        throw new Error('Not implemented yet');
+    }, []);
+
+    const handleRefresh = useCallback(async () => {
         await new Promise(resolve => setTimeout(resolve, 1500));
         throw new Error('Not implemented yet');
     }, []);
@@ -61,8 +70,13 @@ export function CommunicationDialog(props: React.PropsWithChildren<Communication
                     </DialogContent>
                     <Divider />
                 </> }
-            <DialogContent sx={{ overflowY: 'visible' }}>
-                <CommunicationLanguageView onLanguageSelected={handleLanguageSelected} />
+            <DialogContent sx={{ overflowY: 'visible', paddingY: 2 }}>
+                <Collapse in={ step === 'language' } mountOnEnter unmountOnExit>
+                    <CommunicationLanguageView onLanguageSelected={handleLanguageSelected} />
+                </Collapse>
+                <Collapse in={ step === 'message' } mountOnEnter unmountOnExit>
+                    <CommunicationMessageView onRefresh={handleRefresh} />
+                </Collapse>
             </DialogContent>
             <Divider />
             <DialogActions sx={{ pt: 1, mr: 1, mb: 0 }}>
