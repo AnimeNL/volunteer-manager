@@ -20,41 +20,41 @@ type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>;
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
+    'gemini-3.5-flash': {  // EOL: Not announced
+        name: 'Gemini 3.5 Flash',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-5-flash',
+    },
     'gemini-3.1-flash-image-preview': {  // EOL: Not announced
         name: 'Gemini 3.1 Flash (Nano Banana, Preview)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-1-flash-image',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-image',
     },
     'gemini-3.1-flash-lite': {  // EOL: Not announced
         name: 'Gemini 3.1 Flash (Lite)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-1-flash-lite',
-    },
-    'gemini-3.1-flash-lite-preview': {  // EOL: Not announced
-        name: 'Gemini 3.1 Flash (Lite, Preview)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-1-flash-lite',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-lite',
     },
     'gemini-3.1-pro-preview': {  // EOL: Not announced
         name: 'Gemini 3.1 Pro (Preview)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-1-pro',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-pro',
     },
     'gemini-3-flash-preview': {  // EOL: Not announced
         name: 'Gemini 3 Flash (Preview)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-flash',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-flash',
     },
     'gemini-3-pro-image-preview': {  // EOL: Not announced
         name: 'Gemini 3 Pro (Nano Banana Pro) (Preview)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-pro-image',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-pro-image',
     },
     'gemini-2.5-flash': {  // EOL: Not before October 16, 2026
         name: 'Gemini 2.5 Flash',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash',
     },
     'gemini-2.5-flash-image': {  // EOL: October 2, 2026
         name: 'Gemini 2.5 Flash (Nano Banana)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-image',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash-image',
     },
     'gemini-2.5-flash-lite': {  // EOL: Not before October 16, 2026
         name: 'Gemini 2.5 Flash (Lite)',
-        url: 'https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash-lite',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash-lite',
     },
 } as const satisfies Partial<Record<LibrarySupportedAiModels, { name: string, url: string }>>;
 
