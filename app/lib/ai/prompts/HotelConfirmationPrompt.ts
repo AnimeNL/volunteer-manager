@@ -33,11 +33,11 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
 
     override get exampleParameters() {
         return {
-            ...kAuthorContextExampleParameters,
-            ...kEventContextExampleParameters,
-            ...kHotelBookingContextExampleParameters,
-            ...kRecipientContextExampleParameters,
-            ...kTeamContextExampleParameters,
+            author: kAuthorContextExampleParameters,
+            event: kEventContextExampleParameters,
+            hotel: kHotelBookingContextExampleParameters,
+            recipient: kRecipientContextExampleParameters,
+            team: kTeamContextExampleParameters,
         };
     }
 }

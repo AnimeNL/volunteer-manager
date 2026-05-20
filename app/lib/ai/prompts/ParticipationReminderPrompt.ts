@@ -32,11 +32,11 @@ export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPro
 
     override get exampleParameters() {
         return {
-            ...kAuthorContextExampleParameters,
-            ...kEventContextExampleParameters,
-            ...kRecipientContextExampleParameters,
-            ...kTeamContextExampleParameters,
-            ...kTeamInviteKeyContextExampleParameters,
+            author: kAuthorContextExampleParameters,
+            event: kEventContextExampleParameters,
+            recipient: kRecipientContextExampleParameters,
+            team: kTeamContextExampleParameters,
+            teamInviteKey: kTeamInviteKeyContextExampleParameters,
         };
     }
 }

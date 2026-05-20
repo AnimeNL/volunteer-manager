@@ -4,8 +4,8 @@
 /**
  * Parameters relaying context about a hotel room booking.
  */
-export type HotelBookingContextParameters = {
-    hotel: {
+export type HotelBookingContextParameters<FieldName extends string = 'hotel'> = {
+    [K in FieldName]: {
         checkInDate: string;
         checkOutDate: string;
 
@@ -21,16 +21,14 @@ export type HotelBookingContextParameters = {
 /**
  * Example parameters that convey information about the person's hotel room booking.
  */
-export const kHotelBookingContextExampleParameters: HotelBookingContextParameters = {
-    hotel: {
-        checkInDate: '2026-04-17',
-        checkOutDate: '2026-04-19',
+export const kHotelBookingContextExampleParameters: HotelBookingContextParameters['hotel'] = {
+    checkInDate: '2026-04-17',
+    checkOutDate: '2026-04-19',
 
-        secondOccupant: 'Theresa',
-        thirdOccupant: 'Angela',
+    secondOccupant: 'Theresa',
+    thirdOccupant: 'Angela',
 
-        name: 'Bastion Hotel Rijswijk',
-        roomName: 'Deluxe Twin Room',
-        roomPrice: 160,
-    },
+    name: 'Bastion Hotel Rijswijk',
+    roomName: 'Deluxe Twin Room',
+    roomPrice: 160,
 };

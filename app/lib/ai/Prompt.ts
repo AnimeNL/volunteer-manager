@@ -6,6 +6,15 @@ import { type Settings, readSettings } from '@lib/Settings';
 import { type PromptParameters, PromptTemplate } from './PromptTemplate';
 
 /**
+ * Type of prompt that a particular Prompt instance represents.
+ *
+ * * `Communication` prompts must have the default system prompt associated with them,
+ * * `Feature` prompts have no restrictions,
+ * * `Internal` prompts have no restrictions.
+ */
+export type PromptType = 'Communication' | 'Feature' | 'Internal';
+
+/**
  * Utility type to extract the |Settings| values that map to string values, and ignore the rest.
  */
 type StringSettings<T> = { [k in keyof T]: T[k] extends string ? k : never }[keyof T];
@@ -22,7 +31,7 @@ type Metadata = {
     /**
      * Type of prompt, which dictates on which internal maintenance page it should appear.
      */
-    type: 'Communication' | 'Feature' | 'Internal';
+    type: PromptType;
 
     /**
      * Label that describes that this prompt is about.

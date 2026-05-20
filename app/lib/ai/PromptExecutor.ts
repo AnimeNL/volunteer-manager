@@ -12,11 +12,13 @@ import { readUserSetting } from '@lib/UserSettings';
 /**
  * Helper type to get the parameters that are expected by a particular kind of prompt.
  */
-type GetPromptParameters<T> = T extends Prompt<infer U> ? U : never;
+export type GetPromptParameters<T> = T extends Prompt<infer U> ? U : never;
 
 /**
  * The executor has the ability to actually execute a prompt, either using an existing client or
- * creating a client of its own.
+ * creating a client of its own. It is able to execute prompts of all kinds. Communication prompts
+ * have one requirement, which is that they must have a system prompt attached to them to channel
+ * the personality of the messages we intend to distribute through the system.
  */
 export class PromptExecutor<T extends Prompt<any>> {
     /**
@@ -32,20 +34,18 @@ export class PromptExecutor<T extends Prompt<any>> {
     #prompt: T;
 
     private constructor(prompt: T) {
-        this.#systemPrompt = undefined;
         this.#prompt = prompt;
     }
 
     /**
-     * Executes the system prompt with the given |parameters|. All parameters have sensible defaults
-     * so it's entirely valid to execute a prompt without explicitly setting up the system prompt.
+     * Prepares the communication system prompt with the given |parameters|. All parameters have
+     * sensible defaults so it's entirely valid to execute a prompt without explicitly setting up
+     * the system prompt. When available, personalised personality prompts will be used.
      *
      * @param userId Unique ID of the user for whom this prompt is being executed.
-     * @param parameters (Partial) parameters made available to the system prompt
+     * @param parameters (Partial) parameters made available to the system prompt.
      */
-    async prepareSystemPrompt(
-        userId: number, parameters: Partial<GetPromptParameters<SystemPrompt>>)
-    {
+    async addSystemPrompt(userId: number, parameters: Partial<GetPromptParameters<SystemPrompt>>) {
         const personalityPrompt =
             parameters.personalityPrompt ??
                 await readUserSetting(userId, 'ai-communication-personality-prompt');
@@ -71,16 +71,11 @@ export class PromptExecutor<T extends Prompt<any>> {
      * be aware of what it's expected to do.
      *
      * @param parameters Parameters necessary to complete the prompt's template.
-     * @param userId Unique ID of the user for whom this prompt is being executed.
      * @returns Response from the model as it executed the prompt.
      */
-    async execute(parameters: GetPromptParameters<T>, userId?: number): Promise<ModelTextResponse> {
-        if (this.#prompt.metadata.type === 'Communication' && !this.#systemPrompt) {
-            if (!userId)
-                throw new Error('The user ID of the sender must be set for this prompt');
-
-            await this.prepareSystemPrompt(userId, { /* use default values */ });
-        }
+    async execute(parameters: GetPromptParameters<T>): Promise<ModelTextResponse> {
+        if (this.#prompt.metadata.type === 'Communication' && !this.#systemPrompt)
+            throw new Error('Communication prompts must have a system propt set up.');
 
         const prompt = await this.#prompt.evaluate(parameters);
 

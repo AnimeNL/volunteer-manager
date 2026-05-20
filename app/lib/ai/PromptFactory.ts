@@ -26,6 +26,12 @@ type PromptConstructor = Constructor<Prompts>;
 type PromptId = Prompts['metadata']['id'];
 
 /**
+ * Unique IDs assigned to the communication prompts that exist within the Volunteer Manager.
+ */
+export type CommunicationPromptId =
+    Extract<Prompts, { metadata: { type: 'Communication' } }>['metadata']['id'];
+
+/**
  * Helper class that is able to quickly create a prompt by its ID, and return the constructor with
  * which it can be instantiated. This uses a local cache to make this an O(1) operation.
  */
