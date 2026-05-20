@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from './PromptFactory';
+import type { Language } from './Language';
 import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -22,11 +23,6 @@ import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 import * as prompts from './prompts';
-
-/**
- * Language in which the response should be written.
- */
-type PromptLanguage = 'Dutch' | 'English';
 
 /**
  * Zod types that describe the information required to execute a communication prompt.
@@ -74,7 +70,7 @@ type TypedPromptData<K extends keyof typeof kCommunicationPromptData> =
  * @param formData Free form (but validated) data required in order to execute the prompt.
  */
 export async function executeCommunicationPrompt(
-    id: CommunicationPromptId, recipientId: number, language: PromptLanguage, formData: unknown)
+    id: CommunicationPromptId, recipientId: number, language: Language, formData: unknown)
 {
     'use server';
 
