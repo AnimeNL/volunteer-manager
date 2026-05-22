@@ -3,12 +3,14 @@
 
 import type { Metadata } from 'next';
 
-import { SliderElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
+import { SelectElement, SliderElement, TextFieldElement }
+    from '@components/proxy/react-hook-form-mui';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
+import type { TextGenerationThinkingLevel } from '@lib/integrations/genai/Client';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GeminiModelSelect } from './GeminiModelSelect';
 import { ModelPlayground } from './ModelPlayground';
@@ -18,6 +20,16 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
 
 import * as actions from '../AiActions';
+
+/**
+ * Labels for the degree of thinking the model is expected to do.
+ */
+const kThinkingLevelOptions: { id: TextGenerationThinkingLevel, label: string }[] = [
+    { id: 'minimal', label: 'Minimal' },
+    { id: 'low', label: 'Low' },
+    { id: 'medium', label: 'Medium' },
+    { id: 'high', label: 'High' },
+];
 
 /**
  * The models page allows the administrator to configure which models should be used for different
@@ -36,8 +48,8 @@ export default async function ModelsAiPage() {
         'ai-setting-text-model-high',
         'ai-setting-text-model-low',
         'ai-setting-text-model-medium',
-        'ai-setting-candidate-count',
         'ai-setting-temperature',
+        'ai-setting-thinking-level',
         'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
@@ -52,8 +64,8 @@ export default async function ModelsAiPage() {
         textModelMedium: settings['ai-setting-text-model-medium'] ?? kDefaultTextModel,
         geminiApiKey: settings['ai-setting-gemini-api-key'],
 
-        candidateCount: settings['ai-setting-candidate-count'] ?? 0,
         temperature: settings['ai-setting-temperature'] ?? 0,
+        thinkingLevel: settings['ai-setting-thinking-level'] ?? 'medium',
         topK: settings['ai-setting-top-k'] ?? 0,
         topP: settings['ai-setting-top-p'] ?? 0,
     };
@@ -95,8 +107,8 @@ export default async function ModelsAiPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <SliderElement name="candidateCount" label="Candidate count" size="small"
-                                   min={1} max={8} step={1} />
+                    <SelectElement name="thinkingLevel" label="Thinking level" size="small"
+                                   fullWidth options={kThinkingLevelOptions} sx={{ mt: 0.25 }} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SliderElement name="temperature" label="Temperature" size="small"

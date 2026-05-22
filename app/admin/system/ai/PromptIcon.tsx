@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
 import DrawIcon from '@mui/icons-material/Draw';
@@ -17,7 +15,7 @@ import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import type * as prompts from '@lib/ai/prompts';
 
 /**
- *
+ * Unique ID of the prompt, used to make the switch case complete.
  */
 type PromptId = keyof typeof prompts;
 

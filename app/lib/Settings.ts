@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AiSupportedModel } from './integrations/genai/Models';
-import type { TextGenerationComplexity } from './integrations/genai/Client';
+import type { TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
 import type { VertexSupportedModels } from './integrations/vertexai/VertexSupportedModels';
 import db, { tSettings } from '@lib/database';
@@ -99,7 +99,7 @@ export type Settings = {
     'ai-setting-text-model-high': AiSupportedModel;
     'ai-setting-text-model-low': AiSupportedModel;
     'ai-setting-text-model-medium': AiSupportedModel;
-    'ai-setting-candidate-count': number;
+    'ai-setting-thinking-level': TextGenerationThinkingLevel;
     'ai-setting-temperature': number;
     'ai-setting-top-k': number;
     'ai-setting-top-p': number;

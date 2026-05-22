@@ -10,13 +10,13 @@ import { readSettings } from '@lib/Settings';
  */
 export async function createAiClient(partialSettings?: Partial<ClientSettings>) {
     const configuration = await readSettings([
-        'ai-setting-candidate-count',
         'ai-setting-gemini-api-key',
         'ai-setting-image-model',
         'ai-setting-temperature',
         'ai-setting-text-model-high',
         'ai-setting-text-model-low',
         'ai-setting-text-model-medium',
+        'ai-setting-thinking-level',
         'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
@@ -30,7 +30,6 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
 
     return new Client({
         apiKey: configuration['ai-setting-gemini-api-key']!,
-        candidateCount: configuration['ai-setting-candidate-count']!,
         models: {
             image: configuration['ai-setting-image-model']!,
             text: {
@@ -43,6 +42,7 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
             temperature: configuration['ai-setting-temperature'],
             topK: configuration['ai-setting-top-k'],
             topP: configuration['ai-setting-top-p'],
+            thinkingLevel: configuration['ai-setting-thinking-level'],
         },
         ...partialSettings,
     });

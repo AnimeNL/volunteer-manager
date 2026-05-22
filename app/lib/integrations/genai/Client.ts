@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { type GenerateContentParameters, type Part, GoogleGenAI } from '@google/genai';
+import { type GenerateContentParameters, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 import type { AiSupportedModel } from './Models';
 
@@ -12,6 +12,11 @@ import type { AiSupportedModel } from './Models';
 export type TextGenerationComplexity = 'low' | 'medium' | 'high';
 
 /**
+ * Level of reasoning that the model should apply when generating text.
+ */
+export type TextGenerationThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
+
+/**
  * Settings accepted by the GenAI client.
  */
 export interface ClientSettings {
@@ -19,11 +24,6 @@ export interface ClientSettings {
      * Google Cloud API key that should be used for generative AI.
      */
     apiKey: string;
-
-    /**
-     * Maximum number of candidates to respond with when generating text.
-     */
-    candidateCount: number;
 
     /**
      * Model selection controlling which models should be used for different use cases.
@@ -63,6 +63,16 @@ export interface ClientSettings {
          * equals this value.
          */
         topP?: number;
+
+        /**
+         * Thinking level that significantly improves the model's reasoning and multi-step planning
+         * abilities. Higher levels are useful for complex reasoning, but will take longer to
+         * generate.
+         *
+         * @see https://ai.google.dev/gemini-api/docs/thinking
+         * @default "medium"
+         */
+        thinkingLevel?: TextGenerationThinkingLevel;
     };
 };
 
@@ -159,6 +169,15 @@ interface GenerateTextRequest extends GenerateRequest {
      * @default "medium"
      */
     complexity?: TextGenerationComplexity;
+
+    /**
+     * Thinking level that significantly improves the model's reasoning and multi-step planning
+     * abilities. Higher levels are useful for complex reasoning, but will take longer to generate.
+     *
+     * @see https://ai.google.dev/gemini-api/docs/thinking
+     * @default `ClientSettings.quality.thinkingLevel`
+     */
+    thinkingLevel?: TextGenerationThinkingLevel;
 }
 
 /**
@@ -312,11 +331,18 @@ export class Client {
         const stream = await this.generateContentStream(request, {
             model,
             config: {
-                candidateCount: this.#settings.candidateCount,
+                candidateCount: /* fixed= */ 1,
                 temperature: this.#settings.quality.temperature,
                 topK: this.#settings.quality.topK,
                 topP: this.#settings.quality.topP,
                 systemInstruction: request.systemPrompt,
+                thinkingConfig: {
+                    thinkingLevel:
+                        this.toGeminiThinkingLevel(
+                            request.thinkingLevel
+                                ?? this.#settings.quality.thinkingLevel
+                                ?? 'medium'),
+                },
             },
         });
 
@@ -383,5 +409,21 @@ export class Client {
             ],
             ...parameters,
         });
+    }
+
+    /**
+     * Converts the given `thinkingLevel` to the Gemini API's representation.
+     */
+    private toGeminiThinkingLevel(thinkingLevel: TextGenerationThinkingLevel): ThinkingLevel {
+        switch (thinkingLevel) {
+            case 'minimal':
+                return ThinkingLevel.MINIMAL;
+            case 'low':
+                return ThinkingLevel.LOW;
+            case 'medium':
+                return ThinkingLevel.MEDIUM;
+            case 'high':
+                return ThinkingLevel.HIGH;
+        }
     }
 }

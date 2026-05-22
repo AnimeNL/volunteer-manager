@@ -133,8 +133,8 @@ const kUpdateModelSettingsData = z.object({
     textModelMedium: z.enum(kAiSupportedModelIdentifiers),
     geminiApiKey: z.string().nonempty(),
 
-    candidateCount: z.number().min(0).max(8),
     temperature: z.number().min(0).max(2),
+    thinkingLevel: z.enum([ 'minimal', 'low', 'medium', 'high' ]),
     topK: z.number().min(1).max(64),
     topP: z.number().min(0).max(1),
 });
@@ -156,8 +156,8 @@ export async function updateModelSettings(formData: unknown) {
             'ai-setting-text-model-high': data.textModelHigh,
             'ai-setting-text-model-low': data.textModelLow,
             'ai-setting-text-model-medium': data.textModelMedium,
-            'ai-setting-candidate-count': data.candidateCount,
             'ai-setting-temperature': data.temperature,
+            'ai-setting-thinking-level': data.thinkingLevel,
             'ai-setting-top-k': data.topK,
             'ai-setting-top-p': data.topP,
         });
