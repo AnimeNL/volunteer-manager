@@ -29,6 +29,11 @@ export type CommunicationLanguage = Language | 'Silent';
  */
 interface CommunicationLanguageViewProps {
     /**
+     * Language in which the communication should be written, when known.
+     */
+    language?: CommunicationLanguage;
+
+    /**
      * Callback to be invoked when the user has selected a language. Expected to throw an exception
      * when something goes wrong when generating the message.
      */
@@ -79,6 +84,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
                             <Typography variant="body1">
                                 Dutch
                             </Typography>
+                            { props.language === 'Dutch' && <PreferredLanguage /> }
                         </> }
                 </LanguageButton>
                 <LanguageButton onClick={handleSelectEnglish}>
@@ -89,6 +95,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
                             <Typography variant="body1">
                                 English
                             </Typography>
+                            { props.language === 'English' && <PreferredLanguage /> }
                         </> }
                 </LanguageButton>
                 { !!allowSilentMutations &&
@@ -100,6 +107,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
                                 <Typography variant="body1">
                                     Silent
                                 </Typography>
+                                { props.language === 'Silent' && <PreferredLanguage /> }
                             </> }
                     </LanguageButton> }
             </Stack>
@@ -133,3 +141,24 @@ const LanguageButton = styled(Stack)(({ theme }) => ({
         backgroundColor: theme.palette.action.focus,
     }
 }));
+
+/**
+ * The <PreferredLanguage> component displays a small banner at the bottom of a language option that
+ * strongly suggests to the user to pick this option.
+ */
+function PreferredLanguage() {
+    return (
+        <Typography component="p" variant="caption" sx={ theme => ({
+            backgroundColor: theme.palette.success.main,
+            borderBottomLeftRadius: theme.shape.borderRadius,
+            borderBottomRightRadius: theme.shape.borderRadius,
+            color: theme.palette.success.contrastText,
+            margin: -2,
+            marginTop: 0.5,
+            textAlign: 'center',
+            width: [ '-webkit-fill-available', 'stretch' ],
+        }) }>
+            preferred
+        </Typography>
+    );
+}

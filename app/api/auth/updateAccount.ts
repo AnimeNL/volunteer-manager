@@ -10,6 +10,8 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { Temporal, formatDate } from '@lib/Temporal';
 import db, { tUsers } from '@lib/database';
 
+import { kCommunicationLanguage } from '@lib/database/Types';
+
 /**
  * Fields that describe the identifyable information stored with a volunteer's profile.
  */
@@ -48,6 +50,11 @@ export const kAccountFields = z.object({
      * Discord handle owned by the user, when provided, in an undefined format.
      */
     discordHandle: z.string().optional(),
+
+    /**
+     * Preferred language in which we should communicate with them.
+     */
+    language: z.enum(kCommunicationLanguage).optional(),
 });
 
 /**
@@ -98,6 +105,7 @@ export async function updateAccount(request: Request, props: ActionProps): Promi
             firstName: tUsers.firstName,
             lastName: tUsers.lastName,
             username: tUsers.username,
+            language: tUsers.language,
             gender: tUsers.gender,
             birthdate: tUsers.birthdate,
             phoneNumber: tUsers.phoneNumber,
@@ -143,6 +151,7 @@ export async function updateAccount(request: Request, props: ActionProps): Promi
         .set({
             firstName: update.firstName,
             lastName: update.lastName,
+            language: update.language ?? null,
             gender: update.gender,
             birthdate: Temporal.PlainDate.from(update.birthdate),
             phoneNumber: update.phoneNumber,

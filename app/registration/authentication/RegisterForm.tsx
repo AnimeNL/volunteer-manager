@@ -16,6 +16,14 @@ export const kGenderOptions = [
 ];
 
 /**
+ * The options we'll present to users when having to pick their preferred language.
+ */
+export const kLanguageOptions = [
+    { id: 'Dutch', label: 'Dutch' },
+    { id: 'English', label: 'English' },
+];
+
+/**
  * Canonical form fields that, together, create the account information form. Shared across multiple
  * views in the authentication flow.
  */
@@ -56,6 +64,11 @@ export function RegisterForm() {
             <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldElement name="discordHandle" label="Discord handle"
                                   fullWidth size="small" />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+                <SelectElement name="language" label="Preferred communication language"
+                               options={kLanguageOptions} fullWidth size="small" />
             </Grid>
         </>
     );

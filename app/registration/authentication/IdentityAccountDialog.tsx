@@ -52,6 +52,7 @@ export function IdentityAccountDialog(props: IdentityAccountDialogProps) {
                 update: {
                     firstName: data.firstName,
                     lastName: data.lastName,
+                    language: data.language,
                     gender: data.gender,
                     birthdate: dayjs(data.rawBirthdate).format('YYYY-MM-DD'),
                     phoneNumber: data.phoneNumber,

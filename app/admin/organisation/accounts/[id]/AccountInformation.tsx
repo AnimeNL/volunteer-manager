@@ -19,7 +19,7 @@ import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
 import { DiscordIcon } from './DiscordIcon';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
 
-import { kGenderOptions } from '@app/registration/authentication/RegisterForm';
+import { kGenderOptions, kLanguageOptions } from '@app/registration/authentication/RegisterForm';
 
 /**
  * Props accepted by the <AccountInformation> component.
@@ -117,6 +117,14 @@ export function AccountInformation(props: AccountInformationProps) {
             </Grid>
 
             <Grid size={{ xs: 6 }}>
+                <SelectElement name="language" label="Preferred language" options={[
+                                  { id: 'clear', label: '(clear preference)' },
+                                  ...kLanguageOptions,
+                               ]}
+                               fullWidth size="small"
+                               slotProps={{ input: { readOnly: !!props.readOnly } }} />
+            </Grid>
+            <Grid size={{ xs: 6 }}>
                 <Stack direction="row" spacing={1}>
                     <TextFieldElement name="discordHandle" label="Discord handle"
                                       fullWidth size="small"
@@ -135,9 +143,6 @@ export function AccountInformation(props: AccountInformationProps) {
                             </Box>
                         </Tooltip> }
                 </Stack>
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-                { /* available */ }
             </Grid>
 
             { !!props.discordHandle &&

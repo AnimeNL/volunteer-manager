@@ -36,6 +36,16 @@ export const kAuthType = {
 } as const;
 
 /**
+ * Preferred language in which we should communicate with them.
+ * @see Table `users`
+ */
+export type CommunicationLanguage = Values<typeof kCommunicationLanguage>;
+export const kCommunicationLanguage = {
+    Dutch: 'Dutch',
+    English: 'English',
+} as const;
+
+/**
  * Type of content that's stored within a particular scope.
  * @see Table `content`
  */

@@ -82,6 +82,7 @@ export default async function AccountInformationPage(
             firstName: tUsers.firstName,
             lastName: tUsers.lastName,
             displayName: tUsers.displayName,
+            language: tUsers.language,
             birthdate: dbInstance.dateAsString(tUsers.birthdate),
             gender: tUsers.gender,
             username: tUsers.username,

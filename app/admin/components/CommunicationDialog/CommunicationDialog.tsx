@@ -21,6 +21,11 @@ import { CommunicationMessageView } from './CommunicationMessageView';
  */
 export interface CommunicationDialogProps {
     /**
+     * Language in which the communication should be written, when known.
+     */
+    language?: CommunicationLanguage;
+
+    /**
      * Callback to invoke when the dialog should be closed.
      */
     onClose: () => void;
@@ -29,8 +34,6 @@ export interface CommunicationDialogProps {
      * Whether the dialog should be opened and presented to the user.
      */
     open: boolean;
-
-    // TODO: preferredLanguage (skip the language step)
 
     /**
      * Dialog title.
@@ -46,7 +49,7 @@ export interface CommunicationDialogProps {
 export function CommunicationDialog(props: React.PropsWithChildren<CommunicationDialogProps>) {
     const { onClose, open, title } = props;
 
-    const [ step, setStep ] = useState<'language' | 'message' | 'confirmation'>('message');
+    const [ step, setStep ] = useState<'language' | 'message' | 'confirmation'>('language');
 
     const handleLanguageSelected = useCallback(async (language: CommunicationLanguage) => {
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -72,7 +75,8 @@ export function CommunicationDialog(props: React.PropsWithChildren<Communication
                 </> }
             <DialogContent sx={{ overflowY: 'visible', paddingY: 2 }}>
                 <Collapse in={ step === 'language' } mountOnEnter unmountOnExit>
-                    <CommunicationLanguageView onLanguageSelected={handleLanguageSelected} />
+                    <CommunicationLanguageView language={props.language}
+                                               onLanguageSelected={handleLanguageSelected} />
                 </Collapse>
                 <Collapse in={ step === 'message' } mountOnEnter unmountOnExit>
                     <CommunicationMessageView onRefresh={handleRefresh} />

@@ -12,6 +12,9 @@ import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
 import {
+    CommunicationLanguage,
+} from "../Types";
+import {
     PlainDate,
     ZonedDateTime,
 } from "../../Temporal";
@@ -22,6 +25,7 @@ export class UsersTable extends Table<DBConnection, 'UsersTable'> {
     firstName = this.column('first_name', 'string');
     lastName = this.column('last_name', 'string');
     displayName = this.optionalColumnWithDefaultValue('display_name', 'string');
+    language = this.optionalColumnWithDefaultValue<CommunicationLanguage>('language', 'enum', 'CommunicationLanguage');
     gender = this.column('gender', 'string');
     birthdate = this.optionalColumnWithDefaultValue<PlainDate>('birthdate', 'customLocalDate', 'date', TemporalTypeAdapter);
     phoneNumber = this.optionalColumnWithDefaultValue('phone_number', 'string');

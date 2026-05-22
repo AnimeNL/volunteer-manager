@@ -255,6 +255,7 @@ do {
                     field: [ 'twilio_webhook_calls', 'webhook_call_endpoint' ],
                     type: 'TwilioWebhookEndpoint',
                 },
+                { field: [ 'users', 'language' ], type: 'CommunicationLanguage' },
                 { field: [ 'users_auth', 'auth_type' ], type: 'AuthType' },
                 { field: [ 'users_events', 'registration_status' ], type: 'RegistrationStatus' },
                 { field: [ 'users_events', 'shirt_fit' ], type: 'ShirtFit' },

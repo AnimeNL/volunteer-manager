@@ -18,7 +18,7 @@ import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
     tUsersAuth } from '@lib/database';
 
-import { kAuthType, kFileType } from '@lib/database/Types';
+import { kAuthType, kCommunicationLanguage, kFileType, type CommunicationLanguage } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
@@ -534,6 +534,7 @@ const kAccountPermissionData = z.object({
     firstName: z.string().nonempty(),
     lastName: z.string().nonempty(),
     displayName: z.string().optional(),
+    language: z.enum(kCommunicationLanguage).or(z.literal('clear')).optional(),
     birthdate: kTemporalPlainDate.nullish(),
     gender: z.string().optional(),
     username: z.string().optional(),
@@ -561,6 +562,7 @@ export async function updateAccountInformation(userId: number, formData: unknown
                 firstName: tUsers.firstName,
                 lastName: tUsers.lastName,
                 displayName: tUsers.displayName,
+                language: tUsers.language,
                 birthdate: db.dateAsString(tUsers.birthdate),
                 gender: tUsers.gender,
                 username: tUsers.username,
@@ -578,11 +580,16 @@ export async function updateAccountInformation(userId: number, formData: unknown
                 return { success: false, error: 'This e-mail address is already in use' };
         }
 
+        let language: CommunicationLanguage | null = null;
+        if (!!data.language && Object.keys(kCommunicationLanguage).includes(data.language))
+            language = data.language as CommunicationLanguage;
+
         const affectedRows = await db.update(tUsers)
             .set({
                 firstName: data.firstName,
                 lastName: data.lastName,
                 displayName: data.displayName?.length ? data.displayName : null,
+                language,
                 birthdate: data.birthdate,
                 gender: data.gender,
                 username: data.username,
