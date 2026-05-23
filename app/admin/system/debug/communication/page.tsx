@@ -14,21 +14,41 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 /**
  * Server Action that can be used with <CommunicationButton> to indicate a successful response.
  */
-async function commitSuccess(subject?: string, message?: string) {
+async function commit(
+    scenario: 'close' | 'failure' | 'success', subject?: string, message?: string)
+{
     'use server';
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    switch (scenario) {
+        case 'close':
+            return {
+                success: true,
+                close: true,
+            };
 
-    return {
-        success: true,
-        message: 'This is a message',
-    };
+        case 'failure':
+            return {
+                success: false,
+                error: 'Something has gone terribly wrong',
+            };
+
+        case 'success':
+            return {
+                success: true,
+                message: 'This is a successful message',
+            };
+    }
 }
 
 /**
  * Page that displays utilities towards trying out the communication features in the system.
  */
 export default function CommunicationPage() {
+    const commitClose = commit.bind(null, 'close');
+    const commitFailure = commit.bind(null, 'failure');
+    const commitSuccess = commit.bind(null, 'success');
+
     return (
         <Section title="Communication">
             <SectionIntroduction>
@@ -43,6 +63,46 @@ export default function CommunicationPage() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
+                    <TableRow>
+                        <TableCell>ParticipationCancelledPrompt</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Cancel Anna's participation"
+                                                 badge="warning"
+                                                 action={commitClose}
+                                                 promptId="participation-cancelled"
+                                                 promptParams={{
+                                                    eventId: 15,
+                                                    teamId: 1,
+                                                 }}
+                                                 recipientId={3}>
+                                Send an e-mail to <strong>Anna</strong> about their participation
+                                having been cancelled.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ warning badge, auto-closes the dialog</em>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>ParticipationReinstatedPrompt</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Reinstate Marvin's participation"
+                                                 badge="check"
+                                                 action={commitFailure}
+                                                 promptId="participation-reinstated"
+                                                 promptParams={{
+                                                    eventId: 15,
+                                                    teamId: 1,
+                                                 }}
+                                                 recipientId={3}>
+                                Send an e-mail to <strong>Marvin</strong> about their participation
+                                having been reinstated.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ success badge, fails the commit</em>
+                        </TableCell>
+                    </TableRow>
                     <TableRow>
                         <TableCell>ParticipationReminderPrompt</TableCell>
                         <TableCell>
@@ -63,7 +123,6 @@ export default function CommunicationPage() {
                             <em>w/ preferred language, successful commit</em>
                         </TableCell>
                     </TableRow>
-                    { /* TODO: Vary <CommunicationButton @badge /> */ }
                 </TableBody>
             </Table>
         </Section>

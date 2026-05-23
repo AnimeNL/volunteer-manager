@@ -33,6 +33,14 @@ import * as prompts from './prompts';
  * merely is a suggestion after all.
  */
 const kCommunicationPromptData = {
+    'participation-cancelled': z.object({
+        eventId: z.number(),
+        teamId: z.number(),
+    }),
+    'participation-reinstated': z.object({
+        eventId: z.number(),
+        teamId: z.number(),
+    }),
     'participation-reminder': z.object({
         eventId: z.number(),
         teamId: z.number(),
@@ -42,8 +50,6 @@ const kCommunicationPromptData = {
     'application-approved': z.object({ /* not supported */ eventId: z.string() }),
     'application-rejected': z.object({ /* not supported */ }),
     'hotel-confirmation': z.object({ /* not supported */ }),
-    'participation-cancelled': z.object({ /* not supported */ }),
-    'participation-reinstated': z.object({ /* not supported */ }),
     'team-change': z.object({ /* not supported */ }),
 
 } as const satisfies { [K in CommunicationPromptId]: z.ZodObject };
@@ -91,6 +97,19 @@ export async function executeCommunicationPrompt(
         let parameters: Parameters<typeof executor['execute']>[0] | undefined;
 
         switch (id) {
+            case 'participation-cancelled':
+            case 'participation-reinstated': {
+                const data = inputData as TypedPromptData<'participation-cancelled'>;
+                parameters = {
+                    author,
+                    event: await queryEventContext(dbInstance, data.eventId),
+                    recipient,
+                    team: await queryTeamContext(dbInstance, data.teamId),
+                } satisfies GetPromptParameters<prompts.ParticipationCancelledPrompt>;
+
+                break;
+            }
+
             case 'participation-reminder': {
                 const data = inputData as TypedPromptData<'participation-reminder'>;
                 parameters = {
@@ -100,7 +119,6 @@ export async function executeCommunicationPrompt(
                     team: await queryTeamContext(dbInstance, data.teamId),
                     teamInviteKey:
                         await queryTeamInviteKeyContext(dbInstance, data.eventId, data.teamId),
-
                 } satisfies GetPromptParameters<prompts.ParticipationReminderPrompt>;
 
                 break;
