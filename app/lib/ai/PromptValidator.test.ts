@@ -10,7 +10,9 @@ describe('PromptValidator', () => {
         type: 'Internal',
         label: 'Example prompt',
         description: 'Example prompt used for this test suite',
-        setting: 'ai-communication-system-prompt',
+        settings: {
+            prompt: 'ai-communication-system-prompt',
+        },
     };
 
     it('is able to pass completely fine prompts', async () => {
