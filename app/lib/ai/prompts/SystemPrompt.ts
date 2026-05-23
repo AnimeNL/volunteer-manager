@@ -24,7 +24,9 @@ export class SystemPrompt extends Prompt<SystemPromptParameters> {
             type: 'Internal',
             label: 'System Prompt',
             description: 'System prompt used for all communication messages.',
-            setting: 'ai-communication-system-prompt',
+            settings: {
+                prompt: 'ai-communication-system-prompt',
+            },
         } as const;
     }
 

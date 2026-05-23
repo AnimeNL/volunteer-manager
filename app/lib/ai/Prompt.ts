@@ -1,6 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Language } from './Language';
 import type { TextGenerationComplexity } from '@lib/integrations/genai/Client';
 import { type Settings, readSettings } from '@lib/Settings';
 import { type PromptParameters, PromptTemplate } from './PromptTemplate';
@@ -15,9 +16,9 @@ import { type PromptParameters, PromptTemplate } from './PromptTemplate';
 export type PromptType = 'Communication' | 'Feature' | 'Internal';
 
 /**
- * Utility type to extract the |Settings| values that map to string values, and ignore the rest.
+ * Utility type to extract the |Settings| values that map to type |T| values, and ignore the rest.
  */
-type StringSettings<T> = { [k in keyof T]: T[k] extends string ? k : never }[keyof T];
+type TypedSettings<B, T> = { [k in keyof B]: B[k] extends T ? k : never }[keyof B];
 
 /**
  * Type defining the metadata associated with a particular prompt type.
@@ -44,14 +45,19 @@ type Metadata = {
     description: string;
 
     /**
-     * The setting in which this prompt will be stored.
+     * Settings in which certain properties of this prompt will be stored.
      */
-    setting: StringSettings<Settings>;
+    settings: {
+        /**
+         * When given, the setting in which the complexity of this prompt will be stored.
+         */
+        complexity?: TypedSettings<Settings, TextGenerationComplexity>;
 
-    /**
-     * When given, the setting in which the complexity of this prompt will be stored.
-     */
-    settingComplexity?: StringSettings<Settings>;
+        /**
+         * The setting containing the input text of this prompt, uncompiled.
+         */
+        prompt: TypedSettings<Settings, string>;
+    };
 };
 
 /**
@@ -92,20 +98,17 @@ export abstract class Prompt<T extends PromptParameters> {
     get template(): Promise<PromptTemplate> {
         return new Promise(async (resolve) => {
             if (this.#template === undefined) {
-                if (this.#templateText === undefined || !!this.metadata.settingComplexity) {
+                if (this.#templateText === undefined || !!this.metadata.settings.complexity) {
                     const settings = await readSettings([
-                        this.metadata.setting,
-                        this.metadata.settingComplexity!,
+                        this.metadata.settings.prompt,
+                        this.metadata.settings.complexity!,
                     ]);
 
-                    if (!!this.metadata.settingComplexity) {
-                        this.#complexity =
-                            settings[this.metadata.settingComplexity] as TextGenerationComplexity
-                                ?? 'medium';
-                    }
+                    if (!!this.metadata.settings.complexity)
+                        this.#complexity = settings[this.metadata.settings.complexity] ?? 'medium';
 
                     if (!this.#templateText)
-                        this.#templateText = settings[this.metadata.setting] ?? '';
+                        this.#templateText = settings[this.metadata.settings.prompt] ?? '';
                 }
 
                 this.#template = PromptTemplate.compile(this.#templateText);
@@ -113,6 +116,14 @@ export abstract class Prompt<T extends PromptParameters> {
 
             return resolve(this.#template);
         });
+    }
+
+    /**
+     * Returns the message subject that should be used in the given |language| with the |params|.
+     * Communication prompts are expected to override this method.
+     */
+    getSubject(params: T, language: Language): string {
+        throw new Error('Prompt::getSubject() has not been implemented for this type');
     }
 
     /**

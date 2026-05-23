@@ -42,12 +42,12 @@ export default async function CommunicationPromptAiPage(
         notFound();
 
     const settings = await readSettings([
-        prompt.metadata.setting,
+        prompt.metadata.settings.prompt,
     ]);
 
     const defaultValues = {
         id: prompt.metadata.id,
-        prompt: settings[prompt.metadata.setting],
+        prompt: settings[prompt.metadata.settings.prompt],
     };
 
     return (

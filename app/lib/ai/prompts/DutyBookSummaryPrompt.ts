@@ -23,8 +23,10 @@ export class DutyBookSummaryPrompt extends Prompt<DutyBookSummaryPromptParameter
             type: 'Feature',
             label: 'Duty Book Summary Prompt',
             description: 'Prompt used to holistically summarise Duty Book entries.',
-            setting: 'ai-duty-book-summary-prompt',
-            settingComplexity: 'ai-duty-book-summary-prompt-complexity',
+            settings: {
+                complexity: 'ai-duty-book-summary-prompt-complexity',
+                prompt: 'ai-duty-book-summary-prompt',
+            },
         } as const;
     }
 

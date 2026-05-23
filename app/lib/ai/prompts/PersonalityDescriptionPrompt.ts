@@ -49,8 +49,10 @@ export class PersonalityDescriptionPrompt extends Prompt<PersonalityDescriptionP
             type: 'Feature',
             label: 'Writing Personality Prompt',
             description: 'Generates a clear personality description based on example messages.',
-            setting: 'ai-personality-description-prompt',
-            settingComplexity: 'ai-personality-description-prompt-complexity',
+            settings: {
+                complexity: 'ai-personality-description-prompt-complexity',
+                prompt: 'ai-personality-description-prompt',
+            },
         } as const;
     }
 

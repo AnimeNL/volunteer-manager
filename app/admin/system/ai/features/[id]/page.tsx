@@ -55,14 +55,14 @@ export default async function AiFeaturesPromptPage(
         notFound();
 
     let settingComplexity: Setting | undefined;
-    if ('settingComplexity' in prompt.metadata)
-        settingComplexity = prompt.metadata.settingComplexity;
+    if ('complexity' in prompt.metadata.settings)
+        settingComplexity = prompt.metadata.settings.complexity;
 
     const settings = await readSettings([
         'ai-setting-text-model-high',
         'ai-setting-text-model-low',
         'ai-setting-text-model-medium',
-        prompt.metadata.setting,
+        prompt.metadata.settings.prompt,
         settingComplexity!,
     ]);
 
@@ -83,7 +83,7 @@ export default async function AiFeaturesPromptPage(
 
     const defaultValues = {
         id: prompt.metadata.id,
-        prompt: settings[prompt.metadata.setting],
+        prompt: settings[prompt.metadata.settings.prompt],
         complexity: settings[settingComplexity!],
     };
 

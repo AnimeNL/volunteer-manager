@@ -214,9 +214,9 @@ export async function updatePrompt(formData: unknown) {
             },
         });
 
-        await writeSetting(prompt.metadata.setting, data.prompt);
-        if (!!data.complexity && !!prompt.metadata.settingComplexity)
-            await writeSetting(prompt.metadata.settingComplexity, data.complexity);
+        await writeSetting(prompt.metadata.settings.prompt, data.prompt);
+        if (!!data.complexity && !!prompt.metadata.settings.complexity)
+            await writeSetting(prompt.metadata.settings.complexity, data.complexity);
 
         return { success: true };
     });

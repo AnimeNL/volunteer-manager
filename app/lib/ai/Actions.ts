@@ -80,18 +80,13 @@ export async function executeCommunicationPrompt(
     return executeServerAction(params, kCommunicationPromptData[id], async (inputData, props) => {
         executeAccessCheck(props.authenticationContext, { check: 'admin' });
 
-        return {
-            success: true,
-            subject: 'Subject line',
-            message: `Message body (${Math.random()})`,
-        };
-
         const dbInstance = db;
 
         const author = await queryAuthorContext(dbInstance, props.user.id);
         const recipient = await queryRecipientContext(dbInstance, recipientId);
 
-        const executor = PromptExecutor.forPrompt(PromptFactory.createById(id));
+        const prompt = PromptFactory.createById(id);
+        const executor = PromptExecutor.forPrompt(prompt);
 
         let parameters: Parameters<typeof executor['execute']>[0] | undefined;
 
@@ -123,6 +118,8 @@ export async function executeCommunicationPrompt(
 
         return {
             success: true,
+
+            subject: prompt.getSubject(parameters as any, language),
             message: response.text,
         };
     });

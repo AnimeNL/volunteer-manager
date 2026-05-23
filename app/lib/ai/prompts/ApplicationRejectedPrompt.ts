@@ -20,7 +20,9 @@ export class ApplicationRejectedPrompt extends Prompt<ApplicationRejectedPromptP
             type: 'Communication',
             label: 'Application rejected',
             description: 'Message to announce that someone\'s application has been rejected.',
-            setting: 'ai-communication-type-application-rejected',
+            settings: {
+                prompt: 'ai-communication-type-application-rejected',
+            },
         } as const;
     }
 

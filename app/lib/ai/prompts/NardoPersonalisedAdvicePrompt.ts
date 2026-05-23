@@ -32,7 +32,9 @@ export class NardoPersonalisedAdvicePrompt extends Prompt<NardoPersonalisedAdvic
             type: 'Internal',
             label: 'Personalised Advice (Del a Rie Advies)',
             description: 'Generated personal advice from the Del a Rie Advies consultancy firm.',
-            setting: 'ai-nardo-personalised-advice',
+            settings: {
+                prompt: 'ai-nardo-personalised-advice',
+            },
         } as const;
     }
 

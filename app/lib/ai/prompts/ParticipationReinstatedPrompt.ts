@@ -20,7 +20,9 @@ export class ParticipationReinstatedPrompt extends Prompt<ParticipationReinstate
             type: 'Communication',
             label: 'Participation reinstated',
             description: 'Message to confirm that someone will once again be participating.',
-            setting: 'ai-communication-type-participation-reinstated',
+            settings: {
+                prompt: 'ai-communication-type-participation-reinstated',
+            },
         } as const;
     }
 

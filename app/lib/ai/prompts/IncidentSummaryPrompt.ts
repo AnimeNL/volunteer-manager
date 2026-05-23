@@ -21,8 +21,10 @@ export class IncidentSummaryPrompt extends Prompt<IncidentSummaryPromptParameter
             type: 'Feature',
             label: 'Incident Summary Prompt',
             description: 'Prompt used to filter and summarise incident reports.',
-            setting: 'ai-incident-summary-prompt',
-            settingComplexity: 'ai-incident-summary-prompt-complexity',
+            settings: {
+                complexity: 'ai-incident-summary-prompt-complexity',
+                prompt: 'ai-incident-summary-prompt',
+            },
         } as const;
     }
 

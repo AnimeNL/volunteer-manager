@@ -20,7 +20,9 @@ export class ApplicationApprovedPrompt extends Prompt<ApplicationApprovedPromptP
             type: 'Communication',
             label: 'Application approved',
             description: 'Message to announce that someone\'s application has been approved.',
-            setting: 'ai-communication-type-application-approved',
+            settings: {
+                prompt: 'ai-communication-type-application-approved',
+            },
         } as const;
     }
 

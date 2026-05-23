@@ -27,7 +27,9 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
             label: 'Hotel confirmation',
             description:
                 'Message to confirm to a volunteer that their hotel booking has been settled.',
-            setting: 'ai-communication-type-hotel-confirmation',
+            settings: {
+                prompt: 'ai-communication-type-hotel-confirmation',
+            },
         } as const;
     }
 

@@ -20,7 +20,9 @@ export class TeamChangePrompt extends Prompt<TeamChangePromptParameters> {
             type: 'Communication',
             label: 'Team change confirmation',
             description: 'Message to confirm that someone\'s been moved to another team.',
-            setting: 'ai-communication-type-team-change',
+            settings: {
+                prompt: 'ai-communication-type-team-change',
+            },
         } as const;
     }
 

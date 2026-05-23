@@ -35,7 +35,7 @@ export default async function NardoAiPage() {
 
     const personalisedAdvicePrompt = new NardoPersonalisedAdvicePrompt();
     const settings = await readSettings([
-        personalisedAdvicePrompt.metadata.setting,
+        personalisedAdvicePrompt.metadata.settings.prompt,
     ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ export default async function NardoAiPage() {
 
     const defaultValues = {
         id: 'nardo-personalised-advice',
-        prompt: settings[personalisedAdvicePrompt.metadata.setting],
+        prompt: settings[personalisedAdvicePrompt.metadata.settings.prompt],
     };
 
     return (

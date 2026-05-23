@@ -26,7 +26,9 @@ export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPro
             type: 'Communication',
             label: 'Participation reminder',
             description: 'Message to remind volunteers to participate again in the latest event.',
-            setting: 'ai-communication-type-participation-reminder',
+            settings: {
+                prompt: 'ai-communication-type-participation-reminder',
+            },
         } as const;
     }
 
@@ -38,5 +40,9 @@ export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPro
             team: kTeamContextExampleParameters,
             teamInviteKey: kTeamInviteKeyContextExampleParameters,
         };
+    }
+
+    override getSubject(params: ParticipationReminderPromptParameters) {
+        return `${params.event.shortName} ${params.team.title}`;
     }
 }
