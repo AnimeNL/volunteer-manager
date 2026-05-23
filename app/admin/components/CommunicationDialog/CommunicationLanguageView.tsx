@@ -29,6 +29,11 @@ export type CommunicationLanguage = Language | 'Silent';
  */
 interface CommunicationLanguageViewProps {
     /**
+     * Whether the silent communication option should be disabled.
+     */
+    disableSilent?: boolean;
+
+    /**
      * Language in which the communication should be written, when known.
      */
     language?: CommunicationLanguage;
@@ -98,7 +103,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
                             { props.language === 'English' && <PreferredLanguage /> }
                         </> }
                 </LanguageButton>
-                { !!allowSilentMutations &&
+                { (!!allowSilentMutations && !props.disableSilent) &&
                     <LanguageButton onClick={handleSelectSilent}>
                         { loadingLanguage === 'Silent' && <CircularProgress color="primary" /> }
                         { loadingLanguage !== 'Silent' &&

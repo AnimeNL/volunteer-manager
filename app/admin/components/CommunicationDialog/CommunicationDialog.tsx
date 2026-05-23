@@ -35,6 +35,11 @@ type CommunicationDialogState = 'language' | 'confirmSilent' | 'message' | 'conf
  */
 export interface CommunicationDialogProps<T extends CommunicationPromptId> {
     /**
+     * Whether the silent communication option should be disabled.
+     */
+    disableSilent?: boolean;
+
+    /**
      * Language in which the communication should be written, when known.
      */
     language?: CommunicationLanguage;
@@ -97,7 +102,6 @@ export interface CommunicationDialogProps<T extends CommunicationPromptId> {
  * always be immediately actionable, but they should be clear enough for a proper bug report.
  *
  * @todo Provide a decent responsive behaviour for mobile devices
- * @todo Option to disable the "silent" option when it doesn't make sense
  * @todo Reset state when the dialog closes and then re-opens again
  */
 export function CommunicationDialog<T extends CommunicationPromptId>(
@@ -205,7 +209,8 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
                 </> }
             <DialogContent sx={{ overflowY: 'visible', paddingY: 2 }}>
                 <Collapse in={ dialogState === 'language' } mountOnEnter unmountOnExit>
-                    <CommunicationLanguageView language={props.language}
+                    <CommunicationLanguageView disableSilent={props.disableSilent}
+                                               language={props.language}
                                                onLanguageSelected={handleLanguageSelected} />
                 </Collapse>
                 <Collapse in={ dialogState === 'confirmSilent' } mountOnEnter unmountOnExit>
