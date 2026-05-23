@@ -31,8 +31,15 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ParticipationReminderPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Remind John to participate">
-                                Compose an e-mail to <strong>John</strong> inviting them to help out
+                            <CommunicationButton title="Remind John to participate"
+                                                 language="English"
+                                                 promptId="participation-reminder"
+                                                 promptParams={{
+                                                    eventId: 16,
+                                                    teamId: 2,
+                                                 }}
+                                                 recipientId={1}>
+                                Send an e-mail to <strong>John</strong> to invite them to help out
                                 with AnimeCon 2027.
                             </CommunicationButton>
                         </TableCell>

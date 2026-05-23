@@ -11,12 +11,15 @@ import IconButton from '@mui/material/IconButton';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import Tooltip from '@mui/material/Tooltip';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { CommunicationDialog, type CommunicationDialogProps } from './CommunicationDialog';
 
 /**
  * Props accepted by the <CommunicationButton> component.
  */
-interface CommunicationButtonProps extends Omit<CommunicationDialogProps, 'onClose' | 'open'> {
+interface CommunicationButtonProps<T extends CommunicationPromptId>
+    extends Omit<CommunicationDialogProps<T>, 'onClose' | 'open'>
+{
     /**
      * Which badge to display on top of the button, if any. "check" will display a small checked
      * icon in the button's corner, whereas "warning" will display an orange attention sign.
@@ -53,7 +56,9 @@ interface CommunicationButtonProps extends Omit<CommunicationDialogProps, 'onClo
  * The dialog will only be mounted when the button has been clicked at least once, under the
  * assumption that more than a single button is likely to be displayed on each page.
  */
-export function CommunicationButton(props: React.PropsWithChildren<CommunicationButtonProps>) {
+export function CommunicationButton<T extends CommunicationPromptId>(
+    props: React.PropsWithChildren<CommunicationButtonProps<T>>)
+{
     let { badge, disabled, size, tooltip, ...communicationDialogProps } = props;
 
     badge ??= 'none';

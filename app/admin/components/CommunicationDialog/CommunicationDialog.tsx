@@ -5,6 +5,8 @@
 
 import { useCallback, useState } from 'react';
 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import Dialog from '@mui/material/Dialog';
@@ -12,14 +14,18 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import SendIcon from '@mui/icons-material/Send';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
+import type { Language } from '@lib/ai/Language';
 import { CommunicationLanguageView, type CommunicationLanguage } from './CommunicationLanguageView';
 import { CommunicationMessageView } from './CommunicationMessageView';
+import { type TypedPromptData, executeCommunicationPrompt } from '@lib/ai/Actions';
 
 /**
  * Props accepted by the <CommunicationDialog> component.
  */
-export interface CommunicationDialogProps {
+export interface CommunicationDialogProps<T extends CommunicationPromptId> {
     /**
      * Language in which the communication should be written, when known.
      */
@@ -36,6 +42,21 @@ export interface CommunicationDialogProps {
     open: boolean;
 
     /**
+     * Unique ID of the prompt that should be executed to generate the message.
+     */
+    promptId: T;
+
+    /**
+     * Parameters expected by the prompt that should be executed to generate the message.
+     */
+    promptParams: TypedPromptData<T>;
+
+    /**
+     * Unique ID of the user who this communication will be directed to.
+     */
+    recipientId: number;
+
+    /**
      * Dialog title.
      */
     title: string;
@@ -46,20 +67,73 @@ export interface CommunicationDialogProps {
  * sent to a volunteer on behalf of the signed in user. A server action must be provided to commit
  * the action this dialog exists for.
  */
-export function CommunicationDialog(props: React.PropsWithChildren<CommunicationDialogProps>) {
+export function CommunicationDialog<T extends CommunicationPromptId>(
+    props: React.PropsWithChildren<CommunicationDialogProps<T>>)
+{
     const { onClose, open, title } = props;
 
     const [ step, setStep ] = useState<'language' | 'message' | 'confirmation'>('language');
 
+    const [ selectedLanguage, setSelectedLanguage ] = useState<Language | undefined>();
+
+    const [ generatedMessage, setGeneratedMessage ] = useState<string | undefined>();
+    const [ generatedSubject, setGeneratedSubject ] = useState<string | undefined>();
+
+    // ---------------------------------------------------------------------------------------------
+    // Machinery to invoke the Server Action to obtain the response from the server. The state will
+    // be advanced in order to display the generated message automatically once completed.
+    // ---------------------------------------------------------------------------------------------
+
+    const doExecuteCommunicationPrompt = useCallback(async (language: Language) => {
+        const response = await executeCommunicationPrompt(
+            props.promptId, props.recipientId, language, props.promptParams);
+
+        if (!response.success)
+            throw new Error(response.error);
+
+        setGeneratedMessage(response.message);
+        setGeneratedSubject(response.subject);
+
+        setStep('message');
+
+    }, [ props.promptId, props.promptParams, props.recipientId ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Callbacks for the "language" state:
+    // ---------------------------------------------------------------------------------------------
+
     const handleLanguageSelected = useCallback(async (language: CommunicationLanguage) => {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        throw new Error('Not implemented yet');
+        switch (language) {
+            case 'Dutch':
+            case 'English':
+                setSelectedLanguage(language);
+                await doExecuteCommunicationPrompt(language);
+                break;
+
+            case 'Silent':
+                // TODO: Advance to the "confirmation" state after telling the user they are now
+                // responsible for informing that recipient of whatever action this entails.
+                break;
+        }
+    }, [ doExecuteCommunicationPrompt ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Callbacks for the "message" state:
+    // ---------------------------------------------------------------------------------------------
+
+    const handleBackToLanguageSelection = useCallback(() => {
+        setStep('language');
     }, []);
 
-    const handleRefresh = useCallback(async () => {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        throw new Error('Not implemented yet');
-    }, []);
+    const handleRefreshMessage = useCallback(async () => {
+        if (!!selectedLanguage)
+            await doExecuteCommunicationPrompt(selectedLanguage);
+
+    }, [ doExecuteCommunicationPrompt, selectedLanguage ]);
+
+    // TODO: Advance to the "confirmation" state from the "message" state.
+
+    // ---------------------------------------------------------------------------------------------
 
     return (
         <Dialog onClose={onClose} open={open} fullWidth>
@@ -79,12 +153,26 @@ export function CommunicationDialog(props: React.PropsWithChildren<Communication
                                                onLanguageSelected={handleLanguageSelected} />
                 </Collapse>
                 <Collapse in={ step === 'message' } mountOnEnter unmountOnExit>
-                    <CommunicationMessageView onRefresh={handleRefresh} />
+                    <CommunicationMessageView message={generatedMessage} subject={generatedSubject}
+                                              onRefresh={handleRefreshMessage} />
                 </Collapse>
             </DialogContent>
             <Divider />
-            <DialogActions sx={{ pt: 1, mr: 1, mb: 0 }}>
-                <Button onClick={onClose} variant="text">Close</Button>
+            <DialogActions sx={{ pt: 1, mr: 1, ml: 1.5, mb: 0 }}>
+                <Box sx={{ flexGrow: 1 }}>
+                    <Collapse in={step === 'message'} orientation="horizontal">
+                        <Button onClick={handleBackToLanguageSelection} variant="text"
+                                startIcon={<ArrowBackIcon />}>
+                            Back
+                        </Button>
+                    </Collapse>
+                </Box>
+                <Button onClick={onClose} variant="text">Cancel</Button>
+                <Collapse in={step === 'message'} orientation="horizontal">
+                    <Button variant="contained" color="primary" endIcon={ <SendIcon /> }>
+                        Send
+                    </Button>
+                </Collapse>
             </DialogActions>
         </Dialog>
     );

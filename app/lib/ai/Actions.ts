@@ -51,12 +51,12 @@ const kCommunicationPromptData = {
 /**
  * Helper type to strongly type a given `inputData` based on a known, verified prompt ID.
  */
-type TypedPromptData<K extends keyof typeof kCommunicationPromptData> =
+export type TypedPromptData<K extends keyof typeof kCommunicationPromptData> =
     z.infer<typeof kCommunicationPromptData[K]>;
 
 /**
  * Executes the communication prompt with the given `id`. All metadata expected by the prompt must
- * be given in the `formData` through IDs, as it will be fetched from the database depending on the
+ * be given in the `params` through IDs, as it will be fetched from the database depending on the
  * signature expected by the prompt.
  *
  * This action may end up executing five+ queries on the database. This is expensive, but also
@@ -67,18 +67,24 @@ type TypedPromptData<K extends keyof typeof kCommunicationPromptData> =
  * @param id Unique ID of the communication prompt that should be executed.
  * @param recipientId Unique ID of the user to whom the message should be addressed.
  * @param language Language in which the response should be written.
- * @param formData Free form (but validated) data required in order to execute the prompt.
+ * @param params Free form (but validated) data required in order to execute the prompt.
  */
 export async function executeCommunicationPrompt(
-    id: CommunicationPromptId, recipientId: number, language: Language, formData: unknown)
+    id: CommunicationPromptId, recipientId: number, language: Language, params: unknown)
 {
     'use server';
 
     if (!(id in kCommunicationPromptData))
         notFound();
 
-    return executeServerAction(formData, kCommunicationPromptData[id], async (inputData, props) => {
+    return executeServerAction(params, kCommunicationPromptData[id], async (inputData, props) => {
         executeAccessCheck(props.authenticationContext, { check: 'admin' });
+
+        return {
+            success: true,
+            subject: 'Subject line',
+            message: `Message body (${Math.random()})`,
+        };
 
         const dbInstance = db;
 
