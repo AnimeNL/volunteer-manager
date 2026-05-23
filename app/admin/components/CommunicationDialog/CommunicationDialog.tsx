@@ -182,8 +182,6 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
         setErrorOpen(false);
 
         try {
-            // TODO: Use the (potentially) user-amended variants of the subject and message in
-            // <CommunicationMessageView> instead of the originally generated ones.
             const response = await props.action(generatedSubject, generatedMessage);
             if (!response.success)
                 throw new Error(response.error);
@@ -249,6 +247,8 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
                 </Collapse>
                 <Collapse in={ dialogState === 'message' } mountOnEnter unmountOnExit>
                     <CommunicationMessageView message={generatedMessage} subject={generatedSubject}
+                                              onChangeMessage={setGeneratedMessage}
+                                              onChangeSubject={setGeneratedSubject}
                                               onRefresh={handleRefreshMessage} />
                 </Collapse>
                 <Collapse in={ dialogState === 'confirmation' } mountOnEnter unmountOnExit>
