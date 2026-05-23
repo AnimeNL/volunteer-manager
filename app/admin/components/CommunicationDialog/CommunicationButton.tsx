@@ -64,12 +64,12 @@ export function CommunicationButton<T extends CommunicationPromptId>(
     badge ??= 'none';
     size ??= 'small';
 
-    const [ everOpened, setEverOpened ] = useState<boolean>(false);
+    const [ openCounter, setOpenCounter ] = useState<number>(0);
     const [ open, setOpen ] = useState<boolean>(false);
 
     const handleClose = useCallback(() => setOpen(false), [ /* no deps */ ]);
     const handleOpen = useCallback(() => {
-        setEverOpened(true);
+        setOpenCounter(n => n + 1);
         setOpen(true);
     }, [ /* no deps */ ]);
 
@@ -87,8 +87,8 @@ export function CommunicationButton<T extends CommunicationPromptId>(
                         </Badge> }
                 </IconButton>
             </Tooltip>
-            { !!everOpened &&
-                <CommunicationDialog {...communicationDialogProps}
+            { !!openCounter &&
+                <CommunicationDialog key={openCounter} {...communicationDialogProps}
                                      onClose={handleClose} open={open}>
                     {props.children}
                 </CommunicationDialog> }

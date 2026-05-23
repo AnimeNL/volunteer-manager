@@ -102,7 +102,6 @@ export interface CommunicationDialogProps<T extends CommunicationPromptId> {
  * always be immediately actionable, but they should be clear enough for a proper bug report.
  *
  * @todo Provide a decent responsive behaviour for mobile devices
- * @todo Reset state when the dialog closes and then re-opens again
  */
 export function CommunicationDialog<T extends CommunicationPromptId>(
     props: React.PropsWithChildren<CommunicationDialogProps<T>>)
