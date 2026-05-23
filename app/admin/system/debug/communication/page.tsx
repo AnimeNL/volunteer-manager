@@ -12,6 +12,20 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
+ * Server Action that can be used with <CommunicationButton> to indicate a successful response.
+ */
+async function commitSuccess(subject?: string, message?: string) {
+    'use server';
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    return {
+        success: true,
+        message: 'This is a message',
+    };
+}
+
+/**
  * Page that displays utilities towards trying out the communication features in the system.
  */
 export default function CommunicationPage() {
@@ -25,6 +39,7 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell width="30%">Prompt</TableCell>
                         <TableCell>Demo</TableCell>
+                        <TableCell>Comments</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -33,6 +48,7 @@ export default function CommunicationPage() {
                         <TableCell>
                             <CommunicationButton title="Remind John to participate"
                                                  language="English"
+                                                 action={commitSuccess}
                                                  promptId="participation-reminder"
                                                  promptParams={{
                                                     eventId: 16,
@@ -42,6 +58,9 @@ export default function CommunicationPage() {
                                 Send an e-mail to <strong>John</strong> to invite them to help out
                                 with AnimeCon 2027.
                             </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ preferred language, successful commit</em>
                         </TableCell>
                     </TableRow>
                     { /* TODO: Vary <CommunicationButton @badge /> */ }

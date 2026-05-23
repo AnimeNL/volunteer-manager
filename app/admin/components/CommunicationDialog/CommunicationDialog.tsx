@@ -3,8 +3,10 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
+import Alert from '@mui/material/Alert';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -19,6 +21,8 @@ import SendIcon from '@mui/icons-material/Send';
 
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import type { Language } from '@lib/ai/Language';
+import type { ServerActionResult } from '@lib/serverAction';
+import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { CommunicationConfirmSilentView } from './CommunicationConfirmSilentView';
 import { CommunicationConfirmationView } from './CommunicationConfirmationView';
 import { CommunicationLanguageView, type CommunicationLanguage } from './CommunicationLanguageView';
@@ -34,6 +38,11 @@ type CommunicationDialogState = 'language' | 'confirmSilent' | 'message' | 'conf
  * Props accepted by the <CommunicationDialog> component.
  */
 export interface CommunicationDialogProps<T extends CommunicationPromptId> {
+    /**
+     * Server Action to invoke when the action is ready to be committed.
+     */
+    action: (subject?: string, message?: string) => Promise<ServerActionResult>;
+
     /**
      * Whether the silent communication option should be disabled.
      */
@@ -100,15 +109,18 @@ export interface CommunicationDialogProps<T extends CommunicationPromptId> {
  *
  * Each step of the dialog gracefully handles errors by showing them to the user. They may not
  * always be immediately actionable, but they should be clear enough for a proper bug report.
- *
- * @todo Provide a decent responsive behaviour for mobile devices
  */
 export function CommunicationDialog<T extends CommunicationPromptId>(
     props: React.PropsWithChildren<CommunicationDialogProps<T>>)
 {
-    const { onClose, open, title } = props;
+    const { allowSilentMutations, isMobile } = useContext(AdminClientContext);
+
+    const router = useRouter();
 
     const [ dialogState, setDialogState ] = useState<CommunicationDialogState>('language');
+
+    const [ errorOpen, setErrorOpen ] = useState<boolean>(false);
+    const [ error, setError ] = useState<string | undefined>();
 
     const [ selectedLanguage, setSelectedLanguage ] = useState<Language | undefined>();
 
@@ -167,16 +179,33 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
 
     const handleCommitAction = useCallback(async () => {
         setCommitLoading(true);
+        setErrorOpen(false);
 
-        // TODO: Implement this.
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+            // TODO: Use the (potentially) user-amended variants of the subject and message in
+            // <CommunicationMessageView> instead of the originally generated ones.
+            const response = await props.action(generatedSubject, generatedMessage);
+            if (!response.success)
+                throw new Error(response.error);
 
-        setCommitLoading(false);
-        setConfirmationMessage('Not yet implemented');
+            if (response.refresh)
+                router.refresh();
 
-        setDialogState('confirmation');
-
-    }, [ /* no deps */ ]);
+            if (response.redirect) {
+                router.push(response.redirect);
+            } else if (response.close) {
+                props.onClose();
+            } else {
+                setConfirmationMessage(response.message);
+                setDialogState('confirmation');
+            }
+        } catch (error: any) {
+            setError(error.message);
+            setErrorOpen(true);
+        } finally {
+            setCommitLoading(false);
+        }
+    }, [ generatedMessage, generatedSubject, props.action, props.onClose, router ]);
 
     // ---------------------------------------------------------------------------------------------
     // Callbacks for the "message" state:
@@ -184,6 +213,7 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
 
     const handleBackToLanguageSelection = useCallback(() => {
         setDialogState('language');
+        setErrorOpen(false);
     }, []);
 
     const handleRefreshMessage = useCallback(async () => {
@@ -195,9 +225,9 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
     // ---------------------------------------------------------------------------------------------
 
     return (
-        <Dialog onClose={onClose} open={open} fullWidth>
+        <Dialog onClose={props.onClose} open={props.open} fullWidth>
             <DialogTitle>
-                {title}
+                {props.title}
             </DialogTitle>
             { !!props.children &&
                 <>
@@ -208,7 +238,9 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
                 </> }
             <DialogContent sx={{ overflowY: 'visible', paddingY: 2 }}>
                 <Collapse in={ dialogState === 'language' } mountOnEnter unmountOnExit>
-                    <CommunicationLanguageView disableSilent={props.disableSilent}
+                    <CommunicationLanguageView allowSilentMutations={allowSilentMutations}
+                                               disableSilent={props.disableSilent}
+                                               isMobile={isMobile}
                                                language={props.language}
                                                onLanguageSelected={handleLanguageSelected} />
                 </Collapse>
@@ -222,6 +254,11 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
                 <Collapse in={ dialogState === 'confirmation' } mountOnEnter unmountOnExit>
                     <CommunicationConfirmationView message={confirmationMessage!} />
                 </Collapse>
+                <Collapse in={errorOpen}>
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                        {error}
+                    </Alert>
+                </Collapse>
             </DialogContent>
             <Divider />
             <DialogActions sx={{ pt: 1, mr: 1, ml: 1.5, mb: 0 }}>
@@ -234,7 +271,7 @@ export function CommunicationDialog<T extends CommunicationPromptId>(
                         </Button>
                     </Collapse>
                 </Box>
-                <Button onClick={onClose} variant="text">
+                <Button onClick={props.onClose} variant="text">
                     { dialogState === 'confirmation' ? 'Close' : 'Cancel' }
                 </Button>
                 <Collapse in={ dialogState === 'message' } orientation="horizontal">

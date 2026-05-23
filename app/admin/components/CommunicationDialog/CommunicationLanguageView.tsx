@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -15,7 +15,6 @@ import { darken, lighten } from '@mui/system/colorManipulator';
 import { styled } from '@mui/material/styles';
 
 import type { Language } from '@lib/ai/Language';
-import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { BritishFlag } from './BritishFlag';
 import { DutchFlag } from './DutchFlag';
 
@@ -29,9 +28,19 @@ export type CommunicationLanguage = Language | 'Silent';
  */
 interface CommunicationLanguageViewProps {
     /**
+     * Whether the signed in user has the ability to make silent mutations.
+     */
+    allowSilentMutations: boolean;
+
+    /**
      * Whether the silent communication option should be disabled.
      */
     disableSilent?: boolean;
+
+    /**
+     * Whether the page is being rendered on a mobile device.
+     */
+    isMobile: boolean;
 
     /**
      * Language in which the communication should be written, when known.
@@ -51,8 +60,6 @@ interface CommunicationLanguageViewProps {
  * have the ability to not include a message at all, which is derived from context.
  */
 export function CommunicationLanguageView(props: CommunicationLanguageViewProps) {
-    const { allowSilentMutations } = useContext(AdminClientContext);
-
     const [ loadingError, setLoadingError ] = useState<string | undefined>();
     const [ loadingErrorOpen, setLoadingErrorOpen ] = useState<boolean>(false);
     const [ loadingLanguage, setLoadingLanguage ] = useState<CommunicationLanguage | undefined>();
@@ -77,7 +84,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
     return (
         <>
 
-            <Stack direction="row" spacing={2} sx={{
+            <Stack direction={ props.isMobile ? 'column' : 'row' } spacing={2} sx={{
                 alignItems: 'stretch',
                 justifyContent: 'space-between',
             }}>
@@ -103,7 +110,7 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
                             { props.language === 'English' && <PreferredLanguage /> }
                         </> }
                 </LanguageButton>
-                { (!!allowSilentMutations && !props.disableSilent) &&
+                { (!!props.allowSilentMutations && !props.disableSilent) &&
                     <LanguageButton onClick={handleSelectSilent}>
                         { loadingLanguage === 'Silent' && <CircularProgress color="primary" /> }
                         { loadingLanguage !== 'Silent' &&
