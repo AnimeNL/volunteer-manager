@@ -230,7 +230,7 @@ export default function CommunicationPage() {
                             <em>w/ preferred language, successful commit</em>
                         </TableCell>
                     </TableRow>
-                    <TableRow>
+                    <TableRow sx={{ '& td': { borderBottomColor: 'black' } }}>
                         <TableCell>TeamChangePrompt</TableCell>
                         <TableCell>
                             <CommunicationButton title="Tell Max about the team change"
@@ -249,6 +249,47 @@ export default function CommunicationPage() {
                         </TableCell>
                         <TableCell>
                             <em>w/ state refresh, successful commit</em>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Multiple prompts</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Update Sagar about AnimeCon 2027"
+                                                 action={commitSuccess}
+                                                 prompts={[
+                                                     {
+                                                         promptId: 'event-dates-announced',
+                                                         promptParams: {
+                                                             eventId: 15,
+                                                             teamId: 1,
+                                                         },
+                                                         title: 'Announce festival dates',
+                                                     },
+                                                     {
+                                                         promptId: 'event-hotels-announced',
+                                                         promptParams: {
+                                                             eventId: 15,
+                                                             teamId: 1,
+                                                         },
+                                                         title: 'Announce hotel information',
+                                                         mostRecentCommunication:
+                                                            '2026-05-01T20:56:11[Europe/London]',
+                                                     },
+                                                     {
+                                                         promptId: 'event-trainings-announced',
+                                                         promptParams: {
+                                                             eventId: 15,
+                                                             teamId: 1,
+                                                         },
+                                                         title: 'Announce training information',
+                                                     }
+                                                 ]}
+                                                 recipientId={1}>
+                                Send an update about AnimeCon 2027 to <strong>Sagar</strong>.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ prompt selection</em>
                         </TableCell>
                     </TableRow>
                 </TableBody>

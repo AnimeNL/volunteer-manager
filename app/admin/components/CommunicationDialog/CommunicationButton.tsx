@@ -17,9 +17,8 @@ import { CommunicationDialog, type CommunicationDialogProps } from './Communicat
 /**
  * Props accepted by the <CommunicationButton> component.
  */
-interface CommunicationButtonProps<T extends CommunicationPromptId>
-    extends Omit<CommunicationDialogProps<T>, 'onClose' | 'open'>
-{
+type CommunicationButtonProps<T extends CommunicationPromptId = CommunicationPromptId> =
+    Omit<CommunicationDialogProps<T>, 'onClose' | 'open'> & {
     /**
      * Which badge to display on top of the button, if any. "check" will display a small checked
      * icon in the button's corner, whereas "warning" will display an orange attention sign.
@@ -56,7 +55,7 @@ interface CommunicationButtonProps<T extends CommunicationPromptId>
  * The dialog will only be mounted when the button has been clicked at least once, under the
  * assumption that more than a single button is likely to be displayed on each page.
  */
-export function CommunicationButton<T extends CommunicationPromptId>(
+export function CommunicationButton<T extends CommunicationPromptId = CommunicationPromptId>(
     props: React.PropsWithChildren<CommunicationButtonProps<T>>)
 {
     let { badge, disabled, size, tooltip, ...communicationDialogProps } = props;
@@ -88,7 +87,7 @@ export function CommunicationButton<T extends CommunicationPromptId>(
                 </IconButton>
             </Tooltip>
             { !!openCounter &&
-                <CommunicationDialog key={openCounter} {...communicationDialogProps}
+                <CommunicationDialog key={openCounter} {...communicationDialogProps as any}
                                      onClose={handleClose} open={open}>
                     {props.children}
                 </CommunicationDialog> }
