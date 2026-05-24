@@ -33,24 +33,19 @@ import * as prompts from './prompts';
  * merely is a suggestion after all.
  */
 const kCommunicationPromptData = {
-    'participation-cancelled': z.object({
+    'application-approved': z.object({ eventId: z.number(), teamId: z.number() }),
+    'application-rejected': z.object({ eventId: z.number(), teamId: z.number() }),
+    'participation-cancelled': z.object({ eventId: z.number(), teamId: z.number() }),
+    'participation-reinstated': z.object({ eventId: z.number(), teamId: z.number() }),
+    'participation-reminder': z.object({ eventId: z.number(), teamId: z.number() }),
+    'team-change': z.object({
         eventId: z.number(),
-        teamId: z.number(),
-    }),
-    'participation-reinstated': z.object({
-        eventId: z.number(),
-        teamId: z.number(),
-    }),
-    'participation-reminder': z.object({
-        eventId: z.number(),
-        teamId: z.number(),
+        oldTeamId: z.number(),
+        newTeamId: z.number(),
     }),
 
     // TODO:
-    'application-approved': z.object({ /* not supported */ eventId: z.string() }),
-    'application-rejected': z.object({ /* not supported */ }),
     'hotel-confirmation': z.object({ /* not supported */ }),
-    'team-change': z.object({ /* not supported */ }),
 
 } as const satisfies { [K in CommunicationPromptId]: z.ZodObject };
 
@@ -97,6 +92,8 @@ export async function executeCommunicationPrompt(
         let parameters: Parameters<typeof executor['execute']>[0] | undefined;
 
         switch (id) {
+            case 'application-approved':
+            case 'application-rejected':
             case 'participation-cancelled':
             case 'participation-reinstated': {
                 const data = inputData as TypedPromptData<'participation-cancelled'>;
@@ -120,6 +117,19 @@ export async function executeCommunicationPrompt(
                     teamInviteKey:
                         await queryTeamInviteKeyContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationReminderPrompt>;
+
+                break;
+            }
+
+            case 'team-change': {
+                const data = inputData as TypedPromptData<'team-change'>;
+                parameters = {
+                    author,
+                    event: await queryEventContext(dbInstance, data.eventId),
+                    recipient,
+                    oldTeam: await queryTeamContext(dbInstance, data.oldTeamId),
+                    newTeam: await queryTeamContext(dbInstance, data.newTeamId),
+                } satisfies GetPromptParameters<prompts.TeamChangePrompt>;
 
                 break;
             }

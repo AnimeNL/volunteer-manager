@@ -2,18 +2,15 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Language } from '../Language';
-import { type AuthorContextParameters, kAuthorContextExampleParameters } from './context/AuthorContextParameters';
-import { type EventContextParameters, kEventContextExampleParameters } from './context/EventContextParameters';
 import { Prompt } from '../Prompt';
-import { type RecipientContextParameters, kRecipientContextExampleParameters } from './context/RecipientContextParameters';
-import { type TeamContextParameters, kTeamContextExampleParameters } from './context/TeamContextParameters';
+
+import { type TeamCommunicationParameters, kTeamCommunicationExampleParameters }
+    from './TeamCommunication';
 
 /**
  * Parameters accepted by this prompt.
  */
-type ParticipationCancelledPromptParameters =
-    AuthorContextParameters & EventContextParameters & RecipientContextParameters &
-    TeamContextParameters;
+type ParticipationCancelledPromptParameters = TeamCommunicationParameters;
 
 /**
  * This prompt generates an e-mail message to send when a volunteer's participation is cancelled.
@@ -32,12 +29,7 @@ export class ParticipationCancelledPrompt extends Prompt<ParticipationCancelledP
     }
 
     override get exampleParameters() {
-        return {
-            author: kAuthorContextExampleParameters,
-            event: kEventContextExampleParameters,
-            recipient: kRecipientContextExampleParameters,
-            team: kTeamContextExampleParameters,
-        };
+        return kTeamCommunicationExampleParameters;
     }
 
     override getSubject(params: ParticipationCancelledPromptParameters, language: Language) {

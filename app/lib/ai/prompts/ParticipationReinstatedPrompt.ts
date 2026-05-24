@@ -2,18 +2,15 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Language } from '../Language';
-import { type AuthorContextParameters, kAuthorContextExampleParameters } from './context/AuthorContextParameters';
-import { type EventContextParameters, kEventContextExampleParameters } from './context/EventContextParameters';
 import { Prompt } from '../Prompt';
-import { type RecipientContextParameters, kRecipientContextExampleParameters } from './context/RecipientContextParameters';
-import { type TeamContextParameters, kTeamContextExampleParameters } from './context/TeamContextParameters';
+
+import { type TeamCommunicationParameters, kTeamCommunicationExampleParameters }
+    from './TeamCommunication';
 
 /**
  * Parameters accepted by this prompt.
  */
-type ParticipationReinstatedPromptParameters =
-    AuthorContextParameters & EventContextParameters & RecipientContextParameters &
-    TeamContextParameters;
+type ParticipationReinstatedPromptParameters = TeamCommunicationParameters;
 
 /**
  * This prompt generates an e-mail message to send when someone's participation has been reinstated.
@@ -32,12 +29,7 @@ export class ParticipationReinstatedPrompt extends Prompt<ParticipationReinstate
     }
 
     override get exampleParameters() {
-        return {
-            author: kAuthorContextExampleParameters,
-            event: kEventContextExampleParameters,
-            recipient: kRecipientContextExampleParameters,
-            team: kTeamContextExampleParameters,
-        };
+        return kTeamCommunicationExampleParameters;
     }
 
     override getSubject(params: ParticipationReinstatedPromptParameters, language: Language) {

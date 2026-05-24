@@ -24,7 +24,16 @@ export const kTeamContextExampleParameters: TeamContextParameters['team'] = {
     domain: 'stewards.team',
     slug: 'stewards',
     title: 'Steward Team',
+};
 
+/**
+ * Alternative example parameters to convey information about the team relating to the message.
+ */
+export const kTeamContextAlternativeExampleParameters: TeamContextParameters['team'] = {
+    description: 'Crew are responsible for delivering an incredible experience to our visitors.',
+    domain: 'animecon.team',
+    slug: 'crew',
+    title: 'Volunteering Crew',
 };
 
 /**

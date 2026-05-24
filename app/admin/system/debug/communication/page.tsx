@@ -15,7 +15,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
  * Server Action that can be used with <CommunicationButton> to indicate a successful response.
  */
 async function commit(
-    scenario: 'close' | 'failure' | 'success', subject?: string, message?: string)
+    scenario: 'close' | 'failure' | 'refresh' | 'success', subject?: string, message?: string)
 {
     'use server';
 
@@ -33,6 +33,13 @@ async function commit(
                 error: 'Something has gone terribly wrong',
             };
 
+        case 'refresh':
+            return {
+                success: true,
+                message: 'The page state has been refreshed',
+                refresh: true,
+            };
+
         case 'success':
             return {
                 success: true,
@@ -47,6 +54,7 @@ async function commit(
 export default function CommunicationPage() {
     const commitClose = commit.bind(null, 'close');
     const commitFailure = commit.bind(null, 'failure');
+    const commitRefresh = commit.bind(null, 'refresh');
     const commitSuccess = commit.bind(null, 'success');
 
     return (
@@ -63,6 +71,46 @@ export default function CommunicationPage() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
+                    <TableRow>
+                        <TableCell>ApplicationApprovedPrompt</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Approve Emma's application"
+                                                 language="Dutch"
+                                                 action={commitSuccess}
+                                                 promptId="application-approved"
+                                                 promptParams={{
+                                                    eventId: 15,
+                                                    teamId: 1,
+                                                 }}
+                                                 recipientId={1}>
+                                Send an e-mail to <strong>Emma</strong> about approving their
+                                application to help out.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ preferred language, successful commit</em>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>ApplicationRejectedPrompt</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Reject Doug's application"
+                                                 badge="check"
+                                                 action={commitClose}
+                                                 promptId="application-rejected"
+                                                 promptParams={{
+                                                    eventId: 15,
+                                                    teamId: 1,
+                                                 }}
+                                                 recipientId={4}>
+                                Send an e-mail to <strong>Doug</strong> about rejecting their
+                                application to help out.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ check badge, auto-closes the dialog</em>
+                        </TableCell>
+                    </TableRow>
                     <TableRow>
                         <TableCell>ParticipationCancelledPrompt</TableCell>
                         <TableCell>
@@ -121,6 +169,27 @@ export default function CommunicationPage() {
                         </TableCell>
                         <TableCell>
                             <em>w/ preferred language, successful commit</em>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>TeamChangePrompt</TableCell>
+                        <TableCell>
+                            <CommunicationButton title="Tell Max about the team change"
+                                                 badge="warning"
+                                                 action={commitRefresh}
+                                                 promptId="team-change"
+                                                 promptParams={{
+                                                    eventId: 16,
+                                                    oldTeamId: 1,
+                                                    newTeamId: 2,
+                                                 }}
+                                                 recipientId={1}>
+                                Send an e-mail to <strong>Max</strong> about having moved them to a
+                                new team.
+                            </CommunicationButton>
+                        </TableCell>
+                        <TableCell>
+                            <em>w/ state refresh, successful commit</em>
                         </TableCell>
                     </TableRow>
                 </TableBody>
