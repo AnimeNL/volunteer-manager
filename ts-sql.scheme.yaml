@@ -4758,6 +4758,64 @@ tables:
       `publication_created` datetime NOT NULL,
       PRIMARY KEY (`publication_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_communication
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: user_communication_id
+    type: int(4) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: communication_event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: communication_team_id
+    type: int(4) unsigned
+    nullable: false
+  - name: communication_prompt_id
+    type: varchar(64)
+    nullable: false
+  - name: communication_sender_id
+    type: int(4) unsigned
+    nullable: false
+  - name: communication_date
+    type: datetime
+    nullable: false
+  indexes:
+  - name: user_id
+    def: KEY user_id (user_id, communication_event_id, communication_team_id, communication_prompt_id) USING BTREE
+    table: users_communication
+    columns:
+    - user_id
+    - communication_event_id
+    - communication_team_id
+    - communication_prompt_id
+  - name: PRIMARY
+    def: PRIMARY KEY (user_communication_id) USING BTREE
+    table: users_communication
+    columns:
+    - user_communication_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (user_communication_id)
+    table: users_communication
+    columns:
+    - user_communication_id
+  def: |-
+    CREATE TABLE `users_communication` (
+      `user_id` int(4) unsigned NOT NULL,
+      `user_communication_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
+      `communication_event_id` int(4) unsigned NOT NULL,
+      `communication_team_id` int(4) unsigned NOT NULL,
+      `communication_prompt_id` varchar(64) NOT NULL,
+      `communication_sender_id` int(4) unsigned NOT NULL,
+      `communication_date` datetime NOT NULL,
+      PRIMARY KEY (`user_communication_id`),
+      KEY `user_id` (`user_id`,`communication_event_id`,`communication_team_id`,`communication_prompt_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
 - table: users_events
   columns:

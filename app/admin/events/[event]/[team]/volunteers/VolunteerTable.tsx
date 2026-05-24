@@ -8,6 +8,7 @@ import React, { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
+import EmailIcon from '@mui/icons-material/Email';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
@@ -16,13 +17,15 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import IconButton from '@mui/material/IconButton';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import Paper from '@mui/material/Paper';
-import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import ShareIcon from '@mui/icons-material/Share';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { RegistrationStatus } from '@lib/database/Types';
+import type { CommunicationLanguage, RegistrationStatus } from '@lib/database/Types';
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
+import type { ServerActionResult } from '@lib/serverAction';
+import { CommunicationButton } from '@app/admin/components/CommunicationDialog';
 import { type OldDataTableColumn, OldDataTable } from '@app/admin/components/OldDataTable';
 
 /**
@@ -43,9 +46,13 @@ export interface VolunteerInfo {
     id: number;
     date?: string;
     status: RegistrationStatus;
+    firstName: string;
     name: string;
     role: string;
     shiftSeconds?: number;
+
+    preferredLanguage?: CommunicationLanguage;
+    communication: { [k in CommunicationPromptId]?: string };
 
     availabilityEligible: boolean;
     availabilityConfirmed: boolean;
@@ -65,6 +72,12 @@ export interface VolunteerInfo {
  */
 interface VolunteerTableProps {
     /**
+     * Server Action to invoke when a communication should be send to the volunteer.
+     */
+    communicationAction: (userId: number, promptId: CommunicationPromptId)
+        => Promise<ServerActionResult>;
+
+    /**
      * Whether a link to the data export tool should be displayed on the page.
      */
     enableExport?: boolean;
@@ -75,9 +88,24 @@ interface VolunteerTableProps {
     event: string;
 
     /**
+     * Unique ID of the event for which volunteers are being shown.
+     */
+    eventId: number;
+
+    /**
+     * Name of the event this table is being displayed for.
+     */
+    eventName: string;
+
+    /**
      * URL-safe slug of the team for which volunteers are being shown.
      */
     team: string;
+
+    /**
+     * Unique ID of the team for which volunteers are being shown.
+     */
+    teamId: number;
 
     /**
      * Title that should be given to this page.
@@ -99,18 +127,6 @@ export function VolunteerTable(props: VolunteerTableProps) {
     const kVolunteerBase = `/admin/events/${props.event}/${props.team}/volunteers/`;
 
     const columns: OldDataTableColumn<VolunteerInfo>[] = [
-        {
-            field: 'id',
-            display: 'flex',
-            headerName: '',
-            sortable: false,
-            width: 50,
-
-            renderCell: params =>
-                <MuiLink component={Link} href={kVolunteerBase + params.value} sx={{ pt: '4px' }}>
-                    <ReadMoreIcon color="info" />
-                </MuiLink>,
-        },
         {
             field: 'name',
             display: 'flex',
@@ -271,6 +287,69 @@ export function VolunteerTable(props: VolunteerTableProps) {
                     </Stack>
                 );
             },
+        },
+        {
+            display: 'flex',
+            field: 'id',
+            width: 50,
+
+            align: 'center',
+            headerAlign: 'center',
+            sortable: false,
+
+            renderHeader: () =>
+                <Tooltip title="Send them an e-mail?">
+                    <EmailIcon color="action" fontSize="small" />
+                </Tooltip>,
+
+            renderCell: params => {
+
+                return (
+                    <CommunicationButton
+                        title={`Update ${params.row.firstName} about ${props.eventName}?`}
+                        action={props.communicationAction.bind(null, params.row.id)}
+                        disableSilent
+                        language={params.row.preferredLanguage}
+                        recipientId={params.row.id}
+                        prompts={[
+                            {
+                                promptId: 'event-dates-announced',
+                                promptParams: {
+                                    eventId: props.eventId,
+                                    teamId: props.teamId,
+                                },
+                                title: 'Announce festival dates',
+                                mostRecentCommunication:
+                                    params.row.communication['event-dates-announced'],
+                            },
+                            {
+                                promptId: 'event-hotels-announced',
+                                promptParams: {
+                                    eventId: props.eventId,
+                                    teamId: props.teamId,
+                                },
+                                title: 'Announce hotel availability',
+                                mostRecentCommunication:
+                                    params.row.communication['event-hotels-announced'],
+                            },
+                            {
+                                promptId: 'event-trainings-announced',
+                                promptParams: {
+                                    eventId: props.eventId,
+                                    teamId: props.teamId,
+                                },
+                                title: 'Announce training availability',
+                                mostRecentCommunication:
+                                    params.row.communication['event-trainings-announced'],
+                            }
+                        ]}>
+
+                        Send <strong>{params.row.firstName}</strong> an update about their
+                        participation in {props.eventName}.
+
+                    </CommunicationButton>
+                );
+            },
         }
     ];
 
@@ -296,7 +375,7 @@ export function VolunteerTable(props: VolunteerTableProps) {
                         </IconButton>
                     </Tooltip> }
             </Stack>
-            <OldDataTable columns={columns} rows={props.volunteers} disableFooter enableFilter
+            <OldDataTable columns={columns} rows={props.volunteers} disableFooter
                           defaultSort={{ field: 'name', sort: 'asc' }} pageSize={100} />
         </Paper>
     )

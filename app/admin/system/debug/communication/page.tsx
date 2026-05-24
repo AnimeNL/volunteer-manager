@@ -255,6 +255,7 @@ export default function CommunicationPage() {
                         <TableCell>Multiple prompts</TableCell>
                         <TableCell>
                             <CommunicationButton title="Update Sagar about AnimeCon 2027"
+                                                 disableSilent
                                                  action={commitSuccess}
                                                  prompts={[
                                                      {
@@ -289,7 +290,7 @@ export default function CommunicationPage() {
                             </CommunicationButton>
                         </TableCell>
                         <TableCell>
-                            <em>w/ prompt selection</em>
+                            <em>w/ prompt selection, disable silent</em>
                         </TableCell>
                     </TableRow>
                 </TableBody>

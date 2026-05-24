@@ -3,16 +3,35 @@
 
 import { notFound } from 'next/navigation';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { type VolunteerInfo, VolunteerTable } from './VolunteerTable';
 import { CancelledVolunteers } from './CancelledVolunteers';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { isBefore, type Temporal } from '@lib/Temporal';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tRefunds, tRoles,
-    tSchedule, tTrainingsAssignments, tUsersEvents, tUsers,
-    tShifts,
-    tShiftsCategories} from '@lib/database';
+    tSchedule, tTrainingsAssignments, tUsersEvents, tUsers, tShifts, tShiftsCategories,
+    tUsersCommunication } from '@lib/database';
 
 import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
+
+/**
+ * Server Action that will be invoked by the <CommunicationButton> component when a communication
+ * should be send on the user's behalf. All input should be treated as untrusted until verified.
+ */
+async function sendCommunication(
+    eventId: number, teamId: number, userId: number, promptId: CommunicationPromptId,
+    subject?: string, message?: string)
+{
+    'use server';
+
+    // TODO: Implement this.
+
+    return {
+        success: true,
+        message: 'Not yet implemented?!',
+    };
+}
 
 /**
  * The volunteers page for a particular event lists the volunteers who have signed up and have been
@@ -51,6 +70,8 @@ export default async function VolunteersPage(
         .selectOneColumn(dbInstance.sum(shiftSecondsFragment))
         .forUseAsInlineQueryValue();
 
+    const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
     const volunteers = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))
@@ -61,6 +82,10 @@ export default async function VolunteersPage(
         .leftJoin(refundsJoin)
             .on(refundsJoin.eventId.equals(tUsersEvents.eventId))
                 .and(refundsJoin.userId.equals(tUsersEvents.userId))
+        .leftJoin(usersCommunicationJoin)
+            .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
+                .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
         .groupBy(tUsersEvents.userId)
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
@@ -70,10 +95,17 @@ export default async function VolunteersPage(
             id: tUsers.userId,
             date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
             status: tUsersEvents.registrationStatus,
+            firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             name: tUsers.name,
             role: tRoles.roleName,
 
             shiftSeconds: shiftSecondsSubSelect,
+
+            preferredLanguage: tUsers.language,
+            communication: dbInstance.aggregateAsArray({
+                promptId: usersCommunicationJoin.communicationPromptId,
+                date: usersCommunicationJoin.communicationDate,
+            }),
 
             availabilityEligible:
                 tEvents.eventAvailabilityStatus.notEquals(kEventAvailabilityStatus.Unavailable),
@@ -92,10 +124,25 @@ export default async function VolunteersPage(
     const cancelledVolunteers: VolunteerInfo[] = [];
 
     for (const volunteer of volunteers) {
+        const updatedVolunteer: VolunteerInfo = {
+            ...volunteer,
+            communication: { /* none yet */ },
+        };
+
+        const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
+        for (const { promptId, date } of volunteer.communication) {
+            const latestCommunication = communicationPrompts.get(promptId);
+            if (!latestCommunication || isBefore(date, latestCommunication))
+                communicationPrompts.set(promptId, date);
+        }
+
+        for (const [ promptId, date ] of communicationPrompts.entries())
+            updatedVolunteer.communication[promptId as CommunicationPromptId] = date.toString();
+
         if (volunteer.status === kRegistrationStatus.Accepted)
-            acceptedVolunteers.set(volunteer.id, volunteer);
+            acceptedVolunteers.set(volunteer.id, updatedVolunteer);
         else
-            cancelledVolunteers.push(volunteer);
+            cancelledVolunteers.push(updatedVolunteer);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -193,13 +240,15 @@ export default async function VolunteersPage(
     // Step (5): Actually display the page \o/
     // ---------------------------------------------------------------------------------------------
 
+    const action = sendCommunication.bind(null, event.id, team.id);
     const enableExport = access.can('organisation.exports');
 
     return (
         <>
             <VolunteerTable title={`${event.shortName} ${team.name}`} enableExport={enableExport}
                             volunteers={[ ...acceptedVolunteers.values() ]} event={event.slug}
-                            team={team.slug} />
+                            eventId={event.id} eventName={event.shortName} team={team.slug}
+                            teamId={team.id} communicationAction={action} />
             { cancelledVolunteers.length > 0 &&
                 <CancelledVolunteers volunteers={cancelledVolunteers} /> }
         </>

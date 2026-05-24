@@ -53,6 +53,7 @@ export { tTrainingsAssignments } from './scheme/TrainingsAssignmentsTable';
 export { tTrainingsExtra } from './scheme/TrainingsExtraTable';
 export { tTwilioWebhookCalls } from './scheme/TwilioWebhookCallsTable';
 export { tUsersAuth } from './scheme/UsersAuthTable';
+export { tUsersCommunication } from './scheme/UsersCommunicationTable';
 export { tUsersEvents } from './scheme/UsersEventsTable';
 export { tUsersEventsFavourites } from './scheme/UsersEventsFavouritesTable';
 export { tUsersPasskeys } from './scheme/UsersPasskeysTable';

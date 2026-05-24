@@ -41,11 +41,6 @@ type CommunicationDialogState =
  */
 interface BaseCommunicationDialogProps {
     /**
-     * Server Action to invoke when the action is ready to be committed.
-     */
-    action: (subject?: string, message?: string) => Promise<ServerActionResult>;
-
-    /**
      * Whether the silent communication option should be disabled.
      */
     disableSilent?: boolean;
@@ -83,6 +78,11 @@ export type CommunicationDialogProps<T extends CommunicationPromptId = Communica
     BaseCommunicationDialogProps & (
         | {
               /**
+               * Server Action to invoke when the action is ready to be committed.
+               */
+              action: (subject?: string, message?: string) => Promise<ServerActionResult>;
+
+              /**
                * Unique ID of the prompt that should be executed to generate the message.
                */
               promptId: T;
@@ -98,6 +98,12 @@ export type CommunicationDialogProps<T extends CommunicationPromptId = Communica
               prompts?: never;
           }
         | {
+              /**
+               * Server Action to invoke when the action is ready to be committed.
+               */
+              action: (promptId: CommunicationPromptId, subject?: string, message?: string)
+                  => Promise<ServerActionResult>;
+
               /**
                * Unique ID of the prompt that should be executed to generate the message.
                */
@@ -265,7 +271,12 @@ export function CommunicationDialog<T extends CommunicationPromptId = Communicat
         setErrorOpen(false);
 
         try {
-            const response = await props.action(generatedSubject, generatedMessage);
+            let response: Awaited<ReturnType<CommunicationDialogProps<T>['action']>>;
+            if (!!props.prompts)
+                response = await props.action(selectedPromptId!, generatedSubject, generatedMessage);
+            else
+                response = await props.action(generatedSubject, generatedMessage);
+
             if (!response.success)
                 throw new Error(response.error);
 
@@ -286,7 +297,9 @@ export function CommunicationDialog<T extends CommunicationPromptId = Communicat
         } finally {
             setCommitLoading(false);
         }
-    }, [ generatedMessage, generatedSubject, props.action, props.onClose, router ]);
+    }, [ generatedMessage, generatedSubject, props.action, props.onClose, props.prompts, router,
+         selectedPromptId
+     ]);
 
     // ---------------------------------------------------------------------------------------------
     // Callbacks for the "language" and "message" states:
