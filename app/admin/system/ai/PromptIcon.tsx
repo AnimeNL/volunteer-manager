@@ -1,10 +1,16 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use client';
+
+import BedIcon from '@mui/icons-material/Bed';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
 import DrawIcon from '@mui/icons-material/Draw';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import HelpIcon from '@mui/icons-material/Help';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
@@ -35,8 +41,17 @@ export function PromptIcon(props: { id: PromptId }) {
         case 'ApplicationRejectedPrompt':
             return <ThumbDownOutlinedIcon color="primary" />;
 
-        case 'HotelConfirmationPrompt':
+        case 'EventDatesAnnouncedPrompt':
+            return <CampaignIcon color="primary" />;
+
+        case 'EventHotelsAnnouncedPrompt':
             return <HotelIcon color="primary" />;
+
+        case 'EventTrainingsAnnouncedPrompt':
+            return <HistoryEduIcon color="primary" />;
+
+        case 'HotelConfirmationPrompt':
+            return <BedIcon color="primary" />;
 
         case 'ParticipationCancelledPrompt':
             return <CancelOutlinedIcon color="primary" />;
@@ -71,4 +86,6 @@ export function PromptIcon(props: { id: PromptId }) {
         case 'SystemPrompt':
             break;
     }
+
+    return <HelpIcon color="primary" />;
 }

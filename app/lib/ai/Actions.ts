@@ -35,6 +35,9 @@ import * as prompts from './prompts';
 const kCommunicationPromptData = {
     'application-approved': z.object({ eventId: z.number(), teamId: z.number() }),
     'application-rejected': z.object({ eventId: z.number(), teamId: z.number() }),
+    'event-dates-announced': z.object({ eventId: z.number(), teamId: z.number() }),
+    'event-hotels-announced': z.object({ eventId: z.number(), teamId: z.number() }),
+    'event-trainings-announced': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-cancelled': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reinstated': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reminder': z.object({ eventId: z.number(), teamId: z.number() }),
@@ -94,6 +97,9 @@ export async function executeCommunicationPrompt(
         switch (id) {
             case 'application-approved':
             case 'application-rejected':
+            case 'event-dates-announced':
+            case 'event-hotels-announced':  // TODO: Add hotel information as context
+            case 'event-trainings-announced':  // TODO: Add training information as context
             case 'participation-cancelled':
             case 'participation-reinstated': {
                 const data = inputData as TypedPromptData<'participation-cancelled'>;

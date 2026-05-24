@@ -4,6 +4,9 @@
 export { ApplicationApprovedPrompt } from './ApplicationApprovedPrompt';
 export { ApplicationRejectedPrompt } from './ApplicationRejectedPrompt';
 export { DutyBookSummaryPrompt } from './DutyBookSummaryPrompt';
+export { EventDatesAnnouncedPrompt } from './EventDatesAnnouncedPrompt';
+export { EventHotelsAnnouncedPrompt } from './EventHotelsAnnouncedPrompt';
+export { EventTrainingsAnnouncedPrompt } from './EventTrainingsAnnouncedPrompt';
 export { HotelConfirmationPrompt } from './HotelConfirmationPrompt';
 export { IncidentSummaryPrompt } from './IncidentSummaryPrompt';
 export { NardoPersonalisedAdvicePrompt } from './NardoPersonalisedAdvicePrompt';
