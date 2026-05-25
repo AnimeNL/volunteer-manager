@@ -68,19 +68,19 @@ export function CommunicationCell(
                     promptId: 'event-dates-announced',
                     promptParams: { eventId, teamId },
                     title: 'Announce festival dates',
-                    //mostRecentCommunication: props.row.communication['event-dates-announced'],
+                    mostRecentCommunication: props.row.communication['event-dates-announced'],
                 },
                 {
                     promptId: 'event-hotels-announced',
                     promptParams: { eventId, teamId },
                     title: 'Announce hotel availability',
-                    //mostRecentCommunication: props.row.communication['event-hotels-announced'],
+                    mostRecentCommunication: props.row.communication['event-hotels-announced'],
                 },
                 {
                     promptId: 'event-trainings-announced',
                     promptParams: { eventId, teamId },
                     title: 'Announce training availability',
-                    //mostRecentCommunication: props.row.communication['event-trainings-announced'],
+                    mostRecentCommunication: props.row.communication['event-trainings-announced'],
                 }
         ]}>
 

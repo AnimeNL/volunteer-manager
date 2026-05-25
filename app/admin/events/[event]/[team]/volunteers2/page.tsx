@@ -23,8 +23,9 @@ import { ExperienceCell, ExperienceHeaderCell } from '../volunteers/ExperienceCe
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { isBefore, type ZonedDateTime } from '@lib/Temporal';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRoles, tUsersEvents, tUsers } from '@lib/database';
+import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
@@ -97,6 +98,12 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
      */
     roleHasPermissionGrant: z.boolean(),
 
+    /**
+     * Most recent time a communication of a given type was sent, in a Temporal ZonedDateTime
+     * compatible serialization.
+     */
+    communication: z.record(z.string(), z.string()),
+
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
@@ -114,11 +121,18 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
 
     async list(params, props, context) {
         const dbInstance = db;
+        const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .leftJoin(usersCommunicationJoin)
+                .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                    .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
+                    .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
+            .groupBy(tUsersEvents.userId)
             .where(tUsersEvents.eventId.equals(context.eventId))
                 .and(tUsersEvents.teamId.equals(context.teamId))
                 .and(tUsers.name.containsIfValue(params.search).or(
@@ -131,6 +145,10 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
                 role: tRoles.roleName,
                 roleOrder: tRoles.roleOrder,
                 roleHasPermissionGrant: tRoles.rolePermissionGrant.isNotNull(),
+                communication: dbInstance.aggregateAsArray({
+                    promptId: usersCommunicationJoin.communicationPromptId,
+                    date: usersCommunicationJoin.communicationDate,
+                }),
             })
             .orderBy(params.sort.field as any, params.sort.direction)
                 .orderBy('name', params.sort.direction)
@@ -138,9 +156,27 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
                 .offset(params.page.offset)
             .executeSelectPage();
 
+        const rows = volunteers.data.map(volunteer => {
+            const communication: Record<string, string> = {};
+            const communicationPrompts: Map<string, ZonedDateTime> = new Map();
+            for (const item of volunteer.communication) {
+                const latestCommunication = communicationPrompts.get(item.promptId);
+                if (!latestCommunication || isBefore(latestCommunication, item.date))
+                    communicationPrompts.set(item.promptId, item.date);
+            }
+
+            for (const [ promptId, date ] of communicationPrompts.entries())
+                communication[promptId] = date.toString();
+
+            return {
+                ...volunteer,
+                communication,
+            };
+        });
+
         return {
             rowCount: volunteers.count,
-            rows: volunteers.data,
+            rows,
         };
     },
 
