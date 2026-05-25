@@ -5,7 +5,7 @@
 
 import Typography from '@mui/material/Typography';
 
-import type { VolunteerRowModel } from '../volunteers2/page';
+import type { VolunteerRowModel } from './page';
 
 /**
  * Formats the given number of `seconds` to a friendly string like "2 hours", "1:30 hours", or

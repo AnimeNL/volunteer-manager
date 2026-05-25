@@ -27,7 +27,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { isBefore, type ZonedDateTime } from '@lib/Temporal';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts, tShiftsCategories } from '@lib/database';
+import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts, tShiftsCategories, tEvents } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
@@ -112,6 +112,11 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
      */
     communication: z.record(z.string(), z.string()),
 
+    /**
+     * Number of unique events the volunteer has participated in prior to the current event.
+     */
+    priorParticipationCount: z.number(),
+
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
@@ -130,6 +135,24 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
     async list(params, props, context) {
         const dbInstance = db;
         const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
+        const currentEventStartTime = await dbInstance.selectFrom(tEvents)
+            .where(tEvents.eventId.equals(context.eventId))
+            .selectOneColumn(tEvents.eventStartTime)
+            .executeSelectOne();
+
+        const priorEvent = tEvents.as('priorEvent');
+        const priorRegistration = tUsersEvents.as('priorRegistration');
+
+        const priorEventsSubSelect = dbInstance.subSelectUsing(tUsersEvents)
+            .from(priorRegistration)
+            .innerJoin(priorEvent)
+                .on(priorEvent.eventId.equals(priorRegistration.eventId))
+            .where(priorRegistration.userId.equals(tUsersEvents.userId))
+                .and(priorEvent.eventStartTime.lessThan(currentEventStartTime))
+                .and(priorRegistration.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .selectOneColumn(dbInstance.count(priorRegistration.eventId))
+            .forUseAsInlineQueryValue();
 
         const shiftSecondsFragment = dbInstance.fragmentWithType('int', 'optional').sql`
             TIMESTAMPDIFF(SECOND, ${tSchedule.scheduleTimeStart}, ${tSchedule.scheduleTimeEnd})`;
@@ -170,6 +193,7 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
                 role: tRoles.roleName,
                 roleOrder: tRoles.roleOrder,
                 roleHasPermissionGrant: tRoles.rolePermissionGrant.isNotNull(),
+                priorParticipationCount: priorEventsSubSelect.valueWhenNull(0),
                 shiftSeconds: shiftSecondsSubSelect,
                 communication: dbInstance.aggregateAsArray({
                     promptId: usersCommunicationJoin.communicationPromptId,
@@ -316,9 +340,17 @@ export default async function EventVolunteersPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
+    const totalVolunteerCount = await dbInstance.selectFrom(tUsersEvents)
+        .where(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.teamId.equals(team.id))
+            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .selectCountAll()
+        .executeSelectOne();
+
     return (
         <>
-            <Section headerAction={headerAction} title={`${event.shortName} ${team.name}`}>
+            <Section headerAction={headerAction} title={`${event.shortName} ${team.name}`}
+                     subtitle={`${totalVolunteerCount} people`}>
                 <DataTable columns={columns} source={volunteerDataSource} search="prominent"
                            context={{ eventId: event.id, teamId: team.id }} disableFooter
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}

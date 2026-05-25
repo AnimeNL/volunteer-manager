@@ -6,7 +6,7 @@
 import EmailIcon from '@mui/icons-material/Email';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { VolunteerRowModel } from '../volunteers2/page';
+import type { VolunteerRowModel } from './page';
 import { CommunicationButton } from '@app/admin/components/CommunicationDialog';
 import type { ServerActionResult } from '@lib/serverAction';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
