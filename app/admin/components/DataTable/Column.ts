@@ -37,7 +37,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
     {
         template: 'component';
         templateProps: {
-            headerComponent: React.JSXElementConstructor<{ /* no props */ }>;
+            headerComponent?: React.JSXElementConstructor<{ /* no props */ }>;
             componentContext?: any;
             component: React.JSXElementConstructor<{ row: RowModel, context?: any }>;
         };

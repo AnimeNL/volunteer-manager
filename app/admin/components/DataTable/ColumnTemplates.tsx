@@ -63,7 +63,7 @@ export const kColumnTemplates = {
 
         renderHeader: () => {
             if (!column.templateProps?.headerComponent)
-                return null;
+                return undefined;
 
             const HeaderComponent =
                 column.templateProps.headerComponent as React.JSXElementConstructor<any>;
@@ -72,7 +72,7 @@ export const kColumnTemplates = {
 
         renderCell: params => {
             if (!column.templateProps?.component)
-                return null;
+                return undefined;
 
             const Component = column.templateProps.component as
                 React.JSXElementConstructor<{ context?: any; row: any }>;

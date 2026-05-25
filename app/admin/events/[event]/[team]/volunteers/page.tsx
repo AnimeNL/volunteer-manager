@@ -1,19 +1,36 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
+import Link from '@app/LinkProxy';
+import { forbidden } from 'next/navigation';
+import { z } from 'zod/v4';
 
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import PersonIcon from '@mui/icons-material/Person';
+import ShareIcon from '@mui/icons-material/Share';
+import Tooltip from '@mui/material/Tooltip';
+
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import type { CommunicationCellContext } from './CommunicationCell';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
-import { type VolunteerInfo, VolunteerTable } from './VolunteerTable';
-import { CancelledVolunteers } from './CancelledVolunteers';
+import { CommunicationCell, CommunicationHeaderCell } from './CommunicationCell';
+import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { ExperienceCell, ExperienceHeaderCell } from './ExperienceCell';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { ShiftsCell } from './ShiftsCell';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { isBefore, type Temporal } from '@lib/Temporal';
+import { isBefore, type ZonedDateTime } from '@lib/Temporal';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEvents, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tRefunds, tRoles,
-    tSchedule, tTrainingsAssignments, tUsersEvents, tUsers, tShifts, tShiftsCategories,
-    tUsersCommunication } from '@lib/database';
+import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts, tShiftsCategories } from '@lib/database';
 
-import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Server Action that will be invoked by the <CommunicationButton> component when a communication
@@ -34,223 +51,302 @@ async function sendCommunication(
 }
 
 /**
- * The volunteers page for a particular event lists the volunteers who have signed up and have been
- * accepted into the team. Each volunteer has a detailed page that will be linked to as well. Users
- * who have event administrator permission can "import" any volunteer into this event.
+ * Data source used to populate the volunteer list for a particular event and team tuple.
  */
-export default async function VolunteersPage(
+const volunteerDataSource = createDataSource('event/volunteers', withContext({
+    /**
+     * Unique ID of the event to display volunteers for.
+     */
+    eventId: z.number(),
+
+    /**
+     * Unique ID of the team to display volunteers for.
+     */
+    teamId: z.number(),
+
+}), withRowModel({
+    /**
+     * Unique ID of the volunteer, as they exist in the database.
+     */
+    id: z.number(),
+
+    /**
+     * Name of the volunteer, preferring their display name over their actual one.
+     */
+    name: z.string(),
+
+    /**
+     * First name of the volunteer, unless they have a display name set.
+     */
+    firstName: z.string(),
+
+    /**
+     * When known, the language in which the volunteer would like to be communicated with in.
+     */
+    language: z.enum(kCommunicationLanguage).optional(),
+
+    /**
+     * Role the volunteer has been assigned in this event.
+     */
+    role: z.string(),
+
+    /**
+     * Order in which the row should be displayed. Used for the default sorting order.
+     */
+    roleOrder: z.number(),
+
+    /**
+     * Whether the role comes with a permission grant, which we presume means Senior+.
+     */
+    roleHasPermissionGrant: z.boolean(),
+
+    /**
+     * Total number of seconds a volunteer has been scheduled on shifts whose contribution should
+     * count.
+     */
+    shiftSeconds: z.number().optional(),
+
+    /**
+     * Most recent time a communication of a given type was sent, in a Temporal ZonedDateTime
+     * compatible serialization.
+     */
+    communication: z.record(z.string(), z.string()),
+
+}), {
+    async authorize(operation, props, context) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: {
+                permission: 'event.volunteers.information',
+                operation: 'read',
+                scope: {
+                    event: kAnyEvent,
+                    team: kAnyTeam,
+                },
+            },
+        });
+    },
+
+    async list(params, props, context) {
+        const dbInstance = db;
+        const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
+        const shiftSecondsFragment = dbInstance.fragmentWithType('int', 'optional').sql`
+            TIMESTAMPDIFF(SECOND, ${tSchedule.scheduleTimeStart}, ${tSchedule.scheduleTimeEnd})`;
+
+        const shiftSecondsSubSelect = dbInstance.subSelectUsing(tUsersEvents)
+            .from(tSchedule)
+            .innerJoin(tShifts)
+                .on(tShifts.shiftId.equals(tSchedule.shiftId))
+            .innerJoin(tShiftsCategories)
+                .on(tShiftsCategories.shiftCategoryId.equals(tShifts.shiftCategoryId))
+            .where(tSchedule.userId.equals(tUsersEvents.userId))
+                .and(tSchedule.eventId.equals(tUsersEvents.eventId))
+                .and(tSchedule.scheduleDeleted.isNull())
+                .and(tShiftsCategories.shiftCategoryCountContribution.equals(/* true= */ 1))
+            .selectOneColumn(dbInstance.sum(shiftSecondsFragment).valueWhenNull(0))
+            .forUseAsInlineQueryValue();
+
+        const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .leftJoin(usersCommunicationJoin)
+                .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                    .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
+                    .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
+            .groupBy(tUsersEvents.userId)
+            .where(tUsersEvents.eventId.equals(context.eventId))
+                .and(tUsersEvents.teamId.equals(context.teamId))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .and(tUsers.name.containsIfValue(params.search).or(
+                    tRoles.roleName.containsIfValue(params.search)))
+            .select({
+                id: tUsers.userId,
+                name: tUsers.name,
+                firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+                language: tUsers.language,
+                role: tRoles.roleName,
+                roleOrder: tRoles.roleOrder,
+                roleHasPermissionGrant: tRoles.rolePermissionGrant.isNotNull(),
+                shiftSeconds: shiftSecondsSubSelect,
+                communication: dbInstance.aggregateAsArray({
+                    promptId: usersCommunicationJoin.communicationPromptId,
+                    date: usersCommunicationJoin.communicationDate,
+                }),
+            })
+            .orderBy(params.sort.field as any, params.sort.direction)
+                .orderBy('name', params.sort.direction)
+            .limit(params.page.limit)
+                .offset(params.page.offset)
+            .executeSelectPage();
+
+        const rows = volunteers.data.map(volunteer => {
+            const communication: Record<string, string> = {};
+            const communicationPrompts: Map<string, ZonedDateTime> = new Map();
+            for (const item of volunteer.communication) {
+                const latestCommunication = communicationPrompts.get(item.promptId);
+                if (!latestCommunication || isBefore(latestCommunication, item.date))
+                    communicationPrompts.set(item.promptId, item.date);
+            }
+
+            for (const [ promptId, date ] of communicationPrompts.entries())
+                communication[promptId] = date.toString();
+
+            return {
+                ...volunteer,
+                communication,
+            };
+        });
+
+        return {
+            rowCount: volunteers.count,
+            rows,
+        };
+    },
+
+});
+
+/**
+ * Export the row model for use in the child components used by the data table.
+ */
+export type VolunteerRowModel = ExtractRowModel<typeof volunteerDataSource>;
+
+/**
+ * The <EventVolunteersPage> page lists the volunteers who signed up to participate in the |event|
+ * for the given |team|. Direct communication functionality is exposed through this page.
+ */
+export default async function EventVolunteersPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
 {
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
-
     if (!access.can('event.volunteers.information', 'read', { event: event.slug, team: team.slug }))
-        notFound();
+        forbidden();
+
+    let headerAction: React.ReactNode;
+    if (access.can('organisation.exports')) {
+        headerAction = (
+            <Tooltip title="Export volunteer list">
+                <IconButton LinkComponent={Link} href="/admin/organisation/exports/create">
+                    <ShareIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        );
+    }
+
+    const columns: Column<VolunteerRowModel>[] = [
+        {
+            field: 'id',
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                headerComponent: ExperienceHeaderCell,
+                component: ExperienceCell,
+            },
+        },
+        {
+            field: 'name',
+            headerName: 'Name',
+            flex: 1,
+
+            template: 'linkedText',
+            templateProps: {
+                href: './volunteers/{id}',
+            },
+        },
+        {
+            field: 'roleOrder',
+            headerName: 'Role',
+            flex: 1,
+
+            template: 'otherFieldText',
+            templateProps: {
+                field: 'role',
+            },
+        },
+        {
+            field: 'shiftSeconds',
+            headerName: 'Shifts',
+            sortable: true,
+            flex: 1,
+
+            template: 'component',
+            templateProps: {
+                component: ShiftsCell,
+            },
+        },
+        // TODO: Status
+        {
+            field: 'roleHasPermissionGrant',  // unrelated
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                headerComponent: CommunicationHeaderCell,
+                component: CommunicationCell,
+                componentContext: {
+                    action: sendCommunication.bind(null, event.id, team.id),
+                    eventId: event.id,
+                    eventName: event.shortName,
+                    teamId: team.id
+                } satisfies CommunicationCellContext,
+            },
+        },
+    ];
 
     const dbInstance = db;
-
-    const refundsJoin = tRefunds.forUseInLeftJoin();
-
-    // ---------------------------------------------------------------------------------------------
-    // Step (1): Gather a list of all volunteers
-    // ---------------------------------------------------------------------------------------------
-
-    const shiftSecondsFragment = dbInstance.fragmentWithType('int', 'optional').sql`
-        TIMESTAMPDIFF(SECOND, ${tSchedule.scheduleTimeStart}, ${tSchedule.scheduleTimeEnd})`;
-
-    const shiftSecondsSubSelect = dbInstance.subSelectUsing(tUsersEvents)
-        .from(tSchedule)
-        .innerJoin(tShifts)
-            .on(tShifts.shiftId.equals(tSchedule.shiftId))
-        .innerJoin(tShiftsCategories)
-            .on(tShiftsCategories.shiftCategoryId.equals(tShifts.shiftCategoryId))
-        .where(tSchedule.userId.equals(tUsersEvents.userId))
-            .and(tSchedule.eventId.equals(tUsersEvents.eventId))
-            .and(tSchedule.scheduleDeleted.isNull())
-            .and(tShiftsCategories.shiftCategoryCountContribution.equals(/* true= */ 1))
-        .selectOneColumn(dbInstance.sum(shiftSecondsFragment))
-        .forUseAsInlineQueryValue();
-
-    const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
-
-    const volunteers = await dbInstance.selectFrom(tUsersEvents)
-        .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tUsersEvents.eventId))
-        .innerJoin(tRoles)
-            .on(tRoles.roleId.equals(tUsersEvents.roleId))
+    const cancelledVolunteers = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
-        .leftJoin(refundsJoin)
-            .on(refundsJoin.eventId.equals(tUsersEvents.eventId))
-                .and(refundsJoin.userId.equals(tUsersEvents.userId))
-        .leftJoin(usersCommunicationJoin)
-            .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
-                .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
-                .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
-        .groupBy(tUsersEvents.userId)
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.registrationStatus.in(
-                [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Cancelled))
         .select({
             id: tUsers.userId,
-            date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
-            status: tUsersEvents.registrationStatus,
-            firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             name: tUsers.name,
-            role: tRoles.roleName,
-
-            shiftSeconds: shiftSecondsSubSelect,
-
-            preferredLanguage: tUsers.language,
-            communication: dbInstance.aggregateAsArray({
-                promptId: usersCommunicationJoin.communicationPromptId,
-                date: usersCommunicationJoin.communicationDate,
-            }),
-
-            availabilityEligible:
-                tEvents.eventAvailabilityStatus.notEquals(kEventAvailabilityStatus.Unavailable),
-            availabilityConfirmed: tUsersEvents.preferencesUpdated.isNotNull(),
-            hotelEligible: tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
-            refundRequested: refundsJoin.refundRequested.isNotNull(),
-            refundConfirmed: refundsJoin.refundConfirmed.isNotNull(),
-            trainingEligible: tUsersEvents.trainingEligible.valueWhenNull(
-                tRoles.roleTrainingEligible),
         })
-        .orderBy(tRoles.roleOrder, 'asc')
         .orderBy('name', 'asc')
         .executeSelectMany();
 
-    const acceptedVolunteers: Map<number, VolunteerInfo> = new Map;
-    const cancelledVolunteers: VolunteerInfo[] = [];
-
-    for (const volunteer of volunteers) {
-        const updatedVolunteer: VolunteerInfo = {
-            ...volunteer,
-            communication: { /* none yet */ },
-        };
-
-        const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
-        for (const { promptId, date } of volunteer.communication) {
-            const latestCommunication = communicationPrompts.get(promptId);
-            if (!latestCommunication || isBefore(date, latestCommunication))
-                communicationPrompts.set(promptId, date);
-        }
-
-        for (const [ promptId, date ] of communicationPrompts.entries())
-            updatedVolunteer.communication[promptId as CommunicationPromptId] = date.toString();
-
-        if (volunteer.status === kRegistrationStatus.Accepted)
-            acceptedVolunteers.set(volunteer.id, updatedVolunteer);
-        else
-            cancelledVolunteers.push(updatedVolunteer);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Step (2): Complement that list with information about availability
-    // ---------------------------------------------------------------------------------------------
-
-    // TODO
-
-    // ---------------------------------------------------------------------------------------------
-    // Step (3): Complement that list with information about hotels
-    // ---------------------------------------------------------------------------------------------
-
-    const hotelsAssignmentsJoin = tHotelsAssignments.forUseInLeftJoin();
-    const hotelsBookingsJoin = tHotelsBookings.forUseInLeftJoin();
-    const hotelsPreferencesJoin = tHotelsPreferences.forUseInLeftJoin();
-
-    const hotelInfo = await dbInstance.selectFrom(tUsersEvents)
-        .leftJoin(hotelsPreferencesJoin)
-            .on(hotelsPreferencesJoin.userId.equals(tUsersEvents.userId))
-            .and(hotelsPreferencesJoin.teamId.equals(tUsersEvents.teamId))
-            .and(hotelsPreferencesJoin.eventId.equals(tUsersEvents.eventId))
-        .leftJoin(hotelsAssignmentsJoin)
-            .on(hotelsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
-            .and(hotelsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
-        .leftJoin(hotelsBookingsJoin)
-            .on(hotelsBookingsJoin.bookingId.equals(hotelsAssignmentsJoin.bookingId))
-            .and(hotelsBookingsJoin.bookingVisible.equals(/* true= */ 1))
-        .where(tUsersEvents.eventId.equals(event.id))
-            .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .select({
-            userId: tUsersEvents.userId,
-
-            hotelPreference: hotelsPreferencesJoin.hotelId,
-            hotelPreferencesUpdated: hotelsPreferencesJoin.hotelPreferencesUpdated,
-            hotelBookingId: hotelsBookingsJoin.bookingId,
-            hotelBookingConfirmed: hotelsBookingsJoin.bookingConfirmed,
-        })
-        .orderBy('hotelBookingConfirmed', 'asc nulls first')
-        .orderBy('hotelBookingId', 'asc nulls first')
-        .executeSelectMany();
-
-    for (const volunteerHotelInfo of hotelInfo) {
-        const volunteer = acceptedVolunteers.get(volunteerHotelInfo.userId)!;
-        if (volunteerHotelInfo.hotelBookingConfirmed) {
-            volunteer.hotelStatus = 'confirmed';
-        } else if (!!volunteerHotelInfo.hotelPreferencesUpdated) {
-            if (!!volunteerHotelInfo.hotelPreference)
-                volunteer.hotelStatus = 'submitted';
-            else
-                volunteer.hotelStatus = 'skipped';
-        } else if (volunteer.hotelEligible && event.hotelInformationPublished) {
-            volunteer.hotelStatus = 'available';
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Step (4): Complement that list with information about trainings
-    // ---------------------------------------------------------------------------------------------
-
-    const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
-
-    const trainingInfo = await dbInstance.selectFrom(tUsersEvents)
-        .leftJoin(trainingsAssignmentsJoin)
-            .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
-            .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
-        .where(tUsersEvents.eventId.equals(event.id))
-            .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .select({
-            userId: tUsersEvents.userId,
-
-            trainingPreference: trainingsAssignmentsJoin.preferenceTrainingId,
-            trainingPreferencesUpdated: trainingsAssignmentsJoin.preferenceUpdated,
-            trainingAssignment: trainingsAssignmentsJoin.assignmentTrainingId,
-            trainingAssignmentConfirmed: trainingsAssignmentsJoin.assignmentConfirmed,
-        })
-        .executeSelectMany();
-
-    for (const volunteerTrainingInfo of trainingInfo) {
-        const volunteer = acceptedVolunteers.get(volunteerTrainingInfo.userId)!;
-        if (volunteerTrainingInfo.trainingAssignmentConfirmed) {
-            if (!!volunteerTrainingInfo.trainingAssignment)
-                volunteer.trainingStatus = 'confirmed';
-            else
-                volunteer.trainingStatus = 'skipped';
-        } else if (!!volunteerTrainingInfo.trainingPreferencesUpdated) {
-            volunteer.trainingStatus = 'submitted';
-        } else if (volunteer.trainingEligible && event.trainingInformationPublished) {
-            volunteer.trainingStatus = 'available';
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Step (5): Actually display the page \o/
-    // ---------------------------------------------------------------------------------------------
-
-    const action = sendCommunication.bind(null, event.id, team.id);
-    const enableExport = access.can('organisation.exports');
-
     return (
         <>
-            <VolunteerTable title={`${event.shortName} ${team.name}`} enableExport={enableExport}
-                            volunteers={[ ...acceptedVolunteers.values() ]} event={event.slug}
-                            eventId={event.id} eventName={event.shortName} team={team.slug}
-                            teamId={team.id} communicationAction={action} />
+            <Section headerAction={headerAction} title={`${event.shortName} ${team.name}`}>
+                <DataTable columns={columns} source={volunteerDataSource} search="prominent"
+                           context={{ eventId: event.id, teamId: team.id }} disableFooter
+                           defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
+                           listViewProps={{
+                               primaryField: 'name',
+                           }} />
+            </Section>
             { cancelledVolunteers.length > 0 &&
-                <CancelledVolunteers volunteers={cancelledVolunteers} /> }
+                <Section title="No longer participating…">
+                    <SectionIntroduction>
+                        The following volunteers cancelled their participation and are no longer
+                        expected to help out the {team.name}.
+                    </SectionIntroduction>
+                    <List disablePadding sx={{
+                        mx: '-16px !important',
+                        mt: '8px !important',
+                        mb: '-8px !important'
+                    }}>
+                        { cancelledVolunteers.map(volunteer =>
+                            <ListItemButton key={volunteer.id} LinkComponent={Link}
+                                            href={`./volunteers/${volunteer.id}`}>
+                                <ListItemIcon>
+                                    <PersonIcon color="primary" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary={volunteer.name} />
+                            </ListItemButton> ) }
+                    </List>
+                </Section> }
         </>
     );
 }
