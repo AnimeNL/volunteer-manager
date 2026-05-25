@@ -54,6 +54,12 @@ interface DataTableClientCommonProps<
     };
 
     /**
+     * Whether the footer should be holistically disabled. This would hide the search bar when a
+     * subtle user interface has been selected.
+     */
+    disableFooter?: boolean;
+
+    /**
      * Whether the search functionality should be disabled. All data tables are strongly encouraged
      * to support search, regardless of whether it's a prominent or subtle user interface.
      */
@@ -223,6 +229,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 disablePivoting
                 disableRowGrouping
 
+                hideFooter={ !!props.disableFooter }
                 showToolbar={ search === 'prominent' }
 
                 initialState={{

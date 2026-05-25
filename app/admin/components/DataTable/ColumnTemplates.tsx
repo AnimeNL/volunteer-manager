@@ -37,7 +37,7 @@ export const kColumnTemplates = {
                 return (
                     <Typography component="span" variant="body2"
                                 sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-                        {column.templateProps?.noAccountLabel ?? 'Unknown'}
+                        {column.templateProps?.noAccountLabel as string ?? 'Unknown'}
                     </Typography>
                 );
             }
@@ -51,6 +51,32 @@ export const kColumnTemplates = {
                     {params.value.name}
                 </MuiLink>
             );
+        },
+
+        ...column,
+    }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    component: column => ({
+        display: 'flex',
+
+        renderHeader: () => {
+            if (!column.templateProps?.headerComponent)
+                return null;
+
+            const HeaderComponent =
+                column.templateProps.headerComponent as React.JSXElementConstructor<any>;
+            return <HeaderComponent />;
+        },
+
+        renderCell: params => {
+            if (!column.templateProps?.component)
+                return null;
+
+            const Component = column.templateProps.component as
+                React.JSXElementConstructor<{ context?: any; row: any }>;
+            return <Component context={column.templateProps?.componentContext} row={params.row} />;
         },
 
         ...column,
@@ -95,6 +121,13 @@ export const kColumnTemplates = {
         renderCell: params =>
             <LocalDateTime dateTime={params.value} format="YYYY-MM-DD HH:mm:ss" />,
 
+        ...column,
+    }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    otherFieldText: column => ({
+        renderCell: params => params.row[column.templateProps?.field as string],
         ...column,
     }),
 
@@ -153,9 +186,7 @@ export const kColumnTemplates = {
 
     // ---------------------------------------------------------------------------------------------
 
-} as const satisfies { [k: string]: (column: GridColDef & {
-    templateProps?: Record<string, string | number>
-}) => GridColDef };
+} as const satisfies { [k: string]: (column: GridColDef & { templateProps?: any }) => GridColDef };
 
 /**
  * List of column templates that are predefined and available for generic use.

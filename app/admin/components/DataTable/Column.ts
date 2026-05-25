@@ -3,8 +3,6 @@
 
 import type { GridColDef, GridValidRowModel } from '@mui/x-data-grid-premium';
 
-import type { ColumnTemplate } from './ColumnTemplates';
-
 /**
  * Interface that defines an individual column to include in a <DataTable>.
  */
@@ -14,21 +12,58 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
      * The unique identifier of the column. Strictly typed based on the `RowModel`.
      */
     field: keyof RowModel & string;
-
-    /**
-     * Optional predefined column templates supported by our <DataTableClient> implementation.
-     * Available values include:
-     *
-     * * `account`          Flexible column for displaying a(n optionally linked) user account.
-     * * `linkedText`       Flexible column for which the text will be linked to templateProps.href.
-     * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
-     * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
-     * * `severity`         Fixed-width column for an icon-based severity indication.
-     */
-    template?: ColumnTemplate;
-
-    /**
-     * Props that should passed to template transformer functions.
-     */
-    templateProps?: Record<string, string | number>;
-};
+} & (
+    {
+        /**
+         * Optional predefined column templates supported by our <DataTableClient> implementation.
+         * Available values include:
+         *
+         * * `account`          Flexible column for displaying a(n optionally linked) user account.
+         * * `component`        Flexible column for which a the templateProps.component will be shown.
+         * * `linkedText`       Flexible column for which the text will be linked to templateProps.href.
+         * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
+         * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
+         * * `otherFieldText`   Flexible column that will display the text for another field.
+         * * `severity`         Fixed-width column for an icon-based severity indication.
+         */
+        template?: never;
+    } |
+    {
+        template: 'account';
+        templateProps: {
+            noAccountLabel?: string;
+        };
+    } |
+    {
+        template: 'component';
+        templateProps: {
+            headerComponent: React.JSXElementConstructor<{ /* no props */ }>;
+            componentContext?: any;
+            component: React.JSXElementConstructor<{ row: RowModel, context?: any }>;
+        };
+    } |
+    {
+        template: 'linkedText';
+        templateProps: {
+            href?: string;
+        };
+    } |
+    {
+        template: 'localDate';
+        templateProps?: never;
+    } |
+    {
+        template: 'localDateTime';
+        templateProps?: never;
+    } |
+    {
+        template: 'otherFieldText';
+        templateProps: {
+            field: keyof RowModel;
+        };
+    } |
+    {
+        template: 'severity';
+        templateProps?: never;
+    }
+);
