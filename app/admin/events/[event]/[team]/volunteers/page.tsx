@@ -23,6 +23,7 @@ import { ExperienceCell, ExperienceHeaderCell } from './ExperienceCell';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftsCell } from './ShiftsCell';
+import { StatusCell } from './StatusCell';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { isBefore, type ZonedDateTime } from '@lib/Temporal';
@@ -105,6 +106,14 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
      * count.
      */
     shiftSeconds: z.number().optional(),
+
+    /**
+     * Status of their application across the different types of information they have to provide.
+     */
+    status: z.object({
+        hotelEligible: z.number(),
+        trainingEligible: z.number(),
+    }),
 
     /**
      * Most recent time a communication of a given type was sent, in a Temporal ZonedDateTime
@@ -195,6 +204,12 @@ const volunteerDataSource = createDataSource('event/volunteers', withContext({
                 roleHasPermissionGrant: tRoles.rolePermissionGrant.isNotNull(),
                 priorParticipationCount: priorEventsSubSelect.valueWhenNull(0),
                 shiftSeconds: shiftSecondsSubSelect,
+                status: {
+                    hotelEligible:
+                        tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
+                    trainingEligible:
+                        tUsersEvents.trainingEligible.valueWhenNull(tRoles.roleTrainingEligible),
+                },
                 communication: dbInstance.aggregateAsArray({
                     promptId: usersCommunicationJoin.communicationPromptId,
                     date: usersCommunicationJoin.communicationDate,
@@ -304,7 +319,17 @@ export default async function EventVolunteersPage(
                 component: ShiftsCell,
             },
         },
-        // TODO: Status
+        {
+            field: 'status',
+            headerName: 'Status',
+            sortable: false,
+            flex: 1,
+
+            template: 'component',
+            templateProps: {
+                component: StatusCell,
+            },
+        },
         {
             field: 'roleHasPermissionGrant',  // unrelated
             headerAlign: 'center',
@@ -356,6 +381,7 @@ export default async function EventVolunteersPage(
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
                            listViewProps={{
                                primaryField: 'name',
+                               linkTemplate: './volunteers/{id}',
                            }} />
             </Section>
             { cancelledVolunteers.length > 0 &&
