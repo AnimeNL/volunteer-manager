@@ -21,6 +21,7 @@ export class ApplicationApprovedPrompt extends Prompt<ApplicationApprovedPromptP
             id: 'application-approved',
             type: 'Communication',
             label: 'Application approved',
+            regarding: 'approving their application',
             description: 'Message to announce that someone\'s application has been approved.',
             settings: {
                 prompt: 'ai-communication-type-application-approved',

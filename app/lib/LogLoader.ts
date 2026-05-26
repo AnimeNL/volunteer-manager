@@ -238,6 +238,9 @@ const kLogMessageFormatter: {
     [kLogType.AdminResetPasswordLink]: (source, target, data) => {
         return `Created a new password reset link for ${target?.name}`;
     },
+    [kLogType.AdminSendCommunication]: (source, target, { regarding }) => {
+        return `Sent ${target?.name} an e-mail regarding ${regarding}`;
+    },
     [kLogType.AdminSubscriptionUpdate]: (source, target) => {
         return `Updated the subscriptions for ${target?.name}`;
     },

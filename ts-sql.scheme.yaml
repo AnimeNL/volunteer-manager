@@ -3744,6 +3744,10 @@ tables:
     type: int(8) unsigned
     nullable: true
     default: "NULL"
+  - name: outbox_communication_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
   - name: outbox_to
     type: varchar(128)
     nullable: false
@@ -3848,6 +3852,7 @@ tables:
       `outbox_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
       `outbox_sender` varchar(128) NOT NULL,
       `outbox_sender_user_id` int(8) unsigned DEFAULT NULL,
+      `outbox_communication_id` int(4) unsigned DEFAULT NULL,
       `outbox_to` varchar(128) NOT NULL,
       `outbox_to_user_id` int(8) unsigned DEFAULT NULL,
       `outbox_cc` varchar(128) DEFAULT NULL,
@@ -4792,6 +4797,13 @@ tables:
     - communication_event_id
     - communication_team_id
     - communication_prompt_id
+  - name: user_id_2
+    def: KEY user_id_2 (user_id, communication_event_id, communication_team_id) USING BTREE
+    table: users_communication
+    columns:
+    - user_id
+    - communication_event_id
+    - communication_team_id
   - name: PRIMARY
     def: PRIMARY KEY (user_communication_id) USING BTREE
     table: users_communication
@@ -4814,8 +4826,9 @@ tables:
       `communication_sender_id` int(4) unsigned NOT NULL,
       `communication_date` datetime NOT NULL,
       PRIMARY KEY (`user_communication_id`),
-      KEY `user_id` (`user_id`,`communication_event_id`,`communication_team_id`,`communication_prompt_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      KEY `user_id` (`user_id`,`communication_event_id`,`communication_team_id`,`communication_prompt_id`),
+      KEY `user_id_2` (`user_id`,`communication_event_id`,`communication_team_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
 - table: users_events
   columns:

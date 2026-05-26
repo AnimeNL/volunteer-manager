@@ -71,6 +71,7 @@ export class EmailLoggerImpl implements EmailLogger {
             .set({
                 outboxSender: request.sender,
                 outboxSenderUserId: this.normalizeUser(request.sourceUser),
+                outboxCommunicationId: request.communicationId,
                 outboxTo: this.normalizeRecipients(options.to)!,
                 outboxToUserId: this.normalizeUser(request.targetUser),
                 outboxCc: this.normalizeRecipients(options.cc),

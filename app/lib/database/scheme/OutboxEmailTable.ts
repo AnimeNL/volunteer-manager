@@ -20,6 +20,7 @@ export class OutboxEmailTable extends Table<DBConnection, 'OutboxEmailTable'> {
     outboxTimestamp = this.columnWithDefaultValue<ZonedDateTime>('outbox_timestamp', 'customLocalDateTime', 'timestamp', TemporalTypeAdapter);
     outboxSender = this.column('outbox_sender', 'string');
     outboxSenderUserId = this.optionalColumnWithDefaultValue('outbox_sender_user_id', 'int');
+    outboxCommunicationId = this.optionalColumnWithDefaultValue('outbox_communication_id', 'int');
     outboxTo = this.column('outbox_to', 'string');
     outboxToUserId = this.optionalColumnWithDefaultValue('outbox_to_user_id', 'int');
     outboxCc = this.optionalColumnWithDefaultValue('outbox_cc', 'string');

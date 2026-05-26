@@ -36,6 +36,9 @@ export type Settings = {
     'availability-max-event-duration-minutes': number;
     'availability-time-step-minutes': number;
 
+    // Communication:
+    'communication-name-suffix': string;
+
     // Program:
     'program-event-sales-relative': boolean;
 

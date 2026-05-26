@@ -25,36 +25,69 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { getContextForVolunteerAction } from './VolunteerActions';
 import { isBefore, type ZonedDateTime } from '@lib/Temporal';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts, tShiftsCategories, tEvents } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
 /**
  * Server Action that will be invoked by the <CommunicationButton> component when a communication
  * should be send on the user's behalf. All input should be treated as untrusted until verified.
  */
-async function sendCommunication(
-    eventId: number, teamId: number, userId: number, promptId: CommunicationPromptId,
+async function sendCommunicationToVolunteer(
+    eventId: number, teamId: number, recipientId: number, promptId: CommunicationPromptId,
     subject?: string, message?: string)
 {
     'use server';
 
-    // TODO: Implement this.
+    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+        const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
 
-    return {
-        success: true,
-        message: 'Not yet implemented?!',
-    };
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: event.slug,
+            permission: {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
+            },
+        });
+
+        if (!subject || !message)
+            return { success: false, error: 'Subject and/or message are missing from the request' };
+
+        await sendCommunication({
+            sender: props.user,
+            recipient: recipientId,
+            subject,
+            message,
+            metadata: {
+                eventId,
+                teamId,
+                promptId,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
+        };
+    });
 }
 
 /**
  * Data source used to populate the volunteer list for a particular event and team tuple.
  */
-const volunteerDataSource = createDataSource('event/volunteers', withContext({
+const volunteerDataSource = createDataSource('event/team/volunteers', withContext({
     /**
      * Unique ID of the event to display volunteers for.
      */
@@ -342,7 +375,7 @@ export default async function EventVolunteersPage(
                 headerComponent: CommunicationHeaderCell,
                 component: CommunicationCell,
                 componentContext: {
-                    action: sendCommunication.bind(null, event.id, team.id),
+                    action: sendCommunicationToVolunteer.bind(null, event.id, team.id),
                     eventId: event.id,
                     eventName: event.shortName,
                     teamId: team.id

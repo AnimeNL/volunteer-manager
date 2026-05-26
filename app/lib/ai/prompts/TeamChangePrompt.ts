@@ -24,6 +24,7 @@ export class TeamChangePrompt extends Prompt<TeamChangePromptParameters> {
             id: 'team-change',
             type: 'Communication',
             label: 'Team change confirmation',
+            regarding: 'changing their team',
             description: 'Message to confirm that someone\'s been moved to another team.',
             settings: {
                 prompt: 'ai-communication-type-team-change',

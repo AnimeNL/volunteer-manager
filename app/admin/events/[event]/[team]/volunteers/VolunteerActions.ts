@@ -18,7 +18,8 @@ import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
 /**
  * Returns context, sourced from the database, for a volunteer action with the following properties.
  */
-async function getContextForVolunteerAction(userId: number, eventId: number, teamId: number) {
+export async function getContextForVolunteerAction(userId: number, eventId: number, teamId: number)
+{
     const result = await db.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))

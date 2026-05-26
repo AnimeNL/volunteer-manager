@@ -21,6 +21,7 @@ export class EventHotelsAnnouncedPrompt extends Prompt<EventHotelsAnnouncedPromp
             id: 'event-hotels-announced',
             type: 'Communication',
             label: 'Hotel information announcement',
+            regarding: 'hotel information',
             description: 'Message to announce when hotel information has been publicly announced.',
             settings: {
                 prompt: 'ai-communication-type-event-hotels-announced',

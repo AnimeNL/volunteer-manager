@@ -25,6 +25,7 @@ export class ParticipationReminderPrompt extends Prompt<ParticipationReminderPro
             id: 'participation-reminder',
             type: 'Communication',
             label: 'Participation reminder',
+            regarding: 'helping us out again',
             description: 'Message to remind volunteers to participate again in the latest event.',
             settings: {
                 prompt: 'ai-communication-type-participation-reminder',

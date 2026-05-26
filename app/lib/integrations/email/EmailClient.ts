@@ -50,6 +50,11 @@ export interface SendMessageRequest {
     sender: string;
 
     /**
+     * When known, the communication ID this message should be associated with.
+     */
+    communicationId?: number;
+
+    /**
      * Source user, on whose behalf the message will be sent.
      */
     sourceUser?: number | User;

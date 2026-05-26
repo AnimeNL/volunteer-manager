@@ -85,6 +85,7 @@ export const kLogType = {
     AdminRefundMutation: 'admin-refund-mutation',
     AdminResetAccessCode: 'admin-reset-access-code',
     AdminResetPasswordLink: 'admin-reset-password-link',
+    AdminSendCommunication: 'admin-send-communication',
     AdminSubscriptionUpdate: 'admin-subscription-update',
     AdminSuspendVolunteer: 'admin-suspend-volunteer',
     AdminTeamCreate: 'admin-team-create',

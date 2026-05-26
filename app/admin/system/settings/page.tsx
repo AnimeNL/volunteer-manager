@@ -131,6 +131,14 @@ export default async function IntegrationsPage() {
                     'exceptions.',
             },
             {
+                setting: 'communication-name-suffix',
+                type: 'string',
+                defaultValue: '',
+
+                label: 'Communication - sender suffix',
+                description: 'Suffix to append after someone\'s full name when sending an e-mail.',
+            },
+            {
                 setting: 'program-event-sales-relative',
                 type: 'boolean',
                 defaultValue: true,

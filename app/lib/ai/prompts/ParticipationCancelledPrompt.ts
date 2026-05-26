@@ -21,6 +21,7 @@ export class ParticipationCancelledPrompt extends Prompt<ParticipationCancelledP
             id: 'participation-cancelled',
             type: 'Communication',
             label: 'Participation cancelled',
+            regarding: 'cancelling their participation',
             description: 'Message to confirm that someone\'s participation has been cancelled.',
             settings: {
                 prompt: 'ai-communication-type-participation-cancelled',

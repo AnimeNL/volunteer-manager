@@ -30,11 +30,6 @@ type Metadata = {
     id: string;
 
     /**
-     * Type of prompt, which dictates on which internal maintenance page it should appear.
-     */
-    type: PromptType;
-
-    /**
      * Label that describes that this prompt is about.
      */
     label: string;
@@ -58,7 +53,26 @@ type Metadata = {
          */
         prompt: TypedSettings<Settings, string>;
     };
-};
+} & (
+    {
+        /**
+         * Type of prompt, which dictates on which internal maintenance page it should appear.
+         */
+        type: Exclude<PromptType, 'Communication'>;
+    } |
+    {
+        /**
+         * Type of prompt, which dictates on which internal maintenance page it should appear.
+         */
+        type: 'Communication';
+
+        /**
+         * What's the communication in regards to? Complete this sentence:
+         * @example "Sent John an e-mail regarding [...]"
+         */
+        regarding: string;
+    }
+);
 
 /**
  * This is the base class that implements the core functionality of dealing with prompts, i.e.

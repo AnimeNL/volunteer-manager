@@ -21,6 +21,7 @@ export class EventTrainingsAnnouncedPrompt extends Prompt<EventTrainingsAnnounce
             id: 'event-trainings-announced',
             type: 'Communication',
             label: 'Training information announcement',
+            regarding: 'training information',
             description: 'Message to announce when training information has been announced.',
             settings: {
                 prompt: 'ai-communication-type-event-trainings-announced',

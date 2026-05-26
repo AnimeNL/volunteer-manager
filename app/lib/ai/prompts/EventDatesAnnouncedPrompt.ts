@@ -21,6 +21,7 @@ export class EventDatesAnnouncedPrompt extends Prompt<EventDatesAnnouncedPromptP
             id: 'event-dates-announced',
             type: 'Communication',
             label: 'Festival date announcement',
+            regarding: `an event's dates`,
             description: 'Message to announce when festival dates have been publicly announced.',
             settings: {
                 prompt: 'ai-communication-type-event-dates-announced',

@@ -41,6 +41,11 @@ const kSendEmailTaskParamScheme = z.object({
      */
     attribution: z.object({
         /**
+         * When known, the communication ID this message should be associated with.
+         */
+        communicationId: z.number().optional(),
+
+        /**
          * User Id of the user who initiated sending this message.
          */
         sourceUserId: z.number(),
@@ -87,6 +92,7 @@ export class SendEmailTask extends TaskWithParams<TaskParams> {
         const result = await client.sendMessage({
             sender: params.sender,
             message,
+            communicationId: params.attribution.communicationId,
             sourceUser: params.attribution.sourceUserId,
             targetUser: params.attribution.targetUserId,
         });

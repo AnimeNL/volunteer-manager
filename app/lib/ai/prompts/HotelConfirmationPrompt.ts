@@ -25,6 +25,7 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
             id: 'hotel-confirmation',
             type: 'Communication',
             label: 'Hotel confirmation',
+            regarding: 'their hotel reservation',
             description:
                 'Message to confirm to a volunteer that their hotel booking has been settled.',
             settings: {
