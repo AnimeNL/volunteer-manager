@@ -1,20 +1,186 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
+import { z } from 'zod/v4';
+
 import Alert from '@mui/material/Alert';
 import Collapse from '@mui/material/Collapse';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
+import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { RetentionDataTable } from './RetentionDataTable';
 import { RetentionOutreachList } from './RetentionOutreachList';
+import { Temporal, formatDate } from '@lib/Temporal';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { readSetting } from '@lib/Settings';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRetention, tUsersEvents, tUsers } from '@lib/database';
+import db, { tEvents, tRetention, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRetentionStatus } from '@lib/database/Types';
+
+/**
+ * Resolves context and verifies access for retention actions.
+ */
+async function verifyAccessAndGetContext(
+    authenticationContext: any, eventId: number, teamId: number, recipientId: number)
+{
+    const event = await db.selectFrom(tEvents)
+        .where(tEvents.eventId.equals(eventId))
+        .select({
+            slug: tEvents.eventSlug,
+            shortName: tEvents.eventShortName,
+        })
+        .executeSelectNoneOrOne();
+
+    const teamSlug = await db.selectFrom(tTeams)
+        .where(tTeams.teamId.equals(teamId))
+        .selectOneColumn(tTeams.teamSlug)
+        .executeSelectNoneOrOne();
+
+    const volunteer = await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(recipientId))
+        .select({
+            emailAddress: tUsers.username,
+            phoneNumber: tUsers.phoneNumber,
+        })
+        .executeSelectNoneOrOne();
+
+    if (!event || !teamSlug || !volunteer)
+        notFound();
+
+    executeAccessCheck(authenticationContext, {
+        check: 'admin-event',
+        event: event.slug,
+        permission: {
+            permission: 'event.retention',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: teamSlug,
+            },
+        },
+    });
+
+    return { event, volunteer };
+}
+
+/**
+ * Assigns the volunteer and records the outreach activity.
+ */
+async function recordRetentionOutreach(
+    eventId: number, teamId: number, recipientId: number, assigneeId: number,
+    medium: 'e-mail' | 'WhatsApp')
+{
+    const noteDate = formatDate(Temporal.Now.instant(), 'MMMM Do');
+    const noteNotes = medium === 'e-mail' ? `Sent an e-mail (${noteDate})`
+                                          : `Sent a WhatsApp message (${noteDate})`;
+
+    const affectedRows = await db.insertInto(tRetention)
+        .set({
+            userId: recipientId,
+            eventId: eventId,
+            teamId: teamId,
+            retentionStatus: kRetentionStatus.Contacting,
+            retentionAssigneeId: assigneeId,
+            retentionNotes: noteNotes,
+        })
+        .onConflictDoUpdateSet({
+            retentionStatus: kRetentionStatus.Contacting,
+            retentionAssigneeId: assigneeId,
+            retentionNotes: noteNotes,
+        })
+        .executeInsert();
+
+    if (!affectedRows)
+        throw new Error('Unable to assign this volunteer to you…');
+}
+
+/**
+ * Server Action that will be invoked by the <CommunicationIconButton> component when a message
+ * should be send on the user's behalf. All input should be treated as untrusted until verified.
+ */
+async function sendRetentionEmail(
+    eventId: number, teamId: number, recipientId: number,
+    subject?: string, message?: string)
+{
+    'use server';
+
+    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+        const { volunteer } = await verifyAccessAndGetContext(
+            props.authenticationContext, eventId, teamId, recipientId);
+
+        if (!subject || !message)
+            return { success: false, error: 'Subject and/or message are missing from the request' };
+
+        if (!volunteer.emailAddress)
+            return { success: false, error: 'We don\'t have their e-mail address on file…' };
+
+        await recordRetentionOutreach(eventId, teamId, recipientId, props.user.id, 'e-mail');
+        await sendCommunication({
+            sender: props.user,
+            recipient: 1,
+            subject,
+            message,
+            metadata: {
+                eventId,
+                teamId,
+                promptId: 'participation-reminder',
+            },
+        });
+
+        return {
+            success: true,
+            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
+        };
+    });
+}
+
+/**
+ * Server Action that will be invoked when a WhatsApp reminder message was sent.
+ * It assigns the volunteer to the current user, writes a log entry, and returns
+ * the target volunteer's phone number.
+ */
+async function sendRetentionWhatsApp(
+    eventId: number, teamId: number, recipientId: number, message: string)
+{
+    'use server';
+
+    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+        const { event, volunteer } = await verifyAccessAndGetContext(
+            props.authenticationContext, eventId, teamId, recipientId);
+
+        if (!message || !message.trim())
+            return { success: false, error: 'Message is missing from the request' };
+
+        if (!volunteer.phoneNumber)
+            return { success: false, error: 'We don\'t have their phone number on file…' };
+
+        await recordRetentionOutreach(eventId, teamId, recipientId, props.user.id, 'WhatsApp');
+
+        RecordLog({
+            type: kLogType.AdminEventRetentionMessage,
+            severity: kLogSeverity.Info,
+            sourceUser: props.user,
+            targetUser: recipientId,
+            data: {
+                channel: 'WhatsApp',
+                event: event.shortName,
+                message: message,
+            }
+        });
+
+        return {
+            success: true,
+            phoneNumber: volunteer.phoneNumber,
+        };
+    });
+}
 
 /**
  * The retention page displays a recruiting tool to understand how participants from the past two
@@ -95,7 +261,12 @@ export default async function EventTeamRetentionPage(
                     </Alert> }
                 <RetentionDataTable whatsAppLink={whatsAppLink} whatsAppMessage={whatsAppMessage}
                                     readOnly={readOnly}
-                                    event={event.slug} leaders={leaders} team={team.slug} />
+                                    event={event.slug} leaders={leaders} team={team.slug}
+                                    eventId={event.id} teamId={team.id} eventName={event.shortName}
+                                    sendEmailFn={
+                                        sendRetentionEmail.bind(null, event.id, team.id) }
+                                    sendWhatsAppFn={
+                                        sendRetentionWhatsApp.bind(null, event.id, team.id) } />
             </Paper>
         </>
     )

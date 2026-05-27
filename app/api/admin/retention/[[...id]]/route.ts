@@ -1,21 +1,17 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { NextRequest } from 'next/server';
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '@app/api/createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { executeAction } from '@app/api/Action';
 import { getEventBySlug } from '@lib/EventLoader';
 import { readSetting } from '@lib/Settings';
 import db, { tEvents, tRetention, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
-
-import { remindParticipation, kRemindParticipationDefinition } from '../remindParticipation';
 
 /**
  * Row model for an individual piece of advice offered by Del a Rie Advies.
@@ -360,10 +356,3 @@ export const { GET, PUT } = createDataTableApi(kRetentionRowModel, kRetentionCon
         });
     },
 });
-
-/**
- * POST /api/admin/retention
- */
-export async function POST(request: NextRequest): Promise<Response> {
-    return executeAction(request, kRemindParticipationDefinition, remindParticipation);
-}

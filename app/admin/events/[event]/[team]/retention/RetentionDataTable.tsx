@@ -14,22 +14,37 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
+import type { ServerActionResult } from '@lib/serverAction';
+
 import type { RetentionContext, RetentionRowModel } from '@app/api/admin/retention/[[...id]]/route';
-import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
+import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
-import { callApi } from '@lib/callApi';
 
 /**
  * Props accepted by the <RetentionDataTable> component.
  */
 export type RetentionDataTableProps = RetentionContext & {
+    /**
+     * Unique ID of the event to display retention for.
+     */
+    eventId: number;
+
+    /**
+     * Short name of the event.
+     */
+    eventName: string;
+
+    /**
+     * Unique ID of the team to display retention for.
+     */
+    teamId: number;
+
     /**
      * Leaders to whom a retention action can be assigned.
      */
@@ -50,6 +65,16 @@ export type RetentionDataTableProps = RetentionContext & {
      * be substituted with actual useful values.
      */
     whatsAppMessage: string;
+
+    /**
+     * Server Action to invoke when an e-mail should be sent.
+     */
+    sendEmailFn: (userId: number, subject?: string, message?: string) => Promise<any>;
+
+    /**
+     * Server Action to invoke when a WhatsApp message was sent.
+     */
+    sendWhatsAppFn: (userId: number, message: string) => Promise<ServerActionResult>;
 };
 
 /**
@@ -58,9 +83,6 @@ export type RetentionDataTableProps = RetentionContext & {
  * reaching out to particular volunteers can be claimed by any of the seniors.
  */
 export function RetentionDataTable(props: RetentionDataTableProps) {
-    const [ emailOpen, setEmailOpen ] = useState<boolean>(false);
-    const [ emailTarget, setEmailTarget ] = useState<RetentionRowModel | undefined>();
-
     const [ whatsAppOpen, setWhatsAppOpen ] = useState<boolean>(false);
     const [ whatsAppTarget, setWhatsAppTarget ] = useState<RetentionRowModel | undefined>();
     const [ whatsAppMessage, setWhatsAppMessage ] = useState<Record<string, string>>({});
@@ -204,19 +226,25 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                 if (!!params.value)
                     return params.value;
 
-                if (params.row.status !== 'Unknown' || !!props.readOnly) {
-                    return (
-                        <Typography component="span" variant="body2"
-                                    sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-                            Unassigned
-                        </Typography>
-                    );
-                }
+                return (
+                    <Typography component="span" variant="body2"
+                                sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+                        Unassigned
+                    </Typography>
+                );
+            }
+        },
+        {
+            display: 'flex',
+            field: 'firstName',
+            headerName: 'Actions',
+            editable: false,
+            sortable: false,
+            width: 85,
 
-                const openEmailDialog = () => {
-                    setEmailTarget(params.row);
-                    setEmailOpen(true);
-                };
+            renderCell: params => {
+                if (params.row.status !== 'Unknown')
+                    return '···';
 
                 const openWhatsAppDialog = () => {
                     setWhatsAppTarget(params.row);
@@ -229,19 +257,27 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
 
                 return (
                     <Stack direction="row" sx={{ alignItems: 'center' }}>
-                        <Typography component="span" variant="body2"
-                                    sx={{ color: 'text.disabled', fontStyle: 'italic', mr: 1 }}>
-                            Unassigned
-                        </Typography>
-                        <IconButton size="small" onClick={openEmailDialog}>
-                            <MailOutlinedIcon color="action" fontSize="inherit" />
-                        </IconButton>
+                        <CommunicationIconButton
+                            title={ `Invite ${params.row.firstName} to volunteer again` }
+                            disableSilent
+                            action={ props.sendEmailFn.bind(null, params.row.id) }
+                            recipientId={params.row.id}
+                            promptId="participation-reminder"
+                            promptParams={{
+                                eventId: props.eventId,
+                                teamId: props.teamId
+                            }}>
+
+                            Send an e-mail to <strong>{params.row.firstName}</strong> to invite them
+                            to help out with {props.eventName}.
+
+                        </CommunicationIconButton>
                         <IconButton size="small" onClick={openWhatsAppDialog}>
                             <WhatsAppIcon color="success" fontSize="inherit" />
                         </IconButton>
                     </Stack>
                 );
-            }
+            },
         },
         {
             field: 'notes',
@@ -264,30 +300,6 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
         }
     ];
 
-    const handleEmailClose = useCallback(() => setEmailOpen(false), [ /* no deps */ ]);
-    const handleEmailSubmit = useCallback(async (subject?: string, message?: string) => {
-        if (!subject || !message)
-            return { error: 'Something went wrong, and no message was available to send.' };
-
-        if (!emailTarget)
-            return { error: 'Something went wrong, and no recipient was available.' };
-
-        const result = await callApi('post', '/api/admin/retention', {
-            event: props.event,
-            team: props.team,
-            userId: emailTarget.id,
-            email: { subject, message },
-        });
-
-        if (!result.success)
-            return { error: result.error ?? 'Something went wrong, the message could not be send' };
-
-        router.refresh();
-
-        return { success: 'They have been invited to participate!' };
-
-    }, [ emailTarget, props.event, props.team, router ]);
-
     const handleWhatsAppClose = useCallback(() => setWhatsAppOpen(false), [ /* no deps */ ]);
     const handleWhatsAppSubmit = useCallback(async (data: Record<string, string>) => {
         if (!Object.hasOwn(data, 'message') || !data.message.length)
@@ -296,12 +308,7 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
         if (!whatsAppTarget)
             return { error: 'Something went wrong, and no recipient was available.' };
 
-        const result = await callApi('post', '/api/admin/retention', {
-            event: props.event,
-            team: props.team,
-            userId: whatsAppTarget.id,
-            whatsApp: { message: data.message },
-        });
+        const result = await props.sendWhatsAppFn(whatsAppTarget.id, data.message);
 
         if (!result.success || !result.phoneNumber)
             return { error: result.error ?? 'Something went wrong, the message could not be send' };
@@ -323,7 +330,7 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                 </>
         };
 
-    }, [ whatsAppTarget, props.event, props.team, router ]);
+    }, [ whatsAppTarget, props.sendWhatsAppFn, router ]);
 
     return (
         <>
@@ -332,23 +339,6 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                              context={{ event: props.event, team: props.team }} refreshOnUpdate
                              defaultSort={{ field: 'id', sort: 'asc' }} pageSize={100}
                              disableFooter />
-
-            <OldCommunicationDialog title={`Invite ${emailTarget?.name} to volunteer again`}
-                                    open={emailOpen} onClose={handleEmailClose}
-                                    confirmLabel="Send" allowSilent={false} description={
-                                        <>
-                                            You're about to send an e-mail to
-                                            <strong> {emailTarget?.name}</strong> inviting them to
-                                            help out during the upcoming AnimeCon event.
-                                        </>
-                                    } apiParams={{
-                                        type: 'remind-participation',
-                                        remindParticipation: {
-                                            userId: emailTarget?.id ?? 0,
-                                            event: props.event,
-                                            team: props.team,
-                                        },
-                                    }} onSubmit={handleEmailSubmit} />
 
             <SettingDialog title={`Invite ${whatsAppTarget?.name} to volunteer again`}
                            open={whatsAppOpen} onClose={handleWhatsAppClose}

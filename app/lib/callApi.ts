@@ -24,7 +24,6 @@ import type { PasswordResetVerifyDefinition } from '@app/api/auth/passwordResetV
 import type { RegisterActivateDefinition } from '@app/api/auth/registerActivate';
 import type { RegisterDefinition } from '@app/api/auth/register';
 import type { RegisterPasskeyDefinition } from '@app/api/auth/passkeys/registerPasskey';
-import type { RemindParticipationDefinition } from '@app/api/admin/retention/remindParticipation';
 import type { ScheduleTaskDefinition } from '@app/api/admin/scheduler/scheduleTask';
 import type { ServiceHealthDefinition } from '@app/api/admin/serviceHealth';
 import type { SettingsDefinition } from '@app/api/auth/settings';
@@ -156,7 +155,6 @@ export type ApiEndpoints = {
         '/api/admin/program/activities': ProgramActivitiesEndpoints['create'],
         '/api/admin/program/areas': ProgramAreasEndpoints['create'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
-        '/api/admin/retention': RemindParticipationDefinition,
         '/api/admin/scheduler': ScheduleTaskDefinition,
         '/api/admin/service-health': ServiceHealthDefinition,
         '/api/admin/trainings': TrainingsEndpoints['create'],
