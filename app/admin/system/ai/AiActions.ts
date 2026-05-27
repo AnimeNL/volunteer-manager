@@ -132,6 +132,7 @@ const kUpdateModelSettingsData = z.object({
     textModelLow: z.enum(kAiSupportedModelIdentifiers),
     textModelMedium: z.enum(kAiSupportedModelIdentifiers),
     geminiApiKey: z.string().nonempty(),
+    geminiApi: z.enum([ 'Gemini', 'GeminiEnterprise' ]),
 
     temperature: z.number().min(0).max(2),
     thinkingLevel: z.enum([ 'minimal', 'low', 'medium', 'high' ]),
@@ -151,6 +152,7 @@ export async function updateModelSettings(formData: unknown) {
 
         await writeSettings({
             'ai-setting-gemini-api-key': data.geminiApiKey,
+            'ai-setting-gemini-api': data.geminiApi,
             'ai-setting-image-model': data.imageModel,
             'ai-setting-text-model-high': data.textModelHigh,
             'ai-setting-text-model-low': data.textModelLow,

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AiSupportedModel } from './integrations/genai/Models';
-import type { TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
+import type { GeminiApi, TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
 import type { VertexSupportedModels } from './integrations/vertexai/VertexSupportedModels';
 import db, { tSettings } from '@lib/database';
@@ -101,6 +101,7 @@ export type Settings = {
 
     // Settings:
     'ai-setting-gemini-api-key': string;
+    'ai-setting-gemini-api': GeminiApi;
     'ai-setting-image-model': AiSupportedModel;
     'ai-setting-text-model-high': AiSupportedModel;
     'ai-setting-text-model-low': AiSupportedModel;

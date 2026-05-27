@@ -1,9 +1,14 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { type GenerateContentParameters, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { type GenerateContentParameters, type GoogleGenAIOptions, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 import type { AiSupportedModel } from './Models';
+
+/**
+ * Variant of the Gemini API to use when interacting with the service.
+ */
+export type GeminiApi = 'Gemini' | 'GeminiEnterprise';
 
 /**
  * Complexity levels for text generation that's expected to be available within configuration, and
@@ -21,9 +26,34 @@ export type TextGenerationThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
  */
 export interface ClientSettings {
     /**
+     * Variant of the Gemini API to use.
+     */
+    api: GeminiApi;
+
+    /**
      * Google Cloud API key that should be used for generative AI.
      */
     apiKey: string;
+
+    /**
+     * Options to consider when the Gemini Enterprise API is being used.
+     */
+    googleCloud: {
+        /**
+         * Credentials that should be used when authenticating.
+         */
+        credentials: string;
+
+        /**
+         * Location from which the API should be consumed, if any.
+         */
+        location?: string;
+
+        /**
+         * Google Cloud Project ID.
+         */
+        project: string;
+    };
 
     /**
      * Model selection controlling which models should be used for different use cases.
@@ -185,10 +215,27 @@ export class Client {
     #settings: ClientSettings;
 
     constructor(settings: ClientSettings) {
-        this.#ai = new GoogleGenAI({
-            apiKey: settings.apiKey,
-        });
+        let options: GoogleGenAIOptions;
+        switch (settings.api) {
+            case 'Gemini':
+                options = {
+                    apiKey: settings.apiKey,
+                };
+                break;
 
+            case 'GeminiEnterprise':
+                options = {
+                    enterprise: true,
+                    googleAuthOptions: {
+                        credentials: JSON.parse(settings.googleCloud.credentials),
+                    },
+                    location: settings.googleCloud.location,
+                    project: settings.googleCloud.project,
+                };
+                break;
+        }
+
+        this.#ai = new GoogleGenAI(options);
         this.#settings = settings;
     }
 

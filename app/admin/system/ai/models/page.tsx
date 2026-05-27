@@ -10,7 +10,7 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { TextGenerationThinkingLevel } from '@lib/integrations/genai/Client';
+import type { GeminiApi, TextGenerationThinkingLevel } from '@lib/integrations/genai/Client';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GeminiModelSelect } from './GeminiModelSelect';
 import { ModelPlayground } from './ModelPlayground';
@@ -20,6 +20,14 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
 
 import * as actions from '../AiActions';
+
+/**
+ * Labels for the specific Gemini API that should be used by the system.
+ */
+const kGeminiApiOptions: { id: GeminiApi, label: string }[] = [
+    { id: 'Gemini', label: 'Gemini' },
+    { id: 'GeminiEnterprise', label: 'Gemini Enterprise' },
+];
 
 /**
  * Labels for the degree of thinking the model is expected to do.
@@ -44,6 +52,7 @@ export default async function ModelsAiPage() {
 
     const settings = await readSettings([
         'ai-setting-gemini-api-key',
+        'ai-setting-gemini-api',
         'ai-setting-image-model',
         'ai-setting-text-model-high',
         'ai-setting-text-model-low',
@@ -62,6 +71,7 @@ export default async function ModelsAiPage() {
         textModelLow: settings['ai-setting-text-model-low'] ?? kDefaultTextModel,
         textModelMedium: settings['ai-setting-text-model-medium'] ?? kDefaultTextModel,
         geminiApiKey: settings['ai-setting-gemini-api-key'],
+        geminiApi: settings['ai-setting-gemini-api'],
 
         temperature: settings['ai-setting-temperature'] ?? 0,
         thinkingLevel: settings['ai-setting-thinking-level'] ?? 'medium',
@@ -105,11 +115,12 @@ export default async function ModelsAiPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    Interface
+                    <SelectElement name="geminiApi" label="Gemini API" size="small" fullWidth
+                                   options={kGeminiApiOptions} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SelectElement name="thinkingLevel" label="Thinking level" size="small"
-                                   fullWidth options={kThinkingLevelOptions} sx={{ mt: 0.25 }} />
+                                   fullWidth options={kThinkingLevelOptions} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SliderElement name="temperature" label="Temperature" size="small"

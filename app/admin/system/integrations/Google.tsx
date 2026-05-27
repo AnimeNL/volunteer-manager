@@ -21,8 +21,10 @@ import { callApi } from '@lib/callApi';
  * @see https://cloud.google.com/vertex-ai/docs/general/locations#europe
  */
 const kLocationOptions = [
+    { id: 'eu', label: 'Europe (multi-region)' },
     { id: 'europe-west2', label: 'London (europe-west2)' },
     { id: 'europe-west4', label: 'Amsterdam (europe-west4)' },
+    { id: 'us', label: 'United States (multi-region)' },
     { id: 'us-central1', label: 'Iowa (us-central1)' },
     { id: 'us-west1', label: 'Oregon (us-west1)' },
 ];

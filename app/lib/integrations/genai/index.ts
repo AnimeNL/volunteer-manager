@@ -11,6 +11,7 @@ import { readSettings } from '@lib/Settings';
 export async function createAiClient(partialSettings?: Partial<ClientSettings>) {
     const configuration = await readSettings([
         'ai-setting-gemini-api-key',
+        'ai-setting-gemini-api',
         'ai-setting-image-model',
         'ai-setting-temperature',
         'ai-setting-text-model-high',
@@ -18,6 +19,9 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
         'ai-setting-text-model-medium',
         'ai-setting-thinking-level',
         'ai-setting-top-p',
+        'integration-google-credentials',
+        'integration-google-location',
+        'integration-google-project-id',
     ]);
 
     for (const [ key, value ] of Object.entries(configuration)) {
@@ -28,7 +32,13 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
     }
 
     return new Client({
+        api: configuration['ai-setting-gemini-api']!,
         apiKey: configuration['ai-setting-gemini-api-key']!,
+        googleCloud: {
+            credentials: configuration['integration-google-credentials']!,
+            location: configuration['integration-google-location'],
+            project: configuration['integration-google-project-id']!,
+        },
         models: {
             image: configuration['ai-setting-image-model']!,
             text: {
