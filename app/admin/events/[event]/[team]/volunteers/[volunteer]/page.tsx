@@ -376,11 +376,17 @@ export default async function EventVolunteerPage(
     return (
         <>
 
-            <VolunteerHeader canAccessAccountInformation={canAccessAccountInformation}
-                             canUpdateApplications={canUpdateApplications}
-                             canUpdateParticipation={canUpdateParticipation}
-                             canUpdateWithoutNotification={canUpdateWithoutNotification}
-                             event={event} team={team} volunteer={volunteer} user={user} />
+            <VolunteerHeader
+                canAccessAccountInformation={canAccessAccountInformation}
+                canUpdateApplications={canUpdateApplications}
+                canUpdateParticipation={canUpdateParticipation}
+                canUpdateWithoutNotification={canUpdateWithoutNotification}
+                event={event} team={team} volunteer={volunteer} user={user}
+                cancelParticipationFn={
+                    actions.cancelParticipation.bind(null, volunteer.userId, event.id, team.id) }
+                reinstateParticipationFn={
+                    actions.reinstateParticipation.bind(null, volunteer.userId, event.id, team.id) }
+            />
 
             <VolunteerIdentity event={event.slug} teamId={team.id} userId={volunteer.userId}
                                contactInfo={contactInfo} volunteer={volunteer} />

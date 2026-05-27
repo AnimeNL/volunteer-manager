@@ -31,6 +31,11 @@ type CommunicationButtonProps<T extends CommunicationPromptId = CommunicationPro
      * @default "small"
      */
     size?: 'small' | 'medium' | 'large';
+
+    /**
+     * Icon to display before the label. Optional.
+     */
+    startIcon?: React.ReactNode;
 }
 
 /**
@@ -43,7 +48,7 @@ type CommunicationButtonProps<T extends CommunicationPromptId = CommunicationPro
 export function CommunicationButton<T extends CommunicationPromptId = CommunicationPromptId>(
     props: React.PropsWithChildren<CommunicationButtonProps<T>>)
 {
-    let { disabled, label, size, ...communicationDialogProps } = props;
+    let { disabled, label, size, startIcon, ...communicationDialogProps } = props;
 
     size ??= 'small';
 
@@ -58,7 +63,7 @@ export function CommunicationButton<T extends CommunicationPromptId = Communicat
 
     return (
         <>
-            <Button disabled={disabled} onClick={handleOpen} size={size}>
+            <Button disabled={disabled} onClick={handleOpen} size={size} startIcon={startIcon}>
                 {label}
             </Button>
             { !!openCounter &&
@@ -69,3 +74,4 @@ export function CommunicationButton<T extends CommunicationPromptId = Communicat
         </>
     );
 }
+

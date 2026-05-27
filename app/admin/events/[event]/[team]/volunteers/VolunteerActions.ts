@@ -12,8 +12,9 @@ import { getPublicEventsForFestival } from '@app/registration/[slug]/application
 import db, { tEvents, tHotelsPreferences, tRefunds, tTeams, tTrainingsAssignments, tUsersEvents } from '@lib/database';
 
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
-import { kShirtFit, kShirtSize } from '@lib/database/Types';
+import { kRegistrationStatus, kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
 /**
  * Returns context, sourced from the database, for a volunteer action with the following properties.
@@ -722,3 +723,162 @@ export async function updateTrainingPreferences(
         return { success: true };
     });
 }
+
+/**
+ * Server action that cancels a volunteer's participation.
+ */
+export async function cancelParticipation(
+    userId: number, eventId: number, teamId: number,
+    subject?: string, message?: string)
+{
+    'use server';
+    return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
+        const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
+
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: event.slug,
+            permission: {
+                permission: 'event.applications',
+                operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
+            },
+        });
+
+        const isSilent = !subject || !message;
+        if (isSilent && !props.access.can('organisation.silent')) {
+            return {
+                success: false,
+                error: 'You do not have permission to make changes without notification.',
+            };
+        }
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                registrationStatus: kRegistrationStatus.Cancelled,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(eventId))
+                .and(tUsersEvents.teamId.equals(teamId))
+            .executeUpdate(/* min= */ 0, /* max= */ 1);
+
+        if (!affectedRows)
+            return { success: false, error: 'Unable to cancel their participation in the database…' };
+
+        if (!isSilent) {
+            await sendCommunication({
+                sender: props.user,
+                recipient: userId,
+                subject,
+                message,
+                metadata: {
+                    eventId,
+                    teamId,
+                    promptId: 'participation-cancelled',
+                },
+            });
+        }
+
+        RecordLog({
+            type: kLogType.AdminUpdateTeamVolunteerStatus,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+            data: {
+                action: 'Cancelled',
+                event: event.shortName,
+                eventId, teamId,
+            },
+        });
+
+        return {
+            success: true,
+            refresh: true,
+            message: isSilent ? 'Their participation has been cancelled silently.'
+                              : 'The e-mail has been sent and their participation has been cancelled.',
+        };
+    });
+}
+
+/**
+ * Server action that reinstates a volunteer's participation.
+ */
+export async function reinstateParticipation(
+    userId: number, eventId: number, teamId: number,
+    subject?: string, message?: string)
+{
+    'use server';
+    return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
+        const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
+
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: event.slug,
+            permission: {
+                permission: 'event.applications',
+                operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
+            },
+        });
+
+        const isSilent = !subject || !message;
+        if (isSilent && !props.access.can('organisation.silent')) {
+            return {
+                success: false,
+                error: 'You do not have permission to make changes without notification.',
+            };
+        }
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                registrationStatus: kRegistrationStatus.Accepted,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(eventId))
+                .and(tUsersEvents.teamId.equals(teamId))
+            .executeUpdate(/* min= */ 0, /* max= */ 1);
+
+        if (!affectedRows)
+            return { success: false, error: 'Unable to reinstate their participation in the database…' };
+
+        if (!isSilent) {
+            await sendCommunication({
+                sender: props.user,
+                recipient: userId,
+                subject,
+                message,
+                metadata: {
+                    eventId,
+                    teamId,
+                    promptId: 'participation-reinstated',
+                },
+            });
+        }
+
+        RecordLog({
+            type: kLogType.AdminUpdateTeamVolunteerStatus,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+            data: {
+                action: 'Accepted',
+                event: event.shortName,
+                eventId, teamId,
+            },
+        });
+
+        return {
+            success: true,
+            refresh: true,
+            message: isSilent ? 'They have been reinstated silently.'
+                              : 'The e-mail has been sent and they have been reinstated.',
+        };
+    });
+}
+
