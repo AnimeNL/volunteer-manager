@@ -135,7 +135,6 @@ const kUpdateModelSettingsData = z.object({
 
     temperature: z.number().min(0).max(2),
     thinkingLevel: z.enum([ 'minimal', 'low', 'medium', 'high' ]),
-    topK: z.number().min(1).max(64),
     topP: z.number().min(0).max(1),
 });
 
@@ -158,7 +157,6 @@ export async function updateModelSettings(formData: unknown) {
             'ai-setting-text-model-medium': data.textModelMedium,
             'ai-setting-temperature': data.temperature,
             'ai-setting-thinking-level': data.thinkingLevel,
-            'ai-setting-top-k': data.topK,
             'ai-setting-top-p': data.topP,
         });
 

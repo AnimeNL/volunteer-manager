@@ -17,7 +17,6 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
         'ai-setting-text-model-low',
         'ai-setting-text-model-medium',
         'ai-setting-thinking-level',
-        'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
 
@@ -40,7 +39,6 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
         },
         quality: {
             temperature: configuration['ai-setting-temperature'],
-            topK: configuration['ai-setting-top-k'],
             topP: configuration['ai-setting-top-p'],
             thinkingLevel: configuration['ai-setting-thinking-level'],
         },

@@ -52,13 +52,6 @@ export interface ClientSettings {
         temperature?: number;
 
         /**
-         * For each token selection step, the `top_k` tokens with the highest probabilities are sampled.
-         * Then tokens are further filtered based on `top_p` with the final token selected using
-         * temperature sampling.
-         */
-        topK?: number;
-
-        /**
          * Tokens are selected from the most to least probable until the sum of their probabilities
          * equals this value.
          */
@@ -333,7 +326,6 @@ export class Client {
             config: {
                 candidateCount: /* fixed= */ 1,
                 temperature: this.#settings.quality.temperature,
-                topK: this.#settings.quality.topK,
                 topP: this.#settings.quality.topP,
                 systemInstruction: request.systemPrompt,
                 thinkingConfig: {

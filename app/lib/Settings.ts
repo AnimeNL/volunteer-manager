@@ -107,7 +107,6 @@ export type Settings = {
     'ai-setting-text-model-medium': AiSupportedModel;
     'ai-setting-thinking-level': TextGenerationThinkingLevel;
     'ai-setting-temperature': number;
-    'ai-setting-top-k': number;
     'ai-setting-top-p': number;
 
     // Personality:

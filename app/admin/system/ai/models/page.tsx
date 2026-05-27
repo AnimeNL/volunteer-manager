@@ -50,7 +50,6 @@ export default async function ModelsAiPage() {
         'ai-setting-text-model-medium',
         'ai-setting-temperature',
         'ai-setting-thinking-level',
-        'ai-setting-top-k',
         'ai-setting-top-p',
     ]);
 
@@ -66,7 +65,6 @@ export default async function ModelsAiPage() {
 
         temperature: settings['ai-setting-temperature'] ?? 0,
         thinkingLevel: settings['ai-setting-thinking-level'] ?? 'medium',
-        topK: settings['ai-setting-top-k'] ?? 0,
         topP: settings['ai-setting-top-p'] ?? 0,
     };
 
@@ -107,15 +105,15 @@ export default async function ModelsAiPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
+                    Interface
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <SelectElement name="thinkingLevel" label="Thinking level" size="small"
                                    fullWidth options={kThinkingLevelOptions} sx={{ mt: 0.25 }} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SliderElement name="temperature" label="Temperature" size="small"
                                    min={0} max={2} step={0.05} />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <SliderElement name="topK" label="Top K" size="small" min={1} max={64} />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SliderElement name="topP" label="Top P" size="small" min={0} max={1}
