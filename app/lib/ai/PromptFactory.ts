@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Prompt } from './Prompt';
+import type { Prompt, PromptType } from './Prompt';
 
 import * as prompts from './prompts';
 
@@ -26,10 +26,15 @@ type PromptConstructor = Constructor<Prompts>;
 type PromptId = Prompts['metadata']['id'];
 
 /**
+ * Unique IDs assigned to prompts with a particular type.
+ */
+export type PromptIdByType<T extends PromptType> =
+    Extract<Prompts, { metadata: { type: T } }>['metadata']['id'];
+
+/**
  * Unique IDs assigned to the communication prompts that exist within the Volunteer Manager.
  */
-export type CommunicationPromptId =
-    Extract<Prompts, { metadata: { type: 'Communication' } }>['metadata']['id'];
+export type CommunicationPromptId = PromptIdByType<'Communication'>;
 
 /**
  * Helper class that is able to quickly create a prompt by its ID, and return the constructor with

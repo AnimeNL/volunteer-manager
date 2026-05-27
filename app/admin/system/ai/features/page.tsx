@@ -30,7 +30,6 @@ export default async function AiFeaturesPage() {
     const availablePrompts = Object.values(prompts).map(promptConstructor => {
         const promptInstance = new promptConstructor();
         return {
-            name: promptConstructor.name,
             metadata: promptInstance.metadata,
         };
     }).filter(({ metadata }) => { return metadata.type === 'Feature'
@@ -39,11 +38,11 @@ export default async function AiFeaturesPage() {
     return (
         <Stack direction="column" spacing={2}>
             <List disablePadding dense>
-                { availablePrompts.map(({ name, metadata }) =>
+                { availablePrompts.map(({ metadata }) =>
                     <ListItemButton key={metadata.id} LinkComponent={Link}
                                     href={`./features/${metadata.id}`}>
                         <ListItemIcon sx={{ width: 40 }}>
-                            <PromptIcon id={name as keyof typeof prompts} />
+                            <PromptIcon id={metadata.id} />
                         </ListItemIcon>
                         <ListItemText primary={metadata.label}
                                         secondary={metadata.description} />

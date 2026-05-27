@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
 import BedIcon from '@mui/icons-material/Bed';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
@@ -18,72 +16,67 @@ import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import ThumbDownOutlinedIcon from '@mui/icons-material/ThumbDownOutlined';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 
-import type * as prompts from '@lib/ai/prompts';
-
-/**
- * Unique ID of the prompt, used to make the switch case complete.
- */
-type PromptId = keyof typeof prompts;
+import type { PromptIdByType } from '@lib/ai/PromptFactory';
 
 /**
  * Displays one of the prompt icons. This is implemented as a client component as Next.js somehow
  * managed to optimise away the icon, which is not the intended effect.
  */
-export function PromptIcon(props: { id: PromptId }) {
+export function PromptIcon(props: { id: PromptIdByType<any> }) {
     switch (props.id) {
         // -----------------------------------------------------------------------------------------
         // Communication:
         // -----------------------------------------------------------------------------------------
 
-        case 'ApplicationApprovedPrompt':
+        case 'application-approved':
             return <ThumbUpOutlinedIcon color="primary" />;
 
-        case 'ApplicationRejectedPrompt':
+        case 'application-rejected':
             return <ThumbDownOutlinedIcon color="primary" />;
 
-        case 'EventDatesAnnouncedPrompt':
+        case 'event-dates-announced':
             return <CampaignIcon color="primary" />;
 
-        case 'EventHotelsAnnouncedPrompt':
+        case 'event-hotels-announced':
             return <HotelIcon color="primary" />;
 
-        case 'EventTrainingsAnnouncedPrompt':
+        case 'event-trainings-announced':
             return <HistoryEduIcon color="primary" />;
 
-        case 'HotelConfirmationPrompt':
+        case 'hotel-confirmation':
             return <BedIcon color="primary" />;
 
-        case 'ParticipationCancelledPrompt':
+        case 'participation-cancelled':
             return <CancelOutlinedIcon color="primary" />;
 
-        case 'ParticipationReinstatedPrompt':
+        case 'participation-reinstated':
             return <SettingsBackupRestoreIcon color="primary" />;
 
-        case 'ParticipationReminderPrompt':
+        case 'participation-reminder':
             return <RepeatIcon color="primary" />;
 
-        case 'TeamChangePrompt':
+        case 'team-change':
             return <ChangeCircleOutlinedIcon color="primary" />;
 
         // -----------------------------------------------------------------------------------------
         // Features:
         // -----------------------------------------------------------------------------------------
 
-        case 'DutyBookSummaryPrompt':
+        case 'duty-book-summary-prompt':
             return <SummarizeOutlinedIcon color="primary" />;
 
-        case 'IncidentSummaryPrompt':
+        case 'incident-summary-prompt':
             return <FlagOutlinedIcon color="primary" />;
 
-        case 'PersonalityDescriptionPrompt':
+        case 'personality-description-prompt':
             return <DrawIcon color="primary" />;
 
         // -----------------------------------------------------------------------------------------
         // Internal:
         // -----------------------------------------------------------------------------------------
 
-        case 'NardoPersonalisedAdvicePrompt':
-        case 'SystemPrompt':
+        case 'nardo-personalised-advice':
+        case 'system-prompt':
             break;
     }
 

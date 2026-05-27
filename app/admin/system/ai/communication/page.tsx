@@ -61,7 +61,6 @@ export default async function CommunicationAiPage() {
     const availablePrompts = Object.values(prompts).map(promptConstructor => {
         const promptInstance = new promptConstructor();
         return {
-            name: promptConstructor.name,
             metadata: promptInstance.metadata,
         };
     }).filter(({ metadata }) => { return metadata.type === 'Communication'
@@ -80,11 +79,11 @@ export default async function CommunicationAiPage() {
         <>
             <Stack direction="column" spacing={2} sx={{ mb: 2 }}>
                 <List disablePadding dense>
-                    { availablePrompts.map(({ name, metadata }) =>
+                    { availablePrompts.map(({ metadata }) =>
                         <ListItemButton key={metadata.id} LinkComponent={Link}
                                         href={`./communication/${metadata.id}`}>
                             <ListItemIcon sx={{ width: 40 }}>
-                                <PromptIcon id={name as keyof typeof prompts} />
+                                <PromptIcon id={metadata.id} />
                             </ListItemIcon>
                             <ListItemText primary={metadata.label}
                                           secondary={metadata.description} />
