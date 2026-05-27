@@ -7,7 +7,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { VolunteerRowModel } from './page';
-import { CommunicationButton } from '@app/admin/components/CommunicationDialog';
+import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import type { ServerActionResult } from '@lib/serverAction';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 
@@ -57,7 +57,7 @@ export function CommunicationCell(
     const { action, eventId, eventName, teamId } = props.context!;
 
     return (
-        <CommunicationButton
+        <CommunicationIconButton
             title={`Update ${props.row.firstName} about ${eventName}?`}
             action={action.bind(null, props.row.id)}
             disableSilent
@@ -87,6 +87,6 @@ export function CommunicationCell(
             Send <strong>{props.row.firstName}</strong> an update about their
             participation in {eventName}.
 
-        </CommunicationButton>
+        </CommunicationIconButton>
     );
 }

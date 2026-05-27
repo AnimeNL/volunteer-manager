@@ -15,9 +15,9 @@ import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { CommunicationDialog, type CommunicationDialogProps } from './CommunicationDialog';
 
 /**
- * Props accepted by the <CommunicationButton> component.
+ * Props accepted by the <CommunicationIconButton> component.
  */
-type CommunicationButtonProps<T extends CommunicationPromptId = CommunicationPromptId> =
+type CommunicationIconButtonProps<T extends CommunicationPromptId = CommunicationPromptId> =
     Omit<CommunicationDialogProps<T>, 'onClose' | 'open'> & {
     /**
      * Which badge to display on top of the button, if any. "check" will display a small checked
@@ -49,14 +49,14 @@ type CommunicationButtonProps<T extends CommunicationPromptId = CommunicationPro
 }
 
 /**
- * The <CommunicationButton> component displays an <IconButton> with an e-mail icon and optionally
- * a badge that, upon being activated, will start the <CommunicationDialog> flow.
+ * The <CommunicationIconButton> component displays an <IconButton> with an e-mail icon and
+ * optionally a badge that, upon being activated, will start the <CommunicationDialog> flow.
  *
  * The dialog will only be mounted when the button has been clicked at least once, under the
  * assumption that more than a single button is likely to be displayed on each page.
  */
-export function CommunicationButton<T extends CommunicationPromptId = CommunicationPromptId>(
-    props: React.PropsWithChildren<CommunicationButtonProps<T>>)
+export function CommunicationIconButton<T extends CommunicationPromptId = CommunicationPromptId>(
+    props: React.PropsWithChildren<CommunicationIconButtonProps<T>>)
 {
     let { badge, disabled, size, tooltip, ...communicationDialogProps } = props;
 

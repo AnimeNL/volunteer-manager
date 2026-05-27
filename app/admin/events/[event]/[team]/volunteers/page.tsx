@@ -37,7 +37,7 @@ import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
 /**
- * Server Action that will be invoked by the <CommunicationButton> component when a communication
+ * Server Action that will be invoked by the <CommunicationIconButton> component when a message
  * should be send on the user's behalf. All input should be treated as untrusted until verified.
  */
 async function sendCommunicationToVolunteer(

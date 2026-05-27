@@ -7,12 +7,12 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 
-import { CommunicationButton } from '@app/admin/components/CommunicationDialog';
+import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
- * Server Action that can be used with <CommunicationButton> to indicate a successful response.
+ * Server Action that can be used with <CommunicationIconButton> to indicate a successful response.
  */
 async function commit(
     scenario: 'close' | 'failure' | 'refresh' | 'success', subject?: string, message?: string)
@@ -60,7 +60,7 @@ export default function CommunicationPage() {
     return (
         <Section title="Communication">
             <SectionIntroduction>
-                This is an example page for the new {'<'}CommunicationButton{'>'} component.
+                This is an example page for the new {'<'}CommunicationIconButton{'>'} component.
             </SectionIntroduction>
             <Table sx={{ mt: '0px !important' }}>
                 <TableHead>
@@ -74,18 +74,18 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ApplicationApprovedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Approve Emma's application"
-                                                 language="Dutch"
-                                                 action={commitSuccess}
-                                                 promptId="application-approved"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Approve Emma's application"
+                                                     language="Dutch"
+                                                     action={commitSuccess}
+                                                     promptId="application-approved"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={1}>
                                 Send an e-mail to <strong>Emma</strong> about approving their
                                 application to help out.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ preferred language, successful commit</em>
@@ -94,18 +94,18 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ApplicationRejectedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Reject Doug's application"
-                                                 badge="check"
-                                                 action={commitClose}
-                                                 promptId="application-rejected"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={4}>
+                            <CommunicationIconButton title="Reject Doug's application"
+                                                     badge="check"
+                                                     action={commitClose}
+                                                     promptId="application-rejected"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={4}>
                                 Send an e-mail to <strong>Doug</strong> about rejecting their
                                 application to help out.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ check badge, auto-closes the dialog</em>
@@ -114,19 +114,19 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>EventDatesAnnouncedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Announce AnimeCon 2027 dates"
-                                                 language="Dutch"
-                                                 badge="warning"
-                                                 action={commitSuccess}
-                                                 promptId="event-dates-announced"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Announce AnimeCon 2027 dates"
+                                                     language="Dutch"
+                                                     badge="warning"
+                                                     action={commitSuccess}
+                                                     promptId="event-dates-announced"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={1}>
                                 Send a <em>save the date</em> e-mail to <strong>Roger</strong> about
                                 AnimeCon 2027.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ preferred language, warnings badge, successful commit</em>
@@ -135,17 +135,17 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>EventHotelsAnnouncedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Announce hotel information"
-                                                 action={commitFailure}
-                                                 promptId="event-hotels-announced"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Announce hotel information"
+                                                     action={commitFailure}
+                                                     promptId="event-hotels-announced"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={1}>
                                 Send an e-mail to <strong>David</strong> about hotel information
                                 having been published.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ failed commit</em>
@@ -154,17 +154,17 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>EventTrainingsAnnouncedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Announce training information"
-                                                 action={commitSuccess}
-                                                 promptId="event-trainings-announced"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Announce training information"
+                                                     action={commitSuccess}
+                                                     promptId="event-trainings-announced"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={1}>
                                 Send an e-mail to <strong>Anita</strong> about training information
                                 having been published.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ successful commit</em>
@@ -173,18 +173,18 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ParticipationCancelledPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Cancel Anna's participation"
-                                                 badge="warning"
-                                                 action={commitClose}
-                                                 promptId="participation-cancelled"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={3}>
+                            <CommunicationIconButton title="Cancel Anna's participation"
+                                                     badge="warning"
+                                                     action={commitClose}
+                                                     promptId="participation-cancelled"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={3}>
                                 Send an e-mail to <strong>Anna</strong> about their participation
                                 having been cancelled.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ warning badge, auto-closes the dialog</em>
@@ -193,18 +193,18 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ParticipationReinstatedPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Reinstate Marvin's participation"
-                                                 badge="check"
-                                                 action={commitFailure}
-                                                 promptId="participation-reinstated"
-                                                 promptParams={{
-                                                    eventId: 15,
-                                                    teamId: 1,
-                                                 }}
-                                                 recipientId={3}>
+                            <CommunicationIconButton title="Reinstate Marvin's participation"
+                                                     badge="check"
+                                                     action={commitFailure}
+                                                     promptId="participation-reinstated"
+                                                     promptParams={{
+                                                         eventId: 15,
+                                                         teamId: 1,
+                                                     }}
+                                                     recipientId={3}>
                                 Send an e-mail to <strong>Marvin</strong> about their participation
                                 having been reinstated.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ success badge, fails the commit</em>
@@ -213,18 +213,18 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>ParticipationReminderPrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Remind John to participate"
-                                                 language="English"
-                                                 action={commitSuccess}
-                                                 promptId="participation-reminder"
-                                                 promptParams={{
-                                                    eventId: 16,
-                                                    teamId: 2,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Remind John to participate"
+                                                     language="English"
+                                                     action={commitSuccess}
+                                                     promptId="participation-reminder"
+                                                     promptParams={{
+                                                         eventId: 16,
+                                                         teamId: 2,
+                                                     }}
+                                                     recipientId={1}>
                                 Send an e-mail to <strong>John</strong> to invite them to help out
                                 with AnimeCon 2027.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ preferred language, successful commit</em>
@@ -233,19 +233,19 @@ export default function CommunicationPage() {
                     <TableRow sx={{ '& td': { borderBottomColor: 'black' } }}>
                         <TableCell>TeamChangePrompt</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Tell Max about the team change"
-                                                 badge="warning"
-                                                 action={commitRefresh}
-                                                 promptId="team-change"
-                                                 promptParams={{
-                                                    eventId: 16,
-                                                    oldTeamId: 1,
-                                                    newTeamId: 2,
-                                                 }}
-                                                 recipientId={1}>
+                            <CommunicationIconButton title="Tell Max about the team change"
+                                                     badge="warning"
+                                                     action={commitRefresh}
+                                                     promptId="team-change"
+                                                     promptParams={{
+                                                         eventId: 16,
+                                                         oldTeamId: 1,
+                                                         newTeamId: 2,
+                                                     }}
+                                                     recipientId={1}>
                                 Send an e-mail to <strong>Max</strong> about having moved them to a
                                 new team.
-                            </CommunicationButton>
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ state refresh, successful commit</em>
@@ -254,40 +254,43 @@ export default function CommunicationPage() {
                     <TableRow>
                         <TableCell>Multiple prompts</TableCell>
                         <TableCell>
-                            <CommunicationButton title="Update Sagar about AnimeCon 2027"
-                                                 disableSilent
-                                                 action={commitSuccess}
-                                                 prompts={[
-                                                     {
-                                                         promptId: 'event-dates-announced',
-                                                         promptParams: {
-                                                             eventId: 15,
-                                                             teamId: 1,
-                                                         },
-                                                         title: 'Announce festival dates',
-                                                     },
-                                                     {
-                                                         promptId: 'event-hotels-announced',
-                                                         promptParams: {
-                                                             eventId: 15,
-                                                             teamId: 1,
-                                                         },
-                                                         title: 'Announce hotel information',
-                                                         mostRecentCommunication:
-                                                            '2026-05-01T20:56:11[Europe/London]',
-                                                     },
-                                                     {
-                                                         promptId: 'event-trainings-announced',
-                                                         promptParams: {
-                                                             eventId: 15,
-                                                             teamId: 1,
-                                                         },
-                                                         title: 'Announce training information',
-                                                     }
-                                                 ]}
-                                                 recipientId={1}>
+                            <CommunicationIconButton
+                                title="Update Sagar about AnimeCon 2027"
+                                disableSilent
+                                action={commitSuccess}
+                                prompts={[
+                                    {
+                                        promptId: 'event-dates-announced',
+                                        promptParams: {
+                                            eventId: 15,
+                                            teamId: 1,
+                                        },
+                                        title: 'Announce festival dates',
+                                    },
+                                    {
+                                        promptId: 'event-hotels-announced',
+                                        promptParams: {
+                                            eventId: 15,
+                                            teamId: 1,
+                                        },
+                                        title: 'Announce hotel information',
+                                        mostRecentCommunication:
+                                        '2026-05-01T20:56:11[Europe/London]',
+                                    },
+                                    {
+                                        promptId: 'event-trainings-announced',
+                                        promptParams: {
+                                            eventId: 15,
+                                            teamId: 1,
+                                        },
+                                        title: 'Announce training information',
+                                    }
+                                ]}
+                                recipientId={1}>
+
                                 Send an update about AnimeCon 2027 to <strong>Sagar</strong>.
-                            </CommunicationButton>
+
+                            </CommunicationIconButton>
                         </TableCell>
                         <TableCell>
                             <em>w/ prompt selection, disable silent</em>
