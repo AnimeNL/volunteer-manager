@@ -132,7 +132,12 @@ export type DataTableClientProps<
     Omit<DataTableClientCommonProps<Interface> &
     (
         [Context] extends [never]
-            ? { /* no additional props */ }
+            ? {
+                  /**
+                   * Context necessary to bind the interface to the specific use.
+                   */
+                  context?: never;
+              }
             : {
                   /**
                    * Context necessary to bind the interface to the specific use.
@@ -155,7 +160,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // Use memoized versions of certain props that would excessively invalidate the component tree.
     // ---------------------------------------------------------------------------------------------
 
-    const context = useMemo(() => 'context' in props ? props.context : {}, [ props ]);
+    const context = useMemo(() => props.context ?? {}, [ props.context ]);
     const estimatedListViewRowHeight =
         useMemo(() => calculateListViewRowHeight(props.listViewProps), [ props.listViewProps ]);
 
