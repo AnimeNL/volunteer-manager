@@ -26,13 +26,27 @@ type PromptConditionPart =
     { type: 'string', value: string };
 
 /**
- * Available conditions that the compile function is able to tokenize from a prompt.
+ * Simple comparison prompt condition.
  */
-type PromptCondition = {
+type SimplePromptCondition = {
     operator: PromptConditionOperator;
     lhs: PromptConditionPart;
     rhs: PromptConditionPart;
 };
+
+/**
+ * Compound logical prompt condition.
+ */
+type CompoundPromptCondition = {
+    logicalOperator: 'and' | 'or';
+    left: PromptCondition;
+    right: PromptCondition;
+};
+
+/**
+ * Available conditions that the compile function is able to tokenize from a prompt.
+ */
+type PromptCondition = SimplePromptCondition | CompoundPromptCondition;
 
 /**
  * Available directives that the compile function is able to tokenize a prompt into.
@@ -201,9 +215,69 @@ export class PromptTemplate {
     }
 
     /**
+     * Finds the first logical operator ("and" or "or") in the raw condition string,
+     * respecting string literal boundaries and requiring word-boundary whitespace around it.
+     */
+    private static findLogicalOperator(rawCondition: string)
+        : { operator: 'and' | 'or', index: number } | undefined
+    {
+        let inDoubleQuote = false;
+        let inSingleQuote = false;
+
+        for (let index = 0; index < rawCondition.length; ++index) {
+            if (rawCondition[index] === '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (rawCondition[index] === '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+
+            if (inDoubleQuote || inSingleQuote)
+                continue;
+
+            const isWhitespace = (c: string) => c !== undefined && /\s/.test(c);
+
+            // Check for "and"
+            if (rawCondition.substring(index, index + 3) === 'and') {
+                const prevChar = rawCondition[index - 1];
+                const nextChar = rawCondition[index + 3];
+                if (isWhitespace(prevChar) && isWhitespace(nextChar)) {
+                    return { operator: 'and', index };
+                }
+            }
+
+            // Check for "or"
+            if (rawCondition.substring(index, index + 2) === 'or') {
+                const prevChar = rawCondition[index - 1];
+                const nextChar = rawCondition[index + 2];
+                if (isWhitespace(prevChar) && isWhitespace(nextChar)) {
+                    return { operator: 'or', index };
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
      * Compiles the given |rawCondition| into a prompt condition. Six operators are available.
      */
     private static compileCondition(rawCondition: string): PromptCondition {
+        const logicalOp = PromptTemplate.findLogicalOperator(rawCondition);
+        if (logicalOp) {
+            const leftRaw = rawCondition.substring(0, logicalOp.index).trim();
+            const rightRaw =
+                rawCondition.substring(logicalOp.index + logicalOp.operator.length).trim();
+
+            return {
+                logicalOperator: logicalOp.operator,
+                left: PromptTemplate.compileCondition(leftRaw),
+                right: PromptTemplate.compileCondition(rightRaw),
+            };
+        }
+
         const kOperators: { [k: string]: PromptConditionOperator } = {
             '==': 'eq',
             '!=': 'ne',
@@ -390,6 +464,21 @@ export class PromptTemplate {
             errors.push('Found one or more unclosed condition blocks.');
     }
 
+    /**
+     * Recursively collects parameter names from a PromptCondition.
+     */
+    private static collectConditionParameters(condition: PromptCondition, parameters: Set<string>) {
+        if ('logicalOperator' in condition) {
+            PromptTemplate.collectConditionParameters(condition.left, parameters);
+            PromptTemplate.collectConditionParameters(condition.right, parameters);
+        } else {
+            if (condition.lhs.type === 'parameter')
+                parameters.add(condition.lhs.value);
+            if (condition.rhs.type === 'parameter')
+                parameters.add(condition.rhs.value);
+        }
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     readonly #errors: string[];
@@ -406,10 +495,7 @@ export class PromptTemplate {
                 continue;
 
             if ('condition' in token) {
-                if (token.condition.lhs.type === 'parameter')
-                    parameters.add(token.condition.lhs.value);
-                if (token.condition.rhs.type === 'parameter')
-                    parameters.add(token.condition.rhs.value);
+                PromptTemplate.collectConditionParameters(token.condition, parameters);
             }
 
             if ('parameter' in token)
@@ -462,9 +548,7 @@ export class PromptTemplate {
             switch (token.directive) {
                 case 'conditionStart':
                 case 'conditionElseIf': {
-                    const lhs = this.evaluateResolveConditionPart(token.condition, 'lhs', args);
-                    const rhs = this.evaluateResolveConditionPart(token.condition, 'rhs', args);
-                    const result = this.evaluateCondition(token.condition.operator, lhs, rhs);
+                    const result = this.evaluateConditionExpression(token.condition, args);
 
                     if (token.directive === 'conditionStart') {
                         conditionStack.push([ result, result ]);
@@ -497,6 +581,29 @@ export class PromptTemplate {
         }
 
         return result.join('');
+    }
+
+    /**
+     * Recursively evaluates the given |condition| to a boolean value.
+     */
+    private evaluateConditionExpression(condition: PromptCondition, args?: PromptParameters)
+        : boolean
+    {
+        if ('logicalOperator' in condition) {
+            const leftResult = this.evaluateConditionExpression(condition.left, args);
+            const rightResult = this.evaluateConditionExpression(condition.right, args);
+
+            if (condition.logicalOperator === 'and') {
+                return leftResult && rightResult;
+            } else {
+                return leftResult || rightResult;
+            }
+        }
+
+        const lhs = this.evaluateResolveConditionPart(condition, 'lhs', args);
+        const rhs = this.evaluateResolveConditionPart(condition, 'rhs', args);
+
+        return this.evaluateCondition(condition.operator, lhs, rhs);
     }
 
     /**
@@ -552,7 +659,7 @@ export class PromptTemplate {
      * reference to a parameter that has to be resolved.
      */
     private evaluateResolveConditionPart(
-        condition: PromptCondition, side: 'lhs' | 'rhs', args?: PromptParameters)
+        condition: SimplePromptCondition, side: 'lhs' | 'rhs', args?: PromptParameters)
     {
         switch (condition[side].type) {
             case 'boolean':

@@ -491,6 +491,21 @@ describe('PromptTemplate', () => {
             expect(template.evaluate({ a: false, b: true, c: false })).toBe('b');
             expect(template.evaluate({ a: false, b: true, c: true })).toBe('b');
         }
+        {
+            const template = PromptTemplate.compile(
+                '[[if first]]first[[elif a and b]]compound-elif[[else]]other[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(3);
+            expect(template.parameters[0]).toBe('a');
+            expect(template.parameters[1]).toBe('b');
+            expect(template.parameters[2]).toBe('first');
+
+            expect(template.evaluate({ first: true })).toBe('first');
+            expect(template.evaluate({ first: false, a: true, b: true })).toBe('compound-elif');
+            expect(template.evaluate({ first: false, a: true, b: false })).toBe('other');
+            expect(template.evaluate({ first: false, a: false, b: true })).toBe('other');
+            expect(template.evaluate({ first: false, a: false, b: false })).toBe('other');
+        }
     });
 
     it('should ignore whitespace in the middle of directives', () => {
@@ -577,6 +592,84 @@ describe('PromptTemplate', () => {
         expect(template.ok).toBeTruthy();
 
         expect(template.evaluate()).toBe('true');
+    });
+
+    it('should support compound conditionals separated by and/or', () => {
+        // Simple "and" boolean check
+        {
+            const template = PromptTemplate.compile('[[if a and b]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(2);
+            expect(template.parameters[0]).toBe('a');
+            expect(template.parameters[1]).toBe('b');
+
+            expect(template.evaluate({ a: true, b: true })).toBe('yes');
+            expect(template.evaluate({ a: true, b: false })).toBe('no');
+            expect(template.evaluate({ a: false, b: true })).toBe('no');
+            expect(template.evaluate({ a: false, b: false })).toBe('no');
+        }
+
+        // Simple "or" boolean check
+        {
+            const template = PromptTemplate.compile('[[if a or b]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(2);
+
+            expect(template.evaluate({ a: true, b: true })).toBe('yes');
+            expect(template.evaluate({ a: true, b: false })).toBe('yes');
+            expect(template.evaluate({ a: false, b: true })).toBe('yes');
+            expect(template.evaluate({ a: false, b: false })).toBe('no');
+        }
+
+        // Variable comparison separated by "or"
+        {
+            const template = PromptTemplate.compile(
+                '[[if var >= 24 or anotherVar >= 10]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(2);
+            expect(template.parameters[0]).toBe('anotherVar');
+            expect(template.parameters[1]).toBe('var');
+
+            expect(template.evaluate({ var: 25, anotherVar: 5 })).toBe('yes');
+            expect(template.evaluate({ var: 20, anotherVar: 12 })).toBe('yes');
+            expect(template.evaluate({ var: 20, anotherVar: 5 })).toBe('no');
+        }
+
+        // Logical operator with multiple whitespaces
+        {
+            const template = PromptTemplate.compile('[[if a   and    b]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.evaluate({ a: true, b: true })).toBe('yes');
+            expect(template.evaluate({ a: true, b: false })).toBe('no');
+        }
+
+        // Logical operator in quotes should not trigger compound parsing
+        {
+            const template = PromptTemplate.compile('[[if "and" == "and"]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(0);
+            expect(template.evaluate()).toBe('yes');
+        }
+
+        // Operator name as part of variable name should not trigger compound parsing
+        {
+            const template = PromptTemplate.compile('[[if android]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(1);
+            expect(template.parameters[0]).toBe('android');
+            expect(template.evaluate({ android: true })).toBe('yes');
+            expect(template.evaluate({ android: false })).toBe('no');
+        }
+
+        // Multiple compound conditionals (left-to-right evaluation)
+        {
+            const template = PromptTemplate.compile('[[if a and b or c]]yes[[else]]no[[/if]]');
+            expect(template.ok).toBeTruthy();
+            expect(template.parameters).toHaveLength(3);
+            expect(template.evaluate({ a: true, b: false, c: true })).toBe('yes');
+            expect(template.evaluate({ a: true, b: true, c: false })).toBe('yes');
+            expect(template.evaluate({ a: false, b: false, c: false })).toBe('no');
+        }
     });
 
     it('should be able to recognise and reject on invalid directives', () => {
