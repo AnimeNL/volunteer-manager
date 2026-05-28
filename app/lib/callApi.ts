@@ -12,7 +12,6 @@ import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyB
 import type { DutyBookReportDefinition } from '@app/api/event/schedule/dutyBookReport';
 import type { ErrorDefinition } from '@app/api/error/route';
 import type { ExportsDefinition } from '@app/api/exports/route';
-import type { GeneratePromptDefinition } from '@app/api/ai/generatePrompt';
 import type { GetScheduleDefinition } from '@app/api/admin/event/schedule/getSchedule';
 import type { HelpRequestDefinition } from '@app/api/display/help-request/route';
 import type { HotelsDefinition } from '@app/api/event/hotels/[event]/route';
@@ -34,7 +33,6 @@ import type { SignOutDefinition } from '@app/api/auth/signOut';
 import type { SubmitFeedbackDefinition } from '@app/api/event/schedule/submitFeedback';
 import type { TrainingsDefinition } from '@app/api/event/trainings/[event]/route';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
-import type { UpdateAiSettingsDefinition } from '@app/api/ai/updateSettings';
 import type { UpdateApplicationDefinition } from '@app/api/application/updateApplication';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateEventDefinition } from '@app/api/admin/updateEvent';
@@ -167,7 +165,6 @@ export type ApiEndpoints = {
         '/api/admin/volunteer-contact-info': VolunteerContactInfoDefinition,
         '/api/admin/volunteer-roles': VolunteerRolesDefinition,
         '/api/admin/volunteer-teams': VolunteerTeamsDefinition,
-        '/api/ai/generate/:type': GeneratePromptDefinition,
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,
         '/api/auth/passkeys/create-challenge': CreateChallengeDefinition,
         '/api/auth/passkeys/register': RegisterPasskeyDefinition,
@@ -238,7 +235,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],
         '/api/admin/vendors/schedule': UpdateVendorScheduleDefinition,
         '/api/admin/vendors/:id': VendorEndpoints['update'],
-        '/api/ai/settings': UpdateAiSettingsDefinition,
         '/api/application/:event/:team/:userId': UpdateApplicationDefinition,
         '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,

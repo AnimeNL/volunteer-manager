@@ -110,18 +110,6 @@ export type Settings = {
     'ai-setting-temperature': number;
     'ai-setting-top-p': number;
 
-    // Personality:
-    'gen-ai-personality': string;
-    'gen-ai-system-instruction': string;
-
-    // Intentions:
-    'gen-ai-intention-approve-volunteer': string;
-    'gen-ai-intention-cancel-participation': string;
-    'gen-ai-intention-change-team': string;
-    'gen-ai-intention-reinstate-participation': string;
-    'gen-ai-intention-reject-volunteer': string;
-    'gen-ai-intention-remind-participation': string;
-
     // Prompts:
     'gen-ai-prompt-del-a-rie-advies': string;
 

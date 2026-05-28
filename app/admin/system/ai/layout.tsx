@@ -27,11 +27,6 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
 
     const tabs: NavigationTabsProps['tabs'] = [
         {
-            icon: <QuestionAnswerOutlinedIcon />,
-            label: 'Dump',
-            url: '/admin/system/ai',
-        },
-        {
             icon: <ModelTrainingIcon />,
             label: 'Models',
             url: '/admin/system/ai/models',
