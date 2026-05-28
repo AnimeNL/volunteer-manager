@@ -143,10 +143,8 @@ export default async function EventVolunteerPage(
         'user-admin-volunteers-expand-shifts',
     ]);
 
-    const canAccessAccountInformation = access.can('organisation.accounts', 'read');
     const canUpdateApplications = access.can('event.applications', 'update', accessScope);
     const canUpdateParticipation = access.can('event.volunteers.participation', accessScope);
-    const canUpdateWithoutNotification = access.can('organisation.silent');
 
     // ---------------------------------------------------------------------------------------------
     // Section: Notes
@@ -377,10 +375,8 @@ export default async function EventVolunteerPage(
         <>
 
             <VolunteerHeader
-                canAccessAccountInformation={canAccessAccountInformation}
                 canUpdateApplications={canUpdateApplications}
                 canUpdateParticipation={canUpdateParticipation}
-                canUpdateWithoutNotification={canUpdateWithoutNotification}
                 event={event} team={team} volunteer={volunteer} user={user}
                 cancelParticipationFn={
                     actions.cancelParticipation.bind(null, volunteer.userId, event.id, team.id) }

@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { type FieldValues, SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
@@ -32,9 +32,9 @@ import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPag
 import type { User } from '@lib/auth/User';
 import type { VolunteerRolesDefinition } from '@app/api/admin/volunteerRoles';
 import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
-import { CommunicationButton } from '@app/admin/components/CommunicationDialog';
+import { AdminClientContext } from '@app/admin/AdminClientContext';
+import { CommunicationButton, CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
-import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
 import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
@@ -177,14 +177,19 @@ function ChangeRoleDialog(props: ChangeRoleDialogProps) {
  */
 interface ChangeTeamDialogProps {
     /**
-     * Whether the signed in volunteer is allowed to make silent changes to participation.
+     * Unique ID of the event the change is being made for.
      */
-    allowSilent?: boolean;
+    eventId: number;
 
     /**
      * Unique slug of the team that the volunteer currently participates in.
      */
     currentTeam: string;
+
+    /**
+     * Unique ID of the team that the volunteer currently participates in.
+     */
+    currentTeamId: number;
 
     /**
      * The unique slug of the event the change is being made for.
@@ -217,7 +222,7 @@ interface ChangeTeamDialogProps {
  * signed up to participate in a particular event. Team changes come with mandatory messages.
  */
 function ChangeTeamDialog(props: ChangeTeamDialogProps) {
-    const { allowSilent, event, onClose, open, volunteer } = props;
+    const { currentTeamId, event, eventId, onClose, open, volunteer } = props;
     const teams = props.teams ?? [];
 
     const router = useRouter();
@@ -233,10 +238,12 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
         }, 300);
     }, [ onClose ]);
 
-    const handleSubmit = useCallback(async (subject?: string, message?: string) => {
+    const handleSubmit = useCallback(async (subject?: string, message?: string)
+        : Promise<ServerActionResult> =>
+    {
         try {
             if (!selectedTeam)
-                return { error: 'No team has been selected' };
+                return { success: false, error: 'No team has been selected' };
 
             const response = await callApi('post', '/api/admin/volunteer-teams', {
                 userId: volunteer.userId,
@@ -256,13 +263,14 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
                 setTimeout(() => router.push(targetUrl), 1250);
 
                 return {
-                    success: `${volunteer.firstName} has been moved to the ${selectedTeam.teamName}`
+                    success: true,
+                    message: `${volunteer.firstName} has been moved to the ${selectedTeam.teamName}`
                 };
             } else {
-                return { error: response.error ?? 'Something went wrong' };
+                return { success: false, error: response.error ?? 'Something went wrong' };
             }
         } catch (error: any) {
-            return { error: error.message };
+            return { success: false, error: error.message };
         }
     }, [ event, props.currentTeam, router, selectedTeam, volunteer ]);
 
@@ -270,25 +278,22 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
 
     if (selectedTeam) {
         return (
-            <OldCommunicationDialog title={`Change ${volunteer.firstName}'s team`}
-                                    open={props.open} onClose={handleClose}
-                                    confirmLabel="Change team" allowSilent={allowSilent}
-                                    description={
-                                        <>
-                                            You're about to change
-                                            <strong> {volunteer.firstName}</strong>'s team to the
-                                            <strong> {selectedTeam.teamName}</strong>. An e-mail
-                                            will automatically be sent to let them know.
-                                        </>
-                                    } apiParams={{
-                                        type: 'change-team',
-                                        changeTeam: {
-                                            userId: volunteer.userId,
-                                            event: props.event,
-                                            currentTeam: props.currentTeam,
-                                            updatedTeam: selectedTeam.teamSlug,
-                                        },
-                                    }} onSubmit={handleSubmit} />
+            <CommunicationDialog title={ `Change ${volunteer.firstName}'s team` }
+                                 open={!!open}
+                                 onClose={handleClose}
+                                 recipientId={volunteer.userId}
+                                 promptId="team-change"
+                                 promptParams={{
+                                     eventId,
+                                     oldTeamId: currentTeamId,
+                                     newTeamId: selectedTeam.teamId,
+                                 }}
+                                 action={handleSubmit}>
+
+                Send an e-mail to <strong>{volunteer.firstName}</strong> about moving them to the
+                <strong> {selectedTeam.teamName}</strong>.
+
+            </CommunicationDialog>
         );
     }
 
@@ -354,11 +359,6 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
  */
 interface VolunteerHeaderProps {
     /**
-     * Whether the signed in volunteer has the ability to access account information.
-     */
-    canAccessAccountInformation: boolean;
-
-    /**
      * Whether the signed in volunteer has the ability to update applications.
      */
     canUpdateApplications: boolean;
@@ -367,11 +367,6 @@ interface VolunteerHeaderProps {
      * Whether the signed in volunteer is able to update their participation in this event.
      */
     canUpdateParticipation: boolean;
-
-    /**
-     * Whether the signed in volunteer is able to make silent changes to their participation.
-     */
-    canUpdateWithoutNotification: boolean;
 
     /**
      * Information about the event this volunteer will participate in.
@@ -436,7 +431,7 @@ interface VolunteerHeaderProps {
 export function VolunteerHeader(props: VolunteerHeaderProps) {
     const { event, team, volunteer, cancelParticipationFn, reinstateParticipationFn } = props;
 
-    const allowSilent = props.canUpdateWithoutNotification;
+    const { canAccessAccounts } = useContext(AdminClientContext);
 
     const router = useRouter();
 
@@ -446,7 +441,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
     }), [ event.id, team.id ]);
 
     const showOptions =
-        props.canAccessAccountInformation ||
+        canAccessAccounts ||
         props.canUpdateApplications ||
         props.canUpdateParticipation;
 
@@ -520,7 +515,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                 <Stack divider={ <Divider orientation="vertical" flexItem /> }
                        direction="row" spacing={1}>
 
-                    { props.canAccessAccountInformation &&
+                    { canAccessAccounts &&
                         <Button onClick={navigateToAccount} startIcon={ <AccountCircleIcon /> }>
                             Account
                         </Button> }
@@ -579,9 +574,9 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                               event={event.slug} teamId={team.id} />
 
             <ChangeTeamDialog onClose={handleTeamsClose} open={teamsForVolunteer && teamsOpen}
-                              teams={teamsForVolunteer!} allowSilent={allowSilent}
-                              volunteer={volunteer} event={event.slug}
-                              currentTeam={team.slug} />
+                              teams={teamsForVolunteer!}
+                              volunteer={volunteer} event={event.slug} eventId={event.id}
+                              currentTeam={team.slug} currentTeamId={team.id} />
 
         </Paper>
     );

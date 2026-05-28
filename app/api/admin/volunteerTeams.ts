@@ -72,6 +72,11 @@ export const kVolunteerTeamsDefinition = z.object({
          */
         teams: z.array(z.object({
             /**
+             * Unique ID of the team.
+             */
+            teamId: z.number(),
+
+            /**
              * Colour that signals the identity of this team.
              */
             teamColour: z.string(),
@@ -150,6 +155,7 @@ export async function volunteerTeams(request: Request, props: ActionProps): Prom
     // Case (1): Retrieve the team availability for this particular volunteer.
     if (!request.update) {
         const teams: Response['teams'] = teamsAvailability.map(team => ({
+            teamId: team.teamId,
             teamColour: team.teamColour,
             teamName: team.teamName,
             teamSlug: team.teamSlug,
