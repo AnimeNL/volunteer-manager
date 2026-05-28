@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { DBConnection } from '@lib/database/Connection';
-import { tEnvironments, tTeams } from '@lib/database';
+import { tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 /**
  * Parameters relaying context about the team relating to the message that's been generated.
@@ -11,6 +11,9 @@ export type TeamContextParameters<FieldName extends string = 'team'> = {
     [K in FieldName]: {
         description: string;
         domain: string;
+        flagRequestConfirmation: boolean;
+        roleHotelEligible: boolean;
+        roleTrainingEligible: boolean;
         slug: string;
         title: string;
     };
@@ -22,6 +25,9 @@ export type TeamContextParameters<FieldName extends string = 'team'> = {
 export const kTeamContextExampleParameters: TeamContextParameters['team'] = {
     description: 'Stewards are the first line of defense when trouble arises.',
     domain: 'stewards.team',
+    flagRequestConfirmation: true,
+    roleHotelEligible: true,
+    roleTrainingEligible: true,
     slug: 'stewards',
     title: 'Steward Team',
 };
@@ -32,6 +38,9 @@ export const kTeamContextExampleParameters: TeamContextParameters['team'] = {
 export const kTeamContextAlternativeExampleParameters: TeamContextParameters['team'] = {
     description: 'Crew are responsible for delivering an incredible experience to our visitors.',
     domain: 'animecon.team',
+    flagRequestConfirmation: false,
+    roleHotelEligible: false,
+    roleTrainingEligible: false,
     slug: 'crew',
     title: 'Volunteering Crew',
 };
@@ -46,10 +55,18 @@ export async function queryTeamContext(db: DBConnection, teamId: number)
     return db.selectFrom(tTeams)
         .innerJoin(tEnvironments)
             .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
+        .innerJoin(tTeamsRoles)
+            .on(tTeamsRoles.teamId.equals(tTeams.teamId))
+                .and(tTeamsRoles.roleDefault.equals(/* true= */ 1))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tTeamsRoles.roleId))
         .where(tTeams.teamId.equals(teamId))
         .select({
             description: tTeams.teamDescription,
             domain: tEnvironments.environmentDomain,
+            flagRequestConfirmation: tTeams.teamFlagRequestConfirmation.equals(/* true= */ 1),
+            roleHotelEligible: tRoles.roleHotelEligible.equals(/* true= */ 1),
+            roleTrainingEligible: tRoles.roleTrainingEligible.equals(/* true= */ 1),
             slug: tTeams.teamSlug,
             title: tTeams.teamTitle,
         })

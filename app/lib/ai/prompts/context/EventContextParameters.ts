@@ -10,11 +10,13 @@ import { tEvents } from '@lib/database';
 export type EventContextParameters<FieldName extends string = 'event'> = {
     [K in FieldName]: {
         endDate: string;
+        hotelEnabled: boolean;
         location?: string;
         name: string;
         shortName: string;
         slug: string;
         startDate: string;
+        trainingEnabled: boolean;
     };
 };
 
@@ -23,11 +25,13 @@ export type EventContextParameters<FieldName extends string = 'event'> = {
  */
 export const kEventContextExampleParameters: EventContextParameters['event'] = {
     endDate: '2026-04-19',
+    hotelEnabled: true,
     location: 'De Broodfabriek, Rijswijk',
     name: 'AnimeCon 2026: Hidden Spirits',
     shortName: 'AnimeCon 2026',
     slug: '2026',
     startDate: '2026-04-17',
+    trainingEnabled: true,
 };
 
 /**
@@ -41,11 +45,13 @@ export async function queryEventContext(db: DBConnection, eventId: number)
         .where(tEvents.eventId.equals(eventId))
         .select({
             endDate: db.dateTimeAsDateString(tEvents.eventEndTime),
+            hotelEnabled: tEvents.hotelEnabled.equals(/* true= */ 1),
             location: tEvents.eventLocation,
             name: tEvents.eventName,
             shortName: tEvents.eventShortName,
             slug: tEvents.eventSlug,
             startDate: db.dateTimeAsDateString(tEvents.eventStartTime),
+            trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
         })
         .executeSelectOne();
 }
