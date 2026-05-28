@@ -205,7 +205,7 @@ interface GenerateTextRequest extends GenerateRequest {
 
 /**
  * Client to the Google Gen AI SDK for TypeScript and JavaScript, through which new Gemini features
- * will consistently be exposed. Can switch between the VertexAI and Google AI Studio backends.
+ * will consistently be exposed. Can switch between the Enterprise and regular Gemini backends.
  * 
  * @see https://googleapis.github.io/js-genai/release_docs/index.html
  * @see https://www.npmjs.com/package/@google/genai

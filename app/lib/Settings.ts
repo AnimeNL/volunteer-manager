@@ -4,7 +4,6 @@
 import type { AiSupportedModel } from './integrations/genai/Models';
 import type { GeminiApi, TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
-import type { VertexSupportedModels } from './integrations/vertexai/VertexSupportedModels';
 import db, { tSettings } from '@lib/database';
 
 /**
@@ -134,13 +133,6 @@ export type Settings = {
     'integration-google-credentials': string;
     'integration-google-location': string;
     'integration-google-project-id': string;
-
-    // Google Vertex AI:
-    'integration-vertex-model': VertexSupportedModels;
-    'integration-vertex-temperature': number;
-    'integration-vertex-token-limit': number;
-    'integration-vertex-top-k': number;
-    'integration-vertex-top-p': number;
 
     // Twilio:
     'integration-twilio-account-auth-token': string;

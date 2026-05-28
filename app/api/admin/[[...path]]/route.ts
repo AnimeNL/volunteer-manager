@@ -9,7 +9,6 @@ import { serviceHealth, kServiceHealthDefinition } from '../serviceHealth';
 import { updateEvent, kUpdateEventDefinition } from '../updateEvent';
 import { updateIntegration, kUpdateIntegrationDefinition } from '../updateIntegration';
 import { updateSettings, kUpdateSettingsDefinition } from '../updateSettings';
-import { vertexAi, kVertexAiDefinition } from '../vertexAi';
 import { volunteerContactInfo, kVolunteerContactInfoDefinition } from '../volunteerContactInfo';
 import { volunteerRoles, kVolunteerRolesDefinition } from '../volunteerRoles';
 import { volunteerTeams, kVolunteerTeamsDefinition } from '../volunteerTeams';
@@ -38,8 +37,6 @@ export async function POST(request: NextRequest, props: RouteProps): Promise<Res
             return executeAction(request, kUpdateIntegrationDefinition, updateIntegration);
         case 'update-settings':
             return executeAction(request, kUpdateSettingsDefinition, updateSettings);
-        case 'vertex-ai':
-            return executeAction(request, kVertexAiDefinition, vertexAi);
         case 'volunteer-contact-info':
             return executeAction(request, kVolunteerContactInfoDefinition, volunteerContactInfo);
         case 'volunteer-roles':
