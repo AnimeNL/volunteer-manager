@@ -9,7 +9,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import type { PartialServerAction, ServerAction } from '@lib/serverAction';
+import type { PartialServerAction, ServerAction, ServerActionResult } from '@lib/serverAction';
 import { Application } from './Application';
 import { ApplicationForm } from './ApplicationForm';
 import { CollapsableSection } from '@app/admin/components/CollapsableSection';
@@ -146,10 +146,15 @@ export default async function ApplicationsPage(
     // conveyed through the existence of Server Action references shared with the client.
     // ---------------------------------------------------------------------------------------------
 
-    let approveApplicationFn: PartialServerAction<number> | undefined;
+    let approveApplicationFn:
+        ((userId: number, subject?: string, message?: string) => Promise<ServerActionResult>)
+            | undefined;
+    let rejectApplicationFn:
+        ((userId: number, subject?: string, message?: string) => Promise<ServerActionResult>)
+            | undefined;
+
     let claimApplicationFn: PartialServerAction<number> | undefined;
     let moveApplicationFn: PartialServerAction<number> | undefined;
-    let rejectApplicationFn: PartialServerAction<number> | undefined;
 
     if (access.can('event.applications', 'update', accessScope)) {
         approveApplicationFn = actions.decideApplication.bind(null, event.slug, team.slug, true);
@@ -204,12 +209,6 @@ export default async function ApplicationsPage(
         serviceTiming: '10-0',
     };
 
-    // Whether the signed in user has the ability to link through to their volunteering account.
-    const canAccessAccounts = access.can('organisation.accounts', 'read');
-
-    // Whether the signed in user has the ability to commit actions without communication.
-    const canRespondSilently = access.can('organisation.silent');
-
     return (
         <>
             <Section title="Applications" subtitle={team.name}>
@@ -242,9 +241,7 @@ export default async function ApplicationsPage(
                             <Grid key={application.userId} size={{ xs: 12, md: 6 }}>
                                 <Application application={application}
                                              availableTeams={availableTeams}
-                                             canAccessAccounts={canAccessAccounts}
-                                             canRespondSilently={canRespondSilently}
-                                             event={event.slug} team={team.slug}
+                                             eventId={event.id} teamId={team.id}
                                              approveFn={approveFn} claimFn={claimFn} moveFn={moveFn}
                                              rejectFn={rejectFn} />
                             </Grid>

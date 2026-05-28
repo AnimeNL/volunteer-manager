@@ -4,8 +4,7 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useContext, useState } from 'react';
 
 import { SelectElement } from '@components/proxy/react-hook-form-mui';
 
@@ -34,10 +33,11 @@ import Tooltip from '@mui/material/Tooltip';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import Typography from '@mui/material/Typography';
 
-import type { ServerAction } from '@lib/serverAction';
+import type { ServerAction, ServerActionResult } from '@lib/serverAction';
 import { AccountRestrictedChip } from '@app/admin/organisation/accounts/[id]/AccountRestrictedChip';
+import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { Avatar } from '@components/Avatar';
-import { OldCommunicationDialog } from '@app/admin/components/OldCommunicationDialog';
+import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
 import { Temporal, formatDate } from '@lib/Temporal';
 
@@ -225,29 +225,19 @@ interface ApplicationProps {
     availableTeams: { id: string; label: string }[];
 
     /**
-     * Whether a link should be provided to go directly to the volunteer's user account.
+     * Unique ID of the event for which this application is being shown.
      */
-    canAccessAccounts?: boolean;
+    eventId: number;
 
     /**
-     * Whether the option to *not* send them a notification of resolve should be included.
+     * Unique ID of the team for which this application is being shown.
      */
-    canRespondSilently?: boolean;
-
-    /**
-     * URL-safe slug of the event for which this application is being shown.
-     */
-    event: string;
-
-    /**
-     * URL-safe slug of the team for which this application is being shown.
-     */
-    team: string;
+    teamId: number;
 
     /**
      * Server Action to invoke when the volunteer should be approved.
      */
-    approveFn?: ServerAction;
+    approveFn?: (subject?: string, message?: string) => Promise<ServerActionResult>;
 
     /**
      * Server Action to claim an application as their own.
@@ -262,7 +252,7 @@ interface ApplicationProps {
     /**
      * Server Action to invoke when the volunteer should be rejected.
      */
-    rejectFn?: ServerAction;
+    rejectFn?: (subject?: string, message?: string) => Promise<ServerActionResult>;
 }
 
 /**
@@ -271,9 +261,7 @@ interface ApplicationProps {
  * it to be another team's problem.
  */
 export function Application(props: ApplicationProps) {
-    const { application, event, team } = props;
-
-    const router = useRouter();
+    const { application, eventId, teamId } = props;
 
     const information: ApplicationBulletPoint[] = [
         composeParticipationHistoryBulletPoint(application),
@@ -286,6 +274,8 @@ export function Application(props: ApplicationProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const { canAccessAccounts } = useContext(AdminClientContext);
+
     const [ claimEverOpen, setClaimEverOpen ] = useState<boolean>(false);
     const [ claimOpen, setClaimOpen ] = useState<boolean>(false);
 
@@ -293,7 +283,7 @@ export function Application(props: ApplicationProps) {
     const [ moveOpen, setMoveOpen ] = useState<boolean>(false);
 
     let accountAction: React.ReactNode;
-    if (props.canAccessAccounts) {
+    if (canAccessAccounts) {
         const href = `/admin/organisation/accounts/${application.userId}`;
 
         accountAction = (
@@ -367,51 +357,17 @@ export function Application(props: ApplicationProps) {
     const [ rejectEverOpen, setRejectEverOpen ] = useState<boolean>(false);
     const [ rejectOpen, setRejectOpen ] = useState<boolean>(false);
 
-    const processResponse = useCallback(async (
-        serverFn: ServerAction, subject?: string, message?: string) =>
-    {
-        try {
-            const formData = new FormData;
-            if (!!subject)
-                formData.set('subject', subject);
-            if (!!message)
-                formData.set('message', message);
-
-            const response = await serverFn(formData);
-            if (!response || !response.success)
-                throw new Error(response.error || 'Unable to process the decision on the server…');
-
-            router.refresh();
-
-            return {
-                success: 'Your decision has been processed',
-            };
-        } catch (error: any) {
-            return {
-                error: error.message || 'Unable to process the decision…',
-            };
-        }
-    }, [ router ]);
-
     const handleApproveClose = useCallback(() => setApproveOpen(false), [ /* no dependencies */ ]);
     const handleApproveOpen = useCallback(() => {
         setApproveEverOpen(true);
         setApproveOpen(true);
     }, [ /* no dependencies */ ]);
 
-    const handleApproved = useCallback(async (subject?: string, message?: string) => {
-        return await processResponse(props.approveFn!, subject, message);
-    }, [ processResponse, props.approveFn ]);
-
     const handleRejectClose = useCallback(() => setRejectOpen(false), [ /* no dependencies */ ]);
     const handleRejectOpen = useCallback(() => {
         setRejectEverOpen(true);
         setRejectOpen(true);
     }, [ /* no dependencies */ ]);
-
-    const handleRejected = useCallback(async (subject?: string, message?: string) => {
-        return await processResponse(props.rejectFn!, subject, message);
-    }, [ processResponse, props.rejectFn ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -505,43 +461,27 @@ export function Application(props: ApplicationProps) {
                                    size="small" fullWidth />
                 </ServerActionDialog> }
 
-            { !!approveEverOpen &&
-                <OldCommunicationDialog title={`Approve ${application.firstName}'s application`}
-                                        open={approveOpen} onClose={handleApproveClose}
-                                        confirmLabel="Approve" allowSilent={props.canRespondSilently}
-                                        description={
-                                            <>
-                                                You're about to approve
-                                                <strong> {application.firstName}</strong>'s
-                                                application to help out during this event. An e-mail
-                                                will automatically be sent to let them know.
-                                            </>
-                                        } apiParams={{
-                                            type: 'approve-volunteer',
-                                            approveVolunteer: {
-                                                userId: application.userId ?? 0,
-                                                event, team,
-                                            },
-                                        }} onSubmit={handleApproved} /> }
+            { (!!approveEverOpen && !!props.approveFn) &&
+                <CommunicationDialog title={`Approve ${application.firstName}'s application`}
+                                     open={approveOpen} onClose={handleApproveClose}
+                                     recipientId={application.userId}
+                                     action={props.approveFn}
+                                     promptId="application-approved"
+                                     promptParams={{ eventId, teamId }}>
+                    Send an e-mail to <strong>{application.firstName}</strong> about approving their
+                    application to help out.
+                </CommunicationDialog> }
 
-            { !!rejectEverOpen &&
-                <OldCommunicationDialog title={`Reject ${application.firstName}'s application`}
-                                        open={rejectOpen} onClose={handleRejectClose}
-                                        confirmLabel="Reject" allowSilent={props.canRespondSilently}
-                                        description={
-                                            <>
-                                                You're about to reject
-                                                <strong> {application.firstName}</strong>'s
-                                                application to help out during this event. An e-mail
-                                                will automatically be sent to let them know.
-                                            </>
-                                        } apiParams={{
-                                            type: 'reject-volunteer',
-                                            rejectVolunteer: {
-                                                userId: application.userId ?? 0,
-                                                event, team,
-                                            },
-                                        }} onSubmit={handleRejected} /> }
+            { (!!rejectEverOpen && !!props.rejectFn) &&
+                <CommunicationDialog title={`Reject ${application.firstName}'s application`}
+                                     open={rejectOpen} onClose={handleRejectClose}
+                                     recipientId={application.userId}
+                                     action={props.rejectFn}
+                                     promptId="application-rejected"
+                                     promptParams={{ eventId, teamId }}>
+                    Send an e-mail to <strong>{application.firstName}</strong> about rejecting their
+                    application to help out.
+                </CommunicationDialog> }
         </>
     );
 }

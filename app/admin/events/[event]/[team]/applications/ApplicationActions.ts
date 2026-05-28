@@ -6,10 +6,10 @@ import { z } from 'zod/v4';
 
 import { Publish } from '@lib/subscriptions';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tEnvironments, tEvents, tTeams, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
@@ -48,7 +48,7 @@ export async function claimApplication(
     event: string, team: string, userId: number, formData: unknown)
 {
     'use server';
-    return executeServerAction(formData, kApplicationDecisionData, async (data, props) => {
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         await requireAuthenticationContext({
             check: 'admin',
             permission: {
@@ -115,22 +115,15 @@ export async function claimApplication(
 }
 
 /**
- * Zod type that describes that an application decision has been made.
- */
-const kApplicationDecisionData = z.object({
-    subject: z.string().optional(),
-    message: z.string().optional(),
-});
-
-/**
  * Server action that should be called when a decision regarding an application has been made. The
  * `approved` boolean indicates whether the application was approved or not.
  */
 export async function decideApplication(
-    event: string, team: string, approved: boolean, userId: number, formData: unknown)
+    event: string, team: string, approved: boolean, userId: number,
+    subject?: string, message?: string)
 {
     'use server';
-    return executeServerAction(formData, kApplicationDecisionData, async (data, props) => {
+    return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
         const { access } = await requireAuthenticationContext({
             check: 'admin',
             permission: {
@@ -146,28 +139,21 @@ export async function decideApplication(
         if (!eventId || !teamId)
             notFound();
 
-        if (!data.subject || !data.message) {
+        const isSilent = !subject || !message;
+        if (isSilent) {
             if (!access.can('organisation.silent'))
                 forbidden();
+
         } else {
-            const username = await db.selectFrom(tUsers)
-                .where(tUsers.userId.equals(userId))
-                .selectOneColumn(tUsers.username)
-                .executeSelectNoneOrOne();
-
-            if (!username)
-                forbidden();
-
-            await SendEmailTask.Schedule({
-                sender: `${props.user.firstName} ${props.user.lastName} (AnimeCon)`,
-                message: {
-                    to: username,
-                    subject: data.subject,
-                    markdown: data.message,
-                },
-                attribution: {
-                    sourceUserId: props.user.id,
-                    targetUserId: userId,
+            await sendCommunication({
+                sender: props.user,
+                recipient: userId,
+                subject,
+                message,
+                metadata: {
+                    eventId,
+                    teamId,
+                    promptId: approved ? 'application-approved' : 'application-rejected',
                 },
             });
         }
@@ -197,7 +183,15 @@ export async function decideApplication(
             },
         });
 
-        return { success: true };
+        return {
+            success: true,
+            refresh: true,
+            message: approved
+                ? isSilent ? 'The application has been approved silently.'
+                           : 'The e-mail has been sent and the application has been approved.'
+                : isSilent ? 'The application has been rejected silently.'
+                           : 'The e-mail has been sent and the application has been rejected.',
+        };
     });
 }
 
