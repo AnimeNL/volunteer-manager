@@ -5,15 +5,16 @@ import { forbidden, notFound, unauthorized } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '../../../createDataTableApi';
+import { PromptFactory } from '@lib/ai/PromptFactory';
 import { RecordLog, kLogType } from '@lib/Log';
 import { Temporal, formatDate } from '@lib/Temporal';
-import { createVertexAIClient } from '@lib/integrations/vertexai';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import { readSettings } from '@lib/Settings';
+import { readSetting } from '@lib/Settings';
 import db, { tNardoPersonalised, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
+import { PromptExecutor } from '@lib/ai/PromptExecutor';
 
 /**
  * Row model for an individual piece of personalised advice offered by Del a Rie Advies.
@@ -129,19 +130,22 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
         if (!event)
             notFound();
 
-        const settings = await readSettings([
-            'gen-ai-prompt-del-a-rie-advies',
-            'schedule-del-a-rie-advies-genai',
-        ]);
-
-        if (!settings['schedule-del-a-rie-advies-genai'])
+        const enableNardoAdvice = await readSetting('schedule-del-a-rie-advies-genai');
+        if (!enableNardoAdvice)
             forbidden();
 
-        const dbInstance = db;
+        // -----------------------------------------------------------------------------------------
+        // Step (1): Compose the context required for Del a Rie advies to be useful.
+        // -----------------------------------------------------------------------------------------
 
-        // -----------------------------------------------------------------------------------------
-        // Step 1: Include server-side context that's not known to the client
-        // -----------------------------------------------------------------------------------------
+        const currentLocalZonedDateTime = Temporal.Now.zonedDateTimeISO(event.timezone);
+        const currentLocalDate =
+            formatDate(currentLocalZonedDateTime, 'dddd, MMMM Do, YYYY [at] HH:mm');
+
+        const startDate = formatDate(event.temporalStartTime, 'dddd, MMMM Do, YYYY [at] h:mm A');
+        const endDate = formatDate(event.temporalEndTime, 'dddd, MMMM Do, YYYY [at] h:mm A');
+
+        const dbInstance = db;
 
         const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
         const userContext = await dbInstance.selectFrom(tUsers)
@@ -159,73 +163,44 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
         if (!userContext)
             notFound();
 
-        const startDate = formatDate(event.temporalStartTime, 'dddd, MMMM Do, YYYY [at] h:mm A');
-        const endDate = formatDate(event.temporalEndTime, 'dddd, MMMM Do, YYYY [at] h:mm A');
-
-        const context = [
-            `You are talking to a person named ${userContext.name}, and must address them by name`,
-            `They are participating in ${event.name}, taking place in ${event.location}, which ` +
-                `starts on ${startDate} and ends on ${endDate}`,
-        ];
-
-        if (!!userContext.events)
-            context.push(`They helped out at a total of ${userContext.events} AnimeCon events`);
-
-        // -----------------------------------------------------------------------------------------
-        // Step 2: Append client-provided context to the information
         // -----------------------------------------------------------------------------------------
 
-        context.push(...request.row.context);
+        const prompt = PromptFactory.createById('nardo-personalised-advice');
+        const executor = PromptExecutor.forPrompt(prompt);
+
+        const parameters: Parameters<typeof executor.execute>[0] = {
+            additionalContext: request.row.context.join('\n'),
+            advice: request.row.contextAdvice,
+            audience: {
+                name: userContext.name,
+                tenure: userContext.events,
+            },
+            date: '',
+            event: {
+                endDate,
+                location: event.location ?? 'The Netherlands',
+                name: event.name,
+                startDate,
+            },
+        };
 
         // -----------------------------------------------------------------------------------------
-        // Step 3: Compose the prompt that should be proposed to AI
+        // Step (2): Evalute the prompt to understand input to the model.
         // -----------------------------------------------------------------------------------------
 
-        const basePrompt = settings['gen-ai-prompt-del-a-rie-advies'] ?? '';
-        const prompt =
-            basePrompt.replaceAll('{advice}', request.row.contextAdvice)
-                      .replaceAll('{context}', context.join('\n'));
+        const nardoPersonalisedInput = await prompt.evaluate(parameters);
 
         // -----------------------------------------------------------------------------------------
-        // Step 4: Return a cached version when the given |prompt| has already been asked
+        // Step (3): Execute the prompt to obtain the generated advice.
         // -----------------------------------------------------------------------------------------
 
-        const cachedOutput = await dbInstance.selectFrom(tNardoPersonalised)
-            .where(tNardoPersonalised.nardoPersonalisedUserId.equals(props.user.id))
-                .and(tNardoPersonalised.nardoPersonalisedInput.equals(prompt))
-            .selectOneColumn(tNardoPersonalised.nardoPersonalisedOutput)
-            .orderBy(tNardoPersonalised.nardoPersonalisedDate, 'desc')
-                .limit(1)
-            .executeSelectNoneOrOne();
-
-        if (!!cachedOutput)
-            return { success: true, row: { id: 0, output: cachedOutput } };
-
-        // Append the current date and time to the prompt, as we don't want that to bust the prompt
-        // cache in the database. Con of this approach is that the text will be omitted from the
-        // inspection UI as well, but we'll have to live with that.
-
-        const currentLocalZonedDateTime = Temporal.Now.zonedDateTimeISO(event.timezone);
-        const currentLocalDate =
-            formatDate(currentLocalZonedDateTime, 'dddd, MMMM Do, YYYY [at] HH:mm');
-
-        const fullPrompt = `${prompt}\n\nThe current date and time is ${currentLocalDate}.`;
-
-        // -----------------------------------------------------------------------------------------
-        // Step 5: Consult the Vertex AI API to actually execute the prompt.
-        // -----------------------------------------------------------------------------------------
-
-        let response: string;
+        let nardoPersonalisedOutput: string;
         try {
-            const client = await createVertexAIClient();
-            const clientResponse = await client.predictText({
-                prompt: fullPrompt
-            });
+            const response = await executor.execute(parameters);
+            if (!response.success)
+                throw new Error(response.error);
 
-            if (!clientResponse)
-                throw new Error('VertexAI did not generate a piece of advice');
-
-            response = clientResponse;
+            nardoPersonalisedOutput = response.text;
 
         } catch (error: any) {
             return {
@@ -235,15 +210,15 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
         }
 
         // -----------------------------------------------------------------------------------------
-        // Step 6: Store the returned prompt in the database for inspection and caching
+        // Step (4): Store the returned prompt in the database for inspection.
         // -----------------------------------------------------------------------------------------
 
         await dbInstance.insertInto(tNardoPersonalised)
             .set({
                 nardoPersonalisedUserId: props.user.id,
                 nardoPersonalisedDate: dbInstance.currentZonedDateTime(),
-                nardoPersonalisedInput: prompt,
-                nardoPersonalisedOutput: response,
+                nardoPersonalisedInput,
+                nardoPersonalisedOutput,
             })
             .executeInsert();
 
@@ -253,7 +228,7 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
             success: true,
             row: {
                 id: 0,
-                output: response,
+                output: nardoPersonalisedOutput,
             },
         }
     },

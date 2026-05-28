@@ -110,9 +110,6 @@ export type Settings = {
     'ai-setting-temperature': number;
     'ai-setting-top-p': number;
 
-    // Prompts:
-    'gen-ai-prompt-del-a-rie-advies': string;
-
     // ---------------------------------------------------------------------------------------------
     // Integration settings
     // ---------------------------------------------------------------------------------------------
