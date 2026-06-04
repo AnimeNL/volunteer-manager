@@ -12,27 +12,28 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import type { RowModelFields } from './Types';
 import { LocalDateTime } from '../LocalDateTime';
-import { resolveTemplatedUrl } from './Utilities';
+import { resolveRowModelField, resolveTemplatedUrl } from './Utilities';
 
 /**
  * Props used to compose the list view presentation of a <DataTable> row.
  */
-export interface DataTableListViewProps<RowModel extends { /* object */ }> {
+export interface DataTableListViewProps<RowModel extends object> {
     /**
      * Primary text on the list item. Will be displayed in bold and is guaranteed to not wrap.
      */
-    primaryField: keyof RowModel & string;
+    primaryField: RowModelFields<RowModel>;
 
     /**
      * Secondary text on the list item. Guaranteed to not wrap.
      */
-    secondaryField?: keyof RowModel & string;
+    secondaryField?: RowModelFields<RowModel>;
 
     /**
      * Date to display on the right-hand side of the list item.
      */
-    dateField?: keyof RowModel & string;
+    dateField?: RowModelFields<RowModel>;
 
     /**
      * Format to display the `dateField` in. Must adhere to the formatting rules that are
@@ -63,7 +64,7 @@ export interface DataTableListViewProps<RowModel extends { /* object */ }> {
 /**
  * Props accepted by the <DataTableListView{Button,}Row> components.
  */
-interface DataTableListViewRowProps<RowModel extends { /* object */ } = any> {
+interface DataTableListViewRowProps<RowModel extends object = any> {
     /**
      * Height, in pixels, to apply to the list view row. Calculated from the `listViewProps`.
      */
@@ -92,7 +93,7 @@ interface DataTableListViewRowProps<RowModel extends { /* object */ } = any> {
  * date display. Note that individual components are able to provide their own row display.
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
-    const primaryField = props.listViewProps.primaryField ?? 'id';
+    const primaryFieldValue = resolveRowModelField(props.row, props.listViewProps.primaryField);
     return (
         <Stack direction="row" spacing={2} onClick={props.onClick} sx={{
             alignItems: 'center',
@@ -108,18 +109,19 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
 
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
-                    {props.row[primaryField]}
+                    {primaryFieldValue}
                 </Typography>
                 { !!props.listViewProps.secondaryField &&
                     <Typography noWrap variant="body2" color="textSecondary">
-                        {props.row[props.listViewProps.secondaryField]}
+                        {resolveRowModelField(props.row, props.listViewProps.secondaryField)}
                     </Typography> }
             </Stack>
 
             { !!props.listViewProps.dateField &&
                 <Typography variant="body2" color="textSecondary" sx={{ flexShrink: 0 }}>
-                    <LocalDateTime dateTime={props.row[props.listViewProps.dateField]}
-                                   format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
+                    <LocalDateTime
+                        dateTime={resolveRowModelField(props.row, props.listViewProps.dateField)}
+                        format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
                 </Typography>}
 
             { props.listViewProps.endComponent &&

@@ -26,3 +26,12 @@ export type ExtractRowModel<T> = T extends DataSourceInterface<any, infer RowMod
 export type OmitSymbols<T> = {
     [K in keyof T as K extends symbol ? never : K]: T[K];
 };
+
+/**
+ * Type that expands objects within the RowModel to nested representations, e.g. "user.name".
+ */
+export type RowModelFields<T extends object> = {
+    [K in keyof T & string]: T[K] extends object
+        ? K | `${K}.${RowModelFields<T[K]>}`
+        : K;
+}[keyof T & string];
