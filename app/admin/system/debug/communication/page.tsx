@@ -102,7 +102,7 @@ export default function CommunicationPage() {
                                                          eventId: 15,
                                                          teamId: 1,
                                                      }}
-                                                     recipientId={4}>
+                                                     recipientId={4} language={undefined}>
                                 Send an e-mail to <strong>Doug</strong> about rejecting their
                                 application to help out.
                             </CommunicationIconButton>
@@ -142,7 +142,7 @@ export default function CommunicationPage() {
                                                          eventId: 15,
                                                          teamId: 1,
                                                      }}
-                                                     recipientId={1}>
+                                                     recipientId={1} language={undefined}>
                                 Send an e-mail to <strong>David</strong> about hotel information
                                 having been published.
                             </CommunicationIconButton>
@@ -161,7 +161,7 @@ export default function CommunicationPage() {
                                                          eventId: 15,
                                                          teamId: 1,
                                                      }}
-                                                     recipientId={1}>
+                                                     recipientId={1} language={undefined}>
                                 Send an e-mail to <strong>Anita</strong> about training information
                                 having been published.
                             </CommunicationIconButton>
@@ -181,7 +181,7 @@ export default function CommunicationPage() {
                                                          eventId: 15,
                                                          teamId: 1,
                                                      }}
-                                                     recipientId={3}>
+                                                     recipientId={3} language={undefined}>
                                 Send an e-mail to <strong>Anna</strong> about their participation
                                 having been cancelled.
                             </CommunicationIconButton>
@@ -201,7 +201,7 @@ export default function CommunicationPage() {
                                                          eventId: 15,
                                                          teamId: 1,
                                                      }}
-                                                     recipientId={3}>
+                                                     recipientId={3} language={undefined}>
                                 Send an e-mail to <strong>Marvin</strong> about their participation
                                 having been reinstated.
                             </CommunicationIconButton>
@@ -242,7 +242,7 @@ export default function CommunicationPage() {
                                                          oldTeamId: 1,
                                                          newTeamId: 2,
                                                      }}
-                                                     recipientId={1}>
+                                                     recipientId={1} language={undefined}>
                                 Send an e-mail to <strong>Max</strong> about having moved them to a
                                 new team.
                             </CommunicationIconButton>
@@ -286,7 +286,8 @@ export default function CommunicationPage() {
                                         title: 'Announce training information',
                                     }
                                 ]}
-                                recipientId={1}>
+                                recipientId={1}
+                                language={undefined}>
 
                                 Send an update about AnimeCon 2027 to <strong>Sagar</strong>.
 

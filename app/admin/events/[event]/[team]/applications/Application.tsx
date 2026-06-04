@@ -33,6 +33,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import Typography from '@mui/material/Typography';
 
+import type { CommunicationLanguage } from '@lib/database/Types';
 import type { ServerAction, ServerActionResult } from '@lib/serverAction';
 import { AccountRestrictedChip } from '@app/admin/organisation/accounts/[id]/AccountRestrictedChip';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
@@ -213,6 +214,10 @@ interface ApplicationProps {
             isCurrentUser: boolean;
         };
 
+        /**
+         * Language in which the communication should be written, when known.
+         */
+        language?: CommunicationLanguage;
         /**
          * Reason that this applicant's account has been suspended, if any.
          */
@@ -465,6 +470,7 @@ export function Application(props: ApplicationProps) {
                 <CommunicationDialog title={`Approve ${application.firstName}'s application`}
                                      open={approveOpen} onClose={handleApproveClose}
                                      recipientId={application.userId}
+                                     language={application.language}
                                      action={props.approveFn}
                                      promptId="application-approved"
                                      promptParams={{ eventId, teamId }}>
@@ -476,6 +482,7 @@ export function Application(props: ApplicationProps) {
                 <CommunicationDialog title={`Reject ${application.firstName}'s application`}
                                      open={rejectOpen} onClose={handleRejectClose}
                                      recipientId={application.userId}
+                                     language={application.language}
                                      action={props.rejectFn}
                                      promptId="application-rejected"
                                      promptParams={{ eventId, teamId }}>

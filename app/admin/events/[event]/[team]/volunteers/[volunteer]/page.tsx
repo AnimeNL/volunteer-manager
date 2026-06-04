@@ -97,6 +97,7 @@ export default async function EventVolunteerPage(
             username: tUsers.username,
             firstName: tUsers.firstName,
             name: tUsers.name,
+            language: tUsers.language,
             avatarFileHash: storageJoin.fileHash,
             phoneNumber: tUsers.phoneNumber,
             roleId: tUsersEvents.roleId,

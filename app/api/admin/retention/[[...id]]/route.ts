@@ -11,7 +11,7 @@ import { getEventBySlug } from '@lib/EventLoader';
 import { readSetting } from '@lib/Settings';
 import db, { tEvents, tRetention, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
-import { kRegistrationStatus } from '@lib/database/Types';
+import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Row model for an individual piece of advice offered by Del a Rie Advies.
@@ -37,6 +37,11 @@ const kRetentionRowModel = z.object({
      * The volunteer's first name. Won't be presented in UI, but will be used for messages.
      */
     firstName: z.string(),
+
+    /**
+     * Language in which the communication should be written, when known.
+     */
+    language: z.enum(kCommunicationLanguage).optional(),
 
     /**
      * The most recent event that this volunteer participated in.
@@ -219,6 +224,7 @@ export const { GET, PUT } = createDataTableApi(kRetentionRowModel, kRetentionCon
                 id: tUsers.userId,
                 name: tUsers.name,
                 firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+                language: tUsers.language,
                 events: dbInstance.aggregateAsArray({
                     slug: tEvents.eventSlug,
                     name: tEvents.eventShortName,
@@ -277,6 +283,7 @@ export const { GET, PUT } = createDataTableApi(kRetentionRowModel, kRetentionCon
                 userIdForAccountLink,
                 name: volunteer.name,
                 firstName: volunteer.firstName,
+                language: volunteer.language,
                 latestEvent: latestEvent.name,
                 latestEventSlug: latestEvent.slug,
                 latestEventDidCancel: latestEvent.status === kRegistrationStatus.Cancelled,

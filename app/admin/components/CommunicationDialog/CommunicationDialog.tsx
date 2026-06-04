@@ -48,7 +48,7 @@ interface BaseCommunicationDialogProps {
     /**
      * Language in which the communication should be written, when known.
      */
-    language?: CommunicationLanguage;
+    language: CommunicationLanguage | undefined;
 
     /**
      * Callback to invoke when the dialog should be closed.

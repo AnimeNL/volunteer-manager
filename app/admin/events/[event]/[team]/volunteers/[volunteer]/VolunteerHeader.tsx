@@ -34,8 +34,8 @@ import type { VolunteerRolesDefinition } from '@app/api/admin/volunteerRoles';
 import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { CommunicationButton, CommunicationDialog } from '@app/admin/components/CommunicationDialog';
+import { type CommunicationLanguage, type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
-import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
 import type { ServerActionResult } from '@lib/serverAction';
@@ -282,6 +282,7 @@ function ChangeTeamDialog(props: ChangeTeamDialogProps) {
                                  open={!!open}
                                  onClose={handleClose}
                                  recipientId={volunteer.userId}
+                                 language={volunteer.language}
                                  promptId="team-change"
                                  promptParams={{
                                      eventId,
@@ -406,6 +407,11 @@ interface VolunteerHeaderProps {
          * The status of the volunteer's registration in the current event.
          */
         registrationStatus: RegistrationStatus;
+
+        /**
+         * Language in which the communication should be written, when known.
+         */
+        language?: CommunicationLanguage;
     };
 
     /**
@@ -527,7 +533,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                             label="Cancel participation"
                             promptId="participation-cancelled"
                             promptParams={promptParams}
-                            recipientId={volunteer.userId}
+                            recipientId={volunteer.userId} language={volunteer.language}
                             startIcon={ <DoNotDisturbIcon /> }
                             size="medium"
                             title={ `Cancel ${volunteer.firstName}'s participation` }>
@@ -544,7 +550,7 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                             label="Reinstate volunteer"
                             promptId="participation-reinstated"
                             promptParams={promptParams}
-                            recipientId={volunteer.userId}
+                            recipientId={volunteer.userId} language={volunteer.language}
                             startIcon={ <SettingsBackupRestoreIcon /> }
                             size="medium"
                             title={ `Reinstate ${volunteer.firstName}'s participation` }>

@@ -112,6 +112,7 @@ export default async function ApplicationsPage(
                 name: claimedByUsersJoin.name,
                 isCurrentUser: claimedByUsersJoin.userId.equals(user.id),
             },
+            language: tUsers.language,
             suspended: tUsers.participationSuspended,
         })
         .groupBy(tUsersEvents.userId)

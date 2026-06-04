@@ -261,7 +261,7 @@ export function RetentionDataTable(props: RetentionDataTableProps) {
                             title={ `Invite ${params.row.firstName} to volunteer again` }
                             disableSilent
                             action={ props.sendEmailFn.bind(null, params.row.id) }
-                            recipientId={params.row.id}
+                            recipientId={params.row.id} language={params.row.language}
                             promptId="participation-reminder"
                             promptParams={{
                                 eventId: props.eventId,
