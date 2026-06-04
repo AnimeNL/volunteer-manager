@@ -16,9 +16,54 @@ import { LocalDateTime } from '../LocalDateTime';
 import { resolveTemplatedUrl } from './Utilities';
 
 /**
+ * Props used to compose the list view presentation of a <DataTable> row.
+ */
+export interface DataTableListViewProps<RowModel extends { /* object */ }> {
+    /**
+     * Primary text on the list item. Will be displayed in bold and is guaranteed to not wrap.
+     */
+    primaryField: keyof RowModel & string;
+
+    /**
+     * Secondary text on the list item. Guaranteed to not wrap.
+     */
+    secondaryField?: keyof RowModel & string;
+
+    /**
+     * Date to display on the right-hand side of the list item.
+     */
+    dateField?: keyof RowModel & string;
+
+    /**
+     * Format to display the `dateField` in. Must adhere to the formatting rules that are
+     * supported by the `formatDate()` method.
+     *
+     * @default "YYYY-MM-DD"
+     */
+    dateFieldFormat?: string;
+
+    /**
+     * Component to display at the start of the list item, if any.
+     */
+    startComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+
+    /**
+     * Component to display at the end of the list item, if any.
+     */
+    endComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+
+    /**
+     * Template from which the URL to link to can be derived. Can contain any of the fields as
+     * a curly brace-contained string, for example: "/program/event/{id}". Nested references are
+     * allowed as well, for example: "/accounts/{user.id}".
+     */
+    linkTemplate?: string;
+}
+
+/**
  * Props accepted by the <DataTableListView{Button,}Row> components.
  */
-interface DataTableListViewRowProps {
+interface DataTableListViewRowProps<RowModel extends { /* object */ } = any> {
     /**
      * Height, in pixels, to apply to the list view row. Calculated from the `listViewProps`.
      */
@@ -27,15 +72,7 @@ interface DataTableListViewRowProps {
     /**
      * Props given to the default list view component that's used in the responsive mobile display.
      */
-    listViewProps: {
-        primaryField: string;
-        secondaryField?: string;
-        dateField?: string;
-        dateFieldFormat?: string;
-        startComponent?: React.JSXElementConstructor<{ row: any, listView?: boolean }>;
-        endComponent?: React.JSXElementConstructor<{ row: any, listView?: boolean }>;
-        linkTemplate?: string;
-    };
+    listViewProps: DataTableListViewProps<RowModel>;
 
     /**
      * URL that should be navigated to when the list item has been activated by the user.

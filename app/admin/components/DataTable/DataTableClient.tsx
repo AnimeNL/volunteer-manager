@@ -12,6 +12,7 @@ import Alert from '@mui/material/Alert';
 
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
+import type { DataTableListViewProps } from './DataTableListViewRow';
 import type { ExtractContext, ExtractRowModel } from './Types';
 import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
@@ -69,47 +70,7 @@ interface DataTableClientCommonProps<
      * Props given to the default list view component that's used in the responsive mobile display.
      * All data tables must support a responsive display, with at least the primary field being set.
      */
-    listViewProps: {
-        /**
-         * Primary text on the list item. Will be displayed in bold and is guaranteed to not wrap.
-         */
-        primaryField: keyof RowModel & string;
-
-        /**
-         * Secondary text on the list item. Guaranteed to not wrap.
-         */
-        secondaryField?: keyof RowModel & string;
-
-        /**
-         * Date to display on the right-hand side of the list item.
-         */
-        dateField?: keyof RowModel & string;
-
-        /**
-         * Format to display the `dateField` in. Must adhere to the formatting rules that are
-         * supported by the `formatDate()` method.
-         *
-         * @default "YYYY-MM-DD"
-         */
-        dateFieldFormat?: string;
-
-        /**
-         * Component to display at the start of the list item, if any.
-         */
-        startComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
-
-        /**
-         * Component to display at the end of the list item, if any.
-         */
-        endComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
-
-        /**
-         * Template from which the URL to link to can be derived. Can contain any of the fields as
-         * a curly brace-contained string, for example: "/program/event/{id}". Nested references are
-         * allowed as well, for example: "/accounts/{user.id}".
-         */
-        linkTemplate?: string;
-    };
+    listViewProps: DataTableListViewProps<RowModel>;
 
     /**
      * The default number of rows that can be displayed per page.
