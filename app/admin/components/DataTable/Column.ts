@@ -3,6 +3,8 @@
 
 import type { GridColDef, GridValidRowModel } from '@mui/x-data-grid-premium';
 
+import type { RowModelFields } from './Types';
+
 /**
  * Interface that defines an individual column to include in a <DataTable>.
  */
@@ -20,17 +22,15 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
          *
          * * `account`          Flexible column for displaying a(n optionally linked) user account.
          * * `component`        Flexible column for which a the templateProps.component will be shown.
-         * * `linkedText`       Flexible column for which the text will be linked to templateProps.href.
-         * * `localDate`        Fixed-width column for a Temporal ZDT date in the local timezone.
-         * * `localDateTime`    Fixed-width column for a Temporal ZDT date & time in the local timezone.
-         * * `otherFieldText`   Flexible column that will display the text for another field.
+         * * `date`             Flexible column for a Temporal ZDT date in the local timezone.
          * * `severity`         Fixed-width column for an icon-based severity indication.
+         * * `text`             Flexible column that displays text with a variety of options.
          */
         template?: never;
     } |
     {
         template: 'account';
-        templateProps: {
+        templateProps?: {
             noAccountLabel?: string;
         };
     } |
@@ -43,27 +43,47 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
         };
     } |
     {
-        template: 'linkedText';
-        templateProps: {
+        template: 'date';
+        templateProps?: {
+            /**
+             * Format, per the `formatDate()` formatting rules, of the text to be rendered.
+             *
+             * @default "YYYY-MM-DD"
+             */
+            format?: string;
+
+            /**
+             * When applicable, template of the URL that the cell's value should link to. May
+             * contain references to other (nested) fields such as "./items/{entry.id}".
+             */
             href?: string;
-        };
-    } |
-    {
-        template: 'localDate';
-        templateProps?: never;
-    } |
-    {
-        template: 'localDateTime';
-        templateProps?: never;
-    } |
-    {
-        template: 'otherFieldText';
-        templateProps: {
-            field: keyof RowModel;
-        };
+        }
     } |
     {
         template: 'severity';
         templateProps?: never;
+    } |
+    {
+        template: 'text';
+        templateProps: {
+            /**
+             * Default value when no value could be derived from the field. Will be displayed in a
+             * grey italic text to visually distinguish it from actual values.
+             *
+             * @default "···"
+             */
+            defaultValue?: string;
+
+            /**
+             * Field that the text should be sourced from, when different from the column's field.
+             */
+            field?: RowModelFields<RowModel>;
+
+            /**
+             * When applicable, template of the URL that the cell's value should link to. May
+             * contain references to other (nested) fields such as "./items/{entry.id}".
+             */
+            href?: string;
+        };
     }
 );

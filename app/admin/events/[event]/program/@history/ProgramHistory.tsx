@@ -434,7 +434,7 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
         },
         {
             field: 'date',
-            template: 'localDate',
+            template: 'date',
         },
         {
             field: 'change',

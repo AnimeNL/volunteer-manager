@@ -110,7 +110,7 @@ export default async function AccountsPage() {
 
             headerName: 'Name',
 
-            template: 'linkedText',
+            template: 'text',
             templateProps: {
                 href: '/admin/organisation/accounts/{id}',
             },

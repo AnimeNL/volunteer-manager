@@ -326,7 +326,7 @@ export default async function EventVolunteersPage(
             headerName: 'Name',
             flex: 1,
 
-            template: 'linkedText',
+            template: 'text',
             templateProps: {
                 href: './volunteers/{id}',
             },
@@ -336,7 +336,7 @@ export default async function EventVolunteersPage(
             headerName: 'Role',
             flex: 1,
 
-            template: 'otherFieldText',
+            template: 'text',
             templateProps: {
                 field: 'role',
             },

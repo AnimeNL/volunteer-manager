@@ -19,7 +19,7 @@ import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import type { LogSeverity, MutationSeverity } from '@lib/database/Types';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { resolveTemplatedUrl } from './Utilities';
+import { resolveRowModelField, resolveTemplatedUrl } from './Utilities';
 
 /**
  * Factory functions to generate a column definition based on a given template.
@@ -84,50 +84,26 @@ export const kColumnTemplates = {
 
     // ---------------------------------------------------------------------------------------------
 
-    linkedText: column => ({
-        renderCell: params => {
-            let href: string = '#';
-            if (column.templateProps?.href)
-                href = resolveTemplatedUrl(params.row, column.templateProps.href as string);
+    date: column => ({
+        headerName: 'Date',
 
-            return (
-                <MuiLink component={Link} href={href}>
-                    {params.value}
-                </MuiLink>
-            );
+        renderCell: params => {
+            const format = column.templateProps.format ?? 'YYYY-MM-DD';
+            const href =
+                !!column.templateProps.href &&
+                resolveTemplatedUrl(params.row, column.templateProps.href);
+
+            if (!!href) {
+                return (
+                    <MuiLink component={Link} href={href}>
+                        <LocalDateTime dateTime={params.value} format={format} />
+                    </MuiLink>
+                );
+            } else {
+                return <LocalDateTime dateTime={params.value} format={format} />;
+            }
         },
 
-        ...column,
-    }),
-
-    // ---------------------------------------------------------------------------------------------
-
-    localDate: column => ({
-        headerName: 'Date',
-        width: 110,
-
-        renderCell: params =>
-            <LocalDateTime dateTime={params.value} format="YYYY-MM-DD" />,
-
-        ...column,
-    }),
-
-    // ---------------------------------------------------------------------------------------------
-
-    localDateTime: column => ({
-        headerName: 'Date',
-        width: 175,
-
-        renderCell: params =>
-            <LocalDateTime dateTime={params.value} format="YYYY-MM-DD HH:mm:ss" />,
-
-        ...column,
-    }),
-
-    // ---------------------------------------------------------------------------------------------
-
-    otherFieldText: column => ({
-        renderCell: params => params.row[column.templateProps?.field as string],
         ...column,
     }),
 
@@ -179,6 +155,37 @@ export const kColumnTemplates = {
                     {icon}
                 </Tooltip>
             );
+        },
+
+        ...column,
+    }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    text: column => ({
+        renderCell: params => {
+            const field = column.templateProps.field ?? column.field;
+            const value = resolveRowModelField(params.row, field) ?? params.value;
+
+            if (!value) {
+                return (
+                    <Typography variant="inherit" color="textDisabled" component="span"
+                                sx={{ fontStyle: 'italic' }}>
+                        { column.templateProps.defaultValue ?? '···' }
+                    </Typography>
+                );
+            }
+
+            if (!!column.templateProps.href) {
+                const href = resolveTemplatedUrl(params.row, column.templateProps.href);
+                return (
+                    <MuiLink component={Link} href={href}>
+                        {value}
+                    </MuiLink>
+                );
+            }
+
+            return value;
         },
 
         ...column,
