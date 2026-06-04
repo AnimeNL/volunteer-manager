@@ -32,6 +32,8 @@ interface DataTableListViewRowProps {
         secondaryField?: string;
         dateField?: string;
         dateFieldFormat?: string;
+        startComponent?: React.JSXElementConstructor<{ row: any, listView?: boolean }>;
+        endComponent?: React.JSXElementConstructor<{ row: any, listView?: boolean }>;
         linkTemplate?: string;
     };
 
@@ -61,6 +63,9 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             height: props.height,
         }}>
 
+            { props.listViewProps.startComponent &&
+                <props.listViewProps.startComponent row={props.row} listView /> }
+
             { /* TODO: Avatar */ }
             { /* TODO: Icon */ }
 
@@ -79,6 +84,9 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                     <LocalDateTime dateTime={props.row[props.listViewProps.dateField]}
                                    format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
                 </Typography>}
+
+            { props.listViewProps.endComponent &&
+                <props.listViewProps.endComponent row={props.row} listView /> }
 
             {props.children}
 

@@ -414,6 +414,8 @@ export default async function EventVolunteersPage(
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
                            listViewProps={{
                                primaryField: 'name',
+                               startComponent: ExperienceCell,
+                               endComponent: StatusCell,
                                linkTemplate: './volunteers/{id}',
                            }} />
             </Section>

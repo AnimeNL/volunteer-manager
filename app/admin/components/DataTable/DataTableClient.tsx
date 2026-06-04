@@ -94,6 +94,16 @@ interface DataTableClientCommonProps<
         dateFieldFormat?: string;
 
         /**
+         * Component to display at the start of the list item, if any.
+         */
+        startComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+
+        /**
+         * Component to display at the end of the list item, if any.
+         */
+        endComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+
+        /**
          * Template from which the URL to link to can be derived. Can contain any of the fields as
          * a curly brace-contained string, for example: "/program/event/{id}". Nested references are
          * allowed as well, for example: "/accounts/{user.id}".

@@ -15,7 +15,7 @@ import type { VolunteerRowModel } from './page';
 /**
  * Cell used to display the status of a volunteer's application.
  */
-export function StatusCell(props: { row: VolunteerRowModel }) {
+export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }) {
     const { status } = props.row;
 
     // TODO: Availability [eligibility, preferences]
@@ -30,7 +30,7 @@ export function StatusCell(props: { row: VolunteerRowModel }) {
                 <HotelIcon color="action" fontSize="small" />
             </Tooltip>
         );
-    } else {
+    } else if (!props.listView) {
         hotelIcon = (
             <Tooltip title="Not eligible for a room">
                 <HotelIcon color="disabled" fontSize="small" sx={{ color: 'rgba(0, 0, 0, .15)' }} />
@@ -45,11 +45,21 @@ export function StatusCell(props: { row: VolunteerRowModel }) {
                 <HistoryEduIcon color="action" fontSize="small" />
             </Tooltip>
         );
-    } else {
+    } else if (!props.listView) {
         trainingIcon = (
             <Tooltip title="Not eligible for training">
                 <HistoryEduIcon color="disabled" fontSize="small"
                                 sx={{ color: 'rgba(0, 0, 0, .15)' }} />
+            </Tooltip>
+        );
+    }
+
+    let refundIcon: React.ReactNode;
+    if (!props.listView) {
+        refundIcon = (
+            <Tooltip title="Refund status unknown">
+                <PaidIcon color="disabled" fontSize="small"
+                          sx={{ color: 'rgba(0, 0, 0, .15)' }} />
             </Tooltip>
         );
     }
@@ -62,10 +72,7 @@ export function StatusCell(props: { row: VolunteerRowModel }) {
             </Tooltip>
             {hotelIcon}
             {trainingIcon}
-            <Tooltip title="Refund status unknown">
-                <PaidIcon color="disabled" fontSize="small"
-                          sx={{ color: 'rgba(0, 0, 0, .15)' }} />
-            </Tooltip>
+            {refundIcon}
         </Stack>
     );
 }
