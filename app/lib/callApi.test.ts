@@ -30,38 +30,32 @@ describe('callApi', () => {
 
     it('is able to issue POST requests', async () => {
         scheduledResponse = new Response(JSON.stringify({
-            slug: 'response-event',
+            service: 'AnimeCon',
+            status: 'success',
+            message: 'Integration is functional',
         }), { status: 200 });
 
-        const response = await callApi('post', '/api/admin/create-event', {
-            name: 'My Event: The Long Theme',
-            shortName: 'My Event',
-            slug: 'event',
-            startTime: '2024-01-01 12:00:00',
-            endTime: '2024-01-03 18:00:00'
+        const response = await callApi('post', '/api/admin/service-health', {
+            service: 'AnimeCon',
         });
 
         expect(latestRequestInput).not.toBeUndefined();
-        expect(latestRequestInput).toEqual('/api/admin/create-event');
+        expect(latestRequestInput).toEqual('/api/admin/service-health');
 
         expect(latestRequestInit).not.toBeUndefined();
-        expect(latestRequestInit?.body).toContain('My Event: The Long Theme');
+        expect(latestRequestInit?.body).toContain('AnimeCon');
         expect(latestRequestInit?.headers).toEqual({
             'Content-Type': 'application/json',
         });
 
-        expect(response.slug).toEqual('response-event');
+        expect(response.status).toEqual('success');
     });
 
     it('throws an exception when non-OK response statuses are seen', async () => {
         scheduledResponse = new Response(null, { status: 500 });
 
-        const responsePromise = callApi('post', '/api/admin/create-event', {
-            name: 'My Event: The Long Theme',
-            shortName: 'My Event',
-            slug: 'event',
-            startTime: '2024-01-01 12:00:00',
-            endTime: '2024-01-03 18:00:00'
+        const responsePromise = callApi('post', '/api/admin/service-health', {
+            service: 'AnimeCon',
         });
 
         await expect(responsePromise).rejects.toThrow();

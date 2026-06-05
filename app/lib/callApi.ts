@@ -3,7 +3,6 @@
 
 import type { ConfirmIdentityDefinition } from '@app/api/auth/confirmIdentity';
 import type { CreateChallengeDefinition } from '@app/api/auth/passkeys/createChallenge';
-import type { CreateEventDefinition } from '@app/api/admin/createEvent';
 import type { CreateScheduleEntryDefinition } from '@app/api/admin/event/schedule/createScheduleEntry';
 import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePasskey';
 import type { DeleteScheduleEntryDefinition } from '@app/api/admin/event/schedule/deleteScheduleEntry';
@@ -141,7 +140,6 @@ export type ApiEndpoints = {
     'post': {
         '/api/admin/content/categories': ContentCategoriesEndpoints['create'],
         '/api/admin/content': ContentEndpoints['create'],
-        '/api/admin/create-event': CreateEventDefinition,
         '/api/admin/event/dates': EventDatesEndpoints['create'],
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],

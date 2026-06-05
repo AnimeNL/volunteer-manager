@@ -218,6 +218,7 @@ interface ApplicationProps {
          * Language in which the communication should be written, when known.
          */
         language?: CommunicationLanguage;
+
         /**
          * Reason that this applicant's account has been suspended, if any.
          */

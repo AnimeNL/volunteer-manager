@@ -88,9 +88,9 @@ export const kColumnTemplates = {
         headerName: 'Date',
 
         renderCell: params => {
-            const format = column.templateProps.format ?? 'YYYY-MM-DD';
+            const format = column.templateProps?.format ?? 'YYYY-MM-DD';
             const href =
-                !!column.templateProps.href &&
+                !!column.templateProps?.href &&
                 resolveTemplatedUrl(params.row, column.templateProps.href);
 
             if (!!href) {
