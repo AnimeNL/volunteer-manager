@@ -278,7 +278,11 @@ interface AdminSidebarClientProps extends RenderSidebarMenuProps {
  * small screen devices.
  */
 export function AdminSidebarClient(props: AdminSidebarClientProps) {
-    const isMobile = useContext(AdminClientContext).isMobile;
+    const { isLayoutV2, isMobile } = useContext(AdminClientContext);
+
+    if (isLayoutV2)
+        return null;
+
     if (isMobile)
         return <AdminSidebarMobileClientProxy {...props} />;
 

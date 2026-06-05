@@ -32,12 +32,14 @@ export default async function AccountSettingsPage(
     const userSettings = await readUserSettings(userId, [
         'ai-example-messages',
         'user-admin-experimental-dark-mode',
+        'user-admin-experimental-layout',
         'user-admin-experimental-responsive',
     ], /* disableFallback= */ true);
 
     const defaultValues: AccountSettings = {
         exampleMessages: userSettings['ai-example-messages'] ?? [ /* no example messages */ ],
         experimentalDarkMode: !!userSettings['user-admin-experimental-dark-mode'],
+        experimentalLayout: !!userSettings['user-admin-experimental-layout'],
         experimentalResponsive: !!userSettings['user-admin-experimental-responsive'],
     };
 

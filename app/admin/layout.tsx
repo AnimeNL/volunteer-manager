@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import { AdminClientProviders } from './AdminClientProviders';
 import { AdminHeader } from './AdminHeader';
+import { AdminLayoutV2 } from './AdminLayoutV2';
 import { MuiLicense } from '../components/MuiLicense';
 import { determineEnvironment } from '@lib/Environment';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -33,6 +34,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const settings = await readUserSettings(user.id, [
         'ai-example-messages',
         'user-admin-experimental-dark-mode',
+        'user-admin-experimental-layout',
         'user-admin-experimental-responsive',
         'user-ai-example-messages-promo-time',
     ], /* disableFallback= */ true);
@@ -41,41 +43,51 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     // just yet, but can be experimentally enabled through user settings.
     const paletteMode = !!settings['user-admin-experimental-dark-mode'] ? 'dark' : 'light';
 
+    // Whether the new layout should be enabled. Available through context.
+    const isLayoutV2 = !!settings['user-admin-experimental-layout'];
+
     return (
         <>
             <MuiLicense />
             <AdminClientProviders
                 context={{
                     allowSilentMutations: access.can('organisation.silent'),
-                    canAccessAccounts: access.can('organisation.accounts', 'read')
+                    canAccessAccounts: access.can('organisation.accounts', 'read'),
+                    isLayoutV2,
                 }}
                 enableResponsiveLayout={!!settings['user-admin-experimental-responsive']}
                 paletteMode={paletteMode} palette={environment.colours}>
 
-                <Box sx={{ overflow: 'auto' }}>
-                    <Box sx={{
-                        backgroundColor: 'background.default',
-                        minHeight: '100vh',
-                        minWidth:
-                            !!settings['user-admin-experimental-responsive'] ? undefined
-                                                                             : 1280,
-                        padding: 2,
-                        scrollbarGutter: 'stable',
-                    }}>
-
-                        <AdminHeader access={access} user={user} settings={settings} />
-
+                { isLayoutV2 &&
+                    <AdminLayoutV2>
                         {props.children}
+                    </AdminLayoutV2> }
 
-                        <Typography component="footer" align="center" variant="body2"
-                                    color="textPrimary" sx={{ mt: 1 }}>
-                            AnimeCon Volunteer Manager (
-                            <MuiLink href={kVersionLink}>{process.env.buildHash}</MuiLink>) —
-                            © 2015–{ (new Date()).getFullYear() }
-                        </Typography>
+                { !isLayoutV2 &&
+                    <Box sx={{ overflow: 'auto' }}>
+                        <Box sx={{
+                            backgroundColor: 'background.default',
+                            minHeight: '100vh',
+                            minWidth:
+                                !!settings['user-admin-experimental-responsive'] ? undefined
+                                                                                : 1280,
+                            padding: 2,
+                            scrollbarGutter: 'stable',
+                        }}>
 
-                    </Box>
-                </Box>
+                            <AdminHeader access={access} user={user} settings={settings} />
+
+                            {props.children}
+
+                            <Typography component="footer" align="center" variant="body2"
+                                        color="textPrimary" sx={{ mt: 1 }}>
+                                AnimeCon Volunteer Manager (
+                                <MuiLink href={kVersionLink}>{process.env.buildHash}</MuiLink>) —
+                                © 2015–{ (new Date()).getFullYear() }
+                            </Typography>
+
+                        </Box>
+                    </Box> }
 
             </AdminClientProviders>
         </>

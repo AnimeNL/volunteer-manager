@@ -635,6 +635,11 @@ const kAccountSettingsData = z.object({
     experimentalDarkMode: z.boolean(),
 
     /**
+     * Whether experimental support for the v2 layout should be enabled.
+     */
+    experimentalLayout: z.boolean(),
+
+    /**
      * Whether experimental support for responsive layout should be enabled.
      */
     experimentalResponsive: z.boolean(),
@@ -661,6 +666,7 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
         // Write the user settings to the database.
         await writeUserSettings(userId, {
             'user-admin-experimental-dark-mode': !!data.experimentalDarkMode,
+            'user-admin-experimental-layout': !!data.experimentalLayout,
             'user-admin-experimental-responsive': !!data.experimentalResponsive,
         });
 

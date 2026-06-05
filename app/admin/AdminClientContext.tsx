@@ -20,6 +20,11 @@ export interface TAdminClientContext {
     canAccessAccounts: boolean;
 
     /**
+     * Whether the page is being rendered using the new layout version.
+     */
+    isLayoutV2: boolean;
+
+    /**
      * Whether the page is being rendered on a mobile device.
      */
     isMobile: boolean;
@@ -32,5 +37,6 @@ export interface TAdminClientContext {
 export const AdminClientContext = createContext<TAdminClientContext>({
     allowSilentMutations: false,
     canAccessAccounts: false,
+    isLayoutV2: false,
     isMobile: false,
 });
