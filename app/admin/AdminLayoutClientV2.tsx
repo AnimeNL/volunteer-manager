@@ -10,8 +10,13 @@ export const AdminMenu = styled('div')(({ theme }) => ({
 
 }));
 
+/**
+ * Wrapper component that surrounds the entire page. Is a flex container, to allow child components
+ * to be dynamically positioned on large screen devices.
+ */
 export const AdminPageWrapper = styled(Stack)(({ theme }) => ({
     backgroundColor: '#eff3f4',
+    minHeight: '100dvh',
     padding: theme.spacing(1),
 }));
 

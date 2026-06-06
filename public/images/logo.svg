@@ -111,7 +111,7 @@
 
     <!-- (4) The J-POP logo -->
     <!-- Note: each "block" in the pixelated logo has 7 pixel edges on a 500x500 canvas -->
-    <g>
+    <g id="jpop">
         <path style="fill: #ffffff; stroke: none" transform="rotate(-18)"
               d="M153 76 h21 v28 h-7 v7 h-14 v-14 h-7 v7 h21 v-21 h-14"/>
         <circle r="14" cx="216" cy="28" style="fill: #ffffff; stroke: none" />
@@ -154,6 +154,16 @@
 
                 if (titleElement)
                     titleElement.textContent = title;
+            }
+
+            if (params.has('notext')) {
+                const organisationElement = document.getElementById('jpop');
+                if (organisationElement)
+                    organisationElement.style.display = 'none';
+
+                const titleElement = document.getElementById('title');
+                if (titleElement)
+                    titleElement.style.display = 'none';
             }
         }
     ]]>

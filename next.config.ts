@@ -7,6 +7,9 @@ import nextBuildId from 'next-build-id';
 
 const nextConfig: NextConfig = {
     allowedDevOrigins: [ '192.168.252.108', 'localhost' ],
+    devIndicators: {
+        position: 'bottom-right',
+    },
     env: {
         // `process.env.GIT_COMMIT` will be set for Docker builds, where it's determined through the
         // next-build-id library locally on the machine for other kinds of builds. Do update
