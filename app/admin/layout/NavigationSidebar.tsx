@@ -15,6 +15,8 @@ import Stack from '@mui/material/Stack';
 import Tooltip, { type TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 
+import { NavigationSidebarLogo } from './NavigationSidebarLogo';
+
 /**
  * Props accepted by the <NavigationSidebar> component.
  */
@@ -30,8 +32,7 @@ interface NavigationSidebarProps {
 export function NavigationSidebar(props: NavigationSidebarProps) {
     return (
         <Stack>
-            <NavigationSidebarLogo type="image/svg+xml"
-                                   data="/images/logo.svg?color=rgb(10,10,10)&notext=1" />
+            <NavigationSidebarLogo />
             <NavigationSidebarSectionStack>
                 <IconButton LinkComponent={Link} href="/admin">
                     <NavigationSidebarSectionTooltip title="Dashboard">
@@ -62,15 +63,6 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
         </Stack>
     );
 }
-
-/**
- * Container for the logo, which is an <object> element to an SVG file given that it includes an
- * inline script to change the logo's colours depending on the environment.
- */
-const NavigationSidebarLogo = styled('object')(({ theme }) => ({
-    height: theme.spacing(8),
-    width: theme.spacing(8),
-}));
 
 /**
  * Component that displays the full-height stack for the administration area section buttons.
