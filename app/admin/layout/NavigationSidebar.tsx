@@ -3,19 +3,16 @@
 
 'use client';
 
-import Link from 'next/link';
-
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import EventIcon from '@mui/icons-material/Event';
-import IconButton from '@mui/material/IconButton';
-import ScienceIcon from '@mui/icons-material/Science';
-import SettingsIcon from '@mui/icons-material/Settings';
+import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
-import Tooltip, { type TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
+import { SidebarButton } from './SidebarButton';
+import { SidebarSettingsButton } from './SidebarSettingsButton';
+import { SidebarVolunteersButton } from './SidebarVolunteersButton';
 
 /**
  * Props accepted by the <NavigationSidebar> component.
@@ -34,31 +31,12 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
         <Stack>
             <NavigationSidebarLogo />
             <NavigationSidebarSectionStack>
-                <IconButton LinkComponent={Link} href="/admin">
-                    <NavigationSidebarSectionTooltip title="Dashboard">
-                        <DashboardIcon htmlColor="white" />
-                    </NavigationSidebarSectionTooltip>
-                </IconButton>
-                <IconButton LinkComponent={Link} href="/admin/events">
-                    <NavigationSidebarSectionTooltip title="Events">
-                        <EventIcon htmlColor="#fafafa" />
-                    </NavigationSidebarSectionTooltip>
-                </IconButton>
-                <IconButton LinkComponent={Link} href="/admin/organisation">
-                    <NavigationSidebarSectionTooltip title="Organisation">
-                        <AccountBalanceIcon htmlColor="#fafafa" />
-                    </NavigationSidebarSectionTooltip>
-                </IconButton>
-                <IconButton sx={{ marginTop: 'auto' }}>
-                    <NavigationSidebarSectionTooltip title="Experiments">
-                        <ScienceIcon color="error" />
-                    </NavigationSidebarSectionTooltip>
-                </IconButton>
-                <IconButton>
-                    <NavigationSidebarSectionTooltip title="Settings">
-                        <SettingsIcon color="error" />
-                    </NavigationSidebarSectionTooltip>
-                </IconButton>
+                <SidebarButton Icon={DashboardIcon} href="/admin" title="Dashboard" />
+                <SidebarVolunteersButton />
+                <SidebarButton Icon={AccountBalanceIcon} href="/admin/organisation"
+                               title="Organisation" />
+                <Divider sx={{ marginTop: 'auto', mb: 1 }} />
+                <SidebarSettingsButton />
             </NavigationSidebarSectionStack>
         </Stack>
     );
@@ -73,20 +51,4 @@ const NavigationSidebarSectionStack = styled(Stack)(({ theme }) => ({
     flexGrow: 1,
     marginTop: theme.spacing(1),
     padding: theme.spacing(1.5),
-}));
-
-/**
- * Tooltip used to illustrate what each of the sections may be used for. Will be displayed on the
- * right-hand side of the button in a dark variant of the primary theme colour.
- */
-const NavigationSidebarSectionTooltip = styled(({ className, ...props }: TooltipProps) => (
-     <Tooltip describeChild {...props} arrow placement="right" classes={{ popper: className }} />
-))(({ theme }) => ({
-     [`& .${tooltipClasses.arrow}`]: {
-        color: theme.palette.primary.dark,
-     },
-     [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: theme.palette.primary.dark,
-        color: theme.palette.primary.contrastText,
-     },
 }));

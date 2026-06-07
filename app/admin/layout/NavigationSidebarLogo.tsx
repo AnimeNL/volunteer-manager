@@ -96,20 +96,20 @@ export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) 
 
                     { /* (3) The outer circle */ }
                     <g>
-                        <circle r="211" cy="250" cx="250" stroke-width="45" className="outline" />
+                        <circle r="211" cy="250" cx="250" strokeWidth="45" className="outline" />
 
                         { /* (3a) Marieke overlays */ }
                         <path style={{ fill: '#ffffff', stroke: 'none' }} d="M256.9 67.4 a1,1 0 0,0 -18,0" />
                         <path style={{ fill: '#ffffff', stroke: 'none' }} d="M242 61.5 a1,1 0 0,0 -29,12" />
                         <path style={{ fill: '#ffffff', stroke: 'none' }} d="M213.4 67 a1,1 0 0,0 -21,2" />
 
-                        <path style={{ fill: '#ffffff', stroke: 'none' }} fill-rule="evenodd"
+                        <path style={{ fill: '#ffffff', stroke: 'none' }} fillRule="evenodd"
                               d="M185.5,71.333c0.611,0.15-2.923,4.521-14.5,12.668-4.73,3.329-9.323,5.6-14,9-3.526,2.562-30.046,13.357-32,13-8.276-1.512-8.847-1.769-21-1C123.967,87.869,159.517,63.065,185.5,71.333ZM72,143c-3.862,5.027-4.152,5.817-7,15H63l-1-9C65.379,146.113,70.19,142.051,72,143Z"/>
 
-                        <path style={{ fill: '#ffffff', stroke: 'none' }} fill-rule="evenodd"
+                        <path style={{ fill: '#ffffff', stroke: 'none' }} fillRule="evenodd"
                               d="M72,143c-3.862,5.027-4.152,5.817-7,15H63l-1-9C65.379,146.113,70.19,142.051,72,143Z"/>
 
-                        <path style={{ fill: '#f3b317', stroke: 'none' }} fill-rule="evenodd"
+                        <path style={{ fill: '#f3b317', stroke: 'none' }} fillRule="evenodd"
                               d="M140,105c6.149-.115,14.456-0.625,19,1-34.606,17.785-66.7,33.832-97,85-4.828,7.843-.464-12.424,1-20,2.736-14.154,12.1-25.36,20-36,7.507-10.113,27.451-20.775,40-26C128.063,106.892,134.3,105.752,140,105Zm-18,1c-12.212,5.151-13.322,5.644-22,11-6.67,4.116-14.337,8.879-19,15,1.946-2.554-21.19,11.287-33,31,0,1.88-2.333-9.546,7-25,4.491-7.436,15.37-17.829,23-22C98.181,104.969,107.988,107,122,106Z"/>
 
                         { /* (3b) Clara overlays */ }

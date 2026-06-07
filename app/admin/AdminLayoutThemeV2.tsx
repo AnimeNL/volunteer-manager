@@ -6,7 +6,13 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const kTheme = createTheme({
-    cssVariables: true,
+    colorSchemes: {
+        dark: true,
+        light: true,
+    },
+    cssVariables: {
+        colorSchemeSelector: 'class',
+    },
     shape: {
         borderRadius: 8,
     },
