@@ -30,12 +30,12 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
     return (
         <Stack>
             <NavigationSidebarLogo />
-            <NavigationSidebarSectionStack>
-                <SidebarButton Icon={DashboardIcon} href="/admin" title="Dashboard" />
-                <SidebarVolunteersButton />
+            <NavigationSidebarSectionStack spacing={1} useFlexGap>
+                <SidebarButton Icon={DashboardIcon} active href="/admin" title="Dashboard" />
                 <SidebarButton Icon={AccountBalanceIcon} href="/admin/organisation"
                                title="Organisation" />
-                <Divider sx={{ marginTop: 'auto', mb: 1 }} />
+                <SidebarVolunteersButton />
+                <NavigationSidebarDivider flexItem  />
                 <SidebarSettingsButton />
             </NavigationSidebarSectionStack>
         </Stack>
@@ -43,11 +43,19 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
 }
 
 /**
+ * Component representing a divider that splits the sidebar, and renders in a consistent colour.
+ */
+const NavigationSidebarDivider = styled(Divider)(({ theme }) => ({
+    borderColor: theme.palette.grey[800],
+    marginTop: 'auto'
+}));
+
+/**
  * Component that displays the full-height stack for the administration area section buttons.
  */
 const NavigationSidebarSectionStack = styled(Stack)(({ theme }) => ({
-    backgroundColor: '#0a0a0a',
-    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.vars?.palette.background.sidebar,
+    borderRadius: theme.vars?.shape.borderRadius,
     flexGrow: 1,
     marginTop: theme.spacing(1),
     padding: theme.spacing(1.5),

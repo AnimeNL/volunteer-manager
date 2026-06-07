@@ -15,13 +15,7 @@ export const AdminMenu = styled('div')(({ theme }) => ({
  * to be dynamically positioned on large screen devices.
  */
 export const AdminPageWrapper = styled(Stack)(({ theme }) => ({
-    backgroundColor: '#eff3f4',
+    backgroundColor: theme.vars?.palette.background.default,
     minHeight: '100dvh',
     padding: theme.spacing(1),
-}));
-
-export const AdminSectionStack = styled(Stack)(({ theme }) => ({
-    backgroundColor: '#0a0a0a',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1.5),
 }));

@@ -2,7 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata, Viewport } from 'next';
+
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
 import { ClientProviders } from './ClientProviders';
 import { determineEnvironment } from '@lib/Environment';
@@ -42,9 +44,10 @@ export default async function RootLayout(props: LayoutProps<'/'>) {
     const environment = await determineEnvironment();
 
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <head />
             <body>
+                <InitColorSchemeScript attribute="class" />
                 <AppRouterCacheProvider>
                     <ClientProviders paletteMode="auto" themeColours={environment?.colours}>
                         {props.children}

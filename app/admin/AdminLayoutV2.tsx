@@ -3,9 +3,9 @@
 
 import Typography from '@mui/material/Typography';
 
-import { AdminLayoutThemeV2 } from './AdminLayoutThemeV2';
 import { AdminMenu, AdminPageWrapper } from './AdminLayoutClientV2';
 import { NavigationSidebar } from './layout/NavigationSidebar';
+import { ThemeProvider } from './layout/ThemeProvider';
 
 /**
  * Root component of the new administration layout, which is a substantial step up from the original
@@ -13,7 +13,7 @@ import { NavigationSidebar } from './layout/NavigationSidebar';
  */
 export async function AdminLayoutV2(props: React.PropsWithChildren) {
     return (
-        <AdminLayoutThemeV2>
+        <ThemeProvider>
             <AdminPageWrapper direction="row" spacing={2}>
                 <NavigationSidebar />
                 <AdminMenu>
@@ -23,6 +23,6 @@ export async function AdminLayoutV2(props: React.PropsWithChildren) {
                 </AdminMenu>
                 {props.children}
             </AdminPageWrapper>
-        </AdminLayoutThemeV2>
+        </ThemeProvider>
     );
 }

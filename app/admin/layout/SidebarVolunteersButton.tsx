@@ -3,7 +3,9 @@
 
 'use client';
 
-import EventIcon from '@mui/icons-material/Event';
+import { useCallback } from 'react';
+
+import GroupsIcon from '@mui/icons-material/Groups';
 
 import { SidebarButton } from './SidebarButton';
 
@@ -12,9 +14,11 @@ import { SidebarButton } from './SidebarButton';
  * functionality for a particular event.
  */
 export function SidebarVolunteersButton() {
-    // TODO: Menu with the active events.
+    const handleMenuOpen = useCallback(() => {
+        // TODO: Menu with the active events.
+    }, [ /* no deps */ ]);
 
     return (
-        <SidebarButton Icon={EventIcon} href="/admin/events" title="Volunteers" />
+        <SidebarButton Icon={GroupsIcon} onClick={handleMenuOpen} title="Volunteers" />
     );
 }

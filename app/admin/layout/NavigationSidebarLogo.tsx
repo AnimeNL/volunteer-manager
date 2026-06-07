@@ -24,7 +24,7 @@ interface NavigationSidebarLogoProps {
 export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) => {
     return (
         <Box className={props.className}>
-            <SvgIcon viewBox="0 0 500 500">
+            <SvgIcon viewBox="40 40 418 418">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
 
                     { /* (0) Background */ }
@@ -96,7 +96,8 @@ export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) 
 
                     { /* (3) The outer circle */ }
                     <g>
-                        <circle r="211" cy="250" cx="250" strokeWidth="45" className="outline" />
+                        <circle r="211" cy="250" cx="250" strokeWidth="45" className="outline"
+                                style={{ fill: 'transparent' }} />
 
                         { /* (3a) Marieke overlays */ }
                         <path style={{ fill: '#ffffff', stroke: 'none' }} d="M256.9 67.4 a1,1 0 0,0 -18,0" />
@@ -123,25 +124,29 @@ export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) 
             </SvgIcon>
         </Box>
     );
-})(({ theme }) => ({
-    backgroundColor: theme.palette.primary.dark,
-    borderRadius: theme.shape.borderRadius,
+})(({ theme }) => [
+    {
+        borderRadius: theme.shape.borderRadius,
 
-    alignSelf: 'stretch',
-    aspectRatio: 1,
-    lineHeight: 0,
+        alignSelf: 'stretch',
+        aspectRatio: 1,
+        lineHeight: 0,
 
-    '& svg': {
-        height: 'unset',
-        width: 'unset',
+        '& svg': { height: 'unset', width: 'unset', },
+        '& .background': {
+            fill: '#eff3f4',
+        },
     },
-
-    '& .background': {
-        fill: '#eff3f4',
-    },
-
-    '& .outline': {
-        fill: 'transparent',
-        stroke: theme.palette.primary.dark,
-    },
-}));
+    theme.applyStyles('light', {
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 75%, #000)`,
+        '& .outline': {
+            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 75%, #000)`,
+        },
+    }),
+    theme.applyStyles('dark', {
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 55%, #000)`,
+        '& .outline': {
+            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 55%, #000)`,
+        },
+    }),
+]);
