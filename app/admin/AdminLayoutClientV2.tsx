@@ -6,10 +6,6 @@
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-export const AdminMenu = styled('div')(({ theme }) => ({
-
-}));
-
 /**
  * Wrapper component that surrounds the entire page. Is a flex container, to allow child components
  * to be dynamically positioned on large screen devices.
