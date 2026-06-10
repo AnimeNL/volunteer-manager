@@ -7,22 +7,27 @@ import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
 /**
- * Wrapper component that surrounds the page's content. Will avoid growing the page's overall height
- * and instead become a scroll container itself, when necessary.
+ * Wrapper component that surrounds the page's content.
  */
-export const AdminContentWrapper = styled('div')(({ theme }) => ({
+export const AdminContentWrapper = styled('div')(() => ({
     flex: 1,
-
-    // TODO: Figure out the scroll container stuff (negative margin + padding + 100dvh max height?)
-    // TODO: Figure out how to scroll this element no matter where the scroll wheel is used
 }));
 
 /**
  * Wrapper component that surrounds the entire page. Is a flex container, to allow child components
  * to be dynamically positioned on large screen devices.
+ *
+ * The first two elements are the navigation sirebar and the navigation menu, which we give a sticky
+ * position so that they remain in a consistent position on the screen regardless of scrolling.
  */
 export const AdminPageWrapper = styled(Stack)(({ theme }) => ({
     backgroundColor: theme.vars?.palette.background.default,
     minHeight: '100dvh',
     padding: theme.spacing(1),
+
+    '& > :nth-child(-n + 2)': {
+        position: 'sticky',
+        top: '8px',
+        height: 'calc(100dvh - 16px)',
+    },
 }));

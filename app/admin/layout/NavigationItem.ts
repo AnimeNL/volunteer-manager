@@ -17,11 +17,6 @@ export interface NavigationItem {
      */
     badge?: {
         /**
-         * Label to display in the badge's tooltip. What does this badge represent?
-         */
-        label: string;
-
-        /**
          * Severity of the badge. Will be considered in the presentation.
          */
         severity?: 'error' | 'success' | 'warning';
