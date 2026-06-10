@@ -1,17 +1,24 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type SvgIcon from '@mui/material/SvgIcon';
+
 /**
  * Individual item to include in a navigation section.
  */
 export interface NavigationItem {
+    /**
+     * Icon to display in front of the item.
+     */
+    Icon: typeof SvgIcon;
+
     /**
      * URL that should be navigated to when this item has been selected.
      */
     href: string;
 
     /**
-     * Label to display on the displayed item.
+     * Label to display as the item's primary text.
      */
     label: string;
 }
