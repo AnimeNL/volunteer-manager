@@ -13,6 +13,27 @@ export interface NavigationItem {
     Icon: typeof SvgIcon;
 
     /**
+     * Badge to display on the right-hand side of the item, if any.
+     */
+    badge?: {
+        /**
+         * Label to display in the badge's tooltip. What does this badge represent?
+         */
+        label: string;
+
+        /**
+         * Severity of the badge. Will be considered in the presentation.
+         */
+        severity?: 'error' | 'success' | 'warning';
+
+        /**
+         * Value of the badge. `true` will be shown as a dot, where numeric values other than zero
+         * will be shown as a number.
+         */
+        value: boolean | number;
+    };
+
+    /**
      * URL that should be navigated to when this item has been selected.
      */
     href: string;

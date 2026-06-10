@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 
+import Badge from '@mui/material/Badge';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -95,6 +96,10 @@ function NavigationItemClient(props: { item: NavigationItem }) {
             <ListItemText>
                 {props.item.label}
             </ListItemText>
+            { (!!props.item.badge && typeof props.item.badge.value === 'number') &&
+                <Badge badgeContent={props.item.badge.value} color={props.item.badge.severity} /> }
+            { (!!props.item.badge && typeof props.item.badge.value !== 'number') &&
+                <Badge variant="dot" color={ props.item.badge.severity ?? 'primary' } /> }
         </NavigationMenuListItem>
     );
 }
@@ -106,6 +111,8 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
     {
         borderRadius: theme.vars?.shape.borderRadius,
         color: theme.vars?.palette.text.primary,
+        paddingRight: theme.spacing(3.25),
+
         [`&:hover .${listItemIconClasses.root}`]: {
             color: theme.vars?.palette.primary.dark,
         },

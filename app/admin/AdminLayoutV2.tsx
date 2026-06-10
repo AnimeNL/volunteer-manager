@@ -42,6 +42,9 @@ export async function AdminLayoutV2(props: React.PropsWithChildren) {
                         items: [
                             {
                                 Icon: OutboxOutlinedIcon,
+                                badge: {
+                                    value: 12,
+                                },
                                 href: '/admin/system/outbox/email',
                                 label: 'Outbox',
                             },
@@ -67,6 +70,10 @@ export async function AdminLayoutV2(props: React.PropsWithChildren) {
                             },
                             {
                                 Icon: QueryStatsIcon,
+                                badge: {
+                                    severity: 'error',
+                                    value: 1,
+                                },
                                 href: '/admin/system/diagnostics/logs',
                                 label: 'Diagnostics',
                             },
@@ -77,6 +84,10 @@ export async function AdminLayoutV2(props: React.PropsWithChildren) {
                             },
                             {
                                 Icon: LoopIcon,
+                                badge: {
+                                    severity: 'warning',
+                                    value: true,
+                                },
                                 href: '/admin/system/scheduler',
                                 label: 'Scheduler',
                             },
