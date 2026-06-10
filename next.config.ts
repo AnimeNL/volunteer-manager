@@ -5,6 +5,12 @@ import type { NextConfig } from 'next';
 import NextBundleAnalyzer from '@next/bundle-analyzer';
 import nextBuildId from 'next-build-id';
 
+import nextPackage from 'next/package.json' with { type: 'json' };
+import muiMaterialPackage from '@mui/material/package.json' with { type: 'json' };
+import muiDataGridPremiumPackage from '@mui/x-data-grid-premium/package.json' with { type: 'json' };
+import reactPackage from 'react/package.json' with { type: 'json' };
+import volunteerManagerPackage from './package.json' with { type: 'json' };
+
 const nextConfig: NextConfig = {
     allowedDevOrigins: [ '192.168.252.108', 'localhost' ],
     devIndicators: {
@@ -15,6 +21,18 @@ const nextConfig: NextConfig = {
         // next-build-id library locally on the machine for other kinds of builds. Do update
         // Docker.build.js when changing the logic in this file.
         buildHash: process.env.BUILD_HASH || nextBuildId.sync({ dir: __dirname }).substring(0, 7),
+
+        // Information about the project, sourced from the package.json file:
+        NEXT_PUBLIC_PROJECT_BUILD_DATE: new Date().toISOString(),
+        NEXT_PUBLIC_PROJECT_DESCRIPTION: volunteerManagerPackage.description,
+        NEXT_PUBLIC_PROJECT_HOMEPAGE: volunteerManagerPackage.homepage,
+        NEXT_PUBLIC_PROJECT_VERSION: volunteerManagerPackage.version,
+
+        // Information about the project's dependencies, sourced from their package.json files:
+        NEXT_PUBLIC_VERSION_MUI: muiMaterialPackage.version,
+        NEXT_PUBLIC_VERSION_MUI_X: muiDataGridPremiumPackage.version,
+        NEXT_PUBLIC_VERSION_NEXTJS: nextPackage.version,
+        NEXT_PUBLIC_VERSION_REACT: reactPackage.version,
     },
     experimental: {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental

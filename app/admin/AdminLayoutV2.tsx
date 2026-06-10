@@ -12,7 +12,7 @@ import StreamIcon from '@mui/icons-material/Stream';
 import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
-import { AdminContentWrapper, AdminPageWrapper } from './AdminLayoutClientV2';
+import { AdminContentWrapper, AdminPageWrapper } from './layout/AdminComponents';
 import { NavigationMenu } from './layout/NavigationMenu';
 import { NavigationSidebar } from './layout/NavigationSidebar';
 import { ThemeProvider } from './layout/ThemeProvider';

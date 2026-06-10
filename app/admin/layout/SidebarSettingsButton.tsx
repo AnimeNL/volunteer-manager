@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
@@ -19,6 +20,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useColorScheme  } from '@mui/material/styles';
 
+import { AboutDialog } from './AboutDialog';
 import { SidebarButton } from './SidebarButton';
 
 /**
@@ -27,6 +29,9 @@ import { SidebarButton } from './SidebarButton';
  */
 export function SidebarSettingsButton() {
     const { mode, setMode } = useColorScheme();
+
+    const [ aboutDialogEverOpen, setAboutDialogEverOpen ] = useState<boolean>(false);
+    const [ aboutDialogOpen, setAboutDialogOpen ] = useState<boolean>(false);
 
     const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
 
@@ -49,6 +54,13 @@ export function SidebarSettingsButton() {
         setAnchorElement(event.currentTarget);
     }, [ /* no deps */ ]);
 
+    const handleAboutDialogClose = useCallback(() => setAboutDialogOpen(false), [ /* no deps */ ]);
+    const handleAboutDialogOpen = useCallback(() => {
+        setAboutDialogEverOpen(true);
+        setAboutDialogOpen(true);
+        setAnchorElement(null);
+    }, [ /* no deps */ ]);
+
     return (
         <>
             <SidebarButton Icon={SettingsIcon} onClick={handleMenuOpen} title="Settings" />
@@ -69,13 +81,21 @@ export function SidebarSettingsButton() {
                     </ToggleButtonGroup>
                 </MenuItem>
                 <Divider />
-                <MenuItem dense sx={{ paddingRight: '40px' }}>
+                <MenuItem dense onClick={handleAboutDialogOpen}>
+                    <ListItemIcon>
+                        <InfoOutlinedIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="About this app…" />
+                </MenuItem>
+                <MenuItem dense>
                     <ListItemIcon>
                         <SettingsSuggestIcon />
                     </ListItemIcon>
-                    <ListItemText primary="All settings…" />
+                    <ListItemText primary="All settings" />
                 </MenuItem>
             </Menu>
+            { !!aboutDialogEverOpen &&
+                <AboutDialog open={aboutDialogOpen} onClose={handleAboutDialogClose} /> }
         </>
     );
 }

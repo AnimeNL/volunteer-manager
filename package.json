@@ -1,7 +1,7 @@
 {
   "name": "volunteer-manager-animecon",
   "version": "5.0.0",
-  "description": "Volunteer Management environment for AnimeCon",
+  "description": "AnimeCon Volunteer Manager",
   "scripts": {
     "sync-db": "node ts-sql.build.mjs",
     "build": "next build",
@@ -23,7 +23,7 @@
   "author": "Peter Beverloo <peter@animecon.nl>",
   "license": "MIT",
   "private": true,
-  "homepage": "https://github.com/AnimeNL/volunteer-manager#readme",
+  "homepage": "https://github.com/AnimeNL/volunteer-manager",
   "engines": {
     "node": ">=24.0.0"
   },
