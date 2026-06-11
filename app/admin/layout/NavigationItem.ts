@@ -13,6 +13,11 @@ export interface NavigationItem {
     Icon: typeof SvgIcon;
 
     /**
+     * Whether the item should be displayed in an active state.
+     */
+    active?: boolean;
+
+    /**
      * Badge to display on the right-hand side of the item, if any.
      */
     badge?: {
@@ -43,6 +48,11 @@ export interface NavigationItem {
  * Section containing one or more items to include in a navigation menu.
  */
 export interface NavigationSection {
+    /**
+     * Whether the section should be expanded by default.
+     */
+    defaultExpanded?: boolean;
+
     /**
      * Header describing what connects the items in this section.
      */

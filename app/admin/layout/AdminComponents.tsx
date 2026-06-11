@@ -11,6 +11,7 @@ import { styled } from '@mui/material/styles';
  */
 export const AdminContentWrapper = styled('div')(() => ({
     flex: 1,
+    minWidth: 0,
 }));
 
 /**

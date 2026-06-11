@@ -4,9 +4,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback, useState } from 'react';
 
 import Badge from '@mui/material/Badge';
+import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
@@ -89,7 +92,8 @@ function NavigationTopLevelItemClient(props: { item: NavigationTopLevelItem }) {
  */
 function NavigationItemClient(props: { item: NavigationItem }) {
     return (
-        <NavigationMenuListItem LinkComponent={Link} { ...{ href: props.item.href } }>
+        <NavigationMenuListItem LinkComponent={Link} { ...{ href: props.item.href } }
+                                className={ props.item.active ? 'active' : undefined }>
             <NavigationMenuListItemIcon>
                 <props.item.Icon fontSize="small" />
             </NavigationMenuListItemIcon>
@@ -113,19 +117,19 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
         color: theme.vars?.palette.text.primary,
         paddingRight: theme.spacing(3.25),
 
-        [`&:hover .${listItemIconClasses.root}`]: {
+        [`&:hover .${listItemIconClasses.root}, &.active .${listItemIconClasses.root}`]: {
             color: theme.vars?.palette.primary.dark,
         },
 
         transition: theme.transitions.create('background-color', { duration: kTransitionDuration }),
     },
     theme.applyStyles('light', {
-        '&:hover': {
+        '&:hover, &.active': {
             backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.main} 40%, #fff)`,
         },
     }),
     theme.applyStyles('dark', {
-        '&:hover': {
+        '&:hover, &.active': {
             backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.main} 40%, #000)`,
         },
     }),
@@ -144,17 +148,47 @@ const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
  * Render component for a `NavigationSection`.
  */
 function NavigationSectionClient(props: { section: NavigationSection }) {
+    const [ collapsed, setCollapsed ] = useState<boolean>(!!props.section.defaultExpanded);
+
+    const handleToggleCollapsed = useCallback(() => {
+        setCollapsed(state => !state);
+    }, [ /* no deps */ ]);
+
     return (
         <>
             <NavigationSectionDivider />
-            <NavigationSectionHeader>
-                {props.section.header}
+            <NavigationSectionHeader direction="row" onClick={handleToggleCollapsed}>
+                <NavigationSectionHeaderText>
+                    {props.section.header}
+                </NavigationSectionHeaderText>
+                <ExpandMoreIcon className={ collapsed ? 'collapsed' : '' } color="action"
+                                fontSize="small" />
             </NavigationSectionHeader>
-            { props.section.items.map((item, index) =>
-                <NavigationTopLevelItemClient key={index} item={item} /> ) }
+            <Collapse in={collapsed}>
+                <NavigationSectionContentAnimation>
+                    { props.section.items.map((item, index) =>
+                        <NavigationTopLevelItemClient key={index} item={item} /> ) }
+                </NavigationSectionContentAnimation>
+            </Collapse>
         </>
     );
 }
+
+/**
+ * Animation to apply to the content a navigation section when its visibility changes.
+ */
+const NavigationSectionContentAnimation = styled('div')(({ theme }) => ({
+    transform: 'translateX(8px)',
+    opacity: 0,
+
+    '.MuiCollapse-entered &': {
+        transform: 'translateX(0px)',
+        opacity: 1,
+    },
+
+    // TODO: The exit animation is great, the enter animation is delayed too much.
+    transition: theme.transitions.create([ 'opacity', 'transform' ]),
+}));
 
 /**
  * Divider to be displayed ahead of a <NavigationSectionClient>.
@@ -166,8 +200,20 @@ const NavigationSectionDivider = styled(Divider)(({ theme }) => ({
 /**
  * Header to be displayed as part of a <NavigationSectionClient>.
  */
-const NavigationSectionHeader = styled(ListSubheader)(({ theme }) => ({
+const NavigationSectionHeader = styled(Stack)(({ theme }) => ({
+    cursor: 'pointer',
+    paddingRight: theme.spacing(2),
+
+    '& svg.collapsed': { transform: 'rotate(180deg)' },
+    '& svg': { transition: theme.transitions.create('transform') },
+}));
+
+/**
+ * Text on the header to be displayed as part of a <NavigationSectionClient>.
+ */
+const NavigationSectionHeaderText = styled(ListSubheader)(({ theme }) => ({
     backgroundColor: 'unset',
+    flexGrow: 1,
     fontWeight: 'normal',
     lineHeight: 'unset',
 

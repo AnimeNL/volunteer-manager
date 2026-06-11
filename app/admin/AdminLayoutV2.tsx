@@ -45,6 +45,7 @@ export async function AdminLayoutV2(props: React.PropsWithChildren<AdminLayoutV2
                 <NavigationMenu title="AnimeCon" items={[
                     {
                         Icon: DashboardOutlinedIcon,
+                        active: true,
                         href: '/admin',
                         label: 'Dashboard',
                     },
@@ -77,6 +78,7 @@ export async function AdminLayoutV2(props: React.PropsWithChildren<AdminLayoutV2
                         ],
                     },
                     {
+                        defaultExpanded: true,
                         header: 'System',
                         items: [
                             {
