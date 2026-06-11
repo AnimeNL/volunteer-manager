@@ -3,7 +3,19 @@
 
 'use client';
 
+import { Inter } from 'next/font/google';
+
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
+
+/**
+ * The Inter font, loaded through NextJS' font stack, with default settings for Material UI.
+ */
+const kInterFont = Inter({
+    weight: [ '300', '400', '500', '700' ],
+    subsets: [ 'latin' ],
+    display: 'block',
+    fallback: [ 'Roboto', 'Helvetica', 'Arial', 'sans-serif' ],
+});
 
 /**
  * Type augmentations for additional properties we add to the default theme.
@@ -45,6 +57,9 @@ const kTheme = createTheme({
     },
     shape: {
         borderRadius: 8,
+    },
+    typography: {
+        fontFamily: kInterFont.style.fontFamily,
     },
 });
 

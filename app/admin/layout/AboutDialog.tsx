@@ -103,7 +103,7 @@ export function AboutDialog(props: AboutDialogProps) {
                             <Typography variant="body2" color="textDisabled">
                                 v{dependency.version}
                             </Typography>
-                            <NavigateNextOutlinedIcon />
+                            <NavigateNextOutlinedIcon color="action" />
                         </ListItemButton> ) }
                 </List>
                 <Divider />
