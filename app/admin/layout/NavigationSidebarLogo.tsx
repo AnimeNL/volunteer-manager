@@ -138,15 +138,15 @@ export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) 
         },
     },
     theme.applyStyles('light', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 75%, #000)`,
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
         '& .outline': {
-            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 75%, #000)`,
+            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
         },
     }),
     theme.applyStyles('dark', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 55%, #000)`,
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
         '& .outline': {
-            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 55%, #000)`,
+            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
         },
     }),
 ]);

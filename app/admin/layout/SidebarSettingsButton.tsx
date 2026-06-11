@@ -36,7 +36,6 @@ export function SidebarSettingsButton() {
     const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
 
     const handleChangeMode = useCallback((event: unknown, value: string) => {
-        console.log('Set mode:', value);
         switch (value) {
             case 'dark':
             case 'light':

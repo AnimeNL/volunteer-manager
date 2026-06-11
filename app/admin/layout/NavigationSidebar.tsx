@@ -18,7 +18,10 @@ import { SidebarVolunteersButton } from './SidebarVolunteersButton';
  * Props accepted by the <NavigationSidebar> component.
  */
 interface NavigationSidebarProps {
-    // TODO
+    /**
+     * Whether the organisation menu item should be enabled.
+     */
+    enableOrganisation?: boolean;
 }
 
 /**
@@ -32,8 +35,9 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
             <NavigationSidebarLogo />
             <NavigationSidebarSectionStack spacing={1} useFlexGap>
                 <SidebarButton Icon={DashboardIcon} active href="/admin" title="Dashboard" />
-                <SidebarButton Icon={AccountBalanceIcon} href="/admin/organisation"
-                               title="Organisation" />
+                { props.enableOrganisation &&
+                    <SidebarButton Icon={AccountBalanceIcon} href="/admin/organisation"
+                                   title="Organisation" /> }
                 <SidebarVolunteersButton />
                 <NavigationSidebarDivider flexItem  />
                 <SidebarSettingsButton />

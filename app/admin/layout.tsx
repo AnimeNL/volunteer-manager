@@ -59,7 +59,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                 paletteMode={paletteMode} palette={environment.colours}>
 
                 { isLayoutV2 &&
-                    <AdminLayoutV2>
+                    <AdminLayoutV2 access={access}>
                         {props.children}
                     </AdminLayoutV2> }
 

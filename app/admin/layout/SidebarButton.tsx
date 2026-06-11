@@ -10,8 +10,6 @@ import IconButton, { type IconButtonProps } from '@mui/material/IconButton';
 import Tooltip, { type TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 
-import { grey } from '@mui/material/colors';
-
 /**
  * Props accepted by the <SidebarButton> component.
  */
@@ -110,23 +108,26 @@ const SidebarIconButton = styled(({ active, ...props }: SidebarIconButtonProps) 
     <IconButton {...props} />
 ))(({ active, theme }) => [
     {
+        borderRadius: theme.vars?.shape.borderRadius,
         color: theme.vars?.palette.common.white,
         transition: theme.transitions.create('background-color'),
     },
     theme.applyStyles('light', {
         backgroundColor:
-            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 75%, #000)`
+            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`
                    : undefined,
 
-        '&:active': { backgroundColor: grey[700] },
-        '&:hover': { backgroundColor: grey[800] },
+        '&:active, &:hover': {
+            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 60%, #000)`
+        },
     }),
     theme.applyStyles('dark', {
         backgroundColor:
-            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 55%, #000)`
+            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`
                    : undefined,
 
-        '&:active': { backgroundColor: grey[800] },
-        '&:hover': { backgroundColor: grey[900] },
+        '&:active, &:hover': {
+            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 40%, #000)`
+        },
     }),
 ]);

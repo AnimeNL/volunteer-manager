@@ -12,20 +12,36 @@ import StreamIcon from '@mui/icons-material/Stream';
 import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
+import type { AccessControl } from '@lib/auth/AccessControl';
 import { AdminContentWrapper, AdminPageWrapper } from './layout/AdminComponents';
 import { NavigationMenu } from './layout/NavigationMenu';
 import { NavigationSidebar } from './layout/NavigationSidebar';
 import { ThemeProvider } from './layout/ThemeProvider';
+import { checkPermission } from '@lib/auth/AuthenticationContext';
+
+import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
+
+/**
+ * Props accepted by the <AdminLayoutV2> component.
+ */
+interface AdminLayoutV2Props {
+    /**
+     * Interface through which volunteer access will be confirmed.
+     */
+    access: AccessControl;
+}
 
 /**
  * Root component of the new administration layout, which is a substantial step up from the original
  * Material UI-inspired design. Responsive and expressive from the get-go.
  */
-export async function AdminLayoutV2(props: React.PropsWithChildren) {
+export async function AdminLayoutV2(props: React.PropsWithChildren<AdminLayoutV2Props>) {
+    const enableOrganisation = checkPermission(props.access, kDashboardPermissions);
+
     return (
         <ThemeProvider>
             <AdminPageWrapper direction="row" spacing={1}>
-                <NavigationSidebar />
+                <NavigationSidebar enableOrganisation={enableOrganisation} />
                 <NavigationMenu title="AnimeCon" items={[
                     {
                         Icon: DashboardOutlinedIcon,
