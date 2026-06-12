@@ -3,6 +3,8 @@
 
 'use client';
 
+import { usePathname } from 'next/navigation';
+
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Divider from '@mui/material/Divider';
@@ -30,15 +32,26 @@ interface NavigationSidebarProps {
  * configuration relating to active experiments.
  */
 export function NavigationSidebar(props: NavigationSidebarProps) {
+    const path = usePathname();
+
+    const organisationActive = path.startsWith('/admin/organisation');
+    const volunteersActive = path.startsWith('/admin/events/');
+
+    const dashboardActive = !organisationActive && !volunteersActive;
+
     return (
         <Stack>
             <NavigationSidebarLogo />
             <NavigationSidebarSectionStack spacing={1} useFlexGap>
-                <SidebarButton Icon={DashboardIcon} active href="/admin" title="Dashboard" />
+                <SidebarButton Icon={DashboardIcon} active={dashboardActive}
+                               href="/admin" title="Dashboard" />
+
                 { props.enableOrganisation &&
-                    <SidebarButton Icon={AccountBalanceIcon} href="/admin/organisation"
-                                   title="Organisation" /> }
-                <SidebarVolunteersButton />
+                    <SidebarButton Icon={AccountBalanceIcon} active={organisationActive}
+                                   href="/admin/organisation" title="Organisation" /> }
+
+                <SidebarVolunteersButton active={volunteersActive} />
+
                 <NavigationSidebarDivider flexItem  />
                 <SidebarSettingsButton />
             </NavigationSidebarSectionStack>

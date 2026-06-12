@@ -10,15 +10,26 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { SidebarButton } from './SidebarButton';
 
 /**
+ * Props accepted by the <SidebarVolunteersButton> component.
+ */
+interface SidebarVolunteersButtonProps {
+    /**
+     * Whether the volunteers button is the active item in the sidebar.
+     */
+    active: boolean;
+}
+
+/**
  * The <SidebarVolunteersButton> is a component that provides access to the volunteer management
  * functionality for a particular event.
  */
-export function SidebarVolunteersButton() {
+export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
     const handleMenuOpen = useCallback(() => {
         // TODO: Menu with the active events.
     }, [ /* no deps */ ]);
 
     return (
-        <SidebarButton Icon={GroupsIcon} onClick={handleMenuOpen} title="Volunteers" />
+        <SidebarButton Icon={GroupsIcon} active={props.active}
+                       onClick={handleMenuOpen} title="Volunteers" />
     );
 }
