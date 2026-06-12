@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 import Badge from '@mui/material/Badge';
 import Collapse from '@mui/material/Collapse';
@@ -20,6 +21,19 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { NavigationItem, NavigationSection, NavigationTopLevelItem } from './NavigationItem';
+
+/**
+ * Function to help determine whether the given `item` is currently active.
+ */
+function isNavigationItemActive(path: string, item: NavigationItem): boolean {
+    const matchMode = item.urlMatchMode ?? 'prefix';
+    switch (matchMode) {
+        case 'prefix':
+            return path.startsWith(item.urlPrefix ?? item.url);
+        case 'strict':
+            return path === item.url;
+    }
+}
 
 /**
  * Duration, as a CSS timing unit, transitions in the menu's active state should last for.
@@ -46,6 +60,8 @@ interface NavigationMenuClientProps {
  * it recursively, enabling nesting of the menu.
  */
 export function NavigationMenuClient(props: NavigationMenuClientProps) {
+    const path = usePathname();
+
     return (
         <NavigationMenuContainer>
             <NavigationMenuTitle variant="subtitle1">
@@ -53,7 +69,7 @@ export function NavigationMenuClient(props: NavigationMenuClientProps) {
             </NavigationMenuTitle>
             <List dense>
                 { props.items.map((item, index) =>
-                    <NavigationTopLevelItemClient key={index} item={item} /> ) }
+                    <NavigationTopLevelItemClient key={index} item={item} path={path} /> ) }
             </List>
         </NavigationMenuContainer>
     );
@@ -80,20 +96,21 @@ const NavigationMenuTitle = styled(Typography)(({ theme }) => ({
 /**
  * Render component for a `NavigationTopLevelItem`, which can be one of many things.
  */
-function NavigationTopLevelItemClient(props: { item: NavigationTopLevelItem }) {
+function NavigationTopLevelItemClient(props: { item: NavigationTopLevelItem, path: string }) {
     if ('header' in props.item)
-        return <NavigationSectionClient section={props.item} />;
+        return <NavigationSectionClient section={props.item} path={props.path} />;
 
-    return <NavigationItemClient item={props.item} />;
+    return <NavigationItemClient item={props.item} path={props.path} />;
 }
 
 /**
  * Render component for a `NavigationItem`.
  */
-function NavigationItemClient(props: { item: NavigationItem }) {
+function NavigationItemClient(props: { item: NavigationItem, path: string }) {
+    const active = isNavigationItemActive(props.path, props.item);
     return (
-        <NavigationMenuListItem LinkComponent={Link} { ...{ href: props.item.href } }
-                                className={ props.item.active ? 'active' : undefined }>
+        <NavigationMenuListItem LinkComponent={Link} { ...{ href: props.item.url } }
+                                className={ active ? 'active' : undefined }>
             <NavigationMenuListItemIcon>
                 <props.item.Icon fontSize="small" />
             </NavigationMenuListItemIcon>
@@ -147,8 +164,8 @@ const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
 /**
  * Render component for a `NavigationSection`.
  */
-function NavigationSectionClient(props: { section: NavigationSection }) {
-    const [ collapsed, setCollapsed ] = useState<boolean>(!!props.section.defaultExpanded);
+function NavigationSectionClient(props: { section: NavigationSection, path: string }) {
+    const [ collapsed, setCollapsed ] = useState<boolean>(!props.section.defaultExpanded);
 
     const handleToggleCollapsed = useCallback(() => {
         setCollapsed(state => !state);
@@ -158,16 +175,17 @@ function NavigationSectionClient(props: { section: NavigationSection }) {
         <>
             <NavigationSectionDivider />
             <NavigationSectionHeader direction="row" onClick={handleToggleCollapsed}>
-                <NavigationSectionHeaderText>
+                <NavigationSectionHeaderText sx={{ color: props.section.color }}>
                     {props.section.header}
                 </NavigationSectionHeaderText>
                 <ExpandMoreIcon className={ collapsed ? 'collapsed' : '' } color="action"
                                 fontSize="small" />
             </NavigationSectionHeader>
-            <Collapse in={collapsed}>
+            <Collapse in={!collapsed}>
                 <NavigationSectionContentAnimation>
                     { props.section.items.map((item, index) =>
-                        <NavigationTopLevelItemClient key={index} item={item} /> ) }
+                        <NavigationTopLevelItemClient key={index} item={item}
+                                                      path={props.path} /> ) }
                 </NavigationSectionContentAnimation>
             </Collapse>
         </>
@@ -178,16 +196,18 @@ function NavigationSectionClient(props: { section: NavigationSection }) {
  * Animation to apply to the content a navigation section when its visibility changes.
  */
 const NavigationSectionContentAnimation = styled('div')(({ theme }) => ({
-    transform: 'translateX(8px)',
-    opacity: 0,
+    transform: 'translateX(0px)',
+    opacity: 1,
 
-    '.MuiCollapse-entered &': {
-        transform: 'translateX(0px)',
-        opacity: 1,
+    '.MuiCollapse-root:not(.MuiCollapse-entered) &': {
+        transform: 'translateX(8px)',
+        opacity: 0,
     },
 
-    // TODO: The exit animation is great, the enter animation is delayed too much.
-    transition: theme.transitions.create([ 'opacity', 'transform' ]),
+    transition: theme.transitions.create([ 'opacity', 'transform' ], {
+        duration: theme.transitions.duration.standard,
+        easing: 'cubic-bezier(0.15, 0.30, 0.2, 1)',
+    }),
 }));
 
 /**

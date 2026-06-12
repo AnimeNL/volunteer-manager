@@ -13,11 +13,6 @@ export interface NavigationItem {
     Icon: typeof SvgIcon;
 
     /**
-     * Whether the item should be displayed in an active state.
-     */
-    active?: boolean;
-
-    /**
      * Badge to display on the right-hand side of the item, if any.
      */
     badge?: {
@@ -34,20 +29,36 @@ export interface NavigationItem {
     };
 
     /**
-     * URL that should be navigated to when this item has been selected.
-     */
-    href: string;
-
-    /**
      * Label to display as the item's primary text.
      */
     label: string;
+
+    /**
+     * URL that should be navigated to when this item has been selected.
+     */
+    url: string;
+
+    /**
+     * Match to apply to the URL (or URL prefix) when deciding on highlight state.
+     * @default "prefix"
+     */
+    urlMatchMode?: 'prefix' | 'strict';
+
+    /**
+     * URL prefix that should be used when deciding on highlight state, instead of the `url`.
+     */
+    urlPrefix?: string;
 }
 
 /**
  * Section containing one or more items to include in a navigation menu.
  */
 export interface NavigationSection {
+    /**
+     * Colour in which the section's title will be displayed.
+     */
+    color?: string;
+
     /**
      * Whether the section should be expanded by default.
      */
