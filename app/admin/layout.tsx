@@ -8,12 +8,17 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import { AdminClientProviders } from './AdminClientProviders';
+import { AdminContentWrapper, AdminPageWrapper } from './layout/AdminComponents';
 import { AdminHeader } from './AdminHeader';
-import { AdminLayoutV2 } from './AdminLayoutV2';
 import { MuiLicense } from '../components/MuiLicense';
+import { NavigationSidebar } from './layout/NavigationSidebar';
+import { ThemeProvider } from './layout/ThemeProvider';
+import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { determineEnvironment } from '@lib/Environment';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { readUserSettings } from '@lib/UserSettings';
+
+import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
 
 /**
  * URL that the user should navigate to when clicking on the build hash.
@@ -46,6 +51,8 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     // Whether the new layout should be enabled. Available through context.
     const isLayoutV2 = !!settings['user-admin-experimental-layout'];
 
+    const enableOrganisation = checkPermission(access, kDashboardPermissions);
+
     return (
         <>
             <MuiLicense />
@@ -59,9 +66,15 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                 paletteMode={paletteMode} palette={environment.colours}>
 
                 { isLayoutV2 &&
-                    <AdminLayoutV2 access={access}>
-                        {props.children}
-                    </AdminLayoutV2> }
+                    <ThemeProvider>
+                        <AdminPageWrapper direction="row" spacing={1}>
+                            <NavigationSidebar enableOrganisation={enableOrganisation} />
+                            {props.menu}
+                            <AdminContentWrapper>
+                                {props.children}
+                            </AdminContentWrapper>
+                        </AdminPageWrapper>
+                    </ThemeProvider> }
 
                 { !isLayoutV2 &&
                     <Box sx={{ overflow: 'auto' }}>
