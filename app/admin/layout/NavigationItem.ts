@@ -3,6 +3,8 @@
 
 import type SvgIcon from '@mui/material/SvgIcon';
 
+import type { PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
+
 /**
  * Individual item to include in a navigation section.
  */
@@ -29,9 +31,19 @@ export interface NavigationItem {
     };
 
     /**
+     * Optional condition that, when given, must be `true` in order for the menu option to show.
+     */
+    condition?: boolean;
+
+    /**
      * Label to display as the item's primary text.
      */
     label: string;
+
+    /**
+     * Permission behind which access to this menu section or item is gated, if any.
+     */
+    permission?: PermissionAccessCheck | PermissionAccessCheck[];
 
     /**
      * URL that should be navigated to when this item has been selected.
