@@ -8,10 +8,9 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import { AdminClientProviders } from './AdminClientProviders';
-import { AdminContentWrapper, AdminPageWrapper } from './layout/AdminComponents';
 import { AdminHeader } from './AdminHeader';
 import { MuiLicense } from '../components/MuiLicense';
-import { NavigationSidebar } from './layout/NavigationSidebar';
+import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { ThemeProvider } from './layout/ThemeProvider';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { determineEnvironment } from '@lib/Environment';
@@ -78,19 +77,21 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                     canAccessAccounts: access.can('organisation.accounts', 'read'),
                     isLayoutV2,
                 }}
-                enableResponsiveLayout={!!settings['user-admin-experimental-responsive']}
+                enableResponsiveLayout={
+                    !!settings['user-admin-experimental-responsive'] || isLayoutV2 }
                 paletteMode={paletteMode} palette={environment.colours}>
 
                 { isLayoutV2 &&
                     <ThemeProvider>
-                        <AdminPageWrapper direction="row" spacing={1}>
-                            <NavigationSidebar enableOrganisation={enableOrganisation}
-                                               events={events} />
-                            {props.menu}
-                            <AdminContentWrapper>
-                                {props.children}
-                            </AdminContentWrapper>
-                        </AdminPageWrapper>
+                        <ResponsiveLayout
+                            children={props.children}
+                            menu={props.menu}
+                            slotProps={{
+                                sidebar: {
+                                    enableOrganisation,
+                                    events
+                                }
+                            }} />
                     </ThemeProvider> }
 
                 { !isLayoutV2 &&
