@@ -14,7 +14,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import type { NavigationSidebarProps } from './NavigationSidebar';
+import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
 
 /**
  * Props accepted by the <MobileAppBar> component.
@@ -45,7 +45,6 @@ export function MobileAppBar(props: MobileAppBarProps) {
 
     // TODO: Figure out what to do with the page title
     // TODO: Connect the "More" settings button to the menu
-    // TODO: Include a sidebar to navigate between areas
     // TODO: Close the <AppBar> upon navigation
 
     return (
@@ -64,6 +63,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
                 </Toolbar>
             </AppBar>
             <AppDrawer open={drawerOpen} onClose={handleDrawerClose}>
+                <NavigationSidebar {...props.slotProps.sidebar} variant="mobile" />
                 {props.menu}
             </AppDrawer>
         </>

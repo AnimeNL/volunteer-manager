@@ -41,8 +41,7 @@ export interface LayoutProps {
 function DesktopLayout(props: LayoutProps) {
     return (
         <DesktopPageWrapper direction="row" spacing={1}>
-            <NavigationSidebar enableOrganisation={props.slotProps.sidebar.enableOrganisation}
-                               events={props.slotProps.sidebar.events} />
+            <NavigationSidebar {...props.slotProps.sidebar} variant="desktop" />
             {props.menu}
             <DesktopContentWrapper>
                 {props.children}

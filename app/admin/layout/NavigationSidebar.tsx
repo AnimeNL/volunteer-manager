@@ -17,7 +17,7 @@ import { SidebarSettingsButton } from './SidebarSettingsButton';
 import { SidebarVolunteersButton } from './SidebarVolunteersButton';
 
 /**
- * Props accepted by the <NavigationSidebar> component.
+ * Props accepted by slots towards the <NavigationSidebar> component.
  */
 export interface NavigationSidebarProps {
     /**
@@ -48,11 +48,21 @@ export interface NavigationSidebarProps {
 }
 
 /**
+ * Props accepted by the <NavigationSidebar> component.
+ */
+interface NavigationSidebarComponentProps extends NavigationSidebarProps {
+    /**
+     * Variant of the sidebar to display.
+     */
+    variant: 'desktop' | 'mobile';
+}
+
+/**
  * The <NavigationSidebar> component is the primary mechanism for users to switch between different
  * sections of the administration area, access their user settings, and, when available,
  * configuration relating to active experiments.
  */
-export function NavigationSidebar(props: NavigationSidebarProps) {
+export function NavigationSidebar(props: NavigationSidebarComponentProps) {
     const path = usePathname();
 
     const organisationActive = path.startsWith('/admin/organisation');
@@ -60,24 +70,46 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
 
     const dashboardActive = !organisationActive && !volunteersActive;
 
-    return (
-        <Stack>
-            <NavigationSidebarLogo />
-            <NavigationSidebarSectionStack spacing={1} useFlexGap>
-                <SidebarButton Icon={DashboardIcon} active={dashboardActive}
-                               href="/admin" title="Dashboard" />
+    // ---------------------------------------------------------------------------------------------
 
-                { props.enableOrganisation &&
-                    <SidebarButton Icon={AccountBalanceIcon} active={organisationActive}
-                                   href="/admin/organisation" title="Organisation" /> }
-
-                <SidebarVolunteersButton active={volunteersActive} events={props.events} />
-
-                <NavigationSidebarDivider flexItem  />
-                <SidebarSettingsButton />
-            </NavigationSidebarSectionStack>
-        </Stack>
+    const buttons = [ /* none */ ];
+    buttons.push(
+        <SidebarButton Icon={DashboardIcon} active={dashboardActive}
+                       href="/admin" title="Dashboard" />
     );
+
+    if (props.enableOrganisation) {
+        buttons.push(
+            <SidebarButton Icon={AccountBalanceIcon} active={organisationActive}
+                           href="/admin/organisation" title="Organisation" />
+        );
+    }
+
+    // Everyone who can access the administration area is assumed to be able to access volunteers.
+    buttons.push(<SidebarVolunteersButton active={volunteersActive} events={props.events} />);
+
+    // ---------------------------------------------------------------------------------------------
+
+    if (props.variant === 'desktop') {
+        return (
+            <Stack>
+                <NavigationSidebarLogo />
+                <NavigationSidebarDesktopSectionStack spacing={1} useFlexGap>
+                    {buttons}
+                    <NavigationSidebarDivider flexItem  />
+                    <SidebarSettingsButton />
+                </NavigationSidebarDesktopSectionStack>
+            </Stack>
+        );
+    } else {
+        return (
+            <NavigationSidebarMobileSectionStack
+                direction="row" spacing={1}
+                divider={ <Divider orientation="vertical" flexItem /> }>
+                {buttons}
+            </NavigationSidebarMobileSectionStack>
+        );
+    }
 }
 
 /**
@@ -91,10 +123,27 @@ const NavigationSidebarDivider = styled(Divider)(({ theme }) => ({
 /**
  * Component that displays the full-height stack for the administration area section buttons.
  */
-const NavigationSidebarSectionStack = styled(Stack)(({ theme }) => ({
+const NavigationSidebarDesktopSectionStack = styled(Stack)(({ theme }) => ({
     backgroundColor: theme.vars?.palette.background.sidebar,
     borderRadius: theme.vars?.shape.borderRadius,
+
     flexGrow: 1,
+
+    marginTop: theme.spacing(1),
+    padding: theme.spacing(1.5),
+}));
+
+
+/**
+ * Component that displays the full-width stack for different sections on mobile devices.
+ */
+const NavigationSidebarMobileSectionStack = styled(Stack)(({ theme }) => ({
+    backgroundColor: theme.vars?.palette.background.sidebar,
+    borderRadius: theme.vars?.shape.borderRadius,
+
+    justifyContent: 'space-evenly',
+
+    marginBottom: theme.spacing(-1),
     marginTop: theme.spacing(1),
     padding: theme.spacing(1.5),
 }));
