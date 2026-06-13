@@ -19,11 +19,32 @@ import { SidebarVolunteersButton } from './SidebarVolunteersButton';
 /**
  * Props accepted by the <NavigationSidebar> component.
  */
-interface NavigationSidebarProps {
+export interface NavigationSidebarProps {
     /**
      * Whether the organisation menu item should be enabled.
      */
     enableOrganisation?: boolean;
+
+    /**
+     * List of active events in the administration area. Expected to be sorted.
+     */
+    events: {
+        /**
+         * Whether the event has concluded already.
+         */
+        concluded: boolean;
+
+        /**
+         * Label that succinctly describes an event.
+         */
+        label: string;
+
+        /**
+         * URL-safe slug used to refer to the event.
+         */
+        slug: string;
+
+    }[];
 }
 
 /**
@@ -50,7 +71,7 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
                     <SidebarButton Icon={AccountBalanceIcon} active={organisationActive}
                                    href="/admin/organisation" title="Organisation" /> }
 
-                <SidebarVolunteersButton active={volunteersActive} />
+                <SidebarVolunteersButton active={volunteersActive} events={props.events} />
 
                 <NavigationSidebarDivider flexItem  />
                 <SidebarSettingsButton />

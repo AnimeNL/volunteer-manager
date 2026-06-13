@@ -17,8 +17,10 @@ import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { determineEnvironment } from '@lib/Environment';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { readUserSettings } from '@lib/UserSettings';
+import db, { tEvents } from '@lib/database';
 
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
+import { kAnyTeam } from '@lib/auth/AccessList';
 
 /**
  * URL that the user should navigate to when clicking on the build hash.
@@ -35,6 +37,20 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const environment = await determineEnvironment();
     if (!environment)
         notFound();
+
+    const dbInstance = db;
+    const unfilteredEvents = await dbInstance.selectFrom(tEvents)
+        .where(tEvents.eventHidden.equals(/* false= */ 0))
+        .select({
+            concluded: tEvents.eventEndTime.lessOrEquals(dbInstance.currentZonedDateTime()),
+            label: tEvents.eventShortName,
+            slug: tEvents.eventSlug,
+        })
+        .orderBy(tEvents.eventEndTime, 'desc')
+        .executeSelectMany();
+
+    const events = unfilteredEvents.filter(event =>
+        access.can('event.visible', { event: event.slug, team: kAnyTeam }))
 
     const settings = await readUserSettings(user.id, [
         'ai-example-messages',
@@ -68,7 +84,8 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                 { isLayoutV2 &&
                     <ThemeProvider>
                         <AdminPageWrapper direction="row" spacing={1}>
-                            <NavigationSidebar enableOrganisation={enableOrganisation} />
+                            <NavigationSidebar enableOrganisation={enableOrganisation}
+                                               events={events} />
                             {props.menu}
                             <AdminContentWrapper>
                                 {props.children}

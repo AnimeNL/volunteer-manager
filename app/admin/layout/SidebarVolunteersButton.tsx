@@ -3,10 +3,20 @@
 
 'use client';
 
-import { useCallback } from 'react';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
 
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
+import EventIcon from '@mui/icons-material/Event';
 import GroupsIcon from '@mui/icons-material/Groups';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Menu from '@mui/material/Menu';
+import MenuItem, { type MenuItemProps } from '@mui/material/MenuItem';
+import { styled } from '@mui/material/styles';
 
+import type { NavigationSidebarProps } from './NavigationSidebar';
 import { SidebarButton } from './SidebarButton';
 
 /**
@@ -17,6 +27,11 @@ interface SidebarVolunteersButtonProps {
      * Whether the volunteers button is the active item in the sidebar.
      */
     active: boolean;
+
+    /**
+     * List of active events for which volunteer management is available.
+     */
+    events: NavigationSidebarProps['events'];
 }
 
 /**
@@ -24,12 +39,52 @@ interface SidebarVolunteersButtonProps {
  * functionality for a particular event.
  */
 export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
-    const handleMenuOpen = useCallback(() => {
-        // TODO: Menu with the active events.
+    const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
+
+    const handleMenuClose = useCallback(() => setAnchorElement(null), [ /* no deps */ ]);
+    const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
+        setAnchorElement(event.currentTarget);
     }, [ /* no deps */ ]);
 
     return (
-        <SidebarButton Icon={GroupsIcon} active={props.active}
-                       onClick={handleMenuOpen} title="Volunteers" />
+        <>
+            <SidebarButton Icon={GroupsIcon} active={props.active}
+                           onClick={handleMenuOpen} title="Volunteers" />
+            <Menu anchorEl={anchorElement} open={!!anchorElement} onClose={handleMenuClose}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'top' }}>
+                    <MenuHeader>
+                        <ListItemText primary="Volunteers" />
+                    </MenuHeader>
+                { !props.events.length &&
+                    <MenuItem dense>
+                        <ListItemIcon>
+                            <EventBusyIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="No events available…" />
+                    </MenuItem> }
+                { props.events.map(event =>
+                    <MenuItem key={event.slug} dense sx={{ pr: 3 }} component={Link}
+                              href={ `/admin/events/${event.slug}` } onClick={handleMenuClose}>
+                        <ListItemIcon>
+                            { !event.concluded && <EventIcon color="primary" /> }
+                            { !!event.concluded && <EventAvailableIcon color="disabled" /> }
+                        </ListItemIcon>
+                        <ListItemText primary={event.label} />
+                    </MenuItem> ) }
+            </Menu>
+        </>
     );
 }
+
+/**
+ * Tooltip used to illustrate what the particular button will be used for. Will be displayed on the
+ * right-hand side of the button in a dark variant of the primary theme colour.
+ */
+const MenuHeader = styled(({ className, ...props }: MenuItemProps) => (
+     <MenuItem dense disabled divider {...props} classes={{ root: className }} />
+))(({ theme }) => ({
+    color: theme.vars?.palette.text.primary,
+    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(-0.5),
+    opacity: '1 !important',
+}));
