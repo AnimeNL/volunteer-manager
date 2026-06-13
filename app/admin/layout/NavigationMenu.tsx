@@ -4,8 +4,17 @@
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { NavigationItem, NavigationTopLevelItem } from './NavigationItem';
 import { NavigationMenuClient } from './NavigationMenuClient';
+import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
 
 import { checkPermission, or } from '@lib/auth/AuthenticationContext';
+
+/**
+ * Unique IDs given to navigation menus. Used to persist menu state across navigations and browsing
+ * sessions. All menus are expected to be referred to in this list.
+ */
+export type NavigationMenuId =
+    /* /admin/organisation */ 'organisation' |
+    /* /admin              */ 'dashboard';
 
 /**
  * Props accepted by the <NavigationMenu> component.
@@ -17,6 +26,11 @@ interface NavigationMenuProps {
     access: AccessControl;
 
     /**
+     * Unique ID of this navigation menu.
+     */
+    id: NavigationMenuId;
+
+    /**
      * Entries to include in the navigation client.
      */
     items: NavigationTopLevelItem[];
@@ -25,6 +39,11 @@ interface NavigationMenuProps {
      * Title of this navigation menu.
      */
     title: string;
+
+    /**
+     * Unique ID of the signed in user.
+     */
+    userId: number;
 }
 
 /**
@@ -50,7 +69,7 @@ function shouldKeepNavigationItem(item: NavigationItem, access: AccessControl): 
  * The <NavigationMenu> component is the server-side component of the menu, which filters the given
  * items removing ones to which the signed in user does not have access.
  */
-export function NavigationMenu(props: NavigationMenuProps) {
+export async function NavigationMenu(props: NavigationMenuProps) {
     const filteredItems: NavigationTopLevelItem[] = [];
 
     for (const item of props.items) {
@@ -70,5 +89,8 @@ export function NavigationMenu(props: NavigationMenuProps) {
         }
     }
 
-    return <NavigationMenuClient items={filteredItems} title={props.title} />;
+    return <NavigationMenuClient items={filteredItems} title={props.title}
+                                 state={ await fetchMenuStateFromDatabase(props.userId, props.id) }
+                                 updateStateFn={
+                                     updateMenuState.bind(null, props.userId, props.id) } />;
 }

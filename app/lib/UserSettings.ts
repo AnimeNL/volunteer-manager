@@ -18,6 +18,7 @@ export type UserSettingsMap = {
     'user-admin-experimental-layout': boolean;
     'user-admin-experimental-responsive': boolean;
     'user-admin-knowledge-expand-categories': boolean;
+    'user-admin-menu-state': string;
     'user-admin-schedule-date': string;
     'user-admin-schedule-expand-sections': string;
     'user-admin-schedule-expand-history': boolean;

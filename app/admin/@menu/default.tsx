@@ -20,9 +20,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * a lightweight component as it should rarely be displayed, if at all.
  */
 export default async function DefaultMenu() {
-    const { access } = await requireAuthenticationContext();
+    const { access, user } = await requireAuthenticationContext();
     return (
-        <NavigationMenu access={access} title="AnimeCon" items={[
+        <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
                 Icon: DashboardOutlinedIcon,
                 label: 'Dashboard',
@@ -36,6 +36,7 @@ export default async function DefaultMenu() {
             },
             {
                 header: 'Communication',
+                id: 'communication',
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
@@ -60,6 +61,7 @@ export default async function DefaultMenu() {
             {
                 defaultExpanded: true,
                 header: 'System',
+                id: 'system',
                 items: [
                     {
                         Icon: AutoAwesomeIcon,
@@ -96,6 +98,6 @@ export default async function DefaultMenu() {
                     }
                 ],
             }
-        ]} />
+        ]} userId={user.id} />
     );
 }

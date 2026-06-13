@@ -18,9 +18,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * will be independently updated from the rest of the content.
  */
 export default async function OrganisationMenu() {
-    const { access } = await requireAuthenticationContext();
+    const { access, user } = await requireAuthenticationContext();
     return (
-        <NavigationMenu access={access} title="Organisation" items={[
+        <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {
                 Icon: DashboardOutlinedIcon,
                 label: 'Dashboard',
@@ -40,6 +40,7 @@ export default async function OrganisationMenu() {
             {
                 defaultExpanded: true,
                 header: 'People',
+                id: 'people',
                 items: [
                     {
                         Icon: PersonIcon,
@@ -70,6 +71,7 @@ export default async function OrganisationMenu() {
             {
                 defaultExpanded: true,
                 header: 'Services',
+                id: 'services',
                 items: [
                     {
                         Icon: ShareIcon,
@@ -92,6 +94,6 @@ export default async function OrganisationMenu() {
                     },
                 ],
             },
-        ]} />
+        ]} userId={user.id} />
     );
 }

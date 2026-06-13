@@ -16,6 +16,11 @@ vi.mock('./NavigationMenuClient', () => ({
     NavigationMenuClient: vi.fn(() => <div />),
 }));
 
+vi.mock('./NavigationMenuState', () => ({
+    fetchMenuStateFromDatabase: vi.fn(async () => ({})),
+    updateMenuState: vi.fn(),
+}));
+
 describe('NavigationMenu', () => {
     beforeEach(() => vi.clearAllMocks());
 
@@ -27,7 +32,7 @@ describe('NavigationMenu', () => {
             (NavigationTopLevelItem & { label: string })[];  // more concise tests
     }
 
-    it('should keep items when condition is undefined or true, and filter out when false', () => {
+    it('should keep items when condition is undefined or true, otherwise filter out', async () => {
         const access = new AccessControl({ /* no grants */ });
         const items: NavigationTopLevelItem[] = [
             {
@@ -49,7 +54,8 @@ describe('NavigationMenu', () => {
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(2);
@@ -57,7 +63,7 @@ describe('NavigationMenu', () => {
         expect(passed[1].label).toBe('Keep 2');
     });
 
-    it('should filter items based on permissions', () => {
+    it('should filter items based on permissions', async () => {
         const access = new AccessControl({
             grants: [ 'organisation.accounts' ],
         });
@@ -80,14 +86,15 @@ describe('NavigationMenu', () => {
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(1);
         expect(passed[0].label).toBe('Accounts (Granted)');
     });
 
-    it('should support multiple permissions using OR logic (any of them)', () => {
+    it('should support multiple permissions using OR logic (any of them)', async () => {
         const access = new AccessControl({
             grants: [ 'organisation.teams' ],
         });
@@ -114,14 +121,15 @@ describe('NavigationMenu', () => {
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(1);
         expect(passed[0].label).toBe('Structure (Granted)');
     });
 
-    it('should filter sub-items within sections and remove section if empty', () => {
+    it('should filter sub-items within sections and remove section if empty', async () => {
         const access = new AccessControl({
             grants: [ 'organisation.accounts' ],
         });
@@ -129,6 +137,7 @@ describe('NavigationMenu', () => {
         const items: NavigationTopLevelItem[] = [
             {
                 header: 'Section 1 (Has items)',
+                id: 'section-1',
                 items: [
                     {
                         Icon: DashboardOutlinedIcon,
@@ -155,6 +164,7 @@ describe('NavigationMenu', () => {
             },
             {
                 header: 'Section 2 (Empty section)',
+                id: 'section-2',
                 items: [
                     {
                         Icon: DashboardOutlinedIcon,
@@ -166,7 +176,8 @@ describe('NavigationMenu', () => {
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(1);
@@ -181,26 +192,29 @@ describe('NavigationMenu', () => {
         }
     });
 
-    it('should filter out sections that initially contain no items', () => {
+    it('should filter out sections that initially contain no items', async () => {
         const access = new AccessControl({ /* no grants */ });
         const items: NavigationTopLevelItem[] = [
             {
                 header: 'Empty Section',
+                id: 'empty-section',
                 items: [],
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(0);
     });
 
-    it('should remove sections where all items fail condition or permission checks', () => {
+    it('should remove sections where all items fail condition or permission checks', async () => {
         const access = new AccessControl({ /* no grants */ });
         const items: NavigationTopLevelItem[] = [
             {
                 header: 'Failing Section',
+                id: 'failing-section',
                 items: [
                     {
                         Icon: DashboardOutlinedIcon,
@@ -218,7 +232,8 @@ describe('NavigationMenu', () => {
             },
         ];
 
-        render(<NavigationMenu access={access} title="Test Title" items={items} />);
+        render(await NavigationMenu({
+            access, id: "dashboard", title: "Test Title", items, userId: 42 }));
 
         const passed = getPassedItems();
         expect(passed).toHaveLength(0);

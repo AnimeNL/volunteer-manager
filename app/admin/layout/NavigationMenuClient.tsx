@@ -4,7 +4,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 
 import Badge from '@mui/material/Badge';
@@ -41,6 +41,11 @@ function isNavigationItemActive(path: string, item: NavigationItem): boolean {
 const kTransitionDuration = '0.2s';
 
 /**
+ * Type of the Server Action through which menu state can be updated.
+ */
+type UpdateStateServerAction = (sectionId: string, expanded: boolean) => Promise<void>;
+
+/**
  * Props accepted by the <NavigationMenuClient> component.
  */
 interface NavigationMenuClientProps {
@@ -50,9 +55,19 @@ interface NavigationMenuClientProps {
     items: NavigationTopLevelItem[];
 
     /**
+     * State of the menu. Record where the key is a section ID, and the value whether it's expanded.
+     */
+    state: Record<string, boolean>;
+
+    /**
      * Title of this navigation menu.
      */
     title: string;
+
+    /**
+     * Server Action through which section state will be persisted.
+     */
+    updateStateFn: UpdateStateServerAction;
 }
 
 /**
@@ -69,7 +84,9 @@ export function NavigationMenuClient(props: NavigationMenuClientProps) {
             </NavigationMenuTitle>
             <List dense>
                 { props.items.map((item, index) =>
-                    <NavigationTopLevelItemClient key={index} item={item} path={path} /> ) }
+                    <NavigationTopLevelItemClient
+                        key={index} item={item} path={path} state={props.state}
+                        updateStateFn={props.updateStateFn} /> ) }
             </List>
         </NavigationMenuContainer>
     );
@@ -96,9 +113,15 @@ const NavigationMenuTitle = styled(Typography)(({ theme }) => ({
 /**
  * Render component for a `NavigationTopLevelItem`, which can be one of many things.
  */
-function NavigationTopLevelItemClient(props: { item: NavigationTopLevelItem, path: string }) {
+function NavigationTopLevelItemClient(props: {
+    item: NavigationTopLevelItem,
+    path: string,
+    state: Record<string, boolean>,
+    updateStateFn: UpdateStateServerAction,
+}) {
     if ('header' in props.item)
-        return <NavigationSectionClient section={props.item} path={props.path} />;
+        return <NavigationSectionClient section={props.item} path={props.path}
+                                        state={props.state} updateStateFn={props.updateStateFn} />;
 
     return <NavigationItemClient item={props.item} path={props.path} />;
 }
@@ -164,28 +187,38 @@ const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
 /**
  * Render component for a `NavigationSection`.
  */
-function NavigationSectionClient(props: { section: NavigationSection, path: string }) {
-    const [ collapsed, setCollapsed ] = useState<boolean>(!props.section.defaultExpanded);
+function NavigationSectionClient(props: {
+    section: NavigationSection,
+    path: string,
+    state: Record<string, boolean>,
+    updateStateFn: UpdateStateServerAction,
+}) {
+    // biome-ignore lint/correctness/noUnusedVariables: update state intentionally ignored
+    const [ updating, startUpdate ] = useTransition();
+    const [ expanded, setExpanded ] = useState<boolean>(
+        props.state[props.section.id] ?? props.section.defaultExpanded);
 
-    const handleToggleCollapsed = useCallback(() => {
-        setCollapsed(state => !state);
-    }, [ /* no deps */ ]);
+    const handleToggleExpanded = useCallback(() => {
+        startUpdate(async () => props.updateStateFn(props.section.id, !expanded));
+        setExpanded(existingState => {
+            return !existingState;
+        });
+    }, [ expanded, props.section.id, props.updateStateFn ]);
 
     return (
         <>
             <NavigationSectionDivider />
-            <NavigationSectionHeader direction="row" onClick={handleToggleCollapsed}>
+            <NavigationSectionHeader direction="row" onClick={handleToggleExpanded}>
                 <NavigationSectionHeaderText sx={{ color: props.section.color }}>
                     {props.section.header}
                 </NavigationSectionHeaderText>
-                <ExpandMoreIcon className={ collapsed ? 'collapsed' : '' } color="action"
+                <ExpandMoreIcon className={ expanded ? '' : 'collapsed' } color="action"
                                 fontSize="small" />
             </NavigationSectionHeader>
-            <Collapse in={!collapsed}>
+            <Collapse in={expanded}>
                 <NavigationSectionContentAnimation>
                     { props.section.items.map((item, index) =>
-                        <NavigationTopLevelItemClient key={index} item={item}
-                                                      path={props.path} /> ) }
+                        <NavigationItemClient key={index} item={item} path={props.path} /> ) }
                 </NavigationSectionContentAnimation>
             </Collapse>
         </>

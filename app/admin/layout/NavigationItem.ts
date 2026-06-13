@@ -82,6 +82,11 @@ export interface NavigationSection {
     header: string;
 
     /**
+     * Unique ID of this section with its parent menu. Used for state persistence.
+     */
+    id: string;
+
+    /**
      * Items to be included in this section.
      */
     items: NavigationItem[];
