@@ -3,6 +3,7 @@
 
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
+import { z } from 'zod/v4';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
@@ -14,7 +15,8 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import UpdateDisabledIcon from '@mui/icons-material/UpdateDisabled';
 
-import { AccessLogsDataTable } from './AccessLogsDataTable';
+import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
+    from '@app/admin/components/DataTable';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
@@ -22,10 +24,92 @@ import { ShareableLink } from './ShareableLink';
 import { Temporal, isBefore } from '@lib/Temporal';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
 import * as actions from '../ExportsActions';
+
+/**
+ * Data source through which the access logs of a given export can be retrieved.
+ */
+const exportAccessLogsDataSource = createDataSource('organisation/exports/access-logs', withContext({
+    /**
+     * Unique ID of the export to display the access logs for.
+     */
+    exportId: z.number(),
+
+}), withRowModel({
+    /**
+     * Unique ID of the log entry.
+     */
+    id: z.number(),
+
+    /**
+     * Date at which the export was accessed.
+     */
+    date: z.string(),
+
+    /**
+     * IP address of the user who accessed the export.
+     */
+    userIp: z.string(),
+
+    /**
+     * User agent of the client that accessed the export.
+     */
+    userAgent: z.string(),
+
+    /**
+     * Volunteer who accessed the export, if authenticated.
+     */
+    user: z.object({
+        id: z.number(),
+        name: z.string(),
+    }).optional(),
+}), {
+    async authorize(operation, props) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'organisation.exports',
+        });
+    },
+
+    async list(params, props, context) {
+        const dbInstance = db;
+        const usersJoin = tUsers.forUseInLeftJoin();
+        const results = await dbInstance.selectFrom(tExportsLogs)
+            .leftJoin(usersJoin)
+                .on(usersJoin.userId.equals(tExportsLogs.accessUserId))
+            .where(tExportsLogs.exportId.equals(context.exportId))
+            .select({
+                id: tExportsLogs.exportLogId,
+                date: dbInstance.dateTimeAsString(tExportsLogs.accessDate),
+                userIp: tExportsLogs.accessIpAddress,
+                userAgent: tExportsLogs.accessUserAgent,
+                user: {
+                    id: tExportsLogs.accessUserId,
+                    name: usersJoin.name,
+                },
+            })
+            .orderBy(
+                params.sort.field === 'user' ? 'user.name'
+                    : params.sort.field === 'userIp' ? 'userIp'
+                    : params.sort.field === 'userAgent' ? 'userAgent'
+                    : 'date',
+                params.sort.direction)
+            .limit(params.page.limit)
+                .offset(params.page.offset)
+            .executeSelectPage();
+
+        return {
+            rowCount: results.count,
+            rows: results.data.map(row => ({
+                ...row,
+                user: (row.user && row.user.id && row.user.name) ? row.user as any : undefined,
+            })),
+        };
+    },
+});
 
 /**
  * The <OrganisationExportsLogPage> component displays the information associated with a singular
@@ -57,6 +141,7 @@ export default async function OrganisationExportsLogPage(
             .on(exportsLogsJoin.exportId.equals(tExports.exportId))
         .where(tExports.exportId.equals(parseInt(id, /* radix= */ 10)))
         .select({
+            id: tExports.exportId,
             date: dbInstance.dateTimeAsString(tExports.exportCreatedDate),
             slug: tExports.exportSlug,
             type: tExports.exportType,
@@ -80,25 +165,41 @@ export default async function OrganisationExportsLogPage(
         data.expirationViews > data.views &&
         isBefore(Temporal.Now.zonedDateTimeISO(), data.expirationDate);
 
-    const usersJoin = tUsers.forUseInLeftJoin();
-
-    const views = await dbInstance.selectFrom(tExportsLogs)
-        .leftJoin(usersJoin)
-            .on(usersJoin.userId.equals(tExportsLogs.accessUserId))
-        .where(tExportsLogs.exportId.equals(parseInt(id, 10)))
-        .select({
-            id: tExportsLogs.exportLogId,
-            date: dbInstance.dateTimeAsString(tExportsLogs.accessDate),
-            userIp: tExportsLogs.accessIpAddress,
-            userAgent: tExportsLogs.accessUserAgent,
-
-            userId: tExportsLogs.accessUserId,
-            userName: usersJoin.name,
-        })
-        .executeSelectMany();
-
-    const expireExportFn = actions.expireExport.bind(null, parseInt(id, 10));
+    const expireExportFn = actions.expireExport.bind(null, data.id);
     const shareableLink = `https://${environment.domain}/exports/${data.slug}`;
+
+    const columns: Column<ExtractRowModel<typeof exportAccessLogsDataSource>>[] = [
+        {
+            field: 'date',
+            headerName: 'Date',
+            width: 175,
+
+            template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+            },
+        },
+        {
+            field: 'userIp',
+            headerName: 'IP Address',
+            width: 150,
+        },
+        {
+            field: 'userAgent',
+            headerName: 'User Agent',
+            flex: 1,
+        },
+        {
+            field: 'user',
+            headerName: 'Volunteer',
+            width: 200,
+
+            template: 'account',
+            templateProps: {
+                noAccountLabel: 'unknown',
+            },
+        }
+    ];
 
     return (
         <Grid container spacing={2}>
@@ -182,7 +283,7 @@ export default async function OrganisationExportsLogPage(
                 </Table>
             </Grid>
 
-            { !!views.length &&
+            { !!data.views &&
                 <>
                     <Grid size={{ xs: 12 }}>
                         <Typography variant="h6" sx={{ mb: -1 }}>
@@ -190,7 +291,20 @@ export default async function OrganisationExportsLogPage(
                         </Typography>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <AccessLogsDataTable views={views} />
+                        <DataTable
+                            columns={columns}
+                            source={exportAccessLogsDataSource}
+                            context={{ exportId: data.id }}
+                            defaultSort={{ field: 'date', sort: 'desc' }}
+                            pageSize={100}
+                            disableSearch
+                            listViewProps={{
+                                primaryField: 'userIp',
+                                secondaryField: 'userAgent',
+                                dateField: 'date',
+                                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                            }}
+                        />
                     </Grid>
                 </> }
 
