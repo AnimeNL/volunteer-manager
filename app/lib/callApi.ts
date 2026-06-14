@@ -58,7 +58,6 @@ import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/
 import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/route';
 import type { EventTeamEndpoints } from '@app/api/admin/event/teams/[[...id]]/route';
 import type { ExportsEndpoints } from '@app/api/admin/exports/[[...id]]/route';
-import type { FeedbackEndpoints } from '@app/api/admin/organisation/feedback/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { LogsEndpoints } from '@app/api/admin/logs/[[...id]]/route';
@@ -110,7 +109,6 @@ export type ApiEndpoints = {
         '/api/admin/logs': LogsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
         '/api/admin/organisation/displays/requests': DisplayRequestsEndpoints['list'],
-        '/api/admin/organisation/feedback': FeedbackEndpoints['list'],
         '/api/admin/organisation/roles': RolesEndpoints['list'],
         '/api/admin/outbox/email': OutboxEmailEndpoints['list'],
         '/api/admin/outbox/email/:id': OutboxEmailEndpoints['get'],
