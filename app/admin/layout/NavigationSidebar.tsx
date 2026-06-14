@@ -85,8 +85,11 @@ export function NavigationSidebar(props: NavigationSidebarComponentProps) {
         );
     }
 
-    // Everyone who can access the administration area is assumed to be able to access volunteers.
-    buttons.push(<SidebarVolunteersButton active={volunteersActive} events={props.events} />);
+    if (props.events.length > 0) {
+        buttons.push(
+            <SidebarVolunteersButton active={volunteersActive} events={props.events} />
+        );
+    }
 
     // ---------------------------------------------------------------------------------------------
 

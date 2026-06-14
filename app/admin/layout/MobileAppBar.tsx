@@ -49,7 +49,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
 
     return (
         <>
-            <AppBar elevation={3} position="sticky">
+            <AppBar elevation={3} position="sticky" enableColorOnDark>
                 <Toolbar>
                     <IconButton edge="start" color="inherit" onClick={handleDrawerOpen}>
                         <MenuIcon />

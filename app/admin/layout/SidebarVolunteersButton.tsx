@@ -18,6 +18,7 @@ import { styled } from '@mui/material/styles';
 
 import type { NavigationSidebarProps } from './NavigationSidebar';
 import { SidebarButton } from './SidebarButton';
+import { useIsMobile } from '../lib/useIsMobile';
 
 /**
  * Props accepted by the <SidebarVolunteersButton> component.
@@ -39,6 +40,8 @@ interface SidebarVolunteersButtonProps {
  * functionality for a particular event.
  */
 export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
+    const isMobile = useIsMobile();
+
     const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
 
     const handleMenuClose = useCallback(() => setAnchorElement(null), [ /* no deps */ ]);
@@ -51,7 +54,9 @@ export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
             <SidebarButton Icon={GroupsIcon} active={props.active}
                            onClick={handleMenuOpen} title="Volunteers" />
             <Menu anchorEl={anchorElement} open={!!anchorElement} onClose={handleMenuClose}
-                  anchorOrigin={{ horizontal: 'right', vertical: 'top' }}>
+                  transformOrigin={ isMobile ? { horizontal: 'center', vertical: -4 } : undefined }
+                  anchorOrigin={ isMobile ? { horizontal: 'center', vertical: 'bottom' }
+                                          : { horizontal: 'right', vertical: 'top' } }>
                     <MenuHeader>
                         <ListItemText primary="Volunteers" />
                     </MenuHeader>
