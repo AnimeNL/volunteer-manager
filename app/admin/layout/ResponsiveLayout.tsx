@@ -8,6 +8,7 @@ import { useContext } from 'react';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
+import type { SettingsDialogProps } from './SettingsDialog';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { MobileAppBar } from './MobileAppBar';
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
@@ -30,6 +31,7 @@ export interface LayoutProps {
      * Props that should be given to specific slots part of the layout.
      */
     slotProps: {
+        settings: SettingsDialogProps;
         sidebar: NavigationSidebarProps;
     };
 }
@@ -41,7 +43,8 @@ export interface LayoutProps {
 function DesktopLayout(props: LayoutProps) {
     return (
         <DesktopPageWrapper direction="row" spacing={1}>
-            <NavigationSidebar {...props.slotProps.sidebar} variant="desktop" />
+            <NavigationSidebar variant="desktop" settingsDialogProps={props.slotProps.settings}
+                               {...props.slotProps.sidebar} />
             {props.menu}
             <DesktopContentWrapper>
                 {props.children}

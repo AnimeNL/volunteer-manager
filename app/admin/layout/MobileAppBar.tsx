@@ -14,7 +14,9 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
+import type { SettingsDialogProps } from './SettingsDialog';
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
+import { SidebarSettingsButton } from './SidebarSettingsButton';
 
 /**
  * Props accepted by the <MobileAppBar> component.
@@ -29,6 +31,7 @@ interface MobileAppBarProps {
      * Props that should be given to specific slots part of the layout.
      */
     slotProps: {
+        settings: SettingsDialogProps;
         sidebar: NavigationSidebarProps;
     };
 }
@@ -65,6 +68,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
             <AppDrawer open={drawerOpen} onClose={handleDrawerClose}>
                 <NavigationSidebar {...props.slotProps.sidebar} variant="mobile" />
                 {props.menu}
+                <SidebarSettingsButton isMobile settingsDialogProps={props.slotProps.settings}/>
             </AppDrawer>
         </>
     );

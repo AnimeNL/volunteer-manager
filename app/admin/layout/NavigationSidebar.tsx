@@ -11,6 +11,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
+import type { SettingsDialogProps } from './SettingsDialog';
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
 import { SidebarButton } from './SidebarButton';
 import { SidebarSettingsButton } from './SidebarSettingsButton';
@@ -50,12 +51,23 @@ export interface NavigationSidebarProps {
 /**
  * Props accepted by the <NavigationSidebar> component.
  */
-interface NavigationSidebarComponentProps extends NavigationSidebarProps {
+type NavigationSidebarComponentProps = NavigationSidebarProps & ({
     /**
      * Variant of the sidebar to display.
      */
-    variant: 'desktop' | 'mobile';
-}
+    variant: 'mobile';
+
+} | {
+    /**
+     * Variant of the sidebar to display.
+     */
+    variant: 'desktop';
+
+    /**
+     * Props to share with the settings dialog.
+     */
+    settingsDialogProps: SettingsDialogProps;
+});
 
 /**
  * The <NavigationSidebar> component is the primary mechanism for users to switch between different
@@ -100,7 +112,7 @@ export function NavigationSidebar(props: NavigationSidebarComponentProps) {
                 <NavigationSidebarDesktopSectionStack spacing={1} useFlexGap>
                     {buttons}
                     <NavigationSidebarDivider flexItem  />
-                    <SidebarSettingsButton />
+                    <SidebarSettingsButton settingsDialogProps={props.settingsDialogProps} />
                 </NavigationSidebarDesktopSectionStack>
             </Stack>
         );
