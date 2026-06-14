@@ -73,6 +73,7 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         // User settings that cannot be updated through this mechanism:
         'ai-communication-personality-prompt': 'unknown',
         'ai-example-messages': 'unknown',
+        'user-admin-menu-state': 'unknown',
     };
 
     const settingsToUpdate: { [k in keyof UserSettingsMap]?: UserSettingsMap[k] } = {};
