@@ -42,7 +42,7 @@ export const kColumnTemplates = {
                 );
             }
 
-            if (!canAccessAccounts)
+            if (!params.value.id || !canAccessAccounts)
                 return params.value.name;
 
             return (

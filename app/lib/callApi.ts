@@ -63,7 +63,6 @@ import type { LogsEndpoints } from '@app/api/admin/logs/[[...id]]/route';
 import type { NardoEndpoints } from '@app/api/nardo/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
 import type { OutboxEmailEndpoints } from '@app/api/admin/outbox/email/[[...id]]/route';
-import type { OutboxTwilioEndpoints } from '@app/api/admin/outbox/twilio/route';
 import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
 import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id]]/route';
 import type { ProgramLocationsEndpoints } from '@app/api/admin/program/locations/[[...id]]/route';
@@ -110,7 +109,6 @@ export type ApiEndpoints = {
         '/api/admin/organisation/roles': RolesEndpoints['list'],
         '/api/admin/outbox/email': OutboxEmailEndpoints['list'],
         '/api/admin/outbox/email/:id': OutboxEmailEndpoints['get'],
-        '/api/admin/outbox/twilio': OutboxTwilioEndpoints['list'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
         '/api/admin/program/areas': ProgramAreasEndpoints['list'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['list'],
