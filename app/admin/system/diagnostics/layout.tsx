@@ -44,7 +44,10 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
 
     return (
         <>
-            <Section icon={ <DvrIcon color="primary" /> } title="Diagnostics">
+            <Section icon={ <DvrIcon color="primary" /> } title="Diagnostics" breadcrumbs={[
+                { label: 'System' },
+                { label: 'Diagnostics' },
+            ]}>
                 <SectionIntroduction>
                     Information about events, issues and perceived performance of the Volunteer
                     Manager.

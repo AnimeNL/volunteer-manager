@@ -6,11 +6,9 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
-import Alert from '@mui/material/Alert';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import LoopIcon from '@mui/icons-material/Loop';
-import Paper from '@mui/material/Paper';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
@@ -19,6 +17,8 @@ import Typography from '@mui/material/Typography';
 
 import type { SchedulerRowModel } from '@app/api/admin/scheduler/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Temporal, formatDate } from '@lib/Temporal';
 
 /**
@@ -153,16 +153,16 @@ export function SchedulerTaskTable() {
     ];
 
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5">
-                System scheduler
-            </Typography>
-            <Alert severity="info" sx={{ mt: 1, mb: 2 }}>
+        <Section title="System scheduler" breadcrumbs={[
+            { label: 'System' },
+            { label: 'Scheduler' },
+        ]}>
+            <SectionIntroduction>
                 The <strong>system scheduler</strong> is the component to run tasks (such as sending
                 an e-mail) in the background, either as a one-off or at a configured interval.
-            </Alert>
+            </SectionIntroduction>
             <RemoteDataTable columns={columns} endpoint="/api/admin/scheduler" enableQueryParams
                              defaultSort={{ field: 'date', sort: 'desc' }} pageSize={25} />
-        </Paper>
+        </Section>
     );
 }

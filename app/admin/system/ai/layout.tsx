@@ -55,6 +55,10 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
     return (
         <>
             <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
+                     breadcrumbs={[
+                        { label: 'System' },
+                        { label: 'AI' },
+                     ]}
                      documentation="system/ai">
                 <SectionIntroduction>
                     Artificial Intelligence capabilities are used for data analysis purposes,

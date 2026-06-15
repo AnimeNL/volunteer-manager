@@ -3,14 +3,16 @@
 
 import Stack from '@mui/material/Stack';
 
+import type { SectionBreadcrumbsProps } from './SectionBreadcrumbs';
 import { ResponsivePaper } from './ResponsivePaper';
+import { SectionBreadcrumbs } from './SectionBreadcrumbs';
 import { SectionHeader, type SectionHeaderProps } from './SectionHeader';
 
 /**
  * Props accepted by the <Section> component, that are directly owned by the <Section> component.
  * Other props, e.g. that of the header, will be included.
  */
-interface SectionOwnProps {
+interface SectionOwnProps extends Partial<SectionBreadcrumbsProps> {
     // Additional options go here.
 }
 
@@ -33,10 +35,11 @@ export type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: t
  * require them, to enable interaction such as a clear button.
  */
 export function Section(props: React.PropsWithChildren<SectionProps>) {
-    const { children, ...sectionHeaderProps } = props;
+    const { breadcrumbs, children, ...sectionHeaderProps } = props;
 
     return (
         <ResponsivePaper sx={{ p: 2 }}>
+            { !!breadcrumbs && <SectionBreadcrumbs breadcrumbs={breadcrumbs} /> }
             <Stack direction="column" spacing={2}>
                 { !('noHeader' in sectionHeaderProps) && <SectionHeader {...sectionHeaderProps} /> }
                 {children}

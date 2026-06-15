@@ -14,7 +14,6 @@ import EmailIcon from '@mui/icons-material/Email';
 import GoogleIcon from '@mui/icons-material/Google';
 import IconButton from '@mui/material/IconButton';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
-import Paper from '@mui/material/Paper';
 import PublishedWithChangesIcon from '@mui/icons-material/PublishedWithChanges';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -22,6 +21,7 @@ import Typography from '@mui/material/Typography';
 
 import type { ServiceHealthDefinition } from '@app/api/admin/serviceHealth';
 import { ContrastBox } from '../../components/ContrastBox';
+import { Section } from '@app/admin/components/Section';
 import { callApi } from '@lib/callApi';
 
 type ServiceHealthRequest = ServiceHealthDefinition['request'];
@@ -124,10 +124,10 @@ export function StatusHeader() {
     }, [ /* no deps */ ]);
 
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" sx={{ mb: 1 }}>
-                Integrations
-            </Typography>
+        <Section title="Integrations" breadcrumbs={[
+            { label: 'System' },
+            { label: 'Integrations' },
+        ]}>
             <Stack direction="row" spacing={2}>
                 <ContrastBox sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
                     { loading && <CircularProgress size="40px" /> }
@@ -158,11 +158,12 @@ export function StatusHeader() {
                 </ContrastBox>
             </Stack>
             { [ animeConStatus, googleStatus ].map((status, index) =>
-                <Collapse in={ [ 'error', 'warning' ].includes(status?.status || '') } key={index}>
+                <Collapse in={ [ 'error', 'warning' ].includes(status?.status || '') } key={index}
+                          unmountOnExit>
                     <Alert sx={{ mt: 2 }} severity={ (status?.status ?? 'info') as any }>
                         <strong>{status?.service}</strong>: {status?.message}
                     </Alert>
                 </Collapse> )}
-        </Paper>
+        </Section>
     );
 }
