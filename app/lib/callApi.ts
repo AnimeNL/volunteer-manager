@@ -57,7 +57,6 @@ import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedul
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
 import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/route';
 import type { EventTeamEndpoints } from '@app/api/admin/event/teams/[[...id]]/route';
-import type { ExportsEndpoints } from '@app/api/admin/exports/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { LogsEndpoints } from '@app/api/admin/logs/[[...id]]/route';
@@ -103,7 +102,6 @@ export type ApiEndpoints = {
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
         '/api/admin/event/shifts': EventShiftEndpoints['list'],
         '/api/admin/event/teams': EventTeamEndpoints['list'],
-        '/api/admin/exports': ExportsEndpoints['list'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/logs': LogsEndpoints['list'],
