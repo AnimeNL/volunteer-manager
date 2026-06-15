@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 
 import type { RowModelFields } from './Types';
 import { LocalDateTime } from '../LocalDateTime';
-import { resolveRowModelField, resolveTemplatedUrl } from './Utilities';
+import { resolveRowModelField, resolveTemplate } from './Utilities';
 
 /**
  * Props used to compose the list view presentation of a <DataTable> row.
@@ -139,7 +139,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
  */
 export function DataTableListViewButtonRow(props: DataTableListViewRowProps) {
     const router = useRouter();
-    const href = useMemo(() => resolveTemplatedUrl(props.row, props.listViewProps.linkTemplate), [
+    const href = useMemo(() => resolveTemplate(props.row, props.listViewProps.linkTemplate), [
         props.listViewProps.linkTemplate,
         props.row,
     ]);

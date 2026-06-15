@@ -23,6 +23,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
          * * `account`          Flexible column for displaying a(n optionally linked) user account.
          * * `component`        Flexible column for which a the templateProps.component will be shown.
          * * `date`             Flexible column for a Temporal ZDT date in the local timezone.
+         * * `number`           Flexible column that displays a number with a variety of options.
          * * `severity`         Fixed-width column for an icon-based severity indication.
          * * `text`             Flexible column that displays text with a variety of options.
          */
@@ -57,7 +58,17 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
              * contain references to other (nested) fields such as "./items/{entry.id}".
              */
             href?: string;
-        }
+        };
+    } |
+    {
+        template: 'number';
+        templateProps: {
+            /**
+             * Limit to indicate in the column, if any. May refer to another column, or to a fixed
+             * number.
+             */
+            limit?: RowModelFields<RowModel> | number;
+        };
     } |
     {
         template: 'severity';
@@ -84,6 +95,12 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
              * contain references to other (nested) fields such as "./items/{entry.id}".
              */
             href?: string;
+
+            /**
+             * Template to resolve the text against. May contain references to other (nested) fields
+             * such as "{title} ({author})".
+             */
+            template?: string;
         };
     }
 );

@@ -18,14 +18,14 @@ export function resolveRowModelField(row: GridRowModel<any>, field: string): any
 }
 
 /**
- * Resolves the given `template` URL based on the given `row`. All fields in the `row` will be
+ * Resolves the given `template` based on the given `row`. All fields in the `row` will be
  * considered as a substitute, and a path may be used to discover nested references.
  *
- * @param row The row based on which the URL has to be resolved.
- * @param template Template from which the URL should be derived.
- * @return URL based on the `template`, or an empty fragment when absent.
+ * @param row The row based on which the input has to be resolved.
+ * @param template Template from which the input should be derived.
+ * @return Output based on the `template`, or an empty fragment when absent.
  */
-export function resolveTemplatedUrl(row: GridRowModel<any>, template?: string): string {
+export function resolveTemplate(row: GridRowModel<any>, template?: string): string {
     if (!template)
         return '#';
 

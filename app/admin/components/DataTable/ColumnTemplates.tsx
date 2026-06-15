@@ -19,7 +19,7 @@ import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import type { LogSeverity, MutationSeverity } from '@lib/database/Types';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { resolveRowModelField, resolveTemplatedUrl } from './Utilities';
+import { resolveRowModelField, resolveTemplate } from './Utilities';
 
 /**
  * Factory functions to generate a column definition based on a given template.
@@ -91,7 +91,7 @@ export const kColumnTemplates = {
             const format = column.templateProps?.format ?? 'YYYY-MM-DD';
             const href =
                 !!column.templateProps?.href &&
-                resolveTemplatedUrl(params.row, column.templateProps.href);
+                resolveTemplate(params.row, column.templateProps.href);
 
             if (!!href) {
                 return (
@@ -102,6 +102,30 @@ export const kColumnTemplates = {
             } else {
                 return <LocalDateTime dateTime={params.value} format={format} />;
             }
+        },
+
+        ...column,
+    }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    number: column => ({
+        renderCell: params => {
+            if (!column.templateProps.limit)
+                return params.value;
+
+            const limit = typeof column.templateProps.limit === 'number'
+                ? column.templateProps.limit
+                : resolveRowModelField(params.row, column.templateProps.limit) ?? '∞';
+
+            return (
+                <Typography component="span" variant="body2">
+                    {params.value}{' '}
+                    <Typography component="span" variant="body2" sx={{ color: 'text.disabled' }}>
+                        / {limit}
+                    </Typography>
+                </Typography>
+            );
         },
 
         ...column,
@@ -164,8 +188,13 @@ export const kColumnTemplates = {
 
     text: column => ({
         renderCell: params => {
-            const field = column.templateProps.field ?? column.field;
-            const value = resolveRowModelField(params.row, field) ?? params.value;
+            let value: string;
+            if (!!column.templateProps.template) {
+                value = resolveTemplate(params.row, column.templateProps.template);
+            } else {
+                const field = column.templateProps.field ?? column.field;
+                value = resolveRowModelField(params.row, field) ?? params.value;
+            }
 
             if (!value) {
                 return (
@@ -177,7 +206,7 @@ export const kColumnTemplates = {
             }
 
             if (!!column.templateProps.href) {
-                const href = resolveTemplatedUrl(params.row, column.templateProps.href);
+                const href = resolveTemplate(params.row, column.templateProps.href);
                 return (
                     <MuiLink component={Link} href={href}>
                         {value}
