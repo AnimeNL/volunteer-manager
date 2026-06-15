@@ -13,8 +13,9 @@ import { checkPermission, or } from '@lib/auth/AuthenticationContext';
  * sessions. All menus are expected to be referred to in this list.
  */
 export type NavigationMenuId =
-    /* /admin/organisation */ 'organisation' |
-    /* /admin              */ 'dashboard';
+    /* /admin/events/[event]  */ 'events' |
+    /* /admin/organisation    */ 'organisation' |
+    /* /admin                 */ 'dashboard';
 
 /**
  * Props accepted by the <NavigationMenu> component.

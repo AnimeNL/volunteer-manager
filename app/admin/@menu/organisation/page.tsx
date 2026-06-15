@@ -18,7 +18,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * will be independently updated from the rest of the content.
  */
 export default async function OrganisationMenu() {
-    const { access, user } = await requireAuthenticationContext();
+    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
     return (
         <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {
@@ -28,18 +28,15 @@ export default async function OrganisationMenu() {
                 urlMatchMode: 'strict',
             },
             {
-                Icon: AccountBalanceIcon,
-                label: 'Structure',
-                permission: [
-                    'organisation.environments',
-                    'organisation.roles',
-                    'organisation.teams',
-                ],
-                url: '/admin/organisation/structure',
+                Icon: ShareIcon,
+                label: 'Data exports',
+                permission: 'organisation.exports',
+                url: '/admin/organisation/exports/create',
+                urlPrefix: '/admin/organisation/exports',
             },
             {
                 defaultExpanded: true,
-                header: 'People',
+                header: 'People & teams',
                 id: 'people',
                 items: [
                     {
@@ -66,6 +63,16 @@ export default async function OrganisationMenu() {
                         },
                         url: '/admin/organisation/permissions',
                     },
+                    {
+                        Icon: AccountBalanceIcon,
+                        label: 'Structure',
+                        permission: [
+                            'organisation.environments',
+                            'organisation.roles',
+                            'organisation.teams',
+                        ],
+                        url: '/admin/organisation/structure',
+                    },
                 ],
             },
             {
@@ -73,13 +80,6 @@ export default async function OrganisationMenu() {
                 header: 'Services',
                 id: 'services',
                 items: [
-                    {
-                        Icon: ShareIcon,
-                        label: 'Data exports',
-                        permission: 'organisation.exports',
-                        url: '/admin/organisation/exports/create',
-                        urlPrefix: '/admin/organisation/exports',
-                    },
                     {
                         Icon: TipsAndUpdatesIcon,
                         label: 'Del a Rie Advies',

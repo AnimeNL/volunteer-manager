@@ -20,7 +20,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * a lightweight component as it should rarely be displayed, if at all.
  */
 export default async function DefaultMenu() {
-    const { access, user } = await requireAuthenticationContext();
+    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
     return (
         <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
@@ -32,6 +32,7 @@ export default async function DefaultMenu() {
             {
                 Icon: TocIcon,
                 label: 'Content',
+                permission: 'system.content',
                 url: '/admin/content',
             },
             {
@@ -40,20 +41,20 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
-                        badge: {
-                            value: 12,
-                        },
                         label: 'Outbox',
+                        permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',
                     },
                     {
                         Icon: StreamIcon,
                         label: 'Subscriptions',
+                        permission: 'system.subscriptions.management',
                         url: '/admin/system/subscriptions',
                     },
                     {
                         Icon: WebhookIcon,
                         label: 'Webhooks',
+                        permission: 'system.internals.outbox',
                         url: '/admin/system/webhooks',
                     },
                 ],
@@ -66,34 +67,30 @@ export default async function DefaultMenu() {
                     {
                         Icon: AutoAwesomeIcon,
                         label: 'AI',
+                        permission: 'system.internals.ai',
                         url: '/admin/system/ai/communication',
                     },
                     {
                         Icon: QueryStatsIcon,
-                        badge: {
-                            severity: 'error',
-                            value: 1,
-                        },
                         label: 'Diagnostics',
                         url: '/admin/system/diagnostics/logs',
                     },
                     {
                         Icon: ApiIcon,
                         label: 'Integrations',
+                        permission: 'root',
                         url: '/admin/system/integrations',
                     },
                     {
                         Icon: LoopIcon,
-                        badge: {
-                            severity: 'warning',
-                            value: true,
-                        },
                         label: 'Scheduler',
+                        permission: 'system.internals.scheduler',
                         url: '/admin/system/scheduler',
                     },
                     {
                         Icon: SettingsOutlinedIcon,
                         label: 'Settings',
+                        permission: 'system.internals.settings',
                         url: '/admin/system/settings',
                     }
                 ],
