@@ -85,7 +85,7 @@ export function AboutDialog(props: AboutDialogProps) {
             <DialogContent sx={{ pb: 1 }}>
                 <Typography variant="body2">
                     Version v{ process.env.NEXT_PUBLIC_PROJECT_VERSION }{' '}
-                    ({ process.env.SOURCE_COMMIT }) built on {buildDate} —{' '}
+                    ({ process.env.NEXT_PUBLIC_PROJECT_BUILD_HASH }) built on {buildDate} —{' '}
                     <MuiLink component={Link} href={ process.env.NEXT_PUBLIC_PROJECT_HOMEPAGE! }
                              target="_blank">
                         GitHub

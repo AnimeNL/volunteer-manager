@@ -98,7 +98,7 @@ export function RegistrationLayout(props: React.PropsWithChildren<RegistrationLa
                 <Typography align="center" variant="body2" sx={{ mt: 1 }}>
                     AnimeCon Volunteer Portal (
                     <MuiLink href="https://github.com/beverloo/volunteer-manager" color="inherit">
-                        {process.env.SOURCE_COMMIT}
+                        { process.env.NEXT_PUBLIC_PROJECT_BUILD_HASH }
                     </MuiLink>) — © 2015–{year}
                 </Typography>
             </Container>

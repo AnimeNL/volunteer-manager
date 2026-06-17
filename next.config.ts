@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     env: {
         // Information about the project, sourced from the package.json file:
         NEXT_PUBLIC_PROJECT_BUILD_DATE: new Date().toISOString(),
+        NEXT_PUBLIC_PROJECT_BUILD_HASH: process.env.SOURCE_COMMIT?.substring(0, 7) || 'dev',
         NEXT_PUBLIC_PROJECT_DESCRIPTION: volunteerManagerPackage.description,
         NEXT_PUBLIC_PROJECT_HOMEPAGE: volunteerManagerPackage.homepage,
         NEXT_PUBLIC_PROJECT_VERSION: volunteerManagerPackage.version,
