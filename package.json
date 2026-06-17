@@ -34,7 +34,7 @@
     }
   },
   "dependencies": {
-    "@AnimeNL/volunteer-manager-timeline": "git+https://github.com/AnimeNL/volunteer-manager-timeline.git",
+    "@AnimeNL/volunteer-manager-timeline": "git+https://git@github.com/AnimeNL/volunteer-manager-timeline.git",
     "@google/genai": "^2.8.0",
     "@mdxeditor/editor": "^4.0.3",
     "@mui/icons-material": "^9.1.1",
