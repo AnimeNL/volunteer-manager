@@ -116,8 +116,8 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                             <Typography component="footer" align="center" variant="body2"
                                         color="textPrimary" sx={{ mt: 1 }}>
                                 AnimeCon Volunteer Manager (
-                                <MuiLink href={kVersionLink}>{process.env.buildHash}</MuiLink>) —
-                                © 2015–{ (new Date()).getFullYear() }
+                                <MuiLink href={kVersionLink}>{process.env.SOURCE_COMMIT}</MuiLink>)
+                                — © 2015–{ (new Date()).getFullYear() }
                             </Typography>
 
                         </Box>

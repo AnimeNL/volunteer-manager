@@ -8,7 +8,7 @@ describe('generateHashedDataSourceId', () => {
 
     beforeEach(() => {
         originalEnv = { ...process.env };
-        process.env.buildHash = 'mock-build-hash';
+        process.env.SOURCE_COMMIT = 'mock-build-hash';
         process.env.APP_SERVER_ACTION_SALT = 'mock-salt';
     });
 
@@ -24,7 +24,7 @@ describe('generateHashedDataSourceId', () => {
 
     it('should be sensitive to the environments build hash', () => {
         const hash1 = generateHashedDataSourceId('datasource-1');
-        process.env.buildHash = 'different-build-hash';
+        process.env.SOURCE_COMMIT = 'different-build-hash';
         const hash2 = generateHashedDataSourceId('datasource-1');
         expect(hash1).not.toBe(hash2);
     });
@@ -37,7 +37,7 @@ describe('generateHashedDataSourceId', () => {
     });
 
     it('should handle missing environment variables safely', () => {
-        delete process.env.buildHash;
+        delete process.env.SOURCE_COMMIT;
         delete process.env.APP_SERVER_ACTION_SALT;
         expect(() => generateHashedDataSourceId('datasource-1')).not.toThrow();
 

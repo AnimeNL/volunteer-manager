@@ -128,7 +128,7 @@ async function listProxy(dataSourceId: string, context: unknown, params: GridGet
  * @return A hashed representation of that ID considering both a per-build and per-instance secret.
  */
 export function generateHashedDataSourceId(dataSourceId: string): string {
-    const buildHash = process.env.buildHash;
+    const buildHash = process.env.SOURCE_COMMIT;
     const serverActionSalt = process.env.APP_SERVER_ACTION_SALT;
 
     return hash('sha256', dataSourceId + buildHash + serverActionSalt, 'base64url');

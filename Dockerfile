@@ -10,10 +10,6 @@ RUN apk add --no-cache libc6-compat git
 
 WORKDIR /app
 
-# Declare the GH_TOKEN arg injected by our build infrastructure
-ARG GH_TOKEN
-RUN echo "The GitHub token length is: ${#GH_TOKEN} characters."
-
 COPY package.json package-lock.json* ./
 
 # Install dependencies based on the preferred package manager
@@ -32,7 +28,7 @@ ARG SOURCE_COMMIT=0
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 # This will do the trick, use the corresponding env file for each environment.
-RUN npm run build-turbo
+RUN npm run build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
