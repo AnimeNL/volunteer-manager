@@ -84,7 +84,6 @@
     "@vitejs/plugin-react": "^6.0.2",
     "cross-env": "^10.1.0",
     "jsdom": "^29.1.1",
-    "next-build-id": "^3.0.0",
     "nodemailer-mock": "^2.0.11",
     "ts-sql-codegen": "^3.23.1",
     "typescript": "^6.0.3",

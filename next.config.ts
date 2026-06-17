@@ -3,7 +3,6 @@
 
 import type { NextConfig } from 'next';
 import NextBundleAnalyzer from '@next/bundle-analyzer';
-import nextBuildId from 'next-build-id';
 
 import nextPackage from 'next/package.json' with { type: 'json' };
 import muiMaterialPackage from '@mui/material/package.json' with { type: 'json' };
@@ -17,11 +16,6 @@ const nextConfig: NextConfig = {
         position: 'bottom-right',
     },
     env: {
-        // `process.env.SOURCE_COMMIT` will be set for Docker builds, where it's determined through
-        // the next-build-id library locally on the machine for other kinds of builds. Do update
-        // Docker.build.js when changing the logic in this file.
-        buildHash: process.env.SOURCE_COMMIT || nextBuildId.sync({ dir: __dirname }).substring(0, 7),
-
         // Information about the project, sourced from the package.json file:
         NEXT_PUBLIC_PROJECT_BUILD_DATE: new Date().toISOString(),
         NEXT_PUBLIC_PROJECT_DESCRIPTION: volunteerManagerPackage.description,
