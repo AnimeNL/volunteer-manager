@@ -18,7 +18,7 @@ COPY package.json package-lock.json* ./
 
 # Install dependencies based on the preferred package manager
 ARG GH_TOKEN
-RUN git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/" \
+RUN git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://git@github.com/" \
     && npm ci --force
 
 # 2. Rebuild the source code only when needed
