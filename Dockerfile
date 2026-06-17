@@ -16,8 +16,9 @@ ARG GH_TOKEN
 COPY package.json package-lock.json* ./
 
 # Install dependencies based on the preferred package manager
-RUN git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/" \
-    && npm ci --force
+RUN echo "machine github.com login docker password ${GH_TOKEN}" > ~/.netrc \
+    && npm ci --force \
+    && rm -f ~/.netrc
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
