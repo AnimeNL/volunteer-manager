@@ -10,13 +10,14 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Provide access to the necessary private GitHub repositories
+# Declare the GH_TOKEN arg injected by our build infrastructure
 ARG GH_TOKEN
-RUN git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+COPY package.json package-lock.json* ./
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --force
+RUN git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/" \
+    && npm ci --force
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
