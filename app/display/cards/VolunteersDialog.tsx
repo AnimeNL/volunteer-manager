@@ -7,8 +7,8 @@ import { useMemo } from 'react';
 
 import Dialog from '@mui/material/Dialog';
 
-import { Calendar, type CalendarEvent } from '@beverloo/volunteer-manager-timeline';
-import '@beverloo/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
+import { Calendar, type CalendarEvent } from '@AnimeNL/volunteer-manager-timeline';
+import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 
 import type { DisplayShiftInfo } from '../DisplayContext';
 import { Temporal } from '@lib/Temporal';

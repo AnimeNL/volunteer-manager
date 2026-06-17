@@ -1,3 +1,6 @@
+# syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+
 FROM node:24-alpine AS base
 
 # 1. Install dependencies only when needed
@@ -6,6 +9,10 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
+
+# Provide access to the necessary private GitHub repositories
+ARG GH_TOKEN
+RUN git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./

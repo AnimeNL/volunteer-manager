@@ -10,12 +10,12 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 
 import { Temporal } from '@lib/Temporal';
-import { Timeline as TimelineInternal } from '@beverloo/volunteer-manager-timeline';
+import { Timeline as TimelineInternal } from '@AnimeNL/volunteer-manager-timeline';
 
 import type { TimelineEvent, TimelineEventMutation, TimelineProps as TimelineInternalProps }
-    from '@beverloo/volunteer-manager-timeline';
+    from '@AnimeNL/volunteer-manager-timeline';
 
-import '@beverloo/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
+import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 
 /**
  * Re-export the types exposed by the internal implementation.

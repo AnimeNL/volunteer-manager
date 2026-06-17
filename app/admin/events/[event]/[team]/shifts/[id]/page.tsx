@@ -4,7 +4,7 @@
 import { forbidden, notFound, redirect } from 'next/navigation';
 
 import type { ShiftDemandTeamInfo } from './ShiftDemandTimeline';
-import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
+import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
 import { CollapsableSection } from '@app/admin/components/CollapsableSection';
 import { ScheduledShiftsSection } from './ScheduledShiftsSection';
 import { Section } from '@app/admin/components/Section';

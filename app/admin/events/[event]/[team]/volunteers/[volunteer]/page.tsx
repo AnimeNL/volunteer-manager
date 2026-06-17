@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import type { ServerAction } from '@lib/serverAction';
-import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
+import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
 import { ApplicationParticipationForm } from '@app/registration/[slug]/application/ApplicationParticipation';
 import { AvailabilityPreferences } from './AvailabilityPreferences';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';

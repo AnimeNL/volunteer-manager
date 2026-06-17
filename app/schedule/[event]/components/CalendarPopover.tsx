@@ -13,8 +13,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 
-import { Calendar, type CalendarEvent } from '@beverloo/volunteer-manager-timeline';
-import '@beverloo/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
+import { Calendar, type CalendarEvent } from '@AnimeNL/volunteer-manager-timeline';
+import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 
 import type { PublicVendorSchedule } from '@app/api/event/schedule/PublicSchedule';
 import { Temporal } from '@lib/Temporal';

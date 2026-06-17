@@ -18,7 +18,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { darken, lighten } from '@mui/system/colorManipulator';
 
-import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
+import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
 import { ApplicationAvailabilityForm } from '@app/registration/[slug]/application/ApplicationParticipation';
 import { AvailabilityTimelineImpl } from './AvailabilityTimelineImpl';
 import { HiddenInput } from '@components/HiddenInput';

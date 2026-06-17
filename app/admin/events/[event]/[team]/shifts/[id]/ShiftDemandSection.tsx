@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 
 import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import type { TimelineEvent } from '@beverloo/volunteer-manager-timeline';
+import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
 import { ShiftDemandTimeline, type ShiftDemandTeamInfo } from './ShiftDemandTimeline';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
 import { callApi } from '@lib/callApi';

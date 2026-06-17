@@ -6,7 +6,7 @@
 import { SelectElement } from '@proxy/react-hook-form-mui';
 import { useCallback, useState } from 'react';
 
-import type { TimelineEventMutation } from '@beverloo/volunteer-manager-timeline';
+import type { TimelineEventMutation } from '@AnimeNL/volunteer-manager-timeline';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { Temporal } from '@lib/Temporal';
 import { Timeline, type TimelineEvent } from '@app/admin/components/Timeline';

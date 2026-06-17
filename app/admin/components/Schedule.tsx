@@ -11,11 +11,11 @@ import Snackbar from '@mui/material/Snackbar';
 
 import { Temporal } from '@lib/Temporal';
 
-import '@beverloo/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
-import { Schedule as ScheduleInternal } from '@beverloo/volunteer-manager-timeline';
+import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
+import { Schedule as ScheduleInternal } from '@AnimeNL/volunteer-manager-timeline';
 import type { ChangeEventContext, ScheduleProps as ScheduleInternalProps, ScheduleEvent,
     ScheduleEventMutation, ScheduleMarker, ScheduleResource }
-    from '@beverloo/volunteer-manager-timeline';
+    from '@AnimeNL/volunteer-manager-timeline';
 
 export type {
     ChangeEventContext, ScheduleEvent, ScheduleEventMutation, ScheduleMarker, ScheduleResource };
