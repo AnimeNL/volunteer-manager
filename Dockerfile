@@ -23,10 +23,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Expose the git revision to the build system, as git won't be installed on the image.
-ARG SOURCE_COMMIT=0
-ENV SOURCE_COMMIT=$SOURCE_COMMIT
-
 # This will do the trick, use the corresponding env file for each environment.
 RUN npm run build
 
