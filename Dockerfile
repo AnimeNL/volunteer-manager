@@ -13,12 +13,14 @@ WORKDIR /app
 # Declare the GH_TOKEN arg injected by our build infrastructure
 ARG GH_TOKEN
 
+RUN echo "The GitHub token length is: ${#GH_TOKEN} characters."
+
 COPY package.json package-lock.json* ./
 
 # Install dependencies based on the preferred package manager
-RUN echo "machine github.com login docker password ${GH_TOKEN}" > ~/.netrc \
+RUN echo "machine github.com login docker password ${GH_TOKEN}" > /root/.netrc \
     && npm ci --force \
-    && rm -f ~/.netrc
+    && rm -f /root/.netrc
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
