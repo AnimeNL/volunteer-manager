@@ -54,7 +54,7 @@ function DesktopLayout(props: LayoutProps) {
  * Wrapper component that surrounds the page's content on desktop devices.
  */
 const DesktopContentWrapper = styled(Stack)(({ theme }) => ({
-    gap: theme.spacing(1),
+    gap: theme.spacing(1.5),
     flex: 1,
     minWidth: 0,
 }));
@@ -97,7 +97,7 @@ function MobileLayout(props: LayoutProps) {
  * Wrapper component that surrounds the page's content on mobile devices.
  */
 const MobileContentWrapper = styled(Stack)(({ theme }) => ({
-    gap: theme.spacing(1),
+    gap: theme.spacing(1.5),
     padding: theme.spacing(1),
 }));
 

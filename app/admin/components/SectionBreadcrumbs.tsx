@@ -66,7 +66,7 @@ export function SectionBreadcrumbs(props: SectionBreadcrumbsProps) {
 const Breadcrumbs = styled(MuiBreadcrumbs)(({ theme }) => ({
     borderBottom: `1px solid ${theme.vars?.palette.divider}`,
     marginBottom: theme.spacing(1.5),
-    marginTop: theme.spacing(0.5),
+    marginTop: theme.spacing(-0.75),
     paddingBottom: theme.spacing(1),
 
     [`& .${breadcrumbsClasses.separator}`]: {
