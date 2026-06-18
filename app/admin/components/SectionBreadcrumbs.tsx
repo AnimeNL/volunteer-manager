@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { useContext } from 'react';
 
-import { default as MuiBreadcrumbs } from '@mui/material/Breadcrumbs';
+import { default as MuiBreadcrumbs, breadcrumbsClasses } from '@mui/material/Breadcrumbs';
 import { default as MuiLink } from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -68,4 +68,9 @@ const Breadcrumbs = styled(MuiBreadcrumbs)(({ theme }) => ({
     marginBottom: theme.spacing(1.5),
     marginTop: theme.spacing(0.5),
     paddingBottom: theme.spacing(1),
+
+    [`& .${breadcrumbsClasses.separator}`]: {
+        fontSize: theme.typography.body2.fontSize,
+        lineHeight: 1,
+    },
 }));

@@ -8,7 +8,6 @@ import { useContext } from 'react';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import type { SettingsDialogProps } from './SettingsDialog';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { MobileAppBar } from './MobileAppBar';
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
@@ -31,8 +30,7 @@ export interface LayoutProps {
      * Props that should be given to specific slots part of the layout.
      */
     slotProps: {
-        settings: SettingsDialogProps;
-        sidebar: NavigationSidebarProps;
+        sidebar: Omit<NavigationSidebarProps, 'variant'>;
     };
 }
 
@@ -43,8 +41,7 @@ export interface LayoutProps {
 function DesktopLayout(props: LayoutProps) {
     return (
         <DesktopPageWrapper direction="row" spacing={1}>
-            <NavigationSidebar variant="desktop" settingsDialogProps={props.slotProps.settings}
-                               {...props.slotProps.sidebar} />
+            <NavigationSidebar variant="desktop" {...props.slotProps.sidebar} />
             {props.menu}
             <DesktopContentWrapper>
                 {props.children}
@@ -56,7 +53,8 @@ function DesktopLayout(props: LayoutProps) {
 /**
  * Wrapper component that surrounds the page's content on desktop devices.
  */
-const DesktopContentWrapper = styled('div')(() => ({
+const DesktopContentWrapper = styled(Stack)(({ theme }) => ({
+    gap: theme.spacing(1),
     flex: 1,
     minWidth: 0,
 }));
@@ -99,6 +97,7 @@ function MobileLayout(props: LayoutProps) {
  * Wrapper component that surrounds the page's content on mobile devices.
  */
 const MobileContentWrapper = styled(Stack)(({ theme }) => ({
+    gap: theme.spacing(1),
     padding: theme.spacing(1),
 }));
 

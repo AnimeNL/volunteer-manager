@@ -11,7 +11,6 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-import type { SettingsDialogProps } from './SettingsDialog';
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
 import { SidebarButton } from './SidebarButton';
 import { SidebarSettingsButton } from './SidebarSettingsButton';
@@ -46,35 +45,19 @@ export interface NavigationSidebarProps {
         slug: string;
 
     }[];
+
+    /**
+     * Variant of the sidebar to display.
+     */
+    variant: 'desktop' | 'mobile';
 }
-
-/**
- * Props accepted by the <NavigationSidebar> component.
- */
-type NavigationSidebarComponentProps = NavigationSidebarProps & ({
-    /**
-     * Variant of the sidebar to display.
-     */
-    variant: 'mobile';
-
-} | {
-    /**
-     * Variant of the sidebar to display.
-     */
-    variant: 'desktop';
-
-    /**
-     * Props to share with the settings dialog.
-     */
-    settingsDialogProps: SettingsDialogProps;
-});
 
 /**
  * The <NavigationSidebar> component is the primary mechanism for users to switch between different
  * sections of the administration area, access their user settings, and, when available,
  * configuration relating to active experiments.
  */
-export function NavigationSidebar(props: NavigationSidebarComponentProps) {
+export function NavigationSidebar(props: NavigationSidebarProps) {
     const path = usePathname();
 
     const organisationActive = path.startsWith('/admin/organisation');
@@ -86,20 +69,21 @@ export function NavigationSidebar(props: NavigationSidebarComponentProps) {
 
     const buttons = [ /* none */ ];
     buttons.push(
-        <SidebarButton Icon={DashboardIcon} active={dashboardActive}
+        <SidebarButton key="dashboard" Icon={DashboardIcon} active={dashboardActive}
                        href="/admin" title="Dashboard" />
     );
 
     if (props.enableOrganisation) {
         buttons.push(
-            <SidebarButton Icon={AccountBalanceIcon} active={organisationActive}
+            <SidebarButton key="organisation" Icon={AccountBalanceIcon} active={organisationActive}
                            href="/admin/organisation" title="Organisation" />
         );
     }
 
     if (props.events.length > 0) {
         buttons.push(
-            <SidebarVolunteersButton active={volunteersActive} events={props.events} />
+            <SidebarVolunteersButton key="volunteers" active={volunteersActive}
+                                     events={props.events} />
         );
     }
 
@@ -112,7 +96,7 @@ export function NavigationSidebar(props: NavigationSidebarComponentProps) {
                 <NavigationSidebarDesktopSectionStack spacing={1} useFlexGap>
                     {buttons}
                     <NavigationSidebarDivider flexItem  />
-                    <SidebarSettingsButton settingsDialogProps={props.settingsDialogProps} />
+                    <SidebarSettingsButton />
                 </NavigationSidebarDesktopSectionStack>
             </Stack>
         );

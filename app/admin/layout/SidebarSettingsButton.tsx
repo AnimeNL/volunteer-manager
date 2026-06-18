@@ -3,6 +3,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useState } from 'react';
 
 import Button, { buttonClasses } from '@mui/material/Button';
@@ -23,7 +24,6 @@ import { styled } from '@mui/material/styles';
 import { useColorScheme  } from '@mui/material/styles';
 
 import { AboutDialog } from './AboutDialog';
-import { SettingsDialog, type SettingsDialogProps } from './SettingsDialog';
 import { SidebarButton } from './SidebarButton';
 
 /**
@@ -34,11 +34,6 @@ interface SidebarSettingsButtonProps {
      * Whether the button is being presented in a mobile view.
      */
     isMobile?: boolean;
-
-    /**
-     * Props to share with the settings dialog.
-     */
-    settingsDialogProps: SettingsDialogProps;
 }
 
 /**
@@ -52,9 +47,6 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
 
     const [ aboutDialogEverOpen, setAboutDialogEverOpen ] = useState<boolean>(false);
     const [ aboutDialogOpen, setAboutDialogOpen ] = useState<boolean>(false);
-
-    const [ settingsDialogEverOpen, setSettingsDialogEverOpen ] = useState<boolean>(false);
-    const [ settingsDialogOpen, setSettingsDialogOpen ] = useState<boolean>(false);
 
     const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
 
@@ -80,13 +72,6 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
     const handleAboutDialogOpen = useCallback(() => {
         setAboutDialogEverOpen(true);
         setAboutDialogOpen(true);
-        setAnchorElement(null);
-    }, [ /* no deps */ ]);
-
-    const handleSettingsDialogClose = useCallback(() => setSettingsDialogOpen(false), []);
-    const handleSettingsDialogOpen = useCallback(() => {
-        setSettingsDialogEverOpen(true);
-        setSettingsDialogOpen(true);
         setAnchorElement(null);
     }, [ /* no deps */ ]);
 
@@ -127,7 +112,7 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
                     </ListItemIcon>
                     <ListItemText primary="About this app…" />
                 </MenuItem>
-                <MenuItem dense onClick={handleSettingsDialogOpen}>
+                <MenuItem component={Link} href="/admin/settings" dense>
                     <ListItemIcon>
                         <SettingsSuggestIcon />
                     </ListItemIcon>
@@ -136,9 +121,6 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
             </Menu>
             { !!aboutDialogEverOpen &&
                 <AboutDialog open={aboutDialogOpen} onClose={handleAboutDialogClose} /> }
-            { !!settingsDialogEverOpen &&
-                <SettingsDialog open={settingsDialogOpen} onClose={handleSettingsDialogClose}
-                                {...props.settingsDialogProps} /> }
         </>
     );
 }

@@ -87,9 +87,6 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                             children={props.children}
                             menu={props.menu}
                             slotProps={{
-                                settings: {
-                                    // todo
-                                },
                                 sidebar: {
                                     enableOrganisation,
                                     events
