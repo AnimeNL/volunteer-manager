@@ -5,16 +5,16 @@
 
 import { useCallback, useState } from 'react';
 
-import AppBar from '@mui/material/AppBar';
+import { default as MuiAppBar } from '@mui/material/AppBar';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import MoreIcon from '@mui/icons-material/MoreVert';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
+import { NavigationSidebarLogo } from './NavigationSidebarLogo';
 import { SidebarSettingsButton } from './SidebarSettingsButton';
 
 /**
@@ -58,9 +58,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1, ml: 1 }}>
                         { process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION }
                     </Typography>
-                    <IconButton edge="end" color="inherit">
-                        <MoreIcon />
-                    </IconButton>
+                    <NavigationSidebarLogo className="anime-logo" />
                 </Toolbar>
             </AppBar>
             <AppDrawer open={drawerOpen} onClose={handleDrawerClose}>
@@ -71,6 +69,28 @@ export function MobileAppBar(props: MobileAppBarProps) {
         </>
     );
 }
+
+/**
+ * Variant of the <AppBar> styled based on the theme colour.
+ */
+const AppBar = styled(MuiAppBar)(({ theme }) => ([
+    {
+        backgroundImage: 'none',
+
+        '& .anime-logo': {
+            marginRight: theme.spacing(-2.5),
+            minHeight: 'inherit',
+            padding: theme.spacing(0.5),
+        },
+    },
+    theme.applyStyles('light', {
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
+    }),
+    theme.applyStyles('dark', {
+        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
+        color: theme.vars?.palette.text.primary,
+    }),
+]));
 
 /**
  * Variant of the <Drawer> component with minimal styling to meet our requirements.
