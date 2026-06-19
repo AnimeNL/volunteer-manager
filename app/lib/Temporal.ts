@@ -218,7 +218,7 @@ export function formatDate(dateTime: any, format: string, locale?: string): stri
  * The units that will be considered for the difference, in order. Each unit must be a valid
  * member of the `Temporal.Duration` type.
  */
-const kDurationUnits: { [K in keyof Temporal.DurationLike]?: Temporal.DateTimeUnit } = {
+const kDurationUnits: { [K in keyof Temporal.DurationLikeObject]?: string } = {
     'years': 'year',
     'months': 'month',
     'weeks': 'week',
