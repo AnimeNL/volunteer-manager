@@ -3,6 +3,8 @@
 
 import type { Metadata } from 'next';
 
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SettingSection, type ConfigurableSetting } from './SettingSection';
@@ -431,14 +433,15 @@ export default async function IntegrationsPage() {
 
     return (
         <>
-            <Section title="Volunteer Manager Settings" breadcrumbs={[
-                { label: 'System' },
-                { label: 'Settings' },
-            ]}>
+            <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Settings"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Settings' },
+                     ]}>
                 <SectionIntroduction>
                     The following settings may be dynamically configured to alter the Volunteer
-                    Manager's behaviour. While you can change them to anything you want, certain
-                    values may cause functionality to break or behave in an unintended manner.
+                    Manager's behaviour. Certain values may cause functionality to break or behave
+                    in an unintended manner.
                 </SectionIntroduction>
             </Section>
             { Object.entries(settingsConfiguration).map(([ title, settings ]) =>

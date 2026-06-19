@@ -6,6 +6,7 @@
 import { useContext } from 'react';
 
 import Stack from '@mui/material/Stack';
+import { paperClasses } from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 
 import { AdminClientContext } from '@app/admin/AdminClientContext';
@@ -99,6 +100,10 @@ function MobileLayout(props: LayoutProps) {
 const MobileContentWrapper = styled(Stack)(({ theme }) => ({
     gap: theme.spacing(1.5),
     padding: theme.spacing(1),
+
+    [`& > .${paperClasses.root}:first-child`]: {
+        marginTop: theme.spacing(-1),
+    },
 }));
 
 /**

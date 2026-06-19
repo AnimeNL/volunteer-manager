@@ -125,7 +125,7 @@ export function StatusHeader() {
 
     return (
         <Section title="Integrations" breadcrumbs={[
-            { label: 'System' },
+            { label: 'System', href: '/admin/system' },
             { label: 'Integrations' },
         ]}>
             <Stack direction="row" spacing={2}>

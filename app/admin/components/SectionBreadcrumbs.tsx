@@ -69,6 +69,10 @@ const Breadcrumbs = styled(MuiBreadcrumbs)(({ theme }) => ({
     marginTop: theme.spacing(-0.75),
     paddingBottom: theme.spacing(1),
 
+    [`& .${breadcrumbsClasses.li}`]: {
+        lineHeight: 1,
+    },
+
     [`& .${breadcrumbsClasses.separator}`]: {
         fontSize: theme.typography.body2.fontSize,
         lineHeight: 1,

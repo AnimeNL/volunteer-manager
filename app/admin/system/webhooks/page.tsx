@@ -3,7 +3,10 @@
 
 import type { Metadata } from 'next';
 
+import WebhookIcon from '@mui/icons-material/Webhook';
+
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WebhookDataTable } from './WebhookDataTable';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -18,7 +21,14 @@ export default async function WebhooksPage() {
     });
 
     return (
-        <Section title="Webhooks">
+        <Section icon={ <WebhookIcon color="primary" /> } title="Webhooks" breadcrumbs={[
+            { label: 'Communication', href: '/admin/system/communication' },
+            { label: 'Webhooks' },
+        ]}>
+            <SectionIntroduction>
+                Webhooks are signals that the Volunteer Manager has received from external services,
+                which it may have to act upon.
+            </SectionIntroduction>
             <WebhookDataTable />
         </Section>
     );

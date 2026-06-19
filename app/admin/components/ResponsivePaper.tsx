@@ -3,9 +3,11 @@
 
 'use client';
 
+import { useContext } from 'react';
+
 import Paper, { type PaperProps } from '@mui/material/Paper';
 
-import { useIsMobile } from '@app/admin/lib/useIsMobile';
+import { AdminClientContext } from '../AdminClientContext';
 
 /**
  * Variant of the MUI <Paper> component that becomes square and margin-less when displayed on a
@@ -14,12 +16,13 @@ import { useIsMobile } from '@app/admin/lib/useIsMobile';
 export function ResponsivePaper(props: React.PropsWithChildren<PaperProps>) {
     const { children, sx, ...otherProps } = props;
 
-    const isMobile = useIsMobile();
+    const { isMobile, isLayoutV2 } = useContext(AdminClientContext);
 
+    const mobilePadding = isLayoutV2 ? '-8px !important' : '-16px !important';
     return (
         <Paper square={isMobile} {...otherProps} sx={{
-            marginLeft: isMobile ? '-16px !important' : undefined,
-            marginRight: isMobile ? '-16px !important' : undefined,
+            marginLeft: isMobile ? mobilePadding : undefined,
+            marginRight: isMobile ? mobilePadding : undefined,
             ...sx,
         }}>
             {children}

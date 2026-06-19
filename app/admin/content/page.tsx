@@ -3,6 +3,8 @@
 
 import type { Metadata } from 'next';
 
+import TocIcon from '@mui/icons-material/Toc';
+
 import { ContentCreate } from './ContentCreate';
 import { ContentList } from './ContentList';
 import { Section } from '@app/admin/components/Section';
@@ -25,7 +27,12 @@ export default async function ContentPage() {
 
     return (
         <>
-            <Section title="Pages">
+            <Section icon={ <TocIcon color="primary" /> } title="Pages"
+                     breadcrumbs={[ { label: 'Content' } ]}>
+                <SectionIntroduction>
+                    This page lists the global content of the Volunteer Portal such as the privacy
+                    policy and various guides and e-mail templates.
+                </SectionIntroduction>
                 <ContentList enableAuthorLink={enableAuthorLink} scope={scope} />
             </Section>
             <Section title="Create a new page">

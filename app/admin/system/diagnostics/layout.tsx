@@ -45,7 +45,7 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
     return (
         <>
             <Section icon={ <DvrIcon color="primary" /> } title="Diagnostics" breadcrumbs={[
-                { label: 'System' },
+                { label: 'System', href: '/admin/system' },
                 { label: 'Diagnostics' },
             ]}>
                 <SectionIntroduction>

@@ -56,7 +56,7 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
         <>
             <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
                      breadcrumbs={[
-                        { label: 'System' },
+                        { label: 'System', href: '/admin/system' },
                         { label: 'AI' },
                      ]}
                      documentation="system/ai">

@@ -3,6 +3,8 @@
 
 import type { Metadata } from 'next';
 
+import StreamIcon from '@mui/icons-material/Stream';
+
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTable } from './SubscriptionTable';
@@ -29,7 +31,11 @@ export default async function SubscriptionPage() {
     // TODO: Add a warning section listing users who have subscriptions, but are no longer eligible.
 
     return (
-        <Section headerAction={action} title="Subscriptions">
+        <Section icon={ <StreamIcon color="primary" /> } headerAction={action}
+                 title="Subscriptions" breadcrumbs={[
+                    { label: 'Communication', href: '/admin/system/communication' },
+                    { label: 'Subscriptions' },
+                 ]}>
             <SectionIntroduction>
                 Any person granted the <strong>subscription eligibility permission</strong> can be
                 subscribed to a variety of notifications using a variety of communication channels.

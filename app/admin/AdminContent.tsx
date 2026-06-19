@@ -15,13 +15,12 @@ import { AdminClientContext } from '@app/admin/AdminClientContext';
  */
 export function AdminContent(props: React.PropsWithChildren) {
     const { isLayoutV2, isMobile } = useContext(AdminClientContext);
+    if (isLayoutV2)
+        return props.children;
+
     return (
         <Stack direction={ isMobile ? 'column' : 'row' }
-               spacing={2} sx={{
-                   flexGrow: isLayoutV2 ? 1 : undefined,
-                   pt: isLayoutV2 ? 0 : 2,
-                   pb: isLayoutV2 ? 0 : 1
-               }}>
+               spacing={2} sx={{ pt: 2, pb: 1 }}>
             {props.children}
         </Stack>
     );

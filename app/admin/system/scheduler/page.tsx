@@ -3,8 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import Alert from '@mui/material/Alert';
-
 import { SchedulerCreateTaskPanel } from './SchedulerCreateTaskPanel';
 import { SchedulerTaskTable } from './SchedulerTaskTable';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -23,11 +21,7 @@ export default async function SchedulerPage() {
 
     return (
         <>
-            { !globalScheduler.lastExecution &&
-                <Alert severity="error" variant="filled">
-                    The scheduler is not running on this Volunteer Manager instance.
-                </Alert> }
-            <SchedulerTaskTable />
+            <SchedulerTaskTable displayNotRunningWarning={!globalScheduler.lastExecution} />
             <SchedulerCreateTaskPanel />
         </>
     );
