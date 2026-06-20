@@ -383,56 +383,62 @@ export function Application(props: ApplicationProps) {
 
     return (
         <>
-            <Stack component={Paper} direction="column" sx={{ minHeight: '100%' }}>
-                <CardHeader action={actions}
-                            avatar={
-                                <Avatar src={avatarUrl}>
-                                    {application.name}
-                                </Avatar>
-                            }
-                            title={application.name}
-                            subheader={ formatDate(applicationDate, 'dddd, MMMM D, YYYY') }
-                            slotProps={{ title: { variant: 'subtitle1' } }} />
-                <Divider />
-                <CardContent sx={{ flex: 1, py: '0 !important' }}>
-                    <List dense>
-                        { information.map(({ icon, message }, index) =>
-                            <ListItem key={index}>
-                                <ListItemIcon>
-                                    {icon}
-                                </ListItemIcon>
-                                <ListItemText primary={message} />
-                            </ListItem> )}
-                    </List>
-                </CardContent>
-                { (!!props.rejectFn || !!props.approveFn) &&
-                    <>
-                        <Divider />
-                        <CardActions disableSpacing sx={{ justifyContent: 'flex-end', gap: 2 }}>
-                            { !!application.claim &&
-                                <Chip color="warning" label={`Claimed by ${application.claim.name}`}
-                                      size="small" sx={{ ml: 1, mr: 'auto' }} /> }
+            <Paper sx={{ minHeight: '100%' }}>
+                <Stack direction="column">
+                    <CardHeader action={actions}
+                                avatar={
+                                    <Avatar src={avatarUrl}>
+                                        {application.name}
+                                    </Avatar>
+                                }
+                                title={application.name}
+                                subheader={ formatDate(applicationDate, 'dddd, MMMM D, YYYY') }
+                                slotProps={{ title: { variant: 'subtitle1' } }} />
+                    <Divider />
+                    <CardContent sx={{ flex: 1, py: '0 !important' }}>
+                        <List dense>
+                            { information.map(({ icon, message }, index) =>
+                                <ListItem key={index}>
+                                    <ListItemIcon>
+                                        {icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={message} />
+                                </ListItem> )}
+                        </List>
+                    </CardContent>
+                    { (!!props.rejectFn || !!props.approveFn) &&
+                        <>
+                            <Divider />
+                            <CardActions disableSpacing sx={{ justifyContent: 'flex-end', gap: 2 }}>
+                                { !!application.claim &&
+                                    <Chip color="warning"
+                                          label={`Claimed by ${application.claim.name}`}
+                                          size="small" sx={{ ml: 1, mr: 'auto' }} /> }
 
-                            { !!application.suspended &&
-                                <AccountRestrictedChip name={application.firstName}
-                                                       reason={application.suspended}
-                                                       sx={{ ml: 1, mr: 'auto' }} /> }
+                                { !!application.suspended &&
+                                    <AccountRestrictedChip name={application.firstName}
+                                                           reason={application.suspended}
+                                                           sx={{ ml: 1, mr: 'auto' }} /> }
 
-                            { !!props.rejectFn &&
-                                <Button size="small" color="error" startIcon={ <ThumbDownIcon /> }
-                                        disabled={claimedByAnotherPerson}
-                                        onClick={handleRejectOpen}>
-                                    Reject
-                                </Button> }
-                            { !!props.approveFn &&
-                                <Button size="small" color="success" startIcon={ <ThumbUpIcon /> }
-                                        disabled={!!application.suspended || claimedByAnotherPerson}
-                                        onClick={handleApproveOpen}>
-                                    Approve
-                                </Button> }
-                        </CardActions>
-                    </> }
-            </Stack>
+                                { !!props.rejectFn &&
+                                    <Button size="small" color="error"
+                                            startIcon={ <ThumbDownIcon /> }
+                                            disabled={claimedByAnotherPerson}
+                                            onClick={handleRejectOpen}>
+                                        Reject
+                                    </Button> }
+                                { !!props.approveFn &&
+                                    <Button size="small" color="success"
+                                            startIcon={ <ThumbUpIcon /> }
+                                            disabled={
+                                                !!application.suspended || claimedByAnotherPerson }
+                                            onClick={handleApproveOpen}>
+                                        Approve
+                                    </Button> }
+                            </CardActions>
+                        </> }
+                </Stack>
+            </Paper>
 
             { (!!claimEverOpen && !!props.claimFn) &&
                 <ServerActionDialog action={props.claimFn} open={claimOpen}

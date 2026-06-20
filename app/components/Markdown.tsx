@@ -3,8 +3,9 @@
 
 'use client';
 
-import type { BoxProps } from '@mui/material/Box';
 import type { TypographyProps } from '@mui/material/Typography';
+import type { SxProps } from '@mui/system';
+import type { Theme } from '@mui/material/styles';
 
 import { BaseMarkdown } from './BaseMarkdown';
 import { RemoteContent } from './RemoteContent';
@@ -12,7 +13,7 @@ import { RemoteContent } from './RemoteContent';
 /**
  * Properties accepted by the <Markdown> client-side component.
  */
-interface MarkdownProps extends BoxProps {
+interface MarkdownProps {
     /**
      * The content that should be displayed as the content of this component.
      */
@@ -22,6 +23,11 @@ interface MarkdownProps extends BoxProps {
      * The default variant to apply to text, if any.
      */
     defaultVariant?: TypographyProps['variant'];
+
+    /**
+     * The sx prop to apply custom styles.
+     */
+    sx?: SxProps<Theme>;
 }
 
 /**
@@ -29,15 +35,15 @@ interface MarkdownProps extends BoxProps {
  * tree that can be used in the display of content.
  */
 export function Markdown(props: MarkdownProps) {
-    const { children, defaultVariant, ...boxProps } = props;
+    const { children, defaultVariant, sx } = props;
 
     return (
         <BaseMarkdown
-            {...boxProps}
             defaultVariant={defaultVariant}
             overrides={{
                 RemoteContent: { component: RemoteContent }
             }}
+            sx={sx}
         >
             {children}
         </BaseMarkdown>

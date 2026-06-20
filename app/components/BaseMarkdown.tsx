@@ -10,7 +10,7 @@ import { MuiMarkdown, defaultOverrides } from 'mui-markdown';
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
-import Box, { type BoxProps } from '@mui/material/Box';
+import Box from '@mui/material/Box';
 import { default as MuiLink, type LinkProps } from '@mui/material/Link';
 import Typography, { type TypographyProps } from '@mui/material/Typography';
 
@@ -75,7 +75,7 @@ function LinkComponent(props: LinkProps & { children?: React.ReactNode }) {
 /**
  * Properties accepted by the <BaseMarkdown> client-side component.
  */
-export interface BaseMarkdownProps extends BoxProps {
+export interface BaseMarkdownProps {
     /**
      * The content that should be displayed as the content of this component.
      */
@@ -90,6 +90,11 @@ export interface BaseMarkdownProps extends BoxProps {
      * Additional component overrides to register.
      */
     overrides?: Record<string, any>;
+
+    /**
+     * Style overrides for the root Box component.
+     */
+    sx?: SxProps<Theme>;
 }
 
 /**
@@ -97,10 +102,10 @@ export interface BaseMarkdownProps extends BoxProps {
  * tree that can be used in the display of content.
  */
 export function BaseMarkdown(props: BaseMarkdownProps) {
-    const { children, defaultVariant, overrides, ...boxProps } = props;
+    const { children, defaultVariant, overrides, sx } = props;
 
     return (
-        <Box {...boxProps}>
+        <Box sx={sx}>
             <Typography component="div" sx={kStyles.root} variant={defaultVariant}>
                 <MuiMarkdown overrides={{
                     ...defaultOverrides,

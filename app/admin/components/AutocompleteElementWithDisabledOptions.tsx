@@ -51,11 +51,16 @@ export function AutocompleteElementWithDisabledOptions<TValue extends Autocomple
         return !!option.disabled;
     }, [ /* no dependencies */ ]);
 
+    // `AutocompleteElementProps` from react-hook-form-mui wraps MUI's `AutocompleteProps`, which
+    // takes five generic arguments. Spreading props and inferring types across this hierarchy is
+    // extremely complex and slow. This cast saves ~3 seconds in compilation time.
+    const AutocompleteElementCast = AutocompleteElement as any;
+
     return (
-        <AutocompleteElement {...restProps}
-                             autocompleteProps={{
-                                 ...autocompleteProps,
-                                 getOptionDisabled: handleOptionDisabled,
-                             }} />
+        <AutocompleteElementCast {...restProps}
+                                 autocompleteProps={{
+                                     ...autocompleteProps,
+                                     getOptionDisabled: handleOptionDisabled,
+                                 }} />
     );
 }
