@@ -1,7 +1,13 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventScheduleHistoryRowModel } from './route';
+export interface EventScheduleHistoryRowModel {
+    id: number;
+    date: string;
+    userId: number;
+    user: string;
+    mutation: string;
+}
 import { type Mutation, kMutation } from '@lib/database/Types';
 import { type Temporal, formatDate } from '@lib/Temporal';
 import db, { tScheduleLogs, tSchedule, tShifts, tUsers } from '@lib/database';

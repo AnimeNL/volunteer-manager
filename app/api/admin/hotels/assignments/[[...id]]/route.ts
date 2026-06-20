@@ -9,7 +9,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { Temporal } from '@lib/Temporal';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
-import { getHotelBookings } from './getHotelBookings';
+import { getHotelBookings, type HotelsAssignmentsRowModel } from './getHotelBookings';
 import db, { tHotelsAssignments, tHotelsBookings, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -83,10 +83,7 @@ const kHotelAssignmentContext = z.object({
 export type HotelsAssignmentsEndpoints =
     DataTableEndpoints<typeof kHotelAssignmentRowModel, typeof kHotelAssignmentContext>;
 
-/**
- * Row model expected by the API.
- */
-export type HotelsAssignmentsRowModel = z.infer<typeof kHotelAssignmentRowModel>;
+export type { HotelsAssignmentsRowModel } from './getHotelBookings';
 
 /**
  * Individual hotel assignment, either as a user (`number`) or as an invitee (`string`).

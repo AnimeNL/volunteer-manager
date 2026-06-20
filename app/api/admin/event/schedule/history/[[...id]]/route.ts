@@ -73,10 +73,7 @@ export type EventScheduleHistoryContext = z.infer<typeof kEventScheduleHistoryCo
 export type EventScheduleHistoryEndpoints =
     DataTableEndpoints<typeof kEventScheduleHistoryRowModel, typeof kEventScheduleHistoryContext>;
 
-/**
- * Export type definition for the API's Row Model.
- */
-export type EventScheduleHistoryRowModel = z.infer<typeof kEventScheduleHistoryRowModel>;
+export type { EventScheduleHistoryRowModel } from './getMutations';
 
 /**
  * This is implemented as a regular DataTable API. The following endpoints are provided by this

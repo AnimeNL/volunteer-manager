@@ -20,7 +20,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import type { EnvironmentContext } from '@lib/EnvironmentContext';
 import type { EventAvailabilityStatus } from '@lib/database/Types';
-import type { Registration } from './EventApplicationStatus';
+import type { Registration } from './getRegistration';
 import type { User } from '@lib/auth/User';
 import { Temporal, formatDate, isBefore, isAfter } from '@lib/Temporal';
 

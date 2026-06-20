@@ -6,6 +6,7 @@
     "sync-db": "node ts-sql.build.mjs",
     "build": "next build",
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
+    "circular": "npx madge --circular --extensions ts,tsx .",
     "serve": "next dev --turbo",
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
     "lint": "biome check",
