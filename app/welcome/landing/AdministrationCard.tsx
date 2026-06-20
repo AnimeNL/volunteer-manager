@@ -15,6 +15,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
+
 /**
  * Card that links the signed in user through to the administration area, to which they have access
  * for at least a single event. Expected to be placed as part of a grid.
@@ -28,7 +30,9 @@ export function AdministrationCard() {
                         Administration
                     </Typography>
                     <Tooltip title="Access is limited to certain volunteers">
-                        <VisibilityOffIcon fontSize="small" color="disabled" />
+                        <TooltipIconWrapper>
+                            <VisibilityOffIcon fontSize="small" color="disabled" />
+                        </TooltipIconWrapper>
                     </Tooltip>
                 </Stack>
                 <Typography variant="body2">

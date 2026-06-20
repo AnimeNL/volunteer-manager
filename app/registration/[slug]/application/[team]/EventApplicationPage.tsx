@@ -23,6 +23,7 @@ import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { Registration } from './getRegistration';
 import type { User } from '@lib/auth/User';
 import { Temporal, formatDate, isBefore, isAfter } from '@lib/Temporal';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 
 import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
 
@@ -152,7 +153,9 @@ function AvailabilityButton(props: AvailabilityButtonProps) {
 
             { (!enabled && override) &&
                 <Tooltip title="Access is limited to event managers">
-                    <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    <TooltipIconWrapper>
+                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    </TooltipIconWrapper>
                 </Tooltip> }
 
         </ListItemButton>
@@ -299,7 +302,9 @@ function HotelStatusButton(props: HotelStatusButtonProps) {
 
             { (!enabled && override) &&
                 <Tooltip title="Access is limited to hotel booking managers">
-                    <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    <TooltipIconWrapper>
+                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    </TooltipIconWrapper>
                 </Tooltip> }
 
         </ListItemButton>
@@ -408,7 +413,9 @@ function RefundStatusButton(props: RefundStatusButtonProps) {
             <ListItemText primary={primary} secondary={secondary} />
             { (!enabled && override) &&
                 <Tooltip title="Visibility is limited to refund managers">
-                    <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    <TooltipIconWrapper>
+                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    </TooltipIconWrapper>
                 </Tooltip> }
         </ListItemButton>
     );
@@ -551,7 +558,9 @@ function TrainingStatusButton(props: TrainingStatusButtonProps) {
 
             { (!enabled && override) &&
                 <Tooltip title="Access is limited to training managers">
-                    <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    <TooltipIconWrapper>
+                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    </TooltipIconWrapper>
                 </Tooltip> }
 
         </ListItemButton>
@@ -764,7 +773,9 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
 
                             { (!enableSchedule && enableScheduleWithOverride) &&
                                     <Tooltip title="Access is limited to certain volunteers">
-                                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                                        <TooltipIconWrapper>
+                                            <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                                        </TooltipIconWrapper>
                                     </Tooltip> }
 
                         </ListItemButton>

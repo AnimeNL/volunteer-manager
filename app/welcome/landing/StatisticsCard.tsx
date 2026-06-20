@@ -1,6 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use client';
+
 import Link from '@app/LinkProxy';
 
 import Button from '@mui/material/Button';
@@ -12,6 +14,8 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 
 /**
  * Card that links the signed in user through to the statistics page, which will tell them about the
@@ -26,7 +30,9 @@ export function StatisticsCard() {
                         Statistics
                     </Typography>
                     <Tooltip title="Access is limited to certain volunteers">
-                        <VisibilityOffIcon fontSize="small" color="disabled" />
+                        <TooltipIconWrapper>
+                            <VisibilityOffIcon fontSize="small" color="disabled" />
+                        </TooltipIconWrapper>
                     </Tooltip>
                 </Stack>
                 <Typography variant="body2">
