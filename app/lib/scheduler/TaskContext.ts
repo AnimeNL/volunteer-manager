@@ -2,9 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Scheduler } from './Scheduler';
-import type { kTaskRegistry } from './TaskRegistry';
 
-import type { TaskResult } from './Task';
+import type { TaskResult } from '../database/Types';
 import { scheduleTask } from '@lib/scheduler';
 import db, { tTasks } from '@lib/database';
 
@@ -266,7 +265,7 @@ export class TaskContext {
 
                 if (!!this.#intervalMs) {
                     await scheduleTask({
-                        taskName: this.#configuration.taskName as keyof typeof kTaskRegistry,
+                        taskName: this.#configuration.taskName as any /* unverified */,
                         params: this.#configuration.params,
                         parentTaskId: this.#configuration.taskId,
                         delayMs: this.#intervalMs,

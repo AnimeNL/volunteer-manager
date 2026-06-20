@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AuthenticationContext } from './AuthenticationContext';
 import type { User } from './User';
 import type { useMockConnection } from '@lib/database/Connection';
 import { AccessControl } from './AccessControl';
@@ -63,9 +62,7 @@ interface BuildAuthenticationContextParams {
  * Builds a new instance of an AuthenticationContext, for testing purposes. All fields are optional
  * and will be substituted with default values.
  */
-export function buildAuthenticationContext(params?: BuildAuthenticationContextParams)
-    : AuthenticationContext
-{
+export function buildAuthenticationContext(params?: BuildAuthenticationContextParams) {
     params = params ?? {};
     return {
         access: new AccessControl(params.access ?? { /* empty */ }),

@@ -4,7 +4,7 @@
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { default as nodemailer, type Transporter } from 'nodemailer';
 
-import type { User } from '@lib/auth/User';
+import type { SendMessageRequest } from './SendMessageRequest';
 import { EmailConnectionLogger } from './EmailConnectionLogger';
 import { EmailLoggerImpl, type EmailLogger } from './EmailLogger';
 import { EmailMessage } from './EmailMessage';
@@ -33,36 +33,6 @@ export interface EmailClientSettings {
      * Password using which we can sign in to the SMTP account.
      */
     password: string;
-}
-
-/**
- * Options that can be provided when sending an e-mail.
- */
-export interface SendMessageRequest {
-    /**
-     * The message that should be distributed. Includes the recipients.
-     */
-    message: EmailMessage;
-
-    /**
-     * Name of the sender. Will be completed with the e-mail address. ("John Doe")
-     */
-    sender: string;
-
-    /**
-     * When known, the communication ID this message should be associated with.
-     */
-    communicationId?: number;
-
-    /**
-     * Source user, on whose behalf the message will be sent.
-     */
-    sourceUser?: number | User;
-
-    /**
-     * Target user, to whom the e-mail message will be sent.
-     */
-    targetUser?: number | User;
 }
 
 /**

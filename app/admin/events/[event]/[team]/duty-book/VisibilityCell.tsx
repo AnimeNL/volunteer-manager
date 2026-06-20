@@ -7,8 +7,6 @@ import Tooltip from '@mui/material/Tooltip';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-import type { DutyBookRowModel } from './page';
-
 /**
  * Header component for the visibility column.
  */
@@ -23,7 +21,7 @@ export function VisibilityHeaderCell() {
 /**
  * Cell component for the visibility status.
  */
-export function VisibilityCell({ row }: { row: DutyBookRowModel }) {
+export function VisibilityCell({ row }: { row: { hidden?: boolean } }) {
     if (row.hidden) {
         return (
             <Tooltip title="Details have been hidden">

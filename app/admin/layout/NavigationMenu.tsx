@@ -3,19 +3,11 @@
 
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { NavigationItem, NavigationTopLevelItem } from './NavigationItem';
+import type { NavigationMenuId } from './NavigationMenuId';
 import { NavigationMenuClient } from './NavigationMenuClient';
 import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
 
 import { checkPermission, or } from '@lib/auth/AuthenticationContext';
-
-/**
- * Unique IDs given to navigation menus. Used to persist menu state across navigations and browsing
- * sessions. All menus are expected to be referred to in this list.
- */
-export type NavigationMenuId =
-    /* /admin/events/[event]  */ 'events' |
-    /* /admin/organisation    */ 'organisation' |
-    /* /admin                 */ 'dashboard';
 
 /**
  * Props accepted by the <NavigationMenu> component.

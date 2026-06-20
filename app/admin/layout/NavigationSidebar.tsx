@@ -14,7 +14,7 @@ import { styled } from '@mui/material/styles';
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
 import { SidebarButton } from './SidebarButton';
 import { SidebarSettingsButton } from './SidebarSettingsButton';
-import { SidebarVolunteersButton } from './SidebarVolunteersButton';
+import { SidebarVolunteersButton, type SidebarVolunteersButtonProps } from './SidebarVolunteersButton';
 
 /**
  * Props accepted by slots towards the <NavigationSidebar> component.
@@ -28,23 +28,7 @@ export interface NavigationSidebarProps {
     /**
      * List of active events in the administration area. Expected to be sorted.
      */
-    events: {
-        /**
-         * Whether the event has concluded already.
-         */
-        concluded: boolean;
-
-        /**
-         * Label that succinctly describes an event.
-         */
-        label: string;
-
-        /**
-         * URL-safe slug used to refer to the event.
-         */
-        slug: string;
-
-    }[];
+    events: SidebarVolunteersButtonProps['events'];
 
     /**
      * Variant of the sidebar to display.

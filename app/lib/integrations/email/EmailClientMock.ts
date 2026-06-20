@@ -5,7 +5,7 @@ import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { default as nodemailermock } from 'nodemailer-mock';
 
 import type { EmailLogger, EmailLoggerSeverity } from './EmailLogger';
-import type { SendMessageRequest } from './EmailClient';
+import type { SendMessageRequest } from './SendMessageRequest';
 import { EmailClient } from './EmailClient';
 
 /**

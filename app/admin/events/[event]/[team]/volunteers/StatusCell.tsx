@@ -10,7 +10,7 @@ import PaidIcon from '@mui/icons-material/Paid';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { VolunteerRowModel } from './page';
+import type { VolunteerRowModel } from './dataSource';
 
 /**
  * Cell used to display the status of a volunteer's application.

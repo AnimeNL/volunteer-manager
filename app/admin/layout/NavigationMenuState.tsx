@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 
-import type { NavigationMenuId } from './NavigationMenu';
+import type { NavigationMenuId } from './NavigationMenuId';
 import { executeServerAction } from '@lib/serverAction';
 import { readUserSetting, writeUserSetting } from '@lib/UserSettings';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';

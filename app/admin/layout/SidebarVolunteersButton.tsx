@@ -16,14 +16,13 @@ import Menu from '@mui/material/Menu';
 import MenuItem, { type MenuItemProps } from '@mui/material/MenuItem';
 import { styled } from '@mui/material/styles';
 
-import type { NavigationSidebarProps } from './NavigationSidebar';
 import { SidebarButton } from './SidebarButton';
 import { useIsMobile } from '../lib/useIsMobile';
 
 /**
  * Props accepted by the <SidebarVolunteersButton> component.
  */
-interface SidebarVolunteersButtonProps {
+export interface SidebarVolunteersButtonProps {
     /**
      * Whether the volunteers button is the active item in the sidebar.
      */
@@ -32,7 +31,23 @@ interface SidebarVolunteersButtonProps {
     /**
      * List of active events for which volunteer management is available.
      */
-    events: NavigationSidebarProps['events'];
+    events: {
+        /**
+         * Whether the event has concluded already.
+         */
+        concluded: boolean;
+
+        /**
+         * Label that succinctly describes an event.
+         */
+        label: string;
+
+        /**
+         * URL-safe slug used to refer to the event.
+         */
+        slug: string;
+
+    }[];
 }
 
 /**

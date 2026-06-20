@@ -17,8 +17,6 @@ import GradeIcon from '@mui/icons-material/Grade';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { VolunteerRowModel } from './page';
-
 /**
  * Cell that serves as the header for indicating the volunteer's experience.
  */
@@ -34,7 +32,10 @@ export function ExperienceHeaderCell() {
  * Cell used to illustrate a volunteer's experience. Both first-time volunteers and Senior and Staff
  * volunteers will be highlighted in the table.
  */
-export function ExperienceCell(props: { row: VolunteerRowModel }) {
+export function ExperienceCell(props: { row: {
+    priorParticipationCount: number;
+    roleHasPermissionGrant: boolean;
+} }) {
     if (!!props.row.roleHasPermissionGrant) {
         return (
             <Tooltip title="Senior/Staff volunteer">
