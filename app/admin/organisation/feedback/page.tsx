@@ -149,7 +149,10 @@ export default async function FeedbackPage() {
     ];
 
     return (
-        <Section icon={ <FeedbackOutlinedIcon color="primary" /> } title="Feedback">
+        <Section icon={ <FeedbackOutlinedIcon color="primary" /> } title="Feedback" breadcrumbs={[
+            { label: 'Organisation', href: '/admin/organisation' },
+            { label: 'Feedback' },
+        ]}>
             <SectionIntroduction>
                 This page lists feedback received from volunteers via the Volunteer Portal. Entries
                 are attributed to the volunteer, and cannot be updated or removed.

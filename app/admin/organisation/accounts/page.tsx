@@ -137,7 +137,10 @@ export default async function AccountsPage() {
     ];
 
     return (
-        <Section icon={ <PersonIcon color="primary" /> } title="Accounts">
+        <Section icon={ <PersonIcon color="primary" /> } title="Accounts" breadcrumbs={[
+            { label: 'Organisation', href: '/admin/organisation' },
+            { label: 'Accounts' },
+        ]}>
             <SectionIntroduction>
                 This table lists all volunteers who helped us out since 2010. Note that our
                 accounts are separate from any that exist in AnPlan.

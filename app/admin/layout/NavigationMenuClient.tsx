@@ -155,7 +155,8 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
     {
         borderRadius: theme.vars?.shape.borderRadius,
         color: theme.vars?.palette.text.primary,
-        paddingRight: theme.spacing(3.25),
+        padding: theme.spacing('3px', 3.25, '3px', 2),
+        margin: theme.spacing('1px', 0),
 
         [`&:hover .${listItemIconClasses.root}, &.active .${listItemIconClasses.root}`]: {
             color: theme.vars?.palette.primary.dark,

@@ -46,7 +46,10 @@ export default async function NardoLayout(props: LayoutProps<'/admin/organisatio
 
     return (
         <>
-            <Section icon={ <GroupsIcon color="primary" /> } title="Del a Rie Advies">
+            <Section icon={ <GroupsIcon color="primary" /> } title="Del a Rie Advies" breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'De la Rie Advies' },
+            ]}>
                 <SectionIntroduction>
                     This is the exclusive repertoire demonstrating the best of what <strong>Del a
                     Rie Advies</strong> has to offer, including issued personalised advice. Please

@@ -50,7 +50,10 @@ export default async function OrganisationExportsLayout(
     return (
         <>
             <Section icon={ <AccountBalanceIcon color="primary" /> } title="Data exports"
-                     documentation="organisation/exports">
+                     documentation="organisation/exports" breadcrumbs={[
+                        { label: 'Organisation', href: '/admin/organisation' },
+                        { label: 'Data exports' },
+                     ]}>
                 <SectionIntroduction>
                     This page lets you generate a GDPR-compliant data export when it is necessary to
                     share volunteering data with third parties.

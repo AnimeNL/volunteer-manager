@@ -45,7 +45,10 @@ export default async function DisplaysLayout(props: LayoutProps<'/admin/organisa
 
     return (
         <>
-            <Section icon={ <TabletIcon color="primary" /> } title="Displays">
+            <Section icon={ <TabletIcon color="primary" /> } title="Displays" breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Displays' },
+            ]}>
                 <SectionIntroduction>
                     We distribute <strong>physical displays</strong> during the festival to help
                     busy areas self-manage their volunteers. They automatically register with the

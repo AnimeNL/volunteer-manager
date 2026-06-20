@@ -262,7 +262,10 @@ export default async function PermissionsPage() {
     }
 
     return (
-        <Section title="Permissions" icon={ <CategoryIcon color="primary" /> }>
+        <Section title="Permissions" icon={ <CategoryIcon color="primary" /> } breadcrumbs={[
+            { label: 'Organisation', href: '/admin/organisation' },
+            { label: 'Permissions' },
+        ]}>
             <SectionIntroduction>
                 This page shows all the available permissions and who has them. It's your go-to spot
                 for tracking who is allowed to do what.

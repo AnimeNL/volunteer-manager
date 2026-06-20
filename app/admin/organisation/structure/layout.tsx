@@ -72,7 +72,10 @@ export default async function OrganisationEntitiesLayout(
     return (
         <>
             <Section icon={ <AccountBalanceIcon color="primary" /> } title="Structure"
-                     documentation="organisation/structure">
+                     documentation="organisation/structure" breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Structure' },
+            ]}>
                 <SectionIntroduction>
                     Our organisation consists of <strong>environments</strong>,{' '}
                     <strong>roles</strong> and <strong>teams</strong>. This page allows you to
