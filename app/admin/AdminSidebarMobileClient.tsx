@@ -12,12 +12,10 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import Typography from '@mui/material/Typography';
 
-import type { RenderSidebarMenuProps } from './AdminSidebarClient';
-
 /**
  * Props accepted by the <AdminSidebarMobileClient> component.
  */
-interface AdminSidebarMobileClientProps extends RenderSidebarMenuProps {
+interface AdminSidebarMobileClientProps {
     /**
      * Whether the menu should be opened.
      */

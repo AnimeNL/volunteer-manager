@@ -311,7 +311,7 @@ function AdminSidebarMobileClientProxy(props: AdminSidebarClientProps) {
             backgroundColor: 'animecon.adminHeaderBackground',
             color: 'primary.contrastText',
         }}>
-            <AdminSidebarMobileClient menu={props.menu} title={props.title} open={menuOpen}
+            <AdminSidebarMobileClient title={props.title} open={menuOpen}
                                       requestClose={handleMenuClose} requestOpen={handleMenuOpen}>
                 <RenderSidebarClient menu={props.menu} onActivate={handleMenuClose} />
             </AdminSidebarMobileClient>

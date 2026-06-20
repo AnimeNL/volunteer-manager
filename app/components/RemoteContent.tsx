@@ -21,7 +21,7 @@ import { alpha, darken, lighten } from '@mui/system/colorManipulator';
 
 import type { HotelsDefinition } from '@app/api/event/hotels/[event]/route';
 import type { TrainingsDefinition } from '@app/api/event/trainings/[event]/route';
-import { Markdown } from './Markdown';
+import { BaseMarkdown as Markdown } from './BaseMarkdown';
 import { callApi } from '@lib/callApi';
 
 /**
