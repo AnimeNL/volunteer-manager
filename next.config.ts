@@ -11,7 +11,7 @@ import reactPackage from 'react/package.json' with { type: 'json' };
 import volunteerManagerPackage from './package.json' with { type: 'json' };
 
 const nextConfig: NextConfig = {
-    allowedDevOrigins: [ '192.168.252.108', 'localhost' ],
+    allowedDevOrigins: [ '192.168.19.96', 'localhost' ],
     devIndicators: {
         position: 'bottom-right',
     },

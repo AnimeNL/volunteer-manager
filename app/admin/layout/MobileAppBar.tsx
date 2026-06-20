@@ -61,7 +61,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
                     <NavigationSidebarLogo className="anime-logo" />
                 </Toolbar>
             </AppBar>
-            <AppDrawer open={drawerOpen} onClose={handleDrawerClose}>
+            <AppDrawer open={drawerOpen} onClose={handleDrawerClose} disableScrollLock>
                 <NavigationSidebar {...props.slotProps.sidebar} variant="mobile" />
                 {props.menu}
                 <SidebarSettingsButton isMobile />
@@ -78,7 +78,7 @@ const AppBar = styled(MuiAppBar)(({ theme }) => ([
         backgroundImage: 'none',
 
         '& .anime-logo': {
-            marginRight: theme.spacing(-2.5),
+            marginRight: theme.spacing(-2),
             minHeight: 'inherit',
             padding: theme.spacing(0.5),
         },
@@ -98,5 +98,6 @@ const AppBar = styled(MuiAppBar)(({ theme }) => ([
 const AppDrawer = styled(Drawer)(({ theme }) => ({
     [`& .${drawerClasses.paper}`]: {
         padding: theme.spacing(0, 1),
+        paddingBottom: `max(env(safe-area-inset-bottom), ${theme.spacing(1)})`,
     },
 }));

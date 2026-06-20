@@ -88,7 +88,7 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
             { !props.isMobile &&
                 <SidebarButton Icon={SettingsIcon} onClick={handleMenuOpen} title="Settings" /> }
             <Menu anchorEl={anchorElement} open={!!anchorElement} onClose={handleMenuClose}
-                  transformOrigin={ isMobile ? { horizontal: 'center', vertical: -4 } : undefined }
+                  transformOrigin={ isMobile ? { horizontal: 'center', vertical: -6 } : undefined }
                   anchorOrigin={ isMobile ? { horizontal: 'right', vertical: 'bottom' }
                                           : { horizontal: 'right', vertical: 'top' } }>
                 <MenuItem dense disableRipple disableTouchRipple>

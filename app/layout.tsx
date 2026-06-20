@@ -33,6 +33,7 @@ export const viewport: Viewport = {
     // TODO: Dynamically generate the theme colour based on the environment
     colorScheme: 'only light',
     initialScale: 1,
+    viewportFit: 'cover',
     width: 'device-width',
 };
 
