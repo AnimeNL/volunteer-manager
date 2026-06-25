@@ -3,7 +3,7 @@
 
 import { NextRequest } from 'next/server';
 import { forbidden } from 'next/navigation';
-import { serialize } from 'cookie';
+import { stringifySetCookie } from 'cookie';
 import { z } from 'zod/v4';
 
 import type { User } from '@lib/auth/User';
@@ -259,7 +259,11 @@ describe('Action', () => {
 
     it('is able to automatically identify the user from the Action call', async () => {
         const sealedSession = await sealSession({ id: 42, token: 9001 });
-        const sealedCookie = serialize(kSessionCookieName, sealedSession, { httpOnly: true });
+        const sealedCookie = stringifySetCookie({
+            name: kSessionCookieName,
+            value: sealedSession,
+            httpOnly: true
+        });
         const headers = new Headers([ ['Cookie', sealedCookie ] ]);
 
         expectAuthenticationQuery(mockConnection, {

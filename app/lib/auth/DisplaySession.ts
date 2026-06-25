@@ -1,9 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { parse as parseCookies } from 'cookie';
+import { parseCookie, stringifySetCookie } from 'cookie';
 import { seal, unseal } from './Iron';
-import { serialize } from 'cookie';
 
 /**
  * The password through which the display session will be sealed. A start-up exception will be
@@ -52,7 +51,7 @@ async function unsealDisplaySession(sealedSession: string): Promise<any> {
 export async function getDisplayIdFromHeaders(headers: Headers): Promise<number | undefined> {
     const cookieHeader = headers.get('Cookie');
     if (cookieHeader) {
-        const cookies = parseCookies(cookieHeader);
+        const cookies = parseCookie(cookieHeader);
 
         const sessionCookie = cookies[kDisplaySessionCookieName];
         if (sessionCookie) {
@@ -71,10 +70,11 @@ export async function getDisplayIdFromHeaders(headers: Headers): Promise<number 
  * rites the given `session` as an encrypted representation to `headers`.
  */
 export async function writeDisplayIdToHeaders(headers: Headers, displayId: number) {
-    headers.append('Set-Cookie',
-        serialize(kDisplaySessionCookieName, await sealDisplaySession({ id: displayId }), {
-            httpOnly: true,
-            maxAge: kDisplaySessionExpirationTimeSeconds,
-            path: '/',
-        }));
+    headers.append('Set-Cookie', stringifySetCookie({
+        name: kDisplaySessionCookieName,
+        value: await sealDisplaySession({ id: displayId }),
+        httpOnly: true,
+        maxAge: kDisplaySessionExpirationTimeSeconds,
+        path: '/',
+    }));
 }

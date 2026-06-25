@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { seal, unseal } from './Iron';
-import { serialize } from 'cookie';
+import { stringifySetCookie } from 'cookie';
 
 /**
  * The password through which the session will be sealed. A start-up exception will be thrown when
@@ -72,7 +72,9 @@ export async function unsealSession(sealedSession: string): Promise<SessionData>
  * Writes an empty session cookie to the given `headers`.
  */
 export async function writeEmptySessionCookie(headers: Headers): Promise<void> {
-    headers.append('Set-Cookie', serialize(kSessionCookieName, '', {
+    headers.append('Set-Cookie', stringifySetCookie({
+        name: kSessionCookieName,
+        value: '',
         httpOnly: true,
         maxAge: 0,
         path: '/',
@@ -85,7 +87,9 @@ export async function writeEmptySessionCookie(headers: Headers): Promise<void> {
 export async function writeSealedSessionCookie(session: SessionData, headers: Headers)
     : Promise<void>
 {
-    headers.append('Set-Cookie', serialize(kSessionCookieName, await sealSession(session), {
+    headers.append('Set-Cookie', stringifySetCookie({
+        name: kSessionCookieName,
+        value: await sealSession(session),
         httpOnly: true,
         maxAge: kSessionExpirationTimeSeconds,
         path: '/',

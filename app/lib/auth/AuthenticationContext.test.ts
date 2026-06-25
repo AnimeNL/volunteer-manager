@@ -8,7 +8,7 @@ import { AccessControl } from './AccessControl';
 import { type SessionData, kSessionCookieName, sealSession } from './Session';
 import { executeAccessCheck, getAuthenticationContextFromHeaders } from './AuthenticationContext';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { serialize } from 'cookie';
+import { stringifySetCookie } from 'cookie';
 import { useMockConnection } from '../database/Connection';
 
 describe('AuthenticationContext', () => {
@@ -23,7 +23,11 @@ describe('AuthenticationContext', () => {
         const sealedSession = await sealSession(sessionData);
         expect(sealedSession.length).toBeGreaterThan(0);
 
-        const sealedCookie = serialize(kSessionCookieName, sealedSession, { httpOnly: true });
+        const sealedCookie = stringifySetCookie({
+            name: kSessionCookieName,
+            value: sealedSession,
+            httpOnly: true
+        });
         expect(sealedCookie.length).toBeGreaterThan(0);
 
         const headers = new Headers([ ['Cookie', sealedCookie ] ]);

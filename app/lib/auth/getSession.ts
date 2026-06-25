@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { cookies } from 'next/headers';
-import { parse as parseCookies } from 'cookie';
+import { parseCookie } from 'cookie';
 
 import { type SessionData, kSessionCookieName, unsealSession } from './Session';
 
@@ -32,7 +32,7 @@ export async function getSessionFromCookieStore(cookieStore: ReturnType<typeof c
 export async function getSessionFromHeaders(headers: Headers): Promise<SessionData | undefined> {
     const cookieHeader = headers.get('Cookie');
     if (cookieHeader) {
-        const cookies = parseCookies(cookieHeader);
+        const cookies = parseCookie(cookieHeader);
 
         const sessionCookie = cookies[kSessionCookieName];
         if (sessionCookie)

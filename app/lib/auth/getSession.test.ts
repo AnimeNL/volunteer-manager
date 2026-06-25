@@ -3,7 +3,7 @@
 
 import { type SessionData, kSessionCookieName, sealSession } from './Session';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
-import { serialize } from 'cookie';
+import { stringifySetCookie } from 'cookie';
 
 describe('getSession', () => {
     it('is able to get session information from NextJS cookies store', async () => {
@@ -40,7 +40,11 @@ describe('getSession', () => {
         const sealedSession = await sealSession(sessionData);
         expect(sealedSession.length).toBeGreaterThan(0);
 
-        const sealedCookie = serialize(kSessionCookieName, sealedSession, { httpOnly: true });
+        const sealedCookie = stringifySetCookie({
+            name: kSessionCookieName,
+            value: sealedSession,
+            httpOnly: true,
+        });
         expect(sealedCookie.length).toBeGreaterThan(0);
 
         const headers = new Headers([ ['Cookie', sealedCookie ] ]);
