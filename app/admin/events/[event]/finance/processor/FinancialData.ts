@@ -139,7 +139,7 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
         .innerJoin(tEventsSalesConfiguration)
             .on(tEventsSalesConfiguration.eventId.equals(tEvents.eventId))
                 .and(tEventsSalesConfiguration.saleCategory.isNotNull())
-        .where(tEvents.eventEndTime.lessOrEquals(eventValidation.endTime))
+        .where(tEvents.eventEndTime.lessOrEqual(eventValidation.endTime))
         .select({
             id: tEvents.eventId,
 

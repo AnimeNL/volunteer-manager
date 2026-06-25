@@ -1,8 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ExecutableInsert } from 'ts-sql-query/expressions/insert';
-import type { ExecutableUpdate } from 'ts-sql-query/expressions/update';
+import type { ExecutableInsert } from 'ts-sql-query/__UNSUPPORTED__/expressions/insert';
+import type { ExecutableUpdate } from 'ts-sql-query/__UNSUPPORTED__/expressions/update';
 import { z } from 'zod/v4';
 
 import type { Activity, Location, Timeslot } from '@lib/integrations/animecon';
@@ -50,9 +50,9 @@ type MutationTableTypes =
  * with a list of changes. The list deliberately is inspectable to enable testing.
  */
 interface Mutations {
-    created: ExecutableInsert<MutationTableTypes>[],
-    updated: ExecutableUpdate<MutationTableTypes>[],
-    deleted: ExecutableUpdate<MutationTableTypes>[],
+    created: ExecutableInsert<MutationTableTypes, any>[],
+    updated: ExecutableUpdate<MutationTableTypes, any>[],
+    deleted: ExecutableUpdate<MutationTableTypes, any>[],
     mutations: {
         activityId?: number;
         activityTimeslotId?: number;
@@ -1058,7 +1058,7 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     festivalId: tEvents.eventFestivalId,
                 })
                 .where(tEvents.eventFestivalId.isNotNull())
-                    .and(tEvents.eventEndTime.greaterOrEquals(dbInstance.currentZonedDateTime()))
+                    .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
                     .and(tEvents.eventHidden.equals(/* false= */ 0))
                 .limit(/* only the first (upcoming) event= */ 1)
                 .executeSelectNoneOrOne();

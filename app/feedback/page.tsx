@@ -24,7 +24,7 @@ export default async function FeedbackPage() {
 
     const dbInstance = db;
     const event = await dbInstance.selectFrom(tEvents)
-        .where(tEvents.eventEndTime.greaterOrEquals(eventSelectionTime))
+        .where(tEvents.eventEndTime.greaterOrEqual(eventSelectionTime))
             .and(tEvents.eventHidden.equals(/* false= */ 0))
         .select({
             id: tEvents.eventId,

@@ -22,7 +22,7 @@ export async function DisplaysCard() {
     const onlineCutoffTime = currentTime.subtract({ minutes: 10 });
 
     const onlineDisplays = await db.selectFrom(tDisplays)
-        .where(tDisplays.displayCheckIn.greaterOrEquals(onlineCutoffTime))
+        .where(tDisplays.displayCheckIn.greaterOrEqual(onlineCutoffTime))
         .selectCountAll()
         .executeSelectNoneOrOne() ?? 0;
 

@@ -208,7 +208,7 @@ export class ImportYourTicketProviderTask extends Task {
     async determineApplicableUpcomingEvents(dbInstance: typeof db): Promise<EventInfo[]> {
         return await dbInstance.selectFrom(tEvents)
             .where(tEvents.eventHidden.equals(/* false= */ 0))
-                .and(tEvents.eventEndTime.greaterOrEquals(dbInstance.currentZonedDateTime()))
+                .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
                 .and(tEvents.eventYtpId.isNotNull())
             .select({
                 id: tEvents.eventId,

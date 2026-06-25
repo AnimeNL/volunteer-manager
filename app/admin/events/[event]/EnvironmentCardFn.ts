@@ -123,8 +123,8 @@ async function actuallyFetchTeamGrowth(eventId: number, teamIds: number[], cumul
                 .and(tUsersEvents.teamId.in(teamIds))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.registrationDate.isNotNull())
-                .and(tUsersEvents.registrationDate.lessOrEquals(tEvents.eventEndTime))
-        .where(tEvents.eventId.lessOrEquals(eventId))
+                .and(tUsersEvents.registrationDate.lessOrEqual(tEvents.eventEndTime))
+        .where(tEvents.eventId.lessOrEqual(eventId))
         .select({
             event: {
                 id: tEvents.eventId,

@@ -73,7 +73,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
         .select({
             shortName: tEvents.eventShortName,
             slug: tEvents.eventSlug,
-            finished: tEvents.eventEndTime.lessOrEquals(dbInstance.currentZonedDateTime()),
+            finished: tEvents.eventEndTime.lessOrEqual(dbInstance.currentZonedDateTime()),
         })
         .orderBy(tEvents.eventEndTime, 'desc')
         .limit(4)

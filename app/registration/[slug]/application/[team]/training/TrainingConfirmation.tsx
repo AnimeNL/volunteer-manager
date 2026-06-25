@@ -22,7 +22,7 @@ interface TrainingConfirmationProps {
         address?: string;
         start: Temporal.ZonedDateTime;
         end: Temporal.ZonedDateTime;
-    };
+    } | null;
 }
 
 /**

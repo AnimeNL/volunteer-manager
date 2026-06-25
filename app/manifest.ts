@@ -24,7 +24,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     const dbInstance = db;
     const event = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventHidden.equals(/* false= */ 0))
-            .and(tEvents.eventEndTime.greaterOrEquals(dbInstance.currentZonedDateTime()))
+            .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
         .select({
             name: tEvents.eventShortName,
             fullName: tEvents.eventName,

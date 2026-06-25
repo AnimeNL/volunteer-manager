@@ -3,12 +3,11 @@
 
 import { type Pool, type PoolConfig, createPool } from 'mariadb';
 
-import { InterceptorQueryRunner, type QueryType }
-    from 'ts-sql-query/queryRunners/InterceptorQueryRunner';
+import type { QueryType } from 'ts-sql-query/queryRunners/QueryRunner';
+import { InterceptorQueryRunner } from 'ts-sql-query/queryRunners/InterceptorQueryRunner';
 import { MariaDBConnection } from 'ts-sql-query/connections/MariaDBConnection';
 import { MariaDBPoolQueryRunner } from 'ts-sql-query/queryRunners/MariaDBPoolQueryRunner';
-import { MockQueryRunner, type QueryType as MockQueryType }
-    from 'ts-sql-query/queryRunners/MockQueryRunner';
+import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
 import type { PlainDate, ZonedDateTime } from '@lib/Temporal';
 import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
@@ -50,9 +49,9 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
     /**
      * Value representing the current date and time. Evaluated on the database server.
      */
-    currentZonedDateTime = this.buildFragmentWithArgs().as(() =>
-        this.fragmentWithType<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'required')
-            .sql`current_timestamp`);
+    currentZonedDateTime = () =>
+            this.fragmentWithType<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'required')
+                .sql`current_timestamp`;
 
     /**
      * Helper function to retrieve a string representation (YYYY-MM-DD) of a DATE column. Works for
@@ -185,7 +184,7 @@ export function useMockConnection() {
     beforeEach(() => {
         mockConnectionQueue.splice(0, mockConnectionQueue.length);
         globalThis.animeConMockConnection = new DBConnection(new MockQueryRunner(
-            (queryType: MockQueryType, query: string, params: any[], index: number) => {
+            (queryType: QueryType, query: string, params: any[], index: number) => {
                 expect(mockConnectionQueue.length).toBeGreaterThan(0);
 
                 const { type, callback } = mockConnectionQueue.shift()!;

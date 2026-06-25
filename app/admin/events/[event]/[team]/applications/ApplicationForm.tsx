@@ -39,7 +39,7 @@ export async function ApplicationForm(props: ApplicationFormProps) {
         .select({
             id: tUsers.userId,
             label: tUsers.name,
-            disabled: db.countDistinct(usersEventsJoin.teamId).greaterOrEquals(1),
+            disabled: db.countDistinct(usersEventsJoin.teamId).greaterOrEqual(1),
         })
         .groupBy(tUsers.userId)
         .orderBy('label', 'asc')

@@ -41,7 +41,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const unfilteredEvents = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventHidden.equals(/* false= */ 0))
         .select({
-            concluded: tEvents.eventEndTime.lessOrEquals(dbInstance.currentZonedDateTime()),
+            concluded: tEvents.eventEndTime.lessOrEqual(dbInstance.currentZonedDateTime()),
             label: tEvents.eventShortName,
             slug: tEvents.eventSlug,
         })

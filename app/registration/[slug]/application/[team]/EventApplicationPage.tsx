@@ -41,7 +41,7 @@ type WindowStatus =
  */
 function determineAvailabilityWindowStatus(
     now: Temporal.Instant,
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime })
+    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime } | null)
         : WindowStatus
 {
     // Case (1): No availability window has been defined at all.
@@ -169,7 +169,7 @@ interface HotelStatusButtonProps {
     /**
      * Availability window during which volunteers can indicate their hotel preferences.
      */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
+    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
 
     /**
      * Base URL for linking the button to an appropriate location.
@@ -318,7 +318,7 @@ interface RefundStatusButtonProps {
     /**
      * Availability window during which volunteers can request their ticket refund.
      */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
+    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
 
     /**
      * Base URL for linking the button to an appropriate location.
@@ -428,7 +428,7 @@ interface TrainingStatusButtonProps {
     /**
      * Availability window during which volunteers can indicate their training preferences.
      */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
+    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
 
     /**
      * Base URL for linking the button to an appropriate location.
@@ -575,9 +575,10 @@ export interface EventApplicationPageProps {
      * Availability windows that apply for this event, as configured by volunteering leadership.
      */
     availabilityWindows: {
-        hotelPreferences?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
-        refundRequests?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
-        trainingPreferences?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; };
+        hotelPreferences?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
+        refundRequests?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
+        trainingPreferences?:
+            { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
     };
 
     /**

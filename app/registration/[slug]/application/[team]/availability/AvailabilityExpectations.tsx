@@ -64,7 +64,7 @@ interface AvailabilityExpectationsProps {
     timing?: {
         start?: number;
         end?: number;
-    };
+    } | null;
 }
 
 /**
