@@ -632,4 +632,116 @@ describe('DataTable', () => {
         expect(lastCall.searchParams.has('sort')).toBeFalsy();
         expect(lastCall.searchParams.get('order')).toBe('asc');
     });
+
+    it('respects the search query parameter from the URL', async () => {
+        let requestedSearch: string | undefined;
+
+        const dataSource = createDataSource('test/search-query-param', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedSearch = params.search;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?q=Xavier">
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedSearch).toBeDefined();
+        });
+
+        expect(requestedSearch).toBe('Xavier');
+    });
+
+    it('updates URL query parameters when searching is changed', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/search-url-update', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns} search="prominent"
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('searchbox')).toBeDefined();
+        });
+
+        fireEvent.change(screen.getByRole('searchbox'), {
+            target: { value: 'Xavier' },
+        });
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.get('q')).toBe('Xavier');
+    });
+
+    it('removes search query parameters when they are empty', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/search-empty-remove', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?q=Xavier" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns} search="prominent"
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('searchbox')).toBeDefined();
+        });
+
+        fireEvent.change(screen.getByRole('searchbox'), {
+            target: { value: '' },
+        });
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.has('q')).toBeFalsy();
+    });
 });

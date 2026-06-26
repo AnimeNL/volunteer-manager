@@ -6,8 +6,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 
-import { DataGridPremium, type GridColDef, type GridDataSource, type GridPaginationModel,
-    type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
+import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
+    type GridPaginationModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
 
@@ -166,6 +166,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const [ stateSortOrder, setStateSortOrder ] = useState<'asc' | 'desc' | null>(
         props.defaultSort.sort);
 
+    const [ stateSearch, setStateSearch ] = useState<string>('');
+
     // ---------------------------------------------------------------------------------------------
 
     const [ queryPage, setQueryPage ] = useQueryState(
@@ -178,6 +180,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const [ querySortOrder, setQuerySortOrder ] = useQueryState(
         'order', parseAsString.withDefault(props.defaultSort.sort ?? '').withOptions({ history: 'push' }));
 
+    const [ querySearch, setQuerySearch ] = useQueryState(
+        'q', parseAsString.withDefault('').withOptions({ history: 'replace' }));
+
     // ---------------------------------------------------------------------------------------------
 
     const page = props.disableQueryParams ? statePage : queryPage;
@@ -187,7 +192,14 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const sortOrder = props.disableQueryParams
         ? stateSortOrder : (querySortOrder === '' ? null : querySortOrder) as 'asc' | 'desc' | null;
 
+    const searchVal = props.disableQueryParams ? stateSearch : querySearch;
+
     // ---------------------------------------------------------------------------------------------
+
+    const filterModel = useMemo((): GridFilterModel => ({
+        items: [ /* we don't support manual filtering */ ],
+        quickFilterValues: searchVal ? [ searchVal ] : [],
+    }), [ searchVal ]);
 
     const sortModel = useMemo((): GridSortModel => ([
         {
@@ -238,6 +250,18 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             setQueryPage(null);
         }
     }, [ props.disableQueryParams, props.defaultSort, setQuerySortField, setQuerySortOrder, setQueryPage ]);
+
+    const handleFilterModelChange = useCallback((model: GridFilterModel) => {
+        const newSearch = model.quickFilterValues?.[0] ?? '';
+
+        if (props.disableQueryParams) {
+            setStateSearch(newSearch);
+            setStatePage(0);
+        } else {
+            setQuerySearch(newSearch || null);
+            setQueryPage(null);
+        }
+    }, [ props.disableQueryParams, setQuerySearch, setQueryPage ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -297,6 +321,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
                 sortModel={sortModel}
                 onSortModelChange={handleSortModelChange}
+
+                filterModel={filterModel}
+                onFilterModelChange={handleFilterModelChange}
 
                 disableColumnFilter
                 disableColumnMenu
