@@ -3,11 +3,11 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQueryState, parseAsInteger } from 'nuqs';
 
-import { DataGridPremium, type GridColDef, type GridDataSource, type GridValidRowModel }
-    from '@mui/x-data-grid-premium';
+import { DataGridPremium, type GridColDef, type GridDataSource, type GridPaginationModel,
+    type GridValidRowModel } from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
 
@@ -21,6 +21,11 @@ import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } f
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 import { kColumnTemplates } from './ColumnTemplates';
+
+/**
+ * Default value for the page size.
+ */
+const kPageSizeDefault = 50;
 
 /**
  * Options that are available for page size selection of data tables.
@@ -133,18 +138,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 {
     const isMobile = useIsMobile();
 
-    const [ statePage, setStatePage ] = useState<number>(0);
-    const [ statePageSize, setStatePageSize ] = useState<number>(props.pageSize ?? 50);
-
-    const [ queryPage, setQueryPage ] = useQueryState(
-        'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
-
-    const [ queryPageSize, setQueryPageSize ] =
-        useQueryState('pageSize', parseAsInteger.withDefault(props.pageSize ?? 50));
-
-    const page = props.disableQueryParams ? statePage : queryPage;
-    const pageSize = props.disableQueryParams ? statePageSize : queryPageSize;
-
     // ---------------------------------------------------------------------------------------------
     // Use memoized versions of certain props that would excessively invalidate the component tree.
     // ---------------------------------------------------------------------------------------------
@@ -160,6 +153,49 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const search: 'disabled' | 'prominent' | 'subtle' =
         props.disableSearch ? 'disabled'
                             : props.search ?? 'subtle';
+
+    // ---------------------------------------------------------------------------------------------
+    // Control the <DataTable> state using either local state or through URL parameters, using NUQS.
+    // ---------------------------------------------------------------------------------------------
+
+    const [ statePage, setStatePage ] = useState<number>(0);
+    const [ statePageSize, setStatePageSize ] = useState<number>(
+        props.pageSize ?? kPageSizeDefault);
+
+    const [ queryPage, setQueryPage ] = useQueryState(
+        'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
+    const [ queryPageSize, setQueryPageSize ] =
+        useQueryState('pageSize', parseAsInteger.withDefault(props.pageSize ?? kPageSizeDefault));
+
+    const page =
+        props.disableQueryParams ? statePage
+                                 : queryPage;
+
+    const pageSize =
+        props.disableQueryParams ? statePageSize
+                                 : queryPageSize;
+
+    // ---------------------------------------------------------------------------------------------
+
+    const handlePaginationModelChange = useCallback((model: GridPaginationModel) => {
+        const defaultPage = 0;
+        const defaultPageSize = props.pageSize ?? kPageSizeDefault;
+
+        let newPage = model.page;
+
+        // Adjust the |newPage| if the page size changed, to ensure that the first currently visible
+        // row continues to be visible in the new view.
+        if (model.pageSize !== pageSize)
+            newPage = Math.floor((page * pageSize) / model.pageSize);
+
+        if (props.disableQueryParams) {
+            setStatePage(newPage);
+            setStatePageSize(model.pageSize);
+        } else {
+            setQueryPage(newPage === defaultPage ? null : newPage);
+            setQueryPageSize(model.pageSize === defaultPageSize ? null : model.pageSize);
+        }
+    }, [ page, pageSize, props.pageSize, props.disableQueryParams, setQueryPage, setQueryPageSize ])
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -215,15 +251,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 pageSizeOptions={kPageSizeOptions}
                 pagination
                 paginationModel={{ page, pageSize }}
-                onPaginationModelChange={(model) => {
-                    if (props.disableQueryParams) {
-                        setStatePage(model.page);
-                        setStatePageSize(model.pageSize);
-                    } else {
-                        setQueryPage(model.page);
-                        setQueryPageSize(model.pageSize);
-                    }
-                }}
+                onPaginationModelChange={handlePaginationModelChange}
 
                 disableColumnFilter
                 disableColumnMenu

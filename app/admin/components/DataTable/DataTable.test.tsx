@@ -363,4 +363,86 @@ describe('DataTable', () => {
         expect(requestedPage!.offset).toBe(0);
         expect(requestedPage!.limit).toBe(50);
     });
+
+    it('removes query parameters when they match default values', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/query-default-values', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?page=1&pageSize=25" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Quinn Reyes')).toBeDefined();
+        });
+
+        fireEvent.click(screen.getByTestId('navigate-back'));
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.has('page')).toBeFalsy();
+        expect(lastCall.searchParams.get('pageSize')).toBe('25');
+    });
+
+    it('updates page to contain the currently visible entry when page size changes', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/query-page-size-adjust', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?page=1&pageSize=10" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Yara Zale')).toBeDefined();
+        });
+
+        const selectCombobox = screen.getByRole('combobox');
+        fireEvent.mouseDown(selectCombobox);
+
+        const option = await screen.findByRole('option', { name: '25' });
+        fireEvent.click(option);
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.has('page')).toBeFalsy();
+        expect(lastCall.searchParams.get('pageSize')).toBe('25');
+    });
 });
