@@ -50,8 +50,8 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
      * Value representing the current date and time. Evaluated on the database server.
      */
     currentZonedDateTime = () =>
-            this.fragmentWithType<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'required')
-                .sql`current_timestamp`;
+        this.fragmentWithType<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'required')
+            .sql`current_timestamp`;
 
     /**
      * Helper function to retrieve a string representation (YYYY-MM-DD) of a DATE column. Works for

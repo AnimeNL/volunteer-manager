@@ -149,27 +149,31 @@ export default async function FeedbackPage() {
     ];
 
     return (
-        <Section icon={ <FeedbackOutlinedIcon color="primary" /> } title="Feedback" breadcrumbs={[
-            { label: 'Organisation', href: '/admin/organisation' },
-            { label: 'Feedback' },
-        ]}>
-            <SectionIntroduction>
-                This page lists feedback received from volunteers via the Volunteer Portal. Entries
-                are attributed to the volunteer, and cannot be updated or removed.
-            </SectionIntroduction>
-            <DataTable
-                columns={columns}
-                source={feedbackDataSource}
-                defaultSort={{ field: 'date', sort: 'desc' }}
-                pageSize={50}
-                listViewProps={{
-                    primaryField: 'user.name',
-                    secondaryField: 'feedback',
-                    dateField: 'date',
-                    dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
-                }}
-            />
-        </Section>
+        <>
+            <Section icon={ <FeedbackOutlinedIcon color="primary" /> } title="Feedback" breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Feedback' },
+            ]}>
+                <SectionIntroduction>
+                    This page lists feedback received from volunteers via the Volunteer Portal. Entries
+                    are attributed to the volunteer, and cannot be updated or removed.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <DataTable
+                    columns={columns}
+                    source={feedbackDataSource}
+                    defaultSort={{ field: 'date', sort: 'desc' }}
+                    pageSize={50}
+                    listViewProps={{
+                        primaryField: 'user.name',
+                        secondaryField: 'feedback',
+                        dateField: 'date',
+                        dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                    }}
+                />
+            </Section>
+        </>
     );
 }
 

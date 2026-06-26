@@ -141,7 +141,7 @@ export default async function EventApplicationTrainingPage(
 
             { !!assignment?.confirmed &&
                 <TrainingConfirmation timezone={settings.timezone}
-                                      training={assignment.training}/> }
+                                      training={assignment.training} /> }
 
             { (!!settings.eligible || !!preferences?.trainingId) &&
                 <>

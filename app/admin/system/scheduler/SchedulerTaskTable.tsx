@@ -6,7 +6,6 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
-import Alert from '@mui/material/Alert';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import LoopIcon from '@mui/icons-material/Loop';
@@ -18,15 +17,14 @@ import Typography from '@mui/material/Typography';
 
 import type { SchedulerRowModel } from '@app/api/admin/scheduler/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+
 import { Temporal, formatDate } from '@lib/Temporal';
 
 /**
  * The <SchedulerTaskTable> component displays a data table with the pending and past tasks that
  * were executed by the scheduler. This component does not take any props.
  */
-export function SchedulerTaskTable(props: { displayNotRunningWarning: boolean }) {
+export function SchedulerTaskTable() {
     const columns: RemoteDataTableColumn<SchedulerRowModel>[] = [
         {
             field: 'state',
@@ -154,21 +152,7 @@ export function SchedulerTaskTable(props: { displayNotRunningWarning: boolean })
     ];
 
     return (
-        <Section icon={ <LoopIcon color="primary" /> } title="System scheduler" breadcrumbs={[
-            { label: 'System', href: '/admin/system' },
-            { label: 'Scheduler' },
-        ]}>
-            <SectionIntroduction>
-                The <strong>system scheduler</strong> is the component to run tasks (such as sending
-                an e-mail) in the background, either as a one-off or at a configured interval.
-            </SectionIntroduction>
-            { props.displayNotRunningWarning &&
-                <Alert severity="error" variant="filled">
-                    The scheduler is not running on this Volunteer Manager instance.
-                </Alert> }
-
-            <RemoteDataTable columns={columns} endpoint="/api/admin/scheduler" enableQueryParams
-                             defaultSort={{ field: 'date', sort: 'desc' }} pageSize={25} />
-        </Section>
+        <RemoteDataTable columns={columns} endpoint="/api/admin/scheduler" enableQueryParams
+                         defaultSort={{ field: 'date', sort: 'desc' }} pageSize={25} />
     );
 }

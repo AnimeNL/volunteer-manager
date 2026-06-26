@@ -137,48 +137,52 @@ export default async function AccountsPage() {
     ];
 
     return (
-        <Section icon={ <PersonIcon color="primary" /> } title="Accounts" breadcrumbs={[
-            { label: 'Organisation', href: '/admin/organisation' },
-            { label: 'Accounts' },
-        ]}>
-            <SectionIntroduction>
-                This table lists all volunteers who helped us out since 2010. Note that our
-                accounts are separate from any that exist in AnPlan.
-            </SectionIntroduction>
-            <DataTable columns={columns} source={accountsDataSource} search="prominent"
-                       defaultSort={{ field: 'name', sort: 'asc' }} listViewProps={{
-                           primaryField: 'name',
-                           linkTemplate: '/admin/organisation/accounts/{id}',
-                       }} />
-            { canCreateAccounts &&
-                <>
-                    <Divider />
-                    <FormGrid action={actions.createAccount} callToAction="Create">
-                        <Grid size={{ xs: 12 }} sx={{ my: -1 }}>
-                            <Typography variant="h6">
-                                Create a new account
-                            </Typography>
-                        </Grid>
+        <>
+            <Section icon={ <PersonIcon color="primary" /> } title="Accounts" breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Accounts' },
+            ]}>
+                <SectionIntroduction>
+                    This table lists all volunteers who helped us out since 2010. Note that our
+                    accounts are separate from any that exist in AnPlan.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <DataTable columns={columns} source={accountsDataSource} search="prominent"
+                           defaultSort={{ field: 'name', sort: 'asc' }} listViewProps={{
+                               primaryField: 'name',
+                               linkTemplate: '/admin/organisation/accounts/{id}',
+                           }} />
+                { canCreateAccounts &&
+                    <>
+                        <Divider />
+                        <FormGrid action={actions.createAccount} callToAction="Create">
+                            <Grid size={{ xs: 12 }} sx={{ my: -1 }}>
+                                <Typography variant="h6">
+                                    Create a new account
+                                </Typography>
+                            </Grid>
 
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="username" label="E-mail address" size="small"
-                                              fullWidth required type="email" />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <SelectElement name="gender" label="Gender" size="small" fullWidth
-                                           options={kGenderOptions} />
-                        </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextFieldElement name="username" label="E-mail address"
+                                                  size="small" fullWidth required type="email" />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <SelectElement name="gender" label="Gender" size="small" fullWidth
+                                               options={kGenderOptions} />
+                            </Grid>
 
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="firstName" label="First name" size="small"
-                                              fullWidth required />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="lastName" label="Last name" size="small"
-                                              fullWidth required />
-                        </Grid>
-                    </FormGrid>
-                </> }
-        </Section>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextFieldElement name="firstName" label="First name" size="small"
+                                                  fullWidth required />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextFieldElement name="lastName" label="Last name" size="small"
+                                                  fullWidth required />
+                            </Grid>
+                        </FormGrid>
+                    </> }
+            </Section>
+        </>
     );
 }

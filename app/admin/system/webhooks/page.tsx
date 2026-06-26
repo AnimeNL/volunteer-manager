@@ -21,16 +21,20 @@ export default async function WebhooksPage() {
     });
 
     return (
-        <Section icon={ <WebhookIcon color="primary" /> } title="Webhooks" breadcrumbs={[
-            { label: 'Communication', href: '/admin/system/communication' },
-            { label: 'Webhooks' },
-        ]}>
-            <SectionIntroduction>
-                Webhooks are signals that the Volunteer Manager has received from external services,
-                which it may have to act upon.
-            </SectionIntroduction>
-            <WebhookDataTable />
-        </Section>
+        <>
+            <Section icon={ <WebhookIcon color="primary" /> } title="Webhooks" breadcrumbs={[
+                { label: 'Communication', href: '/admin/system/communication' },
+                { label: 'Webhooks' },
+            ]}>
+                <SectionIntroduction>
+                    Webhooks are signals that the Volunteer Manager has received from external services,
+                    which it may have to act upon.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <WebhookDataTable />
+            </Section>
+        </>
     );
 }
 

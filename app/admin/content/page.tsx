@@ -33,6 +33,8 @@ export default async function ContentPage() {
                     This page lists the global content of the Volunteer Portal such as the privacy
                     policy and various guides and e-mail templates.
                 </SectionIntroduction>
+            </Section>
+            <Section noHeader>
                 <ContentList enableAuthorLink={enableAuthorLink} scope={scope} />
             </Section>
             <Section title="Create a new page">

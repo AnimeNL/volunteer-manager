@@ -262,16 +262,20 @@ export default async function PermissionsPage() {
     }
 
     return (
-        <Section title="Permissions" icon={ <CategoryIcon color="primary" /> } breadcrumbs={[
-            { label: 'Organisation', href: '/admin/organisation' },
-            { label: 'Permissions' },
-        ]}>
-            <SectionIntroduction>
-                This page shows all the available permissions and who has them. It's your go-to spot
-                for tracking who is allowed to do what.
-            </SectionIntroduction>
-            <PermissionsTable permissions={permissions} />
-        </Section>
+        <>
+            <Section title="Permissions" icon={ <CategoryIcon color="primary" /> } breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Permissions' },
+            ]}>
+                <SectionIntroduction>
+                    This page shows all the available permissions and who has them. It's your go-to spot
+                    for tracking who is allowed to do what.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <PermissionsTable permissions={permissions} />
+            </Section>
+        </>
     );
 }
 
