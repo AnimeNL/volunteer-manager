@@ -49,7 +49,6 @@ import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 import type { ContentCategoriesEndpoints } from '@app/api/admin/content/categories/[[...id]]/route';
 import type { ContentEndpoints } from '@app/api/admin/content/[[...id]]/route';
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
-import type { ErrorLogsEndpoints } from '@app/api/admin/system/diagnostics/errors/[[...id]]/route';
 import type { EventDatesEndpoints } from '@app/api/admin/event/dates/[[...id]]/route';
 import type { EventFinanceEndpoints } from '@app/api/admin/event/finance/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
@@ -115,7 +114,6 @@ export type ApiEndpoints = {
         '/api/admin/scheduler': SchedulerEndpoints['list'],
         '/api/admin/scheduler/:id': SchedulerEndpoints['get'],
         '/api/admin/subscriptions': SubscriptionsEndpoints['list'],
-        '/api/admin/system/diagnostics/errors': ErrorLogsEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
