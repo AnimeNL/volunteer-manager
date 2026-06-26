@@ -4,7 +4,6 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
     type GridPaginationModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
@@ -18,6 +17,7 @@ import type { ExtractContext, ExtractRowModel } from './Types';
 import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
+import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 import { kColumnTemplates } from './ColumnTemplates';
@@ -150,56 +150,29 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // Decide on the search mode that should be active for the <DataTable>. Subtle by default.
     // ---------------------------------------------------------------------------------------------
 
-    const search: 'disabled' | 'prominent' | 'subtle' =
+    const searchMode: 'disabled' | 'prominent' | 'subtle' =
         props.disableSearch ? 'disabled'
                             : props.search ?? 'subtle';
 
     // ---------------------------------------------------------------------------------------------
-    // Control the <DataTable> state using either local state or through URL parameters, using NUQS.
+    // Control the <DataTable> state using either local state or through URL parameters.
     // ---------------------------------------------------------------------------------------------
 
-    const [ statePage, setStatePage ] = useState<number>(0);
-    const [ statePageSize, setStatePageSize ] = useState<number>(
-        props.pageSize ?? kPageSizeDefault);
-
-    const [ stateSortField, setStateSortField ] = useState<string>(props.defaultSort.field);
-    const [ stateSortOrder, setStateSortOrder ] = useState<'asc' | 'desc' | null>(
-        props.defaultSort.sort);
-
-    const [ stateSearch, setStateSearch ] = useState<string>('');
-
-    // ---------------------------------------------------------------------------------------------
-
-    const [ queryPage, setQueryPage ] = useQueryState(
-        'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
-    const [ queryPageSize, setQueryPageSize ] =
-        useQueryState('pageSize', parseAsInteger.withDefault(props.pageSize ?? kPageSizeDefault));
-
-    const [ querySortField, setQuerySortField ] = useQueryState(
-        'sort', parseAsString.withDefault(props.defaultSort.field).withOptions({ history: 'push' }));
-    const [ querySortOrder, setQuerySortOrder ] = useQueryState(
-        'order', parseAsString.withDefault(props.defaultSort.sort ?? '').withOptions({ history: 'push' }));
-
-    const [ querySearch, setQuerySearch ] = useQueryState(
-        'q', parseAsString.withDefault('').withOptions({ history: 'replace' }));
-
-    // ---------------------------------------------------------------------------------------------
-
-    const page = props.disableQueryParams ? statePage : queryPage;
-    const pageSize = props.disableQueryParams ? statePageSize : queryPageSize;
-
-    const sortField = props.disableQueryParams ? stateSortField : querySortField;
-    const sortOrder = props.disableQueryParams
-        ? stateSortOrder : (querySortOrder === '' ? null : querySortOrder) as 'asc' | 'desc' | null;
-
-    const searchVal = props.disableQueryParams ? stateSearch : querySearch;
+    const {
+        page, pageSize, sortField, sortOrder, search,
+        setPage, setPageSize, setSortField, setSortOrder, setSearch
+    } = useDataTableState({
+        defaultSort: props.defaultSort,
+        disableQueryParams: props.disableQueryParams,
+        pageSize: props.pageSize ?? kPageSizeDefault,
+    });
 
     // ---------------------------------------------------------------------------------------------
 
     const filterModel = useMemo((): GridFilterModel => ({
         items: [ /* we don't support manual filtering */ ],
-        quickFilterValues: searchVal ? [ searchVal ] : [],
-    }), [ searchVal ]);
+        quickFilterValues: search ? [ search ] : [],
+    }), [ search ]);
 
     const sortModel = useMemo((): GridSortModel => ([
         {
@@ -218,21 +191,17 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         if (model.pageSize !== pageSize)
             newPage = Math.floor((page * pageSize) / model.pageSize);
 
-        if (props.disableQueryParams) {
-            setStatePage(newPage);
-            setStatePageSize(model.pageSize);
-        } else {
-            setQueryPage(newPage);
-            setQueryPageSize(model.pageSize);
-        }
-    }, [ page, pageSize, props.disableQueryParams, setQueryPage, setQueryPageSize ]);
+        setPage(newPage);
+        setPageSize(model.pageSize);
+
+    }, [ page, pageSize, setPage, setPageSize ]);
 
     const handleSortModelChange = useCallback((model: GridSortModel) => {
         const item = model[0];
+
         const newField = item ? item.field : null;
         const newOrder = item ? item.sort : null;
 
-        const defaultField = props.defaultSort.field;
         const defaultOrder = props.defaultSort.sort;
 
         // In MUI Data Grid, clicking an already sorted column header cycles the sorting state
@@ -240,28 +209,19 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         // causes Nuqs to fall back to the default value, making the column unsortable.
         const orderToSet = model.length === 0 && defaultOrder === 'desc' ? 'asc' : newOrder;
 
-        if (props.disableQueryParams) {
-            setStateSortField(newField ?? defaultField);
-            setStateSortOrder(orderToSet ?? null);
-            setStatePage(0);
-        } else {
-            setQuerySortField(newField);
-            setQuerySortOrder(orderToSet ?? null);
-            setQueryPage(null);
-        }
-    }, [ props.disableQueryParams, props.defaultSort, setQuerySortField, setQuerySortOrder, setQueryPage ]);
+        setSortField(newField);
+        setSortOrder(orderToSet ?? null);
+        setPage(null);
+
+    }, [ props.defaultSort.sort, setSortField, setSortOrder, setPage ]);
 
     const handleFilterModelChange = useCallback((model: GridFilterModel) => {
         const newSearch = model.quickFilterValues?.[0] ?? '';
 
-        if (props.disableQueryParams) {
-            setStateSearch(newSearch);
-            setStatePage(0);
-        } else {
-            setQuerySearch(newSearch || null);
-            setQueryPage(null);
-        }
-    }, [ props.disableQueryParams, setQuerySearch, setQueryPage ]);
+        setSearch(newSearch);
+        setPage(null);
+
+    }, [ setSearch, setPage ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -334,7 +294,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 disableRowGrouping
 
                 hideFooter={ !!props.disableFooter }
-                showToolbar={ search === 'prominent' }
+                showToolbar={ searchMode === 'prominent' }
 
                 listView={isMobile}
                 listViewColumn={{
@@ -354,11 +314,11 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
                 slots={{
                     footer:
-                        search === 'subtle'
+                        searchMode === 'subtle'
                             ? DataTableResponsiveFooterWithQuickSearch
                             : DataTableResponsiveFooter,
                     toolbar:
-                        search === 'prominent'
+                        searchMode === 'prominent'
                             ? DataTableProminentSearchToolbar
                             : undefined,
                 }}
