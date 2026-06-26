@@ -445,4 +445,191 @@ describe('DataTable', () => {
         expect(lastCall.searchParams.has('page')).toBeFalsy();
         expect(lastCall.searchParams.get('pageSize')).toBe('25');
     });
+
+    it('respects the sort and order query parameters from the URL', async () => {
+        let requestedSort: any;
+
+        const dataSource = createDataSource('test/sort-query-param', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedSort = params.sort;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', headerName: 'NameHeader' },
+            { field: 'role', headerName: 'RoleHeader' }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="?sort=role&order=desc">
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedSort).toBeDefined();
+        });
+
+        expect(requestedSort).toEqual({ field: 'role', direction: 'desc' });
+    });
+
+    it('does not respect sort URL query parameters when disableQueryParams is set', async () => {
+        let requestedSort: any;
+
+        const dataSource = createDataSource('test/sort-disable-query-params', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedSort = params.sort;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', headerName: 'NameHeader' },
+            { field: 'role', headerName: 'RoleHeader' }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="?sort=role&order=desc">
+                <DataTable source={dataSource} columns={columns} disableQueryParams
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedSort).toBeDefined();
+        });
+
+        expect(requestedSort).toEqual({ field: 'name', direction: 'asc' });
+    });
+
+    it('updates URL query parameters when sorting is changed', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/sort-url-update', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', headerName: 'NameHeader' },
+            { field: 'role', headerName: 'RoleHeader' }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        const columnHeader = screen.getByText('RoleHeader');
+        fireEvent.click(columnHeader);
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.get('sort')).toBe('role');
+        expect(lastCall.searchParams.has('order')).toBeFalsy();
+    });
+
+    it('removes sort query parameters when they match default values', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/sort-default-remove', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', headerName: 'NameHeader' },
+            { field: 'role', headerName: 'RoleHeader' }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="?sort=role&order=desc" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        const columnHeader = screen.getByText('NameHeader');
+        fireEvent.click(columnHeader);
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.has('sort')).toBeFalsy();
+        expect(lastCall.searchParams.has('order')).toBeFalsy();
+    });
+
+    it('correctly toggles sorting of the default column when defaultOrder is desc', async () => {
+        const onUrlUpdate = vi.fn();
+
+        const dataSource = createDataSource('test/sort-desc-toggle', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', headerName: 'NameHeader' },
+            { field: 'role', headerName: 'RoleHeader' }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={onUrlUpdate}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'desc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        const columnHeader = screen.getByText('NameHeader');
+        fireEvent.click(columnHeader);
+
+        await waitFor(() => {
+            expect(onUrlUpdate).toHaveBeenCalled();
+        });
+
+        const lastCall = onUrlUpdate.mock.lastCall![0];
+        expect(lastCall.searchParams.has('sort')).toBeFalsy();
+        expect(lastCall.searchParams.get('order')).toBe('asc');
+    });
 });

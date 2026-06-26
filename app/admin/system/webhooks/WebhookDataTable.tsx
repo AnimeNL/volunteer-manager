@@ -137,7 +137,6 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
         {
             field: 'service',
             headerName: 'Service',
-            sortable: true,
             width: 75,
 
             template: 'component',
@@ -148,19 +147,16 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
         {
             field: 'source',
             headerName: 'Source IP',
-            sortable: true,
             flex: 2,
         },
         {
             field: 'destination',
             headerName: 'Destination',
-            sortable: true,
             flex: 4,
         },
         {
             field: 'size',
             headerName: 'Size',
-            sortable: true,
             flex: 2,
 
             template: 'component',

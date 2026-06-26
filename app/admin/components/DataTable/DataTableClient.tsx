@@ -4,10 +4,10 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { useQueryState, parseAsInteger } from 'nuqs';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridPaginationModel,
-    type GridValidRowModel } from '@mui/x-data-grid-premium';
+    type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
 
@@ -162,25 +162,43 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const [ statePageSize, setStatePageSize ] = useState<number>(
         props.pageSize ?? kPageSizeDefault);
 
+    const [ stateSortField, setStateSortField ] = useState<string>(props.defaultSort.field);
+    const [ stateSortOrder, setStateSortOrder ] = useState<'asc' | 'desc' | null>(
+        props.defaultSort.sort);
+
+    // ---------------------------------------------------------------------------------------------
+
     const [ queryPage, setQueryPage ] = useQueryState(
         'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
     const [ queryPageSize, setQueryPageSize ] =
         useQueryState('pageSize', parseAsInteger.withDefault(props.pageSize ?? kPageSizeDefault));
 
-    const page =
-        props.disableQueryParams ? statePage
-                                 : queryPage;
+    const [ querySortField, setQuerySortField ] = useQueryState(
+        'sort', parseAsString.withDefault(props.defaultSort.field).withOptions({ history: 'push' }));
+    const [ querySortOrder, setQuerySortOrder ] = useQueryState(
+        'order', parseAsString.withDefault(props.defaultSort.sort ?? '').withOptions({ history: 'push' }));
 
-    const pageSize =
-        props.disableQueryParams ? statePageSize
-                                 : queryPageSize;
+    // ---------------------------------------------------------------------------------------------
+
+    const page = props.disableQueryParams ? statePage : queryPage;
+    const pageSize = props.disableQueryParams ? statePageSize : queryPageSize;
+
+    const sortField = props.disableQueryParams ? stateSortField : querySortField;
+    const sortOrder = props.disableQueryParams
+        ? stateSortOrder : (querySortOrder === '' ? null : querySortOrder) as 'asc' | 'desc' | null;
+
+    // ---------------------------------------------------------------------------------------------
+
+    const sortModel = useMemo((): GridSortModel => ([
+        {
+            field: sortField,
+            sort: sortOrder,
+        }
+    ]), [ sortField, sortOrder ]);
 
     // ---------------------------------------------------------------------------------------------
 
     const handlePaginationModelChange = useCallback((model: GridPaginationModel) => {
-        const defaultPage = 0;
-        const defaultPageSize = props.pageSize ?? kPageSizeDefault;
-
         let newPage = model.page;
 
         // Adjust the |newPage| if the page size changed, to ensure that the first currently visible
@@ -192,10 +210,34 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             setStatePage(newPage);
             setStatePageSize(model.pageSize);
         } else {
-            setQueryPage(newPage === defaultPage ? null : newPage);
-            setQueryPageSize(model.pageSize === defaultPageSize ? null : model.pageSize);
+            setQueryPage(newPage);
+            setQueryPageSize(model.pageSize);
         }
-    }, [ page, pageSize, props.pageSize, props.disableQueryParams, setQueryPage, setQueryPageSize ])
+    }, [ page, pageSize, props.disableQueryParams, setQueryPage, setQueryPageSize ]);
+
+    const handleSortModelChange = useCallback((model: GridSortModel) => {
+        const item = model[0];
+        const newField = item ? item.field : null;
+        const newOrder = item ? item.sort : null;
+
+        const defaultField = props.defaultSort.field;
+        const defaultOrder = props.defaultSort.sort;
+
+        // In MUI Data Grid, clicking an already sorted column header cycles the sorting state
+        // through unsorted -> asc -> desc -> unsorted. Unsorted is represented as "null", which
+        // causes Nuqs to fall back to the default value, making the column unsortable.
+        const orderToSet = model.length === 0 && defaultOrder === 'desc' ? 'asc' : newOrder;
+
+        if (props.disableQueryParams) {
+            setStateSortField(newField ?? defaultField);
+            setStateSortOrder(orderToSet ?? null);
+            setStatePage(0);
+        } else {
+            setQuerySortField(newField);
+            setQuerySortOrder(orderToSet ?? null);
+            setQueryPage(null);
+        }
+    }, [ props.disableQueryParams, props.defaultSort, setQuerySortField, setQuerySortOrder, setQueryPage ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -253,6 +295,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 paginationModel={{ page, pageSize }}
                 onPaginationModelChange={handlePaginationModelChange}
 
+                sortModel={sortModel}
+                onSortModelChange={handleSortModelChange}
+
                 disableColumnFilter
                 disableColumnMenu
                 disableColumnReorder
@@ -263,12 +308,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
                 hideFooter={ !!props.disableFooter }
                 showToolbar={ search === 'prominent' }
-
-                initialState={{
-                    sorting: {
-                        sortModel: [ props.defaultSort ],
-                    }
-                }}
 
                 listView={isMobile}
                 listViewColumn={{
