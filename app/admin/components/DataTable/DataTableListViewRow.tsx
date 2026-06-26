@@ -132,7 +132,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                 <Typography variant="body2" color="textSecondary" sx={{ flexShrink: 0 }}>
                     <LocalDateTime
                         dateTime={resolveRowModelField(props.row, props.listViewProps.dateField)}
-                        format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
+                        fixedWidth format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
                 </Typography>}
 
             { props.listViewProps.endComponent &&

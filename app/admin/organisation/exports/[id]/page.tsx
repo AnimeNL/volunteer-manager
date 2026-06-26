@@ -172,7 +172,7 @@ export default async function OrganisationExportsLogPage(
         {
             field: 'date',
             headerName: 'Date',
-            width: 175,
+            width: 185,
 
             template: 'date',
             templateProps: {

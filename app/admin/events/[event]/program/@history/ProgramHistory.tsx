@@ -434,6 +434,8 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
         },
         {
             field: 'date',
+            width: 115,
+
             template: 'date',
         },
         {

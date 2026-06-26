@@ -139,7 +139,7 @@ export default async function ErrorLogsPage() {
         {
             field: 'date',
             headerName: 'Date',
-            width: 175,
+            width: 185,
             template: 'date',
             templateProps: {
                 format: 'YYYY-MM-DD HH:mm:ss',
@@ -208,7 +208,6 @@ export default async function ErrorLogsPage() {
                 primaryField: 'message',
                 secondaryTemplate: '{userLabel} ({severity})',
                 dateField: 'date',
-                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
                 linkTemplate: './errors/{id}',
             }}
         />

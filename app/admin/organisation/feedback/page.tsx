@@ -116,7 +116,8 @@ export default async function FeedbackPage() {
         {
             field: 'date',
             headerName: 'Received',
-            flex: 1,
+            width: 185,
+
             template: 'date',
             templateProps: {
                 format: 'YYYY-MM-DD HH:mm:ss',
@@ -127,11 +128,13 @@ export default async function FeedbackPage() {
             field: 'user',
             headerName: 'Volunteer',
             flex: 1,
+
             template: 'account',
         },
         {
             field: 'feedback',
             headerName: 'Feedback',
+
             flex: 4,
         },
         {
@@ -141,6 +144,7 @@ export default async function FeedbackPage() {
             sortable: false,
             align: 'center',
             width: 50,
+
             template: 'component',
             templateProps: {
                 component: ResponseCell,

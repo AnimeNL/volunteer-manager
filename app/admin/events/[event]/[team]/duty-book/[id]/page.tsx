@@ -186,7 +186,7 @@ export default async function EventTeamDutyBookIncidentPage(
         {
             field: 'date',
             headerName: 'Viewed on',
-            width: 175,
+            width: 185,
 
             template: 'date',
             templateProps: {

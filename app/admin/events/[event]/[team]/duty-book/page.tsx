@@ -222,7 +222,7 @@ export default async function EventTeamDutyBookPage(
         {
             field: 'date',
             headerName: 'Reported on',
-            width: 175,
+            width: 185,
 
             template: 'date',
             templateProps: {

@@ -126,7 +126,7 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
         {
             field: 'date',
             headerName: 'Date',
-            width: 175,
+            width: 185,
 
             template: 'date',
             templateProps: {

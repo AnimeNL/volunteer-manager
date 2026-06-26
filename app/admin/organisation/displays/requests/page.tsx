@@ -136,7 +136,7 @@ export default async function HelpRequestsPage() {
         {
             field: 'date',
             headerName: 'Date',
-            width: 175,
+            width: 185,
             template: 'date',
             templateProps: {
                 format: 'YYYY-MM-DD HH:mm:ss',

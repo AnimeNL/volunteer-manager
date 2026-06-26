@@ -155,7 +155,7 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
         {
             field: 'date',
             headerName: 'Date',
-            width: 175,
+            width: 185,
 
             template: 'date',
             templateProps: {

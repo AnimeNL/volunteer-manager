@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 
 import { Temporal, formatDate } from '@lib/Temporal';
+import { styled } from '@mui/material/styles';
 
 /**
  * Props accepted by the <LocalDateTime> component.
@@ -16,6 +17,11 @@ interface LocalDateTimeProps {
      * is not iso8601) a calendar suffix.
      */
     dateTime: string;
+
+    /**
+     * Whether the numbers composing this date should be rendered in a fixed width.
+     */
+    fixedWidth?: boolean;
 
     /**
      * Format in which the date and time should be displayed. The supported formatting rules are
@@ -36,5 +42,15 @@ export function LocalDateTime(props: LocalDateTimeProps) {
 
     }, [ props.dateTime, props.format ]);
 
-    return formattedDateTime;
+    return !!props.fixedWidth
+        ? <FixedWidthLocalDateTime>{formattedDateTime}</FixedWidthLocalDateTime>
+        : formattedDateTime;
 }
+
+/**
+ * Helper element to display the date in a tabular format.
+ */
+const FixedWidthLocalDateTime = styled('div')(() => ({
+    fontFeatureSettings: 'tnum',
+    fontVariantNumeric: 'tabular-nums',
+}));

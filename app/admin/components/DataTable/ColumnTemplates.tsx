@@ -96,11 +96,11 @@ export const kColumnTemplates = {
             if (!!href) {
                 return (
                     <MuiLink component={Link} href={href}>
-                        <LocalDateTime dateTime={params.value} format={format} />
+                        <LocalDateTime dateTime={params.value} fixedWidth format={format} />
                     </MuiLink>
                 );
             } else {
-                return <LocalDateTime dateTime={params.value} format={format} />;
+                return <LocalDateTime dateTime={params.value} fixedWidth format={format} />;
             }
         },
 
