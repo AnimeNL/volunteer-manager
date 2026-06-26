@@ -487,7 +487,8 @@ export function ProgramHistory(context: HistoryDataSourceContext) {
                 planning tool.
             </SectionIntroduction>
             <DataTable columns={columns} source={historyDataSource} context={context}
-                       defaultSort={{ field: 'date', sort: 'desc' }} pageSize={10}
+                       defaultSort={{ field: 'date', sort: 'desc' }} disableQueryParams
+                       pageSize={10}
                        listViewProps={{
                            primaryField: 'change',
                            dateField: 'date',

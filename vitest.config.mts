@@ -44,10 +44,6 @@ export default defineConfig({
         exclude: [
             '**/e2e/**',
             '**/node_modules/**',
-
-            // TODO: Enable when https://github.com/mui/material-ui/issues/48636 is fixed.
-            'app/admin/components/DataTable/DataTable.test.tsx',
-            'app/welcome/LandingPage.test.ts',
         ],
         globals: true,
     },

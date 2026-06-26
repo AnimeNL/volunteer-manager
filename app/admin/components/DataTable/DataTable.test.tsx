@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { z } from 'zod';
 
@@ -97,9 +98,13 @@ describe('DataTable', () => {
             }
         ];
 
-        render(<DataTable source={dataSource} columns={columns}
-                          defaultSort={{ field: 'name', sort: 'asc' }}
-                          listViewProps={{ primaryField: 'name' }} />);
+        render(
+            <NuqsTestingAdapter>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
 
         // The table's headers are expected to be available immediately, although listing the data
         // from the data source is an asynchronous operation that has to be waited for.
@@ -138,9 +143,13 @@ describe('DataTable', () => {
 
         mocks.useIsMobile.mockReturnValue(true);
 
-        render(<DataTable source={dataSource} columns={columns}
-                          defaultSort={{ field: 'name', sort: 'asc' }}
-                          listViewProps={{ primaryField: 'role' }} />);
+        render(
+            <NuqsTestingAdapter>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'role' }} />
+            </NuqsTestingAdapter>
+        );
 
         // The table's columns are not shown in mobile view as we display a list of items instead,
         // whereas the data will be shown, but will be streamed in asynchronously.
@@ -178,9 +187,13 @@ describe('DataTable', () => {
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
-        render(<DataTable source={dataSource} columns={columns} search={p as 'prominent' | 'subtle'}
-                          defaultSort={{ field: 'name', sort: 'asc' }} pageSize={10}
-                          listViewProps={{ primaryField: 'name' }} />);
+        render(
+            <NuqsTestingAdapter>
+                <DataTable source={dataSource} columns={columns} search={p as 'prominent' | 'subtle'}
+                           defaultSort={{ field: 'name', sort: 'asc' }} pageSize={10}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
 
         // The data will be made available asynchronously. Wait for it.
         await waitFor(() => {
@@ -218,9 +231,13 @@ describe('DataTable', () => {
 
         mocks.useIsMobile.mockReturnValue(p);
 
-        render(<DataTable source={dataSource} columns={columns} pageSize={10}
-                          defaultSort={{ field: 'name', sort: 'asc' }}
-                          listViewProps={{ primaryField: 'name' }} />);
+        render(
+            <NuqsTestingAdapter>
+                <DataTable source={dataSource} columns={columns} pageSize={10}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
 
         // The data's first page will be made available asynchronously. Wait for it.
         await waitFor(() => {
@@ -246,5 +263,104 @@ describe('DataTable', () => {
             expect(screen.getByText('Sachi Tanaka')).toBeDefined();
             expect(() => screen.getByText('Wren Xavier')).toThrow();
         });
+    });
+
+    it('respects the page query parameter from the URL', async () => {
+        let requestedPage: { offset: number; limit: number } | undefined;
+
+        const dataSource = createDataSource('test/page-query-param', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedPage = params.page;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?page=1">
+                <DataTable source={dataSource} columns={columns} pageSize={10}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedPage).toBeDefined();
+        });
+
+        expect(requestedPage!.offset).toBe(10);
+        expect(requestedPage!.limit).toBe(10);
+    });
+
+    it('respects the pageSize query parameter from the URL', async () => {
+        let requestedPage: { offset: number; limit: number } | undefined;
+
+        const dataSource = createDataSource('test/pagesize-query-param', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedPage = params.page;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?pageSize=25">
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedPage).toBeDefined();
+        });
+
+        expect(requestedPage!.offset).toBe(0);
+        expect(requestedPage!.limit).toBe(25);
+    });
+
+    it('does not respect URL query parameters when disableQueryParams is set', async () => {
+        let requestedPage: { offset: number; limit: number } | undefined;
+
+        const dataSource = createDataSource('test/disable-query-params', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                requestedPage = params.page;
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="?page=1&pageSize=25">
+                <DataTable source={dataSource} columns={columns} disableQueryParams
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(requestedPage).toBeDefined();
+        });
+
+        expect(requestedPage!.offset).toBe(0);
+        expect(requestedPage!.limit).toBe(50);
     });
 });

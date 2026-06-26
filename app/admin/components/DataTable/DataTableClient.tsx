@@ -4,6 +4,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useQueryState, parseAsInteger } from 'nuqs';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridValidRowModel }
     from '@mui/x-data-grid-premium';
@@ -59,6 +60,11 @@ interface DataTableClientCommonProps<
      * subtle user interface has been selected.
      */
     disableFooter?: boolean;
+
+    /**
+     * Whether use of URL query parameters should be disabled for pagination state.
+     */
+    disableQueryParams?: boolean;
 
     /**
      * Whether the search functionality should be disabled. All data tables are strongly encouraged
@@ -126,6 +132,18 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     props: DataTableClientProps<Interface>)
 {
     const isMobile = useIsMobile();
+
+    const [ statePage, setStatePage ] = useState<number>(0);
+    const [ statePageSize, setStatePageSize ] = useState<number>(props.pageSize ?? 50);
+
+    const [ queryPage, setQueryPage ] = useQueryState(
+        'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
+
+    const [ queryPageSize, setQueryPageSize ] =
+        useQueryState('pageSize', parseAsInteger.withDefault(props.pageSize ?? 50));
+
+    const page = props.disableQueryParams ? statePage : queryPage;
+    const pageSize = props.disableQueryParams ? statePageSize : queryPageSize;
 
     // ---------------------------------------------------------------------------------------------
     // Use memoized versions of certain props that would excessively invalidate the component tree.
@@ -196,6 +214,16 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 density="compact"
                 pageSizeOptions={kPageSizeOptions}
                 pagination
+                paginationModel={{ page, pageSize }}
+                onPaginationModelChange={(model) => {
+                    if (props.disableQueryParams) {
+                        setStatePage(model.page);
+                        setStatePageSize(model.pageSize);
+                    } else {
+                        setQueryPage(model.page);
+                        setQueryPageSize(model.pageSize);
+                    }
+                }}
 
                 disableColumnFilter
                 disableColumnMenu
@@ -209,9 +237,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 showToolbar={ search === 'prominent' }
 
                 initialState={{
-                    pagination: {
-                        paginationModel: { pageSize: props.pageSize ?? 50, page: 0 },
-                    },
                     sorting: {
                         sortModel: [ props.defaultSort ],
                     }
