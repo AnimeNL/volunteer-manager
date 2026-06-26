@@ -48,7 +48,6 @@ import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 
 import type { ContentCategoriesEndpoints } from '@app/api/admin/content/categories/[[...id]]/route';
 import type { ContentEndpoints } from '@app/api/admin/content/[[...id]]/route';
-import type { DisplayRequestsEndpoints } from '@app/api/admin/organisation/displays/requests/route';
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
 import type { ErrorLogsEndpoints } from '@app/api/admin/system/diagnostics/errors/[[...id]]/route';
 import type { EventDatesEndpoints } from '@app/api/admin/event/dates/[[...id]]/route';
@@ -104,7 +103,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/logs': LogsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
-        '/api/admin/organisation/displays/requests': DisplayRequestsEndpoints['list'],
         '/api/admin/organisation/roles': RolesEndpoints['list'],
         '/api/admin/outbox/email': OutboxEmailEndpoints['list'],
         '/api/admin/outbox/email/:id': OutboxEmailEndpoints['get'],
