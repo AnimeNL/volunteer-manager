@@ -1,34 +1,111 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
+import { z } from 'zod/v4';
 
-import Link from '@app/LinkProxy';
+import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
+    from '@app/admin/components/DataTable';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import db, { tTwilioWebhookCalls } from '@lib/database';
 
-import { default as MuiLink } from '@mui/material/Link';
-import Chip from '@mui/material/Chip';
-import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import ReadMoreIcon from '@mui/icons-material/ReadMore';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import Tooltip from '@mui/material/Tooltip';
-import VerifiedIcon from '@mui/icons-material/Verified';
-
-import type { WebhookRowModel } from '@app/api/admin/webhooks/route';
-import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { WebhookAuthenticatedCell, WebhookAuthenticatedHeader, WebhookServiceCell, WebhookSizeCell }
+    from './WebhookRowComponents';
 
 /**
- * Colours assigned to chips for particular services.
+ * Data source through which received webhook calls can be retrieved.
  */
-const kServiceColours = {
-    twilio: [ '#ffffff', '#f22f46' ],
-};
+const webhookDataSource = createDataSource('admin/system/webhooks', withContext({
+    /**
+     * Filter for Twilio webhooks to filter by a particular message SID.
+     */
+    twilioMessageSid: z.string().optional(),
 
-/**
- * Size units used to display the size of a received message.
- */
-const kMessageSizeUnit = [ 'bytes', 'KiB', 'MiB', 'GiB' ];
+}), withRowModel({
+    /**
+     * Unique ID of the call.
+     */
+    id: z.number(),
+
+    /**
+     * Date at which the webhook was received by our server.
+     */
+    date: z.string(),
+
+    /**
+     * The service for which a message was received.
+     */
+    service: z.string(),
+
+    /**
+     * IP address from which the message was received.
+     */
+    source: z.string().optional(),
+
+    /**
+     * Destination, i.e. where was the webhook sent to?
+     */
+    destination: z.string(),
+
+    /**
+     * Size, in bytes, of the received message.
+     */
+    size: z.number(),
+
+    /**
+     * Whether the message was successfully authenticated.
+     */
+    authenticated: z.boolean(),
+
+}), {
+    async authorize(operation, props) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'system.internals.outbox',
+        });
+    },
+
+    async list(params, props, context) {
+        let sortField: 'date' | 'service' | 'source' | 'destination' | 'size' = 'date';
+        switch (params.sort.field) {
+            case 'date':
+            case 'service':
+            case 'source':
+            case 'destination':
+            case 'size':
+                sortField = params.sort.field as any;
+                break;
+        }
+
+        const dbInstance = db;
+        const data = await dbInstance.selectFrom(tTwilioWebhookCalls)
+            .where(tTwilioWebhookCalls.webhookMessageSid.equalsIfValue(context.twilioMessageSid))
+                    .or(tTwilioWebhookCalls.webhookMessageOriginalSid.equalsIfValue(
+                        context.twilioMessageSid))
+                    .or(tTwilioWebhookCalls.webhookRequestSource.containsIfValue(params.search))
+                    .or(tTwilioWebhookCalls.webhookRequestUrl.containsIfValue(params.search))
+            .select({
+                id: tTwilioWebhookCalls.webhookCallId,
+                date: dbInstance.dateTimeAsString(tTwilioWebhookCalls.webhookCallDate),
+                service: dbInstance.const('twilio', 'string'),
+                source: tTwilioWebhookCalls.webhookRequestSource,
+                destination: tTwilioWebhookCalls.webhookRequestUrl,
+                size: tTwilioWebhookCalls.webhookRequestBody.length(),
+                authenticated: tTwilioWebhookCalls.webhookRequestAuthenticated.equals(/* true= */ 1),
+            })
+            .orderBy(sortField, params.sort.direction)
+            .limit(params.page.limit)
+                .offset(params.page.offset)
+            .executeSelectPage();
+
+        return {
+            rowCount: data.count,
+            rows: data.data.map(row => ({
+                ...row,
+                destination: new URL(row.destination).pathname,
+            })),
+        };
+    },
+});
 
 /**
  * Props accepted by the <WebhookDataTable> component.
@@ -45,65 +122,32 @@ interface WebhookDataTableProps {
  * Each links through to a detailed page with all information regarding that particular webhook.
  */
 export function WebhookDataTable(props: WebhookDataTableProps) {
-    const localTz = Temporal.Now.timeZoneId();
-    const columns: RemoteDataTableColumn<WebhookRowModel>[] = [
-        {
-            field: 'id',
-            display: 'flex',
-            headerName: '',
-            sortable: false,
-            width: 50,
-
-            renderCell: params => {
-                const href = `/admin/system/webhooks/${params.row.service}/${params.id}`;
-                return (
-                    <MuiLink component={Link} href={href} sx={{ pt: '5px' }}>
-                        <ReadMoreIcon color="info" />
-                    </MuiLink>
-                );
-            },
-        },
+    const columns: Column<ExtractRowModel<typeof webhookDataSource>>[] = [
         {
             field: 'date',
             headerName: 'Date',
             width: 175,
 
-            renderCell: params =>
-                formatDate(
-                    Temporal.ZonedDateTime.from(params.value).withTimeZone(localTz),
-                    'YYYY-MM-DD HH:mm:ss'),
+            template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+                href: '/admin/system/webhooks/{service}/{id}',
+            },
         },
         {
             field: 'service',
             headerName: 'Service',
             sortable: true,
-            width: 125,
+            width: 75,
 
-            renderCell: params => {
-                if (!kServiceColours.hasOwnProperty(params.value))
-                    return <Chip label={params.value} size="small" />;
-
-                const [ color, backgroundColor ] =
-                    kServiceColours[params.value as keyof typeof kServiceColours];
-
-                const label =
-                    (params.value && params.value[0].toUpperCase() + params.value.slice(1)) || '';
-
-                return <Chip label={label} size="small" sx={{ backgroundColor, color }} />;
+            template: 'component',
+            templateProps: {
+                component: WebhookServiceCell,
             },
         },
         {
-            field: 'type',
-            headerName: 'Type',
-            sortable: true,
-            width: 125,
-
-            renderCell: params =>
-                <Chip label={params.value} size="small" />,
-        },
-        {
             field: 'source',
-            headerName: 'Received from',
+            headerName: 'Source IP',
             sortable: true,
             flex: 2,
         },
@@ -111,65 +155,51 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
             field: 'destination',
             headerName: 'Destination',
             sortable: true,
-            flex: 3,
-
-            renderCell: params => params.value && new URL(params.value).pathname,
+            flex: 4,
         },
         {
             field: 'size',
             headerName: 'Size',
             sortable: true,
-            flex: 1,
+            flex: 2,
 
-            renderCell: params => {
-                let size = parseInt(params.value, 10);
-                let unitIndex = 0;
-
-                while (size >= 1024) {
-                    size /= 1024;
-                    unitIndex++;
-                }
-
-                return `${Math.round(size * 100) / 100} ${ kMessageSizeUnit[unitIndex] ?? 'TiB' }`;
+            template: 'component',
+            templateProps: {
+                component: WebhookSizeCell,
             },
         },
         {
             display: 'flex',
             field: 'authenticated',
-            headerName: /* empty= */ '',
+            headerAlign: 'center',
+            headerName: '',
             sortable: false,
+            align: 'center',
             width: 50,
 
-            renderHeader: () =>
-                <Tooltip title="Could the call be authenticated?">
-                    <VerifiedIcon color="primary" fontSize="small" />
-                </Tooltip>,
-
-            renderCell: params => {
-                if (!!params.value) {
-                    return (
-                        <Tooltip title="Authentication was successful">
-                            <TaskAltIcon color="success" fontSize="small" />
-                        </Tooltip>
-                    );
-                } else if (params.value === null || params.value === undefined) {
-                    return (
-                        <Tooltip title="No authentication was attempted">
-                            <RadioButtonUncheckedIcon color="disabled" fontSize="small" />
-                        </Tooltip>
-                    );
-                } else {
-                    return (
-                        <Tooltip title="The call coult not be authenticated">
-                            <ErrorOutlinedIcon color="error" fontSize="small" />
-                        </Tooltip>
-                    );
-                }
+            template: 'component',
+            templateProps: {
+                headerComponent: WebhookAuthenticatedHeader,
+                component: WebhookAuthenticatedCell,
             },
         },
     ];
 
-    return <RemoteDataTable columns={columns} endpoint="/api/admin/webhooks"
-                            context={{ foo: 'bar', ...props }} enableQueryParams
-                            defaultSort={{ field: 'id', sort: 'desc' }} pageSize={50} />;
+    return (
+        <DataTable
+            columns={columns}
+            source={webhookDataSource}
+            context={props}
+            defaultSort={{ field: 'date', sort: 'desc' }}
+            pageSize={50}
+            listViewProps={{
+                primaryField: 'destination',
+                secondaryField: 'source',
+                dateField: 'date',
+                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                startComponent: WebhookAuthenticatedCell,
+                linkTemplate: '/admin/system/webhooks/{service}/{id}',
+            }}
+        />
+    );
 }

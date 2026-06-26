@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import type { TestMessage } from '@lib/subscriptions/drivers/TestDriver';
 
 /**
@@ -32,9 +33,11 @@ export function SubscriptionTestAction(props: SubscriptionTestActionProps) {
     return (
         <form action={publishTestMessage.bind(null, props)}>
             <Tooltip title="Publish a test message">
-                <IconButton size="small" type="submit">
-                    <ExtensionIcon fontSize="small" color="warning" />
-                </IconButton>
+                <TooltipIconWrapper>
+                    <IconButton size="small" type="submit">
+                        <ExtensionIcon fontSize="small" color="warning" />
+                    </IconButton>
+                </TooltipIconWrapper>
             </Tooltip>
         </form>
     );

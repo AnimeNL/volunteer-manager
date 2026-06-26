@@ -76,7 +76,6 @@ import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/ass
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
 import type { TrainingsExtraEndpoints } from '@app/api/admin/trainings/extra/[[...id]]/route';
 import type { VendorEndpoints } from '@app/api/admin/vendors/[[...id]]/route';
-import type { WebhookEndpoints } from '@app/api/admin/webhooks/route';
 
 /**
  * Type helpers for deciding on the request and response types for API definitions. Because they are
@@ -123,7 +122,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
         '/api/admin/vendors': VendorEndpoints['list'],
-        '/api/admin/webhooks': WebhookEndpoints['list'],
         '/api/auth/passkeys/list': ListPasskeysDefinition,
         '/api/event/hotels/:event': HotelsDefinition,
         '/api/event/trainings/:event': TrainingsDefinition,
