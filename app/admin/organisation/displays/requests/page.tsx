@@ -204,7 +204,7 @@ export default async function HelpRequestsPage() {
             pageSize={25}
             listViewProps={{
                 primaryField: 'display',
-                secondaryField: 'event',
+                secondaryTemplate: 'Request for {target}',
                 dateField: 'date',
                 dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
                 startComponent: HelpRequestStatusCell,

@@ -31,6 +31,13 @@ export interface DataTableListViewProps<RowModel extends object> {
     secondaryField?: RowModelFields<RowModel>;
 
     /**
+     * Template from which the secondary field will be derived. Can contain any of the fields as
+     * a curly brace-contained string, for example: "Player #{id}". Nested references are allowed as
+     * well, for example: "Issued by {user.name}".
+     */
+    secondaryTemplate?: string;
+
+    /**
      * Date to display on the right-hand side of the list item.
      */
     dateField?: RowModelFields<RowModel>;
@@ -115,6 +122,10 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                     <Typography noWrap variant="body2" color="textSecondary">
                         {resolveRowModelField(props.row, props.listViewProps.secondaryField)}
                     </Typography> }
+                { !!props.listViewProps.secondaryTemplate &&
+                    <Typography noWrap variant="body2" color="textSecondary">
+                        {resolveTemplate(props.row, props.listViewProps.secondaryTemplate)}
+                    </Typography> }
             </Stack>
 
             { !!props.listViewProps.dateField &&
@@ -167,7 +178,7 @@ export function calculateListViewRowHeight(props: DataTableListViewRowProps['lis
     let listViewRowHeight = /* minimum= */ 40;
 
     // Increase the height when a secondary field should be displayed on the row:
-    if (!!props.secondaryField)
+    if (!!props.secondaryField || !!props.secondaryTemplate)
         listViewRowHeight = 56;
 
     // TODO: Increase height when `props.avatar` or `props.icon` is set.
