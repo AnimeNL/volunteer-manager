@@ -3,7 +3,7 @@
 
 import type { Metadata } from 'next';
 
-import { TwilioDataTable } from '../TwilioDataTable';
+import { OutboxDataTable } from '../OutboxDataTable';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -18,7 +18,7 @@ export default async function OutboxWhatsAppPage() {
         permission: 'system.internals.outbox',
     });
 
-    return <TwilioDataTable type={kTwilioOutboxType.WhatsApp} />;
+    return <OutboxDataTable type={kTwilioOutboxType.WhatsApp} />;
 }
 
 export const metadata: Metadata = {

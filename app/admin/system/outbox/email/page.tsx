@@ -4,11 +4,10 @@
 import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
-import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
-    from '@app/admin/components/DataTable';
-import { MessageDeliveredCell } from '../OutboxRowComponents';
+import { OutboxDataTable } from '../OutboxDataTable';
+import { createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { requireAuthenticationContext, executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import db, { tOutboxEmail } from '@lib/database';
+import db, { tOutboxEmail, tUsers } from '@lib/database';
 
 /**
  * Data source through which the email outbox list can be populated.
@@ -43,7 +42,7 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
     /**
      * The subject of the email.
      */
-    subject: z.string(),
+    message: z.string(),
 
     /**
      * Whether the message was successfully accepted/delivered.
@@ -59,15 +58,15 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
     },
 
     async list(params, props) {
-        let sortField: 'id' | 'date' | 'sender.name' | 'recipient.name' | 'subject' | 'delivered'
+        let sortField: 'id' | 'date' | 'sender.name' | 'recipient.name' | 'message' | 'delivered'
             = 'date';
 
         switch (params.sort.field) {
             case 'id':
             case 'date':
-            case 'subject':
+            case 'message':
             case 'delivered':
-                sortField = params.sort.field as 'id' | 'date' | 'subject' | 'delivered';
+                sortField = params.sort.field as 'id' | 'date' | 'message' | 'delivered';
                 break;
 
             case 'sender':
@@ -79,8 +78,16 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
                 break;
         }
 
+        const usersJoinForRecipient = tUsers.forUseInLeftJoinAs('ujfr');
+        const usersJoinForSender = tUsers.forUseInLeftJoinAs('ujfs');
+
         const dbInstance = db;
         const messages = await dbInstance.selectFrom(tOutboxEmail)
+            .leftJoin(usersJoinForRecipient)
+                .on(usersJoinForRecipient.userId.equals(tOutboxEmail.outboxToUserId))
+            .leftJoin(usersJoinForSender)
+                .on(usersJoinForSender.userId.equals(tOutboxEmail.outboxSenderUserId))
+                    .and(usersJoinForSender.userId.notEquals(tOutboxEmail.outboxToUserId))
             .where(
                 tOutboxEmail.outboxSender.containsInsensitiveIfValue(params.search).or(
                 tOutboxEmail.outboxTo.containsInsensitiveIfValue(params.search).or(
@@ -91,13 +98,13 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
                 date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
                 sender: {
                     id: tOutboxEmail.outboxSenderUserId,
-                    name: tOutboxEmail.outboxSender,
+                    name: usersJoinForRecipient.name.valueWhenNull(tOutboxEmail.outboxSender),
                 },
                 recipient: {
                     id: tOutboxEmail.outboxToUserId,
-                    name: tOutboxEmail.outboxTo,
+                    name: usersJoinForSender.name.valueWhenNull(tOutboxEmail.outboxTo),
                 },
-                subject: tOutboxEmail.outboxSubject,
+                message: tOutboxEmail.outboxSubject,
                 delivered: tOutboxEmail.outboxResultAccepted.length().greaterThan(0)
                     .valueWhenNull(false),
             })
@@ -124,72 +131,7 @@ export default async function OutboxEmailPage() {
         permission: 'system.internals.outbox',
     });
 
-    const columns: Column<ExtractRowModel<typeof emailDataSource>>[] = [
-        {
-            field: 'date',
-            headerName: 'Date',
-            width: 185,
-
-            template: 'date',
-            templateProps: {
-                format: 'YYYY-MM-DD HH:mm:ss',
-                href: '/admin/system/outbox/email/{id}',
-            },
-        },
-        {
-            field: 'sender',
-            headerName: 'Sender',
-            flex: 2,
-
-            template: 'account',
-        },
-        {
-            field: 'recipient',
-            headerName: 'Recipient',
-            flex: 2,
-
-            template: 'account',
-        },
-        {
-            field: 'subject',
-            headerName: 'Subject',
-            flex: 3,
-
-            template: 'text',
-            templateProps: {
-                href: '/admin/system/outbox/email/{id}',
-            },
-        },
-        {
-            field: 'delivered',
-            display: 'flex',
-            headerName: 'Accepted',
-            headerAlign: 'center',
-            align: 'center',
-            description: 'Whether the e-mail was accepted by the server',
-            sortable: true,
-            width: 100,
-
-            template: 'component',
-            templateProps: {
-                component: MessageDeliveredCell,
-            },
-        },
-    ];
-
-    return (
-        <DataTable columns={columns} source={emailDataSource}
-                   defaultSort={{ field: 'date', sort: 'desc' }}
-                   pageSize={50}
-                   listViewProps={{
-                       primaryField: 'sender.name',
-                       secondaryTemplate: '› {recipient.name} ({subject})',
-                       dateField: 'date',
-                       dateFieldFormat: 'YYYY-MM-DD',
-                       startComponent: MessageDeliveredCell,
-                       linkTemplate: '/admin/system/outbox/email/{id}',
-                   }} />
-    );
+    return <OutboxDataTable type="Email" source={emailDataSource} />;
 }
 
 export const metadata: Metadata = {

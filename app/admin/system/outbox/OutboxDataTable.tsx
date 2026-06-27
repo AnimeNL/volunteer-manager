@@ -3,8 +3,9 @@
 
 import { z } from 'zod/v4';
 
-import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
+import { DataTable, createDataSource, withContext, withRowModel, type Column }
     from '@app/admin/components/DataTable';
+import type { DataSourceInterface } from '@app/admin/components/DataTable/DataSourceInterface';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
 
@@ -131,21 +132,28 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
 });
 
 /**
- * Props accepted by the <TwilioDataTable> component.
+ * Props accepted by the <OutboxDataTable> component.
  */
-interface TwilioDataTableProps {
+interface OutboxDataTableProps {
     /**
      * Type of messages that the data table should consider.
      */
-    type: TwilioOutboxType;
+    type: 'Email' | TwilioOutboxType;
+
+    /**
+     * Optional data source to use. Defaults to `twilioDataSource` when none is given.
+     */
+    source?: DataSourceInterface<any, any>;
 }
 
 /**
- * The <TwilioDataTable> component displays a DataTable showing Twilio outbox entries.
+ * The <OutboxDataTable> component displays a DataTable showing outbox entries.
  */
-export function TwilioDataTable(props: TwilioDataTableProps) {
+export function OutboxDataTable(props: OutboxDataTableProps) {
+    const dataSource = props.source ?? twilioDataSource;
+
     const typeLower = props.type.toLowerCase();
-    const columns: Column<ExtractRowModel<typeof twilioDataSource>>[] = [
+    const columns: Column<any>[] = [
         {
             field: 'date',
             headerName: 'Date',
@@ -194,13 +202,13 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} source={twilioDataSource}
+        <DataTable columns={columns} source={dataSource}
                    context={{ type: props.type }}
                    defaultSort={{ field: 'date', sort: 'desc' }}
                    pageSize={50}
                    listViewProps={{
                        primaryField: 'sender.name',
-                       secondaryTemplate: '› {recipient.name} ({message})',
+                       secondaryTemplate: '› {recipient.name}: {message}',
                        dateField: 'date',
                        dateFieldFormat: 'YYYY-MM-DD',
                        startComponent: MessageDeliveredCell,
