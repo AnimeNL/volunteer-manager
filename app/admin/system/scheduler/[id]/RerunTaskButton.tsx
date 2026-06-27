@@ -12,7 +12,7 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import RepeatIcon from '@mui/icons-material/Repeat';
 import Tooltip from '@mui/material/Tooltip';
 
-import { callApi } from '@lib/callApi';
+import { rerunSchedulerTask } from '../SchedulerActions';
 
 /**
  * Props accepted by the <RerunTaskButton> component.
@@ -47,7 +47,7 @@ export function RerunTaskButton(props: RerunTaskButtonProps) {
         setDisabled(false);
         setLoading(true);
         try {
-            const result = await callApi('post', '/api/admin/scheduler', {
+            const result = await rerunSchedulerTask({
                 taskId: props.taskId,
             });
 

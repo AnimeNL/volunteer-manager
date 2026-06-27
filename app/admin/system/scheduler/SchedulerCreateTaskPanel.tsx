@@ -3,19 +3,19 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useContext } from 'react';
 
-import { type FieldValues, FormContainer, SelectElement, TextFieldElement, useForm }
-    from '@proxy/react-hook-form-mui';
+import { SelectElement, TextFieldElement, useForm } from '@proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 
+import { FormProvider, FormProviderContext } from '@components/FormProvider';
 import { Section } from '@app/admin/components/Section';
-import { callApi } from '@lib/callApi';
+import { createSchedulerTask } from './SchedulerActions';
 
 /**
  * Panel that enables the administrator to create the `DutyBookSummaryTask`.
@@ -76,13 +76,40 @@ function CreateNoopComplexTaskPanel() {
  * Set of tasks that can be created using the Web interface.
  */
 const kTaskOptions = [
-    { id: 'DutyBookSummaryTask', label: 'DutyBookSummaryTask' },
-    { id: 'ImportActivitiesTask', label: 'ImportActivitiesTask' },
-    { id: 'ImportYourTicketProviderTask', label: 'ImportYourTicketProviderTask' },
-    { id: 'NoopComplexTask', label: 'NoopComplexTask' },
-    { id: 'NoopTask', label: 'NoopTask' },
-    { id: 'PopulateSchedulerTask', label: 'PopulateSchedulerTask' },
+    { id: 'DutyBookSummaryTask', label: 'Generate Duty Book Summary' },
+    { id: 'ImportActivitiesTask', label: 'Import Activities (AnPlan)' },
+    { id: 'ImportYourTicketProviderTask', label: 'Import Sales (YourTicketProvider)' },
+    { id: 'NoopComplexTask', label: 'No-op Task (Complex)' },
+    { id: 'NoopTask', label: 'No-op Task' },
+    { id: 'PopulateSchedulerTask', label: 'Populate Scheduler' },
 ];
+
+/**
+ * Submit section containing the action button and alerts, integrated with FormProvider.
+ */
+function SchedulerSubmitSection({ selectedTask }: { selectedTask?: string }) {
+    const { isPending, result } = useContext(FormProviderContext);
+
+    return (
+        <Collapse in={!!selectedTask} sx={{ width: '100%' }} mountOnEnter unmountOnExit>
+            <Grid size={{ xs: 12 }}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mt: 2 }}>
+                    <Button type="submit" variant="contained" loading={!!isPending}>
+                        Create task
+                    </Button>
+                    { (!!result && !result.success) &&
+                        <Alert severity="error" sx={{ flexGrow: 1, py: 0 }}>
+                            {result.error || 'An error occurred'}
+                        </Alert> }
+                    { (!!result && result.success) &&
+                        <Alert severity="success" sx={{ flexGrow: 1, py: 0 }}>
+                            {result.message || 'The task was successfully scheduled.'}
+                        </Alert> }
+                </Stack>
+            </Grid>
+        </Collapse>
+    );
+}
 
 /**
  * The <SchedulerCreateTaskPanel> component shows a paper listing each of the tasks known to the
@@ -90,89 +117,34 @@ const kTaskOptions = [
  */
 export function SchedulerCreateTaskPanel() {
     const form = useForm();
-    const router = useRouter();
 
-    const [ selectedTask, setSelectedTask ] = useState<string | undefined>();
-
-    const [ error, setError ] = useState<string | undefined>();
-    const [ loading, setLoading ] = useState<boolean>(false);
-    const [ success, setSuccess ] = useState<string | undefined>();
-
-    const handleSelectTask = useCallback((task: string) => {
-        setSelectedTask(task);
-        form.reset({
-            festivalId: undefined,
-            skipMutationLogs: undefined,
-            succeed: undefined,
-        });
-    }, [ form ]);
-
-    const handleCreateTask = useCallback(async (data: FieldValues) => {
-        setLoading(true);
-        try {
-            const { task, ...params } = data;
-
-            for (const [ key, value ] of Object.entries(params)) {
-                if (value === 'true' || value === 'false')
-                    params[key] = value === 'true';
-            }
-
-            const result = await callApi('post', '/api/admin/scheduler', {
-                taskName: task,
-                taskParams: params,
-                delayMs: 0,
-            });
-
-            if (result.success) {
-                setSuccess(task);
-
-                router.refresh();
-                form.reset({
-                    festivalId: undefined,
-                    skipMutationLogs: undefined,
-                    succeed: undefined,
-                });
-            } else {
-                setError(
-                    result.error ?? 'Unable to reset the scheduler, an unknown error occurred');
-            }
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [ form, router ]);
+    const selectedTask = form.watch('task');
 
     return (
         <Section title="Schedule a new task">
-            <Collapse in={!!error} mountOnEnter unmountOnExit>
-                <Alert severity="error">
-                    {error}
-                </Alert>
-            </Collapse>
-            <Collapse in={!!success} mountOnEnter unmountOnExit>
-                <Alert severity="success">
-                    The <strong>{success}</strong> was successfully scheduled.
-                </Alert>
-            </Collapse>
-            <FormContainer context={form} onSuccess={handleCreateTask}>
-                <SelectElement name="task" label="Task" size="small" fullWidth required
-                               options={kTaskOptions} onChange={handleSelectTask} />
-                <Collapse in={selectedTask === 'DutyBookSummaryTask'} mountOnEnter unmountOnExit>
-                    <CreateDutyBookSummaryTaskPanel />
-                </Collapse>
-                <Collapse in={selectedTask === 'ImportActivitiesTask'} mountOnEnter unmountOnExit>
-                    <CreateImportActivitiesTaskPanel />
-                </Collapse>
-                <Collapse in={selectedTask === 'NoopComplexTask'} mountOnEnter unmountOnExit>
-                    <CreateNoopComplexTaskPanel />
-                </Collapse>
-                <Collapse in={!!selectedTask}>
-                    <Button type="submit" variant="contained" loading={loading} sx={{ mt: 2 }}>
-                        Create task
-                    </Button>
-                </Collapse>
-            </FormContainer>
+            <FormProvider action={createSchedulerTask} form={form}>
+                <Grid container>
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="task" label="Task" size="small" fullWidth required
+                                       options={kTaskOptions} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <Collapse in={selectedTask === 'DutyBookSummaryTask'}
+                                  mountOnEnter unmountOnExit>
+                            <CreateDutyBookSummaryTaskPanel />
+                        </Collapse>
+                        <Collapse in={selectedTask === 'ImportActivitiesTask'}
+                                  mountOnEnter unmountOnExit>
+                            <CreateImportActivitiesTaskPanel />
+                        </Collapse>
+                        <Collapse in={selectedTask === 'NoopComplexTask'}
+                                  mountOnEnter unmountOnExit>
+                            <CreateNoopComplexTaskPanel />
+                        </Collapse>
+                    </Grid>
+                    <SchedulerSubmitSection selectedTask={selectedTask} />
+                </Grid>
+            </FormProvider>
         </Section>
     );
 }
