@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { default as MuiAppBar } from '@mui/material/AppBar';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
@@ -12,6 +12,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import { usePathname } from 'next/navigation';
 
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
@@ -39,14 +40,22 @@ interface MobileAppBarProps {
  * of the user interface in order to optimise for the reduced amount of screen real estate.
  */
 export function MobileAppBar(props: MobileAppBarProps) {
+    const pathname = usePathname();
     const [ drawerOpen, setDrawerOpen ] = useState<boolean>(false);
 
     const handleDrawerClose = useCallback(() => setDrawerOpen(false), [ /* no deps */ ]);
     const handleDrawerOpen = useCallback(() => setDrawerOpen(true), [ /* no deps */ ]);
 
+    // Automatically close the menu when the page is being navigated. An alternative approach would
+    // be to drill an `onClose` prop through several layers of components, but since the performance
+    // overhead of this is negligible we optimise for simplicity.
+    useEffect(() => {
+        if (pathname)
+            setDrawerOpen(false);
+
+    }, [ pathname ]);
+
     // TODO: Figure out what to do with the page title
-    // TODO: Connect the "More" settings button to the menu
-    // TODO: Close the <AppBar> upon navigation
 
     return (
         <>
