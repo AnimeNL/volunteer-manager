@@ -68,7 +68,6 @@ import type { ProgramRequestEndpoints } from '@app/api/admin/program/requests/[[
 import type { RefundRequestEndpoints } from '@app/api/admin/refunds/[[...id]]/route';
 import type { RetentionEndpoints } from '@app/api/admin/retention/[[...id]]/route';
 import type { RolesEndpoints } from '@app/api/admin/organisation/roles/[[...id]]/route';
-import type { SchedulerEndpoints } from '@app/api/admin/scheduler/[[...id]]/route';
 import type { SubscriptionsEndpoints } from '@app/api/admin/subscriptions/[[...id]]/route';
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
@@ -111,8 +110,6 @@ export type ApiEndpoints = {
         '/api/admin/program/requests': ProgramRequestEndpoints['list'],
         '/api/admin/refunds': RefundRequestEndpoints['list'],
         '/api/admin/retention': RetentionEndpoints['list'],
-        '/api/admin/scheduler': SchedulerEndpoints['list'],
-        '/api/admin/scheduler/:id': SchedulerEndpoints['get'],
         '/api/admin/subscriptions': SubscriptionsEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
