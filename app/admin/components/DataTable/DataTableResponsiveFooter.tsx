@@ -25,6 +25,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { outlinedInputClasses } from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
@@ -106,7 +107,10 @@ function DataTableResponsivePageSizeSelector() {
     // ---------------------------------------------------------------------------------------------
 
     return (
-        <Select size="small" value={paginationModel.pageSize} onChange={handlePageSizeChange}>
+        <Select size="small" value={paginationModel.pageSize} onChange={handlePageSizeChange} sx={{
+            [`&.${outlinedInputClasses.root}`]: { marginRight: -1 },
+            [`& .${outlinedInputClasses.notchedOutline}`]: { borderColor: 'transparent' }
+        }}>
             { rootProps.pageSizeOptions.map(inputPageSize => {
                 const pageSize =
                     typeof inputPageSize === 'object' ? inputPageSize.value
