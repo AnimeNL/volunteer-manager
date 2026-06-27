@@ -59,7 +59,6 @@ import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { LogsEndpoints } from '@app/api/admin/logs/[[...id]]/route';
 import type { NardoEndpoints } from '@app/api/nardo/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
-import type { OutboxEmailEndpoints } from '@app/api/admin/outbox/email/[[...id]]/route';
 import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
 import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id]]/route';
 import type { ProgramLocationsEndpoints } from '@app/api/admin/program/locations/[[...id]]/route';
@@ -101,8 +100,6 @@ export type ApiEndpoints = {
         '/api/admin/logs': LogsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
         '/api/admin/organisation/roles': RolesEndpoints['list'],
-        '/api/admin/outbox/email': OutboxEmailEndpoints['list'],
-        '/api/admin/outbox/email/:id': OutboxEmailEndpoints['get'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
         '/api/admin/program/areas': ProgramAreasEndpoints['list'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['list'],
