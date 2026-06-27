@@ -14,7 +14,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
@@ -129,40 +131,44 @@ export function DetailedLogs(props: DetailedLogsProps) {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Table sx={{ mt: -2 }}>
-                        <TableRow>
-                            <TableCell component="th" width="100" align="center">
-                                <strong>Severity</strong>
-                            </TableCell>
-                            <TableCell component="th" width="100" align="center">
-                                <strong>Time</strong>
-                            </TableCell>
-                            <TableCell sx={{ whiteSpace: 'pre-line' }}>
-                                <strong>Details</strong>
-                            </TableCell>
-                        </TableRow>
-                        { props.logs.map((log: any, index: number) =>
-                            <TableRow key={index}>
-                                <TableCell align="center">
-                                    <LogSeverity severity={log.severity} />
+                        <TableHead>
+                            <TableRow>
+                                <TableCell component="th" width="100" align="center">
+                                    <strong>Severity</strong>
                                 </TableCell>
-                                <TableCell align="center">
-                                    <LogTime time={log.time} />
+                                <TableCell component="th" width="100" align="center">
+                                    <strong>Time</strong>
                                 </TableCell>
-                                { !!log.params &&
-                                    <TableCell sx={{ whiteSpace: 'pre-wrap',
-                                                     overflowWrap: 'anywhere' }}>
-                                        {JSON.stringify(log.params)}
-                                    </TableCell> }
-                                { !!log.message &&
-                                    <TableCell>
-                                        {log.message}
-                                        { (!!log.data && log.data.length > 4) &&
-                                            <Box sx={{ whiteSpace: 'pre-wrap',
-                                                       overflowWrap: 'anywhere' }}>
-                                                {log.data}
-                                            </Box> }
-                                    </TableCell> }
-                            </TableRow> )}
+                                <TableCell sx={{ whiteSpace: 'pre-line' }}>
+                                    <strong>Details</strong>
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            { props.logs.map((log: any, index: number) =>
+                                <TableRow key={index}>
+                                    <TableCell align="center">
+                                        <LogSeverity severity={log.severity} />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <LogTime time={log.time} />
+                                    </TableCell>
+                                    { !!log.params &&
+                                        <TableCell sx={{ whiteSpace: 'pre-wrap',
+                                                         overflowWrap: 'anywhere' }}>
+                                            {JSON.stringify(log.params)}
+                                        </TableCell> }
+                                    { !!log.message &&
+                                        <TableCell>
+                                            {log.message}
+                                            { (!!log.data && log.data.length > 4) &&
+                                                <Box sx={{ whiteSpace: 'pre-wrap',
+                                                           overflowWrap: 'anywhere' }}>
+                                                    {log.data}
+                                                </Box> }
+                                        </TableCell> }
+                                </TableRow> )}
+                        </TableBody>
                     </Table>
                 </AccordionDetails>
             </Accordion>

@@ -3,8 +3,8 @@
 
 'use client';
 
+import Link from '@app/LinkProxy';
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
@@ -29,18 +29,11 @@ interface RerunTaskButtonProps {
  * finished executing, to manually try again in case something went wrong.
  */
 export function RerunTaskButton(props: RerunTaskButtonProps) {
-    const router = useRouter();
-
     const [ childTaskId, setChildTaskId ] = useState<number | undefined>();
     const [ disabled, setDisabled ] = useState<boolean>(false);
     const [ error, setError ] = useState<boolean>(false);
 
     const [ loading, setLoading ] = useState<boolean>(false);
-
-    const handleNavigate = useCallback(() => {
-        if (!!childTaskId)
-            router.push(`./${childTaskId}`);
-    }, [ childTaskId, router ]);
 
     const handleRetry = useCallback(async () => {
         setChildTaskId(undefined);
@@ -75,8 +68,8 @@ export function RerunTaskButton(props: RerunTaskButtonProps) {
             </Tooltip>
             <Collapse in={!!childTaskId} orientation="horizontal">
                 <Tooltip title="Navigate to the child task">
-                    <Button size="small" variant="outlined" color="success"
-                            onClick={handleNavigate}>
+                    <Button component={Link} href={`/admin/system/scheduler/${childTaskId}`}
+                            size="small" variant="outlined" color="success">
                         <KeyboardDoubleArrowRightIcon fontSize="small" />
                     </Button>
                 </Tooltip>

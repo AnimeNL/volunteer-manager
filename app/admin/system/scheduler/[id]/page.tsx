@@ -1,21 +1,20 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
-// Use of this source code is governed by a MIT license that can be found in the LICENSE file.
-
 import type { Metadata } from 'next';
+
+import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import LoopIcon from '@mui/icons-material/Loop';
 
 import { DetailedLogs } from '../../outbox/email/[id]/DetailedLogs';
-import { GotoTaskButton } from './GotoTaskButton';
 import { RerunTaskButton } from './RerunTaskButton';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Temporal, formatDate, formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
@@ -71,79 +70,117 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
 
     return (
         <>
-            <Paper>
-                <Typography sx={{ p: 2 }} variant="h5">
-                    Scheduler task #{task.taskId} ({formatDate(task.taskDate, 'MMMM D, YYYY')})
-                </Typography>
-            </Paper>
-            <TableContainer component={Paper} suppressHydrationWarning>
-                <Table>
-                    <TableRow>
-                        <TableCell width="25%" component="th" scope="row">
+            <Section icon={<LoopIcon color="primary" />}
+                     title={`Scheduler task #${task.taskId}`}
+                     subtitle={formatDate(task.taskDate, 'MMMM D, YYYY')}
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Scheduler', href: '/admin/system/scheduler' },
+                         { label: `Task #${task.taskId}` },
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about the execution of an individually scheduled task.
+                </SectionIntroduction>
+            </Section>
+            <Section title="Task information">
+                <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                             Task name
-                        </TableCell>
-                        <TableCell>{task.taskName}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell width="25%" component="th" scope="row">
+                        </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 9 }}>
+                        <Typography variant="body2">{task.taskName}</Typography>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                             Task parameters
-                        </TableCell>
-                        <TableCell sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                        </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 9 }}>
+                        <Typography variant="body2" component="pre" sx={{
+                            m: 0,
+                            fontFamily: 'monospace',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere'
+                        }}>
                             {taskParamsFormatted}
-                        </TableCell>
-                    </TableRow>
+                        </Typography>
+                    </Grid>
+
                     { !!task.taskParentTaskId &&
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Task parent
-                            </TableCell>
-                            <TableCell>
+                        <>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                                    Task parent
+                                </Typography>
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 9 }}>
                                 <Tooltip title="Navigate to the parent task">
-                                    <GotoTaskButton taskId={task.taskParentTaskId} />
+                                    <Button component={Link} href={`/admin/system/scheduler/${task.taskParentTaskId}`}
+                                            size="small" variant="outlined" color="success">
+                                        <KeyboardDoubleArrowRightIcon fontSize="small" />
+                                    </Button>
                                 </Tooltip>
-                            </TableCell>
-                        </TableRow> }
-                    <TableRow>
-                        <TableCell width="25%" component="th" scope="row">
+                            </Grid>
+                        </> }
+
+                    <Grid size={{ xs: 12, md: 3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                             Scheduled date
-                        </TableCell>
-                        <TableCell>{formatDate(task.taskDate, 'YYYY-MM-DD HH:mm:ss')}</TableCell>
-                    </TableRow>
+                        </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 9 }}>
+                        <Typography variant="body2">
+                            {formatDate(task.taskDate, 'YYYY-MM-DD HH:mm:ss')}
+                        </Typography>
+                    </Grid>
+
                     { !!taskInterval &&
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Scheduled interval
-                            </TableCell>
-                            <TableCell>{taskInterval}</TableCell>
-                        </TableRow> }
-                </Table>
-            </TableContainer>
+                        <>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                                    Scheduled interval
+                                </Typography>
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 9 }}>
+                                <Typography variant="body2">{taskInterval}</Typography>
+                            </Grid>
+                        </> }
+                </Grid>
+            </Section>
+
             { !!task.result &&
-                <TableContainer component={Paper} suppressHydrationWarning>
-                    <Table>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
+                <Section title="Execution details">
+                    <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                                 Execution result
-                            </TableCell>
-                            <TableCell>
-                                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                                    <Typography variant="body2">
-                                        {task.result}
-                                    </Typography>
-                                    <RerunTaskButton taskId={task.taskId} />
-                                </Stack>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
+                            </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 9 }}>
+                            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                                <Typography variant="body2">
+                                    {task.result}
+                                </Typography>
+                                <RerunTaskButton taskId={task.taskId} />
+                            </Stack>
+                        </Grid>
+
+                        <Grid size={{ xs: 12, md: 3 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                                 Execution runtime
-                            </TableCell>
-                            <TableCell>
+                            </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 9 }}>
+                            <Typography variant="body2">
                                 {Math.round((task.resultTimeMs ?? 0) * 10) / 10}ms
-                            </TableCell>
-                        </TableRow>
-                    </Table>
-                </TableContainer> }
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </Section> }
+
             { !!taskLogs.length && <DetailedLogs logs={taskLogs} /> }
         </>
     );
