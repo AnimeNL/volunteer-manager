@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
     experimental: {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
+
+        // https://nextjs.org/docs/app/guides/view-transitions
+        viewTransition: true,
     },
     output: 'standalone',
     reactStrictMode: true,

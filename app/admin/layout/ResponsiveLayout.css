@@ -1,0 +1,33 @@
+:root {
+    --transition-exit-time: 0.18s;
+    --transition-enter-time: 0.24s;
+}
+
+::view-transition-group(.navigation-transition) {
+    animation-duration: var(--transition-enter-time);
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(.navigation-transition) {
+    animation: fade-out var(--transition-exit-time) cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+::view-transition-new(.navigation-transition) {
+    animation: fade-in var(--transition-enter-time) cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@media (min-width: 600px) {
+    body {
+        overflow-y: scroll;
+    }
+}

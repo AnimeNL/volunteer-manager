@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useContext } from 'react';
+import { ViewTransition, useContext } from 'react';
 
 import Stack from '@mui/material/Stack';
 import { paperClasses } from '@mui/material/Paper';
@@ -12,6 +12,8 @@ import { styled } from '@mui/material/styles';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { MobileAppBar } from './MobileAppBar';
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
+
+import './ResponsiveLayout.css';
 
 /**
  * Props accepted by the responsive layout components.
@@ -44,9 +46,11 @@ function DesktopLayout(props: LayoutProps) {
         <DesktopPageWrapper direction="row" spacing={1}>
             <NavigationSidebar variant="desktop" {...props.slotProps.sidebar} />
             {props.menu}
-            <DesktopContentWrapper>
-                {props.children}
-            </DesktopContentWrapper>
+            <ViewTransition default="navigation-transition">
+                <DesktopContentWrapper>
+                    {props.children}
+                </DesktopContentWrapper>
+            </ViewTransition>
         </DesktopPageWrapper>
     );
 }
@@ -87,9 +91,11 @@ function MobileLayout(props: LayoutProps) {
     return (
         <MobilePageWrapper>
             <MobileAppBar menu={props.menu} slotProps={props.slotProps} />
-            <MobileContentWrapper>
-                {props.children}
-            </MobileContentWrapper>
+            <ViewTransition default="navigation-transition">
+                <MobileContentWrapper>
+                    {props.children}
+                </MobileContentWrapper>
+            </ViewTransition>
         </MobilePageWrapper>
     );
 }
