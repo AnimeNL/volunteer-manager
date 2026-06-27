@@ -12,10 +12,9 @@ import { type FieldValues, FormContainer, SelectElement, TextFieldElement, useFo
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
+import { Section } from '@app/admin/components/Section';
 import { callApi } from '@lib/callApi';
 
 /**
@@ -145,17 +144,14 @@ export function SchedulerCreateTaskPanel() {
     }, [ form, router ]);
 
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" sx={{ mb: 1 }}>
-                Schedule a new task
-            </Typography>
-            <Collapse in={!!error}>
-                <Alert severity="error" sx={{ mb: 2 }}>
+        <Section title="Schedule a new task">
+            <Collapse in={!!error} mountOnEnter unmountOnExit>
+                <Alert severity="error">
                     {error}
                 </Alert>
             </Collapse>
-            <Collapse in={!!success}>
-                <Alert severity="success" sx={{ mb: 2 }}>
+            <Collapse in={!!success} mountOnEnter unmountOnExit>
+                <Alert severity="success">
                     The <strong>{success}</strong> was successfully scheduled.
                 </Alert>
             </Collapse>
@@ -177,6 +173,6 @@ export function SchedulerCreateTaskPanel() {
                     </Button>
                 </Collapse>
             </FormContainer>
-        </Paper>
+        </Section>
     );
 }
