@@ -9,7 +9,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
 
 import { type TwilioOutboxType, kTwilioOutboxType } from '@lib/database/Types';
-import { TwilioDeliveredCell, TwilioIdCell } from './TwilioRowComponents';
+import { MessageDeliveredCell } from './OutboxRowComponents';
 
 /**
  * Data source through which the Twilio outbox lists can be populated.
@@ -36,9 +36,9 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
      * when we haven't received acknowledgement from Twilio yet.
      */
     sender: z.object({
-        name: z.string().optional(),
+        name: z.string(),
         userId: z.number().optional(),
-    }).optional(),
+    }),
 
     /**
      * Name and user ID of the person who received the message.
@@ -57,6 +57,7 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
      * Whether the message was successfully delivered.
      */
     delivered: z.boolean(),
+
 }), {
     async authorize(operation, props) {
         executeAccessCheck(props.authenticationContext, {
@@ -86,22 +87,28 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
                 break;
         }
 
+        const usersJoinForSender = tUsers.forUseInLeftJoinAs('ujfs');
+
         const dbInstance = db;
         const messages = await dbInstance.selectFrom(tOutboxTwilio)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tOutboxTwilio.outboxRecipientUserId))
+            .leftJoin(usersJoinForSender)
+                .on(usersJoinForSender.userId.equals(tOutboxTwilio.outboxSenderUserId))
             .where(tOutboxTwilio.outboxType.equals(context.type))
                 .and(
                     tOutboxTwilio.outboxMessage.containsInsensitiveIfValue(params.search).or(
                     tOutboxTwilio.outboxSender.containsInsensitiveIfValue(params.search).or(
-                    tUsers.name.containsInsensitiveIfValue(params.search)
-                )))
+                    tUsers.name.containsInsensitiveIfValue(params.search).or(
+                    usersJoinForSender.name.containsInsensitiveIfValue(params.search)
+                ))))
             .select({
                 id: tOutboxTwilio.outboxTwilioId,
                 date: dbInstance.dateTimeAsString(tOutboxTwilio.outboxTimestamp),
                 sender: {
                     id: tOutboxTwilio.outboxSenderUserId,
-                    name: tOutboxTwilio.outboxSender,
+                    name: usersJoinForSender.name.valueWhenNull(tOutboxTwilio.outboxSender)
+                                                 .valueWhenNull(/* default= */ 'AnimeCon'),
                 },
                 recipient: {
                     id: tOutboxTwilio.outboxRecipientUserId,
@@ -140,19 +147,6 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
     const typeLower = props.type.toLowerCase();
     const columns: Column<ExtractRowModel<typeof twilioDataSource>>[] = [
         {
-            field: 'id',
-            display: 'flex',
-            headerName: '',
-            sortable: false,
-            width: 50,
-
-            template: 'component',
-            templateProps: {
-                component: TwilioIdCell,
-                componentContext: { type: props.type },
-            },
-        },
-        {
             field: 'date',
             headerName: 'Date',
             width: 185,
@@ -160,6 +154,7 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
             template: 'date',
             templateProps: {
                 format: 'YYYY-MM-DD HH:mm:ss',
+                href: `/admin/system/outbox/${typeLower}/{id}`,
             },
         },
         {
@@ -180,11 +175,6 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
             field: 'message',
             headerName: 'Message',
             flex: 3,
-
-            template: 'text',
-            templateProps: {
-                href: `/admin/system/outbox/${typeLower}/{id}`,
-            },
         },
         {
             field: 'delivered',
@@ -198,7 +188,7 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
 
             template: 'component',
             templateProps: {
-                component: TwilioDeliveredCell,
+                component: MessageDeliveredCell,
             },
         },
     ];
@@ -209,11 +199,11 @@ export function TwilioDataTable(props: TwilioDataTableProps) {
                    defaultSort={{ field: 'date', sort: 'desc' }}
                    pageSize={50}
                    listViewProps={{
-                       primaryField: 'recipient.name',
-                       secondaryField: 'message',
+                       primaryField: 'sender.name',
+                       secondaryTemplate: '› {recipient.name} ({message})',
                        dateField: 'date',
                        dateFieldFormat: 'YYYY-MM-DD',
-                       startComponent: TwilioDeliveredCell,
+                       startComponent: MessageDeliveredCell,
                        linkTemplate: `/admin/system/outbox/${typeLower}/{id}`,
                    }} />
     );
