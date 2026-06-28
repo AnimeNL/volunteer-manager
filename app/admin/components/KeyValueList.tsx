@@ -6,8 +6,11 @@
 import React from 'react';
 
 import Grid, { gridClasses } from '@mui/material/Grid';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import { LocalDateTime } from './LocalDateTime';
 
 /**
  * Props accepted by the <KeyValueList> component.
@@ -17,8 +20,15 @@ interface KeyValueListProps {
      * Items to display in the list. Ordered.
      */
     items: {
-        // TODO: condition
-        // TODO: description
+        /**
+         * Condition that needs to pass in order for this item to be included in the list.
+         */
+        condition?: boolean;
+
+        /**
+         * Description to display to explain what the item entails. Hidden by default.
+         */
+        description?: string;
 
         /**
          * Key, i.e. the label, to display explaining what the value is.
@@ -26,11 +36,27 @@ interface KeyValueListProps {
         key: string;
 
         /**
+         * Where to align the key, i.e. the label.
+         * @default "top"
+         */
+        keyAlign?: 'center' | 'top';
+
+        /**
          * Value to display. May be a React component.
          */
         value: React.ReactNode;
 
-        // TODO: valueTemplate
+        /**
+         * Template to use when rendering the value, for out-of-the-box customisation. A number of
+         * premade template are available:
+         *
+         * * "component"        Displays the |value| as a component, without wrapping.
+         * * "localDateTime"    Displays the |value| as a date & time in the local timezone.
+         * * "monospace"        Displays the |value| as tabular, multiline and wrappable data.
+         *
+         * @default "none"
+         */
+        valueTemplate?: 'component' | 'localDateTime' | 'monospace' | 'none';
 
     }[];
 }
@@ -42,22 +68,51 @@ interface KeyValueListProps {
 export function KeyValueList(props: KeyValueListProps) {
     return (
         <KeyValueListGrid columns={24} container>
-            { props.items.map(({ key, value }, index) =>
+            { props.items.filter(item => item.condition !== false).map((item, index) =>
                 <React.Fragment key={index}>
-                    <Grid size={{ xs: 24, md: 7 }}>
+                    <Grid size={{ xs: 24, md: 7 }} sx={
+                        item.keyAlign === 'center'
+                            ? { display: 'flex', alignItems: 'center' }
+                            : undefined
+                    }>
                         <Typography variant="subtitle2" color="textSecondary">
-                            {key}
+                            {item.key}
+                            { !!item.description &&
+                                <Tooltip arrow title={item.description}>
+                                    <KeyValueInfoIcon fontSize="inherit" color="info" />
+                                </Tooltip> }
                         </Typography>
                     </Grid>
                     <Grid size={{ xs: 24, md: 17 }}>
-                        <Typography variant="body2">
-                            {value}
-                        </Typography>
+                        { (!item.valueTemplate || item.valueTemplate === 'none') &&
+                            <Typography variant="body2">
+                                {item.value}
+                            </Typography> }
+                        { item.valueTemplate === 'component' && item.value }
+                        { item.valueTemplate === 'localDateTime' &&
+                            <Typography variant="body2">
+                                <LocalDateTime dateTime={item.value as string}
+                                               fixedWidth format="YYYY-MM-DD HH:mm:ss" />
+                            </Typography> }
+                        { item.valueTemplate === 'monospace' &&
+                            <MonospaceTypography variant="body2">
+                                {item.value}
+                            </MonospaceTypography> }
                     </Grid>
                 </React.Fragment> )}
         </KeyValueListGrid>
     );
 }
+
+/**
+ * Styled variant of the information icon to align perfectly with the parent text.
+ */
+const KeyValueInfoIcon = styled(InfoOutlinedIcon)(({ theme }) => ({
+    position: 'relative',
+    top: '2px',
+    left: '4px',
+    cursor: 'help',
+}));
 
 /**
  * Styled variant of the <Grid> component with appropriate row padding and dividers.
@@ -84,8 +139,22 @@ const KeyValueListGrid = styled(Grid)(({ theme }) => ({
             padding: theme.spacing(0.5, 0),
         },
 
+        [`&> .${gridClasses.root}:nth-child(-n+2)`]: {
+            paddingTop: 0,
+        },
+
         [`& > .${gridClasses.root}:nth-last-child(-n+2)`]: {
             borderBottom: 'none',
+            paddingBottom: 0,
         },
     },
 }));
+
+/**
+ * Styled variant of the <Typography> for text that should be displayed in a monospace font.
+ */
+const MonospaceTypography = styled(Typography)({
+    fontFamily: 'monospace',
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'anywhere'
+});

@@ -50,7 +50,7 @@ export function LocalDateTime(props: LocalDateTimeProps) {
 /**
  * Helper element to display the date in a tabular format.
  */
-const FixedWidthLocalDateTime = styled('div')(() => ({
+const FixedWidthLocalDateTime = styled('span')(() => ({
     fontFeatureSettings: 'tnum',
     fontVariantNumeric: 'tabular-nums',
 }));

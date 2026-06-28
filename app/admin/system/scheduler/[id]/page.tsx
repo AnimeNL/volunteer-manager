@@ -4,21 +4,19 @@ import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import LoopIcon from '@mui/icons-material/Loop';
 
 import { DetailedLogs } from '../../outbox/email/[id]/DetailedLogs';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { RerunTaskButton } from './RerunTaskButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal, formatDate, formatDuration } from '@lib/Temporal';
+import { Temporal, formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
-import { KeyValueList } from '@app/admin/components/KeyValueList';
 
 /**
  * The task page gives details about the execution of an individual task, including all logs, timing
@@ -35,10 +33,11 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
         permission: 'system.internals.scheduler',
     });
 
+    const dbInstance = db;
     const task = await db.selectFrom(tTasks)
         .select({
             taskId: tTasks.taskId,
-            taskDate: tTasks.taskScheduledDate,
+            taskDate: dbInstance.dateTimeAsString(tTasks.taskScheduledDate),
             taskName: tTasks.taskName,
             taskParams: tTasks.taskParams,
             taskParentTaskId: tTasks.taskParentTaskId,
@@ -82,7 +81,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                     Detailed information about the execution of an individually scheduled task.
                 </SectionIntroduction>
             </Section>
-            <Section title="Task information">
+            <Section title="Task">
                 <KeyValueList items={[
                     {
                         key: 'Task name',
@@ -90,52 +89,60 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                     },
                     {
                         key: 'Task parameters',
+                        description: 'Internal parameters using which the task was created.',
                         value: taskParamsFormatted,
+                        valueTemplate: 'monospace',
                     },
                     {
+                        condition: !!task.taskParentTaskId,
+                        description:
+                            'Task based on which this task was created. Previous instance when ' +
+                            'this is a repeating task.',
                         key: 'Task parent',
-                        value: task.taskParentTaskId,
+                        keyAlign: 'center',
+                        value: (
+                            <Button component={Link}
+                                    href={`/admin/system/scheduler/${task.taskParentTaskId}`}
+                                    startIcon={ <KeyboardDoubleArrowRightIcon fontSize="small" /> }
+                                    size="small" variant="outlined" color="success">
+                                To parent task
+                            </Button>
+                        ),
                     },
                     {
                         key: 'Scheduled date',
-                        value: formatDate(task.taskDate, 'YYYY-MM-DD HH:mm:ss'),
+                        value: task.taskDate,
+                        valueTemplate: 'localDateTime',
                     },
                     {
+                        condition: !!taskInterval,
                         key: 'Scheduled interval',
                         value: taskInterval,
                     }
                 ]} />
             </Section>
             { !!task.result &&
-                <Section title="Execution details">
-                    <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
-                        <Grid size={{ xs: 12, md: 3 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                                Execution result
-                            </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 9 }}>
-                            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                                <Typography variant="body2">
-                                    {task.result}
-                                </Typography>
-                                <RerunTaskButton taskId={task.taskId} />
-                            </Stack>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 3 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                                Execution runtime
-                            </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 9 }}>
-                            <Typography variant="body2">
-                                {Math.round((task.resultTimeMs ?? 0) * 10) / 10}ms
-                            </Typography>
-                        </Grid>
-                    </Grid>
+                <Section title="Execution">
+                    <KeyValueList items={[
+                        {
+                            key: 'Result',
+                            keyAlign: 'center',
+                            value: (
+                                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                                    <Typography variant="body2">
+                                        {task.result}
+                                    </Typography>
+                                    <RerunTaskButton taskId={task.taskId} />
+                                </Stack>
+                            ),
+                            valueTemplate: 'component',
+                        },
+                        {
+                            key: 'Runtime',
+                            value: `${Math.round((task.resultTimeMs ?? 0) * 10) / 10}ms`,
+                        },
+                    ]} />
                 </Section> }
-
             { !!taskLogs.length && <DetailedLogs logs={taskLogs} /> }
         </>
     );
