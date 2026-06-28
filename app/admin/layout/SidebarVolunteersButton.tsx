@@ -48,6 +48,11 @@ export interface SidebarVolunteersButtonProps {
         slug: string;
 
     }[];
+
+    /**
+     * Callback that will be invoked when an entry inside the button is clicked.
+     */
+    onClick?: (href?: string) => void;
 }
 
 /**
@@ -59,7 +64,11 @@ export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
 
     const [ anchorElement, setAnchorElement ] = useState<HTMLElement | null>(null);
 
-    const handleMenuClose = useCallback(() => setAnchorElement(null), [ /* no deps */ ]);
+    const handleMenuClose = useCallback((event: React.MouseEvent<HTMLElement>, href: string) => {
+        setAnchorElement(null);
+        props.onClick?.(href);
+    }, [ props.onClick ]);
+
     const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
         setAnchorElement(event.currentTarget);
     }, [ /* no deps */ ]);
@@ -82,15 +91,19 @@ export function SidebarVolunteersButton(props: SidebarVolunteersButtonProps) {
                         </ListItemIcon>
                         <ListItemText primary="No events available…" />
                     </MenuItem> }
-                { props.events.map(event =>
-                    <MenuItem key={event.slug} dense sx={{ pr: 3 }} component={Link}
-                              href={ `/admin/events/${event.slug}` } onClick={handleMenuClose}>
-                        <ListItemIcon>
-                            { !event.concluded && <EventIcon color="primary" /> }
-                            { !!event.concluded && <EventAvailableIcon color="disabled" /> }
-                        </ListItemIcon>
-                        <ListItemText primary={event.label} />
-                    </MenuItem> ) }
+                { props.events.map(event => {
+                    const href = `/admin/events/${event.slug}`;
+                    return (
+                        <MenuItem key={event.slug} dense sx={{ pr: 3 }} component={Link}
+                                  href={href} onClick={ (e) => handleMenuClose(e, href) }>
+                            <ListItemIcon>
+                                { !event.concluded && <EventIcon color="primary" /> }
+                                { !!event.concluded && <EventAvailableIcon color="disabled" /> }
+                            </ListItemIcon>
+                            <ListItemText primary={event.label} />
+                        </MenuItem>
+                    );
+                }) }
             </Menu>
         </>
     );

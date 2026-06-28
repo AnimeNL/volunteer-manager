@@ -31,6 +31,11 @@ export interface NavigationSidebarProps {
     events: SidebarVolunteersButtonProps['events'];
 
     /**
+     * Callback that will be invoked when one of the navigation entries is clicked.
+     */
+    onClick?: (href?: string) => void;
+
+    /**
      * Variant of the sidebar to display.
      */
     variant: 'desktop' | 'mobile';
@@ -54,20 +59,24 @@ export function NavigationSidebar(props: NavigationSidebarProps) {
     const buttons = [ /* none */ ];
     buttons.push(
         <SidebarButton key="dashboard" Icon={DashboardIcon} active={dashboardActive}
-                       href="/admin" title="Dashboard" />
+                       href="/admin" title="Dashboard"
+                       onClick={ props.onClick ? () => props.onClick!('/admin') : undefined } />
     );
 
     if (props.enableOrganisation) {
         buttons.push(
             <SidebarButton key="organisation" Icon={AccountBalanceIcon} active={organisationActive}
-                           href="/admin/organisation" title="Organisation" />
+                           href="/admin/organisation" title="Organisation"
+                           onClick={
+                                props.onClick ? () => props.onClick!('/admin/organisation')
+                                              : undefined } />
         );
     }
 
     if (props.events.length > 0) {
         buttons.push(
             <SidebarVolunteersButton key="volunteers" active={volunteersActive}
-                                     events={props.events} />
+                                     events={props.events} onClick={props.onClick} />
         );
     }
 

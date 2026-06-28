@@ -25,6 +25,11 @@ type SidebarButtonProps = {
     active?: boolean;
 
     /**
+     * Callback that will be invoked when the button is clicked on.
+     */
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+
+    /**
      * The system prop that allows defining system overrides as well as additional CSS styles.
      */
     sx?: IconButtonProps['sx'];
@@ -57,7 +62,7 @@ export function SidebarButton(props: SidebarButtonProps) {
     if ('href' in props) {
         return (
             <SidebarIconButton LinkComponent={Link} sx={props.sx} { ...{ href: props.href }}
-                               active={props.active}>
+                               active={props.active} onClick={props.onClick}>
                 <SidebarButtonTooltip title={props.title}>
                     <props.Icon />
                 </SidebarButtonTooltip>

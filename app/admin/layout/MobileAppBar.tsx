@@ -3,7 +3,8 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { default as MuiAppBar } from '@mui/material/AppBar';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
@@ -12,7 +13,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import { usePathname } from 'next/navigation';
 
 import { NavigationSidebar, type NavigationSidebarProps } from './NavigationSidebar';
 import { NavigationSidebarLogo } from './NavigationSidebarLogo';
@@ -41,16 +41,35 @@ interface MobileAppBarProps {
  */
 export function MobileAppBar(props: MobileAppBarProps) {
     const pathname = usePathname();
+
     const [ drawerOpen, setDrawerOpen ] = useState<boolean>(false);
 
-    const handleDrawerClose = useCallback(() => setDrawerOpen(false), [ /* no deps */ ]);
+    const ignorePathnameChangeRef = useRef<boolean>(false);
+
     const handleDrawerOpen = useCallback(() => setDrawerOpen(true), [ /* no deps */ ]);
+    const handleDrawerClose = useCallback(() => {
+        ignorePathnameChangeRef.current = false;
+        setDrawerOpen(false);
+    }, [ /* no deps */ ]);
+
+    // Handles cilcks on entries that should NOT lead to the menu closing. We want to kepe it open
+    // for e.g. switches between the different areas of the administration area.
+    const handleEntryClick = useCallback((href?: string) => {
+        if (href !== pathname)
+            ignorePathnameChangeRef.current = true;
+
+    }, [ pathname ]);
 
     // Automatically close the menu when the page is being navigated. An alternative approach would
     // be to drill an `onClose` prop through several layers of components, but since the performance
     // overhead of this is negligible we optimise for simplicity.
     useEffect(() => {
-        if (pathname)
+        if (!pathname)
+            return;
+
+        if (ignorePathnameChangeRef.current)
+            ignorePathnameChangeRef.current = false;
+        else
             setDrawerOpen(false);
 
     }, [ pathname ]);
@@ -71,7 +90,8 @@ export function MobileAppBar(props: MobileAppBarProps) {
                 </Toolbar>
             </AppBar>
             <AppDrawer open={drawerOpen} onClose={handleDrawerClose} disableScrollLock>
-                <NavigationSidebar {...props.slotProps.sidebar} variant="mobile" />
+                <NavigationSidebar onClick={handleEntryClick} variant="mobile"
+                                   {...props.slotProps.sidebar} />
                 {props.menu}
                 <SidebarSettingsButton isMobile />
             </AppDrawer>
