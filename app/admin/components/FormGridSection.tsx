@@ -1,11 +1,11 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
+import type { SectionHeaderProps } from './SectionHeader';
 
 import { FormGrid, type FormGridProps } from './FormGrid';
-import { SectionHeader, type SectionHeaderProps } from './SectionHeader';
+import { Section } from './Section';
+
 
 /**
  * Props accepted by the <FormGridSection> component.
@@ -31,9 +31,9 @@ export function FormGridSection(props: React.PropsWithChildren<FormGridSectionPr
 
     if ('noHeader' in props) {
         return (
-            <Paper sx={{ p: 2 }}>
+            <Section noHeader>
                 <FormGrid {...formGridProps}>{props.children}</FormGrid>
-            </Paper>
+            </Section>
         );
     }
 
@@ -46,14 +46,10 @@ export function FormGridSection(props: React.PropsWithChildren<FormGridSectionPr
     };
 
     return (
-        <Paper sx={{ p: 2 }}>
+        <Section {...sectionHeaderProps}>
             <FormGrid {...formGridProps}>
-                { !('noHeader' in sectionHeaderProps) &&
-                    <Grid size={{ xs: 12 }}>
-                        <SectionHeader {...sectionHeaderProps} />
-                    </Grid> }
                 {props.children}
             </FormGrid>
-        </Paper>
+        </Section>
     );
 }

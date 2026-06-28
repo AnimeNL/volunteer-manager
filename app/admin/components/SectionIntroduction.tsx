@@ -34,7 +34,7 @@ export function SectionIntroduction(props: React.PropsWithChildren<SectionIntrod
         );
     } else {
         return (
-            <Typography variant="body2" sx={{ mt: '16px !important' }}>
+            <Typography variant="body2">
                 {props.children}
             </Typography>
         );

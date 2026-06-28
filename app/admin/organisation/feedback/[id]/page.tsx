@@ -1,22 +1,17 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { SelectElement, TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
-import { default as MuiLink } from '@mui/material/Link';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import Grid from '@mui/material/Grid';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { RecordLog, kLogType } from '@lib/Log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -120,7 +115,7 @@ export default async function FeedbackDetailPage(
             responseDate: dbInstance.dateTimeAsString(tFeedback.feedbackResponseDate),
             responseText: tFeedback.feedbackResponseText,
             responseUser: {
-                id: tFeedback.feedbackResponseUserId,
+                id: usersResponseJoin.userId,
                 name: usersResponseJoin.name,
             },
         })
@@ -130,7 +125,7 @@ export default async function FeedbackDetailPage(
         notFound();
 
     const action = recordResponse.bind(null, feedback.id, feedback.user?.id);
-    const author = feedback.name || feedback.user?.name;
+    const author = feedback.name || feedback.user?.firstName;
 
     const defaultValues = {
         response: feedback.response,
@@ -139,34 +134,36 @@ export default async function FeedbackDetailPage(
 
     return (
         <>
-            <Section title="Feedback" subtitle={author}>
+            <Section icon={ <FeedbackOutlinedIcon color="primary" /> } title="Feedback"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Feedback', href: '/admin/organisation/feedback' },
+                         { label: `${author} says…` },
+                     ]}>
                 <SectionIntroduction>
                     This page displays feedback received by one of our volunteers. Please consider
                     it and reach out to the volunteer to let them know what you think.
                 </SectionIntroduction>
-                <Table sx={{ mt: '0px !important' }}>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">Author</TableCell>
-                            <TableCell>
-                                { !feedback.user && feedback.name }
-                                { !!feedback.user &&
-                                    <MuiLink
-                                        component={Link}
-                                        href={`/admin/organisation/accounts/${feedback.user.id}`}>
-                                        {feedback.user.name}
-                                    </MuiLink> }
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">Date</TableCell>
-                            <TableCell>
-                                <LocalDateTime dateTime={feedback.date}
-                                               format="YYYY-MM-DD HH:mm:ss" />
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
+            </Section>
+            <Section title={`${author} says…`}>
+                <KeyValueList items={[
+                    {
+                        condition: !feedback.user,
+                        key: 'Author',
+                        value: feedback.name,
+                    },
+                    {
+                        condition: !!feedback.user,
+                        key: 'Author',
+                        value: feedback.user!,
+                        valueTemplate: 'account',
+                    },
+                    {
+                        key: 'Received on',
+                        value: feedback.date,
+                        valueTemplate: 'localDateTime',
+                    }
+                ]} />
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                     {feedback.feedback}
                 </Typography>
@@ -181,54 +178,37 @@ export default async function FeedbackDetailPage(
                     </SectionIntroduction>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <Table sx={{ mt: '-16px !important' }}>
-                        <TableBody>
-                            { !!feedback.responseUser &&
-                                <TableRow>
-                                    <TableCell width="25%" component="th" scope="row">
-                                        Volunteer
-                                    </TableCell>
-                                    <TableCell>
-                                        <MuiLink component={Link}
-                                                 href={'/admin/organisation/accounts/' +
-                                                           `${feedback.responseUser.id}`}>
-                                            {feedback.responseUser.name}
-                                        </MuiLink>
-                                    </TableCell>
-                                </TableRow> }
-                            { !!feedback.responseDate &&
-                                <TableRow>
-                                    <TableCell width="25%" component="th" scope="row">
-                                        Date
-                                    </TableCell>
-                                    <TableCell>
-                                        <LocalDateTime dateTime={feedback.responseDate}
-                                                       format="YYYY-MM-DD HH:mm:ss" />
-                                    </TableCell>
-                                </TableRow> }
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">
-                                    Response
-                                </TableCell>
-                                <TableCell>
-                                    <SelectElement name="response" label="Response" fullWidth
-                                                   size="small" options={kResponseOptions}
-                                                   required />
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">
-                                    Details
-                                </TableCell>
-                                <TableCell>
-                                    <TextareaAutosizeElement name="responseText" label="Reasoning"
-                                                             fullWidth size="small" required />
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                    <KeyValueList items={[
+                        {
+                            condition: !!feedback.responseUser,
+                            key: 'Volunteer',
+                            value: feedback.responseUser!,
+                            valueTemplate: 'account',
+                        },
+                        {
+                            condition: !!feedback.responseDate,
+                            key: 'Responded on',
+                            value: feedback.responseDate,
+                            valueTemplate: 'localDateTime',
+                        },
+                        {
+                            keyAlign: 'center',
+                            key: 'Response',
+                            value: (
+                                <SelectElement name="response" fullWidth size="small"
+                                               options={kResponseOptions} required />
+                            ),
+                        },
+                        {
+                            keyAlign: 'center',
+                            key: 'Details',
+                            value: (
+                                <TextareaAutosizeElement name="responseText" fullWidth size="small"
+                                                         required />
+                            ),
+                        },
+                    ]} />
                 </Grid>
-
             </FormGridSection>
         </>
     );

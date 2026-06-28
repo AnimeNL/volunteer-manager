@@ -11,6 +11,17 @@ import Tooltip from '@mui/material/Tooltip';
 import { kFeedbackResponse, type FeedbackResponse } from '@lib/database/Types';
 
 /**
+ * Header to display in the response column to indicate what it's about.
+ */
+export function ResponseHeader() {
+    return (
+        <Tooltip title="Have we responded to the feedback?">
+            <ThumbUpOffAltIcon color="primary" fontSize="small" />
+        </Tooltip>
+    );
+}
+
+/**
  * Renders the custom response column cells.
  */
 export function ResponseCell({ row }: { row: { response?: FeedbackResponse } }) {

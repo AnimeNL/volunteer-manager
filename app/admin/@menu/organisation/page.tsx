@@ -52,7 +52,7 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: FeedbackOutlinedIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Feedback',
                         permission: 'organisation.feedback',
                         url: '/admin/organisation/feedback',

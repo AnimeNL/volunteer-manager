@@ -3,13 +3,17 @@
 
 'use client';
 
-import React from 'react';
+import Link from '@app/LinkProxy';
+import React, { useContext } from 'react';
 
+import { default as MuiLink } from '@mui/material/Link';
 import Grid, { gridClasses } from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+
+import { AdminClientContext } from '../AdminClientContext';
 import { LocalDateTime } from './LocalDateTime';
 
 /**
@@ -19,7 +23,7 @@ interface KeyValueListProps {
     /**
      * Items to display in the list. Ordered.
      */
-    items: {
+    items: ({
         /**
          * Condition that needs to pass in order for this item to be included in the list.
          */
@@ -41,6 +45,7 @@ interface KeyValueListProps {
          */
         keyAlign?: 'center' | 'top';
 
+    } & ({
         /**
          * Value to display. May be a React component.
          */
@@ -50,6 +55,7 @@ interface KeyValueListProps {
          * Template to use when rendering the value, for out-of-the-box customisation. A number of
          * premade template are available:
          *
+         * * "account"          Displays the |value| as a link to their account, when able.
          * * "component"        Displays the |value| as a component, without wrapping.
          * * "localDateTime"    Displays the |value| as a date & time in the local timezone.
          * * "monospace"        Displays the |value| as tabular, multiline and wrappable data.
@@ -58,7 +64,29 @@ interface KeyValueListProps {
          */
         valueTemplate?: 'component' | 'localDateTime' | 'monospace' | 'none';
 
-    }[];
+    } | {
+        /**
+         * Value to display. May be a React component.
+         */
+        value: {
+            id: number;
+            name: string;
+        };
+
+        /**
+         * Template to use when rendering the value, for out-of-the-box customisation. A number of
+         * premade template are available:
+         *
+         * * "account"          Displays the |value| as a link to their account, when able.
+         * * "component"        Displays the |value| as a component, without wrapping.
+         * * "localDateTime"    Displays the |value| as a date & time in the local timezone.
+         * * "monospace"        Displays the |value| as tabular, multiline and wrappable data.
+         *
+         * @default "none"
+         */
+        valueTemplate: 'account';
+
+    }))[];
 }
 
 /**
@@ -88,6 +116,8 @@ export function KeyValueList(props: KeyValueListProps) {
                             <Typography variant="body2">
                                 {item.value}
                             </Typography> }
+                        { item.valueTemplate === 'account' &&
+                            <KeyValueConditionalAccountLink account={item.value} /> }
                         { item.valueTemplate === 'component' && item.value }
                         { item.valueTemplate === 'localDateTime' &&
                             <Typography variant="body2">
@@ -102,6 +132,28 @@ export function KeyValueList(props: KeyValueListProps) {
                 </React.Fragment> )}
         </KeyValueListGrid>
     );
+}
+
+/**
+ * Component that either
+ */
+function KeyValueConditionalAccountLink(props: { account: { id: number; name: string } }) {
+    const context = useContext(AdminClientContext);
+    if (!context.canAccessAccounts) {
+        return (
+            <Typography variant="body2">
+                {props.account.name}
+            </Typography>
+        );
+    } else {
+        return (
+            <Typography variant="body2">
+                <MuiLink component={Link} href={`/admin/organisation/accounts/${props.account.id}`}>
+                    {props.account.name}
+                </MuiLink>
+            </Typography>
+        );
+    }
 }
 
 /**

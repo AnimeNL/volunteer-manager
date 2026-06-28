@@ -4,10 +4,10 @@
 import { z } from 'zod/v4';
 
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
-import { ResponseCell } from './ResponseCell';
 
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
+import { ResponseCell, ResponseHeader } from './ResponseCell';
 import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
@@ -140,6 +140,7 @@ export default async function FeedbackPage() {
         {
             display: 'flex',
             field: 'response',
+            headerAlign: 'center',
             headerName: '',
             sortable: false,
             align: 'center',
@@ -147,6 +148,7 @@ export default async function FeedbackPage() {
 
             template: 'component',
             templateProps: {
+                headerComponent: ResponseHeader,
                 component: ResponseCell,
             },
         }
@@ -174,6 +176,8 @@ export default async function FeedbackPage() {
                         secondaryField: 'feedback',
                         dateField: 'date',
                         dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                        startComponent: ResponseCell,
+                        linkTemplate: './feedback/{id}',
                     }}
                 />
             </Section>
