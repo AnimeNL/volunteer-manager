@@ -104,6 +104,7 @@ function MobileLayout(props: LayoutProps) {
 const MobileContentWrapper = styled(Stack)(({ theme }) => ({
     gap: theme.spacing(1.5),
     padding: theme.spacing(1),
+    paddingBottom: `max(env(safe-area-inset-bottom), ${theme.spacing(1)})`,
 
     [`& > .${paperClasses.root}:first-child`]: {
         marginTop: theme.spacing(-1),

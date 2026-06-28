@@ -75,7 +75,7 @@ export function KeyValueList(props: KeyValueListProps) {
                             ? { display: 'flex', alignItems: 'center' }
                             : undefined
                     }>
-                        <Typography variant="subtitle2" color="textSecondary">
+                        <Typography variant="subtitle2" color="textSecondary" noWrap>
                             {item.key}
                             { !!item.description &&
                                 <Tooltip arrow title={item.description}>
@@ -109,8 +109,8 @@ export function KeyValueList(props: KeyValueListProps) {
  */
 const KeyValueInfoIcon = styled(InfoOutlinedIcon)(({ theme }) => ({
     position: 'relative',
+    marginLeft: '3px',
     top: '2px',
-    left: '4px',
     cursor: 'help',
 }));
 
