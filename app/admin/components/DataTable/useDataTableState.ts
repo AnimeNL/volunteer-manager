@@ -53,7 +53,7 @@ export function useDataTableState(options: UseDataTableStateOptions) {
     // ---------------------------------------------------------------------------------------------
 
     const [ queryPage, setQueryPage ] = useQueryState(
-        'page', parseAsInteger.withDefault(0).withOptions({ history: 'push' }));
+        'page', parseAsInteger.withDefault(1).withOptions({ history: 'push' }));
     const [ queryPageSize, setQueryPageSize ] =
         useQueryState('pageSize', parseAsInteger.withDefault(defaultPageSize));
 
@@ -69,7 +69,7 @@ export function useDataTableState(options: UseDataTableStateOptions) {
     // Unified values
     // ---------------------------------------------------------------------------------------------
 
-    const page = disableQueryParams ? statePage : queryPage;
+    const page = disableQueryParams ? statePage : queryPage - 1;
     const pageSize = disableQueryParams ? statePageSize : queryPageSize;
 
     const sortField = disableQueryParams ? stateSortField : querySortField;
@@ -86,7 +86,7 @@ export function useDataTableState(options: UseDataTableStateOptions) {
         if (disableQueryParams) {
             setStatePage(val ?? 0);
         } else {
-            setQueryPage(val);
+            setQueryPage(val ? val + 1 : null);
         }
     }, [ disableQueryParams, setQueryPage ]);
 
