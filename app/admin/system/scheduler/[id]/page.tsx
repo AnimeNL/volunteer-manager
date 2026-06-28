@@ -18,6 +18,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Temporal, formatDate, formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 
 /**
  * The task page gives details about the execution of an individual task, including all logs, timing
@@ -72,7 +73,6 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
         <>
             <Section icon={<LoopIcon color="primary" />}
                      title={`Scheduler task #${task.taskId}`}
-                     subtitle={formatDate(task.taskDate, 'MMMM D, YYYY')}
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Scheduler', href: '/admin/system/scheduler' },
@@ -83,74 +83,29 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                 </SectionIntroduction>
             </Section>
             <Section title="Task information">
-                <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <Grid size={{ xs: 12, md: 3 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                            Task name
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 9 }}>
-                        <Typography variant="body2">{task.taskName}</Typography>
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 3 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                            Task parameters
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 9 }}>
-                        <Typography variant="body2" component="pre" sx={{
-                            m: 0,
-                            fontFamily: 'monospace',
-                            whiteSpace: 'pre-wrap',
-                            overflowWrap: 'anywhere'
-                        }}>
-                            {taskParamsFormatted}
-                        </Typography>
-                    </Grid>
-
-                    { !!task.taskParentTaskId &&
-                        <>
-                            <Grid size={{ xs: 12, md: 3 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                                    Task parent
-                                </Typography>
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 9 }}>
-                                <Tooltip title="Navigate to the parent task">
-                                    <Button component={Link} href={`/admin/system/scheduler/${task.taskParentTaskId}`}
-                                            size="small" variant="outlined" color="success">
-                                        <KeyboardDoubleArrowRightIcon fontSize="small" />
-                                    </Button>
-                                </Tooltip>
-                            </Grid>
-                        </> }
-
-                    <Grid size={{ xs: 12, md: 3 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                            Scheduled date
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 9 }}>
-                        <Typography variant="body2">
-                            {formatDate(task.taskDate, 'YYYY-MM-DD HH:mm:ss')}
-                        </Typography>
-                    </Grid>
-
-                    { !!taskInterval &&
-                        <>
-                            <Grid size={{ xs: 12, md: 3 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                                    Scheduled interval
-                                </Typography>
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 9 }}>
-                                <Typography variant="body2">{taskInterval}</Typography>
-                            </Grid>
-                        </> }
-                </Grid>
+                <KeyValueList items={[
+                    {
+                        key: 'Task name',
+                        value: task.taskName,
+                    },
+                    {
+                        key: 'Task parameters',
+                        value: taskParamsFormatted,
+                    },
+                    {
+                        key: 'Task parent',
+                        value: task.taskParentTaskId,
+                    },
+                    {
+                        key: 'Scheduled date',
+                        value: formatDate(task.taskDate, 'YYYY-MM-DD HH:mm:ss'),
+                    },
+                    {
+                        key: 'Scheduled interval',
+                        value: taskInterval,
+                    }
+                ]} />
             </Section>
-
             { !!task.result &&
                 <Section title="Execution details">
                     <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
