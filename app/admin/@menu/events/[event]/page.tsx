@@ -23,6 +23,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
     const items: NavigationTopLevelItem[] = [
         {
             Icon: DashboardOutlinedIcon,
+            badge: { severity: 'warning', value: true },  // migration in progress
             label: 'Dashboard',
             url: `/admin/events/${event}`,
             urlMatchMode: 'strict',
@@ -58,6 +59,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             // TODO: Shifts
             {
                 Icon: PersonIcon,
+                badge: { severity: 'warning', value: true },  // migration in progress
                 label: 'Volunteers',
                 permission: {
                     permission: 'event.volunteers.information',
@@ -88,6 +90,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             // TODO: Shifts
             {
                 Icon: PersonIcon,
+                badge: { severity: 'warning', value: true },  // migration in progress
                 label: 'Volunteers',
                 permission: {
                     permission: 'event.volunteers.information',

@@ -139,6 +139,8 @@ const KeyValueListGrid = styled(Grid)(({ theme }) => ({
             padding: theme.spacing(0.5, 0),
         },
 
+        [`& > .${gridClasses.root}:nth-child(2n)`]: { paddingTop: '5px' },
+
         [`&> .${gridClasses.root}:nth-child(-n+2)`]: {
             paddingTop: 0,
         },

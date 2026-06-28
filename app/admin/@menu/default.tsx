@@ -41,6 +41,7 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Outbox',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',
@@ -53,6 +54,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: WebhookIcon,
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Webhooks',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/webhooks',
@@ -72,6 +74,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: QueryStatsIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Diagnostics',
                         url: '/admin/system/diagnostics/logs',
                     },
@@ -83,6 +86,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: LoopIcon,
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Scheduler',
                         permission: 'system.internals.scheduler',
                         url: '/admin/system/scheduler',

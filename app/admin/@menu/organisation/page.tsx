@@ -23,6 +23,7 @@ export default async function OrganisationMenu() {
         <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {
                 Icon: DashboardOutlinedIcon,
+                badge: { severity: 'warning', value: true },  // migration in progress
                 label: 'Dashboard',
                 url: '/admin/organisation',
                 urlMatchMode: 'strict',
@@ -41,6 +42,7 @@ export default async function OrganisationMenu() {
                 items: [
                     {
                         Icon: PersonIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Accounts',
                         permission: {
                             permission: 'organisation.accounts',
@@ -50,6 +52,7 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: FeedbackOutlinedIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Feedback',
                         permission: 'organisation.feedback',
                         url: '/admin/organisation/feedback',
@@ -88,6 +91,7 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: TabletIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Displays',
                         permission: 'organisation.displays',
                         url: '/admin/organisation/displays',
