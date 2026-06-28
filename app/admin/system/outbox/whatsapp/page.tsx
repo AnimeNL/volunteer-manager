@@ -3,7 +3,12 @@
 
 import type { Metadata } from 'next';
 
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+
 import { OutboxDataTable } from '../OutboxDataTable';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -18,7 +23,24 @@ export default async function OutboxWhatsAppPage() {
         permission: 'system.internals.outbox',
     });
 
-    return <OutboxDataTable type={kTwilioOutboxType.WhatsApp} />;
+    return (
+        <>
+            <Section icon={ <WhatsAppIcon color="primary" /> } title="WhatsApp outbox"
+                     breadcrumbs={[
+                         { label: 'Communication', href: '/admin/system/communication' },
+                         { label: 'Outbox' },
+                         { label: 'WhatsApp' },
+                     ]}>
+                <SectionIntroduction>
+                    These are WhatsApp messages that were sent through the portal.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <SectionTabs />
+                <OutboxDataTable type={kTwilioOutboxType.WhatsApp} />
+            </Section>
+        </>
+    );
 }
 
 export const metadata: Metadata = {

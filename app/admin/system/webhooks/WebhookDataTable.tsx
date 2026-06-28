@@ -188,6 +188,7 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
             context={props}
             defaultSort={{ field: 'date', sort: 'desc' }}
             disableQueryParams={!!props.twilioMessageSid}
+            disableFooter={!!props.twilioMessageSid}
             pageSize={50}
             listViewProps={{
                 primaryField: 'destination',

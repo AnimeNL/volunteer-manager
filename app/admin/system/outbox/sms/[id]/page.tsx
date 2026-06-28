@@ -3,7 +3,11 @@
 
 import type { Metadata } from 'next';
 
+import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
+
+import { Section } from '@app/admin/components/Section';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -22,7 +26,23 @@ export default async function OutboxSmsDetailsPage(
 
     const params = await props.params;
 
-    return <TwilioDetailsPage type={kTwilioOutboxType.SMS} id={parseInt(params.id, 10)} />;
+    return (
+        <>
+            <Section icon={ <TextsmsOutlinedIcon color="primary" /> }
+                     title={`SMS message #${params.id}`}
+                     breadcrumbs={[
+                         { label: 'Communication', href: '/admin/system/communication' },
+                         { label: 'Outbox' },
+                         { label: 'SMS', href: '/admin/system/outbox/sms' },
+                         { label: `#${params.id}` },
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about a message we sent through SMS.
+                </SectionIntroduction>
+            </Section>
+            <TwilioDetailsPage type={kTwilioOutboxType.SMS} id={parseInt(params.id, 10)} />
+        </>
+    );
 }
 
 export const metadata: Metadata = {

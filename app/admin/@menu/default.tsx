@@ -45,6 +45,8 @@ export default async function DefaultMenu() {
                         label: 'Outbox',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',
+                        urlMatchMode: 'prefix',
+                        urlPrefix: '/admin/system/outbox/',
                     },
                     {
                         Icon: StreamIcon,

@@ -3,7 +3,11 @@
 
 import type { Metadata } from 'next';
 
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+
+import { Section } from '@app/admin/components/Section';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -22,7 +26,23 @@ export default async function OutboxWhatsAppDetailsPage(
 
     const params = await props.params;
 
-    return <TwilioDetailsPage type={kTwilioOutboxType.WhatsApp} id={parseInt(params.id, 10)} />;
+    return (
+        <>
+            <Section icon={ <WhatsAppIcon color="primary" /> }
+                     title={`WhatsApp message #${params.id}`}
+                     breadcrumbs={[
+                         { label: 'Communication', href: '/admin/system/communication' },
+                         { label: 'Outbox' },
+                         { label: 'WhatsApp', href: '/admin/system/outbox/whatsapp' },
+                         { label: `#${params.id}` },
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about a message we sent through WhatsApp.
+                </SectionIntroduction>
+            </Section>
+            <TwilioDetailsPage type={kTwilioOutboxType.WhatsApp} id={parseInt(params.id, 10)} />
+        </>
+    );
 }
 
 export const metadata: Metadata = {
