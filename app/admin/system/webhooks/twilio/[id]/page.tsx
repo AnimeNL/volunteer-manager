@@ -8,25 +8,23 @@ import { notFound } from 'next/navigation';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { TwilioOutboxType } from '@lib/database/Types';
-import { SectionHeader } from '@app/admin/components/SectionHeader';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Temporal } from '@lib/Temporal';
-import { formatDate } from '@lib/Temporal';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
+import { TwilioLogo } from './TwilioLogo';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
 
 /**
  * Creates a link through which the outbox for the given `id` can be reached.
  */
-function createOutboxLink(info: { id?: number; type?: TwilioOutboxType }): string {
-    if (!info.id || !info.type)
+function createOutboxLink(info?: { id?: number; type?: TwilioOutboxType }): string {
+    if (!info || !info.id || !info.type)
         return '#';  // this shouldn't happen
 
     return `/admin/system/outbox/${info.type.toLowerCase()}/${info.id}`;
@@ -100,153 +98,128 @@ export default async function TwilioWebhooksPage(
     const sx = { p: 2, pb: 1 };
     return (
         <>
-            <Paper>
-                <SectionHeader title="Twilio webhook" subtitle={webhook.endpoint} sx={sx} />
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell width="20%" component="th" scope="row">
-                                <strong>Date</strong>
-                            </TableCell>
-                            <TableCell>
-                                { formatDate(localDate, 'dddd, MMMM Do [at] HH:mm:ss') }
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="20%" component="th" scope="row">
-                                <strong>Authentication</strong>
-                            </TableCell>
-                            <TableCell>
+            <Section icon={ <TwilioLogo /> } title={`Twilio #${params.id}`} breadcrumbs={[
+                            { label: 'Communication', href: '/admin/system/communication' },
+                            { label: 'Webhooks', href: '/admin/system/webhooks' },
+                            { label: `Twilio #${params.id}` }
+                        ]}>
+                <SectionIntroduction>
+                    Detailed information about a webhook call received from{' '}
+                    <MuiLink component={Link} href="https://twilio.com" target="_blank">
+                        Twilio
+                    </MuiLink>.
+                </SectionIntroduction>
+            </Section>
+            <Section title="Webhook">
+                <KeyValueList items={[
+                    {
+                        key: 'Date',
+                        value: webhook.date.toString(),
+                        valueTemplate: 'localDateTime',
+                    },
+                    {
+                        description: 'Whether Twilio\'s signature could be validated.',
+                        keyAlign: 'center',
+                        key: 'Authentication',
+                        value: (
+                            <>
                                 { !!webhook.requestAuthenticated &&
                                     <Tooltip title="The request signature has been validated">
-                                        <Chip label="authenticated" size="small" color="success" />
+                                        <TooltipIconWrapper>
+                                            <Chip label="authenticated" size="small"
+                                                  color="success" component="span" />
+                                        </TooltipIconWrapper>
                                     </Tooltip> }
                                 { !webhook.requestAuthenticated &&
                                     <Tooltip title="The request signature could not be validated">
-                                        <Chip label="unauthenticated" size="small" color="error" />
+                                        <TooltipIconWrapper>
+                                            <Chip label="unauthenticated" size="small"
+                                                  color="error" component="span" />
+                                        </TooltipIconWrapper>
                                     </Tooltip> }
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="20%" component="th" scope="row">
-                                <strong>Endpoint</strong>
-                            </TableCell>
-                            <TableCell>{webhook.endpoint}</TableCell>
-                        </TableRow>
-                        { (!!webhook.message && !!webhook.message.id) &&
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Message</strong>
-                                </TableCell>
-                                <TableCell>
-                                    <MuiLink component={Link}
-                                             href={ createOutboxLink(webhook.message) }>
-                                        {webhook.message.sid}
-                                    </MuiLink>
-                                </TableCell>
-                            </TableRow> }
-                        { (!!webhook.originalMessage && !!webhook.originalMessage.id) &&
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Response to</strong>
-                                </TableCell>
-                                <TableCell>
-                                    <MuiLink component={Link}
-                                             href={ createOutboxLink(webhook.originalMessage) }>
-                                        {webhook.originalMessage.sid}
-                                    </MuiLink>
-                                </TableCell>
-                            </TableRow> }
-                        { !!webhook.requestSource &&
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Request source</strong>
-                                </TableCell>
-                                <TableCell>{webhook.requestSource}</TableCell>
-                            </TableRow> }
-                        <TableRow>
-                            <TableCell width="20%" component="th" scope="row">
-                                <strong>Request method</strong>
-                            </TableCell>
-                            <TableCell>{webhook.requestMethod}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="20%" component="th" scope="row">
-                                <strong>Request URL</strong>
-                            </TableCell>
-                            <TableCell>{new URL(webhook.requestUrl).pathname}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </Paper>
-            <Paper>
-                <SectionHeader title="Headers" sx={sx} />
-                <Table>
-                    <TableBody>
-                        { headers.map(([ name, value ], index) =>
-                            <TableRow key={index}>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>{name}</strong>
-                                </TableCell>
-                                <TableCell>{value}</TableCell>
-                            </TableRow> )}
-                    </TableBody>
-                </Table>
-            </Paper>
-            <Paper>
-                <SectionHeader title="Parameters" sx={sx} />
-                <Table>
-                    <TableBody>
-                        { [ ...body.entries() ].map(([ name, value ], index) =>
-                            <TableRow key={index}>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>{name}</strong>
-                                </TableCell>
-                                <TableCell>{value}</TableCell>
-                            </TableRow> )}
-                    </TableBody>
-                </Table>
-            </Paper>
+                            </>
+                        ),
+                    },
+                    {
+                        key: 'Endpoint',
+                        value: webhook.endpoint,
+                    },
+                    {
+                        condition: !!webhook.message?.id,
+                        key: 'Message',
+                        value: (
+                            <MuiLink component={Link} href={ createOutboxLink(webhook.message) }>
+                                {webhook.message?.sid}
+                            </MuiLink>
+                        ),
+                    },
+                    {
+                        condition: !!webhook.originalMessage?.id,
+                        key: 'Response to',
+                        value: (
+                            <MuiLink component={Link}
+                                     href={ createOutboxLink(webhook.originalMessage) }>
+                                {webhook.originalMessage?.sid}
+                            </MuiLink>
+                        ),
+                    },
+                    {
+                        condition: !!webhook.requestSource,
+                        description: 'IP address from which the message was received.',
+                        key: 'Request source',
+                        value: webhook.requestSource,
+                    },
+                    {
+                        key: 'Request method',
+                        value: webhook.requestMethod,
+                    },
+                    {
+                        key: 'Request URL',
+                        value: new URL(webhook.requestUrl).pathname,
+                    }
+                ]} />
+            </Section>
+            <Section title="Headers">
+                <KeyValueList items={ headers.map(([ name, value ]) => ({
+                    key: name,
+                    value,
+                    valueTemplate: 'monospace',
+                })) } />
+            </Section>
+            <Section title="Parameters">
+                <KeyValueList items={ [ ...body.entries() ].map(([ name, value ]) => ({
+                    key: name,
+                    value,
+                    valueTemplate: 'monospace',
+                })) } />
+            </Section>
             { !!webhook.errorName &&
-                <Paper>
-                    <SectionHeader title="Parameters" sx={sx} />
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell colSpan={2} padding="none">
-                                    <Alert severity="error">
-                                        An exception occurred when handling this webhook.
-                                    </Alert>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Name</strong>
-                                </TableCell>
-                                <TableCell>{webhook.errorName}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Message</strong>
-                                </TableCell>
-                                <TableCell>{webhook.errorMessage}</TableCell>
-                            </TableRow>
-                            { !!webhook.errorCause &&
-                                <TableRow>
-                                    <TableCell width="20%" component="th" scope="row">
-                                        <strong>Cause</strong>
-                                    </TableCell>
-                                    <TableCell>{webhook.errorCause}</TableCell>
-                                </TableRow> }
-                            <TableRow>
-                                <TableCell width="20%" component="th" scope="row">
-                                    <strong>Stack</strong>
-                                </TableCell>
-                                <TableCell>{webhook.errorStack}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </Paper> }
+                <Section title="Error">
+                    <Alert severity="error">
+                        An exception occurred when handling this webhook.
+                    </Alert>
+                    <KeyValueList items={[
+                        {
+                            key: 'Name',
+                            value: webhook.errorName,
+                        },
+                        {
+                            key: 'Message',
+                            value: webhook.errorMessage,
+                        },
+                        {
+                            condition: !!webhook.errorCause,
+                            key: 'Cause',
+                            value: webhook.errorCause,
+                            valueTemplate: 'monospace',
+                        },
+                        {
+                            key: 'Stack',
+                            value: webhook.errorStack,
+                            valueTemplate: 'monospace',
+                        },
+                    ]} />
+                </Section> }
         </>
     );
 }
