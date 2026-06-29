@@ -1,18 +1,21 @@
-// Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
+'use client';
 
 import ExtensionIcon from '@mui/icons-material/Extension';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
-import { Publish, kSubscriptionType } from '@lib/subscriptions';
-import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
-import type { TestMessage } from '@lib/subscriptions/drivers/TestDriver';
-
 /**
  * Props accepted by the <SubscriptionTestAction> component.
  */
-export type SubscriptionTestActionProps = TestMessage;
+interface SubscriptionTestActionProps {
+    /**
+     * Server Action to execute when running the test.
+     */
+    testFn: () => Promise<void>;
+}
 
 /**
  * The <SubscriptionTestAction> component displays an icon button that can be used to quickly test
@@ -20,25 +23,13 @@ export type SubscriptionTestActionProps = TestMessage;
  * to test messages, regardless of messaging channel.
  */
 export function SubscriptionTestAction(props: SubscriptionTestActionProps) {
-    async function publishTestMessage(props: SubscriptionTestActionProps) {
-        'use server';
-
-        await Publish({
-            type: kSubscriptionType.Test,
-            sourceUserId: props.userId,
-            message: props,
-        });
-    }
-
     return (
-        <form action={publishTestMessage.bind(null, props)}>
-            <Tooltip title="Publish a test message">
-                <TooltipIconWrapper>
-                    <IconButton size="small" type="submit">
-                        <ExtensionIcon fontSize="small" color="warning" />
-                    </IconButton>
-                </TooltipIconWrapper>
-            </Tooltip>
+        <form action={props.testFn}>
+            <IconButton size="small" type="submit">
+                <Tooltip title="Publish a test message">
+                    <ExtensionIcon fontSize="small" color="warning" />
+                </Tooltip>
+            </IconButton>
         </form>
     );
 }

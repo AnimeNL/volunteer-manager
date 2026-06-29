@@ -9,10 +9,12 @@ import StreamIcon from '@mui/icons-material/Stream';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { EligibilityCell, EligibilityHeader } from './SubscriptionCells';
+import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTestAction } from './SubscriptionTestAction';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
@@ -107,21 +109,41 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
 });
 
 /**
+ * Server action that will publish a test notification to all users who have subscribed to test
+ * messages.
+ */
+async function publishTestMessage() {
+    'use server';
+    await executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'system.internals',
+        });
+
+        await Publish({
+            type: kSubscriptionType.Test,
+            sourceUserId: props.user.id,
+            message: {
+                userId: props.user.id,
+                name: props.user.nameOrFirstName,
+            },
+        });
+    });
+}
+
+/**
  * The <SubscriptionPage> is the main page of the subscription functionality, which allows us to
  * selectively sign up certain people to automated and/or privileged messaging.
  */
 export default async function SubscriptionPage() {
-    const { access, user } = await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.subscriptions.management',
     });
 
     let action: React.ReactNode;
-    if (access.can('system.internals')) {
-        action = (
-            <SubscriptionTestAction userId={user.id} name={user.firstName} />
-        );
-    }
+    if (access.can('system.internals'))
+        action = <SubscriptionTestAction testFn={publishTestMessage} />;
 
     const columns: Column<ExtractRowModel<typeof subscriptionsDataSource>>[] = [
         {
