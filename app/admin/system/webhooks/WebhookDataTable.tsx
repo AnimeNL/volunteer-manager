@@ -79,10 +79,10 @@ const webhookDataSource = createDataSource('admin/system/webhooks', withContext(
         const dbInstance = db;
         const data = await dbInstance.selectFrom(tTwilioWebhookCalls)
             .where(tTwilioWebhookCalls.webhookMessageSid.equalsIfValue(context.twilioMessageSid))
-                    .or(tTwilioWebhookCalls.webhookMessageOriginalSid.equalsIfValue(
-                        context.twilioMessageSid))
-                    .or(tTwilioWebhookCalls.webhookRequestSource.containsIfValue(params.search))
-                    .or(tTwilioWebhookCalls.webhookRequestUrl.containsIfValue(params.search))
+                .or(tTwilioWebhookCalls.webhookMessageOriginalSid.equalsIfValue(
+                    context.twilioMessageSid))
+                .or(tTwilioWebhookCalls.webhookRequestSource.containsInsensitiveIfValue(params.search))
+                .or(tTwilioWebhookCalls.webhookRequestUrl.containsInsensitiveIfValue(params.search))
             .select({
                 id: tTwilioWebhookCalls.webhookCallId,
                 date: dbInstance.dateTimeAsString(tTwilioWebhookCalls.webhookCallDate),

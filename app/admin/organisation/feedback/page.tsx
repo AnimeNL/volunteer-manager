@@ -64,9 +64,9 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
             .leftJoin(usersJoin)
                 .on(usersJoin.userId.equals(tFeedback.userId))
             .where(
-                usersJoin.name.containsIfValue(params.search).or(
-                tFeedback.feedbackName.containsIfValue(params.search).or(
-                tFeedback.feedbackText.containsIfValue(params.search)
+                usersJoin.name.containsInsensitiveIfValue(params.search).or(
+                tFeedback.feedbackName.containsInsensitiveIfValue(params.search).or(
+                tFeedback.feedbackText.containsInsensitiveIfValue(params.search)
             )))
             .select({
                 id: tFeedback.feedbackId,

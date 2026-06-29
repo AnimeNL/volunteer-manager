@@ -66,10 +66,10 @@ const accountsDataSource = createDataSource('admin/organisation/accounts', withR
 
         const pagedVolunteers = await dbInstance.selectFrom(tUsers)
             .where(tUsers.anonymized.isNull())
-                .and(tUsers.name.containsIfValue(params.search).or(
-                    tUsers.username.containsIfValue(params.search).or(
-                    tUsers.phoneNumber.containsIfValue(params.search).or(
-                    tUsers.discordHandle.containsIfValue(params.search)))))
+                .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
+                    tUsers.username.containsInsensitiveIfValue(params.search).or(
+                    tUsers.phoneNumber.containsInsensitiveIfValue(params.search).or(
+                    tUsers.discordHandle.containsInsensitiveIfValue(params.search)))))
             .select({
                 id: tUsers.userId,
                 name: tUsers.name,

@@ -154,9 +154,9 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
                 .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
             .where(tDutyBook.dutyBookEventId.equals(context.eventId))
                 .and(tDutyBook.dutyBookDeleted.isNull())
-                .and(tUsers.name.containsIfValue(params.search).or(
-                    tDutyBook.dutyBookIncident.containsIfValue(params.search).or(
-                    tDutyBook.dutyBookAiSummary.containsIfValue(params.search)
+                .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
+                    tDutyBook.dutyBookIncident.containsInsensitiveIfValue(params.search).or(
+                    tDutyBook.dutyBookAiSummary.containsInsensitiveIfValue(params.search)
                 )))
             .select({
                 id: tDutyBook.dutyBookId,

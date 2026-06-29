@@ -91,8 +91,8 @@ const errorLogsDataSource = createDataSource('admin/system/diagnostics/errors', 
             .leftJoin(usersJoin)
                 .on(usersJoin.userId.equals(tErrorLogs.errorUserId))
             .where(
-                tErrorLogs.errorMessage.containsIfValue(params.search)
-                    .or(usersJoin.name.containsIfValue(params.search)))
+                tErrorLogs.errorMessage.containsInsensitiveIfValue(params.search)
+                    .or(usersJoin.name.containsInsensitiveIfValue(params.search)))
             .and(tErrorLogs.errorIpAddress.notEquals('::1').onlyWhen(
                 !process.env.APP_ENVIRONMENT_OVERRIDE))
             .select({

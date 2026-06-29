@@ -65,8 +65,8 @@ async function queryActivitiesHistory(params: DataSourceListParams, festivalId: 
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.activityId.isNotNull())
-            .and(tActivities.activityTitle.containsIfValue(params.search).or(
-                usersJoin.name.containsIfValue(params.search)))
+            .and(tActivities.activityTitle.containsInsensitiveIfValue(params.search).or(
+                usersJoin.name.containsInsensitiveIfValue(params.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -123,9 +123,9 @@ async function queryActivityHistory(
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.activityId.equals(activityId))
-            .and(tActivities.activityTitle.containsIfValue(params.search).or(
-                tActivitiesLogs.mutationFields.containsIfValue(params.search).or(
-                usersJoin.name.containsIfValue(params.search))))
+            .and(tActivities.activityTitle.containsInsensitiveIfValue(params.search).or(
+                tActivitiesLogs.mutationFields.containsInsensitiveIfValue(params.search).or(
+                usersJoin.name.containsInsensitiveIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -181,9 +181,9 @@ async function queryAreasHistory(params: DataSourceListParams, festivalId: numbe
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.areaId.isNotNull())
-            .and(tActivitiesAreas.areaName.containsIfValue(params.search).or(
-                tActivitiesAreas.areaDisplayName.containsIfValue(params.search).or(
-                usersJoin.name.containsIfValue(params.search))))
+            .and(tActivitiesAreas.areaName.containsInsensitiveIfValue(params.search).or(
+                tActivitiesAreas.areaDisplayName.containsInsensitiveIfValue(params.search).or(
+                usersJoin.name.containsInsensitiveIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -236,9 +236,9 @@ async function queryLocationsHistory(params: DataSourceListParams, festivalId: n
             .on(usersJoin.userId.equals(tActivitiesLogs.mutationUserId))
         .where(tActivitiesLogs.festivalId.equals(festivalId))
             .and(tActivitiesLogs.locationId.isNotNull())
-            .and(tActivitiesLocations.locationName.containsIfValue(params.search).or(
-                tActivitiesLocations.locationDisplayName.containsIfValue(params.search).or(
-                usersJoin.name.containsIfValue(params.search))))
+            .and(tActivitiesLocations.locationName.containsInsensitiveIfValue(params.search).or(
+                tActivitiesLocations.locationDisplayName.containsInsensitiveIfValue(params.search).or(
+                usersJoin.name.containsInsensitiveIfValue(params.search))))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,
@@ -294,8 +294,8 @@ async function queryRequestsHistory(params: DataSourceListParams, festivalId: nu
             .and(tActivitiesLogs.activityId.isNotNull())
             .and(tActivitiesLogs.mutation.equals(kMutation.Updated))
             .and(tActivitiesLogs.mutationFields.contains('help needed'))
-            .and(tActivities.activityTitle.containsIfValue(params.search).or(
-                usersJoin.name.containsIfValue(params.search)))
+            .and(tActivities.activityTitle.containsInsensitiveIfValue(params.search).or(
+                usersJoin.name.containsInsensitiveIfValue(params.search)))
         .select({
             id: tActivitiesLogs.mutationId,
             severity: tActivitiesLogs.mutationSeverity,

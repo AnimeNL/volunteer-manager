@@ -83,7 +83,7 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tDutyBookViewers.dutyBookViewerUserId))
             .where(tDutyBookViewers.dutyBookId.equals(context.incidentId))
-                .and(tUsers.name.containsIfValue(params.search))
+                .and(tUsers.name.containsInsensitiveIfValue(params.search))
             .select({
                 id: tUsers.userId,
                 date: dbInstance.dateTimeAsString(tDutyBookViewers.dutyBookViewerDate),

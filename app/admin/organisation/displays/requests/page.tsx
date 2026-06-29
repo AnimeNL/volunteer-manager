@@ -89,9 +89,9 @@ const helpRequestsDataSource = createDataSource('admin/organisation/displayReque
             .leftJoin(closedUserJoin)
                 .on(closedUserJoin.userId.equals(tDisplaysRequests.requestClosedBy))
             .where(
-                tDisplays.displayLabel.containsIfValue(params.search).or(
-                tDisplays.displayIdentifier.containsIfValue(params.search).or(
-                tEvents.eventShortName.containsIfValue(params.search)
+                tDisplays.displayLabel.containsInsensitiveIfValue(params.search).or(
+                tDisplays.displayIdentifier.containsInsensitiveIfValue(params.search).or(
+                tEvents.eventShortName.containsInsensitiveIfValue(params.search)
             )))
             .select({
                 id: tDisplaysRequests.requestId,

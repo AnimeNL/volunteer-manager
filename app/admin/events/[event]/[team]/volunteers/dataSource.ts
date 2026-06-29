@@ -154,8 +154,8 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             .where(tUsersEvents.eventId.equals(context.eventId))
                 .and(tUsersEvents.teamId.equals(context.teamId))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-                .and(tUsers.name.containsIfValue(params.search).or(
-                    tRoles.roleName.containsIfValue(params.search)))
+                .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
+                    tRoles.roleName.containsInsensitiveIfValue(params.search)))
             .select({
                 id: tUsers.userId,
                 name: tUsers.name,
