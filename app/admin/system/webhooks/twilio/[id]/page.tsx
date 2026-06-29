@@ -14,7 +14,6 @@ import type { TwilioOutboxType } from '@lib/database/Types';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal } from '@lib/Temporal';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { TwilioLogo } from './TwilioLogo';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -90,12 +89,9 @@ export default async function TwilioWebhooksPage(
     if (!webhook)
         notFound();
 
-    const localDate = webhook.date.withTimeZone(Temporal.Now.timeZoneId());
-
     const headers = JSON.parse(webhook.requestHeaders) as [ string, string ][];
     const body = new URLSearchParams(webhook.requestBody);
 
-    const sx = { p: 2, pb: 1 };
     return (
         <>
             <Section icon={ <TwilioLogo /> } title={`Twilio #${params.id}`} breadcrumbs={[
@@ -124,19 +120,11 @@ export default async function TwilioWebhooksPage(
                         value: (
                             <>
                                 { !!webhook.requestAuthenticated &&
-                                    <Tooltip title="The request signature has been validated">
-                                        <TooltipIconWrapper>
-                                            <Chip label="authenticated" size="small"
-                                                  color="success" component="span" />
-                                        </TooltipIconWrapper>
-                                    </Tooltip> }
+                                    <Chip label="authenticated" size="small"
+                                            color="success" component="span" /> }
                                 { !webhook.requestAuthenticated &&
-                                    <Tooltip title="The request signature could not be validated">
-                                        <TooltipIconWrapper>
-                                            <Chip label="unauthenticated" size="small"
-                                                  color="error" component="span" />
-                                        </TooltipIconWrapper>
-                                    </Tooltip> }
+                                    <Chip label="unauthenticated" size="small"
+                                            color="error" component="span" /> }
                             </>
                         ),
                     },
