@@ -141,7 +141,7 @@ export default async function OutboxEmailPage() {
             <Section icon={ <MailOutlinedIcon color="primary" /> } title="E-mail outbox"
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Outbox' },
+                         { label: 'Outbox', href: '/admin/system/outbox' },
                          { label: 'E-mail' },
                      ]}>
                 <SectionIntroduction>

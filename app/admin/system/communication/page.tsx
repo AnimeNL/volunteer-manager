@@ -14,8 +14,8 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
- * Overview page for the Overview pages. Displays a set of tiles that link through to the individual
- * sections. Made available to enable linkability in breadcrumbs.
+ * Overview page for the Communication pages. Displays a set of tiles that link through to the
+ * individual sections. Made available to enable linkability in breadcrumbs.
  */
 export default async function SystemPage() {
     return (

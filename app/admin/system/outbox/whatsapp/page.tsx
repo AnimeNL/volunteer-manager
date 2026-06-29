@@ -28,7 +28,7 @@ export default async function OutboxWhatsAppPage() {
             <Section icon={ <WhatsAppIcon color="primary" /> } title="WhatsApp outbox"
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Outbox' },
+                         { label: 'Outbox', href: '/admin/system/outbox' },
                          { label: 'WhatsApp' },
                      ]}>
                 <SectionIntroduction>

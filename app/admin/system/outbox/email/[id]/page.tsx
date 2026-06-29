@@ -99,7 +99,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                         title={`E-mail message #${params.id}`}
                         breadcrumbs={[
                             { label: 'Communication', href: '/admin/system/communication' },
-                            { label: 'Outbox' },
+                            { label: 'Outbox', href: '/admin/system/outbox' },
                             { label: 'E-mail', href: '/admin/system/outbox/email' },
                             { label: `#${params.id}` },
                         ]}>

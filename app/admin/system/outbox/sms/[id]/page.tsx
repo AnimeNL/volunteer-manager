@@ -32,7 +32,7 @@ export default async function OutboxSmsDetailsPage(
                      title={`SMS message #${params.id}`}
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Outbox' },
+                         { label: 'Outbox', href: '/admin/system/outbox' },
                          { label: 'SMS', href: '/admin/system/outbox/sms' },
                          { label: `#${params.id}` },
                      ]}>

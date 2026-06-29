@@ -27,7 +27,7 @@ export default async function OutboxSmsPage() {
             <Section icon={ <TextsmsOutlinedIcon color="primary" /> } title="SMS outbox"
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Outbox' },
+                         { label: 'Outbox', href: '/admin/system/outbox' },
                          { label: 'SMS' },
                      ]}>
                 <SectionIntroduction>

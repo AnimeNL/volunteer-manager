@@ -32,7 +32,7 @@ export default async function OutboxWhatsAppDetailsPage(
                      title={`WhatsApp message #${params.id}`}
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Outbox' },
+                         { label: 'Outbox', href: '/admin/system/outbox' },
                          { label: 'WhatsApp', href: '/admin/system/outbox/whatsapp' },
                          { label: `#${params.id}` },
                      ]}>
