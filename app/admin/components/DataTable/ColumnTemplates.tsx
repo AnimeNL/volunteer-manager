@@ -189,10 +189,10 @@ export const kColumnTemplates = {
     text: column => ({
         renderCell: params => {
             let value: string;
-            if (!!column.templateProps.template) {
-                value = resolveTemplate(params.row, column.templateProps.template);
+            if (!!column.templateProps?.template) {
+                value = resolveTemplate(params.row, column.templateProps?.template);
             } else {
-                const field = column.templateProps.field ?? column.field;
+                const field = column.templateProps?.field ?? column.field;
                 value = resolveRowModelField(params.row, field) ?? params.value;
             }
 
@@ -200,13 +200,13 @@ export const kColumnTemplates = {
                 return (
                     <Typography variant="inherit" color="textDisabled" component="span"
                                 sx={{ fontStyle: 'italic' }}>
-                        { column.templateProps.defaultValue ?? '···' }
+                        { column.templateProps?.defaultValue ?? '···' }
                     </Typography>
                 );
             }
 
-            if (!!column.templateProps.href) {
-                const href = resolveTemplate(params.row, column.templateProps.href);
+            if (!!column.templateProps?.href) {
+                const href = resolveTemplate(params.row, column.templateProps?.href);
                 return (
                     <MuiLink component={Link} href={href}>
                         {value}

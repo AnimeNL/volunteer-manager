@@ -66,7 +66,6 @@ import type { ProgramRequestEndpoints } from '@app/api/admin/program/requests/[[
 import type { RefundRequestEndpoints } from '@app/api/admin/refunds/[[...id]]/route';
 import type { RetentionEndpoints } from '@app/api/admin/retention/[[...id]]/route';
 import type { RolesEndpoints } from '@app/api/admin/organisation/roles/[[...id]]/route';
-import type { SubscriptionsEndpoints } from '@app/api/admin/subscriptions/[[...id]]/route';
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
 import type { TrainingsExtraEndpoints } from '@app/api/admin/trainings/extra/[[...id]]/route';
@@ -106,7 +105,6 @@ export type ApiEndpoints = {
         '/api/admin/program/requests': ProgramRequestEndpoints['list'],
         '/api/admin/refunds': RefundRequestEndpoints['list'],
         '/api/admin/retention': RetentionEndpoints['list'],
-        '/api/admin/subscriptions': SubscriptionsEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
@@ -205,7 +203,6 @@ export type ApiEndpoints = {
         '/api/admin/program/requests/:id': ProgramRequestEndpoints['update'],
         '/api/admin/refunds/:id': RefundRequestEndpoints['update'],
         '/api/admin/retention/:id': RetentionEndpoints['update'],
-        '/api/admin/subscriptions/:id': SubscriptionsEndpoints['update'],
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],

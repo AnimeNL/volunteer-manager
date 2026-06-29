@@ -76,7 +76,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
     } |
     {
         template: 'text';
-        templateProps: {
+        templateProps?: {
             /**
              * Default value when no value could be derived from the field. Will be displayed in a
              * grey italic text to visually distinguish it from actual values.
