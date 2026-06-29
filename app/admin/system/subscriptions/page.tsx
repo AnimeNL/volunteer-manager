@@ -147,7 +147,7 @@ export default async function SubscriptionPage() {
 
             template: 'text',
             templateProps: {
-                href: '/admin/organisation/accounts/{id}',
+                href: '/admin/system/subscriptions/{id}',
             },
         },
         {

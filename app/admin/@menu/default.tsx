@@ -50,6 +50,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: StreamIcon,
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Subscriptions',
                         permission: 'system.subscriptions.management',
                         url: '/admin/system/subscriptions',

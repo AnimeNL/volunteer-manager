@@ -7,6 +7,8 @@ import { z } from 'zod/v4';
 import { ToggleButtonGroupElement } from '@app/components/proxy/react-hook-form-mui';
 
 import type SvgIcon from '@mui/material/SvgIcon';
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import BookIcon from '@mui/icons-material/Book';
 import Grid from '@mui/material/Grid';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
@@ -23,6 +25,7 @@ import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -184,6 +187,9 @@ export default async function AccountSubscriptionPage(
             id: tUsers.userId,
             name: tUsers.name,
             firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+            email: tUsers.username,
+            phoneNumber: tUsers.phoneNumber,
+
             subscriptions: dbInstance.aggregateAsArray({
                 type: subscriptionsJoin.subscriptionType,
                 typeId: subscriptionsJoin.subscriptionTypeId,
@@ -200,6 +206,10 @@ export default async function AccountSubscriptionPage(
         notFound();
 
     const subscriptionTypes = await getSubscriptionTypes();
+    const subscriptionTypeIds = new Set<string>();
+
+    let hasEmailSubscription = false;
+    let hasPhoneNumberSubscription = false;
 
     const defaultValues: Record<string, string[]> = { /* none yet */ };
     for (const subscription of user.subscriptions) {
@@ -217,10 +227,28 @@ export default async function AccountSubscriptionPage(
                 break;
         }
 
+        subscriptionTypeIds.add(type);
+
         const values: string[] = [ /* none yet */ ];
         for (const [ channel, enabled ] of Object.entries(subscription.channels || [])) {
-            if (enabled)
-                values.push(channel);
+            if (!enabled)
+                continue;
+
+            switch (channel) {
+                case 'email':
+                    hasEmailSubscription = true;
+                    break;
+
+                case 'sms':
+                case 'whatsapp':
+                    hasPhoneNumberSubscription = true;
+                    break;
+
+                default:
+                    throw new Error(`Unrecognised subscription channel found: ${channel}`);
+            }
+
+            values.push(channel);
         }
 
         defaultValues[type] = values;
@@ -238,18 +266,36 @@ export default async function AccountSubscriptionPage(
                             { label: user.firstName },
                         ]}>
                 <SectionIntroduction>
-                    Subscriptions available for <strong>{user.name}</strong> over various channels.
+                    Subscriptions available for <InlineAccountLink user={user} /> over e-mail, SMS
+                    or WhatsApp.
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
                 <FormGrid action={serverAction} defaultValues={defaultValues}>
+                    { (!user.email && hasEmailSubscription) &&
+                        <Grid size={{ xs: 12 }}>
+                            <Alert severity="error">
+                                {user.firstName} has subscriptions to their e-mail address, but we
+                                don't have their address on file.
+                            </Alert>
+                        </Grid> }
+                    { (!user.phoneNumber && hasPhoneNumberSubscription) &&
+                        <Grid size={{ xs: 12 }}>
+                            <Alert severity="error">
+                                {user.firstName} has subscriptions to their phone number, but we
+                                don't have their number on file.
+                            </Alert>
+                        </Grid> }
                     <Grid size={{ xs: 12 }}>
                         <List disablePadding sx={{ my: -2 }}>
                             { subscriptionTypes.map((subscriptionType, index) =>
                                 <ListItem key={index} disableGutters
                                           divider={ index < subscriptionTypes.length - 1 }>
                                     <ListItemIcon>
-                                        <subscriptionType.Icon color="disabled" />
+                                        <subscriptionType.Icon color={
+                                            subscriptionTypeIds.has(subscriptionType.id)
+                                                ? 'primary'
+                                                : 'disabled' } />
                                     </ListItemIcon>
                                     <ListItemText primary={subscriptionType.label}
                                                   secondary={subscriptionType.description}
@@ -257,9 +303,11 @@ export default async function AccountSubscriptionPage(
                                                       primary: { noWrap: true, variant: 'body2' },
                                                       secondary: { noWrap: true, variant: 'body2' },
                                                   }} />
-                                    <ToggleButtonGroupElement name={subscriptionType.id}
-                                                              options={kChannelOptions}
-                                                              color="primary" size="small" />
+                                    <Box sx={{ ml: 2 }}>
+                                        <ToggleButtonGroupElement name={subscriptionType.id}
+                                                                  options={kChannelOptions}
+                                                                  color="primary" size="small" />
+                                    </Box>
                                 </ListItem> ) }
                         </List>
                     </Grid>
@@ -322,7 +370,7 @@ async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
             type: kSubscriptionType.Application,
             typeId: team.id,
             Icon: NewReleasesIcon,
-            label: `Application (${team.name})`,
+            label: `Application for ${team.name}`,
             description: 'When a volunteer applies to help out',
         })),
         ...Object.entries(kTargetToTypeId).map(([ type, typeId ]) => ({
@@ -330,7 +378,7 @@ async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
             type: kSubscriptionType.Help,
             typeId: typeId,
             Icon: HelpOutlineOutlinedIcon,
-            label: `Help request (${type})`,
+            label: `Help request for ${type}`,
             description: 'Request for help issued through our displays',
         })),
         {
@@ -354,7 +402,7 @@ async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
             type: kSubscriptionType.Test,
             typeId: null,
             Icon: MultipleStopIcon,
-            label: 'Test messages',
+            label: 'Internal test messages',
             description: /* none= */ '',
         },
     ];
