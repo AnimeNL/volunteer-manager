@@ -8,13 +8,11 @@ import { notFound } from 'next/navigation';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
 
 import type { TwilioOutboxType } from '@lib/database/Types';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { TwilioLogo } from './TwilioLogo';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';

@@ -74,6 +74,9 @@ export async function queryUsersWithPermission(permission: PermissionAccessCheck
 
         const grants: Grant[] = user.access?.grants ? [ user.access.grants ] : [ /* empty */ ];
         for (const eventGrant of user.events) {
+            if (!eventGrant.event)
+                continue;  // the right of this event are not applicable anymore
+
             if (!eventGrant.permission)
                 continue;  // they had no permission-granting role in this event
 
