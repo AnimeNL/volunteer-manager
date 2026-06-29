@@ -2,24 +2,20 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
 import { DetailedLogs } from './DetailedLogs';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tOutboxEmail } from '@lib/database';
+import db, { tOutboxEmail, tUsers } from '@lib/database';
 
 /**
  * The message outbox page displays an individual message that was sent through the Volunteer
@@ -36,16 +32,29 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
     if (isNaN(id))
         notFound();
 
+    const fromUserJoin = tUsers.forUseInLeftJoinAs('fuj');
+    const toUserJoin = tUsers.forUseInLeftJoinAs('tuj');
+
     const dbInstance = db;
     const message = await dbInstance.selectFrom(tOutboxEmail)
+        .leftJoin(fromUserJoin)
+            .on(fromUserJoin.userId.equals(tOutboxEmail.outboxSenderUserId))
+        .leftJoin(toUserJoin)
+            .on(toUserJoin.userId.equals(tOutboxEmail.outboxToUserId))
         .select({
             // Basic fields:
             id: tOutboxEmail.outboxEmailId,
             date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
             from: tOutboxEmail.outboxSender,
-            fromUserId: tOutboxEmail.outboxSenderUserId,
+            fromUser: {
+                id: fromUserJoin.userId,
+                name: fromUserJoin.name,
+            },
             to: tOutboxEmail.outboxTo,
-            toUserId: tOutboxEmail.outboxToUserId,
+            toUser: {
+                id: toUserJoin.userId,
+                name: toUserJoin.name,
+            },
             subject: tOutboxEmail.outboxSubject,
             delivered:
                 tOutboxEmail.outboxResultAccepted.length().greaterThan(0).valueWhenNull(false),
@@ -85,150 +94,160 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
     const logs = !!message.logs ? JSON.parse(message.logs) : [];
 
     return (
-        <Stack direction="column" spacing={2}>
-            <Typography variant="h5">
-                Message sent on {
-                    formatDate(
-                        Temporal.ZonedDateTime.from(message.date).withTimeZone(
-                            Temporal.Now.timeZoneId()),
-                        'MMMM D, YYYY [at] H:mm:ss') }
-            </Typography>
-            <TableContainer component={Paper} variant="outlined">
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">From</TableCell>
-                            { !message.fromUserId && <TableCell>{message.from}</TableCell> }
-                            { !!message.fromUserId &&
-                                <TableCell>
-                                    <MuiLink
-                                        component={Link}
-                                        href={`/admin/organisation/accounts/${message.fromUserId}`}>
-                                        {message.from}
-                                    </MuiLink>
-                                </TableCell> }
-                        </TableRow>
-                        <TableRow>
-                            <TableCell component="th" scope="row">To</TableCell>
-                            { !message.toUserId && <TableCell>{message.to}</TableCell> }
-                            { !!message.toUserId &&
-                                <TableCell>
-                                    <MuiLink component={Link}
-                                             href={`/admin/organisation/accounts/${message.toUserId}`}>
-                                        {message.to}
-                                    </MuiLink>
-                                </TableCell> }
-                        </TableRow>
-                        { !!message.cc &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Cc</TableCell>
-                                <TableCell>{message.cc}</TableCell>
-                            </TableRow> }
-                        { !!message.bcc &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Bcc</TableCell>
-                                <TableCell>{message.bcc}</TableCell>
-                            </TableRow> }
-                        <TableRow>
-                            <TableCell component="th" scope="row">Subject</TableCell>
-                            <TableCell>{message.subject}</TableCell>
-                        </TableRow>
-                        { (!!message.headers && message.headers.length > 2) &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Headers</TableCell>
-                                <TableCell sx={{ whiteSpace: 'pre-line' }}>
-                                    {JSON.stringify(message.headers)}
-                                </TableCell>
-                            </TableRow> }
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <Stack direction="row" spacing={2}>
-                <Paper sx={{ flexBasis: '100%', p: 2 }} variant="outlined">
-                    <Typography variant="body2"
-                                sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                        {message.text}
-                    </Typography>
-                </Paper>
-                <Paper sx={{ flexBasis: '100%', p: 2 }} variant="outlined">
-                    <Typography variant="body2"
-                                sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                        {message.html}
-                    </Typography>
-                </Paper>
-            </Stack>
+        <>
+            <Section icon={ <MailOutlinedIcon color="primary" /> }
+                        title={`E-mail message #${params.id}`}
+                        breadcrumbs={[
+                            { label: 'Communication', href: '/admin/system/communication' },
+                            { label: 'Outbox' },
+                            { label: 'E-mail', href: '/admin/system/outbox/email' },
+                            { label: `#${params.id}` },
+                        ]}>
+                <SectionIntroduction>
+                    Detailed information about a message we sent by e-mail.
+                </SectionIntroduction>
+            </Section>
+            <Section title="Message">
+                <KeyValueList items={[
+                    {
+                        key: 'Date',
+                        value: message.date,
+                        valueTemplate: 'localDateTime',
+                    },
+                    {
+                        condition: !message.fromUser,
+                        key: 'Sender',
+                        value: message.from,
+                    },
+                    {
+                        condition: !!message.fromUser,
+                        key: 'Sender',
+                        value: message.fromUser!,
+                        valueTemplate: 'account',
+                    },
+                    {
+                        condition: !!message.fromUser,
+                        key: '⤷ e-mail address',
+                        value: message.from,
+                    },
+                    {
+                        condition: !message.toUser,
+                        key: 'Recipient',
+                        value: message.to,
+                    },
+                    {
+                        condition: !!message.toUser,
+                        key: 'Recipient',
+                        value: message.toUser!,
+                        valueTemplate: 'account',
+                    },
+                    {
+                        condition: !!message.toUser,
+                        key: '⤷ e-mail address',
+                        value: message.to,
+                    },
+                    {
+                        condition: !!message.cc,
+                        key: 'Cc',
+                        value: message.cc,
+                    },
+                    {
+                        condition: !!message.bcc,
+                        key: 'Bcc',
+                        value: message.bcc,
+                    },
+                    {
+                        key: 'Subject',
+                        value: message.subject,
+                    },
+                    {
+                        condition: !!message.headers && message.headers.length > 2,
+                        key: 'Headers',
+                        value: message.headers,
+                        valueTemplate: 'monospace',
+                    },
+                ]} />
+            </Section>
+            <Grid container spacing={1.5} sx={{  }}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper variant="outlined" sx={{ minHeight: '100%', padding: 2 }}>
+                        <Typography variant="body2" sx={{
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'pre-wrap',
+                        }}>
+                            {message.text}
+                        </Typography>
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper variant="outlined" sx={{ minHeight: '100%', padding: 2 }}>
+                        <Typography variant="body2" sx={{
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'pre-wrap',
+                        }}>
+                            {message.html}
+                        </Typography>
+                    </Paper>
+                </Grid>
+            </Grid>
             { !!message.errorName &&
-                <TableContainer component={Paper} variant="outlined">
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell colSpan={2} padding="none">
-                                    <Alert severity="error">
-                                        An exception occurred when sending this message.
-                                    </Alert>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">Error name</TableCell>
-                                <TableCell>{message.errorName}</TableCell>
-                            </TableRow>
-                            { !!message.errorMessage &&
-                                <TableRow>
-                                    <TableCell component="th" scope="row">Error message</TableCell>
-                                    <TableCell>{message.errorMessage}</TableCell>
-                                </TableRow> }
-                            { !!message.errorStack &&
-                                <TableRow>
-                                    <TableCell component="th" scope="row">Stack trace</TableCell>
-                                    <TableCell sx={{whiteSpace: 'pre-wrap', overflowWrap: 'anywhere'}}>
-                                        {message.errorStack}
-                                    </TableCell>
-                                </TableRow> }
-                            { !!message.errorCause &&
-                                <TableRow>
-                                    <TableCell component="th" scope="row">Cause</TableCell>
-                                    <TableCell sx={{whiteSpace: 'pre-wrap', overflowWrap: 'anywhere'}}>
-                                        {JSON.parse(message.errorCause)}
-                                    </TableCell>
-                                </TableRow> }
-                        </TableBody>
-                    </Table>
-                </TableContainer> }
-            <TableContainer component={Paper} variant="outlined">
-                <Table>
-                    <TableBody>
-                        { !!message.messageId &&
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">Message ID</TableCell>
-                                <TableCell>{message.messageId}</TableCell>
-                            </TableRow> }
-                        { !!message.accepted &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Accepted</TableCell>
-                                <TableCell>{message.accepted}</TableCell>
-                            </TableRow> }
-                        { !!message.rejected &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Rejected</TableCell>
-                                <TableCell>{message.rejected}</TableCell>
-                            </TableRow> }
-                        { !!message.pending &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Pending</TableCell>
-                                <TableCell>{message.pending}</TableCell>
-                            </TableRow> }
-                        { !!message.response &&
-                            <TableRow>
-                                <TableCell component="th" scope="row">Response</TableCell>
-                                <TableCell sx={{ whiteSpace: 'pre-line' }}>
-                                    {message.response}
-                                </TableCell>
-                            </TableRow> }
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            { !!logs.length && <DetailedLogs logs={logs} variant="outlined" /> }
-        </Stack>
+                <Section noHeader>
+                    <Alert severity="error">
+                        An exception occurred when sending this message.
+                    </Alert>
+                    <KeyValueList items={[
+                        {
+                            key: 'Name',
+                            value: message.errorName,
+                        },
+                        {
+                            key: 'Message',
+                            value: message.errorMessage,
+                        },
+                        {
+                            condition: !!message.errorCause,
+                            key: 'Cause',
+                            value: message.errorCause,
+                        },
+                        {
+                            key: 'Stack trace',
+                            value: message.errorStack,
+                            valueTemplate: 'monospace',
+                        },
+                    ]} />
+                </Section> }
+            { !!message.messageId &&
+                <Section title="Delivery">
+                    <KeyValueList items={[
+                        {
+                            key: 'Message ID',
+                            value: message.messageId,
+                        },
+                        {
+                            condition: !!message.accepted,
+                            key: 'Accepted',
+                            value: message.accepted,
+                        },
+                        {
+                            condition: !!message.rejected,
+                            key: 'Rejected',
+                            value: message.rejected,
+                        },
+                        {
+                            condition: !!message.pending,
+                            key: 'Pending',
+                            value: message.pending,
+                        },
+                        {
+                            condition: !!message.response,
+                            key: 'Response',
+                            value: message.response,
+                            valueTemplate: 'monospace',
+                        },
+                    ]} />
+                </Section> }
+            { !!logs.length && <DetailedLogs logs={logs} /> }
+        </>
     );
 }
 

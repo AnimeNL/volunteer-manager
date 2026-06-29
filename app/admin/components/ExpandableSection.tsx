@@ -3,7 +3,7 @@
 
 'use client';
 
-import { type default as React, useCallback } from 'react';
+import { type default as React, useCallback, useContext } from 'react';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -13,6 +13,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
 import type { UserSetting } from '@lib/UserSettings';
+import { AdminClientContext } from '../AdminClientContext';
 import { SectionHeader, type SectionHeaderProps } from './SectionHeader';
 import { callApi } from '@lib/callApi';
 
@@ -47,10 +48,21 @@ export function ExpandableSection(props: React.PropsWithChildren<ExpandableSecti
 
     }, [ props.setting ]);
 
+    const { isMobile, isLayoutV2 } = useContext(AdminClientContext);
+
+    const mobilePadding = isLayoutV2 ? '-8px !important' : '-16px !important';
+
     return (
         <Paper component={Accordion} defaultExpanded={defaultExpanded} disableGutters
-               onChange={handleStoreSetting}
-               sx={{ '&::before': { backgroundColor: 'transparent' } }}>
+               onChange={handleStoreSetting} square={isMobile}
+               sx={{
+                   borderRadius: isMobile ? '0 !important' : undefined,
+                   marginLeft: isMobile ? mobilePadding : undefined,
+                   marginRight: isMobile ? mobilePadding : undefined,
+                   '&::before': {
+                       backgroundColor: 'transparent'
+                    }
+               }}>
             <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
                 <SectionHeader {...sectionHeaderProps} sx={{ pb: 1 }} />
             </AccordionSummary>

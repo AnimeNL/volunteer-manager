@@ -41,7 +41,7 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Outbox',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',

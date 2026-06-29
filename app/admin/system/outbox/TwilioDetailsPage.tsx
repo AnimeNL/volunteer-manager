@@ -150,7 +150,7 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                     ]} />
                 </Section> }
             { !!message.exception &&
-                <Section title="Status">
+                <Section noHeader>
                     <Alert severity="error">
                         An exception occurred when sending this message.
                     </Alert>

@@ -3,21 +3,16 @@
 
 'use client';
 
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
 import Box from '@mui/material/Box';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
 import Typography from '@mui/material/Typography';
@@ -25,6 +20,7 @@ import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 
 import type { EmailLoggerSeverity } from '@lib/integrations/email/EmailLogger';
 import type { TaskLogSeverity } from '@lib/scheduler/TaskContext';
+import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 
 /**
  * Detailed logs applicable to outbox messages.
@@ -106,11 +102,6 @@ interface DetailedLogsProps {
      * The log entries that should be displayed in this component.
      */
     logs: DetailedLogEntry[];
-
-    /**
-     * Presentation expected for the paper. Defaults to "elevation".
-     */
-    variant?: 'elevation' | 'outlined';
 }
 
 /**
@@ -119,59 +110,51 @@ interface DetailedLogsProps {
  */
 export function DetailedLogs(props: DetailedLogsProps) {
     return (
-        <Paper variant={ props.variant ?? 'elevation' }>
-            <Accordion>
-                <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                        <TroubleshootIcon color="info" />
-                        <Typography variant="body1">
-                            Detailed logs
-                        </Typography>
-                    </Stack>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Table sx={{ mt: -2 }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell component="th" width="100" align="center">
-                                    <strong>Severity</strong>
-                                </TableCell>
-                                <TableCell component="th" width="100" align="center">
-                                    <strong>Time</strong>
-                                </TableCell>
-                                <TableCell sx={{ whiteSpace: 'pre-line' }}>
-                                    <strong>Details</strong>
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            { props.logs.map((log: any, index: number) =>
-                                <TableRow key={index}>
-                                    <TableCell align="center">
-                                        <LogSeverity severity={log.severity} />
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <LogTime time={log.time} />
-                                    </TableCell>
-                                    { !!log.params &&
-                                        <TableCell sx={{ whiteSpace: 'pre-wrap',
-                                                         overflowWrap: 'anywhere' }}>
-                                            {JSON.stringify(log.params)}
-                                        </TableCell> }
-                                    { !!log.message &&
-                                        <TableCell>
-                                            {log.message}
-                                            { (!!log.data && log.data.length > 4) &&
-                                                <Box sx={{ whiteSpace: 'pre-wrap',
-                                                           overflowWrap: 'anywhere' }}>
-                                                    {log.data}
-                                                </Box> }
-                                        </TableCell> }
-                                </TableRow> )}
-                        </TableBody>
-                    </Table>
-                </AccordionDetails>
-            </Accordion>
-        </Paper>
+        <ExpandableSection icon={ <TroubleshootIcon color="primary" /> } title="Detailed logs">
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell component="th" width="60" align="center">
+                            <Tooltip title="Severity">
+                                <CircleOutlinedIcon color="primary" />
+                            </Tooltip>
+                        </TableCell>
+                        <TableCell component="th" width="60" align="center">
+                            <Tooltip title="Time since start">
+                                <TimerOutlinedIcon color="primary" />
+                            </Tooltip>
+                        </TableCell>
+                        <TableCell component="th" sx={{ position: 'relative', top: '-2px' }}>
+                            Details
+                        </TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    { props.logs.map((log: any, index: number) =>
+                        <TableRow key={index}>
+                            <TableCell align="center">
+                                <LogSeverity severity={log.severity} />
+                            </TableCell>
+                            <TableCell align="center">
+                                <LogTime time={log.time} />
+                            </TableCell>
+                            { !!log.params &&
+                                <TableCell sx={{ whiteSpace: 'pre-wrap',
+                                                 overflowWrap: 'anywhere' }}>
+                                    { JSON.stringify(log.params) }
+                                </TableCell> }
+                            { !!log.message &&
+                                <TableCell>
+                                    {log.message}
+                                    { (!!log.data && log.data.length > 4) &&
+                                        <Box sx={{ whiteSpace: 'pre-wrap',
+                                                   overflowWrap: 'anywhere' }}>
+                                            {log.data}
+                                        </Box> }
+                                </TableCell> }
+                        </TableRow> )}
+                </TableBody>
+            </Table>
+        </ExpandableSection>
     );
 }
