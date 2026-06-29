@@ -23,9 +23,10 @@ import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tSubscriptions, tTeams, tUsers } from '@lib/database';
 
@@ -38,22 +39,106 @@ import { kTargetToTypeId } from '@lib/subscriptions/drivers/HelpDriver';
 const kUpdateSubscriptionsData = z.looseObject({ /* freeform */ });
 
 /**
- * Server Action through which subscriptions can be updated.
+ * Server Action through which subscriptions can be updated. This action executes a diffing
+ * operation to align the database with the submitted configuration. Subscriptions that are no
+ * longer recognised (because they e.g. have been removed) will be silently removed.
  */
 async function updateSubscriptions(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateSubscriptionsData, async (data, props) => {
         executeAccessCheck(props.authenticationContext, {
             check: 'admin',
-            permission: 'system.internals.scheduler',
+            permission: 'system.subscriptions.management',
         });
 
-        // todo
+        const subscriptionTypes = await getSubscriptionTypes();
 
-        return {
-            success: false,
-            error: 'Not yet implemented',
-        };
+        const activeSubscriptions = await db.selectFrom(tSubscriptions)
+            .where(tSubscriptions.subscriptionUserId.equals(userId))
+            .select({
+                id: tSubscriptions.subscriptionId,
+                type: tSubscriptions.subscriptionType,
+                typeId: tSubscriptions.subscriptionTypeId,
+                channelEmail: tSubscriptions.subscriptionChannelEmail,
+                channelSms: tSubscriptions.subscriptionChannelSms,
+                channelWhatsapp: tSubscriptions.subscriptionChannelWhatsapp,
+            })
+            .executeSelectMany();
+
+        await db.transaction(async () => {
+            const consultedActiveSubscriptions: Set<number> = new Set();
+
+            for (const subscriptionType of subscriptionTypes) {
+                let channels: string[] = [ /* none */ ];
+                if (Object.hasOwn(data, subscriptionType.id))
+                    channels = data[subscriptionType.id] as string[];
+
+                const email = channels.includes('email') ? 1 : 0;
+                const sms = channels.includes('sms') ? 1 : 0;
+                const whatsapp = channels.includes('whatsapp') ? 1 : 0;
+
+                const existing = activeSubscriptions.find(subscription => {
+                    return subscription.type === subscriptionType.type &&
+                           subscription.typeId === (subscriptionType.typeId ?? undefined);
+                });
+
+                if (existing)
+                    consultedActiveSubscriptions.add(existing.id);
+
+                if (email === 0 && sms === 0 && whatsapp === 0) {
+                    if (existing) {
+                        await db.deleteFrom(tSubscriptions)
+                            .where(tSubscriptions.subscriptionId.equals(existing.id))
+                            .executeDelete();
+                    }
+                } else {
+                    if (existing) {
+                        if (existing.channelEmail !== email || existing.channelSms !== sms ||
+                                existing.channelWhatsapp !== whatsapp)
+                        {
+                            await db.update(tSubscriptions)
+                                .set({
+                                    subscriptionChannelEmail: email,
+                                    subscriptionChannelSms: sms,
+                                    subscriptionChannelWhatsapp: whatsapp,
+                                })
+                                .where(tSubscriptions.subscriptionId.equals(existing.id))
+                                .executeUpdate();
+                        }
+                    } else {
+                        await db.insertInto(tSubscriptions)
+                            .set({
+                                subscriptionUserId: userId,
+                                subscriptionType: subscriptionType.type,
+                                subscriptionTypeId: subscriptionType.typeId,
+                                subscriptionChannelEmail: email,
+                                subscriptionChannelNotification: 0,
+                                subscriptionChannelSms: sms,
+                                subscriptionChannelWhatsapp: whatsapp,
+                            })
+                            .executeInsert();
+                    }
+                }
+            }
+
+            for (const subscription of activeSubscriptions) {
+                if (consultedActiveSubscriptions.has(subscription.id))
+                    continue;
+
+                await db.deleteFrom(tSubscriptions)
+                    .where(tSubscriptions.subscriptionId.equals(subscription.id))
+                    .executeDelete();
+            }
+        });
+
+        RecordLog({
+            type: kLogType.AdminSubscriptionUpdate,
+            severity: kLogSeverity.Warning,
+            sourceUser: props.user,
+            targetUser: userId,
+        });
+
+        return { success: true };
     });
 }
 
@@ -81,6 +166,11 @@ const kChannelOptions = [
 export default async function AccountSubscriptionPage(
     props: PageProps<'/admin/system/subscriptions/[id]'>)
 {
+    await requireAuthenticationContext({
+        check: 'admin',
+        permission: 'system.subscriptions.management',
+    });
+
     const params = await props.params;
 
     const subscriptionsJoin = tSubscriptions.forUseInLeftJoin();
