@@ -270,6 +270,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     {error}
                 </Alert> }
             <DataGridPremium
+                autoHeight
                 columns={columns}
                 dataSource={dataSource}
 
