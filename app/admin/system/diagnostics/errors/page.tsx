@@ -4,9 +4,14 @@
 import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { IssueTypeCell, LocalBuildCell } from './IssueTypeCell';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
@@ -200,17 +205,30 @@ export default async function ErrorLogsPage() {
     }
 
     return (
-        <DataTable
-            columns={columns}
-            source={errorLogsDataSource}
-            defaultSort={{ field: 'date', sort: 'desc' }}
-            listViewProps={{
-                primaryField: 'message',
-                secondaryTemplate: '{userLabel} ({severity})',
-                dateField: 'date',
-                linkTemplate: './errors/{id}',
-            }}
-        />
+        <>
+            <Section icon={ <ReportGmailerrorredIcon color="primary" /> } title="Error logs"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Diagnostics', href: '/admin/system/diagnostics' },
+                         { label: 'Error logs' },
+                     ]}>
+                <SectionIntroduction>
+                    Issues observed by the Volunteer Manager, both client and server-side.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <SectionTabs />
+                <DataTable columns={columns}
+                           source={errorLogsDataSource}
+                           defaultSort={{ field: 'date', sort: 'desc' }}
+                           listViewProps={{
+                               primaryField: 'message',
+                               secondaryTemplate: '{userLabel} ({severity})',
+                               dateField: 'date',
+                               linkTemplate: './errors/{id}',
+                           }} />
+            </Section>
+        </>
     );
 }
 

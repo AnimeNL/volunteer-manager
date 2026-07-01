@@ -10,8 +10,6 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import InputIcon from '@mui/icons-material/Input';
 import LinkIcon from '@mui/icons-material/Link';
 import List from '@mui/material/List';
@@ -19,11 +17,13 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PublicIcon from '@mui/icons-material/Public';
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
-import { formatDate } from '@lib/Temporal';
+import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
@@ -45,12 +45,13 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     const errorId = parseInt((await props.params).id, 10);
     const usersJoin = tUsers.forUseInLeftJoin();
 
-    const entry = await db.selectFrom(tErrorLogs)
+    const dbInstance = db;
+    const entry = await dbInstance.selectFrom(tErrorLogs)
         .leftJoin(usersJoin)
             .on(usersJoin.userId.equals(tErrorLogs.errorUserId))
         .where(tErrorLogs.errorId.equals(errorId))
         .select({
-            date: tErrorLogs.errorDate,
+            date: dbInstance.dateTimeAsString(tErrorLogs.errorDate),
             severity: tErrorLogs.errorSeverity,
 
             error: {
@@ -96,79 +97,96 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     }
 
     return (
-        <Stack direction="column" spacing={2}>
-            <Grid container>
-                <BackButtonGrid href="/admin/system/diagnostics/errors" />
-            </Grid>
-            <Typography variant="h6" sx={{ mt: '8px !important' }}>
-                Error seen on { formatDate(date, 'dddd, MMMM Do, YYYY [at] HH:mm:ss') }
-                {severityChip}
-            </Typography>
-            <Alert severity="warning">
-                { !!error.name && <strong>{error.name}: </strong> }
-                {error.message}
-            </Alert>
-            <Divider />
-            <List dense disablePadding>
-                <ListItem>
-                    <ListItemIcon sx={{ minWidth: '48px' }}>
-                        <InputIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText primary="Issue type" secondary={`${source.type}-side error`} />
-                </ListItem>
-                { !!source.origin &&
+        <>
+            <Section icon={ <ReportGmailerrorredIcon color="primary" /> }
+                     title={`Error #${errorId}`}
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Diagnostics', href: '/admin/system/diagnostics' },
+                         { label: 'Error logs', href: '/admin/system/diagnostics/errors' },
+                         { label: `Error #${errorId}`}
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about an observed error on the portal.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                     <Typography variant="h6" noWrap>
+                        <LocalDateTime dateTime={date} format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />
+                     </Typography>
+                     {severityChip}
+                </Stack>
+                <Alert severity="warning">
+                    { !!error.name && <strong>{error.name}: </strong> }
+                    {error.message}
+                </Alert>
+                <List dense disablePadding>
                     <ListItem>
                         <ListItemIcon sx={{ minWidth: '48px' }}>
-                            <AccountTreeIcon color="primary" />
+                            <InputIcon color="primary" />
                         </ListItemIcon>
-                        <ListItemText primary="Domain" secondary={source.origin} />
-                    </ListItem> }
-                { !!source.pathname &&
-                    <ListItem>
-                        <ListItemIcon sx={{ minWidth: '48px' }}>
-                            <LinkIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText primary="Path" secondary={
-                            <MuiLink component={Link} href={source.pathname}>
-                                {source.pathname}
-                            </MuiLink>
-                        } />
-                    </ListItem> }
-                { !!source.ipAddress &&
-                    <ListItem>
-                        <ListItemIcon sx={{ minWidth: '48px' }}>
-                            <PublicIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText slotProps={{ secondary: { component: 'div' } }}
-                                      primary="IP address" secondary={
-                            <>
-                                {source.ipAddress}
-                                { source.ipAddress === '::1' &&
-                                    <Chip color="info" label="dev" size="small" sx={{ ml: .5 }} /> }
-                            </>
-                        } />
-                    </ListItem> }
-                { !!user &&
-                    <ListItem>
-                        <ListItemIcon sx={{ minWidth: '48px' }}>
-                            <AccountCircleIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText primary="Account" secondary={
-                            <MuiLink component={Link}
-                                     href={`/admin/organisation/accounts/${user.id}`}>
-                                {user.name}
-                            </MuiLink>
-                        } />
-                    </ListItem> }
-            </List>
+                        <ListItemText primary="Issue type"
+                                      secondary={`${source.type}-side error`} />
+                    </ListItem>
+                    { !!source.origin &&
+                        <ListItem>
+                            <ListItemIcon sx={{ minWidth: '48px' }}>
+                                <AccountTreeIcon color="primary" />
+                            </ListItemIcon>
+                            <ListItemText primary="Domain" secondary={source.origin} />
+                        </ListItem> }
+                    { !!source.pathname &&
+                        <ListItem>
+                            <ListItemIcon sx={{ minWidth: '48px' }}>
+                                <LinkIcon color="primary" />
+                            </ListItemIcon>
+                            <ListItemText primary="Path" secondary={
+                                <MuiLink component={Link} href={source.pathname}>
+                                    {source.pathname}
+                                </MuiLink>
+                            } />
+                        </ListItem> }
+                    { !!source.ipAddress &&
+                        <ListItem>
+                            <ListItemIcon sx={{ minWidth: '48px' }}>
+                                <PublicIcon color="primary" />
+                            </ListItemIcon>
+                            <ListItemText slotProps={{ secondary: { component: 'div' } }}
+                                        primary="IP address" secondary={
+                                <>
+                                    {source.ipAddress}
+                                    { source.ipAddress === '::1' &&
+                                        <Chip color="info" label="dev" size="small"
+                                              sx={{ ml: .5 }} /> }
+                                </>
+                            } />
+                        </ListItem> }
+                    { !!user &&
+                        <ListItem>
+                            <ListItemIcon sx={{ minWidth: '48px' }}>
+                                <AccountCircleIcon color="primary" />
+                            </ListItemIcon>
+                            <ListItemText primary="Account" secondary={
+                                <MuiLink component={Link}
+                                        href={`/admin/organisation/accounts/${user.id}`}>
+                                    {user.name}
+                                </MuiLink>
+                            } />
+                        </ListItem> }
+                </List>
+            </Section>
             { !!error.stack &&
-                <>
-                    <Divider />
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre', textWrap: 'stable' }}>
+                <Section title="Stack trace">
+                    <Typography variant="body2" sx={{
+                        fontFamily: 'monospace',
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                    }}>
                         {error.stack}
                     </Typography>
-                </> }
-        </Stack>
+                </Section> }
+        </>
     );
 }
 

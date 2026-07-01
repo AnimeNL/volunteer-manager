@@ -1,16 +1,10 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import DvrIcon from '@mui/icons-material/Dvr';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import Paper from '@mui/material/Paper';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 
-import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -18,7 +12,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * available in the administration section. This includes performance information.
  */
 export default async function DiagnosticsLayout(props: LayoutProps<'/admin/system/diagnostics'>) {
-    await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'system.logs',
@@ -26,40 +20,22 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
         },
     });
 
-    const tabs: NavigationTabsProps['tabs'] = [
-        {
-            icon: <ReportGmailerrorredIcon color="error" />,
-            label: 'Error logs',
-            url: '/admin/system/diagnostics/errors',
-            urlMatchMode: 'prefix',
-        },
-        // TODO: Performance?
-        {
-            icon: <InfoOutlinedIcon color="info" />,
-            label: 'System logs',
-            url: '/admin/system/diagnostics/logs',
-            urlMatchMode: 'prefix',
-        },
-    ];
-
     return (
-        <>
-            <Section icon={ <DvrIcon color="primary" /> } title="Diagnostics" breadcrumbs={[
-                { label: 'System', href: '/admin/system' },
-                { label: 'Diagnostics' },
-            ]}>
-                <SectionIntroduction>
-                    Information about events, issues and perceived performance of the Volunteer
-                    Manager.
-                </SectionIntroduction>
-            </Section>
-            <Paper>
-                <NavigationTabs tabs={tabs} />
-                <Divider />
-                <Box sx={{ p: 2 }}>
-                    {props.children}
-                </Box>
-            </Paper>
-        </>
+        <SectionTabContext access={access} tabs={[
+            {
+                Icon: ReportGmailerrorredIcon,
+                label: 'Error logs',
+                url: '/admin/system/diagnostics/errors',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: InfoOutlinedIcon,
+                label: 'System logs',
+                url: '/admin/system/diagnostics/logs',
+                urlMatchMode: 'prefix',
+            }
+        ]}>
+            {props.children}
+        </SectionTabContext>
     );
 }

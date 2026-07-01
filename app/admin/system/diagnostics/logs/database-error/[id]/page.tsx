@@ -6,12 +6,13 @@ import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
+import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import Typography from '@mui/material/Typography';
 
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
-import { formatDate } from '@lib/Temporal';
+import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tLogs } from '@lib/database';
 
@@ -34,13 +35,14 @@ export default async function DatabaseErrorLogPage(
 
     const { id } = await props.params;
 
-    const entry = await db.selectFrom(tLogs)
+    const dbInstance = db;
+    const entry = await dbInstance.selectFrom(tLogs)
         .where(tLogs.logId.equals(parseInt(id, /* radix= */ 10)))
             .and(tLogs.logType.equals(kLogType.DatabaseError))
             .and(tLogs.logDeleted.isNull())
         .select({
             id: tLogs.logId,
-            date: tLogs.logDate,
+            date: dbInstance.dateTimeAsString(tLogs.logDate),
             data: tLogs.logData,
         })
         .executeSelectNoneOrOne();
@@ -51,39 +53,59 @@ export default async function DatabaseErrorLogPage(
     const { message, query, stack, params } = JSON.parse(entry.data);
 
     return (
-        <Stack direction="column" spacing={2}>
-            <Grid container>
-                <BackButtonGrid href="/admin/system/diagnostics/logs" />
-            </Grid>
-            <Typography variant="h6" sx={{ mt: '8px !important' }}>
-                Database error seen on {formatDate(entry.date, 'dddd, MMMM Do, YYYY [at] HH:mm:ss')}
-            </Typography>
-            <Alert severity="warning">
-                {message}
-            </Alert>
-            <Typography variant="body1">
-                { query.split(/(\?)/g).map((part: string, index: number) =>
-                    part === '?' ? <mark key={index}>{part}</mark>
-                                    : <span key={index}>{part}</span> )}
-            </Typography>
-            { (params && Array.isArray(params)) &&
-                <>
-                    <Divider />
-                    <Stack>
-                        { params.map((param: string, index: number) =>
-                            <Typography key={index}>
-                                <strong>Param {index}</strong>: {param}
-                            </Typography> )}
-                    </Stack>
-                </> }
-            { !!stack &&
-                <>
-                    <Divider />
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre' }}>
-                        {stack}
-                    </Typography>
-                </> }
-        </Stack>
+        <>
+            <Section icon={ <StorageOutlinedIcon color="primary" /> }
+                     title={`Database error #${entry.id}`}
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Diagnostics', href: '/admin/system/diagnostics' },
+                         { label: 'System logs', href: '/admin/system/diagnostics/logs' },
+                         { label: `Database error #${entry.id}` },
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about an observed database error.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <Typography variant="h6">
+                    <LocalDateTime dateTime={entry.date}
+                                   format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />
+                </Typography>
+                <Alert severity="warning">
+                    {message}
+                </Alert>
+                <Typography variant="body2" sx={{
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere'
+                }}>
+                    { query.split(/(\?)/g).map((part: string, index: number) =>
+                        part === '?' ? <mark key={index}>{part}</mark>
+                                        : <span key={index}>{part}</span> )}
+                </Typography>
+                { (params && Array.isArray(params)) &&
+                    <>
+                        <Divider />
+                        <Stack>
+                            { params.map((param: string, index: number) =>
+                                <Typography key={index}>
+                                    <strong>Param {index}</strong>: {param}
+                                </Typography> )}
+                        </Stack>
+                    </> }
+                { !!stack &&
+                    <>
+                        <Divider />
+                        <Typography variant="body2" sx={{
+                            fontFamily: 'monospace',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere'
+                        }}>
+                            {stack}
+                        </Typography>
+                    </> }
+            </Section>
+        </>
     );
 }
 

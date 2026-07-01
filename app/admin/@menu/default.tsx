@@ -80,6 +80,7 @@ export default async function DefaultMenu() {
                         badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Diagnostics',
                         url: '/admin/system/diagnostics/logs',
+                        urlPrefix: '/admin/system/diagnostics/',
                     },
                     {
                         Icon: ApiIcon,

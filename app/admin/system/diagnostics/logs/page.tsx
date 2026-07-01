@@ -3,7 +3,12 @@
 
 import type { Metadata } from 'next';
 
+import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
+
 import { LogsDataTable } from './LogsDataTable';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -20,7 +25,24 @@ export default async function SystemLogsPage() {
         },
     });
 
-    return <LogsDataTable enableDelete={ access.can('system.logs', 'delete') } />;
+    return (
+        <>
+            <Section icon={ <ReceiptOutlinedIcon color="primary" /> } title="System logs"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Diagnostics', href: '/admin/system/diagnostics' },
+                         { label: 'System logs' },
+                     ]}>
+                <SectionIntroduction>
+                    A chronologic record of actions committed within the Volunteer Manager.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <SectionTabs />
+                <LogsDataTable enableDelete={ access.can('system.logs', 'delete') } />
+            </Section>
+        </>
+    );
 }
 
 export const metadata: Metadata = {
