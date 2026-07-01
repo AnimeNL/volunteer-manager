@@ -3,14 +3,20 @@
 
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { GridRowModel } from '@mui/x-data-grid-premium';
 
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
+import Menu, { menuClasses } from '@mui/material/Menu';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 
 import type { RowModelFields } from './Types';
 import { LocalDateTime } from '../LocalDateTime';
@@ -88,6 +94,11 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
     onClick?: () => void;
 
     /**
+     * Callback when a row is requested to be deleted.
+     */
+    onDelete?: (row: GridRowModel<any>) => void;
+
+    /**
      * The row that's being rendered in this list view.
      */
     row: GridRowModel<any>;
@@ -101,6 +112,51 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
     const primaryFieldValue = resolveRowModelField(props.row, props.listViewProps.primaryField);
+
+    // ---------------------------------------------------------------------------------------------
+    // Mechanism through which the overflow menu can be accessed
+    // ---------------------------------------------------------------------------------------------
+
+    const [ menuAnchor, setMenuAnchor ] = useState<null | HTMLElement>(null);
+    const [ menuEverOpened, setMenuEverOpened ] = useState<boolean>(false);
+
+    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
+        setMenuAnchor(event.currentTarget);
+        setMenuEverOpened(true);
+
+    }, [ /* no deps */ ]);
+
+    const handleCloseMenu = useCallback((event?: any) => {
+        setMenuAnchor(null);
+        if (event)
+            event?.stopPropagation();
+
+    }, [ /* no deps */ ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Mechanism to request deletion of rows on a mobile device
+    // ---------------------------------------------------------------------------------------------
+
+    const handleDeleteClick = useCallback((event: React.MouseEvent) => {
+        setMenuAnchor(null);
+        event.stopPropagation();
+
+        props.onDelete?.(props.row);
+
+    }, [ props.onDelete, props.row ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Mechanism to request editing of rows on a mobile device
+    // ---------------------------------------------------------------------------------------------
+
+    const handleEditClick = useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+
+    }, [ /* no deps */]);
+
+    // ---------------------------------------------------------------------------------------------
+
     return (
         <Stack direction="row" spacing={2} onClick={props.onClick} sx={{
             alignItems: 'center',
@@ -138,6 +194,25 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             { props.listViewProps.endComponent &&
                 <props.listViewProps.endComponent row={props.row} listView /> }
 
+            { !!props.onDelete && (
+                <>
+                    <IconButton size="small" onClick={handleOpenMenu} sx={{ mr: -1 }}>
+                        <MoreVertIcon fontSize="small" />
+                    </IconButton>
+                    { !!menuEverOpened &&
+                        <IconMenu anchorEl={menuAnchor} open={!!menuAnchor} onClose={handleCloseMenu}
+                                  anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
+                                  transformOrigin={{ vertical: 'center', horizontal: 'right' }}>
+                            <IconButton component="li" disabled onClick={handleEditClick}>
+                                <EditIcon color="disabled" fontSize="medium" />
+                            </IconButton>
+                            <IconButton component="li" onClick={handleDeleteClick}>
+                                <DeleteForeverIcon color="action" fontSize="medium" />
+                            </IconButton>
+                        </IconMenu> }
+                </>
+            )}
+
             {props.children}
 
         </Stack>
@@ -162,6 +237,16 @@ export function DataTableListViewButtonRow(props: DataTableListViewRowProps) {
         </DataTableListViewRow>
     );
 }
+
+/**
+ * Styled variant of the <Menu> component that's appropriate for horizontal icon listing.
+ */
+const IconMenu = styled(Menu)(({ theme }) => ({
+    [`& .${menuClasses.list}`]: {
+        display: 'flex',
+        padding: theme.spacing(1, 1),
+    },
+}));
 
 /**
  * Calculates the row height for items in a list view based on the given `props`. Will be applied

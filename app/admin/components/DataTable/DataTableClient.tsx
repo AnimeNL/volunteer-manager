@@ -376,10 +376,12 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                         props.listViewProps.linkTemplate ?
                             <DataTableListViewButtonRow
                                 height={estimatedListViewRowHeight}
-                                listViewProps={props.listViewProps} row={params.row} /> :
+                                listViewProps={props.listViewProps} row={params.row}
+                                onDelete={props.source.delete ? setDeleteCandidate : undefined} /> :
                             <DataTableListViewRow
                                 height={estimatedListViewRowHeight}
-                                listViewProps={props.listViewProps} row={params.row} />,
+                                listViewProps={props.listViewProps} row={params.row}
+                                onDelete={props.source.delete ? setDeleteCandidate : undefined} />,
                 }}
 
                 getEstimatedRowHeight={ isMobile ? () => estimatedListViewRowHeight : undefined }

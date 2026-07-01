@@ -789,7 +789,67 @@ describe('DataTable', () => {
         fireEvent.click(confirmButton);
 
         await waitFor(() => {
-            expect(deleteInvokedWith).toEqual({ id: 1 });
+            expect(deleteInvokedWith).toEqual({ id: 1, name: 'Amia Bell', role: 'Manager' });
+        });
+    });
+
+    it('is able to delete a row on mobile', async () => {
+        let deleteInvokedWith: any = undefined;
+
+        const dataSource = createDataSource('test/delete-row-mobile', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async delete(params) {
+                deleteInvokedWith = params;
+                return true;
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        mocks.useIsMobile.mockReturnValue(true);
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        // On mobile, the row actions IconButton with MoreVert should be present.
+        const actionButtons = screen.getAllByRole('button', { name: 'Actions' });
+        expect(actionButtons.length).toBeGreaterThan(0);
+        fireEvent.click(actionButtons[0]);
+
+        // After clicking the action button, the menu items "Edit" and "Delete" should be shown.
+        await waitFor(() => {
+            expect(screen.getByText('Delete')).toBeDefined();
+        });
+
+        const deleteMenuItem = screen.getByText('Delete');
+        fireEvent.click(deleteMenuItem);
+
+        // Clicking delete menu item should open the confirmation dialog.
+        await waitFor(() => {
+            expect(screen.getByText('Delete this item?')).toBeDefined();
+        });
+
+        const confirmButton = screen.getByRole('button', { name: 'Delete' });
+        fireEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(deleteInvokedWith).toEqual({ id: 1, name: 'Amia Bell', role: 'Manager' });
         });
     });
 });
