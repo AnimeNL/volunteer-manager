@@ -196,17 +196,21 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
 
             { !!props.onDelete && (
                 <>
-                    <IconButton size="small" onClick={handleOpenMenu} sx={{ mr: -1 }}>
+                    <IconButton aria-label="Actions" size="small" onClick={handleOpenMenu}
+                                sx={{ mr: -1 }}>
                         <MoreVertIcon fontSize="small" />
                     </IconButton>
                     { !!menuEverOpened &&
-                        <IconMenu anchorEl={menuAnchor} open={!!menuAnchor} onClose={handleCloseMenu}
+                        <IconMenu anchorEl={menuAnchor} open={!!menuAnchor}
+                                  onClose={handleCloseMenu}
                                   anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
                                   transformOrigin={{ vertical: 'center', horizontal: 'right' }}>
-                            <IconButton component="li" disabled onClick={handleEditClick}>
+                            <IconButton component="li" disabled onClick={handleEditClick}
+                                        aria-label="Edit">
                                 <EditIcon color="disabled" fontSize="medium" />
                             </IconButton>
-                            <IconButton component="li" onClick={handleDeleteClick}>
+                            <IconButton component="li" onClick={handleDeleteClick}
+                                        aria-label="Delete">
                                 <DeleteForeverIcon color="action" fontSize="medium" />
                             </IconButton>
                         </IconMenu> }
