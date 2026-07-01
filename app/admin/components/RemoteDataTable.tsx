@@ -23,7 +23,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
 import { type ApiEndpoints, callApi } from '@lib/callApi';
-import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
+import { DeleteConfirmation } from './DataTable/DeleteConfirmation';
 
 type GridSortItem = GridSortModel[number];
 
@@ -574,7 +574,7 @@ export function RemoteDataTable<
                 autoHeight disableColumnMenu hideFooterSelectedRowCount
                 loading={loading} hideFooter={!!props.disableFooter} />
 
-            <DeleteConfirmationDialog
+            <DeleteConfirmation
                 open={!!deleteCandidate}
                 onClose={resetDeleteCandidate}
                 onDelete={handleDelete}

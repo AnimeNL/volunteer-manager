@@ -20,7 +20,7 @@ import type { ExtractContext, ExtractRowModel } from './Types';
 import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
-import { DeleteConfirmationDialog } from '../DeleteConfirmationDialog';
+import { DeleteConfirmation } from './DeleteConfirmation';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
@@ -399,7 +399,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 }}
 
                 onDataSourceError={handleDataSourceError} />
-            <DeleteConfirmationDialog
+            <DeleteConfirmation
                 open={deleteCandidate !== undefined}
                 onClose={handleDeleteClose}
                 onDelete={handleDelete}
