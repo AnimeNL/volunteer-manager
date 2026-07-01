@@ -744,4 +744,52 @@ describe('DataTable', () => {
         const lastCall = onUrlUpdate.mock.lastCall![0];
         expect(lastCall.searchParams.has('q')).toBeFalsy();
     });
+
+    it('is able to delete a row on desktop', async () => {
+        let deleteInvokedWith: any = null;
+
+        const dataSource = createDataSource('test/delete-row', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async delete(params) {
+                deleteInvokedWith = params;
+                return true;
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        const deleteButtons = screen.getAllByRole('button', { name: 'Delete this item' });
+        expect(deleteButtons.length).toBeGreaterThan(0);
+        fireEvent.click(deleteButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete this item?')).toBeDefined();
+        });
+
+        const confirmButton = screen.getByRole('button', { name: 'Delete' });
+        fireEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(deleteInvokedWith).toEqual({ id: 1 });
+        });
+    });
 });

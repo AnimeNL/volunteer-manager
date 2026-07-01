@@ -27,6 +27,11 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
             forbidden();
     },
 
+    async delete(params, props, context) {
+        console.log(params);
+        return true;
+    },
+
     async list(params, props, context) {
         const results = await db.selectFrom(tEvents)
             .select({

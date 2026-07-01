@@ -5,7 +5,7 @@ import { type ZodObject, z } from 'zod';
 import { hash } from 'node:crypto';
 import { notFound } from 'next/navigation';
 
-import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
+import type { GridGetRowsParams, GridRowModel } from '@mui/x-data-grid-premium';
 
 import type { DataSource } from './DataSource';
 import type { DataSourceInterface } from './DataSourceInterface';
@@ -90,6 +90,9 @@ export function createDataSource(...args: any) {
     if (Object.hasOwn(instance, 'create'))
         dataSourceInterface.create = createProxy.bind(null, dataSourceId);
 
+    if (Object.hasOwn(instance, 'delete'))
+        dataSourceInterface.delete = deleteProxy.bind(null, dataSourceId);
+
     return dataSourceInterface;
 }
 
@@ -104,6 +107,19 @@ async function createProxy(dataSourceId: string, context: unknown) {
         notFound();
 
     return dataSourceWrapper.call('create', context);
+}
+
+/**
+ * Proxy Server Action towards deleting a row in the associated data source.
+ */
+async function deleteProxy(dataSourceId: string, context: unknown, params: GridRowModel) {
+    'use server';
+
+    const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
+    if (!dataSourceWrapper)
+        notFound();
+
+    return dataSourceWrapper.call('delete', context, params);
 }
 
 /**

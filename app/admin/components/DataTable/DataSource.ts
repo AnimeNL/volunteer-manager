@@ -7,10 +7,7 @@ import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
 import type { DataSourceProps } from './DataSourceProps';
 
-/**
- * Types of operations that can be executed on a data source.
- */
-export type DataSourceOperation = 'create' | 'list';
+export type DataSourceOperation = 'create' | 'delete' | 'list';
 
 /**
  * Interface that has to be provided in order for a <DataTable> component to be able to gather or
@@ -49,6 +46,18 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @returns A row model representation of the newly created row.
      */
     create?(props: DataSourceProps, context: z.infer<ZodContext>): Promise<ZodRowModel>;
+
+    /**
+     * Deletes a row in the data source.
+     *
+     * @param params Parameters identifying what to delete.
+     * @param props Props indicating the circumstances under which this data source is used.
+     * @param context When set, contextual information required by this data source.
+     * @returns A boolean indicating whether the deletion succeeded.
+     */
+    delete?(params: z.infer<ZodRowModel>,
+            props: DataSourceProps,
+            context: z.infer<ZodContext>): Promise<boolean>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

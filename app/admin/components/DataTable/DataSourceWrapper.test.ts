@@ -210,4 +210,26 @@ describe('DataSourceWrapper', () => {
 
         expect(errorLogDelegateInvoked).toBeFalsy();
     });
+
+    it('is able to execute delete() operations', async () => {
+        let deletedId: number | undefined;
+        let deletedName: string | undefined;
+
+        const wrapper = new DataSourceWrapper(kEmptyContext, kBasicRowModel, kDefaultDataSourceId, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async delete(params, props, context) {
+                deletedId = params.id;
+                deletedName = params.name;
+                return true;
+            },
+        });
+
+        const success = await wrapper.call('delete', { /* empty */ }, { id: 42, name: 'John Doe' });
+        expect(success).toBe(true);
+
+        expect(deletedId).toBe(42);
+        expect(deletedName).toBe('John Doe');
+
+        expect(errorLogDelegateInvoked).toBeFalsy();
+    });
 });

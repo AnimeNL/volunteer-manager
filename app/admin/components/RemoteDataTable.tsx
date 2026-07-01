@@ -16,18 +16,14 @@ import { DataGridPremium, GridRowModes, GRID_REORDER_COL_DEF } from '@mui/x-data
 
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
 import { type ApiEndpoints, callApi } from '@lib/callApi';
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 
 type GridSortItem = GridSortModel[number];
 
@@ -578,21 +574,12 @@ export function RemoteDataTable<
                 autoHeight disableColumnMenu hideFooterSelectedRowCount
                 loading={loading} hideFooter={!!props.disableFooter} />
 
-            <Dialog open={!!deleteCandidate} onClose={resetDeleteCandidate}>
-                <DialogTitle>
-                    Delete this {subject}?
-                </DialogTitle>
-                <DialogContent>
-                    Are you sure that you want to remove this {subject}? This action can't be
-                    undone once you confirm its deletion.
-                </DialogContent>
-                <DialogActions sx={{ p: 2, pt: 0 }}>
-                    <Button onClick={resetDeleteCandidate}>Cancel</Button>
-                    <Button onClick={handleDelete} loading={deleteLoading} variant="contained">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <DeleteConfirmationDialog
+                open={!!deleteCandidate}
+                onClose={resetDeleteCandidate}
+                onDelete={handleDelete}
+                loading={deleteLoading}
+                subject={subject} />
         </>
     );
 }

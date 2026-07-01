@@ -6,9 +6,12 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
-    type GridPaginationModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
+    type GridPaginationModel, type GridRowModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
 
 import Alert from '@mui/material/Alert';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
@@ -17,6 +20,7 @@ import type { ExtractContext, ExtractRowModel } from './Types';
 import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
+import { DeleteConfirmationDialog } from '../DeleteConfirmationDialog';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
@@ -102,6 +106,14 @@ interface DataTableClientCommonProps<
      * Server-side source through which the data table's contents will be acquired.
      */
     source: Interface;
+
+    /**
+     * Subject describing what each row in the table is representing. Used in language that needs to
+     * refer to the items, such as the deletion confirmation dialog.
+     *
+     * @default "item"
+     */
+    subject?: string;
 };
 
 /**
@@ -137,6 +149,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     props: DataTableClientProps<Interface>)
 {
     const isMobile = useIsMobile();
+
+    const subject = props.subject ?? 'item';
 
     // ---------------------------------------------------------------------------------------------
     // Use memoized versions of certain props that would excessively invalidate the component tree.
@@ -224,15 +238,70 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     }, [ setSearch, setPage ]);
 
     // ---------------------------------------------------------------------------------------------
+    // Ability to delete rows from the data table, when exposed by the source. Confirmation will be
+    // obtained from the user prior to actually deleting any data.
+    // ---------------------------------------------------------------------------------------------
+
+    // xxx?
+    const [ refreshTrigger, setRefreshTrigger ] = useState<number>(0);
+
+    const [ deleteCandidate, setDeleteCandidate ] = useState<GridRowModel | undefined>();
+    const [ deleteLoading, setDeleteLoading ] = useState<boolean>(false);
+
+    const handleDeleteClose = useCallback(() => setDeleteCandidate(undefined), []);
+    const handleDelete = useCallback(async () => {
+        if (deleteCandidate === undefined)
+            return;
+
+        setDeleteLoading(true);
+        setError(undefined);
+        try {
+            const success = await props.source.delete!(context, deleteCandidate);
+            if (success) {
+                setRefreshTrigger(prev => prev + 1);
+                setDeleteCandidate(undefined);
+            } else {
+                setError(`Unable to delete this ${subject}`);
+            }
+        } catch (err: any) {
+            setError(`Unable to delete this ${subject} (${err.message})`);
+        } finally {
+            setDeleteLoading(false);
+        }
+    }, [ context, deleteCandidate, props.source, subject ]);
+
+    // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
     // redefine their interface several times, which are handled here.
     //
-    // TODO: Automatically generated columns (e.g. reordering, deletion)
+    // TODO: Automatically generated column for reordering
     // TODO: Column amendments (e.g. addition)
     // ---------------------------------------------------------------------------------------------
 
     const columns = useMemo(() => {
         const columns: GridColDef[] = [ /* none yet */ ];
+
+        // TODO: Add the ability to create rows to the |delete| column.
+        if (!isMobile && !!props.source.delete) {
+            columns.push({
+                display: 'flex',
+                field: '__delete',
+                headerName: '',
+                sortable: false,
+                width: 50,
+                align: 'center',
+
+                renderCell: params => (
+                    <Tooltip title={`Delete this ${subject}`}>
+                        <IconButton aria-label={`Delete this ${subject}`} size="small"
+                                    onClick={ () => setDeleteCandidate(params.row) }>
+                            <DeleteForeverIcon color="error" fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                ),
+            });
+        }
+
         for (const column of props.columns) {
             if ('template' in column && !!column.template)
                 columns.push(kColumnTemplates[column.template](column));
@@ -242,17 +311,20 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
         return columns;
 
-    }, [ props.columns ]);
+    }, [ props.columns, props.source.delete, isMobile, subject ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the `GridDataSource` based on the available Server Actions in the `props`.
     // ---------------------------------------------------------------------------------------------
 
-    const dataSource = useMemo((): GridDataSource => ({
-        getRows: async (params) => {
-            return props.source.list(context, params);
-        },
-    }), [ context, props.source ]);
+    const dataSource = useMemo((): GridDataSource => {
+        (void refreshTrigger);  // silence the Biome warning
+        return {
+            getRows: async (params) => {
+                return props.source.list(context, params);
+            },
+        };
+    }, [ context, props.source, refreshTrigger ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mess:
@@ -325,6 +397,12 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 }}
 
                 onDataSourceError={handleDataSourceError} />
+            <DeleteConfirmationDialog
+                open={deleteCandidate !== undefined}
+                onClose={handleDeleteClose}
+                onDelete={handleDelete}
+                loading={deleteLoading}
+                subject={subject} />
         </>
     );
 }

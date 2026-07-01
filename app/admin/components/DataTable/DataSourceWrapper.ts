@@ -64,6 +64,7 @@ export class DataSourceWrapper {
      * and all operation-specific parameters will be validated prior to being used.
      */
     async call(operation: 'create', context: unknown): Promise<GridRowModel>;
+    async call(operation: 'delete', context: unknown, params: GridRowModel): Promise<boolean>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
@@ -113,6 +114,27 @@ export class DataSourceWrapper {
                 }
 
                 return createdRow;
+            }
+
+            case 'delete': {
+                if (!Object.hasOwn(this.#dataSource, 'delete')) {
+                    this.reportError(
+                        operation, context, 'Data source does not support delete() operations');
+
+                    notFound();  // does not return
+                }
+
+                const deletingRow = args[0];
+                const deletingRowValidation = await this.#rowModel.safeParseAsync(deletingRow);
+                if (!deletingRowValidation.success) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the row model given by the client',
+                        deletingRowValidation.error);
+
+                    notFound();  // does not return
+                }
+
+                return this.#dataSource.delete!(deletingRowValidation.data, props, verifiedContext);
             }
 
             case 'list': {
