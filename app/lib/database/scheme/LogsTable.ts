@@ -28,6 +28,7 @@ export class LogsTable extends Table<DBConnection, 'LogsTable'> {
     logSourceUserAgent = this.optionalColumnWithDefaultValue('log_source_user_agent', 'string');
     logTargetUserId = this.optionalColumnWithDefaultValue('log_target_user_id', 'int');
     logData = this.optionalColumnWithDefaultValue('log_data', 'string');
+    logDiff = this.optionalColumnWithDefaultValue('log_diff', 'string');
     logDeleted = this.optionalColumnWithDefaultValue<ZonedDateTime>('log_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {

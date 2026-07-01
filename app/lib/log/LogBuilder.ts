@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { LogMessageDifferenceAllowedTypes, LogMessageDifferences } from './LogMessage';
+import type { LogPayloadAllowedTypes, LogDifferences } from './LogTypes';
 import type { LogTypeParameters, LogType } from './LogDescriptors';
 import type { LogSeverity } from '@lib/database/Types';
 import type { User } from '../auth/User';
@@ -43,7 +43,7 @@ export class LogBuilder<T extends LogType> {
 
     #type: T;
 
-    #diff: LogMessageDifferences | undefined;
+    #diff: LogDifferences | undefined;
     #severity: LogSeverity = 'Info';
 
     #initiatorUserId: number | undefined;
@@ -59,7 +59,7 @@ export class LogBuilder<T extends LogType> {
      * Record the `diff` as the differences that were written as part of this action. The `diff`
      * will be filtered, and before-after pairs that are unchanged won't be recorded with the log.
      */
-    withDiff(diff: LogMessageDifferences): this {
+    withDiff(diff: LogDifferences): this {
         this.#diff = this.filterDiff(diff);
         return this;
     }
@@ -136,10 +136,10 @@ export class LogBuilder<T extends LogType> {
      * Mechanism to filter the `diff` to just the entries where the before-after have actually
      * changed, ignoring the ones where no change has taken place.
      */
-    private filterDiff(diff: LogMessageDifferences): LogMessageDifferences {
+    private filterDiff(diff: LogDifferences): LogDifferences {
         function hasChanged(
-            before: LogMessageDifferenceAllowedTypes,
-            after: LogMessageDifferenceAllowedTypes): boolean
+            before: LogPayloadAllowedTypes,
+            after: LogPayloadAllowedTypes): boolean
         {
             if (!Array.isArray(before) || !Array.isArray(after))
                 return before !== after;
@@ -150,7 +150,7 @@ export class LogBuilder<T extends LogType> {
             return before.some((value, index) => value !== after[index]);
         }
 
-        const filteredDiff: LogMessageDifferences = {};
+        const filteredDiff: LogDifferences = {};
         for (const [ label, pair ] of Object.entries(diff)) {
             if (!hasChanged(pair.before, pair.after))
                 continue;

@@ -1,29 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { LogDifferences } from './LogTypes';
 import type { LogSeverity } from '@lib/database/Types';
 import type { LogType } from './LogDescriptors';
-
-/**
- * Types that are allowed to be used in the `withDiff` builder.
- * @ignore Exported exclusively for use in the `LogBuilder`.
- */
-export type LogMessageDifferenceAllowedTypes =
-    string | string[] | number | number[] | boolean | boolean;
-
-/**
- * Strict pair of types, as we require the before and after to be of the same type.
- */
-type LogMessageDifferenceStrictPair<T = LogMessageDifferenceAllowedTypes> =
-    T extends any ? { before: T, after: T }
-                  : never;
-
-/**
- * Structure through which differences can be included in the log entry.
- */
-export type LogMessageDifferences = {
-    [label: string]: LogMessageDifferenceStrictPair;
-};
 
 /**
  * Class that represents a log message. Contains all information necessary for the message to either
@@ -32,7 +12,7 @@ export type LogMessageDifferences = {
 export class LogMessage<T extends LogType = any> {
     #type: T;
 
-    #diff: LogMessageDifferences | undefined;
+    #diff: LogDifferences | undefined;
     #severity: LogSeverity;
 
     #initiatorUserId: number | undefined;
@@ -43,7 +23,7 @@ export class LogMessage<T extends LogType = any> {
     constructor(params: {
         type: T;
 
-        diff: LogMessageDifferences | undefined;
+        diff: LogDifferences | undefined;
         severity: LogSeverity;
 
         initiatorUserId: number | undefined;
