@@ -9,6 +9,7 @@ import StreamIcon from '@mui/icons-material/Stream';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { EligibilityCell, EligibilityHeader } from './SubscriptionCells';
+import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -128,6 +129,11 @@ async function publishTestMessage() {
                 name: props.user.nameOrFirstName,
             },
         });
+
+        LogBuilder.for('PublishSubscriptionTest')
+            .withInitiatorUser(props.user)
+            .withSeverity('Debug')
+            .record();
     });
 }
 

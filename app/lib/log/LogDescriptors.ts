@@ -16,10 +16,34 @@ interface LogTypeParameterMap {
     // Administration > Dashboard > Communication
     // ---------------------------------------------------------------------------------------------
 
+    PublishSubscriptionTest: NoParameters;
+
     UpdateAccountSubscriptions: {
         added: string[];
         updated: string[];
         removed: string[];
+    };
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Dashboard > System
+    // ---------------------------------------------------------------------------------------------
+
+    CreateSchedulerTask: {
+        taskName: string;
+    };
+
+    RepeatSchedulerTask: {
+        taskId: number;
+        taskName: string;
+        repeatedTaskId: number;
+    };
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > People & teams
+    // ---------------------------------------------------------------------------------------------
+
+    RespondToFeedback: {
+        action: string;  // Acknowledged | Archived | Declined | Resolved
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -58,7 +82,21 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Dashboard > Communication
     // ---------------------------------------------------------------------------------------------
 
+    PublishSubscriptionTest: 'PublishSubscriptionTest',
     UpdateAccountSubscriptions: 'UpdateAccountSubscriptions',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Dashboard > System
+    // ---------------------------------------------------------------------------------------------
+
+    CreateSchedulerTask: 'CreateSchedulerTask',
+    RepeatSchedulerTask: 'RepeatSchedulerTask',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > People & teams
+    // ---------------------------------------------------------------------------------------------
+
+    RespondToFeedback: 'RespondToFeedback',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:

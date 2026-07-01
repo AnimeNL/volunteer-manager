@@ -12,16 +12,16 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import RepeatIcon from '@mui/icons-material/Repeat';
 import Tooltip from '@mui/material/Tooltip';
 
-import { rerunSchedulerTask } from '../SchedulerActions';
+import type { ServerActionResult } from '@lib/serverAction';
 
 /**
  * Props accepted by the <RerunTaskButton> component.
  */
 interface RerunTaskButtonProps {
     /**
-     * Unique ID of the task that should be re-run when queried.
+     * Server Action through which the task can be repeated.
      */
-    taskId: number;
+    repeatFn: () => Promise<ServerActionResult>;
 }
 
 /**
@@ -40,10 +40,7 @@ export function RerunTaskButton(props: RerunTaskButtonProps) {
         setDisabled(false);
         setLoading(true);
         try {
-            const result = await rerunSchedulerTask({
-                taskId: props.taskId,
-            });
-
+            const result = await props.repeatFn();
             if (!!result.success) {
                 setChildTaskId(result.taskId);
                 setDisabled(true);
@@ -56,7 +53,7 @@ export function RerunTaskButton(props: RerunTaskButtonProps) {
         } finally {
             setLoading(false);
         }
-    }, [ props.taskId ]);
+    }, [ props.repeatFn ]);
 
     return (
         <>

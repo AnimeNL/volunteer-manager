@@ -26,7 +26,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -134,12 +134,11 @@ async function updateSubscriptions(userId: number, formData: unknown) {
             }
         });
 
-        RecordLog({
-            type: kLogType.AdminSubscriptionUpdate,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('UpdateAccountSubscriptions')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record();
 
         return { success: true };
     });

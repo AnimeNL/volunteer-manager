@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { RecordLog, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
@@ -55,12 +55,10 @@ async function recordResponse(feedbackId: number, feedbackUserId?: number, formD
         if (!affectedRows)
             return { success: false, error: 'Unable to store the response in the database…' };
 
-        RecordLog({
-            sourceUser: props.user,
-            targetUser: feedbackUserId,
-            type: kLogType.AdminFeedbackResponse,
-            data,
-        });
+        LogBuilder.for('RespondToFeedback')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(feedbackUserId)
+            .record({ action: data.response });
 
         return { success: true, refresh: true };
     });
@@ -198,6 +196,7 @@ export default async function FeedbackDetailPage(
                                 <SelectElement name="response" fullWidth size="small"
                                                options={kResponseOptions} required />
                             ),
+                            valueTemplate: 'component',
                         },
                         {
                             keyAlign: 'center',
@@ -206,6 +205,7 @@ export default async function FeedbackDetailPage(
                                 <TextareaAutosizeElement name="responseText" fullWidth size="small"
                                                          required />
                             ),
+                            valueTemplate: 'component',
                         },
                     ]} />
                 </Grid>

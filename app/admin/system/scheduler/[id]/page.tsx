@@ -18,6 +18,8 @@ import { Temporal, formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
 
+import { rerunSchedulerTask } from '../SchedulerActions';
+
 /**
  * The task page gives details about the execution of an individual task, including all logs, timing
  * and exception information. It allows system administrators to inspect what went wrong.
@@ -61,6 +63,8 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
 
         taskInterval = formatDuration(duration);
     }
+
+    const repeatFn = rerunSchedulerTask.bind(null, task.taskId, task.taskName);
 
     const taskParamsObject = JSON.parse(task.taskParams);
     const taskParamsFormatted = JSON.stringify(taskParamsObject, undefined, /* space= */ 4);
@@ -132,7 +136,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                                     <Typography variant="body2">
                                         {task.result}
                                     </Typography>
-                                    <RerunTaskButton taskId={task.taskId} />
+                                    <RerunTaskButton repeatFn={repeatFn} />
                                 </Stack>
                             ),
                             valueTemplate: 'component',

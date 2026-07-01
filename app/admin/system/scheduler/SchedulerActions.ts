@@ -5,6 +5,7 @@
 
 import { z } from 'zod/v4';
 
+import { LogBuilder } from '@lib/log/index';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { rerunTask, scheduleTask } from '@lib/scheduler';
@@ -66,6 +67,11 @@ export async function createSchedulerTask(formData: unknown) {
             delayMs: 0,
         });
 
+        LogBuilder.for('CreateSchedulerTask')
+            .withInitiatorUser(props.user)
+            .withSeverity('Debug')
+            .record({ taskName: data.task });
+
         return {
             success: true,
             clear: true,
@@ -76,34 +82,32 @@ export async function createSchedulerTask(formData: unknown) {
 }
 
 /**
- * Zod type that describes the data required when rerunning an existing task.
- */
-const kRerunSchedulerTaskData = z.object({
-    taskId: z.coerce.number(),
-});
-
-/**
  * Server action that reruns an existing task.
  */
-export async function rerunSchedulerTask(formData: unknown) {
+export async function rerunSchedulerTask(taskId: number, taskName: string) {
     'use server';
-    return executeServerAction(formData, kRerunSchedulerTaskData, async (data, props) => {
+    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
         executeAccessCheck(props.authenticationContext, {
             check: 'admin',
             permission: 'system.internals.scheduler',
         });
 
-        const rescheduledTaskId = await rerunTask(data.taskId);
-        if (!rescheduledTaskId) {
+        const repeatedTaskId = await rerunTask(taskId);
+        if (!repeatedTaskId) {
             return {
                 success: false,
                 error: 'Unable to rerun the selected task.',
             };
         }
 
+        LogBuilder.for('RepeatSchedulerTask')
+            .withInitiatorUser(props.user)
+            .withSeverity('Debug')
+            .record({ taskId, taskName, repeatedTaskId });
+
         return {
             success: true,
-            taskId: rescheduledTaskId,
+            taskId: repeatedTaskId,
         };
     });
 }

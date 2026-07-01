@@ -67,9 +67,9 @@ export class LogBuilder<T extends LogType> {
     /**
      * Record the `initiatorUser` as the person who initiated this action.
      */
-    withInitiatorUser(initiatorUser: User | number): this {
+    withInitiatorUser(initiatorUser: User | number | undefined): this {
         this.#initiatorUserId =
-            typeof initiatorUser === 'number' ? initiatorUser : initiatorUser.id;
+            typeof initiatorUser === 'number' ? initiatorUser : initiatorUser?.id;
 
         return this;
     }
@@ -77,9 +77,9 @@ export class LogBuilder<T extends LogType> {
     /**
      * Record the `targetUser` as the person who was affected by this action.
      */
-    withAffectedUser(affectedUser: User | number): this {
+    withAffectedUser(affectedUser: User | number | undefined): this {
         this.#affectedUserId =
-            typeof affectedUser === 'number' ? affectedUser : affectedUser.id;
+            typeof affectedUser === 'number' ? affectedUser : affectedUser?.id;
 
         return this;
     }
