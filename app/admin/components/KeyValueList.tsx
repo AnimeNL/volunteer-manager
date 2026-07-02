@@ -4,9 +4,14 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import React, { useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Grid, { gridClasses } from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
@@ -14,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import { AdminClientContext } from '../AdminClientContext';
+import { InlineAccountLink } from './InlineAccountLink';
 import { LocalDateTime } from './LocalDateTime';
 
 /**
@@ -94,66 +100,77 @@ interface KeyValueListProps {
  * components, in a consistent and responsive manner.
  */
 export function KeyValueList(props: KeyValueListProps) {
-    return (
-        <KeyValueListGrid columns={24} container>
-            { props.items.filter(item => item.condition !== false).map((item, index) =>
-                <React.Fragment key={index}>
-                    <Grid size={{ xs: 24, md: 7 }} sx={
-                        item.keyAlign === 'center'
-                            ? { display: 'flex', alignItems: 'center' }
-                            : undefined
-                    }>
-                        <Typography variant="subtitle2" color="textSecondary" noWrap>
-                            {item.key}
-                            { !!item.description &&
-                                <Tooltip arrow title={item.description}>
-                                    <KeyValueInfoIcon fontSize="inherit" color="info" />
-                                </Tooltip> }
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 24, md: 17 }}>
-                        { (!item.valueTemplate || item.valueTemplate === 'none') &&
-                            <Typography variant="body2">
-                                {item.value}
-                            </Typography> }
-                        { item.valueTemplate === 'account' &&
-                            <KeyValueConditionalAccountLink account={item.value} /> }
-                        { item.valueTemplate === 'component' && item.value }
-                        { item.valueTemplate === 'localDateTime' &&
-                            <Typography variant="body2">
-                                <LocalDateTime dateTime={item.value as string}
-                                               fixedWidth format="YYYY-MM-DD HH:mm:ss" />
-                            </Typography> }
-                        { item.valueTemplate === 'monospace' &&
-                            <MonospaceTypography variant="body2">
-                                {item.value}
-                            </MonospaceTypography> }
-                    </Grid>
-                </React.Fragment> )}
-        </KeyValueListGrid>
-    );
-}
+    const { isMobile } = useContext(AdminClientContext);
+    const [ activeItem, setActiveItem ] = useState<{ key: string; description: string } | null>(null);
 
-/**
- * Component that either
- */
-function KeyValueConditionalAccountLink(props: { account: { id: number; name: string } }) {
-    const context = useContext(AdminClientContext);
-    if (!context.canAccessAccounts) {
-        return (
-            <Typography variant="body2">
-                {props.account.name}
-            </Typography>
-        );
-    } else {
-        return (
-            <Typography variant="body2">
-                <MuiLink component={Link} href={`/admin/organisation/accounts/${props.account.id}`}>
-                    {props.account.name}
-                </MuiLink>
-            </Typography>
-        );
-    }
+    const handleCloseDialog = useCallback(() => setActiveItem(null), []);
+
+    return (
+        <>
+            <KeyValueListGrid columns={24} container>
+                { props.items.filter(item => item.condition !== false).map((item, index) =>
+                    <React.Fragment key={index}>
+                        <Grid size={{ xs: 24, md: 7 }} sx={
+                            item.keyAlign === 'center'
+                                ? { display: 'flex', alignItems: 'center' }
+                                : undefined
+                        }>
+                            <Typography variant="subtitle2" color="textSecondary" noWrap>
+                                {item.key}
+                                { !!item.description && (
+                                    isMobile ? (
+                                        <KeyValueInfoIcon
+                                            fontSize="inherit"
+                                            color="info"
+                                            onClick={ () => setActiveItem({
+                                                key: item.key,
+                                                description: item.description!
+                                            }) }
+                                            sx={{ cursor: 'pointer' }}
+                                        />
+                                    ) : (
+                                        <Tooltip arrow title={item.description}>
+                                            <KeyValueInfoIcon fontSize="inherit" color="info" />
+                                        </Tooltip>
+                                    )
+                                ) }
+                            </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 24, md: 17 }}>
+                            { (!item.valueTemplate || item.valueTemplate === 'none') &&
+                                <Typography variant="body2">
+                                    {item.value}
+                                </Typography> }
+                            { item.valueTemplate === 'account' &&
+                                <Typography variant="body2">
+                                    <InlineAccountLink user={item.value} />
+                                </Typography> }
+                            { item.valueTemplate === 'component' && item.value }
+                            { item.valueTemplate === 'localDateTime' &&
+                                <Typography variant="body2">
+                                    <LocalDateTime dateTime={item.value as string}
+                                                   fixedWidth format="YYYY-MM-DD HH:mm:ss" />
+                                </Typography> }
+                            { item.valueTemplate === 'monospace' &&
+                                <MonospaceTypography variant="body2">
+                                    {item.value}
+                                </MonospaceTypography> }
+                        </Grid>
+                    </React.Fragment> )}
+            </KeyValueListGrid>
+            { !!activeItem && (
+                <Dialog open={true} onClose={handleCloseDialog} fullWidth>
+                    <DialogTitle>{activeItem.key}</DialogTitle>
+                    <DialogContent>
+                        <Typography variant="body2">{activeItem.description}</Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ pt: 0, mt: -1, mr: 1, ml: 1.5, mb: 0 }}>
+                        <Button onClick={handleCloseDialog}>Close</Button>
+                    </DialogActions>
+                </Dialog>
+            )}
+        </>
+    );
 }
 
 /**
