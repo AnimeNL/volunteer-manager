@@ -102,21 +102,11 @@ export default async function IntegrationsPage() {
         ],
         'Event settings': [
             {
-                setting: 'application-publish-on-move',
-                type: 'boolean',
-                defaultValue: false,
-
-                label: 'Applications - publish on move',
-                description:
-                    'Should an application be published when it has been moved from one team to ' +
-                    'another?',
-            },
-            {
                 setting: 'availability-max-event-duration-minutes',
                 type: 'number',
                 defaultValue: 180,
 
-                label: 'Availability - duration cutoff',
+                label: 'Availability - maximum duration',
                 description:
                     'What is the longest event, in minutes, to consider for availability ' +
                     'preferences?',
@@ -140,14 +130,6 @@ export default async function IntegrationsPage() {
                 description: 'Suffix to append after someone\'s full name when sending an e-mail.',
             },
             {
-                setting: 'program-event-sales-relative',
-                type: 'boolean',
-                defaultValue: true,
-
-                label: 'Program - relative sales graphs',
-                description: 'Whether sales graph date ranges should be relative to the festival',
-            },
-            {
                 setting: 'retention-number-of-events-to-consider',
                 type: 'number',
                 defaultValue: 2,
@@ -168,7 +150,7 @@ export default async function IntegrationsPage() {
                 type: 'string',
                 defaultValue: '08:00',
 
-                label: 'Schedule - start time (day view; HH:MM)',
+                label: 'Schedule - start time (HH:MM)',
                 description: 'Time at which the day starts on schedule',
             },
             {
@@ -176,25 +158,17 @@ export default async function IntegrationsPage() {
                 type: 'string',
                 defaultValue: '27:30',
 
-                label: 'Schedule - end time (day view; HH:MM)',
+                label: 'Schedule - end time (HH:MM)',
                 description:
                     'Time at which the day ends on the schedule. May continue beyond midnight to ' +
                     'finish on the next day',
-            },
-            {
-                setting: 'schedule-duty-book',
-                type: 'boolean',
-                defaultValue: false,
-
-                label: 'Schedule - Duty Book',
-                description: 'Whether to display the Duty Book for teams that have access to it',
             },
             {
                 setting: 'schedule-event-view-start-hours',
                 type: 'number',
                 defaultValue: 4,
 
-                label: 'Schedule - start hours (event view)',
+                label: 'Schedule - pre-open hours',
                 description: 'Number of hours before opening that shifts can be scheduled',
             },
             {
@@ -202,7 +176,7 @@ export default async function IntegrationsPage() {
                 type: 'number',
                 defaultValue: 4,
 
-                label: 'Schedule - end hours (event view)',
+                label: 'Schedule - post-close hours',
                 description: 'Number of hours after closing that shifts can be scheduled',
             },
             {
@@ -212,14 +186,6 @@ export default async function IntegrationsPage() {
 
                 label: 'Schedule - recent shifts',
                 description: 'Number of recent shifts to display in the context menu',
-            },
-            {
-                setting: 'schedule-enable-sidebar',
-                type: 'boolean',
-                defaultValue: false,
-
-                label: 'Schedule - sidebar',
-                description: 'Whether to display a tally of scheduled hours on the scheduling tool',
             },
             {
                 setting: 'schedule-time-step-minutes',
@@ -302,22 +268,6 @@ export default async function IntegrationsPage() {
                 description:
                     'Number of minutes that a particular piece of excellent advice should be ' +
                     'shown for',
-            },
-            {
-                setting: 'schedule-favourite-events',
-                type: 'boolean',
-                defaultValue: false,
-
-                label: 'Favourites',
-                description: 'Enable volunteers to star their favourite events',
-            },
-            {
-                setting: 'schedule-knowledge-base',
-                type: 'boolean',
-                defaultValue: true,
-
-                label: 'Knowledge base',
-                description: 'Whether the knowledge base should be enabled',
             },
             {
                 setting: 'schedule-logical-days',

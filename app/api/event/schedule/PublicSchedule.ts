@@ -86,11 +86,6 @@ export const kPublicSchedule = z.strictObject({
         enableDutyBook: z.boolean().optional(),
 
         /**
-         * Whether the ability for volunteer to favourite events should be enabled.
-         */
-        enableFavourites: z.boolean().optional(),
-
-        /**
          * Whether Del a Rie Advies is able to generate personalised advice.
          */
         enableGeneratedAdvice: z.boolean().optional(),
@@ -99,11 +94,6 @@ export const kPublicSchedule = z.strictObject({
          * Whether access to help requests should be enabled.
          */
         enableHelpRequests: z.boolean().optional(),
-
-        /**
-         * Whether the knowledge base should be enabled.
-         */
-        enableKnowledgeBase: z.boolean(),
 
         /**
          * Whether convention days should be "logical" days rather than calendar days, i.e. shifts

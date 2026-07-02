@@ -236,7 +236,7 @@ export function VolunteerPage(props: VolunteerPageProps) {
             }
         }
 
-        if (!!schedule.config.enableFavourites && isSelf && !!schedule.favourites) {
+        if (isSelf && !!schedule.favourites) {
             const sxPrimaryLabel: SxProps<Theme> = {
                 ...kEnforceSingleLine,
                 color: 'text.disabled',

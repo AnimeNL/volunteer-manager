@@ -932,9 +932,6 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         'schedule-del-a-rie-advies',
         'schedule-del-a-rie-advies-genai',
         'schedule-del-a-rie-advies-time-limit',
-        'schedule-duty-book',
-        'schedule-favourite-events',
-        'schedule-knowledge-base',
         'schedule-logical-days',
         'schedule-sales-product-panel',
         'schedule-sales-sold-out',
@@ -955,10 +952,8 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             activityListLimit: settings['schedule-activity-list-limit'] ?? 5,
             enableAvatarManagement: access.can('organisation.avatars'),
             enableDutyBook: false,
-            enableFavourites: settings['schedule-favourite-events'] ?? false,
             enableGeneratedAdvice: settings['schedule-del-a-rie-advies-genai'] ?? false,
             enableHelpRequests: access.can('event.help-requests', { event: event.slug }),
-            enableKnowledgeBase: settings['schedule-knowledge-base'] ?? false,
             enableLogicalDays: settings['schedule-logical-days'] ?? false,
             enableNotesEditor: notesAccess,
             searchResultFuzziness: settings['schedule-search-candidate-fuzziness'] ?? 0.04,
@@ -998,8 +993,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
 
     const dbInstance = db;
 
-    if (schedule.config.enableFavourites)
-        await populateFavourites(dbInstance, schedule, event.id);
+    await populateFavourites(dbInstance, schedule, event.id);
 
     await populateMetadata(
         dbInstance, schedule, event.id, !!settings['schedule-del-a-rie-advies'],
@@ -1041,17 +1035,14 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         dbInstance, schedule, currentTime, event.id, unavailabilityFn, notesAccess,
         phoneNumberAccess, teamAccess, team);
 
-    if (schedule.config.enableKnowledgeBase)
-        await populateKnowledgeBase(dbInstance, access, schedule, event.id);
+    await populateKnowledgeBase(dbInstance, access, schedule, event.id);
 
-    if (!!settings['schedule-duty-book']) {
-        if (access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
+    if (access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
+        schedule.config.enableDutyBook = true;
+    } else if (Object.hasOwn(schedule.volunteers, `${schedule.userId}`)) {
+        const volunteer = schedule.volunteers[`${schedule.userId}`];
+        if (schedule.teams[volunteer.team].enableDutyBook)
             schedule.config.enableDutyBook = true;
-        } else if (Object.hasOwn(schedule.volunteers, `${schedule.userId}`)) {
-            const volunteer = schedule.volunteers[`${schedule.userId}`];
-            if (schedule.teams[volunteer.team].enableDutyBook)
-                schedule.config.enableDutyBook = true;
-        }
     }
 
     if (!schedule.config.enableDutyBook)

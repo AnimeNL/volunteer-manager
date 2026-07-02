@@ -136,9 +136,6 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
     if (!info)
         notFound();
 
-    // Whether the Duty Book functionality is enabled in the Volunteer Portal.
-    const dutyBookEnabled = await readSetting('schedule-duty-book');
-
     // Sort the teams included in the |info|. While JSON_ARRAYAGG accepts its own ORDER BY clause,
     // this is not yet supported by `ts-sql-query`. This'll do in the mean time.
     info.teams.sort((lhs, rhs) => lhs.name!.localeCompare(rhs.name!));
@@ -338,7 +335,7 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
                     icon: <BookIcon />,
                     label: 'Duty book',
                     url: `/admin/events/${event}/${team.slug}/duty-book`,
-                    condition: dutyBookEnabled && team.flagEnableDutyBook,
+                    condition: team.flagEnableDutyBook,
                 },
                 {
                     icon: <InfoOutlinedIcon />,

@@ -112,9 +112,7 @@ export default async function EventTeamDutyBookIncidentPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book/[id]'>)
 {
     const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
-
-    const dutyBookEnabled = await readSetting('schedule-duty-book');
-    if (!dutyBookEnabled || !team.flagEnableDutyBook)
+    if (!team.flagEnableDutyBook)
         notFound();
 
     const dbInstance = db;

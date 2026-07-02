@@ -28,18 +28,12 @@ export type Settings = {
     // Event settings
     // ---------------------------------------------------------------------------------------------
 
-    // Applications:
-    'application-publish-on-move': boolean;
-
     // Availability:
     'availability-max-event-duration-minutes': number;
     'availability-time-step-minutes': number;
 
     // Communication:
     'communication-name-suffix': string;
-
-    // Program:
-    'program-event-sales-relative': boolean;
 
     // Retention:
     'retention-number-of-events-to-consider': number;
@@ -48,8 +42,6 @@ export type Settings = {
     // Schedule:
     'schedule-day-view-start-time': string;
     'schedule-day-view-end-time': string;
-    'schedule-duty-book': boolean;
-    'schedule-enable-sidebar': boolean;
     'schedule-event-view-start-hours': number;
     'schedule-event-view-end-hours': number;
     'schedule-recent-shift-count': number;
@@ -154,8 +146,6 @@ export type Settings = {
     'schedule-del-a-rie-advies': boolean;
     'schedule-del-a-rie-advies-genai': boolean;
     'schedule-del-a-rie-advies-time-limit': number;
-    'schedule-favourite-events': boolean;
-    'schedule-knowledge-base': boolean;
     'schedule-logical-days': boolean;
     'schedule-sales-product-panel': boolean;
     'schedule-sales-sold-out': boolean;

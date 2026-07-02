@@ -364,40 +364,37 @@ export async function moveApplication(
         if (!affectedRows)
             return { success: false, error: 'Unable to move the application in the database…' };
 
-        const shouldPublish = await readSetting('application-publish-on-move');
-        if (!!shouldPublish) {
-            const targetEvent = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(eventId))
-                .select({
-                    shortName: tEvents.eventShortName,
-                    slug: tEvents.eventSlug,
-                })
-                .executeSelectNoneOrOne();
+        const targetEvent = await db.selectFrom(tEvents)
+            .where(tEvents.eventId.equals(eventId))
+            .select({
+                shortName: tEvents.eventShortName,
+                slug: tEvents.eventSlug,
+            })
+            .executeSelectNoneOrOne();
 
-            const targetUserName = await db.selectFrom(tUsers)
-                .where(tUsers.userId.equals(userId))
-                .selectOneColumn(tUsers.name)
-                .executeSelectNoneOrOne();
+        const targetUserName = await db.selectFrom(tUsers)
+            .where(tUsers.userId.equals(userId))
+            .selectOneColumn(tUsers.name)
+            .executeSelectNoneOrOne();
 
-            if (!targetEvent || !targetUserName)
-                notFound();
+        if (!targetEvent || !targetUserName)
+            notFound();
 
-            await Publish({
-                type: kSubscriptionType.Application,
-                typeId: targetTeamId,
-                sourceUserId: userId,
-                message: {
-                    userId: userId,
-                    name: targetUserName,
-                    event: targetEvent.shortName,
-                    eventSlug: targetEvent.slug,
-                    teamEnvironment: targetTeam.environment,
-                    teamName: targetTeam.name,
-                    teamSlug: targetTeam.slug,
-                    teamTitle: targetTeam.title,
-                },
-            });
-        }
+        await Publish({
+            type: kSubscriptionType.Application,
+            typeId: targetTeamId,
+            sourceUserId: userId,
+            message: {
+                userId: userId,
+                name: targetUserName,
+                event: targetEvent.shortName,
+                eventSlug: targetEvent.slug,
+                teamEnvironment: targetTeam.environment,
+                teamName: targetTeam.name,
+                teamSlug: targetTeam.slug,
+                teamTitle: targetTeam.title,
+            },
+        });
 
         RecordLog({
             type: kLogType.AdminEventApplicationMove,

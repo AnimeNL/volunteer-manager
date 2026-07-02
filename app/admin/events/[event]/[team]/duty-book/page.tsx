@@ -15,7 +15,6 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { readSetting } from '@lib/Settings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tDutyBook, tEvents, tTeams, tUsers } from '@lib/database';
 
@@ -250,8 +249,7 @@ export default async function EventTeamDutyBookPage(
         }
     ];
 
-    const dutyBookEnabled = await readSetting('schedule-duty-book');
-    if (!dutyBookEnabled || !team.flagEnableDutyBook)
+    if (!team.flagEnableDutyBook)
         notFound();
 
     const generateSummaryFn = generateSummary.bind(null, event.slug, team.slug);

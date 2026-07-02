@@ -175,7 +175,7 @@ export function EventPage(props: EventPageProps) {
         let favourited: boolean = false;
         let timeslotsHidden: boolean = false;
 
-        if (!!schedule && !!schedule.config.enableFavourites)
+        if (!!schedule)
             favourited = !!schedule.favourites?.hasOwnProperty(props.activityId);
 
         if (!!schedule && schedule.program.activities.hasOwnProperty(props.activityId)) {
@@ -331,7 +331,7 @@ export function EventPage(props: EventPageProps) {
     }, [ /* no dependencies */ ]);
 
     const handleFavouriteChange = useCallback(async () => {
-        if (!refresh || !schedule || !schedule.config.enableFavourites)
+        if (!refresh || !schedule)
             return;  // the feature is disabled
 
         try {
@@ -358,7 +358,7 @@ export function EventPage(props: EventPageProps) {
     }, [ props.activityId, refresh, schedule ]);
 
     let action: React.ReactNode;
-    if (!!schedule && !!schedule.config.enableFavourites) {
+    if (!!schedule) {
         action = (
             <>
                 { !favourited &&

@@ -39,10 +39,9 @@ export function MobileNavigation() {
 
     }, [ pathname, scheduleBaseUrl ]);
 
-    const [ activeEvents, areas, enableKnowledgeBase, hasFavourites, userVolunteer ] = useMemo(() =>
+    const [ activeEvents, areas, hasFavourites, userVolunteer ] = useMemo(() =>
     {
         let activeEvents: number = 0;
-        let enableKnowledgeBase: boolean = false;
         let hasFavourites: boolean = false;
         let userVolunteer: PublicSchedule['volunteers'][number] | undefined;
 
@@ -61,13 +60,11 @@ export function MobileNavigation() {
             if (!!schedule.favourites)
                 hasFavourites = !!Object.keys(schedule.favourites).length;
 
-            enableKnowledgeBase = !!schedule?.config.enableKnowledgeBase;
-
             if (!!schedule.userId && schedule.volunteers.hasOwnProperty(schedule.userId))
                 userVolunteer = schedule.volunteers[schedule.userId];
         }
 
-        return [ activeEvents, areas, enableKnowledgeBase, hasFavourites, userVolunteer ];
+        return [ activeEvents, areas, hasFavourites, userVolunteer ];
 
     }, [ schedule ]);
 
@@ -131,9 +128,8 @@ export function MobileNavigation() {
                 { (hasFavourites || !!userVolunteer) &&
                     <BottomNavigationAction icon={shiftsIcon} label="You" value="shifts" /> }
                 <BottomNavigationAction icon={eventsIcon} label="Events" value="areas" />
-                { !!enableKnowledgeBase &&
-                    <BottomNavigationAction icon={ <InfoOutlinedIcon /> } label="FAQ"
-                                            value="knowledge" /> }
+                <BottomNavigationAction icon={ <InfoOutlinedIcon /> } label="FAQ"
+                                        value="knowledge" />
                 <BottomNavigationAction icon={volunteersIcon} label="Volunteers"
                                         value="volunteers" />
             </BottomNavigation>

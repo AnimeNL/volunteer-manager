@@ -60,12 +60,11 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     // dates, or to the product category's availability dates, depending on a settings.
     // ---------------------------------------------------------------------------------------------
 
-    const useProductRelativeDateRange = !await readSetting('program-event-sales-relative');
     const dateRange = await dbInstance.selectFrom(tEventsSales)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tEventsSales.eventId))
         .where(tEventsSales.eventId.equals(eventId))
-            .and(tEventsSales.eventSaleId.in(products).onlyWhen(useProductRelativeDateRange))
+            .and(tEventsSales.eventSaleId.in(products))
             .and(tEventsSales.eventSaleCount.greaterThan(0))
         .select({
             min: dbInstance.min(tEventsSales.eventSaleDate),

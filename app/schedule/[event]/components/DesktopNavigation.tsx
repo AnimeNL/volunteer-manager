@@ -269,7 +269,7 @@ export function DesktopNavigation() {
                                             href={ scheduleBaseUrl + '/help-requests' }
                                             icon={ <NotListedLocationOutlinedIcon /> }
                                             label="Help requests" /> }
-                { (!!schedule.config.enableKnowledgeBase && !!schedule.knowledge.length) &&
+                { !!schedule.knowledge.length &&
                     <DesktopNavigationEntry active={ schedulePathname.startsWith('/knowledge') }
                                             href={ scheduleBaseUrl + '/knowledge' }
                                             icon={ <InfoOutlinedIcon /> }

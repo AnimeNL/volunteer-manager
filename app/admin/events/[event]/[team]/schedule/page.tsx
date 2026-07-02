@@ -13,7 +13,6 @@ import { ScheduleContextImpl } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
 import { ScheduleImpl } from './ScheduleImpl';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { readSettings } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
@@ -36,8 +35,6 @@ export default async function EventTeamSchedulePage(
 
     if (!team.flagEnableScheduling)
         notFound();
-
-    const settings = await readSettings([ 'schedule-enable-sidebar' ]);
 
     const userSettings = await readUserSettings(user.id, [
         'user-admin-schedule-date',
@@ -87,8 +84,7 @@ export default async function EventTeamSchedulePage(
                 <ScheduleImpl readOnly={readOnly} sections={sections}
                               historyContext={{ event: event.slug, team: team.slug }}
                               enableHistoryDelete={enableHistoryDelete}
-                              enableHistoryProfileLinks={enableHistoryProfileLinks}
-                              enableSidebar={!!settings['schedule-enable-sidebar']} />
+                              enableHistoryProfileLinks={enableHistoryProfileLinks} />
 
                 <ExpandableSection
                     defaultExpanded={ !!userSettings['user-admin-schedule-expand-history'] }
