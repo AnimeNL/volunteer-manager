@@ -5,8 +5,8 @@ import { notFound } from 'next/navigation';
 
 import Grid from '@mui/material/Grid';
 
-import { ContentEditor } from '@app/admin/content/ContentEditor';
-import { createEventScope } from '@app/admin/content/ContentScope';
+import { ContentEditor } from '@app/admin/system/content/ContentEditor';
+import { createEventScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';

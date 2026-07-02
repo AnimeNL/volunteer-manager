@@ -3,8 +3,8 @@
 
 import { notFound } from 'next/navigation';
 
-import { ContentEditor } from '@app/admin/content/ContentEditor';
-import { createKnowledgeBaseScope } from '@app/admin/content/ContentScope';
+import { ContentEditor } from '@app/admin/system/content/ContentEditor';
+import { createKnowledgeBaseScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tContentCategories } from '@lib/database';

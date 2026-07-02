@@ -6,9 +6,9 @@ import { notFound } from 'next/navigation';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { ContentCreate } from '@app/admin/content/ContentCreate';
-import { ContentList } from '@app/admin/content/ContentList';
-import { createEventScope } from '@app/admin/content/ContentScope';
+import { ContentCreate } from '@app/admin/system/content/ContentCreate';
+import { ContentList } from '@app/admin/system/content/ContentList';
+import { createEventScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 

@@ -9,7 +9,7 @@ import { KnowledgeList } from './KnowledgeList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import { createKnowledgeBaseScope } from '@app/admin/content/ContentScope';
+import { createKnowledgeBaseScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { readUserSetting } from '@lib/UserSettings';
 import db, { tContentCategories, tEventsTeams, tRoles, tTeams, tTeamsRoles } from '@lib/database';

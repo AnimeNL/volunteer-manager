@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
 import type { ContentRowModel, ContentScope } from '@app/api/admin/content/[[...id]]/route';
-import { RemoteDataTable, type RemoteDataTableColumn } from '../components/RemoteDataTable';
+import { RemoteDataTable, type RemoteDataTableColumn } from '../../components/RemoteDataTable';
 import { Temporal, formatDate } from '@lib/Temporal';
 
 /**

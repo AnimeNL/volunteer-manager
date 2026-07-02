@@ -3,10 +3,8 @@
 
 'use client';
 
-import Link from '@app/LinkProxy';
 import React, { useCallback, useContext, useState } from 'react';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';

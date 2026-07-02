@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SubscriptionType } from '@lib/database/Types';
-import { createGlobalScope } from '@app/admin/content/ContentScope';
+import { createGlobalScope } from '@app/admin/system/content/ContentScope';
 import { determineEnvironment, type Environment } from '../Environment';
 import db, { tContent } from '@lib/database';
 

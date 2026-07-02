@@ -14,7 +14,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';
-import { SubmitCollapse } from '../components/SubmitCollapse';
+import { SubmitCollapse } from '../../components/SubmitCollapse';
 import { callApi } from '@lib/callApi';
 
 /**

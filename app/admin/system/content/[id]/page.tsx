@@ -3,16 +3,16 @@
 
 import type { Metadata } from 'next';
 
-import { ContentEditor } from '@app/admin/content/ContentEditor';
+import { ContentEditor } from '@app/admin/system/content/ContentEditor';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { createGlobalScope } from '@app/admin/content/ContentScope';
+import { createGlobalScope } from '@app/admin/system/content/ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
  * The <ContentEntryPage> page displays an individual piece of content that can be edited by
  * the volunteer. The <ContentEditor> component takes care of the actual behaviour.
  */
-export default async function ContentEntryPage(props: PageProps<'/admin/content/[id]'>) {
+export default async function ContentEntryPage(props: PageProps<'/admin/system/content/[id]'>) {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.content',

@@ -22,8 +22,8 @@ import Typography from '@mui/material/Typography';
 
 import type { MDXEditorMethods } from '@mdxeditor/editor';
 import type { ContentRowModel, ContentScope } from '@app/api/admin/content/[[...id]]/route';
-import type { SectionHeaderProps } from '../components/SectionHeader';
-import { Section } from '../components/Section';
+import type { SectionHeaderProps } from '../../components/SectionHeader';
+import { Section } from '../../components/Section';
 import { Temporal, formatDate } from '@lib/Temporal';
 import { callApi } from '@lib/callApi';
 import { validateContentPath } from './ContentCreate';

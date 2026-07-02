@@ -8,7 +8,7 @@ import TocIcon from '@mui/icons-material/Toc';
 import { ContentCreate } from './ContentCreate';
 import { ContentList } from './ContentList';
 import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '../components/SectionIntroduction';
+import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGlobalScope } from './ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 

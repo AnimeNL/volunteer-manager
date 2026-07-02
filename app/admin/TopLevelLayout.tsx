@@ -36,7 +36,7 @@ export default async function TopLevelLayout(props: React.PropsWithChildren) {
             icon: <FeedOutlinedIcon />,
             label: 'Content',
             permission: 'system.content',
-            url: '/admin/content',
+            url: '/admin/system/content',
         },
         {
             icon: <EventNoteIcon />,
