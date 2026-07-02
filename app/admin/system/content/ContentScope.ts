@@ -1,9 +1,27 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';
+import { type ContentType, kContentType } from '@lib/database/Types';
 
-import { kContentType } from '@lib/database/Types';
+/**
+ * Scope expected by the Content API.
+ */
+export interface ContentScope {
+    /**
+     * Unique ID of the event content will be scoped to.
+     */
+    eventId: number;
+
+    /**
+     * Unique ID of the team content will be scoped to.
+     */
+    teamId: number;
+
+    /**
+     * Kind of content that's being requested.
+     */
+    type: ContentType;
+}
 
 /**
  * Creates an event-based content scope, which is keyed by the event's ID, as well as the team's ID.

@@ -22,7 +22,7 @@ import db, { tContentCategories, tEventsTeams, tRoles, tTeams, tTeamsRoles } fro
 export default async function EventTeamFaqPage(
     props: PageProps<'/admin/events/[event]/[team]/knowledge'>)
 {
-    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
+    const { event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesFaq)
         notFound();
 
@@ -69,7 +69,6 @@ export default async function EventTeamFaqPage(
     const expandCategories = await readUserSetting(
         user.id, 'user-admin-knowledge-expand-categories');
 
-    const enableAuthorLink = access.can('organisation.accounts', 'read');
     const scope = createKnowledgeBaseScope(event.id);
 
     return (
@@ -80,7 +79,7 @@ export default async function EventTeamFaqPage(
                     expect from our guests, visitors and fellow volunteers, each with a prepared
                     answer.
                 </SectionIntroduction>
-                <KnowledgeList enableAuthorLink={enableAuthorLink} scope={scope} />
+                <KnowledgeList scope={scope} />
             </Section>
             { !categories.length &&
                 <Section title="Create a new question">

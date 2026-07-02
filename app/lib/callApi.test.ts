@@ -3,8 +3,6 @@
 
 import { callApi, injectFetch } from './callApi';
 
-import { kContentType } from './database/Types';
-
 describe('callApi', () => {
     let latestRequestInput: RequestInfo | URL | undefined;
     let latestRequestInit: RequestInit | undefined;
@@ -64,21 +62,15 @@ describe('callApi', () => {
     it('is able to substitute REST path parameters from the request to the endpoint', async () => {
         scheduledResponse = new Response(JSON.stringify({ success: true }), { status: 200 });
 
-        const response = await callApi('delete', '/api/admin/content/:id', {
+        const response = await callApi('delete', '/api/nardo/:id', {
             id: 42,
-            context: {
-                type: kContentType.Page,
-                eventId: 1,
-                teamId: 2,
-            }
         });
 
         expect(latestRequestInput).not.toBeUndefined();
-        expect(latestRequestInput).toEqual('/api/admin/content/42');
+        expect(latestRequestInput).toEqual('/api/nardo/42');
 
         expect(latestRequestInit).not.toBeUndefined();
-        expect(latestRequestInit?.body).toEqual(
-            '{"context":{"type":"Page","eventId":1,"teamId":2}}');
+        expect(latestRequestInit?.body).toEqual('{}');
         expect(latestRequestInit?.headers).toEqual({
             'Content-Type': 'application/json',
         });

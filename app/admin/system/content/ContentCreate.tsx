@@ -12,10 +12,9 @@ import { type FieldValues, type FieldValue, FormContainer, TextFieldElement }
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
-import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';
+import type { ContentScope } from './ContentScope';
 import { SubmitCollapse } from '../../components/SubmitCollapse';
-import { callApi } from '@lib/callApi';
+import { createContent } from './ContentActions';
 
 /**
  * Validates the path for content that should be added to the scope. We only validate syntax here,
@@ -65,7 +64,7 @@ export function ContentCreate(props: ContentCreateProps) {
         setLoading(true);
         setError(undefined);
         try {
-            const response = await callApi('post', '/api/admin/content', {
+            const response = await createContent({
                 context: props.scope,
                 row: {
                     path: data.path,

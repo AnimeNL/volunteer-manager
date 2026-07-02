@@ -20,13 +20,15 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import type { ContentRowModel } from './ContentDataSource';
+import type { ContentScope } from './ContentScope';
 import type { MDXEditorMethods } from '@mdxeditor/editor';
-import type { ContentRowModel, ContentScope } from '@app/api/admin/content/[[...id]]/route';
 import type { SectionHeaderProps } from '../../components/SectionHeader';
 import { Section } from '../../components/Section';
 import { Temporal, formatDate } from '@lib/Temporal';
-import { callApi } from '@lib/callApi';
 import { validateContentPath } from './ContentCreate';
+
+import { getContent, updateContent } from './ContentActions';
 
 import '@mdxeditor/editor/style.css';
 
@@ -100,7 +102,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
             if (!ref || !ref.current)
                 throw new Error('Cannot locate the Markdown content on this page');
 
-            const response = await callApi('put', '/api/admin/content/:id', {
+            const response = await updateContent({
                 id: contentId,
                 context: scope,
                 row: {
@@ -109,10 +111,6 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                     path: data.path ?? defaultValues?.path,
                     categoryId: data.categoryId ?? undefined,
                     title: data.title,
-                    updatedOn: '',  // ignored
-                    updatedBy: '',  // ignored
-                    updatedByUserId: 0,  // ignored
-                    protected: false,  // ignored
                 },
             });
 
@@ -131,7 +129,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
     const [ markdown, setMarkdown ] = useState<string>();
 
     useEffect(() => {
-        callApi('get', '/api/admin/content/:id', {
+        getContent({
             id: contentId,
             context: scope
         }).then(response => {

@@ -149,7 +149,7 @@ export const kColumnTemplates = {
                 value = resolveRowModelField(params.row, field) ?? params.value;
             }
 
-            if (!value) {
+            if (!value && !column.templateProps?.prefix) {
                 return (
                     <Typography variant="inherit" color="textDisabled" component="span"
                                 sx={{ fontStyle: 'italic' }}>
@@ -162,6 +162,10 @@ export const kColumnTemplates = {
                 const href = resolveTemplate(params.row, column.templateProps?.href);
                 return (
                     <MuiLink component={Link} href={href}>
+                        { !!column.templateProps?.prefix &&
+                            <Typography variant="inherit" color="textDisabled" component="span">
+                                {column.templateProps?.prefix}
+                            </Typography> }
                         {value}
                     </MuiLink>
                 );

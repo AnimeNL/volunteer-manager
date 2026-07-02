@@ -12,9 +12,9 @@ import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
 import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
-import type { ContentScope } from '@app/api/admin/content/[[...id]]/route';
+import type { ContentScope } from '@app/admin/system/content/ContentScope';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
-import { callApi } from '@lib/callApi';
+import { createContent } from '@app/admin/system/content/ContentActions';
 
 /**
  * Props accepted by the <CreateQuestionForm> component.
@@ -47,7 +47,7 @@ export function CreateQuestionForm(props: CreateQuestionFormProps) {
         setLoading(true);
         setError(undefined);
         try {
-            const response = await callApi('post', '/api/admin/content', {
+            const response = await createContent({
                 context: props.scope,
                 row: {
                     path: /* intentionally empty= */ '',

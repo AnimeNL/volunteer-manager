@@ -17,12 +17,11 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * deleted as applicable. This includes the privacy policy, e-mail messages, and so on.
  */
 export default async function ContentPage() {
-    const { access } = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.content',
     });
 
-    const enableAuthorLink = access.can('organisation.accounts', 'read');
     const scope = createGlobalScope();
 
     return (
@@ -35,7 +34,7 @@ export default async function ContentPage() {
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <ContentList enableAuthorLink={enableAuthorLink} scope={scope} />
+                <ContentList scope={scope} />
             </Section>
             <Section title="Create a new page">
                 <SectionIntroduction>

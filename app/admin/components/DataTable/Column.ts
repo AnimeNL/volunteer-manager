@@ -97,6 +97,11 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
             href?: string;
 
             /**
+             * Prefix to display ahead of the text in a different colour. Will be part of any link.
+             */
+            prefix?: string;
+
+            /**
              * Template to resolve the text against. May contain references to other (nested) fields
              * such as "{title} ({author})".
              */

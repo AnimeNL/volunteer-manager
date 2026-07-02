@@ -1,27 +1,14 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
-import Link from '@app/LinkProxy';
-
-import { default as MuiLink } from '@mui/material/Link';
-import Typography from '@mui/material/Typography';
-
-import type { ContentRowModel, ContentScope } from '@app/api/admin/content/[[...id]]/route';
-import { RemoteDataTable, type RemoteDataTableColumn } from '../../components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import type { ContentScope } from './ContentScope';
+import { DataTable, type Column } from '../../components/DataTable';
+import { contentDataSource, type ContentRowModel } from './ContentDataSource';
 
 /**
  * Props accepted by the <ContentList> component.
  */
 interface ContentListProps {
-    /**
-     * Enables whether the author should be a link through to their account page. Those pages are
-     * not available to everyone, hence why this must be explicitly enabled.
-     */
-    enableAuthorLink?: boolean;
-
     /**
      * Prefix to apply to links to content management pages shown in the table.
      * @default "./content/"
@@ -45,45 +32,17 @@ interface ContentListProps {
  * the server using an API call.
  */
 export function ContentList(props: ContentListProps) {
-    const localTz = Temporal.Now.timeZoneId();
-    const columns: RemoteDataTableColumn<ContentRowModel>[] = [
-        {
-            field: 'id',
-            headerName: '',
-            sortable: false,
-            width: 50,
-
-            isProtected: params => !!params.row.protected,
-        },
+    const columns: Column<ContentRowModel>[] = [
         {
             field: 'path',
             headerName: 'Content path',
             sortable: true,
             flex: 3,
 
-            renderCell: params => {
-                const prefix = props.linkPrefix ?? './content/';
-                const href = `${prefix}${params.row.id}`;
-
-                if (!props.pathPrefix) {
-                    return (
-                        <MuiLink component={Link} href={href}>
-                            {params.value}
-                        </MuiLink>
-                    );
-                }
-
-                return (
-                    <MuiLink component={Link} href={href} noWrap>
-                        <Typography component="span" variant="body2">
-                            <Typography component="span" variant="body2"
-                                        sx={{ color: 'text.disabled' }}>
-                                {props.pathPrefix}
-                            </Typography>
-                            {params.value}
-                        </Typography>
-                    </MuiLink>
-                );
+            template: 'text',
+            templateProps: {
+                href: `${props.linkPrefix ?? './content/'}{id}`,
+                prefix: props.pathPrefix,
             },
         },
         {
@@ -98,10 +57,7 @@ export function ContentList(props: ContentListProps) {
             sortable: true,
             flex: 2,
 
-            renderCell: params =>
-                formatDate(
-                    Temporal.ZonedDateTime.from(params.value).withTimeZone(localTz),
-                    'YYYY-MM-DD'),
+            template: 'date',
         },
         {
             field: 'updatedBy',
@@ -109,23 +65,23 @@ export function ContentList(props: ContentListProps) {
             sortable: true,
             flex: 3,
 
-            renderCell: params => {
-                if (!props.enableAuthorLink)
-                    return params.value;
-
-                const href = `/admin/organisation/accounts/${params.row.updatedByUserId}`;
-                return (
-                    <MuiLink component={Link} href={href}>
-                        {params.value}
-                    </MuiLink>
-                );
-            },
+            template: 'account',
         }
     ];
 
     return (
-        <RemoteDataTable columns={columns} endpoint="/api/admin/content" context={props.scope}
-                         enableDelete subject="content"
-                         defaultSort={{ field: 'path', sort: 'asc' }}  />
+        <DataTable
+            columns={columns}
+            source={contentDataSource}
+            context={props.scope}
+            defaultSort={{ field: 'path', sort: 'asc' }}
+            subject="page"
+            listViewProps={{
+                primaryField: 'title',
+                secondaryField: 'path',
+                dateField: 'updatedOn',
+                dateFieldFormat: 'YYYY-MM-DD',
+            }}
+        />
     );
 }
