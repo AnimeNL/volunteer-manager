@@ -8,13 +8,11 @@ import React, { useCallback, useState } from 'react';
 import { type FieldValues, FormContainer, CheckboxElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';
 
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-
 import type { Setting } from '@lib/Settings';
 import { Section } from '@app/admin/components/Section';
 import { SubmitCollapse } from '../../components/SubmitCollapse';
 import { callApi } from '@lib/callApi';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 
 /**
  * Configuration for an individual setting. The values don't have to be provided in the definition,
@@ -90,32 +88,44 @@ export function SettingSection(props: SettingSectionProps) {
     return (
         <FormContainer defaultValues={defaultValues} onSuccess={handleSubmit}>
             <Section title={props.title}>
-                <Grid container spacing={2}>
-                    { props.settings.map((setting, index) =>
-                        <React.Fragment key={index}>
-                            <Grid size={{ xs: 4 }}>
-                                <Typography variant="subtitle2">
-                                    {setting.label}
-                                </Typography>
-                                { !!setting.description &&
-                                    <Typography variant="body2">
-                                        {setting.description}
-                                    </Typography> }
-                            </Grid>
-                            <Grid size={{ xs: 8 }} sx={{ alignSelf: 'center' }}>
-                                { setting.type === 'boolean' &&
-                                    <CheckboxElement name={setting.setting} size="small"
-                                                     onChange={handleChange} /> }
-                                { setting.type === 'number' &&
-                                    <TextFieldElement name={setting.setting} type="number"
-                                                      size="small" fullWidth
-                                                      onChange={handleChange} /> }
-                                { setting.type === 'string' &&
-                                    <TextFieldElement name={setting.setting} size="small" fullWidth
-                                                      onChange={handleChange} /> }
-                            </Grid>
-                        </React.Fragment> )}
-                </Grid>
+                <KeyValueList items={ props.settings.map((setting, index) => {
+                    let value: React.ReactNode;
+                    switch (setting.type) {
+                        case 'boolean':
+                            value = (
+                                <CheckboxElement name={setting.setting} size="small"
+                                                 onChange={handleChange} />
+                            );
+                            break;
+
+                        case 'number':
+                            value = (
+                                <TextFieldElement name={setting.setting} type="number" size="small"
+                                                  fullWidth onChange={handleChange} />
+                            );
+                            break;
+
+                        case 'string':
+                            value = (
+                                <TextFieldElement name={setting.setting} size="small" fullWidth
+                                                  onChange={handleChange} />
+                            );
+                            break;
+
+                        case 'stringArray':
+                        default:
+                            throw new Error(`Unsupported setting type: ${setting.type}`);
+                    }
+
+                    return {
+                        description: setting.description,
+                        key: setting.label,
+                        keyAlign: 'center',
+                        value,
+                        valueTemplate: 'component',
+                    };
+
+                }) } />
                 <SubmitCollapse error={error} loading={loading} open={invalidated} />
             </Section>
         </FormContainer>

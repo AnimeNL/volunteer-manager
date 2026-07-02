@@ -71,13 +71,14 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: AutoAwesomeIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'AI',
                         permission: 'system.internals.ai',
                         url: '/admin/system/ai/communication',
                     },
                     {
                         Icon: QueryStatsIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Diagnostics',
                         url: '/admin/system/diagnostics/logs',
                         urlPrefix: '/admin/system/diagnostics/',
@@ -97,6 +98,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: SettingsOutlinedIcon,
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Settings',
                         permission: 'system.internals.settings',
                         url: '/admin/system/settings',
