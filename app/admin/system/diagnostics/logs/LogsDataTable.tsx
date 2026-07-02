@@ -1,8 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Column } from '@app/admin/components/DataTable';
-import { DataTable } from '@app/admin/components/DataTable';
+import { DataTable, type Column } from '@app/admin/components/DataTable';
+import { SeverityCell } from '@app/admin/components/DataTable/cells/SeverityCell';
 import { logsDataSource, type LogsRowModel } from './LogsDataSource';
 
 /**
@@ -86,6 +86,7 @@ export function LogsDataTable(props: LogsDataTableProps) {
                 secondaryField: 'initiatorUser.name',
                 dateField: 'date',
                 dateFieldFormat: 'YYYY-MM-DD',
+                startComponent: SeverityCell,
             }}
         />
     );

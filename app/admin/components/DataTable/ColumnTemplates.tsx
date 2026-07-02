@@ -7,17 +7,11 @@ import Link from '@app/LinkProxy';
 
 import type { GridColDef } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
-import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
-import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 
-import type { LogSeverity, MutationSeverity } from '@lib/database/Types';
 import { InlineAccountLink } from '../InlineAccountLink';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { SeverityCell, SeverityHeader } from './cells/SeverityCell';
 import { resolveRowModelField, resolveTemplate } from './Utilities';
 
 /**
@@ -137,42 +131,8 @@ export const kColumnTemplates = {
 
         width: 50,
 
-        renderHeader: () =>
-            <Tooltip title="Severity">
-                <InfoOutlinedIcon color="primary" />
-            </Tooltip>,
-
-        renderCell: params => {
-            const value: LogSeverity | MutationSeverity = params.value;
-
-            let icon: React.ReactNode;
-            switch (value) {
-                case 'Debug':
-                    icon = <CircleOutlinedIcon color="action" />;
-                    break;
-                case 'Info':
-                case 'Low':
-                    icon = <InfoOutlinedIcon color="info" />;
-                    break;
-                case 'Warning':
-                case 'Moderate':
-                    icon = <WarningOutlinedIcon color="warning" />;
-                    break;
-                case 'Error':
-                case 'Important':
-                    icon = <ErrorOutlinedIcon color="error" />;
-                    break;
-            }
-
-            if (!icon)
-                icon = <QuestionMarkIcon color="disabled" />;
-
-            return (
-                <Tooltip title={value}>
-                    {icon}
-                </Tooltip>
-            );
-        },
+        renderHeader: () => <SeverityHeader />,
+        renderCell: params => <SeverityCell row={{ severity: params.value }} />,
 
         ...column,
     }),
