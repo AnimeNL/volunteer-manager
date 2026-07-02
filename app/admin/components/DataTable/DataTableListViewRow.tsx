@@ -167,9 +167,6 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             { props.listViewProps.startComponent &&
                 <props.listViewProps.startComponent row={props.row} listView /> }
 
-            { /* TODO: Avatar */ }
-            { /* TODO: Icon */ }
-
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
                     {primaryFieldValue}
@@ -270,6 +267,5 @@ export function calculateListViewRowHeight(props: DataTableListViewRowProps['lis
     if (!!props.secondaryField || !!props.secondaryTemplate)
         listViewRowHeight = 56;
 
-    // TODO: Increase height when `props.avatar` or `props.icon` is set.
     return listViewRowHeight;
 }

@@ -84,7 +84,7 @@ function DeleteConfirmationDrawer(props: DeleteConfirmationProps) {
             <DrawerTitle variant="h6">
                 Delete this {subject}?
             </DrawerTitle>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
                 Are you sure that you want to remove this {subject}? This action can't be
                 undone once you confirm its deletion.
             </Typography>

@@ -56,7 +56,6 @@ import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/
 import type { EventTeamEndpoints } from '@app/api/admin/event/teams/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
-import type { LogsEndpoints } from '@app/api/admin/logs/[[...id]]/route';
 import type { NardoEndpoints } from '@app/api/nardo/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
 import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
@@ -96,7 +95,6 @@ export type ApiEndpoints = {
         '/api/admin/event/teams': EventTeamEndpoints['list'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
-        '/api/admin/logs': LogsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
         '/api/admin/organisation/roles': RolesEndpoints['list'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
@@ -173,7 +171,6 @@ export type ApiEndpoints = {
         '/api/admin/event/shifts/:id': EventShiftEndpoints['delete'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/hotels/:id': HotelsEndpoints['delete'],
-        '/api/admin/logs/:id': LogsEndpoints['delete'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['delete'],
         '/api/admin/program/activities/:id': ProgramActivitiesEndpoints['delete'],
         '/api/admin/program/areas/:id': ProgramAreasEndpoints['delete'],

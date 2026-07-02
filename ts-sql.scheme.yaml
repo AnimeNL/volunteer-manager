@@ -59,6 +59,40 @@ tables:
       `timeslot_deleted` datetime DEFAULT NULL,
       UNIQUE KEY `activity_id_2` (`activity_id`,`timeslot_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: logs_format
+  type: BASE TABLE
+  columns:
+  - name: log_type
+    type: varchar(48)
+    nullable: false
+  - name: log_format
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_format_updated
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: log_type
+    def: UNIQUE KEY log_type (log_type) USING BTREE
+    table: logs_format
+    columns:
+    - log_type
+  constraints:
+  - name: log_type
+    type: UNIQUE
+    def: UNIQUE KEY log_type (log_type)
+    table: logs_format
+    columns:
+    - log_type
+  def: |-
+    CREATE TABLE `logs_format` (
+      `log_type` varchar(48) NOT NULL,
+      `log_format` text DEFAULT NULL,
+      `log_format_updated` datetime DEFAULT NULL,
+      UNIQUE KEY `log_type` (`log_type`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: hotels_assignments
   type: BASE TABLE
   columns:

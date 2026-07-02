@@ -5,6 +5,7 @@ import type { z } from 'zod';
 
 import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
+import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { DataSourceProps } from './DataSourceProps';
 
 export type DataSourceOperation = 'create' | 'delete' | 'list';
@@ -34,7 +35,7 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns Nothing. Expected to call `forbidden()` when authorization has failed.
      */
-    authorize(operation: DataSourceOperation,
+    authorize(operation: AccessOperation,
               props: DataSourceProps,
               context: z.infer<ZodContext>): Promise<void>;
 

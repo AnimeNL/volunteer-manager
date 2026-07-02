@@ -7,6 +7,7 @@ import { notFound, unauthorized } from 'next/navigation';
 import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
     from '@mui/x-data-grid-premium';
 
+import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 import { RecordErrorLog } from '@lib/Log';
@@ -28,6 +29,20 @@ const kGridGetRowsParamsValidator = z.object({
     })),
     start: z.number(),
 });
+
+/**
+ * Converts the given |operation| to the `AccessOperation` type.
+ */
+function toAccessOperation(operation: DataSourceOperation): AccessOperation {
+    switch (operation) {
+        case 'create':
+        case 'delete':
+            return operation;
+
+        case 'list':
+            return 'read';
+    }
+}
 
 /**
  * Wrapper class around data source implementations, which provide visitor authentication, input
@@ -94,7 +109,7 @@ export class DataSourceWrapper {
 
         // Require the operation to be authorized. The implementation of this method will throw an
         // exception when this fails (usually `forbidden()`), so no need to catch.
-        await this.#dataSource.authorize(operation, props, verifiedContext);
+        await this.#dataSource.authorize(toAccessOperation(operation), props, verifiedContext);
 
         switch (operation) {
             case 'create': {

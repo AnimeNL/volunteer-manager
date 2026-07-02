@@ -4,7 +4,6 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useContext } from 'react';
 
 import type { GridColDef } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
@@ -17,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 
 import type { LogSeverity, MutationSeverity } from '@lib/database/Types';
-import { AdminClientContext } from '@app/admin/AdminClientContext';
+import { InlineAccountLink } from '../InlineAccountLink';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { resolveRowModelField, resolveTemplate } from './Utilities';
 
@@ -31,25 +30,19 @@ export const kColumnTemplates = {
         display: 'flex',
 
         renderCell: params => {
-            const { canAccessAccounts } = useContext(AdminClientContext);
-
             if (!params.value) {
                 return (
-                    <Typography component="span" variant="body2"
+                    <Typography component="span" variant="body2" noWrap
                                 sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
                         {column.templateProps?.noAccountLabel as string ?? 'Unknown'}
                     </Typography>
                 );
             }
 
-            if (!params.value.id || !canAccessAccounts)
-                return params.value.name;
-
             return (
-                <MuiLink component={Link}
-                         href={`/admin/organisation/accounts/${params.value.id}`}>
-                    {params.value.name}
-                </MuiLink>
+                <Typography variant="inherit" noWrap>
+                    <InlineAccountLink user={params.value} />
+                </Typography>
             );
         },
 

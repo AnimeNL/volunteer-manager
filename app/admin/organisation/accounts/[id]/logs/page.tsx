@@ -14,7 +14,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AccountLogsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/logs'>)
 {
-    const { access } = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'system.logs',
@@ -26,10 +26,7 @@ export default async function AccountLogsPage(
     if (!Number.isSafeInteger(userId))
         notFound();
 
-    return (
-        <LogsDataTable filters={{ sourceOrTargetUserId: userId }} pageSize={25}
-                       enableDelete={ access.can('system.logs', 'delete') } />
-    );
+    return <LogsDataTable pageSize={25} userId={userId} />;
 }
 
 export const generateMetadata =
