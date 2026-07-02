@@ -207,8 +207,9 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
                    defaultSort={{ field: 'date', sort: 'desc' }}
                    pageSize={50}
                    listViewProps={{
-                       primaryField: 'sender.name',
-                       secondaryTemplate: '› {recipient.name}: {message}',
+                       primaryField: 'recipient.name',
+                       secondaryField: 'message',
+//                       secondaryTemplate: '› {sender.name}: {message}',
                        dateField: 'date',
                        dateFieldFormat: 'YYYY-MM-DD',
                        startComponent: MessageDeliveredCell,

@@ -63,9 +63,9 @@ export function SectionHeader(props: SectionHeaderProps) {
             marginBottom: '-8px !important',
             ...props.sx
         }}>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
                 {props.icon}
-                <Typography variant="h5">
+                <Typography variant="h5" noWrap>
                     { props.title }
                     { props.subtitle &&
                         <Typography component="span" variant="h5"

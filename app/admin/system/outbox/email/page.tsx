@@ -103,11 +103,11 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
                 date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
                 sender: {
                     id: tOutboxEmail.outboxSenderUserId,
-                    name: usersJoinForRecipient.name.valueWhenNull(tOutboxEmail.outboxSender),
+                    name: usersJoinForSender.name.valueWhenNull(tOutboxEmail.outboxSender),
                 },
                 recipient: {
                     id: tOutboxEmail.outboxToUserId,
-                    name: usersJoinForSender.name.valueWhenNull(tOutboxEmail.outboxTo),
+                    name: usersJoinForRecipient.name.valueWhenNull(tOutboxEmail.outboxTo),
                 },
                 message: tOutboxEmail.outboxSubject,
                 delivered: tOutboxEmail.outboxResultAccepted.length().greaterThan(0)

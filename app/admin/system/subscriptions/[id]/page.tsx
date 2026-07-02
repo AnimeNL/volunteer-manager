@@ -29,6 +29,7 @@ import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tSubscriptions, tTeams, tUsers } from '@lib/database';
@@ -291,10 +292,8 @@ export default async function AccountSubscriptionPage(
                                 <ListItem key={index} disableGutters
                                           divider={ index < subscriptionTypes.length - 1 }>
                                     <ListItemIcon>
-                                        <subscriptionType.Icon color={
-                                            subscriptionTypeIds.has(subscriptionType.id)
-                                                ? 'primary'
-                                                : 'disabled' } />
+                                        <SubscriptionTypeIcon Icon={subscriptionType.Icon}
+                                                              name={subscriptionType.id} />
                                     </ListItemIcon>
                                     <ListItemText primary={subscriptionType.label}
                                                   secondary={subscriptionType.description}

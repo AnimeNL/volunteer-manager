@@ -194,7 +194,7 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
                 primaryField: 'destination',
                 secondaryField: 'source',
                 dateField: 'date',
-                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                dateFieldFormat: 'YYYY-MM-DD',
                 startComponent: WebhookAuthenticatedCell,
                 linkTemplate: '/admin/system/webhooks/{service}/{id}',
             }}
