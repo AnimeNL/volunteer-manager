@@ -13,8 +13,8 @@ import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
 import type { ContentScope } from '@app/admin/system/content/ContentScope';
+import type { ServerActionResult } from '@lib/serverAction';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
-import { createContent } from '@app/admin/system/content/ContentActions';
 
 /**
  * Props accepted by the <CreateQuestionForm> component.
@@ -26,9 +26,10 @@ interface CreateQuestionFormProps {
     categories: ValueOptions[];
 
     /**
-     * Scope that should be used for sourcing the knowledge.
+     * Server Action through which creation of a new content page can be submitted.
      */
-    scope: ContentScope;
+    createFn: (row: { categoryId: number; path: string; title: string; })
+        => Promise<ServerActionResult>;
 }
 
 /**
@@ -47,17 +48,14 @@ export function CreateQuestionForm(props: CreateQuestionFormProps) {
         setLoading(true);
         setError(undefined);
         try {
-            const response = await createContent({
-                context: props.scope,
-                row: {
-                    path: /* intentionally empty= */ '',
-                    categoryId: data.category,
-                    title: data.question,
-                },
+            const response = await props.createFn({
+                path: /* intentionally empty= */ '',
+                categoryId: data.category,
+                title: data.question,
             });
 
             if (response.success)
-                router.push(`./knowledge/${response.row.id}`);
+                router.push(`./knowledge/${response.contentId}`);
             else
                 setError(response.error ?? 'Unable to create the new question');
         } catch (error: any) {
@@ -65,7 +63,7 @@ export function CreateQuestionForm(props: CreateQuestionFormProps) {
         } finally {
             setLoading(false);
         }
-    }, [ props.scope, router ]);
+    }, [ props.createFn, router ]);
 
     return (
         <FormContainer onSuccess={handleSubmit}>

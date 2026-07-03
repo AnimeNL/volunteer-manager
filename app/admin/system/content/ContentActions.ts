@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 
+import type { ContentScope } from './ContentScope';
 import { Temporal } from '@lib/Temporal';
 import { clearContentCacheForEventAndType, writeContentLog } from './ContentDataSource';
 import { executeServerAction } from '@lib/serverAction';
@@ -92,34 +93,25 @@ export async function getContent(formData: z.infer<typeof kGetContentSchema>) {
 /**
  * Server action schema for creating a new content item.
  */
-const kCreateContentSchema = z.object({
-    context: z.object({
-        eventId: z.coerce.number(),
-        teamId: z.coerce.number(),
-        type: z.enum(kContentType),
-    }),
-    row: z.object({
-        path: z.string().optional().nullable(),
-        title: z.string().min(1),
-        categoryId: z.coerce.number().optional().nullable(),
-    }),
+const kCreateContentData = z.object({
+    path: z.string(),
+    title: z.string().min(1),
+    categoryId: z.number().optional(),
 });
 
 /**
  * Server action to create a new content item.
  */
-export async function createContent(formData: z.infer<typeof kCreateContentSchema>) {
-    return executeServerAction(formData, kCreateContentSchema, async (data, props) => {
-        const { context, row } = data;
-
-        if (context.eventId === 0) {
+export async function createContent(scope: ContentScope, row: unknown) {
+    return executeServerAction(row, kCreateContentData, async (data, props) => {
+        if (scope.eventId === 0) {
             executeAccessCheck(props.authenticationContext, {
                 check: 'admin',
                 permission: 'system.content',
             });
         } else {
             const eventSlug = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(context.eventId))
+                .where(tEvents.eventId.equals(scope.eventId))
                 .selectOneColumn(tEvents.eventSlug)
                 .executeSelectOne();
 
@@ -129,18 +121,17 @@ export async function createContent(formData: z.infer<typeof kCreateContentSchem
             });
         }
 
-        let contentPath = row.path || '';
-        if (!contentPath && context.type === 'FAQ')
-            contentPath = nanoid(8);
+        if (!data.path && scope.type === 'FAQ')
+            data.path = nanoid(8);
 
-        if (!contentPath || !row.title)
+        if (!data.path || !data.title)
             return { success: false, error: 'The content title and path must be included' };
 
         const existingContent = await db.selectFrom(tContent)
-            .where(tContent.eventId.equals(context.eventId))
-                .and(tContent.teamId.equals(context.teamId))
-                .and(tContent.contentType.equals(context.type))
-                .and(tContent.contentPath.equals(contentPath))
+            .where(tContent.eventId.equals(scope.eventId))
+                .and(tContent.teamId.equals(scope.teamId))
+                .and(tContent.contentType.equals(scope.type))
+                .and(tContent.contentPath.equals(data.path))
                 .and(tContent.revisionVisible.equals(1))
             .selectCountAll()
             .executeSelectOne();
@@ -151,12 +142,12 @@ export async function createContent(formData: z.infer<typeof kCreateContentSchem
         const dbInstance = db;
         const insertId = await dbInstance.insertInto(tContent)
             .set({
-                eventId: context.eventId,
-                teamId: context.teamId,
-                contentPath: contentPath,
-                contentCategoryId: row.categoryId ?? undefined,
-                contentTitle: row.title,
-                contentType: context.type,
+                eventId: scope.eventId,
+                teamId: scope.teamId,
+                contentPath: data.path,
+                contentCategoryId: data.categoryId ?? undefined,
+                contentTitle: data.title,
+                contentType: scope.type,
                 contentProtected: 0,
                 content: '',
                 revisionAuthorId: props.user!.id,
@@ -167,19 +158,11 @@ export async function createContent(formData: z.infer<typeof kCreateContentSchem
             .executeInsert();
 
         await writeContentLog(insertId, 'created', props.user!);
-        clearContentCacheForEventAndType(context.eventId, context.type);
+        clearContentCacheForEventAndType(scope.eventId, scope.type);
 
         return {
             success: true,
-            row: {
-                id: insertId,
-                path: contentPath,
-                title: row.title,
-                updatedOn: Temporal.Now.zonedDateTimeISO('UTC').toString(),
-                updatedBy: `${props.user!.firstName} ${props.user!.lastName}`,
-                updatedByUserId: props.user!.id,
-                protected: false,
-            },
+            contentId: insertId,
         };
     });
 }

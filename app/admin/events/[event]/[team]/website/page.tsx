@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 
 import { ContentCreate } from '@app/admin/system/content/ContentCreate';
 import { ContentList } from '@app/admin/system/content/ContentList';
+import { createContent } from '@app/admin/system/content/ContentActions';
 import { createEventScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
@@ -26,6 +27,8 @@ export default async function EventWebsitePage(
     const pathPrefix = `/registration/${event.slug}/`;
     const scope = createEventScope(event.id, team.id);
 
+    const createFn = createContent.bind(null, scope);
+
     return (
         <>
             <ContentList linkPrefix="./website/content/"
@@ -39,7 +42,8 @@ export default async function EventWebsitePage(
                 Create a new page
             </Typography>
 
-            <ContentCreate linkPrefix="./website/content/" pathPrefix={pathPrefix} scope={scope} />
+            <ContentCreate createFn={createFn} linkPrefix="./website/content/"
+                           pathPrefix={pathPrefix} />
         </>
     );
 }

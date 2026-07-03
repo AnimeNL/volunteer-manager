@@ -89,7 +89,7 @@ export class DataSourceWrapper {
             authenticationContext,
         };
 
-        const verifiedContextResult = await z.safeParseAsync(this.#context, context);
+        const verifiedContextResult = await z.safeParseAsync(this.#context, context ?? {});
         if (!verifiedContextResult.success)
             throw new Error('Invalid context passed to a data source, unable to authorize');
 

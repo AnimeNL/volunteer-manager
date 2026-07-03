@@ -9,6 +9,7 @@ import { ContentCreate } from './ContentCreate';
 import { ContentList } from './ContentList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
+import { createContent } from './ContentActions';
 import { createGlobalScope } from './ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -23,6 +24,8 @@ export default async function ContentPage() {
     });
 
     const scope = createGlobalScope();
+
+    const createFn = createContent.bind(null, scope);
 
     return (
         <>
@@ -41,7 +44,7 @@ export default async function ContentPage() {
                     You can create new <strong>global content</strong>. These pages will however not
                     automatically be published, and rely on code changes.
                 </SectionIntroduction>
-                <ContentCreate scope={scope} />
+                <ContentCreate createFn={createFn} />
             </Section>
         </>
     );

@@ -12,9 +12,9 @@ import { type FieldValues, type FieldValue, FormContainer, TextFieldElement }
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { ContentScope } from './ContentScope';
+
+import type { ServerActionResult } from '@lib/serverAction';
 import { SubmitCollapse } from '../../components/SubmitCollapse';
-import { createContent } from './ContentActions';
 
 /**
  * Validates the path for content that should be added to the scope. We only validate syntax here,
@@ -32,6 +32,11 @@ export function validateContentPath(value: FieldValue<FieldValues>): true | stri
  */
 interface ContentCreateProps {
     /**
+     * Server Action through which creation of a new content page can be submitted.
+     */
+    createFn: (row: { path: string; title: string }) => Promise<ServerActionResult>;
+
+    /**
      * Prefix to apply to links to content management pages shown in the table.
      * @default "./content/"
      */
@@ -41,11 +46,6 @@ interface ContentCreateProps {
      * Prefix to display at the beginning of the content's path.
      */
     pathPrefix?: string;
-
-    /**
-     * Scope of the content that should be editable.
-     */
-    scope: ContentScope;
 }
 
 /**
@@ -64,16 +64,13 @@ export function ContentCreate(props: ContentCreateProps) {
         setLoading(true);
         setError(undefined);
         try {
-            const response = await createContent({
-                context: props.scope,
-                row: {
-                    path: data.path,
-                    title: data.title,
-                },
+            const response = await props.createFn({
+                path: data.path,
+                title: data.title,
             });
 
             if (response.success)
-                router.push(`${props.linkPrefix ?? './content/'}${response.row.id}`);
+                router.push(`${props.linkPrefix ?? './content/'}${response.contentId}`);
             else
                 setError(response.error ?? 'Unable to create the new content');
         } catch (error: any) {
@@ -81,7 +78,7 @@ export function ContentCreate(props: ContentCreateProps) {
         } finally {
             setLoading(false);
         }
-    }, [ props.linkPrefix, props.scope, router ]);
+    }, [ props.createFn, props.linkPrefix, router ]);
 
     return (
         <FormContainer onSuccess={handleSubmit}>

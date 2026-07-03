@@ -9,6 +9,7 @@ import { KnowledgeList } from './KnowledgeList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { createContent } from '@app/admin/system/content/ContentActions';
 import { createKnowledgeBaseScope } from '@app/admin/system/content/ContentScope';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { readUserSetting } from '@lib/UserSettings';
@@ -71,6 +72,8 @@ export default async function EventTeamFaqPage(
 
     const scope = createKnowledgeBaseScope(event.id);
 
+    const createFn = createContent.bind(null, scope);
+
     return (
         <>
             <Section title="Knowledge base" subtitle={event.shortName}>
@@ -90,7 +93,7 @@ export default async function EventTeamFaqPage(
                 </Section> }
             { !!categories.length &&
                 <Section title="Create a new question">
-                    <CreateQuestionForm categories={categories} scope={scope} />
+                    <CreateQuestionForm categories={categories} createFn={createFn} />
                 </Section> }
             <KnowledgeCategories defaultExpanded={expandCategories} event={event.slug}
                                  roles={roles} teams={teams} />
