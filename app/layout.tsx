@@ -54,6 +54,9 @@ export default async function RootLayout(props: LayoutProps<'/'>) {
                         {props.children}
                     </ClientProviders>
                 </AppRouterCacheProvider>
+                { process.env.APP_ANALYTICS === '1' &&
+                    <script src="https://analytics.beverloo.com/api/script.js"
+                            data-site-id="47ebe80cb1b2" defer></script> }
             </body>
         </html>
     );
