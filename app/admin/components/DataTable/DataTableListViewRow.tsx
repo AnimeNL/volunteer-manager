@@ -219,7 +219,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                             { !isProtected &&
                                 <IconButton component="li" onClick={handleDeleteClick}
                                             aria-label="Delete">
-                                    <DeleteForeverIcon color="action" fontSize="medium" />
+                                    <DeleteForeverIcon color="error" fontSize="medium" />
                                 </IconButton> }
                             { !!isProtected &&
                                 <IconButton component="li" disabled>

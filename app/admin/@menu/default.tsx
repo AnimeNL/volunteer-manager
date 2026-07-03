@@ -31,7 +31,7 @@ export default async function DefaultMenu() {
             },
             {
                 Icon: TocIcon,
-                badge: { severity: 'warning', value: true },  // migration in progress
+                badge: { severity: 'success', value: true },  // migration completed
                 label: 'Content',
                 permission: 'system.content',
                 url: '/admin/system/content',

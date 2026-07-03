@@ -262,6 +262,9 @@ const MdxEditorContainer = styled(Box)(({ theme }) => ([
             backgroundColor: theme.vars?.palette.background.paper,
             color: theme.vars?.palette.text.primary,
         },
+        '& .cm-focused .cm-selectionBackground, .cm-selectionBackground': {
+            backgroundColor: '#3e4451 !important',
+        },
         '& .cm-gutters': {
             color: theme.vars?.palette.grey[600],
         },
