@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { DataTable, type Column } from '@app/admin/components/DataTable';
 import { SeverityCell } from '@app/admin/components/DataTable/cells/SeverityCell';
 import { logsDataSource, type LogsRowModel } from './LogsDataSource';
@@ -9,6 +10,11 @@ import { logsDataSource, type LogsRowModel } from './LogsDataSource';
  * Props made available to the <LogsDataTable> component.
  */
 interface LogsDataTableProps {
+    /**
+     * Authentication context representing the signed in user.
+     */
+    authenticationContext: AuthenticationContext;
+
     /**
      * Optional setting for the number of items that should be shown per page.
      */
@@ -21,8 +27,8 @@ interface LogsDataTableProps {
 }
 
 /**
- * The <LogsDataTable> component populates the client-side table with the necessary functions to
- * transform the data and add interaction where applicable.
+ * The <LogsDataTable> component is a shared component that renders a DataTable listing log entries
+ * that have occurred on the portal. They can be filtered to a specific user.
  */
 export function LogsDataTable(props: LogsDataTableProps) {
     const columns: Column<LogsRowModel>[] = [
@@ -76,7 +82,9 @@ export function LogsDataTable(props: LogsDataTableProps) {
     return (
         <DataTable
             columns={columns}
-            source={logsDataSource}
+            source={logsDataSource.authorize(props.authenticationContext, {
+                userId: props.userId
+            })}
             context={{ userId: props.userId }}
             defaultSort={{ field: 'date', sort: 'desc' }}
             subject="log entry"

@@ -149,7 +149,7 @@ const schedulerDataSource = createDataSource('admin/system/scheduler', withRowMo
  * the ability to schedule a new task when so desired.
  */
 export default async function SchedulerPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.scheduler',
     });
@@ -231,7 +231,7 @@ export default async function SchedulerPage() {
             <Section noHeader>
                 <DataTable
                     columns={columns}
-                    source={schedulerDataSource}
+                    source={schedulerDataSource.authorize(authenticationContext)}
                     defaultSort={{ field: 'date', sort: 'desc' }}
                     pageSize={25}
                     listViewProps={{

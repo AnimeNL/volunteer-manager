@@ -19,7 +19,7 @@ import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndF
 export default async function EventWebsitePage(
     props: PageProps<'/admin/events/[event]/[team]/website'>)
 {
-    const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
+    const { authenticationContext, event, team } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesContent)
         notFound();
 
@@ -28,7 +28,8 @@ export default async function EventWebsitePage(
 
     return (
         <>
-            <ContentList linkPrefix="./website/content/"
+            <ContentList authenticationContext={authenticationContext}
+                         linkPrefix="./website/content/"
                          pathPrefix={pathPrefix} scope={scope} />
 
             <Divider sx={{ mt: 2, mb: 1 }} />

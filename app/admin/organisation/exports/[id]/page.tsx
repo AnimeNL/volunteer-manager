@@ -118,7 +118,7 @@ const exportAccessLogsDataSource = createDataSource('organisation/exports/access
 export default async function OrganisationExportsLogPage(
     props: PageProps<'/admin/organisation/exports/[id]'>)
 {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.exports'
     });
@@ -293,7 +293,9 @@ export default async function OrganisationExportsLogPage(
                     <Grid size={{ xs: 12 }}>
                         <DataTable
                             columns={columns}
-                            source={exportAccessLogsDataSource}
+                            source={exportAccessLogsDataSource.authorize(authenticationContext, {
+                                exportId: data.id
+                            })}
                             context={{ exportId: data.id }}
                             defaultSort={{ field: 'date', sort: 'desc' }}
                             pageSize={100}

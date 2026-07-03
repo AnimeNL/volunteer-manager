@@ -10,6 +10,7 @@ import { DataTable, createDataSource, withContext, withRowModel, kEventTransform
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents } from '@lib/database';
 
 /**
@@ -54,7 +55,9 @@ type RowModel = ExtractRowModel<typeof dataSource>;
 /**
  * Page that displays a <DataTable> component.
  */
-export default function DataTablePage() {
+export default async function DataTablePage() {
+    const authenticationContext = await requireAuthenticationContext({ check: 'admin' });
+
     const columns: Column<RowModel>[] = [
         {
             field: 'name',
@@ -69,7 +72,8 @@ export default function DataTablePage() {
             <SectionIntroduction>
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
-            <DataTable columns={columns} source={dataSource} context={{ event: '2026' }}
+            <DataTable columns={columns} context={{ event: '2026' }}
+                       source={dataSource.authorize(authenticationContext, { event: '2026' })}
                        defaultSort={{ field: 'name', sort: 'desc' }} disableSearch listViewProps={{
                           primaryField: 'name',
                        }} />

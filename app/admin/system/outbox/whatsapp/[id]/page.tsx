@@ -19,7 +19,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
 export default async function OutboxWhatsAppDetailsPage(
     props: PageProps<'/admin/system/outbox/whatsapp/[id]'>)
 {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -40,7 +40,8 @@ export default async function OutboxWhatsAppDetailsPage(
                     Detailed information about a message we sent through WhatsApp.
                 </SectionIntroduction>
             </Section>
-            <TwilioDetailsPage type={kTwilioOutboxType.WhatsApp} id={parseInt(params.id, 10)} />
+            <TwilioDetailsPage authenticationContext={authenticationContext}
+                               type={kTwilioOutboxType.WhatsApp} id={parseInt(params.id, 10)} />
         </>
     );
 }

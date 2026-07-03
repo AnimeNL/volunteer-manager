@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { type TwilioOutboxType, kTwilioOutboxType } from '@lib/database/Types';
@@ -16,6 +17,11 @@ import db, { tOutboxTwilio, tUsers } from '@lib/database';
  * Props accepted by the <TwilioDetailsPage> component.
  */
 interface TwilioDetailsPageProps {
+    /**
+     * Authentication context representing the signed in user.
+     */
+    authenticationContext: AuthenticationContext;
+
     /**
      * Type of message details should be shown for.
      */
@@ -195,7 +201,8 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                 </Section> }
             { !!message.result && !!message.result.sid &&
                 <Section title="Associated webhooks">
-                    <WebhookDataTable twilioMessageSid={message.result.sid} />
+                    <WebhookDataTable authenticationContext={props.authenticationContext}
+                                      twilioMessageSid={message.result.sid} />
                 </Section> }
         </>
     );

@@ -127,7 +127,7 @@ const helpRequestsDataSource = createDataSource('admin/organisation/displayReque
  * recently checked in, and allows them to be provisioned and configured.
  */
 export default async function HelpRequestsPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.displays',
     });
@@ -199,7 +199,7 @@ export default async function HelpRequestsPage() {
     return (
         <DataTable
             columns={columns}
-            source={helpRequestsDataSource}
+            source={helpRequestsDataSource.authorize(authenticationContext)}
             defaultSort={{ field: 'date', sort: 'desc' }}
             pageSize={25}
             listViewProps={{

@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import { OutboxDataTable } from '../OutboxDataTable';
+import { OutboxDataTable, twilioDataSource } from '../OutboxDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
@@ -18,7 +18,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
  * messages, as well as reactions such as an emoji response.
  */
 export default async function OutboxWhatsAppPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -37,7 +37,11 @@ export default async function OutboxWhatsAppPage() {
             </Section>
             <Section noHeader>
                 <SectionTabs />
-                <OutboxDataTable type={kTwilioOutboxType.WhatsApp} />
+                <OutboxDataTable
+                    source={twilioDataSource.authorize(authenticationContext, {
+                        type: kTwilioOutboxType.WhatsApp,
+                    })}
+                    type={kTwilioOutboxType.WhatsApp} />
             </Section>
         </>
     );

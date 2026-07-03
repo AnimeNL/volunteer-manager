@@ -7,8 +7,10 @@ import { notFound } from 'next/navigation';
 
 import type { GridGetRowsParams, GridRowModel } from '@mui/x-data-grid-premium';
 
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { DataSource } from './DataSource';
 import type { DataSourceInterface } from './DataSourceInterface';
+import type { DataSourceUnauthorizedInterface } from './DataSourceUnauthorizedInterface';
 import type { OmitSymbols } from './Types';
 import { DataSourceWrapper } from './DataSourceWrapper';
 
@@ -50,12 +52,13 @@ const kDataSourceRegistry: Map<string, DataSourceWrapper> = new Map;
 export function createDataSource<ZodRowModel extends ZodObject>(
     dataSourceId: string,
     rowModel: ZodRowModel,
-    instance: DataSource<never, ZodRowModel>): DataSourceInterface<never, ZodRowModel>;
+    instance: DataSource<never, ZodRowModel>): DataSourceUnauthorizedInterface<never, ZodRowModel>;
 export function createDataSource<ZodContext extends ZodObject, ZodRowModel extends ZodObject>(
     dataSourceId: string,
     context: ZodContext,
     rowModel: ZodRowModel,
-    instance: DataSource<ZodContext, ZodRowModel>): DataSourceInterface<ZodContext, ZodRowModel>;
+    instance: DataSource<ZodContext, ZodRowModel>)
+        : DataSourceUnauthorizedInterface<ZodContext, ZodRowModel>;
 export function createDataSource(...args: any) {
     const dataSourceId: string = generateHashedDataSourceId(args[0]);
 
@@ -93,7 +96,14 @@ export function createDataSource(...args: any) {
     if (Object.hasOwn(instance, 'delete'))
         dataSourceInterface.delete = deleteProxy.bind(null, dataSourceId);
 
-    return dataSourceInterface;
+    const unauthorizedInterface: DataSourceUnauthorizedInterface<any, any> = {
+        authorize(authenticationContext: AuthenticationContext, context?: unknown) {
+            // TODO: Actually authorize the interface prior to returning it.
+            return dataSourceInterface as any;
+        }
+    };
+
+    return unauthorizedInterface;
 }
 
 /**

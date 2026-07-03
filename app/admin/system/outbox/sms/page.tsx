@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
-import { OutboxDataTable } from '../OutboxDataTable';
+import { OutboxDataTable, twilioDataSource } from '../OutboxDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
@@ -17,7 +17,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
  * The outbox page summarises all outgoing SMS messages.
  */
 export default async function OutboxSmsPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -36,7 +36,11 @@ export default async function OutboxSmsPage() {
             </Section>
             <Section noHeader>
                 <SectionTabs />
-                <OutboxDataTable type={kTwilioOutboxType.SMS} />
+                <OutboxDataTable
+                    source={twilioDataSource.authorize(authenticationContext, {
+                        type: kTwilioOutboxType.SMS,
+                    })}
+                    type={kTwilioOutboxType.SMS} />
             </Section>
         </>
     );

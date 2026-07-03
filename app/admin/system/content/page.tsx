@@ -17,7 +17,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * deleted as applicable. This includes the privacy policy, e-mail messages, and so on.
  */
 export default async function ContentPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.content',
     });
@@ -34,7 +34,7 @@ export default async function ContentPage() {
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <ContentList scope={scope} />
+                <ContentList authenticationContext={authenticationContext} scope={scope} />
             </Section>
             <Section title="Create a new page">
                 <SectionIntroduction>

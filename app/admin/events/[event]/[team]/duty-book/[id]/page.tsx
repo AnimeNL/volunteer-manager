@@ -9,7 +9,7 @@ import { TextFieldElement } from '@proxy/react-hook-form-mui';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Grid from '@mui/material/Grid';
 
-import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
+import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractContext, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { SectionClearAction } from '@app/admin/components/SectionClearAction';
@@ -19,7 +19,6 @@ import { VisibilityToggle } from './VisibilityToggle';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { readSetting } from '@lib/Settings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 
@@ -111,7 +110,9 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
 export default async function EventTeamDutyBookIncidentPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book/[id]'>)
 {
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
+    const { access, authenticationContext, event, team } =
+        await verifyAccessAndFetchPageInfo(props.params);
+
     if (!team.flagEnableDutyBook)
         notFound();
 
@@ -200,6 +201,12 @@ export default async function EventTeamDutyBookIncidentPage(
         }
     ];
 
+    const context: ExtractContext<typeof viewingHistoryDataSource> = {
+        incidentId: incident.id,
+        eventSlug: event.slug,
+        teamSlug: team.slug,
+    };
+
     return (
         <>
             <Section title="Duty book incident" subtitle={event.shortName}
@@ -242,12 +249,8 @@ export default async function EventTeamDutyBookIncidentPage(
                 </SectionIntroduction>
                 <DataTable
                     columns={columns}
-                    source={viewingHistoryDataSource}
-                    context={{
-                        incidentId: incident.id,
-                        eventSlug: event.slug,
-                        teamSlug: team.slug,
-                    }}
+                    source={viewingHistoryDataSource.authorize(authenticationContext, context)}
+                    context={context}
                     defaultSort={{ field: 'user', sort: 'asc' }}
                     pageSize={100}
                     disableSearch

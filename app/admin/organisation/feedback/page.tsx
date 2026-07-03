@@ -107,7 +107,7 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
  * cannot be actioned or acknowledged directly from the portal.
  */
 export default async function FeedbackPage() {
-    await requireAuthenticationContext({
+    const authenticationContext = await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.feedback',
     });
@@ -168,7 +168,7 @@ export default async function FeedbackPage() {
             <Section noHeader>
                 <DataTable
                     columns={columns}
-                    source={feedbackDataSource}
+                    source={feedbackDataSource.authorize(authenticationContext)}
                     defaultSort={{ field: 'date', sort: 'desc' }}
                     pageSize={50}
                     listViewProps={{
