@@ -17,7 +17,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * however they will be streamed by the server to deal with ~infinitely large data sets.
  */
 export default async function SystemLogsPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'system.logs',
@@ -39,7 +39,7 @@ export default async function SystemLogsPage() {
             </Section>
             <Section noHeader>
                 <SectionTabs />
-                <LogsDataTable authenticationContext={authenticationContext} />
+                <LogsDataTable />
             </Section>
         </>
     );

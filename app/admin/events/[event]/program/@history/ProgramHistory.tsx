@@ -12,7 +12,7 @@ import { type Column, type DataSourceListParams, type ExtractContext, type Extra
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { executeAccessCheck, type AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs, tUsers }
     from '@lib/database';
 
@@ -418,27 +418,15 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
 });
 
 /**
- * Props accepted by the <ProgramHistory> component.
+ * Context that's expected to be made available for the history data source.
  */
-interface ProgramHistoryProps {
-    /**
-     * Authentication context representing the signed in user.
-     */
-    authenticationContext: AuthenticationContext;
-
-    /**
-     * Context that's expected to be made available for the history data source.
-     */
-    context: ExtractContext<typeof historyDataSource>;
-}
+type HistoryDataSourceContext = ExtractContext<typeof historyDataSource>;
 
 /**
  * The <ProgramHistory> component displays an overview of the most recent changes that were made to
  * the program, both in the imported AnPlan data and changes made within our own modifications.
  */
-export function ProgramHistory(props: ProgramHistoryProps) {
-    const { authenticationContext, context } = props;
-
+export function ProgramHistory(context: HistoryDataSourceContext) {
     const columns: Column<ExtractRowModel<typeof historyDataSource>>[] = [
         {
             field: 'severity',
@@ -498,8 +486,7 @@ export function ProgramHistory(props: ProgramHistoryProps) {
                 and <MuiLink href="https://anplan.animecon.nl/">AnPlan</MuiLink>, the AnimeCon
                 planning tool.
             </SectionIntroduction>
-            <DataTable columns={columns} context={context}
-                       source={historyDataSource.authorize(authenticationContext, context)}
+            <DataTable columns={columns} source={historyDataSource} context={context}
                        defaultSort={{ field: 'date', sort: 'desc' }} disableQueryParams
                        pageSize={10}
                        listViewProps={{

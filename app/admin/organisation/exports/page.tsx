@@ -127,7 +127,7 @@ const exportsDataSource = createDataSource('admin/organisation/exports', withRow
  * on what was exported by who, and when it was accessed.
  */
 export default async function OrganisationExportsPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: 'organisation.exports'
     });
@@ -186,7 +186,7 @@ export default async function OrganisationExportsPage() {
     ];
 
     return (
-        <DataTable columns={columns} source={exportsDataSource.authorize(authenticationContext)}
+        <DataTable columns={columns} source={exportsDataSource}
                    defaultSort={{ field: 'expirationDate', sort: 'desc' }}
                    pageSize={25}
                    listViewProps={{

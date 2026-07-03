@@ -86,7 +86,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -139,7 +139,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -172,7 +172,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -205,7 +205,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -237,7 +237,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -276,7 +276,7 @@ describe('DataTable - Pagination', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 

@@ -4,27 +4,20 @@
 import type { z } from 'zod';
 
 import type { DataSourceInterface } from './DataSourceInterface';
-import type { DataSourceUnauthorizedInterface } from './DataSourceUnauthorizedInterface';
 
 /**
  * Utility type to extract the Context from a DataSourceInterface.
  */
-export type ExtractContext<T> =
-    T extends DataSourceInterface<infer Context, any>
-        ? (Context extends never ? never : z.input<Context>)
-        : T extends DataSourceUnauthorizedInterface<infer Context, any>
-            ? (Context extends never ? never : z.input<Context>)
-            : never;
+export type ExtractContext<T> = T extends DataSourceInterface<infer Context, any>
+    ? Context extends never ? never : z.input<Context>
+    : never;
 
 /**
  * Utility type to extract the RowModel from a DataSourceInterface.
  */
-export type ExtractRowModel<T> =
-    T extends DataSourceInterface<any, infer RowModel>
-        ? z.infer<RowModel>
-        : T extends DataSourceUnauthorizedInterface<any, infer RowModel>
-            ? z.infer<RowModel>
-            : never;
+export type ExtractRowModel<T> = T extends DataSourceInterface<any, infer RowModel>
+    ? z.infer<RowModel>
+    : never;
 
 /**
  * Utility type to omit the symbol members of the given `T`.

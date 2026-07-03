@@ -14,7 +14,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ShareIcon from '@mui/icons-material/Share';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { Column, ExtractContext } from '@app/admin/components/DataTable';
+import type { Column } from '@app/admin/components/DataTable';
 import type { CommunicationCellContext } from './CommunicationCell';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { CommunicationCell, CommunicationHeaderCell } from './CommunicationCell';
@@ -91,9 +91,7 @@ async function sendCommunicationToVolunteer(
 export default async function EventVolunteersPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
 {
-    const { access, authenticationContext, event, team } =
-        await verifyAccessAndFetchPageInfo(props.params);
-
+    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
     if (!access.can('event.volunteers.information', 'read', { event: event.slug, team: team.slug }))
         forbidden();
 
@@ -185,11 +183,6 @@ export default async function EventVolunteersPage(
         },
     ];
 
-    const context: ExtractContext<typeof volunteerDataSource> = {
-        eventId: event.id,
-        teamId: team.id,
-    };
-
     const dbInstance = db;
     const cancelledVolunteers = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
@@ -215,11 +208,9 @@ export default async function EventVolunteersPage(
         <>
             <Section headerAction={headerAction} title={`${event.shortName} ${team.name}`}
                      subtitle={`${totalVolunteerCount} people`}>
-                <DataTable columns={columns}
-                           source={volunteerDataSource.authorize(authenticationContext, context)}
-                           context={context} disableFooter
+                <DataTable columns={columns} source={volunteerDataSource} search="prominent"
+                           context={{ eventId: event.id, teamId: team.id }} disableFooter
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
-                           search="prominent"
                            listViewProps={{
                                primaryField: 'name',
                                startComponent: ExperienceCell,

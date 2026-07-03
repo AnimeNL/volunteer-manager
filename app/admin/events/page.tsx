@@ -116,7 +116,7 @@ type EventRowModel = ExtractRowModel<typeof eventDataSource>;
  * events. Events cannot be removed through the portal, although they can be hidden.
  */
 export default async function EventsPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'event.visible',
@@ -193,8 +193,7 @@ export default async function EventsPage() {
     return (
         <TopLevelLayout>
             <Section title="Events">
-                <DataTable columns={columns}
-                           source={eventDataSource.authorize(authenticationContext)}
+                <DataTable columns={columns} source={eventDataSource}
                            defaultSort={{ field: 'startTime', sort: 'desc' }} disableFooter
                            listViewProps={{
                                primaryField: 'shortName',
@@ -203,7 +202,7 @@ export default async function EventsPage() {
                                startComponent: EventStatusCell,
                            }} />
             </Section>
-            { authenticationContext.access.can('admin') &&
+            { access.can('admin') &&
                 <Section title="Create new event">
                     <SectionIntroduction important>
                         Events will remain hidden until they are published in their settings.

@@ -15,7 +15,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * our system in a variety of ways, but all are (pre-authentication) stored for logging purposes.
  */
 export default async function WebhooksPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -32,7 +32,7 @@ export default async function WebhooksPage() {
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <WebhookDataTable authenticationContext={authenticationContext} />
+                <WebhookDataTable />
             </Section>
         </>
     );

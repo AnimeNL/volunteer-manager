@@ -142,13 +142,13 @@ async function publishTestMessage() {
  * selectively sign up certain people to automated and/or privileged messaging.
  */
 export default async function SubscriptionPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.subscriptions.management',
     });
 
     let action: React.ReactNode;
-    if (authenticationContext.access.can('system.internals'))
+    if (access.can('system.internals'))
         action = <SubscriptionTestAction testFn={publishTestMessage} />;
 
     const columns: Column<ExtractRowModel<typeof subscriptionsDataSource>>[] = [
@@ -203,7 +203,7 @@ export default async function SubscriptionPage() {
             <Section noHeader>
                 <DataTable
                     columns={columns}
-                    source={subscriptionsDataSource.authorize(authenticationContext)}
+                    source={subscriptionsDataSource}
                     defaultSort={{ field: 'name', sort: 'asc' }}
                     disableFooter
                     pageSize={100}

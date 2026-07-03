@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { executeAccessCheck, type AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tTwilioWebhookCalls } from '@lib/database';
 
 import { WebhookAuthenticatedCell, WebhookAuthenticatedHeader, WebhookServiceCell, WebhookSizeCell }
@@ -112,11 +112,6 @@ const webhookDataSource = createDataSource('admin/system/webhooks', withContext(
  */
 interface WebhookDataTableProps {
     /**
-     * Authentication context representing the signed in user.
-     */
-    authenticationContext: AuthenticationContext;
-
-    /**
      * Filter for Twilio webhooks to filter by a particular message SID.
      */
     twilioMessageSid?: string;
@@ -189,7 +184,7 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
     return (
         <DataTable
             columns={columns}
-            source={webhookDataSource.authorize(props.authenticationContext, props)}
+            source={webhookDataSource}
             context={props}
             defaultSort={{ field: 'date', sort: 'desc' }}
             disableQueryParams={!!props.twilioMessageSid}

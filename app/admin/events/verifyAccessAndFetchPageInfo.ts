@@ -4,12 +4,10 @@
 import { notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
-import type { AuthenticationContext, PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
 import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tEnvironments, tEvents, tEventsTeams, tRoles, tStorage, tTeams, tUsersEvents }
-    from '@lib/database';
+import { requireAuthenticationContext, type PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
+import db, { tEnvironments, tEvents, tEventsTeams, tRoles, tStorage, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -22,11 +20,6 @@ export interface PageInfo {
      * Access control object defining what the signed in user is able to do.
      */
     access: AccessControl;
-
-    /**
-     * Context available regarding authentication of the signed in user.
-     */
-    authenticationContext: AuthenticationContext;
 
     /**
      * The event that is being shown on this page.
@@ -256,16 +249,13 @@ export async function verifyAccessAndFetchPageInfo(
     const params = await asyncParams;
     const permission = typeof accessCheck === 'object' ? accessCheck : undefined;
 
-    const authenticationContext = await requireAuthenticationContext({
+    const { access, user } = await requireAuthenticationContext({
         check: 'admin-event',
         event: params.event,
         team: params.team,
 
         permission,
     });
-
-    const access = authenticationContext.access;
-    const user = authenticationContext.user;
 
     // ---------------------------------------------------------------------------------------------
     // Event information
@@ -323,7 +313,7 @@ export async function verifyAccessAndFetchPageInfo(
         notFound();  // no event identified by |params.slug| exists in the database
 
     if (!Object.hasOwn(params, 'team'))
-        return { access, authenticationContext, user, event };
+        return { access, user, event };
 
     // ---------------------------------------------------------------------------------------------
     // Team information
@@ -360,5 +350,5 @@ export async function verifyAccessAndFetchPageInfo(
     if (!team)
         notFound();  // the team does not exist, or does not participate in the |event|
 
-    return { access, authenticationContext, user, event, team };
+    return { access, user, event, team };
 }

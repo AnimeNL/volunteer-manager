@@ -15,7 +15,7 @@ import { MessageDeliveredCell } from './OutboxRowComponents';
 /**
  * Data source through which the Twilio outbox lists can be populated.
  */
-export const twilioDataSource = createDataSource('admin/system/outbox/twilio', withContext({
+const twilioDataSource = createDataSource('admin/system/outbox/twilio', withContext({
     /**
      * Type of message that should be considered for this data source.
      */
@@ -141,15 +141,17 @@ interface OutboxDataTableProps {
     type: 'Email' | TwilioOutboxType;
 
     /**
-     * Data source to use.
+     * Optional data source to use. Defaults to `twilioDataSource` when none is given.
      */
-    source: DataSourceInterface<any, any>;
+    source?: DataSourceInterface<any, any>;
 }
 
 /**
  * The <OutboxDataTable> component displays a DataTable showing outbox entries.
  */
 export function OutboxDataTable(props: OutboxDataTableProps) {
+    const dataSource = props.source ?? twilioDataSource;
+
     const typeLower = props.type.toLowerCase();
     const columns: Column<any>[] = [
         {
@@ -200,7 +202,7 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
     ];
 
     return (
-        <DataTable columns={columns} source={props.source}
+        <DataTable columns={columns} source={dataSource}
                    context={{ type: props.type }}
                    defaultSort={{ field: 'date', sort: 'desc' }}
                    pageSize={50}

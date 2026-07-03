@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { ContentScope } from './ContentScope';
 import { DataTable, type Column } from '../../components/DataTable';
 import { contentDataSource, type ContentRowModel } from './ContentDataSource';
@@ -10,11 +9,6 @@ import { contentDataSource, type ContentRowModel } from './ContentDataSource';
  * Props accepted by the <ContentList> component.
  */
 interface ContentListProps {
-    /**
-     * Authentication context representing the signed in user.
-     */
-    authenticationContext: AuthenticationContext;
-
     /**
      * Prefix to apply to links to content management pages shown in the table.
      * @default "./content/"
@@ -78,7 +72,7 @@ export function ContentList(props: ContentListProps) {
     return (
         <DataTable
             columns={columns}
-            source={contentDataSource.authorize(props.authenticationContext, props.scope)}
+            source={contentDataSource}
             context={props.scope}
             defaultSort={{ field: 'path', sort: 'asc' }}
             protectedColumn="protected"

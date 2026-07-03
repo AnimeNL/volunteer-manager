@@ -131,7 +131,7 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
  * with specific permissions, as messages may contain e.g. password reset links.
  */
 export default async function OutboxEmailPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -150,8 +150,7 @@ export default async function OutboxEmailPage() {
             </Section>
             <Section noHeader>
                 <SectionTabs />
-                <OutboxDataTable type="Email"
-                                 source={emailDataSource.authorize(authenticationContext)} />
+                <OutboxDataTable type="Email" source={emailDataSource} />
             </Section>
         </>
     );

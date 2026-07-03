@@ -19,7 +19,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
 export default async function OutboxSmsDetailsPage(
     props: PageProps<'/admin/system/outbox/sms/[id]'>)
 {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -40,8 +40,7 @@ export default async function OutboxSmsDetailsPage(
                     Detailed information about a message we sent through SMS.
                 </SectionIntroduction>
             </Section>
-            <TwilioDetailsPage authenticationContext={authenticationContext}
-                               type={kTwilioOutboxType.SMS} id={parseInt(params.id, 10)} />
+            <TwilioDetailsPage type={kTwilioOutboxType.SMS} id={parseInt(params.id, 10)} />
         </>
     );
 }

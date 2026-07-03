@@ -94,7 +94,7 @@ const accountsDataSource = createDataSource('admin/organisation/accounts', withR
  * be viewed and adjusted providing the right permissions are available to the signed in user.
  */
 export default async function AccountsPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'organisation.accounts',
@@ -102,8 +102,7 @@ export default async function AccountsPage() {
         },
     });
 
-    const canCreateAccounts = authenticationContext.access.can('organisation.accounts', 'create');
-
+    const canCreateAccounts = access.can('organisation.accounts', 'create');
     const columns: Column<ExtractRowModel<typeof accountsDataSource>>[] = [
         {
             field: 'name',
@@ -149,10 +148,8 @@ export default async function AccountsPage() {
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <DataTable columns={columns}
-                           source={accountsDataSource.authorize(authenticationContext)}
-                           defaultSort={{ field: 'name', sort: 'asc' }} search="prominent"
-                           listViewProps={{
+                <DataTable columns={columns} source={accountsDataSource} search="prominent"
+                           defaultSort={{ field: 'name', sort: 'asc' }} listViewProps={{
                                primaryField: 'name',
                                linkTemplate: '/admin/organisation/accounts/{id}',
                            }} />

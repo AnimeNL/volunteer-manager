@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { ContentScope } from '@app/admin/system/content/ContentScope';
 import { AnswerCell, AnswerHeader } from './AnswerCell';
 import { DataTable, type Column } from '@app/admin/components/DataTable';
@@ -11,11 +10,6 @@ import { contentDataSource, type ContentRowModel } from '@app/admin/system/conte
  * Props accepted by the <KnowledgeList> component.
  */
 interface KnowledgeListProps {
-    /**
-     * Authentication context representing the signed in user.
-     */
-    authenticationContext: AuthenticationContext;
-
     /**
      * Scope that should be used for sourcing the knowledge.
      */
@@ -81,7 +75,7 @@ export function KnowledgeList(props: KnowledgeListProps) {
     return (
         <DataTable
             columns={columns}
-            source={contentDataSource.authorize(props.authenticationContext, props.scope)}
+            source={contentDataSource}
             context={props.scope}
             defaultSort={{ field: 'categoryOrder', sort: 'asc' }}
             pageSize={25}

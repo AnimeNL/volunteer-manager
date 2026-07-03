@@ -93,7 +93,7 @@ describe('DataTable - Search', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -138,7 +138,7 @@ describe('DataTable - Search', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -169,7 +169,7 @@ describe('DataTable - Search', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -209,7 +209,7 @@ describe('DataTable - Search', () => {
                         params.page.offset, params.page.offset + params.page.limit),
                 };
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 

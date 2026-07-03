@@ -132,7 +132,7 @@ const errorLogsDataSource = createDataSource('admin/system/diagnostics/errors', 
  * resiliency purposes.
  */
 export default async function ErrorLogsPage() {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'system.logs',
@@ -219,7 +219,7 @@ export default async function ErrorLogsPage() {
             <Section noHeader>
                 <SectionTabs />
                 <DataTable columns={columns}
-                           source={errorLogsDataSource.authorize(authenticationContext)}
+                           source={errorLogsDataSource}
                            defaultSort={{ field: 'date', sort: 'desc' }}
                            listViewProps={{
                                primaryField: 'message',

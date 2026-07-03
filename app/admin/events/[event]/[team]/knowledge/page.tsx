@@ -22,9 +22,7 @@ import db, { tContentCategories, tEventsTeams, tRoles, tTeams, tTeamsRoles } fro
 export default async function EventTeamFaqPage(
     props: PageProps<'/admin/events/[event]/[team]/knowledge'>)
 {
-    const { authenticationContext, event, team, user } =
-        await verifyAccessAndFetchPageInfo(props.params);
-
+    const { event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
     if (!team.flagManagesFaq)
         notFound();
 
@@ -81,7 +79,7 @@ export default async function EventTeamFaqPage(
                     expect from our guests, visitors and fellow volunteers, each with a prepared
                     answer.
                 </SectionIntroduction>
-                <KnowledgeList authenticationContext={authenticationContext} scope={scope} />
+                <KnowledgeList scope={scope} />
             </Section>
             { !categories.length &&
                 <Section title="Create a new question">

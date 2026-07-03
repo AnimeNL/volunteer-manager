@@ -14,7 +14,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AccountLogsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/logs'>)
 {
-    const authenticationContext = await requireAuthenticationContext({
+    await requireAuthenticationContext({
         check: 'admin',
         permission: {
             permission: 'system.logs',
@@ -26,8 +26,7 @@ export default async function AccountLogsPage(
     if (!Number.isSafeInteger(userId))
         notFound();
 
-    return <LogsDataTable authenticationContext={authenticationContext}
-                          pageSize={25} userId={userId} />;
+    return <LogsDataTable pageSize={25} userId={userId} />;
 }
 
 export const generateMetadata =

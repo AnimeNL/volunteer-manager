@@ -92,7 +92,7 @@ describe('DataTable - Delete', () => {
                 deleteInvokedWith = params;
                 return true;
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
@@ -140,7 +140,7 @@ describe('DataTable - Delete', () => {
                 deleteInvokedWith = params;
                 return true;
             },
-        }).authorize(mocks.authenticationContext());
+        });
 
         const columns: Column<ExampleRowModel>[] = [{ field: 'name' }];
 
