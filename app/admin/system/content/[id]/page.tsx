@@ -2,11 +2,16 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+import TocIcon from '@mui/icons-material/Toc';
 
 import { ContentEditor } from '@app/admin/system/content/ContentEditor';
+import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGlobalScope } from '@app/admin/system/content/ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tContent } from '@lib/database';
 
 import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
 
@@ -23,18 +28,34 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     const params = await props.params;
 
     const contentId = parseInt(params.id, /* radix= */ 10);
+    const contentTitle = await db.selectFrom(tContent)
+        .where(tContent.contentId.equals(contentId))
+            .and(tContent.revisionVisible.equals(/* true= */ 1))
+        .selectOneColumn(tContent.contentTitle)
+        .executeSelectNoneOrOne();
+
+    if (!contentTitle)
+        notFound();
+
     const scope = createGlobalScope();
 
     const fetchFn = fetchContent.bind(null, scope, contentId);
     const updateFn = updateContent.bind(null, scope, contentId);
 
     return (
-        <ContentEditor fetchFn={fetchFn} updateFn={updateFn} title="Page editor">
-            <SectionIntroduction>
-                You are updating <strong>global content</strong>, any changes you save will be
-                published immediately.
-            </SectionIntroduction>
-        </ContentEditor>
+        <>
+            <Section icon={ <TocIcon color="primary" /> } title={contentTitle}
+                     breadcrumbs={[
+                         { label: 'Content', href: '/admin/system/content' },
+                         { label: contentTitle },
+                     ]}>
+                <SectionIntroduction>
+                    This page lists the global content of the Volunteer Portal such as the privacy
+                    policy and various guides and e-mail templates.
+                </SectionIntroduction>
+            </Section>
+            <ContentEditor fetchFn={fetchFn} updateFn={updateFn} noHeader />
+        </>
     );
 }
 

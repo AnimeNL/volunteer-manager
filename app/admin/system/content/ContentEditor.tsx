@@ -74,6 +74,7 @@ interface ContentEditorOwnProps {
  */
 type ContentEditorProps =
     (ContentEditorOwnProps & SectionHeaderProps) |
+    (ContentEditorOwnProps & { noHeader: true }) |
     (ContentEditorOwnProps & { noSections: true });
 
 /**
@@ -86,6 +87,8 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         = props;
 
     const ref = useRef<MDXEditorMethods>(null);
+
+    const useHeader = !('noHeader' in props);
     const useSections = !('noSections' in props);
 
     const [ defaultValues, setDefaultValues ] = useState<ContentRowModel>();
@@ -172,7 +175,10 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
             <Stack direction="column" spacing={2}>
                 <SectionComponent {...sectionHeaderProps}>
                     {children}
-                    <Grid container spacing={2} sx={{ margin: '8px -8px -8px -8px !important' }}>
+                    <Grid container spacing={2} sx={{
+                        margin: useHeader ? '8px -8px -8px -8px !important'
+                                          : '0px -8px -4px -8px !important'
+                    }}>
                         { !!categories &&
                             <Grid size={{ xs: 12, md: 4 }}>
                                 <SelectElement name="categoryId" label="Category" fullWidth

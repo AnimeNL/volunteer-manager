@@ -82,6 +82,7 @@ export function ContentList(props: ContentListProps) {
                 secondaryField: 'path',
                 dateField: 'updatedOn',
                 dateFieldFormat: 'YYYY-MM-DD',
+                linkTemplate: `${props.linkPrefix ?? './content/'}{id}`,
             }}
         />
     );
