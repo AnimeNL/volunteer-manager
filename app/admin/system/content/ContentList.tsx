@@ -75,6 +75,7 @@ export function ContentList(props: ContentListProps) {
             source={contentDataSource}
             context={props.scope}
             defaultSort={{ field: 'path', sort: 'asc' }}
+            protectedColumn="protected"
             subject="page"
             listViewProps={{
                 primaryField: 'title',

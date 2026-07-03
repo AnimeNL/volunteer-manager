@@ -20,7 +20,7 @@ import { styled } from '@mui/material/styles';
 
 import type { RowModelFields } from './Types';
 import { LocalDateTime } from '../LocalDateTime';
-import { resolveRowModelField, resolveTemplate } from './Utilities';
+import { isProtectedRow, resolveRowModelField, resolveTemplate } from './Utilities';
 
 /**
  * Props used to compose the list view presentation of a <DataTable> row.
@@ -99,6 +99,12 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
     onDelete?: (row: GridRowModel<any>) => void;
 
     /**
+     * Column through which it can be derived whether this row has been protected. Protected rows
+     * cannot be deleted.
+     */
+    protectedColumn?: keyof RowModel & string;
+
+    /**
      * The row that's being rendered in this list view.
      */
     row: GridRowModel<any>;
@@ -112,6 +118,10 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
     const primaryFieldValue = resolveRowModelField(props.row, props.listViewProps.primaryField);
+
+    const isProtected = useMemo(() => isProtectedRow(props.row, props.protectedColumn), [
+        props.row, props.protectedColumn,
+    ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mechanism through which the overflow menu can be accessed
@@ -206,10 +216,15 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                                         aria-label="Edit">
                                 <EditIcon color="disabled" fontSize="medium" />
                             </IconButton>
-                            <IconButton component="li" onClick={handleDeleteClick}
-                                        aria-label="Delete">
-                                <DeleteForeverIcon color="action" fontSize="medium" />
-                            </IconButton>
+                            { !isProtected &&
+                                <IconButton component="li" onClick={handleDeleteClick}
+                                            aria-label="Delete">
+                                    <DeleteForeverIcon color="action" fontSize="medium" />
+                                </IconButton> }
+                            { !!isProtected &&
+                                <IconButton component="li" disabled>
+                                    <DeleteForeverIcon color="disabled" fontSize="medium" />
+                                </IconButton> }
                         </IconMenu> }
                 </>
             )}

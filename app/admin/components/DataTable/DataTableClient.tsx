@@ -17,10 +17,12 @@ import type { Column } from './Column';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { DataTableListViewProps } from './DataTableListViewRow';
 import type { ExtractContext, ExtractRowModel } from './Types';
-import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight } from './DataTableListViewRow';
+import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowHeight }
+    from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
 import { DeleteConfirmation } from './DeleteConfirmation';
+import { isProtectedRow } from './Utilities';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
@@ -92,6 +94,12 @@ interface DataTableClientCommonProps<
      * @default 50
      */
     pageSize?: typeof kPageSizeOptions[number];
+
+    /**
+     * Column through which it can be derived whether this row has been protected. Protected rows
+     * cannot be deleted.
+     */
+    protectedColumn?: keyof RowModel & string;
 
     /**
      * User interface for the search functionality. Prominent search will be an always visible
@@ -291,14 +299,24 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 width: 50,
                 align: 'center',
 
-                renderCell: params => (
-                    <Tooltip title={`Delete this ${subject}`}>
-                        <IconButton aria-label={`Delete this ${subject}`} size="small"
-                                    onClick={ () => setDeleteCandidate(params.row) }>
-                            <DeleteForeverIcon color="error" fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                ),
+                renderCell: params => {
+                    if (isProtectedRow(params.row, props.protectedColumn)) {
+                        return (
+                            <Tooltip title="This row cannot be deleted">
+                                <DeleteForeverIcon color="disabled" fontSize="small" />
+                            </Tooltip>
+                        );
+                    } else {
+                        return (
+                            <Tooltip title={`Delete this ${subject}`}>
+                                <IconButton aria-label={`Delete this ${subject}`} size="small"
+                                            onClick={ () => setDeleteCandidate(params.row) }>
+                                    <DeleteForeverIcon color="error" fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        );
+                    }
+                },
             });
         }
 
@@ -377,11 +395,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                             <DataTableListViewButtonRow
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row}
-                                onDelete={props.source.delete ? setDeleteCandidate : undefined} /> :
+                                onDelete={props.source.delete ? setDeleteCandidate : undefined}
+                                protectedColumn={props.protectedColumn} /> :
                             <DataTableListViewRow
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row}
-                                onDelete={props.source.delete ? setDeleteCandidate : undefined} />,
+                                onDelete={props.source.delete ? setDeleteCandidate : undefined}
+                                protectedColumn={props.protectedColumn} />,
                 }}
 
                 getEstimatedRowHeight={ isMobile ? () => estimatedListViewRowHeight : undefined }

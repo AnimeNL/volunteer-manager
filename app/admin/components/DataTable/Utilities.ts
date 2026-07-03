@@ -4,6 +4,17 @@
 import type { GridRowModel } from '@mui/x-data-grid-premium';
 
 /**
+ * Returns whether the given |row| has been protected.
+ */
+export function isProtectedRow(row: GridRowModel<any>, protectedColumn?: any): boolean {
+    if (!protectedColumn)
+        return false;
+
+    const protectedColumnValue = resolveRowModelField(row, protectedColumn);
+    return !!protectedColumnValue;
+}
+
+/**
  * Resolves the given |field| against the |row|, where the field may be a path used to discover
  * nested references.
  *
