@@ -13,11 +13,16 @@ import type { DataSourceInterface } from './DataSourceInterface';
 import type { OmitSymbols } from './Types';
 import { DataSourceWrapper } from './DataSourceWrapper';
 
+const globalForDataSources = globalThis as unknown as {
+    kDataSourceRegistry?: Map<string, DataSourceWrapper>;
+};
+
 /**
  * Registry of `DataSource` instances that are known to the server, each identified by the feature-
- * supplied ID when `createDataSource` is being called and wrapped by a helper class.
+ * supplied ID when `createDataSource` is being called and wrapped by a helper class. A single
+ * registry is used for the server, whereas the following pattern exists to aid the Next HMR.
  */
-const kDataSourceRegistry: Map<string, DataSourceWrapper> = new Map;
+const kDataSourceRegistry = globalForDataSources.kDataSourceRegistry ??= new Map;
 
 /**
  * Creates a new data source from the given `dataSourceInstance`. It's stored in a registry based on
