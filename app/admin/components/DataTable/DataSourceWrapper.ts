@@ -11,7 +11,7 @@ import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 import { RecordErrorLog } from '@lib/Log';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext, type AuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
  * Zod validator used to verify that the `GridGetRowsParams` information we get for the `list()`
@@ -72,6 +72,46 @@ export class DataSourceWrapper {
 
         this.#dataSourceId = dataSourceId;
         this.#dataSource = dataSource;
+    }
+
+    /**
+     * Authorizes the supported operations on the data source given the |authenticationContext|, and
+     * returns the set of allowed ones.
+     */
+    async batchAuthorizeOperations(authenticationContext: AuthenticationContext, context: unknown)
+        : Promise<Set<DataSourceOperation>>
+    {
+        if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.())
+            return new Set();  // no operations are allowed for unauthenticated users
+
+        const props: DataSourceProps = {
+            access: authenticationContext.access,
+            authenticationContext,
+        };
+
+        const verifiedContextResult = await z.safeParseAsync(this.#context, context);
+        if (!verifiedContextResult.success)
+            throw new Error('Invalid context passed to a data source, unable to authorize');
+
+        const allowedOperations = new Set<DataSourceOperation>;
+        for (const operation of [ 'create', 'delete', 'list' ] as DataSourceOperation[]) {
+            if (!Object.hasOwn(this.#dataSource, operation))
+                continue;  // operation not supported by the data source
+
+            try {
+                await this.#dataSource.authorize(
+                    toAccessOperation(operation), props, verifiedContextResult.data);
+
+                allowedOperations.add(operation);
+
+            } catch (_error) {
+                // The `authorize()` method is expected to throw an error (most commonly Next.js'
+                // `forbidden()` call) when authorization is not granted. We can safely ignore that
+                // situation here, as we're explicitly confirming that it does not happen.
+            }
+        }
+
+        return allowedOperations;
     }
 
     /**

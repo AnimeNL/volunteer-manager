@@ -7,7 +7,8 @@ import { notFound } from 'next/navigation';
 
 import type { GridGetRowsParams, GridRowModel } from '@mui/x-data-grid-premium';
 
-import type { DataSource } from './DataSource';
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { DataSource, DataSourceOperation } from './DataSource';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { OmitSymbols } from './Types';
 import { DataSourceWrapper } from './DataSourceWrapper';
@@ -84,6 +85,11 @@ export function createDataSource(...args: any) {
     kDataSourceRegistry.set(dataSourceId, dataSourceWrapper);
 
     const dataSourceInterface: OmitSymbols<DataSourceInterface<any, any>> = {
+        id: dataSourceId,
+
+        // Operations:
+        create: undefined,
+        delete: undefined,
         list: listProxy.bind(null, dataSourceId),
     };
 
@@ -94,6 +100,31 @@ export function createDataSource(...args: any) {
         dataSourceInterface.delete = deleteProxy.bind(null, dataSourceId);
 
     return dataSourceInterface;
+}
+
+/**
+ * Authorizes the given |source| against the given |authenticationContext|. A copy of the source
+ * will be returned, with the inaccessible operations removed.
+ */
+export async function authorizeDataSource<DataSourceType extends DataSourceInterface<any, any>>(
+    authenticationContext: AuthenticationContext,
+    source: DataSourceType,
+    context: unknown): Promise<DataSourceType>
+{
+    const dataSourceWrapper = kDataSourceRegistry.get(source.id);
+    if (!dataSourceWrapper)
+        throw new Error('Attempting to authorise a non-existing data source');
+
+    const authorizedDataSource = { ...source };
+    const authorizedOperations =
+        await dataSourceWrapper.batchAuthorizeOperations(authenticationContext, context);
+
+    for (const operation of [ 'create', 'delete', 'list' ] as DataSourceOperation[]) {
+        if (!authorizedOperations.has(operation))
+            delete authorizedDataSource[operation];
+    }
+
+    return authorizedDataSource;
 }
 
 /**

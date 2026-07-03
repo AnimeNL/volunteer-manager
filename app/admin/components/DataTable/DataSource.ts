@@ -30,6 +30,9 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * `operation` on this data source. Must be implemented, even when authorization is not
      * required, in order to avoid missing it by mistake.
      *
+     * This method will be called several times per data source: once for each supported operation
+     * when it's being presented to the user, and once more when such an operation is executed.
+     *
      * @param operation The operation that is about to be executed.
      * @param props Props indicating the circumstances under which this data source is used.
      * @param context When set, contextual information required by this data source.

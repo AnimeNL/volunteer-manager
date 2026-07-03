@@ -25,6 +25,11 @@ export interface DataSourceInterface<
     [rowModel]: RowModel;
 
     /**
+     * Unique ID of the data source. Assigned by the server.
+     */
+    id: string;
+
+    /**
      * Creates a new row in the data source. Returns the row model for the newly created row, in
      * which the new ID must have been populated.
      */

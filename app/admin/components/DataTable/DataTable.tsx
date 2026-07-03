@@ -1,16 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
-import dynamic from 'next/dynamic';
-
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { DataTableClientProps } from './DataTableClient';
-
-const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false }) as
-    <Interface extends DataSourceInterface<any, any>>(props: DataTableClientProps<Interface>)
-        => React.ReactNode;
+import { default as DataTableClient } from './DataTableClient';
+import { authorizeDataSource } from './createDataSource';
+import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
  * The <DataTable> component is a wrapped implementation of the MUI X `<DataGrid>` component with
@@ -22,8 +17,12 @@ const DataTableClient = dynamic(() => import('./DataTableClient'), { ssr: false 
  *
  * @see <DataTableClient>
  */
-export function DataTable<Interface extends DataSourceInterface<any, any>>(
+export async function DataTable<Interface extends DataSourceInterface<any, any>>(
     props: DataTableClientProps<Interface>)
 {
-    return <DataTableClient<Interface> {...props} />;
+    const authenticationContext = await getAuthenticationContext();
+    const authorizedDataSource = await authorizeDataSource(
+        authenticationContext, props.source, props.context);
+
+    return <DataTableClient<Interface> {...props} source={authorizedDataSource} />;
 }
