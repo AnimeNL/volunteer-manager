@@ -20,6 +20,7 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 
 import type { ContentRowModel } from './ContentDataSource';
 import type { SectionHeaderProps } from '../../components/SectionHeader';
@@ -205,7 +206,9 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                 { !useSections &&
                     <Divider sx={{ pt: 1, mb: 2 }} /> }
                 <SectionComponent noHeader>
-                    <ContentEditorMdx innerRef={ref} markdown={markdown} />
+                    <MdxEditorContainer>
+                        <ContentEditorMdx innerRef={ref} markdown={markdown} />
+                    </MdxEditorContainer>
                 </SectionComponent>
                 { !useSections &&
                     <Divider sx={{ marginTop: '8px !important' }} /> }
@@ -228,3 +231,43 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         </FormContainer>
     );
 }
+
+/**
+ * Wrapper for the MDX editor through which we apply styling to the component, ensuring that it has
+ * consistent and appropriate appearance for both our dark and light modes.
+ */
+const MdxEditorContainer = styled(Box)(({ theme }) => ([
+    {
+        '& .cm-editor': {
+            marginTop: theme.spacing(0.5),
+            borderRadius: theme.shape.borderRadius,
+            overflow: 'hidden',
+        },
+        '& .mdxeditor': {
+            '--baseTextContrast': theme.vars?.palette.text.primary,
+            fontSize: theme.typography.body2.fontSize,
+        },
+    },
+    theme.applyStyles('dark', {
+        '& .cm-activeLineGutter': {
+            backgroundColor: theme.vars?.palette.background.default,
+        },
+        '& .cm-editor': {
+            backgroundColor: theme.vars?.palette.background.paper,
+            color: theme.vars?.palette.text.primary,
+        },
+        '& .cm-gutters': {
+            color: theme.vars?.palette.grey[600],
+        },
+        '& .mdxeditor': {
+            '--baseBase': theme.vars?.palette.background.paper,
+            '--baseBg': theme.vars?.palette.background.default,
+            '--baseBgActive': theme.vars?.palette.grey[700],
+        },
+    }),
+    theme.applyStyles('light', {
+        '& .mdxeditor': {
+            '--baseBgActive': theme.vars?.palette.grey[300],
+        },
+    }),
+]));
