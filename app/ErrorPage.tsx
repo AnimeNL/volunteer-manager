@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { cache } from 'react';
-
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
@@ -27,11 +25,6 @@ const kFatalErrorContent =
     'Something went very wrong and the page you requested is currently not available. Don\'t ' +
     'worry, it\'s not you, it\'s us. Please let us know that this happened, and we\'ll be happy ' +
     'to help out.';
-
-/**
- * Caches the ability to get the authentication context to at most once per request.
- */
-const getCachedAuthenticationContext = cache(getAuthenticationContext);
 
 /**
  * Props accepted by the ErrorPage component.
@@ -71,7 +64,7 @@ export async function ErrorPage(props: ErrorPageProps) {
         );
     }
 
-    const { user } = await getCachedAuthenticationContext();
+    const { user } = await getAuthenticationContext();
 
     const content = await getStaticContent([ `errors/${props.statusCode}` ]) || {
         title: kFatalErrorTitle,

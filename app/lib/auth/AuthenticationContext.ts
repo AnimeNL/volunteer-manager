@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { cache } from 'react';
 import { forbidden, unauthorized } from 'next/navigation';
 
 import type { AccessOperation } from '@lib/auth/AccessDescriptor';
@@ -26,12 +27,11 @@ export type {
     VisitorAuthenticationContext,
 };
 
-
 /**
  * Determines the authentication context from the cookies included with the current request. May
  * only be used by server-side components, as authentication requires a database query.
  */
-export async function getAuthenticationContext(): Promise<AuthenticationContext> {
+export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> => {
     const sessionData = await getSessionFromCookieStore((await headers).cookies());
     if (sessionData)
         return getAuthenticationContextFromSessionData(sessionData);
@@ -40,7 +40,7 @@ export async function getAuthenticationContext(): Promise<AuthenticationContext>
         access: new AccessControl({ /* no grants */ }),
         user: /* guest= */ undefined,
     };
-}
+});
 
 /**
  * Determines the authentication context based on the given `headers`. May only be used by server-
