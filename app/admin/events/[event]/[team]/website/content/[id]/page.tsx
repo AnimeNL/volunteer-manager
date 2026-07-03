@@ -11,6 +11,8 @@ import { generateEventMetadataFn } from '../../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 
+import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
+
 /**
  * The <EventWebsiteContentPage> page enables the content on an individual page to be updated as
  * desired. The common content editing framework is used for this feature.
@@ -24,15 +26,20 @@ export default async function EventWebsiteContentPage(
 
     const params = await props.params;
     const pathPrefix = `/registration/${event.slug}/`;
+
+    const contentId = parseInt(params.id, /* radix= */ 10);
     const scope = createEventScope(event.id, team.id);
+
+    const fetchFn = fetchContent.bind(null, scope, contentId);
+    const updateFn = updateContent.bind(null, scope, contentId);
 
     return (
         <Grid container>
             <BackButtonGrid href={`/admin/events/${event.slug}/${team.slug}/website`}>
                 Back to pages
             </BackButtonGrid>
-            <ContentEditor contentId={parseInt(params.id, 10)} pathPrefix={pathPrefix} noSections
-                           scope={scope} />
+            <ContentEditor fetchFn={fetchFn} pathPrefix={pathPrefix} updateFn={updateFn}
+                           noSections />
         </Grid>
     );
 }

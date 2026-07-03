@@ -9,6 +9,8 @@ import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tContentCategories } from '@lib/database';
 
+import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
+
 /**
  * This page displays an individual FAQ entry, which allows the volunteer to change both the
  * question and the answer to the question. A rich text editing component is made available.
@@ -33,11 +35,15 @@ export default async function EventFaqEntryPage(
         .orderBy(tContentCategories.categoryOrder, 'asc')
         .executeSelectMany();
 
+    const contentId = parseInt(params.id, /* radix= */ 10);
     const scope = createKnowledgeBaseScope(event.id);
 
+    const fetchFn = fetchContent.bind(null, scope, contentId);
+    const updateFn = updateContent.bind(null, scope, contentId);
+
     return (
-        <ContentEditor contentId={parseInt(params.id, /* radix= */ 10)} pathHidden scope={scope}
-                       title="Knowledge base" subtitle={event.shortName} categories={categories} />
+        <ContentEditor categories={categories} fetchFn={fetchFn} pathHidden updateFn={updateFn}
+                       title="Knowledge base" subtitle={event.shortName} />
     );
 }
 

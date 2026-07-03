@@ -8,6 +8,8 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGlobalScope } from '@app/admin/system/content/ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
+import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
+
 /**
  * The <ContentEntryPage> page displays an individual piece of content that can be edited by
  * the volunteer. The <ContentEditor> component takes care of the actual behaviour.
@@ -19,10 +21,15 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     });
 
     const params = await props.params;
+
+    const contentId = parseInt(params.id, /* radix= */ 10);
     const scope = createGlobalScope();
 
+    const fetchFn = fetchContent.bind(null, scope, contentId);
+    const updateFn = updateContent.bind(null, scope, contentId);
+
     return (
-        <ContentEditor contentId={parseInt(params.id, 10)} scope={scope} title="Page editor">
+        <ContentEditor fetchFn={fetchFn} updateFn={updateFn} title="Page editor">
             <SectionIntroduction>
                 You are updating <strong>global content</strong>, any changes you save will be
                 published immediately.

@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
+import type { MDXEditorMethods } from '@mdxeditor/editor';
 import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';
 
@@ -21,14 +22,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { ContentRowModel } from './ContentDataSource';
-import type { ContentScope } from './ContentScope';
-import type { MDXEditorMethods } from '@mdxeditor/editor';
 import type { SectionHeaderProps } from '../../components/SectionHeader';
+import type { ServerActionResult } from '@lib/serverAction';
 import { Section } from '../../components/Section';
 import { Temporal, formatDate } from '@lib/Temporal';
 import { validateContentPath } from './ContentCreate';
-
-import { getContent, updateContent } from './ContentActions';
 
 import '@mdxeditor/editor/style.css';
 
@@ -48,9 +46,9 @@ interface ContentEditorOwnProps {
     categories?: ValueOptions[];
 
     /**
-     * Unique ID of the content that should be loaded. Will automatically be fetched from the API.
+     * Server Action through which the content can be fetched.
      */
-    contentId: number;
+    fetchFn: () => Promise<ServerActionResult>;
 
     /**
      * Whether the path should be hidden in its entirety, in case it's not relevant for the type of
@@ -64,9 +62,10 @@ interface ContentEditorOwnProps {
     pathPrefix?: string;
 
     /**
-     * Scope of the content that should be editable.
+     * Server Action through which the content can be updated.
      */
-    scope: ContentScope;
+    updateFn: (row: { categoryId?: number; content: string; path?: string; title: string; })
+        => Promise<ServerActionResult>;
 }
 
 /**
@@ -82,7 +81,7 @@ type ContentEditorProps =
  * to the bundle size, while still being available when it needs to be.
  */
 export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>) {
-    const { categories, children, contentId, pathHidden, pathPrefix, scope, ...sectionHeaderProps }
+    const { categories, children, fetchFn, pathHidden, pathPrefix, updateFn, ...sectionHeaderProps }
         = props;
 
     const ref = useRef<MDXEditorMethods>(null);
@@ -102,16 +101,11 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
             if (!ref || !ref.current)
                 throw new Error('Cannot locate the Markdown content on this page');
 
-            const response = await updateContent({
-                id: contentId,
-                context: scope,
-                row: {
-                    id: contentId,
-                    content: ref.current.getMarkdown(),
-                    path: data.path ?? defaultValues?.path,
-                    categoryId: data.categoryId ?? undefined,
-                    title: data.title,
-                },
+            const response = await updateFn({
+                categoryId: data.categoryId ?? undefined,
+                content: ref.current.getMarkdown(),
+                path: data.path ?? defaultValues?.path,
+                title: data.title,
             });
 
             if (response.success)
@@ -123,32 +117,30 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
         } finally {
             setLoading(false);
         }
-    }, [ defaultValues, contentId, scope ]);
+    }, [ defaultValues, updateFn ]);
 
     const [ contentProtected, setContentProtected ] = useState<boolean>(false);
     const [ markdown, setMarkdown ] = useState<string>();
 
     useEffect(() => {
-        getContent({
-            id: contentId,
-            context: scope
-        }).then(response => {
-            if (response.success) {
-                setDefaultValues({
-                    ...response.row,
-                    updatedOn:
-                        formatDate(
-                            Temporal.ZonedDateTime.from(response.row.updatedOn),
-                            'YYYY-MM-DD[T]HH:mm:ss[Z]'),
-                });
-
-                setContentProtected(!!response.row.protected);
-                setMarkdown(response.row.content);
-            } else {
+        fetchFn().then(response => {
+            if (!response.success) {
                 setError(response.error ?? 'Unable to load the content from the server');
+                return;
             }
+
+            setDefaultValues({
+                ...response.row,
+                updatedOn:
+                    formatDate(
+                        Temporal.ZonedDateTime.from(response.row.updatedOn),
+                        'YYYY-MM-DD[T]HH:mm:ss[Z]'),
+            });
+
+            setContentProtected(!!response.row.protected);
+            setMarkdown(response.row.content);
         });
-    }, [ contentId, scope ]);
+    }, [ fetchFn ]);
 
     const SectionComponent =
         useSections ? Section as React.ElementType
