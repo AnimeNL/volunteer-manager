@@ -14,6 +14,6 @@ export const DashboardCard = styled(Card)(({ theme }) => ({
     flexDirection: 'column',
 
     [`${theme.breakpoints.down('md')}`]: {
-        margin: theme.spacing(0, -1),
+        margin: `${theme.spacing(0, -1)} !important`,
     },
 }));

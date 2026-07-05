@@ -6,7 +6,9 @@
 import { Suspense } from 'react';
 
 import Grid from '@mui/material/Grid';
-import { styled } from '@mui/material/styles';
+import Stack from '@mui/material/Stack';
+import { styled, useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 /**
  * Information required for each of the cards that should be shown on the dashboard.
@@ -33,17 +35,30 @@ interface DashboardGridProps {
  * appropriate number of columns for the user's display.
  */
 export function DashboardGrid(props: DashboardGridProps) {
-    // TODO: Support multiple columns
-    // TODO: Support loading elements
+    const theme = useTheme();
+
+    const isTabletSized = useMediaQuery(theme.breakpoints.up('md'));
+    const isDesktopSized = useMediaQuery(theme.breakpoints.up('xl'));
+
+    const columnsCount = isDesktopSized ? 4 : (isTabletSized ? 2 : 1);
+
+    const columns: DashboardCardInfo[][] = Array.from({ length: columnsCount }, () => []);
+    for (let index = 0; index < props.cards.length; ++index)
+        columns[index % columnsCount].push(props.cards[index]);
 
     return (
-        <DashboardGridContainer container>
-            { props.cards.map((card, index) =>
-                <Grid key={index} size={{ xs: 12 }}>
-                    <Suspense fallback={null}>
-                        {card.element}
-                    </Suspense>
-                </Grid> ) }
+        <DashboardGridContainer container spacing={1}>
+            {columns.map((columnCards, colIndex) => (
+                <Grid key={colIndex} size={{ xs: 12 / columnsCount }}>
+                    <Stack spacing={1}>
+                        {columnCards.map((card, cardIndex) => (
+                            <Suspense key={cardIndex} fallback={null}>
+                                {card.element}
+                            </Suspense>
+                        ))}
+                    </Stack>
+                </Grid>
+            ))}
         </DashboardGridContainer>
     );
 }
