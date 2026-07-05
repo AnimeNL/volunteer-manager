@@ -38,14 +38,16 @@ export function DashboardCardHeader(props: DashboardCardHeaderProps) {
     const kPrimaryAspectRatioMobile = 2.5;
 
     const kSecondaryAspectRatioDesktop = 4;
-    const kSecondaryAspectRatioMobile = 4.5;
+    const kSecondaryAspectRatioMobile = 7;
 
     const aspectRatio =
         isMobile ? !props.secondary ? kPrimaryAspectRatioMobile : kSecondaryAspectRatioMobile
                  : !props.secondary ? kPrimaryAspectRatioDesktop : kSecondaryAspectRatioDesktop;
 
+    const backgroundPositionY = isMobile && !!props.secondary ? '85%' : '85%';
+
     return (
-        <CardMedia sx={{ aspectRatio, backgroundPositionY: '85%' }}
+        <CardMedia sx={{ aspectRatio, backgroundPositionY }}
                    image={props.src || '/images/admin/event-header.jpg'}
                    title={props.title} />
     );

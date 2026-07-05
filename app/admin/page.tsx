@@ -4,12 +4,13 @@
 import type { Metadata } from 'next';
 
 import { default as TopLevelLayout } from './TopLevelLayout';
+import { ActivityCard } from './dashboard/ActivityCard';
+import { BirthdayCard } from './dashboard/BirthdayCard';
 import { DashboardGrid } from './dashboard/DashboardGrid';
 import { DatabaseCard } from './dashboard/DatabaseCard';
 import { EventCard } from './dashboard/EventCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-
 
 /**
  * Main dashboard of the AnimeCon Volunteer Manager. Includes various cards in a masonry layout that
@@ -18,10 +19,12 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AdminPage() {
     await requireAuthenticationContext({ check: 'admin' });
 
+    // TODO: Permission checks for all of this.
+
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
-        // TODO: Birthday card
-        // TODO: Logs card
+        <BirthdayCard key="birthday-card" />,
+        <ActivityCard key="activity-card" />,
         <DatabaseCard key="database-card" />,
         <SchedulerCard key="scheduler-card" />,
     ];
