@@ -4,6 +4,8 @@
 import type { Metadata } from 'next';
 
 import { default as TopLevelLayout } from './TopLevelLayout';
+import { DashboardGrid, type DashboardCardInfo } from './dashboard/DashboardGrid';
+import { EventCard } from './dashboard/EventCard';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 
@@ -14,9 +16,18 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AdminPage() {
     await requireAuthenticationContext({ check: 'admin' });
 
+    const cards: DashboardCardInfo[] = [
+        {
+            element: <EventCard />,
+        },
+        // TODO: Birthday card
+        // TODO: Database card
+        // TODO: Scheduler card
+    ];
+
     return (
         <TopLevelLayout>
-            <span>Hello, world.</span>
+            <DashboardGrid cards={cards} />
         </TopLevelLayout>
     );
 }
