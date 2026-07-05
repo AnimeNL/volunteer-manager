@@ -4,8 +4,10 @@
 import type { Metadata } from 'next';
 
 import { default as TopLevelLayout } from './TopLevelLayout';
-import { DashboardGrid, type DashboardCardInfo } from './dashboard/DashboardGrid';
+import { DashboardGrid } from './dashboard/DashboardGrid';
+import { DatabaseCard } from './dashboard/DatabaseCard';
 import { EventCard } from './dashboard/EventCard';
+import { SchedulerCard } from './dashboard/SchedulerCard';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 
@@ -16,13 +18,12 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AdminPage() {
     await requireAuthenticationContext({ check: 'admin' });
 
-    const cards: DashboardCardInfo[] = [
-        {
-            element: <EventCard />,
-        },
+    const cards: React.ReactNode[] = [
+        <EventCard key="event-card" />,
         // TODO: Birthday card
-        // TODO: Database card
-        // TODO: Scheduler card
+        // TODO: Logs card
+        <DatabaseCard key="database-card" />,
+        <SchedulerCard key="scheduler-card" />,
     ];
 
     return (

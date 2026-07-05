@@ -15,7 +15,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { DashboardCard } from './DashboardCard';
-import { EventCardHeader } from './EventCardHeader';
+import { DashboardCardHeader } from './DashboardCardHeader';
 import { EventCardHighlight } from './EventCardHighlight';
 import { Temporal, formatDate } from '@lib/Temporal';
 import { getBlobUrl } from '@lib/database/BlobStore';
@@ -97,8 +97,8 @@ export async function EventCard() {
 
     return (
         <DashboardCard>
-            <EventCardHeader src={ getBlobUrl(upcomingEvent.identityHash) }
-                             title={upcomingEvent.name} />
+            <DashboardCardHeader src={ getBlobUrl(upcomingEvent.identityHash) }
+                                 title={upcomingEvent.name} />
             <Stack sx={{ px: 2, pb: 2 }}>
                 <div>
                     <Typography variant="h6" sx={{ mt: 1 }}>

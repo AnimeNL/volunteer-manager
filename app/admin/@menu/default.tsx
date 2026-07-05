@@ -25,6 +25,7 @@ export default async function DefaultMenu() {
         <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
                 Icon: DashboardOutlinedIcon,
+                badge: { severity: 'warning', value: true },  // migration in progress
                 label: 'Dashboard',
                 url: '/admin',
                 urlMatchMode: 'strict',

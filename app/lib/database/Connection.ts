@@ -15,6 +15,7 @@ import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
 declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;
     let animeConMockConnection: DBConnection | undefined;
+    let animeConQueryCount: number | undefined;
 }
 
 /**
@@ -90,7 +91,12 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
  * actual queries will continue to be executed using a MariaDBQueryRunner.
  */
 class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined> {
-    override onQuery() { return undefined; }
+    override onQuery() {
+        globalThis.animeConQueryCount ??= 0;
+        globalThis.animeConQueryCount++;
+        return undefined;
+    }
+
     override onQueryResult() {}
 
     override onQueryError(queryType: QueryType, query: string, params: any[], error: Error) {
@@ -115,6 +121,13 @@ class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined> {
  */
 export function getConnectionPool() {
     return globalThis.animeConConnectionPool;
+}
+
+/**
+ * Returns the total number of queries that has been executed on the Volunteer Manager
+ */
+export function getQueryCount() {
+    return globalThis.animeConQueryCount ?? 0;
 }
 
 /**

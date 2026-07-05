@@ -11,23 +11,13 @@ import { styled, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 /**
- * Information required for each of the cards that should be shown on the dashboard.
- */
-export interface DashboardCardInfo {
-    /**
-     * The element that should be shown as the card's content.
-     */
-    element: React.ReactNode;
-}
-
-/**
  * Props accepted by the <DashboardGrid>.
  */
 interface DashboardGridProps {
     /**
      * The cards that should be displayed on the dashboard.
      */
-    cards: DashboardCardInfo[];
+    cards: React.ReactNode[];
 }
 
 /**
@@ -42,18 +32,18 @@ export function DashboardGrid(props: DashboardGridProps) {
 
     const columnsCount = isDesktopSized ? 4 : (isTabletSized ? 2 : 1);
 
-    const columns: DashboardCardInfo[][] = Array.from({ length: columnsCount }, () => []);
+    const columns: React.ReactNode[][] = Array.from({ length: columnsCount }, () => []);
     for (let index = 0; index < props.cards.length; ++index)
         columns[index % columnsCount].push(props.cards[index]);
 
     return (
-        <DashboardGridContainer container spacing={1}>
+        <DashboardGridContainer container spacing={1.5}>
             {columns.map((columnCards, colIndex) => (
                 <Grid key={colIndex} size={{ xs: 12 / columnsCount }}>
-                    <Stack spacing={1}>
+                    <Stack spacing={1.5}>
                         {columnCards.map((card, cardIndex) => (
                             <Suspense key={cardIndex} fallback={null}>
-                                {card.element}
+                                {card}
                             </Suspense>
                         ))}
                     </Stack>

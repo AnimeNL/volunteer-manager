@@ -203,7 +203,7 @@ export function SettingsHeader(props: SettingsHeaderProps) {
 
             <LazyAvatarEditor open={imageOpen} requestClose={closeImage} src={imageSrc}
                               requestUpload={handleImage} title="Upload a new image"
-                              width={300} height={240} border={[ 0, 0 ]} borderRadius={0} />
+                              width={1200} height={960} border={[ 0, 0 ]} borderRadius={0} />
 
             <SettingDialog title={`${event.shortName} slug`} open={slugOpen}
                            description={kSlugDescription} onClose={handleCloseSlug}
