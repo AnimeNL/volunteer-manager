@@ -13,9 +13,11 @@ export const DashboardCard = styled(Card)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
 
-    [`${theme.breakpoints.down('md')}`]: {
-        borderRadius: 0,
-        marginLeft: `${theme.spacing(-1)} !important`,
-        marginRight: `${theme.spacing(-1)} !important`,
+    [theme.breakpoints.down('md')]: {
+        '&:first-child': {
+            borderRadius: 0,
+            marginLeft: `${theme.spacing(-1)} !important`,
+            marginRight: `${theme.spacing(-1)} !important`,
+        },
     },
 }));

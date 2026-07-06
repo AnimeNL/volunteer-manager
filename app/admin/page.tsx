@@ -17,13 +17,13 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * give an overview of what's going on. Exact cards depend on the user's access level.
  */
 export default async function AdminPage() {
-    await requireAuthenticationContext({ check: 'admin' });
+    const { access } = await requireAuthenticationContext({ check: 'admin' });
 
     // TODO: Permission checks for all of this.
 
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
-        <BirthdayCard key="birthday-card" />,
+        <BirthdayCard key="birthday-card" access={access} />,
         <ActivityCard key="activity-card" />,
         <DatabaseCard key="database-card" />,
         <SchedulerCard key="scheduler-card" />,

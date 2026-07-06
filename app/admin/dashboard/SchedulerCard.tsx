@@ -79,7 +79,7 @@ export async function SchedulerCard() {
                     Scheduler status
                 </Typography>
                 { timeSinceLastExecution === undefined &&
-                    <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
+                    <Alert severity="warning" variant="outlined" sx={{ my: 1 }}>
                         The scheduler is not currently running.
                     </Alert> }
                 { timeSinceLastExecution !== undefined &&
