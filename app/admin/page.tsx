@@ -21,6 +21,11 @@ export default async function AdminPage() {
 
     // TODO: Permission checks for all of this.
 
+    // TODO: Birthday page - navigation
+    // TODO: Birthday page - proper mobile view
+
+    // TODO: Birthday card - better styling
+
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
         <BirthdayCard key="birthday-card" access={access} />,

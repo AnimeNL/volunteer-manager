@@ -3,6 +3,7 @@
 
 import Link from '@app/LinkProxy';
 
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CakeIcon from '@mui/icons-material/Cake';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -16,13 +17,9 @@ import Typography from '@mui/material/Typography';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
+import { InlineAccountLink } from '../components/InlineAccountLink';
 import { Temporal, formatDate, formatDuration } from '@lib/Temporal';
-import db, { tEvents, tTeams, tUsers, tUsersEvents } from '@lib/database';
-
-/**
- * Only consider volunteers who have helped us out in the past N years.
- */
-const kParticipationCutoffYears = 3;
+import { queryBirthdays } from '../(tools)/birthdays/queryBirthdays';
 
 /**
  * Number of days in the future for which birthdays should be considered. Further filtering may
@@ -63,83 +60,9 @@ interface BirthdayCardProps {
 export async function BirthdayCard(props: BirthdayCardProps) {
     const currentDate = Temporal.Now.plainDateISO();
 
-    const selectionStartDate = currentDate.subtract({ days: kSelectionPastDays });
-    const selectionEndDate = currentDate.add({ days: kSelectionFutureDays });
-
-    const participationCutoffDate = currentDate.subtract({ years: kParticipationCutoffYears })
-        .toZonedDateTime('UTC');
-
-    // Temporal represents months in a human optimised way, i.e. January is 1, whereas MySQL's date
-    // representation expects January to be zero. Generate a range.
-    const zeroBasedStartMonth = selectionStartDate.month - 1;
-    const zeroBasedEndMonth = selectionEndDate.month - 1;
-
-    const monthRangeLength = ((zeroBasedEndMonth - zeroBasedStartMonth + 12) % 12) + 1;
-    const monthRange = Array.from({ length: monthRangeLength }, (_, index) =>
-        (zeroBasedStartMonth + index) % 12);
-
-    const dbInstance = db;
-    const birthdays = await dbInstance.selectFrom(tUsers)
-        .innerJoin(tUsersEvents)
-            .on(tUsersEvents.userId.equals(tUsers.userId))
-                .and(tUsersEvents.registrationStatus.equals('Accepted'))
-        .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tUsersEvents.eventId))
-                .and(tEvents.eventEndTime.greaterOrEqual(participationCutoffDate))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tUsersEvents.teamId))
-        .where(tUsers.anonymized.isNull())
-            .and(tUsers.birthdate.getMonth().in(monthRange))
-        .select({
-            id: tUsers.userId,
-            name: tUsers.name,
-            birthday: tUsers.birthdate,
-            events: dbInstance.aggregateAsArray({
-                event: tEvents.eventSlug,
-                team: tTeams.teamSlug,
-            }),
-        })
-        .groupBy(tUsers.userId)
-        .orderBy('birthday', 'asc')
-        .executeSelectMany();
-
-    // Restrict accessible |birthdays| to the volunteers who participated in an event that the
-    // signed in user had access too, maximising the chance that they have heard of each other.
-    const accessibleBirthdays = birthdays.filter(({ events }) => {
-        for (const { event, team } of events) {
-            if (props.access.can('event.visible', { event, team }))
-                return true;
-        }
-
-        return false;
-    });
-
-    // Define the occurrence of the birthday in the current year, considering both year transitions
-    // and handling leap-year (February 29th) constraints.
-    const accessibleBirthdaysWithOccurrence = accessibleBirthdays.map(birthday => {
-        let occurrence = Temporal.PlainDate.from({
-            year: currentDate.year,
-            month: birthday.birthday!.month,
-            day: birthday.birthday!.day,
-
-        }, { overflow: 'constrain' });
-
-        const daysDifference = currentDate.until(occurrence).days;
-        if (daysDifference < -180)
-            occurrence = occurrence.add({ years: 1 });
-        else if (daysDifference > 180)
-            occurrence = occurrence.subtract({ years: 1 });
-
-        return { ...birthday, occurrence };
-    });
-
-    accessibleBirthdaysWithOccurrence.sort((lhs, rhs) =>
-        Temporal.PlainDate.compare(lhs.occurrence, rhs.occurrence));
-
-    // Select the birthdays whose occurrence this year falls within the visibility window.
-    const birthdaysInWindow = accessibleBirthdaysWithOccurrence.filter(({ occurrence }) => {
-        return Temporal.PlainDate.compare(occurrence, selectionStartDate) >= 0 &&
-               Temporal.PlainDate.compare(occurrence, selectionEndDate) <= 0;
+    const birthdays = await queryBirthdays(props.access, {
+        pastDays: kSelectionPastDays,
+        futureDays: kSelectionFutureDays,
     });
 
     // Group the birthdays within three buckets: ones that happened in the past, birthdays that are
@@ -148,7 +71,7 @@ export async function BirthdayCard(props: BirthdayCardProps) {
     const currentBirthdays: BirthdayListItemProps['birthday'][] = [];
     const futureBirthdays: BirthdayListItemProps['birthday'][] = [];
 
-    for (const item of birthdaysInWindow) {
+    for (const item of birthdays) {
         const comparison = Temporal.PlainDate.compare(item.occurrence, currentDate);
         if (comparison < 0)
             pastBirthdays.push(item);
@@ -174,11 +97,16 @@ export async function BirthdayCard(props: BirthdayCardProps) {
                 <Typography variant="h6" sx={{ mt: 1 }}>
                     Upcoming birthdays
                 </Typography>
-                <List dense>
-                    { visibleBirthdays.map(birthday =>
-                        <BirthdayListItem key={birthday.id} birthday={birthday}
-                                          today={currentDate} /> ) }
-                </List>
+                { !visibleBirthdays.length &&
+                    <Alert variant="outlined" severity="info" sx={{ mt: 1, mb: 2 }}>
+                        No upcoming birthdays on the horizon!
+                    </Alert> }
+                { !!visibleBirthdays.length &&
+                    <List dense>
+                        { visibleBirthdays.map(birthday =>
+                            <BirthdayListItem key={birthday.id} birthday={birthday}
+                                              today={currentDate} /> ) }
+                    </List> }
                 <Button variant="outlined" sx={{ mb: 1 }} startIcon={ <CalendarMonthIcon /> }
                         LinkComponent={Link} href="/admin/birthdays">
                     Birthday calendar
@@ -229,12 +157,17 @@ function BirthdayListItem(props: BirthdayListItemProps) {
              : relationToToday === 0  ? 'primary'
              : 'error';
 
+    const user = {
+        id: props.birthday.id,
+        name: props.birthday.name,
+    };
+
     return (
         <ListItem disableGutters>
             <ListItemIcon>
                 <CakeIcon color={color} fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary={props.birthday.name}
+            <ListItemText primary={ <InlineAccountLink user={user} /> }
                           slotProps={{ primary: { noWrap: true } }} />
             { relationToToday !== 0 &&
                 <Typography variant="body2" color="textSecondary" noWrap sx={{ ml: 2 }}>
