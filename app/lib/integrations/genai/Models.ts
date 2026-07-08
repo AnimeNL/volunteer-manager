@@ -32,7 +32,7 @@ export const kAiSupportedModels = {
         name: 'Gemini 3.1 Flash (Nano Banana Lite)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-lite-image',
     },
-    'gemini-3.1-flash-lite': {  // EOL: Not announced
+    'gemini-3.1-flash-lite': {  // EOL: May 7, 2027 or later
         name: 'Gemini 3.1 Flash (Lite)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-lite',
     },
@@ -44,8 +44,8 @@ export const kAiSupportedModels = {
         name: 'Gemini 3 Flash (Preview)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-flash',
     },
-    'gemini-3-pro-image-preview': {  // EOL: Not announced
-        name: 'Gemini 3 Pro (Nano Banana Pro) (Preview)',
+    'gemini-3-pro-image': {  // EOL: May 28, 2027 or later
+        name: 'Gemini 3 Pro (Nano Banana Pro)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-pro-image',
     },
     'gemini-2.5-flash': {  // EOL: Not before October 16, 2026

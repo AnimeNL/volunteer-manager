@@ -30,41 +30,40 @@ export default async function OrganisationPage() {
     const canAccessFeedback = access.can('organisation.feedback');
 
     return (
-        <Grid container spacing={2}>
-            { canAccessAccounts &&
-                <Grid size={{ xs: 12 }}>
-                    <AccountSearchCard />
-                </Grid> }
-            { (canAccessAccounts && (canAccessDisplays || canAccessFeedback)) &&
-                <>
-                    <Grid size={{ xs: 12, md: 6 }}>
+        <>
+            { canAccessAccounts && <AccountSearchCard /> }
+            <Grid container spacing={1.5}>
+                { (canAccessAccounts && (canAccessDisplays || canAccessFeedback)) &&
+                    <>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <AccountWarningCard />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Stack direction="column" spacing={1.5}>
+                                { canAccessFeedback && <FeedbackCard /> }
+                                { canAccessDisplays && <DisplaysCard /> }
+                                <NardoCard header />
+                            </Stack>
+                        </Grid>
+                    </> }
+                { (canAccessAccounts && !(canAccessDisplays || canAccessFeedback)) &&
+                    <Grid size={{ xs: 12 }}>
                         <AccountWarningCard />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Stack direction="column" spacing={2}>
-                            { canAccessFeedback && <FeedbackCard /> }
-                            { canAccessDisplays && <DisplaysCard /> }
-                            <NardoCard header />
-                        </Stack>
-                    </Grid>
-                </> }
-            { (canAccessAccounts && !(canAccessDisplays || canAccessFeedback)) &&
-                <Grid size={{ xs: 12 }}>
-                    <AccountWarningCard />
-                </Grid> }
-            { (!canAccessAccounts && canAccessFeedback) &&
-                <Grid size={{ xs: 12 }}>
-                    <FeedbackCard />
-                </Grid> }
-            { (!canAccessAccounts && canAccessDisplays) &&
-                <Grid size={{ xs: 12 }}>
-                    <DisplaysCard />
-                </Grid> }
-            { !canAccessAccounts &&
-                <Grid size={{ xs: 12 }}>
-                    <NardoCard />
-                </Grid> }
-        </Grid>
+                    </Grid> }
+                { (!canAccessAccounts && canAccessFeedback) &&
+                    <Grid size={{ xs: 12 }}>
+                        <FeedbackCard />
+                    </Grid> }
+                { (!canAccessAccounts && canAccessDisplays) &&
+                    <Grid size={{ xs: 12 }}>
+                        <DisplaysCard />
+                    </Grid> }
+                { !canAccessAccounts &&
+                    <Grid size={{ xs: 12 }}>
+                        <NardoCard />
+                    </Grid> }
+            </Grid>
+        </>
     );
 }
 

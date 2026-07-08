@@ -6,6 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Stack from '@mui/material/Stack';
 
 import { AccountSearchInput } from './AccountSearchInput';
+import { Section } from '@app/admin/components/Section';
 import db, { tUsers } from '@lib/database';
 
 /**
@@ -37,9 +38,11 @@ export async function AccountSearchCard() {
     });
 
     return (
-        <Stack component={Card} direction="row" spacing={2} sx={{ alignItems: 'center', p: 2 }}>
-            <SearchIcon />
-            <AccountSearchInput accounts={normalisedAccounts} />
-        </Stack>
+        <Section noTitle>
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mt: '8px !important' }}>
+                <SearchIcon />
+                <AccountSearchInput accounts={normalisedAccounts} />
+            </Stack>
+        </Section>
     );
 }
