@@ -6,7 +6,6 @@ import { executeAction } from '../../Action';
 
 import { serviceHealth, kServiceHealthDefinition } from '../serviceHealth';
 import { updateEvent, kUpdateEventDefinition } from '../updateEvent';
-import { updateIntegration, kUpdateIntegrationDefinition } from '../updateIntegration';
 import { updateSettings, kUpdateSettingsDefinition } from '../updateSettings';
 import { volunteerContactInfo, kVolunteerContactInfoDefinition } from '../volunteerContactInfo';
 import { volunteerRoles, kVolunteerRolesDefinition } from '../volunteerRoles';
@@ -30,8 +29,6 @@ export async function POST(request: NextRequest, props: RouteProps): Promise<Res
             return executeAction(request, kServiceHealthDefinition, serviceHealth);
         case 'update-event':
             return executeAction(request, kUpdateEventDefinition, updateEvent);
-        case 'update-integration':
-            return executeAction(request, kUpdateIntegrationDefinition, updateIntegration);
         case 'update-settings':
             return executeAction(request, kUpdateSettingsDefinition, updateSettings);
         case 'volunteer-contact-info':

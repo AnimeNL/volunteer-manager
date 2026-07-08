@@ -87,6 +87,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: ApiIcon,
+                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Integrations',
                         permission: 'root',
                         url: '/admin/system/integrations',
