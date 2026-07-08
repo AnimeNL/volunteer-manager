@@ -4,6 +4,7 @@
 import ApiIcon from '@mui/icons-material/Api';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -117,6 +118,12 @@ export default async function DefaultMenu() {
                         label: 'AI',
                         permission: 'system.internals.ai',
                         url: '/admin/system/ai/communication',
+                    },
+                    {
+                        Icon: FolderCopyOutlinedIcon,
+                        label: 'Cache',
+                        permission: 'system.internals',
+                        url: '/admin/system/cache',
                     },
                     {
                         Icon: QueryStatsIcon,
