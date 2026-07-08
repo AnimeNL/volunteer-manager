@@ -13,7 +13,10 @@ import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
 import { NavigationMenu } from '../layout/NavigationMenu';
+import { Temporal } from '@lib/Temporal';
+import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls } from '@lib/database';
 
 /**
  * By default, we display a loading menu as the real one cannot be determined yet. Intentionally
@@ -21,6 +24,47 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  */
 export default async function DefaultMenu() {
     const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+
+    let badges: Record<string, number> = {
+        logs: 0,
+        outbox: 0,
+        webhooks: 0,
+    };
+
+    if (access.can('system.logs', 'read') || access.can('system.internals.outbox')) {
+        const dbInstance = db;
+
+        const exactlyOneDayAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 1 });
+
+        const logsValue = dbInstance.selectFrom(tLogs)
+            .where(tLogs.logDate.greaterOrEqual(exactlyOneDayAgo))
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        const outboxEmailValue = dbInstance.selectFrom(tOutboxEmail)
+            .where(tOutboxEmail.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        const outboxTwilioValue = dbInstance.selectFrom(tOutboxTwilio)
+            .where(tOutboxTwilio.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        const twilioWebhookValue = dbInstance.selectFrom(tTwilioWebhookCalls)
+            .where(tTwilioWebhookCalls.webhookCallDate.greaterOrEqual(exactlyOneDayAgo))
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        badges = await dbInstance.selectFromNoTable()
+            .select({
+                logs: logsValue,
+                outbox: outboxEmailValue.add(outboxTwilioValue),
+                webhooks: twilioWebhookValue,
+            })
+            .executeSelectOne();
+    }
+
     return (
         <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
@@ -41,6 +85,7 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
+                        badge: { value: badges.outbox },
                         label: 'Outbox',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',
@@ -55,6 +100,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: WebhookIcon,
+                        badge: { value: badges.webhooks },
                         label: 'Webhooks',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/webhooks',
@@ -74,7 +120,12 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: QueryStatsIcon,
+                        badge: { value: badges.logs },
                         label: 'Diagnostics',
+                        permission: {
+                            permission: 'system.logs',
+                            operation: 'read',
+                        },
                         url: '/admin/system/diagnostics/logs',
                         urlPrefix: '/admin/system/diagnostics/',
                     },
@@ -86,6 +137,9 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: LoopIcon,
+                        badge:
+                            globalScheduler.lastInvocation ? undefined
+                                                           : { severity: 'warning', value: true },
                         label: 'Scheduler',
                         permission: 'system.internals.scheduler',
                         url: '/admin/system/scheduler',
