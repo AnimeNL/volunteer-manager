@@ -3,7 +3,7 @@
 
 import type { Metadata } from 'next';
 
-import { TextareaAutosizeElement } from 'react-hook-form-mui';
+import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';

@@ -23,8 +23,10 @@ export function SettingUtilitiesSection() {
     const [ dateTimeOffset, setDateTimeOffset ] = useState<number | undefined>();
 
     const handleDateTimePicked = useCallback((value: unknown) => {
-        if (!dayjs.isDayjs(value))
-            throw new Error(`Expected a DayJS instance, got (typeof=${typeof value}): ${value}`);
+        if (!dayjs.isDayjs(value)) {
+            setDateTimeOffset(undefined);
+            return;
+        }
 
         const dayjsValue = value as dayjs.Dayjs;
         setDateTimeOffset(dayjsValue.diff(dayjs(), 'second'));

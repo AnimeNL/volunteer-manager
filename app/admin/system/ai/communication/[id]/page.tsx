@@ -4,7 +4,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { TextareaAutosizeElement } from 'react-hook-form-mui';
+import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';

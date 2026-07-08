@@ -4,7 +4,7 @@
 import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 
-import { TextareaAutosizeElement } from 'react-hook-form-mui';
+import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';

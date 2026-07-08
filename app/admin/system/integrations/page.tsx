@@ -187,7 +187,7 @@ export default async function IntegrationsPage() {
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="AnimeCon[scopes" label="Scopes" fullWidth required
+                    <TextFieldElement name="AnimeCon[scopes]" label="Scopes" fullWidth required
                                       size="small" />
                 </Grid>
             </FormGridSection>

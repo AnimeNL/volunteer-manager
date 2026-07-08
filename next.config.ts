@@ -33,6 +33,10 @@ const nextConfig: NextConfig = {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
 
+        serverActions: {
+            bodySizeLimit: '5mb',
+        },
+
         // https://nextjs.org/docs/app/guides/view-transitions
         viewTransition: true,
     },

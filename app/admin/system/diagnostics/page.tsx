@@ -22,7 +22,7 @@ export default async function DiagnosticsPage() {
                          { label: 'Diagnostics' },
                      ]}>
                 <SectionIntroduction>
-                    Collection of pages that provide insight to messages sent through the portal.
+                    Collection of pages that provide insight in the Volunteer Manager's behaviour.
                 </SectionIntroduction>
             </Section>
             <Grid container spacing={2}>

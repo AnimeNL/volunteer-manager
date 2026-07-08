@@ -127,13 +127,3 @@ export async function updateIntegration(integration: Integration, formData: unkn
         return { success: true };
     });
 }
-
-/**
- * Server Action through which a health check for the given `integration` can be executed.
- */
-export async function executeHealthCheck(integration: Integration) {
-    return executeServerAction({ /* none */ }, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, { check: 'admin', permission: 'root' });
-
-    });
-}

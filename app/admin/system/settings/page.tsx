@@ -16,7 +16,7 @@ import { SettingUtilitiesSection } from './SettingUtilitiesSection';
  * The Settings page lists configurable settings part of the AnimeCon Volunteer Manager that are not
  * exposed through other parts of the system.
  */
-export default async function IntegrationsPage() {
+export default async function SettingsPage() {
     await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.settings',

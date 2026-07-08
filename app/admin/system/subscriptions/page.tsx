@@ -179,12 +179,15 @@ export default async function SubscriptionPage() {
             },
         },
         {
-            field: 'subscriptionLabel',
+            field: 'subscriptionCount',
             headerName: 'Active subscriptions',
             flex: 1,
             sortable: true,
 
             template: 'text',
+            templateProps: {
+                field: 'subscriptionLabel',
+            },
         },
     ];
 
