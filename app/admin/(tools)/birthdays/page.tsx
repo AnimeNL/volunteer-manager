@@ -4,7 +4,6 @@
 import CakeIcon from '@mui/icons-material/Cake';
 
 import { BirthdayCalendar } from './BirthdayCalendar';
-import { ResponsivePaper } from '@app/admin/components/ResponsivePaper';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { queryBirthdays } from './queryBirthdays';
@@ -30,9 +29,7 @@ export default async function BirthdayOverviewPage() {
                     Annual calendar of our volunteers' birthdays. ({birthdays.length})
                 </SectionIntroduction>
             </Section>
-            <ResponsivePaper sx={{ p: 1, flexGrow: 1, maxHeight: { xs: undefined, md: 760 } }}>
-                <BirthdayCalendar birthdays={filteredBirthdays} />
-            </ResponsivePaper>
+            <BirthdayCalendar birthdays={filteredBirthdays} />
         </>
     );
 }

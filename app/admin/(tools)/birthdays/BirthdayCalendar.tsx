@@ -3,11 +3,20 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { StandaloneAgendaViewPremium } from '@mui/x-scheduler-premium/agenda-view-premium';
 import { StandaloneMonthViewPremium } from '@mui/x-scheduler-premium/month-view-premium';
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import Stack from '@mui/material/Stack';
+
+import { ResponsivePaper } from '@app/admin/components/ResponsivePaper';
+import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 /**
@@ -42,6 +51,13 @@ interface BirthdayCalendarProps {
  * view is used for desktop devices, whereas an agenda view is used for mobile devices.
  */
 export function BirthdayCalendar(props: BirthdayCalendarProps) {
+    const [ mounted, setMounted ] = useState(false);
+    const [ visibleDate, setVisibleDate ] = useState<Date>(() => new Date());
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const events = useMemo(() => props.birthdays.map(volunteer => ({
         id: volunteer.id,
         title: volunteer.name,
@@ -52,7 +68,61 @@ export function BirthdayCalendar(props: BirthdayCalendarProps) {
 
     })), [ props.birthdays ]);
 
+    // ---------------------------------------------------------------------------------------------
+    // Navigation
+    // ---------------------------------------------------------------------------------------------
+
+    const handlePrevious = useCallback(() => {
+        setVisibleDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    }, []);
+
+    const handleNext = useCallback(() => {
+        setVisibleDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    }, []);
+
+    const handleToday = useCallback(() => setVisibleDate(new Date()), [ /* no deps */ ]);
+
+    // ---------------------------------------------------------------------------------------------
+
     const isMobile = useIsMobile();
-    return isMobile ? <StandaloneAgendaViewPremium events={events} readOnly />
-                    : <StandaloneMonthViewPremium events={events} readOnly />;
+
+    if (!mounted)
+        return null;
+
+    const label = visibleDate.toLocaleString('en-GB', { month: 'long' });
+
+    return (
+        <ResponsivePaper sx={{ p: 2, flexGrow: 1, maxHeight: { xs: undefined, md: 760 } }}>
+            <Stack direction="column" sx={{ width: '100%', height: '100%' }}>
+                <SectionHeader title={label} headerAction={
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mr: -1 }}>
+                        <IconButton onClick={handlePrevious} size="small">
+                            <NavigateBeforeIcon />
+                        </IconButton>
+                        <Button onClick={handleToday} size="small" variant="outlined"
+                                color="inherit">
+                            Today
+                        </Button>
+                        <IconButton onClick={handleNext} size="small">
+                            <NavigateNextIcon />
+                        </IconButton>
+                    </Stack>
+                } />
+                <Box sx={{ flexGrow: 1, minHeight: 0, mt: 2 }}>
+                    { isMobile &&
+                        <StandaloneAgendaViewPremium
+                            events={events}
+                            readOnly
+                            visibleDate={visibleDate}
+                            onVisibleDateChange={setVisibleDate} /> }
+                    { !isMobile &&
+                        <StandaloneMonthViewPremium
+                            events={events}
+                            readOnly
+                            visibleDate={visibleDate}
+                            onVisibleDateChange={setVisibleDate} /> }
+                </Box>
+            </Stack>
+        </ResponsivePaper>
+    );
 }
