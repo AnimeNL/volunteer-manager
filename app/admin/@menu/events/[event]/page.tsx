@@ -1,7 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import HotelIcon from '@mui/icons-material/Hotel';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
@@ -28,13 +33,59 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             url: `/admin/events/${event}`,
             urlMatchMode: 'strict',
         },
-        // TODO: Finances
-        // TODO: Hotels
-        // TODO: Program
-        // TODO: Refunds
-        // TODO: Trainings
+        {
+            Icon: AnalyticsOutlinedIcon,
+            badge: { severity: 'error', value: true },  // migration not started
+            // TODO: Condition on availability
+            label: 'Finances',
+            permission: {
+                permission: 'statistics.finances',
+            },
+            url: `/admin/events/${event}/finance`,
+        },
+        {
+            Icon: HotelIcon,
+            badge: { severity: 'error', value: true },  // migration not started
+            // TODO: Condition on availability
+            label: 'Hotels',
+            permission: {
+                permission: 'event.hotels',
+                scope: { event },
+            },
+            url: `/admin/events/${event}/hotels`,
+        },
+        {
+            Icon: EventNoteIcon,
+            badge: { severity: 'error', value: true },  // migration not started
+            // TODO: Condition on availability
+            label: 'Program',
+            url: `/admin/events/${event}/program`,
+        },
+        {
+            Icon: MonetizationOnIcon,
+            badge: { severity: 'error', value: true },  // migration not started
+            // TODO: Condition on availability
+            label: 'Refunds',
+            permission: {
+                permission: 'event.refunds',
+                scope: { event },
+            },
+            url: `/admin/events/${event}/refunds`,
+        },
+        {
+            Icon: HistoryEduIcon,
+            badge: { severity: 'error', value: true },  // migration not started
+            // TODO: Condition on availability
+            label: 'Trainings',
+            permission: {
+                permission: 'event.trainings',
+                scope: { event },
+            },
+            url: `/admin/events/${event}/training`,
+        },
         {
             Icon: SettingsOutlinedIcon,
+            badge: { severity: 'error', value: true },  // migration not started
             label: 'Settings',
             permission: {
                 permission: 'event.settings',

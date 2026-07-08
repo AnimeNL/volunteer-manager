@@ -224,7 +224,7 @@ export default async function SchedulerPage() {
                     an e-mail), either as a one-off or at a configured interval.
                 </SectionIntroduction>
                 { !globalScheduler.lastExecution &&
-                    <Alert severity="error" variant="filled">
+                    <Alert severity="warning" variant="outlined">
                         The scheduler is not running on this Volunteer Manager instance.
                     </Alert> }
             </Section>
