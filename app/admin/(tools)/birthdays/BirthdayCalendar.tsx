@@ -5,6 +5,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import { useQueryState, parseAsInteger } from 'nuqs';
+
 import { StandaloneAgendaViewPremium } from '@mui/x-scheduler-premium/agenda-view-premium';
 import { StandaloneMonthViewPremium } from '@mui/x-scheduler-premium/month-view-premium';
 
@@ -52,7 +54,9 @@ interface BirthdayCalendarProps {
  */
 export function BirthdayCalendar(props: BirthdayCalendarProps) {
     const [ mounted, setMounted ] = useState(false);
-    const [ visibleDate, setVisibleDate ] = useState<Date>(() => new Date());
+
+    const [ month, setMonth ] = useQueryState(
+        'month', parseAsInteger.withDefault(new Date().getMonth() + 1));
 
     useEffect(() => {
         setMounted(true);
@@ -72,15 +76,25 @@ export function BirthdayCalendar(props: BirthdayCalendarProps) {
     // Navigation
     // ---------------------------------------------------------------------------------------------
 
+    const visibleDate = useMemo(() => new Date(new Date().getFullYear(), month - 1, 1), [ month ]);
+
+    const setVisibleDate = useCallback((fn: (prev: Date) => Date) => {
+        setMonth(prevMonth => {
+            const prevDate = new Date(new Date().getFullYear(), prevMonth - 1, 1);
+            const nextDate = fn(prevDate);
+            return nextDate.getMonth() + 1;
+        });
+    }, [ setMonth ]);
+
     const handlePrevious = useCallback(() => {
         setVisibleDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-    }, []);
+    }, [ setVisibleDate ]);
 
     const handleNext = useCallback(() => {
         setVisibleDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-    }, []);
+    }, [ setVisibleDate ]);
 
-    const handleToday = useCallback(() => setVisibleDate(new Date()), [ /* no deps */ ]);
+    const handleToday = useCallback(() => setVisibleDate(() => new Date()), [ setVisibleDate ]);
 
     // ---------------------------------------------------------------------------------------------
 

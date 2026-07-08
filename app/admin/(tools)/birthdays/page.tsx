@@ -26,7 +26,7 @@ export default async function BirthdayOverviewPage() {
             <Section icon={ <CakeIcon color="primary" /> } title="Birthday calendar"
                      breadcrumbs={[ { label: 'Birthday calendar' }]}>
                 <SectionIntroduction>
-                    Annual calendar of our volunteers' birthdays. ({birthdays.length})
+                    Annual calendar of our volunteers' birthdays.
                 </SectionIntroduction>
             </Section>
             <BirthdayCalendar birthdays={filteredBirthdays} />

@@ -19,9 +19,6 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AdminPage() {
     const { access } = await requireAuthenticationContext({ check: 'admin' });
 
-    // TODO: Birthday page - navigation
-    // TODO: Birthday page - proper mobile view
-
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
         <BirthdayCard key="birthday-card" access={access} />,
