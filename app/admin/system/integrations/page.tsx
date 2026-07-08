@@ -8,6 +8,7 @@ import Link from '@app/LinkProxy';
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import { default as MuiLink } from '@mui/material/Link';
+import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import EmailIcon from '@mui/icons-material/Email';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -18,7 +19,8 @@ import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { StatusHeader } from './StatusHeader';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioLogo } from '../webhooks/twilio/[id]/TwilioLogo';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -126,7 +128,16 @@ export default async function IntegrationsPage() {
 
     return (
         <>
-            <StatusHeader />
+            <Section icon={ <ApiIcon color="primary" /> } title="Integrations"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Integrations' },
+                     ]}>
+                <SectionIntroduction>
+                    The Volunteer Manager integrates with various external services to provide
+                    advanced automisations.
+                </SectionIntroduction>
+            </Section>
 
             { /* ****************************************************************************** */ }
 

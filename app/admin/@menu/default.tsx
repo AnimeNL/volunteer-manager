@@ -25,14 +25,12 @@ export default async function DefaultMenu() {
         <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
                 Icon: DashboardOutlinedIcon,
-                badge: { severity: 'success', value: true },  // migration completed
                 label: 'Dashboard',
                 url: '/admin',
                 urlMatchMode: 'strict',
             },
             {
                 Icon: TocIcon,
-                badge: { severity: 'success', value: true },  // migration completed
                 label: 'Content',
                 permission: 'system.content',
                 url: '/admin/system/content',
@@ -43,7 +41,6 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: OutboxOutlinedIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Outbox',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/outbox/email',
@@ -52,14 +49,12 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: StreamIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Subscriptions',
                         permission: 'system.subscriptions.management',
                         url: '/admin/system/subscriptions',
                     },
                     {
                         Icon: WebhookIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Webhooks',
                         permission: 'system.internals.outbox',
                         url: '/admin/system/webhooks',
@@ -73,35 +68,30 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: AutoAwesomeIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'AI',
                         permission: 'system.internals.ai',
                         url: '/admin/system/ai/communication',
                     },
                     {
                         Icon: QueryStatsIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Diagnostics',
                         url: '/admin/system/diagnostics/logs',
                         urlPrefix: '/admin/system/diagnostics/',
                     },
                     {
                         Icon: ApiIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
                         label: 'Integrations',
                         permission: 'root',
                         url: '/admin/system/integrations',
                     },
                     {
                         Icon: LoopIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Scheduler',
                         permission: 'system.internals.scheduler',
                         url: '/admin/system/scheduler',
                     },
                     {
                         Icon: SettingsOutlinedIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Settings',
                         permission: 'system.internals.settings',
                         url: '/admin/system/settings',

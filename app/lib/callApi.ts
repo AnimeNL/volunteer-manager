@@ -22,7 +22,6 @@ import type { PasswordResetVerifyDefinition } from '@app/api/auth/passwordResetV
 import type { RegisterActivateDefinition } from '@app/api/auth/registerActivate';
 import type { RegisterDefinition } from '@app/api/auth/register';
 import type { RegisterPasskeyDefinition } from '@app/api/auth/passkeys/registerPasskey';
-import type { ServiceHealthDefinition } from '@app/api/admin/serviceHealth';
 import type { SettingsDefinition } from '@app/api/auth/settings';
 import type { SignInPasskeyDefinition } from '@app/api/auth/signInPasskey';
 import type { SignInPasswordDefinition } from '@app/api/auth/signInPassword';
@@ -122,7 +121,6 @@ export type ApiEndpoints = {
         '/api/admin/program/activities': ProgramActivitiesEndpoints['create'],
         '/api/admin/program/areas': ProgramAreasEndpoints['create'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
-        '/api/admin/service-health': ServiceHealthDefinition,
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/admin/update-event': UpdateEventDefinition,
