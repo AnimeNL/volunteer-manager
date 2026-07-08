@@ -75,37 +75,62 @@ export async function EventCard() {
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Edge case: No events available at all.
+    // Edge case: No upcoming event, and possibly a recent event.
     // ---------------------------------------------------------------------------------------------
 
-    if (!upcomingEvent && !recentEvent)
-        return null;
+    if (!upcomingEvent) {
+        if (!recentEvent)
+            return null;
 
-    // ---------------------------------------------------------------------------------------------
-    // Edge case: No upcoming events, but there is a recent event.
-    // ---------------------------------------------------------------------------------------------
-
-    if (!upcomingEvent)
-        return null;
+        return <EventDashboardCard event={recentEvent} />;
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Expected case: Upcoming event, and optionally a recent event.
     // ---------------------------------------------------------------------------------------------
 
-    const startDate = formatDate(upcomingEvent.startTime, 'MMM D');
-    const endDate = formatDate(upcomingEvent.endTime, 'MMM D, YYYY');
+    return <EventDashboardCard event={upcomingEvent} recentEvent={recentEvent} />;
+}
+
+/**
+ * Props accepted by the <EventDashboardCard> component.
+ */
+interface EventDashboardCardProps {
+    event: {
+        slug: string;
+        name: string;
+        shortName: string;
+        identityHash?: string;
+        startTime: Temporal.ZonedDateTime;
+        endTime: Temporal.ZonedDateTime;
+        location?: string;
+    };
+    recentEvent?: {
+        shortName: string;
+        slug: string;
+    };
+}
+
+/**
+ * The <EventDashboardCard> component displays the actual dashboard card for an event.
+ */
+function EventDashboardCard(props: EventDashboardCardProps) {
+    const { event, recentEvent } = props;
+
+    const startDate = formatDate(event.startTime, 'MMM D');
+    const endDate = formatDate(event.endTime, 'MMM D, YYYY');
 
     return (
         <DashboardCard>
-            <DashboardCardHeader src={ getBlobUrl(upcomingEvent.identityHash) }
-                                 title={upcomingEvent.name} />
+            <DashboardCardHeader src={ getBlobUrl(event.identityHash) }
+                                 title={event.name} />
             <Stack sx={{ px: 2, pb: 2 }}>
                 <div>
                     <Typography variant="h6" sx={{ mt: 1 }}>
-                        {upcomingEvent.shortName}
+                        {event.shortName}
                     </Typography>
                     <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
-                        {extractThemeFromEventName(upcomingEvent.name)}
+                        {extractThemeFromEventName(event.name)}
                     </Typography>
                 </div>
                 <List dense>
@@ -115,16 +140,16 @@ export async function EventCard() {
                         </ListItemIcon>
                         <ListItemText primary={`${startDate} – ${endDate}`} />
                     </ListItem>
-                    { !!upcomingEvent.location &&
+                    { !!event.location &&
                         <ListItem disableGutters>
                             <ListItemIcon>
                                 <LocationOnOutlinedIcon fontSize="small" />
                             </ListItemIcon>
-                            <ListItemText primary={upcomingEvent.location} />
+                            <ListItemText primary={event.location} />
                         </ListItem> }
                 </List>
                 <Button variant="contained" startIcon={ <GroupsIcon /> }
-                        LinkComponent={Link} href={`/admin/events/${upcomingEvent.slug}`}>
+                        LinkComponent={Link} href={`/admin/events/${event.slug}`}>
                     Volunteers
                 </Button>
             </Stack>
