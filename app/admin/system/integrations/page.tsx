@@ -3,16 +3,28 @@
 
 import type { Metadata } from 'next';
 
+import Link from '@app/LinkProxy';
+
+import { TextFieldElement } from '@proxy/react-hook-form-mui';
+
+import { default as MuiLink } from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import ReadMoreIcon from '@mui/icons-material/ReadMore';
+import Typography from '@mui/material/Typography';
+
 import type { TwilioSettings } from '@lib/integrations/twilio/TwilioClient';
 import type { YourTicketProviderClientSettings } from '@lib/integrations/yourticketprovider/YourTicketProviderClient';
-import { AnimeCon, type AnimeConSettings } from './AnimeCon';
 import { Email, type EmailSettings } from './Email';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Google, type GoogleSettings } from './Google';
 import { StatusHeader } from './StatusHeader';
 import { Twilio } from './Twilio';
 import { YourTicketProvider } from './YourTicketProvider';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+
+import { updateIntegration } from './Actions';
 
 /**
  * The Integrations page lists settings and information regarding the third party services that the
@@ -58,14 +70,16 @@ export default async function IntegrationsPage() {
         'integration-ytp-endpoint',
     ]);
 
-    const animeConSettings: AnimeConSettings = {
-        apiEndpoint: settings['integration-animecon-api-endpoint'] ?? '',
-        authEndpoint: settings['integration-animecon-auth-endpoint'] ?? '',
-        clientId: settings['integration-animecon-client-id'] ?? '',
-        clientSecret: settings['integration-animecon-client-secret'] ?? '',
-        username: settings['integration-animecon-username'] ?? '',
-        password: settings['integration-animecon-password'] ?? '',
-        scopes: settings['integration-animecon-scopes'] ?? '',
+    const defaultValues = {
+        AnimeCon: {
+            apiEndpoint: settings['integration-animecon-api-endpoint'],
+            authEndpoint: settings['integration-animecon-auth-endpoint'],
+            clientId: settings['integration-animecon-client-id'],
+            clientSecret: settings['integration-animecon-client-secret'],
+            username: settings['integration-animecon-username'],
+            password: settings['integration-animecon-password'],
+            scopes: settings['integration-animecon-scopes'],
+        },
     };
 
     const emailSettings: EmailSettings = {
@@ -98,7 +112,54 @@ export default async function IntegrationsPage() {
     return (
         <>
             <StatusHeader />
-            <AnimeCon settings={animeConSettings} />
+            <FormGridSection action={ updateIntegration.bind(null, 'AnimeCon') }
+                             defaultValues={{ AnimeCon: defaultValues['AnimeCon']}}
+                             title="AnimeCon API"
+                             headerAction={
+                                 <IconButton LinkComponent={Link} size="small"
+                                             href="/admin/system/integrations/animecon">
+                                     <ReadMoreIcon color="primary" />
+                                 </IconButton>
+                             }>
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="body2">
+                        Event and program information is obtained through the AnimeCon API (
+                        <MuiLink component={Link} href="https://github.com/AnimeNL/rest-api">source</MuiLink>),
+                        for which we identify using a service account.
+                    </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[apiEndpoint]" label="API endpoint" fullWidth
+                                      size="small" required />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[authEndpoint]" label="Authentication endpoint"
+                                      fullWidth size="small" required />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[clientId]" label="Client ID" fullWidth
+                                      size="small" required />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[clientSecret]" label="Client Secret" fullWidth
+                                      size="small" required />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[username]" label="Username" fullWidth required
+                                      size="small" />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="AnimeCon[password]" label="Password" type="password"
+                                      size="small" fullWidth required />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                    <TextFieldElement name="AnimeCon[scopes" label="Scopes" fullWidth required
+                                      size="small" />
+                </Grid>
+            </FormGridSection>
             <Email settings={emailSettings} />
             <Google settings={googleSettings} />
             <Twilio settings={twilioSettings} />

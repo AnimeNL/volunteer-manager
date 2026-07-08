@@ -4,12 +4,12 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
-import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
+import AttractionsIcon from '@mui/icons-material/Attractions';
 
 import { AnimeConStreamingApiPlaceholder } from './AnimeConStreamingApiPlaceholder';
 import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
-import { PaperHeader } from '@app/admin/components/PaperHeader';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
  * The AnimeCon integration page is able to issue various API calls for illustrative debugging
@@ -18,37 +18,37 @@ import { PaperHeader } from '@app/admin/components/PaperHeader';
 export default async function AnimeConIntegrationPage() {
     return (
         <>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="AnimeCon Integration" />
-                <Alert severity="info" sx={{ mt: 1 }}>
+            <Section icon={ <AttractionsIcon color="primary" /> } title="AnimeCon API"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Integrations', href: '/admin/system/integrations' },
+                         { label: 'AnimeCon API' },
+                     ]}>
+                <SectionIntroduction>
                     This page displays the results of the AnimeCon API calls. Responses will be
                     shown as they become available.
-                </Alert>
-            </Paper>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="Activities" subtitle="activities.json" sx={{ mb: 1 }} />
+                </SectionIntroduction>
+            </Section>
+            <Section title="API" subtitle="activities.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="activities.json" />
                 </Suspense>
-            </Paper>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="Activity Types" subtitle="activity-types.json" sx={{ mb: 1 }} />
+            </Section>
+            <Section title="API" subtitle="activity-types.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="activity-types.json" />
                 </Suspense>
-            </Paper>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="Floors" subtitle="floors.json" sx={{ mb: 1 }} />
+            </Section>
+            <Section title="API" subtitle="floors.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="floors.json" />
                 </Suspense>
-            </Paper>
-            <Paper sx={{ p: 2 }}>
-                <PaperHeader title="Timeslots" subtitle="timeslots.json" sx={{ mb: 1 }} />
+            </Section>
+            <Section title="API" subtitle="timeslots.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="timeslots.json" />
                 </Suspense>
-            </Paper>
+            </Section>
         </>
     );
 }

@@ -38,6 +38,10 @@ interface LogTypeParameterMap {
         repeatedTaskId: number;
     };
 
+    UpdateIntegrationSettings: {
+        integration: 'AnimeCon';
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams
     // ---------------------------------------------------------------------------------------------
@@ -91,6 +95,7 @@ export const kLogType: { [k in LogType]: k } = {
 
     CreateSchedulerTask: 'CreateSchedulerTask',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
+    UpdateIntegrationSettings: 'UpdateIntegrationSettings',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams

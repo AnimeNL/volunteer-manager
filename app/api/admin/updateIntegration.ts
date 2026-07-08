@@ -18,19 +18,6 @@ import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 export const kUpdateIntegrationDefinition = z.object({
     request: z.object({
         /**
-         * AnimeCon API settings that should be updated.
-         */
-        animecon: z.object({
-            apiEndpoint: z.string(),
-            authEndpoint: z.string(),
-            clientId: z.string(),
-            clientSecret: z.string(),
-            username: z.string(),
-            password: z.string(),
-            scopes: z.string(),
-        }).optional(),
-
-        /**
          * E-mail settings that should be updated.
          */
         email: z.object({
@@ -92,27 +79,6 @@ export async function updateIntegration(request: Request, props: ActionProps): P
         check: 'admin',
         permission: 'system.internals.settings',
     });
-
-    if (request.animecon) {
-        await writeSettings({
-            'integration-animecon-api-endpoint': request.animecon.apiEndpoint,
-            'integration-animecon-auth-endpoint': request.animecon.authEndpoint,
-            'integration-animecon-client-id': request.animecon.clientId,
-            'integration-animecon-client-secret': request.animecon.clientSecret,
-            'integration-animecon-username': request.animecon.username,
-            'integration-animecon-password': request.animecon.password,
-            'integration-animecon-scopes': request.animecon.scopes,
-        });
-
-        RecordLog({
-            type: kLogType.AdminUpdateIntegration,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                integration: 'AnimeCon',
-            }
-        });
-    }
 
     if (request.email) {
         await writeSettings({
