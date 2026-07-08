@@ -7,7 +7,6 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { SelectElement } from 'react-hook-form-mui';
 
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -77,12 +76,7 @@ export function Example(props: ExampleProps) {
     }), [ props.id ]);
 
     return (
-        <Box sx={{
-            backgroundColor: 'animecon.adminExampleBackground',
-            borderRadius: 1,
-            padding: 2,
-            marginTop: 2,
-        }}>
+        <>
             <FormGrid action={handleSubmit} defaultValues={defaultValues}
                       submitButtonSlot={
                         <Grid size={{ xs: 12 }} sx={{ pb: 2 }}>
@@ -115,6 +109,6 @@ export function Example(props: ExampleProps) {
                         <Button onClick={handleClose} variant="text">Close</Button>
                     </DialogActions>
                 </Dialog> }
-        </Box>
+        </>
     );
 }

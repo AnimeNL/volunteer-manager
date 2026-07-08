@@ -6,8 +6,8 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Button from '@mui/material/Button';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import Snackbar from '@mui/material/Snackbar';
 
 import { FormProviderContext } from '@components/FormProvider';
@@ -32,8 +32,8 @@ export function GenerateButton() {
 
     return (
         <>
-            <Button startIcon={ <SmartToyIcon /> } loading={!!formContext.isPending} type="submit"
-                    fullWidth variant="outlined">
+            <Button startIcon={ <AutoAwesomeIcon /> } loading={!!formContext.isPending}
+                    type="submit" fullWidth variant="outlined">
                 Generate message
             </Button>
             <Snackbar open={errorOpen} autoHideDuration={3000} onClose={closeError}>

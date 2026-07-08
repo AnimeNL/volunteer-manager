@@ -8,9 +8,11 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Stack from '@mui/material/Stack';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { PromptIcon } from '../PromptIcon';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import * as prompts from '@lib/ai/prompts';
@@ -36,19 +38,31 @@ export default async function AiFeaturesPage() {
     }).sort((lhs, rhs) => lhs.metadata.label.localeCompare(rhs.metadata.label));
 
     return (
-        <Stack direction="column" spacing={2}>
-            <List disablePadding dense>
-                { availablePrompts.map(({ metadata }) =>
-                    <ListItemButton key={metadata.id} LinkComponent={Link}
-                                    href={`./features/${metadata.id}`}>
-                        <ListItemIcon sx={{ width: 40 }}>
-                            <PromptIcon id={metadata.id} />
-                        </ListItemIcon>
-                        <ListItemText primary={metadata.label}
-                                        secondary={metadata.description} />
-                    </ListItemButton> )}
-            </List>
-        </Stack>
+        <>
+            <Section icon={ <SmartToyIcon color="primary" /> } title="Features"
+                     breadcrumbs={[
+                        { label: 'System', href: '/admin/system' },
+                        { label: 'AI', href: '/admin/system/ai' },
+                        { label: 'Features' },
+                     ]}>
+                <SectionIntroduction>
+                    Various features on the Volunteer Manager are powered by AI.
+                </SectionIntroduction>
+            </Section>
+            <Section tabs noHeader>
+                <List disablePadding dense>
+                    { availablePrompts.map(({ metadata }) =>
+                        <ListItemButton key={metadata.id} LinkComponent={Link}
+                                        href={`./features/${metadata.id}`}>
+                            <ListItemIcon sx={{ width: 40 }}>
+                                <PromptIcon id={metadata.id} />
+                            </ListItemIcon>
+                            <ListItemText primary={metadata.label}
+                                          secondary={metadata.description} />
+                        </ListItemButton> )}
+                </List>
+            </Section>
+        </>
     );
 }
 

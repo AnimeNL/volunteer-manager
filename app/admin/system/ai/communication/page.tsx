@@ -7,19 +7,19 @@ import Link from '@app/LinkProxy';
 import { TextareaAutosizeElement } from 'react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 
-import { FormGrid } from '@app/admin/components/FormGrid';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HiddenInput } from '@components/HiddenInput';
 import { PersonalityDialogAction } from './PersonalityDialogAction';
 import { PromptIcon } from '../PromptIcon';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { readSettings } from '@lib/Settings';
@@ -77,7 +77,18 @@ export default async function CommunicationAiPage() {
 
     return (
         <>
-            <Stack direction="column" spacing={2} sx={{ mb: 2 }}>
+            <Section icon={ <QuestionAnswerOutlinedIcon color="primary" /> } title="Communication"
+                     breadcrumbs={[
+                        { label: 'System', href: '/admin/system' },
+                        { label: 'AI', href: '/admin/system/ai' },
+                        { label: 'Communication' },
+                     ]}>
+                <SectionIntroduction>
+                    AI is used to generate the first draft of all outgoing communication. Humans
+                    will retain full editorial control. For now.
+                </SectionIntroduction>
+            </Section>
+            <Section tabs noHeader>
                 <List disablePadding dense>
                     { availablePrompts.map(({ metadata }) =>
                         <ListItemButton key={metadata.id} LinkComponent={Link}
@@ -89,14 +100,11 @@ export default async function CommunicationAiPage() {
                                           secondary={metadata.description} />
                         </ListItemButton> )}
                 </List>
-            </Stack>
-            <Divider sx={{ my: 1 }} />
-            <FormGrid action={actions.updatePrompt}
-                      defaultValues={{ id: 'system-prompt', prompt: systemPromptTemplate }}>
+            </Section>
+            <FormGridSection action={actions.updatePrompt}
+                             defaultValues={{ id: 'system-prompt', prompt: systemPromptTemplate }}
+                             title="System prompt">
                 <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                        System prompt
-                    </Typography>
                     <TokenOverviewAlert prompt={systemPrompt} />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -104,15 +112,12 @@ export default async function CommunicationAiPage() {
                     <TextareaAutosizeElement name="prompt" label="System prompt" fullWidth
                                              size="small" />
                 </Grid>
-            </FormGrid>
-            <Divider sx={{ mt: 2, mb: 1 }} />
-            <FormGrid action={actions.updateExampleMessages} defaultValues={{ exampleMessages }}>
+            </FormGridSection>
+            <FormGridSection action={actions.updateExampleMessages}
+                             defaultValues={{ exampleMessages }}
+                             title="Example messages">
                 <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6">
-                        Example messages
-                    </Typography>
-                    <Alert severity="warning" sx={{ mt: '8px !important' }}
-                           action={defaultPersonalityAction}>
+                    <Alert severity="warning" action={defaultPersonalityAction}>
                         These messages will be superseded by those provided in account settings. No
                         tokens are available.
                     </Alert>
@@ -123,7 +128,7 @@ export default async function CommunicationAiPage() {
                                                  label={`Example message ${index + 1}`}
                                                  fullWidth size="small" />
                     </Grid> )}
-            </FormGrid>
+            </FormGridSection>
         </>
     );
 }

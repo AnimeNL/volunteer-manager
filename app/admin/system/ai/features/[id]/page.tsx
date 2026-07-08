@@ -15,6 +15,9 @@ import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
+import { PromptIcon } from '../../PromptIcon';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
 import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings, type Setting } from '@lib/Settings';
@@ -89,32 +92,46 @@ export default async function AiFeaturesPromptPage(
 
     return (
         <>
-            <FormGrid action={updatePrompt} defaultValues={defaultValues}>
-                <BackButtonGrid href="/admin/system/ai/features">
-                    Back to overview
-                </BackButtonGrid>
-                <Grid size={{ xs: 12 }} sx={{ mt: -1 }}>
-                    <Divider />
-                </Grid>
-                <Grid size={{ xs: 12 }} sx={{ mt: -2 }}>
-                    <Typography variant="h6" sx={{ pb: 1 }}>
-                        {prompt.metadata.label}
-                    </Typography>
-                    <TokenOverviewAlert prompt={prompt} />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <HiddenInput name="id" />
-                    <TextareaAutosizeElement name="prompt" label="Prompt template" size="small"
-                                             fullWidth />
-                </Grid>
-                { !!settingComplexity &&
+            <Section icon={ <PromptIcon id={prompt.metadata.id} /> } title={prompt.metadata.label}
+                     breadcrumbs={[
+                        { label: 'System', href: '/admin/system' },
+                        { label: 'AI', href: '/admin/system/ai' },
+                        { label: 'Features', href: '/admin/system/ai/features' },
+                        { label: prompt.metadata.label },
+                     ]}>
+                <SectionIntroduction>
+                    {prompt.metadata.description}
+                </SectionIntroduction>
+            </Section>
+            <Section tabs noHeader>
+                <FormGrid action={updatePrompt} defaultValues={defaultValues}>
+                    <BackButtonGrid href="/admin/system/ai/features">
+                        Back to overview
+                    </BackButtonGrid>
+                    <Grid size={{ xs: 12 }} sx={{ mt: -1 }}>
+                        <Divider />
+                    </Grid>
+                    <Grid size={{ xs: 12 }} sx={{ mt: -2 }}>
+                        <Typography variant="h6" sx={{ pb: 1 }}>
+                            {prompt.metadata.label}
+                        </Typography>
+                        <TokenOverviewAlert prompt={prompt} />
+                    </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <SelectElement name="complexity" label="Prompt complexity" size="small"
-                                       fullWidth options={complexityOptions} />
-                    </Grid> }
-            </FormGrid>
-            <Divider sx={{ mt: 2 }} />
-            <Example action={executePromptWithExampleParameters} id={prompt.metadata.id} />
+                        <HiddenInput name="id" />
+                        <TextareaAutosizeElement name="prompt" label="Prompt template" size="small"
+                                                 fullWidth />
+                    </Grid>
+                    { !!settingComplexity &&
+                        <Grid size={{ xs: 12 }}>
+                            <SelectElement name="complexity" label="Prompt complexity" size="small"
+                                           fullWidth options={complexityOptions} />
+                        </Grid> }
+                </FormGrid>
+            </Section>
+            <Section noHeader>
+                <Example action={executePromptWithExampleParameters} id={prompt.metadata.id} />
+            </Section>
         </>
     );
 }

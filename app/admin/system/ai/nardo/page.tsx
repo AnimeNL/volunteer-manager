@@ -5,14 +5,16 @@ import type { Metadata } from 'next';
 
 import { TextareaAutosizeElement } from 'react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import GroupsIcon from '@mui/icons-material/Groups';
 import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
 import { NardoPersonalisedAdvicePrompt } from '@lib/ai/prompts/NardoPersonalisedAdvicePrompt';
 import { PersonalisedAdviceExample } from './PersonalisedAdviceExample';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { executeNardoPersonalisedAdvicePrompt } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
@@ -85,14 +87,25 @@ export default async function NardoAiPage() {
     };
 
     return (
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
-                <Typography variant="h6" sx={{ mb: -1 }}>
-                    Personalised Advice
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, md: 8 }}>
+        <>
+            <Section icon={ <GroupsIcon color="primary" /> } title="Del a Rie Advies"
+                     breadcrumbs={[
+                        { label: 'System', href: '/admin/system' },
+                        { label: 'AI', href: '/admin/system/ai' },
+                        { label: 'Del a Rie Advies' },
+                     ]}>
+                <SectionIntroduction>
+                    Our friends from Del a Rie Advies are known to leverage any and all state of the
+                    art technologies, whether it's helpful or not.
+                </SectionIntroduction>
+            </Section>
+            <Section tabs noHeader>
                 <FormGrid action={actions.updatePrompt} defaultValues={defaultValues}>
+                     <Grid size={{ xs: 12 }} sx={{ my: -1 }}>
+                        <Typography variant="h6">
+                            Model selection
+                        </Typography>
+                    </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
                         <HiddenInput name="id" />
@@ -100,16 +113,13 @@ export default async function NardoAiPage() {
                                                  size="small" fullWidth sx={{ mt: 2 }} />
                     </Grid>
                 </FormGrid>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
+            </Section>
+            <Section noHeader>
                 <PersonalisedAdviceExample action={executeNardoPersonalisedAdvicePrompt}
                                            advice={advice} events={events} volunteers={volunteers}
                                            userId={user.id} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-                <Divider />
-            </Grid>
-        </Grid>
+            </Section>
+        </>
     );
 }
 

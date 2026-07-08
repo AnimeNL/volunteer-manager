@@ -73,7 +73,7 @@ export default async function DefaultMenu() {
                 items: [
                     {
                         Icon: AutoAwesomeIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'AI',
                         permission: 'system.internals.ai',
                         url: '/admin/system/ai/communication',

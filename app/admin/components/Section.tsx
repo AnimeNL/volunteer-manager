@@ -7,13 +7,17 @@ import type { SectionBreadcrumbsProps } from './SectionBreadcrumbs';
 import { ResponsivePaper } from './ResponsivePaper';
 import { SectionBreadcrumbs } from './SectionBreadcrumbs';
 import { SectionHeader, type SectionHeaderProps } from './SectionHeader';
+import { SectionTabs } from './SectionTabs';
 
 /**
  * Props accepted by the <Section> component, that are directly owned by the <Section> component.
  * Other props, e.g. that of the header, will be included.
  */
 interface SectionOwnProps extends Partial<SectionBreadcrumbsProps> {
-    // Additional options go here.
+    /**
+     * Whether a tab bar should be shown at the section's top.
+     */
+    tabs?: boolean;
 }
 
 /**
@@ -35,12 +39,13 @@ export type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: t
  * require them, to enable interaction such as a clear button.
  */
 export function Section(props: React.PropsWithChildren<SectionProps>) {
-    const { breadcrumbs, children, ...sectionHeaderProps } = props;
+    const { breadcrumbs, children, tabs, ...sectionHeaderProps } = props;
 
     return (
         <ResponsivePaper sx={{ p: 2 }}>
+            { !!tabs && <SectionTabs />}
             { !!breadcrumbs && <SectionBreadcrumbs breadcrumbs={breadcrumbs} /> }
-            <Stack direction="column" spacing={2}>
+            <Stack direction="column" spacing={2} sx={ !!tabs ? { mt: 2 } : undefined }>
                 { !('noHeader' in sectionHeaderProps) && <SectionHeader {...sectionHeaderProps} /> }
                 {children}
             </Stack>

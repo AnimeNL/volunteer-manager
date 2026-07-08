@@ -1,18 +1,12 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
-import Paper from '@mui/material/Paper';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
-import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -20,58 +14,39 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * settings are exposed in the administration area.
  */
 export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/admin/system/ai'>) {
-    await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.ai',
     });
 
-    const tabs: NavigationTabsProps['tabs'] = [
-        {
-            icon: <ModelTrainingIcon />,
-            label: 'Models',
-            url: '/admin/system/ai/models',
-            urlMatchMode: 'prefix',
-        },
-        {
-            icon: <SmartToyIcon />,
-            label: 'Features',
-            url: '/admin/system/ai/features',
-            urlMatchMode: 'prefix',
-        },
-        {
-            icon: <QuestionAnswerOutlinedIcon />,
-            label: 'Communication',
-            url: '/admin/system/ai/communication',
-            urlMatchMode: 'prefix',
-        },
-        {
-            icon: <GroupsIcon />,
-            label: 'Del a Rie Advies',
-            url: '/admin/system/ai/nardo',
-            urlMatchMode: 'prefix',
-        },
-    ];
-
     return (
-        <>
-            <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
-                     breadcrumbs={[
-                        { label: 'System', href: '/admin/system' },
-                        { label: 'AI' },
-                     ]}
-                     documentation="system/ai">
-                <SectionIntroduction>
-                    Artificial Intelligence capabilities are used for data analysis purposes,
-                    scaling our communication and Del a Rie Advies' services.
-                </SectionIntroduction>
-            </Section>
-            <Paper>
-                <NavigationTabs tabs={tabs} />
-                <Divider />
-                <Box sx={{ p: 2 }}>
-                    {props.children}
-                </Box>
-            </Paper>
-        </>
+        <SectionTabContext access={access} tabs={[
+            {
+                Icon: ModelTrainingIcon,
+                label: 'Models',
+                url: '/admin/system/ai/models',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: SmartToyIcon,
+                label: 'Features',
+                url: '/admin/system/ai/features',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: QuestionAnswerOutlinedIcon,
+                label: 'Communication',
+                url: '/admin/system/ai/communication',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: GroupsIcon,
+                label: 'Del a Rie Advies',
+                url: '/admin/system/ai/nardo',
+                urlMatchMode: 'prefix',
+            },
+        ]}>
+            {props.children}
+        </SectionTabContext>
     );
 }
