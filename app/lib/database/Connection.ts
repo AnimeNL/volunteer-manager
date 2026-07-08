@@ -11,12 +11,23 @@ import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
 import type { PlainDate, ZonedDateTime } from '@lib/Temporal';
 import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
+import { Temporal } from '@lib/Temporal';
 
 declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;
     let animeConMockConnection: DBConnection | undefined;
     let animeConQueryCount: number | undefined;
+    let animeConQueryLog: {
+        queryType: QueryType;
+        query: string;
+        timestamp: Temporal.Instant;
+    }[];
 }
+
+/**
+ * Number of database queries that should be stored in the internal log.
+ */
+const kQueryLogSize = parseInt(process.env.APP_DATABASE_QUERY_LOG || '0', /* radix= */ 10);
 
 /**
  * The MariaDB connection pool configuration that should be used for the Volunteer Manager.
@@ -91,9 +102,21 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
  * actual queries will continue to be executed using a MariaDBQueryRunner.
  */
 class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined> {
-    override onQuery() {
+    override onQuery(queryType: QueryType, query: string, params: any[]) {
         globalThis.animeConQueryCount ??= 0;
         globalThis.animeConQueryCount++;
+
+        if (kQueryLogSize > 0) {
+            globalThis.animeConQueryLog ??= [];
+            globalThis.animeConQueryLog.unshift({
+                queryType, query,
+                timestamp: Temporal.Now.instant(),
+            });
+
+            if (globalThis.animeConQueryLog.length > kQueryLogSize)
+                globalThis.animeConQueryLog.pop();
+        }
+
         return undefined;
     }
 
@@ -124,10 +147,17 @@ export function getConnectionPool() {
 }
 
 /**
- * Returns the total number of queries that has been executed on the Volunteer Manager
+ * Returns the total number of queries that has been executed on the Volunteer Manager.
  */
 export function getQueryCount() {
     return globalThis.animeConQueryCount ?? 0;
+}
+
+/**
+ * Returns the most recently executed queries when environment configuration has enabled this.
+ */
+export function getQueryLog() {
+    return globalThis.animeConQueryLog ?? [];
 }
 
 /**

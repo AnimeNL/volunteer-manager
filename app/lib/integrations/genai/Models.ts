@@ -14,7 +14,10 @@ type PickStringLiterals<T> = T extends string
 /**
  * Type that lists all the models that are supported by the @google/genai library.
  */
-type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>;
+type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
+    | 'gemini-3.1-flash-image'
+    | 'gemini-3.1-flash-lite-image'
+    | 'gemini-3-pro-image';
 
 /**
  * Enumeration of the models that are supported by the Gen AI API.

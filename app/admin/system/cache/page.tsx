@@ -8,9 +8,10 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
- * Overview page for the Diagnostics, providing links to each section contained therein.
+ * Page that provides access and insight to all caches that exist within the Volunteer Manager. We
+ * use a centralised caching mechanism for management, recovery, and adaptability.
  */
-export default async function DiagnosticsPage() {
+export default async function CacheManagementPage() {
     return (
         <>
             <Section icon={ <FolderCopyOutlinedIcon color="primary" /> } title="Cache Management"

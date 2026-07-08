@@ -38,7 +38,7 @@ export async function AccountSearchCard() {
     });
 
     return (
-        <Section noTitle>
+        <Section noHeader>
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mt: '8px !important' }}>
                 <SearchIcon />
                 <AccountSearchInput accounts={normalisedAccounts} />

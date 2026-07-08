@@ -9,6 +9,7 @@ import LoopIcon from '@mui/icons-material/Loop';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import StorageIcon from '@mui/icons-material/Storage';
 import StreamIcon from '@mui/icons-material/Stream';
 import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
@@ -126,6 +127,14 @@ export default async function DefaultMenu() {
                         url: '/admin/system/cache',
                     },
                     {
+                        Icon: StorageIcon,
+                        badge: { severity: 'warning', value: true },
+                        condition: databaseQueryLogHasNonZeroValue(),
+                        label: 'Database',
+                        permission: 'root',
+                        url: '/admin/system/database',
+                    },
+                    {
                         Icon: QueryStatsIcon,
                         badge: { value: badges.logs },
                         label: 'Diagnostics',
@@ -161,4 +170,17 @@ export default async function DefaultMenu() {
             }
         ]} userId={user.id} />
     );
+}
+
+/**
+ * Returns whether the `APP_DATABASE_QUERY_LOG` environment variable has been set.
+ */
+function databaseQueryLogHasNonZeroValue(): boolean {
+    const value = process.env.APP_DATABASE_QUERY_LOG;
+    if (typeof value === 'string') {
+        const numericalValue = parseInt(value, /* radix= */ 10);
+        return !isNaN(numericalValue) && numericalValue > 0;
+    }
+
+    return false;
 }
