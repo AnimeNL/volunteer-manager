@@ -5,6 +5,7 @@ import Link from '@app/LinkProxy';
 
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -40,11 +41,14 @@ export async function AccountWarningCard() {
             discordHandleUpdated: tUsers.discordHandleUpdated,
             activated: tUsers.activated.equals(/* true= */ 1),
         })
+        .orderBy('id', 'asc')
         .executeSelectMany();
 
     // ---------------------------------------------------------------------------------------------
     // Compute account warnings:
     // ---------------------------------------------------------------------------------------------
+
+    const seenVolunteers: Map<string, number> = new Map();
 
     type Warning = {
         userId: number;
@@ -61,7 +65,7 @@ export async function AccountWarningCard() {
             warnings.push({
                 userId: volunteer.id,
                 name: volunteer.name,
-                priority: 3,
+                priority: 2,
                 icon: <PauseCircleOutlinedIcon color="disabled" />,
                 text: 'Their account has not been activated yet',
             })
@@ -71,7 +75,7 @@ export async function AccountWarningCard() {
             warnings.push({
                 userId: volunteer.id,
                 name: volunteer.name,
-                priority: 2,
+                priority: 3,
                 icon: <PhoneDisabledIcon color="info" />,
                 text: `Their phone number (${volunteer.phoneNumber}) is invalid`,
             });
@@ -81,10 +85,22 @@ export async function AccountWarningCard() {
             warnings.push({
                 userId: volunteer.id,
                 name: volunteer.name,
-                priority: 1,
+                priority: 0,
                 icon: <DiscordIcon color="warning" />,
                 text: `Their Discord handle (${volunteer.discordHandle}) needs to be verified`,
             });
+        }
+
+        if (seenVolunteers.has(volunteer.name)) {
+            warnings.push({
+                userId: volunteer.id,
+                name: volunteer.name,
+                priority: 1,
+                icon: <ContentCopyIcon color="warning" />,
+                text: `Possibly duplicated account with #${seenVolunteers.get(volunteer.name)}`,
+            });
+        } else {
+            seenVolunteers.set(volunteer.name, volunteer.id);
         }
     }
 
