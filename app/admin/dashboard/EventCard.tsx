@@ -24,7 +24,7 @@ import db, { tEvents, tStorage } from '@lib/database';
 /**
  * Number of days for which the previous event highlight should remain visible on the card.
  */
-const kPreviousEventHighlightCutoffDays = 210;
+const kPreviousEventHighlightCutoffDays = /* ~two months= */ 60;
 
 /**
  * The <EventCard> displays the upcoming event's logo, together with the ability to click through to

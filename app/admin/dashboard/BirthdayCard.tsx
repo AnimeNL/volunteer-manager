@@ -44,20 +44,10 @@ const kVisiblePastBirthdays = 3;
 const kVisibileFutureBirthdays = 5;
 
 /**
- * Props accepted by the <BirthdayCard> component.
- */
-interface BirthdayCardProps {
-    /**
-     * Access control manager through which visibility can be determined.
-     */
-    access: AccessControl;
-}
-
-/**
  * The <BirthdayCard> displays the recent and upcoming birthdays of volunteers. The specific list of
  * volunteers will be filtered depending on the signed in user's access.
  */
-export async function BirthdayCard(props: BirthdayCardProps) {
+export async function BirthdayCard(props: { access: AccessControl }) {
     const currentDate = Temporal.Now.plainDateISO();
 
     const birthdays = await queryBirthdays(props.access, {
@@ -168,7 +158,12 @@ function BirthdayListItem(props: BirthdayListItemProps) {
                 <CakeIcon color={color} fontSize="small" />
             </ListItemIcon>
             <ListItemText primary={ <InlineAccountLink user={user} /> }
-                          slotProps={{ primary: { noWrap: true } }} />
+                          slotProps={{
+                              primary: {
+                                  noWrap: true,
+                                  sx: { '& > a': { color: 'text.primary', textDecoration: 'none' } }
+                              }
+                          }} />
             { relationToToday !== 0 &&
                 <Typography variant="body2" color="textSecondary" noWrap sx={{ ml: 2 }}>
                     { relationToToday < 0 && formatDate(props.birthday.occurrence, 'MMM D') }

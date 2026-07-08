@@ -19,20 +19,22 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function AdminPage() {
     const { access } = await requireAuthenticationContext({ check: 'admin' });
 
-    // TODO: Permission checks for all of this.
-
     // TODO: Birthday page - navigation
     // TODO: Birthday page - proper mobile view
-
-    // TODO: Birthday card - better styling
 
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
         <BirthdayCard key="birthday-card" access={access} />,
-        <ActivityCard key="activity-card" />,
-        <DatabaseCard key="database-card" />,
-        <SchedulerCard key="scheduler-card" />,
     ];
+
+    if (access.can('system.logs', 'read'))
+        cards.push(<ActivityCard key="activity-card" />);
+
+    if (access.can('system.internals'))
+        cards.push(<DatabaseCard key="database-card" />);
+
+    if (access.can('system.internals.scheduler'))
+        cards.push(<SchedulerCard key="scheduler-card" />);
 
     return (
         <TopLevelLayout>
