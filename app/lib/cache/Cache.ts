@@ -122,8 +122,15 @@ function calculateByteSize(contents: any): number {
 }
 
 /**
- * General purpose caching mechanism used throughout the Volunteer Manager. Strongly typed, and
- * automatically applies pruning behaviour such as expiration times.
+ * The Volunteer Manager supports three kinds of data caches: permanent ones, that have to be
+ * cleared manually. Expiration-based caches with a TTL for each entry in the cache, and finally
+ * size-based caches with a maximum number of entries, which will be pruned by the LRU.
+ *
+ * Caches retain metadata on each entry in the cache for introspectability, such as the number of
+ * times an entry has been accessed and the timestamp of the most recent access.
+ *
+ * Each data cache must be defined using a descriptor in CacheDescriptors.ts to ensure both type
+ * safety, and well defined intented behaviour of the cache throughout the system.
  */
 export class Cache<T extends CacheType> {
     /**
@@ -231,6 +238,11 @@ export class Cache<T extends CacheType> {
         if (entry) {
             entry.accessCount++;
             entry.lastAccessTime = performance.now();
+
+            if (this.#descriptor.type === 'lru') {
+                this.#entries.delete(key);
+                this.#entries.set(key, entry);
+            }
         }
 
         return entry ? entry.contents : undefined;
@@ -241,20 +253,20 @@ export class Cache<T extends CacheType> {
      * |populateFn|.
      */
     getOrInsert(...args: CacheGetOrInsertArgs<T>): Promise<CacheContents<T> | null>;
-    async getOrInsert(paramsOrPopulateFn: any, populateFn?: any)
+    async getOrInsert(paramsOrPopulateFn: any, maybePopulateFn?: any)
         : Promise<CacheContents<T> | null>
     {
         this.pruneExpiredEntries();
 
         let params: CacheParameters<T>;
-        let fn: CachePopulateFn<T>;
+        let populateFn: CachePopulateFn<T>;
 
-        if (populateFn === undefined) {
+        if (maybePopulateFn === undefined) {
             params = undefined;
-            fn = paramsOrPopulateFn;
+            populateFn = paramsOrPopulateFn;
         } else {
             params = paramsOrPopulateFn;
-            fn = populateFn;
+            populateFn = maybePopulateFn;
         }
 
         const key = serializeParams(params);
@@ -263,10 +275,16 @@ export class Cache<T extends CacheType> {
         if (entry) {
             entry.accessCount++;
             entry.lastAccessTime = performance.now();
+
+            if (this.#descriptor.type === 'lru') {
+                this.#entries.delete(key);
+                this.#entries.set(key, entry);
+            }
+
             return entry.contents;
         }
 
-        const contents = await fn(params);
+        const contents = await populateFn(params);
         this.set(...[ params, contents ] as CacheSetArgs<T>);
 
         return contents;
@@ -294,32 +312,46 @@ export class Cache<T extends CacheType> {
      * Sets the value corresponding to the given |params| to |contents|.
      */
     set(...args: CacheSetArgs<T>): void;
-    set(paramsOrContents: any, contents?: any) {
+    set(paramsOrContents: any, maybeContents?: any) {
         this.pruneExpiredEntries();
 
         let params: CacheParameters<T>;
-        let finalContents: CacheContents<T>;
+        let contents: CacheContents<T>;
 
-        if (contents === undefined) {
+        if (maybeContents === undefined) {
             params = undefined;
-            finalContents = paramsOrContents;
+            contents = paramsOrContents;
         } else {
             params = paramsOrContents;
-            finalContents = contents;
+            contents = maybeContents;
         }
 
         const key = serializeParams(params);
-        const ttl = this.#descriptor.ttl;
+        const descriptor = this.#descriptor;
+
+        let expiresAt: number | null = null;
+        if (descriptor.type === 'ttl')
+            expiresAt = performance.now() + descriptor.ttl * 1000;
+
+        this.#entries.delete(key);
 
         this.#entries.set(key, {
-            params,
-            contents: finalContents,
-            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null,
+            params, contents, expiresAt,
 
             accessCount: 1,
-            bytes: calculateByteSize(finalContents),
+            bytes: calculateByteSize(contents),
             lastAccessTime: performance.now(),
         });
+
+        if (descriptor.type === 'lru') {
+            while (this.#entries.size > descriptor.maxSize) {
+                const firstKey = this.#entries.keys().next().value;
+                if (firstKey !== undefined)
+                    this.#entries.delete(firstKey);
+                else
+                    break;
+            }
+        }
     }
 
     /**
@@ -342,6 +374,9 @@ export class Cache<T extends CacheType> {
      * Prunes all expired elements from this cache.
      */
     private pruneExpiredEntries() {
+        if (this.#descriptor.type !== 'ttl')
+            return;
+
         const now = performance.now();
 
         for (const [ key, entry ] of this.#entries) {

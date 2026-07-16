@@ -21,6 +21,10 @@ describe('Cache', () => {
             const paramsCache = Cache.getInstance('TestCacheWithParams');
             paramsCache.clear();
         }
+        if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithLRU')) {
+            const lruCache = Cache.getInstance('TestCacheWithLRU');
+            lruCache.clear();
+        }
     });
 
     it('should throw for unknown cache types', () => {
@@ -278,4 +282,84 @@ describe('Cache', () => {
             expect(metadata[0].bytes).toBe(0);
         });
     });
+
+    describe('LRU eviction behaviour', () => {
+        it('should respect max size and evict least recently used items on set', () => {
+            const cache = Cache.getInstance('TestCacheWithLRU');
+
+            cache.set({ key: '1' }, 'data1');
+            cache.set({ key: '2' }, 'data2');
+            cache.set({ key: '3' }, 'data3');
+
+            expect(cache.has({ key: '1' })).toBeTruthy();
+            expect(cache.has({ key: '2' })).toBeTruthy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+
+            // Set a 4th item, should evict '1' (least recently used)
+            cache.set({ key: '4' }, 'data4');
+
+            expect(cache.has({ key: '1' })).toBeFalsy();
+            expect(cache.has({ key: '2' })).toBeTruthy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+            expect(cache.has({ key: '4' })).toBeTruthy();
+        });
+
+        it('should refresh recency on get', () => {
+            const cache = Cache.getInstance('TestCacheWithLRU');
+
+            cache.set({ key: '1' }, 'data1');
+            cache.set({ key: '2' }, 'data2');
+            cache.set({ key: '3' }, 'data3');
+
+            // Access '1', making '2' the least recently used
+            expect(cache.get({ key: '1' })).toBe('data1');
+
+            // Set a 4th item, should evict '2'
+            cache.set({ key: '4' }, 'data4');
+
+            expect(cache.has({ key: '1' })).toBeTruthy();
+            expect(cache.has({ key: '2' })).toBeFalsy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+            expect(cache.has({ key: '4' })).toBeTruthy();
+        });
+
+        it('should refresh recency on getOrInsert', async () => {
+            const cache = Cache.getInstance('TestCacheWithLRU');
+
+            cache.set({ key: '1' }, 'data1');
+            cache.set({ key: '2' }, 'data2');
+            cache.set({ key: '3' }, 'data3');
+
+            // Access '1' via getOrInsert, making '2' the least recently used
+            await cache.getOrInsert({ key: '1' }, async () => 'ignored');
+
+            // Set a 4th item, should evict '2'
+            cache.set({ key: '4' }, 'data4');
+
+            expect(cache.has({ key: '1' })).toBeTruthy();
+            expect(cache.has({ key: '2' })).toBeFalsy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+            expect(cache.has({ key: '4' })).toBeTruthy();
+        });
+
+        it('should refresh recency on set of existing key', () => {
+            const cache = Cache.getInstance('TestCacheWithLRU');
+
+            cache.set({ key: '1' }, 'data1');
+            cache.set({ key: '2' }, 'data2');
+            cache.set({ key: '3' }, 'data3');
+
+            // Update '1' via set, making '2' the least recently used
+            cache.set({ key: '1' }, 'data1-updated');
+
+            // Set a 4th item, should evict '2'
+            cache.set({ key: '4' }, 'data4');
+
+            expect(cache.get({ key: '1' })).toBe('data1-updated');
+            expect(cache.has({ key: '2' })).toBeFalsy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+            expect(cache.has({ key: '4' })).toBeTruthy();
+        });
+    });
 });
+
