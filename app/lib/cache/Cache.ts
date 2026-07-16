@@ -4,6 +4,10 @@
 import type { CacheContents, CacheDescriptor, CacheParameters, CacheType } from './CacheDescriptors';
 import { kCacheDescriptor } from './CacheDescriptors';
 
+declare namespace globalThis {
+    let animeConCacheStorage: Map<CacheType, Map<string, any>> | undefined;
+}
+
 /**
  * Utility type representing the function to call when a cache has to be populated.
  */
@@ -150,11 +154,6 @@ export class Cache<T extends CacheType> {
         return new Cache(kCacheDescriptor[type]);
     }
 
-    /**
-     * Global shared storage map for all caches, mapping from cache name to its entry map.
-     */
-    static #cacheStorage = new Map<CacheType, Map<string, any>>();
-
     // ---------------------------------------------------------------------------------------------
 
     #descriptor: CacheDescriptor<T>;
@@ -163,10 +162,12 @@ export class Cache<T extends CacheType> {
     private constructor(descriptor: CacheDescriptor<T>) {
         this.#descriptor = descriptor;
 
-        if (!Cache.#cacheStorage.has(descriptor.name))
-            Cache.#cacheStorage.set(descriptor.name, new Map());
+        globalThis.animeConCacheStorage ??= new Map();
 
-        this.#entries = Cache.#cacheStorage.get(descriptor.name)!;
+        if (!globalThis.animeConCacheStorage.has(descriptor.name))
+            globalThis.animeConCacheStorage.set(descriptor.name, new Map());
+
+        this.#entries = globalThis.animeConCacheStorage.get(descriptor.name)!;
     }
 
     /**
