@@ -86,6 +86,11 @@ export type CacheDescriptor<T extends CacheType> = {
     name: T;
 
     /**
+     * Description that explains why this cache exists.
+     */
+    description: string;
+
+    /**
      * Whether this is an internal cache, which should not be considered by `getAll()`.
      */
     internal?: true;
@@ -131,6 +136,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
 
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
+        description: 'Latest visible event for use in manifest.json.',
         type: 'permanent',
     },
 
@@ -140,6 +146,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
 
     AdminNavigationActiveEvents: {
         name: 'AdminNavigationActiveEvents',
+        description: 'Active events for use in the admin navigation.',
         type: 'permanent',
     },
 
@@ -150,12 +157,14 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     TestCacheWithParams: {
         internal: true,
         name: 'TestCacheWithParams',
+        description: 'Internal cache used for testing',
         type: 'permanent',
     },
 
     TestCacheWithLRU: {
         internal: true,
         name: 'TestCacheWithLRU',
+        description: 'Internal cache used for testing',
         type: 'lru',
         maxSize: 3,
     },
@@ -163,6 +172,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     TestCacheWithTTL: {
         internal: true,
         name: 'TestCacheWithTTL',
+        description: 'Internal cache used for testing',
         type: 'ttl',
         ttl: 10,
     },
