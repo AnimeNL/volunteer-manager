@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import { AdminClientProviders } from './AdminClientProviders';
 import { AdminHeader } from './AdminHeader';
+import { Cache } from '@lib/cache';
 import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { ThemeProvider } from './layout/ThemeProvider';
@@ -37,18 +38,21 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     if (!environment)
         notFound();
 
-    const dbInstance = db;
-    const unfilteredEvents = await dbInstance.selectFrom(tEvents)
-        .where(tEvents.eventHidden.equals(/* false= */ 0))
-        .select({
-            concluded: tEvents.eventEndTime.lessOrEqual(dbInstance.currentZonedDateTime()),
-            label: tEvents.eventShortName,
-            slug: tEvents.eventSlug,
-        })
-        .orderBy(tEvents.eventEndTime, 'desc')
-        .executeSelectMany();
+    const unfilteredEvents =
+        await Cache.getInstance('AdminNavigationActiveEvents').getOrInsert(async () => {
+            const dbInstance = db;
+            return await dbInstance.selectFrom(tEvents)
+                .where(tEvents.eventHidden.equals(/* false= */ 0))
+                .select({
+                    concluded: tEvents.eventEndTime.lessOrEqual(dbInstance.currentZonedDateTime()),
+                    label: tEvents.eventShortName,
+                    slug: tEvents.eventSlug,
+                })
+                .orderBy(tEvents.eventEndTime, 'desc')
+                .executeSelectMany();
+        });
 
-    const events = unfilteredEvents.filter(event =>
+    const events = unfilteredEvents!.filter(event =>
         access.can('event.visible', { event: event.slug, team: kAnyTeam }))
 
     const settings = await readUserSettings(user.id, [

@@ -22,15 +22,12 @@ interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
 
     AdminNavigationActiveEvents: {
-        Parameters: {
-            limit: number;
-        };
-
+        Parameters: undefined;
         Contents: {
             concluded: boolean;
             label: string;
             slug: string;
-        };
+        }[];
     };
 
     // ---------------------------------------------------------------------------------------------
