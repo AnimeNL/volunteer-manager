@@ -39,10 +39,42 @@ export class Cache<T extends CacheType> {
     get descriptor() { return this.#descriptor; }
 
     /**
-     * Returns from the cache for the given |params|. When the associated content does not exist in
-     * the cache yet, it will be populated based on the given |populateFn|.
+     * Removes all elements from this cache.
      */
-    async get(params: CacheParameters<T>, populateFn: CachePopulateFn<T>)
+    clear() {
+        // todo
+    }
+
+    /**
+     * Removes all elements from this cache that match the |params|.
+     */
+    delete(params: Partial<CacheParameters<T>>) {
+        // todo
+    }
+
+    /**
+     * Returns an iterator object that contains the [ params, contents ] pairs for all entries.
+     */
+    entries(): Iterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
+        // todo
+        return {
+            next() { return { done: true, value: null }; },
+        };
+    }
+
+    /**
+     * Returns the value corresponding to the given |params|. Defaults to `undefined`.
+     */
+    get(params: CacheParameters<T>): CacheContents<T> | null | undefined {
+        // todo
+        return undefined;
+    }
+
+    /**
+     * Returns the value corresponding to the given |params|, or populates the cache with the given
+     * |populateFn|.
+     */
+    async getOrInsert(params: CacheParameters<T>, populateFn: CachePopulateFn<T>)
         : Promise<CacheContents<T> | null>
     {
         // todo
@@ -50,20 +82,44 @@ export class Cache<T extends CacheType> {
     }
 
     /**
-     * Invalidates all cached entities, optionally filtered by the |params|.
+     * Returns whether the cache has a value corresponding to the given |params|.
      */
-    invalidate(): void {
+    has(params: CacheParameters<T>): boolean {
         // todo
+        return false;
     }
 
     /**
-     * Iterator that allows the user of a cache to iterate over all cached content. Used to enable
-     * introspectability of the caches from user interfaces.
+     * Returns the parameters for all entries in the cache.
      */
-    [Symbol.iterator](): Iterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
+    params(): Iterator<CacheParameters<T>> {
         // todo
         return {
             next() { return { done: true, value: null }; },
         };
+    }
+
+    /**
+     * Sets the value corresponding to the given |params| to |contents|.
+     */
+    set(params: CacheParameters<T>, contents: CacheContents<T>) {
+        // todo
+    }
+
+    /**
+     * Returns the values for all entries in the cache.
+     */
+    values(): Iterator<CacheContents<T> | null> {
+        // todo
+        return {
+            next() { return { done: true, value: null }; },
+        };
+    }
+
+    /**
+     * Returns an iterator object that contains the [ params, contents ] pairs for all entries.
+     */
+    [Symbol.iterator](): Iterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
+        return this.entries();
     }
 }
