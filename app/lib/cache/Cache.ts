@@ -14,8 +14,19 @@ type CachePopulateFn<T extends CacheType> =
  * Interface representing an entry in the Cache.
  */
 interface CacheEntry<T extends CacheType> {
+    /**
+     * Parameters with which this cache entry has been associated.
+     */
     params: CacheParameters<T>;
+
+    /**
+     * Contents stored within this cache entry. May be `null`, but not `undefined`.
+     */
     contents: CacheContents<T> | null;
+
+    /**
+     * Time at which this cache entry expires.
+     */
     expiresAt: number | null;
 }
 
@@ -30,6 +41,7 @@ function serializeParams(params: any): string {
         return String(params);
 
     const keys = Object.keys(params).sort();
+
     const sortedObj: Record<string, any> = {};
     for (const key of keys)
         sortedObj[key] = params[key];
@@ -38,24 +50,30 @@ function serializeParams(params: any): string {
 }
 
 /**
- * Checks if the entry parameters match the partial filter parameters.
+ * Arguments expected by the cache accessors, i.e. `get()` and `has()`.
  */
-function matchesParams<P>(entryParams: P, filterParams: Partial<P>): boolean {
-    if (filterParams === entryParams)
-        return true;
+type CacheAccessArgs<T extends CacheType> =
+    [CacheParameters<T>] extends [undefined] ? [] : [ params: CacheParameters<T> ];
 
-    if (typeof filterParams === 'object' && filterParams !== null &&
-        typeof entryParams === 'object' && entryParams !== null)
-    {
-        for (const key of Object.keys(filterParams)) {
-            if ((entryParams as any)[key] !== (filterParams as any)[key])
-                return false;
-        }
-        return true;
-    }
+/**
+ * Arguments expected by the cache deletion method, i.e. `delete()`.
+ */
+type CacheDeleteArgs<T extends CacheType> =
+    [CacheParameters<T>] extends [undefined] ? [] : [ params: Partial<CacheParameters<T>> ];
 
-    return false;
-}
+/**
+ * Arguments expected by the cache getter method, i.e. `getOrInsert()`.
+ */
+type CacheGetOrInsertArgs<T extends CacheType> = [CacheParameters<T>] extends [undefined]
+    ? [ populateFn: CachePopulateFn<T> ]
+    : [ params: CacheParameters<T>, populateFn: CachePopulateFn<T> ];
+
+/**
+ * Arguments expected by the cache setter method, i.e. `set()`.
+ */
+type CacheSetArgs<T extends CacheType> = [CacheParameters<T>] extends [undefined]
+    ? [ contents: CacheContents<T> ]
+    : [ params: CacheParameters<T>, contents: CacheContents<T> ];
 
 /**
  * General purpose caching mechanism used throughout the Volunteer Manager. Strongly typed, and
@@ -107,11 +125,26 @@ export class Cache<T extends CacheType> {
     /**
      * Removes all elements from this cache that match the |params|.
      */
-    delete(params: Partial<CacheParameters<T>>) {
+    delete(...args: CacheDeleteArgs<T>): void;
+    delete(params?: any) {
         this.pruneExpiredEntries();
 
         for (const [ key, entry ] of this.#entries) {
-            if (matchesParams(entry.params, params))
+            const entryParams = entry.params;
+            let matches = params === entryParams;
+            if (!matches && typeof params === 'object' && params !== null &&
+                typeof entryParams === 'object' && entryParams !== null)
+            {
+                matches = true;
+                for (const k of Object.keys(params)) {
+                    if ((entryParams)[k as keyof typeof entryParams] !== params[k]) {
+                        matches = false;
+                        break;
+                    }
+                }
+            }
+
+            if (matches)
                 this.#entries.delete(key);
         }
     }
@@ -127,10 +160,13 @@ export class Cache<T extends CacheType> {
     /**
      * Returns the value corresponding to the given |params|. Defaults to `undefined`.
      */
-    get(params: CacheParameters<T>): CacheContents<T> | null | undefined {
+    get(...args: CacheAccessArgs<T>): CacheContents<T> | null | undefined;
+    get(params?: any): CacheContents<T> | null | undefined {
         this.pruneExpiredEntries();
+
         const key = serializeParams(params);
         const entry = this.#entries.get(key);
+
         return entry ? entry.contents : undefined;
     }
 
@@ -138,27 +174,48 @@ export class Cache<T extends CacheType> {
      * Returns the value corresponding to the given |params|, or populates the cache with the given
      * |populateFn|.
      */
-    async getOrInsert(params: CacheParameters<T>, populateFn: CachePopulateFn<T>)
+    getOrInsert(...args: CacheGetOrInsertArgs<T>): Promise<CacheContents<T> | null>;
+    async getOrInsert(paramsOrPopulateFn: any, populateFn?: any)
         : Promise<CacheContents<T> | null>
     {
         this.pruneExpiredEntries();
+
+        let params: CacheParameters<T>;
+        let fn: CachePopulateFn<T>;
+
+        if (populateFn === undefined) {
+            params = undefined;
+            fn = paramsOrPopulateFn;
+        } else {
+            params = paramsOrPopulateFn;
+            fn = populateFn;
+        }
+
         const key = serializeParams(params);
+
         const entry = this.#entries.get(key);
         if (entry)
             return entry.contents;
 
-        const contents = await populateFn(params);
-        this.set(params, contents as any);
+        const contents = await fn(params);
+        const ttl = this.#descriptor.ttl;
+
+        this.#entries.set(key, {
+            params,
+            contents: contents,
+            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null
+        });
+
         return contents;
     }
 
     /**
      * Returns whether the cache has a value corresponding to the given |params|.
      */
-    has(params: CacheParameters<T>): boolean {
+    has(...args: CacheAccessArgs<T>): boolean;
+    has(params?: any): boolean {
         this.pruneExpiredEntries();
-        const key = serializeParams(params);
-        return this.#entries.has(key);
+        return this.#entries.has(serializeParams(params));
     }
 
     /**
@@ -172,12 +229,29 @@ export class Cache<T extends CacheType> {
     /**
      * Sets the value corresponding to the given |params| to |contents|.
      */
-    set(params: CacheParameters<T>, contents: CacheContents<T>) {
+    set(...args: CacheSetArgs<T>): void;
+    set(paramsOrContents: any, contents?: any) {
         this.pruneExpiredEntries();
+
+        let params: CacheParameters<T>;
+        let finalContents: CacheContents<T>;
+
+        if (contents === undefined) {
+            params = undefined;
+            finalContents = paramsOrContents;
+        } else {
+            params = paramsOrContents;
+            finalContents = contents;
+        }
+
         const key = serializeParams(params);
         const ttl = this.#descriptor.ttl;
-        const expiresAt = ttl > 0 ? Date.now() + ttl * 1000 : null;
-        this.#entries.set(key, { params, contents, expiresAt });
+
+        this.#entries.set(key, {
+            params,
+            contents: finalContents,
+            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null
+        });
     }
 
     /**
@@ -201,9 +275,9 @@ export class Cache<T extends CacheType> {
      * Prunes all expired elements from this cache.
      */
     private pruneExpiredEntries() {
-        const now = Date.now();
+        const now = performance.now();
 
-        for (const [key, entry] of this.#entries) {
+        for (const [ key, entry ] of this.#entries) {
             if (entry.expiresAt !== null && now >= entry.expiresAt)
                 this.#entries.delete(key);
         }

@@ -14,11 +14,11 @@ describe('Cache', () => {
 
         // Clear any dynamic test caches if registered
         if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithTTL')) {
-            const ttlCache = Cache.get('TestCacheWithTTL' as any);
+            const ttlCache = Cache.get('TestCacheWithTTL');
             ttlCache.clear();
         }
         if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithParams')) {
-            const paramsCache = Cache.get('TestCacheWithParams' as any);
+            const paramsCache = Cache.get('TestCacheWithParams');
             paramsCache.clear();
         }
     });
@@ -35,13 +35,10 @@ describe('Cache', () => {
 
         // Set on cache1, should be visible on cache2 but not cache3
         const manifestData = { name: 'AnimeCon 2026', fullName: 'AnimeCon 2026 Event' };
-        // @ts-expect-error: ManifestLatestEvent has parameters of type never, but let's test storing/retrieving it
-        cache1.set(undefined, manifestData);
+        cache1.set(manifestData);
 
-        // @ts-expect-error
-        expect(cache2.has(undefined)).toBeTruthy();
-        // @ts-expect-error
-        expect(cache2.get(undefined)).toEqual(manifestData);
+        expect(cache2.has()).toBeTruthy();
+        expect(cache2.get()).toEqual(manifestData);
 
         expect(cache3.has({ limit: 10 })).toBeFalsy();
     });
@@ -110,31 +107,25 @@ describe('Cache', () => {
     });
 
     it('should support deleting entries by partial parameter matches', () => {
-        // @ts-expect-error: Add test cache descriptor with custom parameters for testing delete and matching
-        kCacheDescriptor['TestCacheWithParams'] = {
-            name: 'TestCacheWithParams',
-            ttl: 0,
-        };
-
-        const cache = Cache.get('TestCacheWithParams' as any);
+        const cache = Cache.get('TestCacheWithParams');
 
         const entry1 = { a: 1, b: 'foo' };
         const entry2 = { a: 1, b: 'bar' };
         const entry3 = { a: 2, b: 'foo' };
 
-        cache.set(entry1 as any, 'data1' as any);
-        cache.set(entry2 as any, 'data2' as any);
-        cache.set(entry3 as any, 'data3' as any);
+        cache.set(entry1, 'data1');
+        cache.set(entry2, 'data2');
+        cache.set(entry3, 'data3');
 
         // Delete with partial match { a: 1 } should delete entry1 and entry2 but keep entry3
-        cache.delete({ a: 1 } as any);
-        expect(cache.has(entry1 as any)).toBeFalsy();
-        expect(cache.has(entry2 as any)).toBeFalsy();
-        expect(cache.has(entry3 as any)).toBeTruthy();
+        cache.delete({ a: 1 });
+        expect(cache.has(entry1)).toBeFalsy();
+        expect(cache.has(entry2)).toBeFalsy();
+        expect(cache.has(entry3)).toBeTruthy();
 
         // Delete with partial match { b: 'foo' } should delete entry3
-        cache.delete({ b: 'foo' } as any);
-        expect(cache.has(entry3 as any)).toBeFalsy();
+        cache.delete({ b: 'foo' });
+        expect(cache.has(entry3)).toBeFalsy();
     });
 
     it('should support iterating over entries, values, and params', () => {
@@ -182,43 +173,31 @@ describe('Cache', () => {
         });
 
         it('should respect TTL expiration times and prune automatically', () => {
-            // @ts-expect-error: Add a test cache descriptor to verify TTL logic
-            kCacheDescriptor['TestCacheWithTTL'] = {
-                name: 'TestCacheWithTTL',
-                ttl: 10, // 10 seconds
-            };
-
-            const cache = Cache.get('TestCacheWithTTL' as any);
+            const cache = Cache.get('TestCacheWithTTL');
             const params = { key: 'foo' };
             const data = 'some-value';
 
-            cache.set(params as any, data as any);
-            expect(cache.has(params as any)).toBeTruthy();
-            expect(cache.get(params as any)).toEqual(data);
+            cache.set(params, data);
+            expect(cache.has(params)).toBeTruthy();
+            expect(cache.get(params)).toEqual(data);
 
             // Advance timers by 5 seconds (not yet expired)
             vi.advanceTimersByTime(5000);
-            expect(cache.has(params as any)).toBeTruthy();
-            expect(cache.get(params as any)).toEqual(data);
+            expect(cache.has(params)).toBeTruthy();
+            expect(cache.get(params)).toEqual(data);
 
             // Advance timers by another 5 seconds (total 10 seconds, should be expired)
             vi.advanceTimersByTime(5000);
-            expect(cache.has(params as any)).toBeFalsy();
-            expect(cache.get(params as any)).toBeUndefined();
+            expect(cache.has(params)).toBeFalsy();
+            expect(cache.get(params)).toBeUndefined();
         });
 
         it('should filter out expired items in iterators', () => {
-            // @ts-expect-error: Add a test cache descriptor to verify TTL logic
-            kCacheDescriptor['TestCacheWithTTL'] = {
-                name: 'TestCacheWithTTL',
-                ttl: 10, // 10 seconds
-            };
-
-            const cache = Cache.get('TestCacheWithTTL' as any);
-            cache.set({ k: 'v1' } as any, 'data1' as any);
+            const cache = Cache.get('TestCacheWithTTL');
+            cache.set({ key: 'v1' }, 'data1');
 
             vi.advanceTimersByTime(5000);
-            cache.set({ k: 'v2' } as any, 'data2' as any);
+            cache.set({ key: 'v2' }, 'data2');
 
             // Both should be in iterator
             let entries = Array.from(cache);
@@ -229,7 +208,7 @@ describe('Cache', () => {
 
             entries = Array.from(cache);
             expect(entries).toHaveLength(1);
-            expect(entries[0]).toEqual([ { k: 'v2' }, 'data2' ]);
+            expect(entries[0]).toEqual([ { key: 'v2' }, 'data2' ]);
         });
     });
 });

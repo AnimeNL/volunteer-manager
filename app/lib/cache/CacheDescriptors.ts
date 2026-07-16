@@ -10,7 +10,7 @@ interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
 
     ManifestLatestEvent: {
-        Parameters: never;
+        Parameters: undefined;
         Contents: {
             name: string;
             fullName: string;
@@ -32,6 +32,28 @@ interface CacheDescriptorMap {
             slug: string;
         };
     };
+
+    // ---------------------------------------------------------------------------------------------
+    // Caches used for test cases
+    // ---------------------------------------------------------------------------------------------
+
+    TestCacheWithParams: {
+        Parameters: {
+            a: number;
+            b: string;
+        };
+
+        Contents: string;
+    };
+
+    TestCacheWithTTL: {
+        Parameters: {
+            key: string;
+        };
+
+        Contents: string;
+    };
+
 }
 
 /**
@@ -84,6 +106,20 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     AdminNavigationActiveEvents: {
         name: 'AdminNavigationActiveEvents',
         ttl: 0,
+    },
+
+    // ---------------------------------------------------------------------------------------------
+    // Caches used for test cases
+    // ---------------------------------------------------------------------------------------------
+
+    TestCacheWithParams: {
+        name: 'TestCacheWithParams',
+        ttl: 0,
+    },
+
+    TestCacheWithTTL: {
+        name: 'TestCacheWithTTL',
+        ttl: 10,
     },
 
 };
