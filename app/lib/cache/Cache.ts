@@ -134,6 +134,15 @@ function calculateByteSize(contents: any): number {
  */
 export class Cache<T extends CacheType> {
     /**
+     * Retrieves all non-internal cache instances.
+     */
+    static getAll(): Cache<CacheType>[] {
+        return Object.keys(kCacheDescriptor)
+            .filter(type => !kCacheDescriptor[type as CacheType].internal)
+            .map(type => Cache.getInstance(type as CacheType));
+    }
+
+    /**
      * Retrieves the cache with the given |name|. Will throw when an invalid |name| is given.
      */
     static getInstance<T extends CacheType>(type: T): Cache<T> {

@@ -361,5 +361,28 @@ describe('Cache', () => {
             expect(cache.has({ key: '4' })).toBeTruthy();
         });
     });
+
+    describe('getAll()', () => {
+        it('should return all non-internal cache instances', () => {
+            const caches = Cache.getAll();
+
+            // Check that we got the non-internal cache instances
+            expect(caches).toHaveLength(2);
+
+            const names = caches.map(c => c.descriptor.name);
+            expect(names).toContain('ManifestLatestEvent');
+            expect(names).toContain('AdminNavigationActiveEvents');
+
+            // Should not contain internal test caches
+            expect(names).not.toContain('TestCacheWithParams');
+            expect(names).not.toContain('TestCacheWithLRU');
+            expect(names).not.toContain('TestCacheWithTTL');
+
+            // Each item should be a Cache instance
+            for (const cache of caches) {
+                expect(cache).toBeInstanceOf(Cache);
+            }
+        });
+    });
 });
 
