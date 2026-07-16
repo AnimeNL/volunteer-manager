@@ -60,10 +60,8 @@ function serializeParams(params: any): string {
     if (typeof params !== 'object')
         return String(params);
 
-    const keys = Object.keys(params).sort();
-
     const sortedObj: Record<string, any> = {};
-    for (const key of keys)
+    for (const key of Object.keys(params).sort())
         sortedObj[key] = params[key];
 
     return JSON.stringify(sortedObj);
@@ -96,6 +94,11 @@ type CacheSetArgs<T extends CacheType> = [CacheParameters<T>] extends [undefined
     : [ params: CacheParameters<T>, contents: CacheContents<T> ];
 
 /**
+ * Text encoder used for byte size calculations.
+ */
+const kTextEncoder = new TextEncoder();
+
+/**
  * Calculates the size of cache contents in bytes.
  */
 function calculateByteSize(contents: any): number {
@@ -104,21 +107,16 @@ function calculateByteSize(contents: any): number {
 
     if (contents instanceof Uint8Array || contents instanceof ArrayBuffer)
         return contents.byteLength;
+
     if (Buffer.isBuffer(contents))
         return contents.length;
 
-    let serialized: string;
-    if (typeof contents === 'string') {
-        serialized = contents;
-    } else {
-        try {
-            serialized = JSON.stringify(contents);
-        } catch {
-            return 0;
-        }
+    try {
+        const serialized = typeof contents === 'string' ? contents : JSON.stringify(contents);
+        return kTextEncoder.encode(serialized).length;
+    } catch {
+        return 0;
     }
-
-    return new TextEncoder().encode(serialized).length;
 }
 
 /**
@@ -165,13 +163,10 @@ export class Cache<T extends CacheType> {
     private constructor(descriptor: CacheDescriptor<T>) {
         this.#descriptor = descriptor;
 
-        let entries = Cache.#cacheStorage.get(descriptor.name);
-        if (!entries) {
-            entries = new Map();
-            Cache.#cacheStorage.set(descriptor.name, entries);
-        }
+        if (!Cache.#cacheStorage.has(descriptor.name))
+            Cache.#cacheStorage.set(descriptor.name, new Map());
 
-        this.#entries = entries;
+        this.#entries = Cache.#cacheStorage.get(descriptor.name)!;
     }
 
     /**
@@ -193,18 +188,11 @@ export class Cache<T extends CacheType> {
 
         for (const [ key, entry ] of this.#entries) {
             const entryParams = entry.params;
-            let matches = params === entryParams;
-            if (!matches && typeof params === 'object' && params !== null &&
-                typeof entryParams === 'object' && entryParams !== null)
-            {
-                matches = true;
-                for (const k of Object.keys(params)) {
-                    if ((entryParams)[k as keyof typeof entryParams] !== params[k]) {
-                        matches = false;
-                        break;
-                    }
-                }
-            }
+            const matches = params === entryParams || (
+                typeof params === 'object' && params !== null &&
+                typeof entryParams === 'object' && entryParams !== null &&
+                Object.keys(params).every(k => (entryParams as any)[k] === params[k])
+            );
 
             if (matches)
                 this.#entries.delete(key);
@@ -216,8 +204,8 @@ export class Cache<T extends CacheType> {
      */
     *entries(): IterableIterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
         this.pruneExpiredEntries();
-        for (const entry of this.#entries.values())
-            yield [ entry.params, entry.contents ];
+        for (const { params, contents } of this.#entries.values())
+            yield [ params, contents ];
     }
 
     /**
@@ -225,13 +213,8 @@ export class Cache<T extends CacheType> {
      */
     *metadata(): IterableIterator<CacheEntryMetadata> {
         this.pruneExpiredEntries();
-        for (const entry of this.#entries.values()) {
-            yield {
-                accessCount: entry.accessCount,
-                bytes: entry.bytes,
-                lastAccessTime: entry.lastAccessTime,
-            };
-        }
+        for (const { accessCount, bytes, lastAccessTime } of this.#entries.values())
+            yield { accessCount, bytes, lastAccessTime };
     }
 
     /**
@@ -244,17 +227,10 @@ export class Cache<T extends CacheType> {
         const key = serializeParams(params);
         const entry = this.#entries.get(key);
 
-        if (entry) {
-            entry.accessCount++;
-            entry.lastAccessTime = performance.now();
+        if (entry)
+            this.touchEntry(key, entry);
 
-            if (this.#descriptor.type === 'lru') {
-                this.#entries.delete(key);
-                this.#entries.set(key, entry);
-            }
-        }
-
-        return entry ? entry.contents : undefined;
+        return entry?.contents;
     }
 
     /**
@@ -267,29 +243,14 @@ export class Cache<T extends CacheType> {
     {
         this.pruneExpiredEntries();
 
-        let params: CacheParameters<T>;
-        let populateFn: CachePopulateFn<T>;
-
-        if (maybePopulateFn === undefined) {
-            params = undefined;
-            populateFn = paramsOrPopulateFn;
-        } else {
-            params = paramsOrPopulateFn;
-            populateFn = maybePopulateFn;
-        }
+        const params = maybePopulateFn === undefined ? undefined : paramsOrPopulateFn;
+        const populateFn = maybePopulateFn === undefined ? paramsOrPopulateFn : maybePopulateFn;
 
         const key = serializeParams(params);
-
         const entry = this.#entries.get(key);
+
         if (entry) {
-            entry.accessCount++;
-            entry.lastAccessTime = performance.now();
-
-            if (this.#descriptor.type === 'lru') {
-                this.#entries.delete(key);
-                this.#entries.set(key, entry);
-            }
-
+            this.touchEntry(key, entry);
             return entry.contents;
         }
 
@@ -313,8 +274,8 @@ export class Cache<T extends CacheType> {
      */
     *params(): IterableIterator<CacheParameters<T>> {
         this.pruneExpiredEntries();
-        for (const entry of this.#entries.values())
-            yield entry.params;
+        for (const { params } of this.#entries.values())
+            yield params;
     }
 
     /**
@@ -324,28 +285,20 @@ export class Cache<T extends CacheType> {
     set(paramsOrContents: any, maybeContents?: any) {
         this.pruneExpiredEntries();
 
-        let params: CacheParameters<T>;
-        let contents: CacheContents<T>;
-
-        if (maybeContents === undefined) {
-            params = undefined;
-            contents = paramsOrContents;
-        } else {
-            params = paramsOrContents;
-            contents = maybeContents;
-        }
+        const params = maybeContents === undefined ? undefined : paramsOrContents;
+        const contents = maybeContents === undefined ? paramsOrContents : maybeContents;
 
         const key = serializeParams(params);
         const descriptor = this.#descriptor;
 
-        let expiresAt: number | null = null;
-        if (descriptor.type === 'ttl')
-            expiresAt = performance.now() + descriptor.ttl * 1000;
-
         this.#entries.delete(key);
 
         this.#entries.set(key, {
-            params, contents, expiresAt,
+            params, contents,
+
+            expiresAt: descriptor.type === 'ttl'
+                ? performance.now() + descriptor.ttl * 1000
+                : null,
 
             accessCount: 1,
             bytes: calculateByteSize(contents),
@@ -357,8 +310,6 @@ export class Cache<T extends CacheType> {
                 const firstKey = this.#entries.keys().next().value;
                 if (firstKey !== undefined)
                     this.#entries.delete(firstKey);
-                else
-                    break;
             }
         }
     }
@@ -368,8 +319,8 @@ export class Cache<T extends CacheType> {
      */
     *values(): IterableIterator<CacheContents<T> | null> {
         this.pruneExpiredEntries();
-        for (const entry of this.#entries.values())
-            yield entry.contents;
+        for (const { contents } of this.#entries.values())
+            yield contents;
     }
 
     /**
@@ -389,8 +340,21 @@ export class Cache<T extends CacheType> {
         const now = performance.now();
 
         for (const [ key, entry ] of this.#entries) {
-            if (entry.expiresAt !== null && now >= entry.expiresAt)
+            if (entry.expiresAt && now >= entry.expiresAt)
                 this.#entries.delete(key);
+        }
+    }
+
+    /**
+     * Updates entry access count, last access time, and LRU recency.
+     */
+    private touchEntry(key: string, entry: CacheEntry<T>) {
+        entry.accessCount++;
+        entry.lastAccessTime = performance.now();
+
+        if (this.#descriptor.type === 'lru') {
+            this.#entries.delete(key);
+            this.#entries.set(key, entry);
         }
     }
 }
