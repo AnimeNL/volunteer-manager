@@ -76,7 +76,7 @@ export type LogType = keyof LogTypeParameterMap;
 /**
  * Acquire the parameters that are required for a log message of type `T`.
  */
-export type LogTypeParameters<T extends keyof LogTypeParameterMap> = LogTypeParameterMap[T];
+export type LogTypeParameters<T extends LogType> = LogTypeParameterMap[T];
 
 /**
  * Names of the log types that exist in the system.
