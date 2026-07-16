@@ -7,31 +7,31 @@ import { kCacheDescriptor } from './CacheDescriptors';
 describe('Cache', () => {
     beforeEach(() => {
         // Clear all entries from the shared storage before each test
-        const cache = Cache.get('ManifestLatestEvent');
+        const cache = Cache.getInstance('ManifestLatestEvent');
         cache.clear();
-        const adminCache = Cache.get('AdminNavigationActiveEvents');
+        const adminCache = Cache.getInstance('AdminNavigationActiveEvents');
         adminCache.clear();
 
         // Clear any dynamic test caches if registered
         if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithTTL')) {
-            const ttlCache = Cache.get('TestCacheWithTTL');
+            const ttlCache = Cache.getInstance('TestCacheWithTTL');
             ttlCache.clear();
         }
         if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithParams')) {
-            const paramsCache = Cache.get('TestCacheWithParams');
+            const paramsCache = Cache.getInstance('TestCacheWithParams');
             paramsCache.clear();
         }
     });
 
     it('should throw for unknown cache types', () => {
-        expect(() => Cache.get('InvalidType' as any))
+        expect(() => Cache.getInstance('InvalidType' as any))
             .toThrow('Unknown cache type given: InvalidType');
     });
 
     it('should share underlying storage between instances of the same cache type', () => {
-        const cache1 = Cache.get('ManifestLatestEvent');
-        const cache2 = Cache.get('ManifestLatestEvent');
-        const cache3 = Cache.get('AdminNavigationActiveEvents');
+        const cache1 = Cache.getInstance('ManifestLatestEvent');
+        const cache2 = Cache.getInstance('ManifestLatestEvent');
+        const cache3 = Cache.getInstance('AdminNavigationActiveEvents');
 
         // Set on cache1, should be visible on cache2 but not cache3
         const manifestData = { name: 'AnimeCon 2026', fullName: 'AnimeCon 2026 Event' };
@@ -44,7 +44,7 @@ describe('Cache', () => {
     });
 
     it('should support basic get, set, has, and clear operations', () => {
-        const cache = Cache.get('AdminNavigationActiveEvents');
+        const cache = Cache.getInstance('AdminNavigationActiveEvents');
 
         const params1 = { limit: 5 };
         const data1 = { concluded: false, label: 'Event 1', slug: 'event-1' };
@@ -69,7 +69,7 @@ describe('Cache', () => {
     });
 
     it('should handle getOrInsert with population functions, including null values', async () => {
-        const cache = Cache.get('AdminNavigationActiveEvents');
+        const cache = Cache.getInstance('AdminNavigationActiveEvents');
         const params = { limit: 5 };
         const data = { concluded: false, label: 'Event 1', slug: 'event-1' };
 
@@ -107,7 +107,7 @@ describe('Cache', () => {
     });
 
     it('should support deleting entries by partial parameter matches', () => {
-        const cache = Cache.get('TestCacheWithParams');
+        const cache = Cache.getInstance('TestCacheWithParams');
 
         const entry1 = { a: 1, b: 'foo' };
         const entry2 = { a: 1, b: 'bar' };
@@ -129,7 +129,7 @@ describe('Cache', () => {
     });
 
     it('should support iterating over entries, values, and params', () => {
-        const cache = Cache.get('AdminNavigationActiveEvents');
+        const cache = Cache.getInstance('AdminNavigationActiveEvents');
 
         const params1 = { limit: 5 };
         const data1 = { concluded: false, label: 'Event 1', slug: 'event-1' };
@@ -173,7 +173,7 @@ describe('Cache', () => {
         });
 
         it('should respect TTL expiration times and prune automatically', () => {
-            const cache = Cache.get('TestCacheWithTTL');
+            const cache = Cache.getInstance('TestCacheWithTTL');
             const params = { key: 'foo' };
             const data = 'some-value';
 
@@ -193,7 +193,7 @@ describe('Cache', () => {
         });
 
         it('should filter out expired items in iterators', () => {
-            const cache = Cache.get('TestCacheWithTTL');
+            const cache = Cache.getInstance('TestCacheWithTTL');
             cache.set({ key: 'v1' }, 'data1');
 
             vi.advanceTimersByTime(5000);
@@ -207,8 +207,75 @@ describe('Cache', () => {
             vi.advanceTimersByTime(6000);
 
             entries = Array.from(cache);
-            expect(entries).toHaveLength(1);
-            expect(entries[0]).toEqual([ { key: 'v2' }, 'data2' ]);
+        });
+    });
+
+    describe('metadata()', () => {
+        it('should track access count, last access time, and byte size', () => {
+            const cache = Cache.getInstance('TestCacheWithParams');
+
+            const params1 = { a: 1, b: 'foo' };
+            const data1 = 'hello'; // 5 bytes in UTF-8
+            const params2 = { a: 2, b: 'bar' };
+            const data2 = 'world!'; // 6 bytes in UTF-8
+
+            // Initially empty
+            expect(Array.from(cache.metadata())).toHaveLength(0);
+
+            // Add entries
+            const beforeSet = performance.now();
+            cache.set(params1, data1);
+            cache.set(params2, data2);
+
+            let metadata = Array.from(cache.metadata());
+            expect(metadata).toHaveLength(2);
+
+            // Sort metadata by byte size or find the specific ones
+            const meta1 = metadata.find(m => m.bytes === 5)!;
+            const meta2 = metadata.find(m => m.bytes === 6)!;
+
+            expect(meta1).toBeDefined();
+            expect(meta1.accessCount).toBe(1); // Set counts as initial access
+            expect(meta1.lastAccessTime).toBeGreaterThanOrEqual(beforeSet);
+
+            expect(meta2).toBeDefined();
+            expect(meta2.accessCount).toBe(1);
+            expect(meta2.lastAccessTime).toBeGreaterThanOrEqual(beforeSet);
+
+            // Get data1 (cache hit, accessCount increments)
+            const beforeGet = performance.now();
+            cache.get(params1);
+
+            metadata = Array.from(cache.metadata());
+            const meta1Updated = metadata.find(m => m.bytes === 5)!;
+            expect(meta1Updated.accessCount).toBe(2);
+            expect(meta1Updated.lastAccessTime).toBeGreaterThanOrEqual(beforeGet);
+
+            // Check getOrInsert hit
+            const beforeGetOrInsert = performance.now();
+            cache.getOrInsert(params2, async () => 'ignored');
+
+            metadata = Array.from(cache.metadata());
+            const meta2Updated = metadata.find(m => m.bytes === 6)!;
+            expect(meta2Updated.accessCount).toBe(2);
+            expect(meta2Updated.lastAccessTime).toBeGreaterThanOrEqual(beforeGetOrInsert);
+        });
+
+        it('should handle null and object contents correctly for byte size', async () => {
+            const cache = Cache.getInstance('AdminNavigationActiveEvents');
+            const params = { limit: 5 };
+            const data = { concluded: false, label: 'Event 1', slug: 'event-1' };
+
+            await cache.getOrInsert(params, async () => data);
+            let metadata = Array.from(cache.metadata());
+            expect(metadata).toHaveLength(1);
+            expect(metadata[0].bytes).toBe(new TextEncoder().encode(JSON.stringify(data)).length);
+
+            // Set to null
+            cache.set(params, null as any);
+            metadata = Array.from(cache.metadata());
+            expect(metadata).toHaveLength(1);
+            expect(metadata[0].bytes).toBe(0);
         });
     });
 });

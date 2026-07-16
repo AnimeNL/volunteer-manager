@@ -11,9 +11,29 @@ type CachePopulateFn<T extends CacheType> =
     (params: CacheParameters<T>) => Promise<CacheContents<T> | null>;
 
 /**
+ * Metadata associated with a CacheEntry.
+ */
+interface CacheEntryMetadata {
+    /**
+     * Number of times this entry has been accessed.
+     */
+    accessCount: number;
+
+    /**
+     * Number of bytes stored in this cache entry.
+     */
+    bytes: number;
+
+    /**
+     * Timestamp, as a `performance.now()` monotonically increasing time, of the last access.
+     */
+    lastAccessTime: number;
+}
+
+/**
  * Interface representing an entry in the Cache.
  */
-interface CacheEntry<T extends CacheType> {
+interface CacheEntry<T extends CacheType> extends CacheEntryMetadata {
     /**
      * Parameters with which this cache entry has been associated.
      */
@@ -76,6 +96,32 @@ type CacheSetArgs<T extends CacheType> = [CacheParameters<T>] extends [undefined
     : [ params: CacheParameters<T>, contents: CacheContents<T> ];
 
 /**
+ * Calculates the size of cache contents in bytes.
+ */
+function calculateByteSize(contents: any): number {
+    if (contents === null || contents === undefined)
+        return 0;
+
+    if (contents instanceof Uint8Array || contents instanceof ArrayBuffer)
+        return contents.byteLength;
+    if (Buffer.isBuffer(contents))
+        return contents.length;
+
+    let serialized: string;
+    if (typeof contents === 'string') {
+        serialized = contents;
+    } else {
+        try {
+            serialized = JSON.stringify(contents);
+        } catch {
+            return 0;
+        }
+    }
+
+    return new TextEncoder().encode(serialized).length;
+}
+
+/**
  * General purpose caching mechanism used throughout the Volunteer Manager. Strongly typed, and
  * automatically applies pruning behaviour such as expiration times.
  */
@@ -83,7 +129,7 @@ export class Cache<T extends CacheType> {
     /**
      * Retrieves the cache with the given |name|. Will throw when an invalid |name| is given.
      */
-    static get<T extends CacheType>(type: T): Cache<T> {
+    static getInstance<T extends CacheType>(type: T): Cache<T> {
         if (!Object.hasOwn(kCacheDescriptor, type))
             throw new Error(`Unknown cache type given: ${type}`);
 
@@ -152,9 +198,24 @@ export class Cache<T extends CacheType> {
     /**
      * Returns an iterator object that contains the [ params, contents ] pairs for all entries.
      */
-    entries(): Iterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
+    *entries(): IterableIterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
         this.pruneExpiredEntries();
-        return this.#entries.values().map(entry => [ entry.params, entry.contents ]);
+        for (const entry of this.#entries.values())
+            yield [ entry.params, entry.contents ];
+    }
+
+    /**
+     * Returns an iterator that, for each entry in the cache, returns the metadata.
+     */
+    *metadata(): IterableIterator<CacheEntryMetadata> {
+        this.pruneExpiredEntries();
+        for (const entry of this.#entries.values()) {
+            yield {
+                accessCount: entry.accessCount,
+                bytes: entry.bytes,
+                lastAccessTime: entry.lastAccessTime,
+            };
+        }
     }
 
     /**
@@ -166,6 +227,11 @@ export class Cache<T extends CacheType> {
 
         const key = serializeParams(params);
         const entry = this.#entries.get(key);
+
+        if (entry) {
+            entry.accessCount++;
+            entry.lastAccessTime = performance.now();
+        }
 
         return entry ? entry.contents : undefined;
     }
@@ -194,17 +260,14 @@ export class Cache<T extends CacheType> {
         const key = serializeParams(params);
 
         const entry = this.#entries.get(key);
-        if (entry)
+        if (entry) {
+            entry.accessCount++;
+            entry.lastAccessTime = performance.now();
             return entry.contents;
+        }
 
         const contents = await fn(params);
-        const ttl = this.#descriptor.ttl;
-
-        this.#entries.set(key, {
-            params,
-            contents: contents,
-            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null
-        });
+        this.set(...[ params, contents ] as CacheSetArgs<T>);
 
         return contents;
     }
@@ -221,9 +284,10 @@ export class Cache<T extends CacheType> {
     /**
      * Returns the parameters for all entries in the cache.
      */
-    params(): Iterator<CacheParameters<T>> {
+    *params(): IterableIterator<CacheParameters<T>> {
         this.pruneExpiredEntries();
-        return this.#entries.values().map(entry => entry.params);
+        for (const entry of this.#entries.values())
+            yield entry.params;
     }
 
     /**
@@ -250,24 +314,27 @@ export class Cache<T extends CacheType> {
         this.#entries.set(key, {
             params,
             contents: finalContents,
-            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null
+            expiresAt: ttl > 0 ? performance.now() + ttl * 1000 : null,
+
+            accessCount: 1,
+            bytes: calculateByteSize(finalContents),
+            lastAccessTime: performance.now(),
         });
     }
 
     /**
      * Returns the values for all entries in the cache.
      */
-    values(): Iterator<CacheContents<T> | null> {
+    *values(): IterableIterator<CacheContents<T> | null> {
         this.pruneExpiredEntries();
-        return this.#entries.values().map(entry => entry.contents);
+        for (const entry of this.#entries.values())
+            yield entry.contents;
     }
 
     /**
      * Returns an iterator object that contains the [ params, contents ] pairs for all entries.
      */
-    [Symbol.iterator](): Iterator<[ CacheParameters<T>, CacheContents<T> | null ]> {
-        return this.entries();
-    }
+    [Symbol.iterator]() { return this.entries(); }
 
     // ---------------------------------------------------------------------------------------------
 
