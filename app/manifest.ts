@@ -4,6 +4,7 @@
 import type { MetadataRoute } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Cache } from '@lib/cache';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents } from '@lib/database';
@@ -21,16 +22,17 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     if (!environment)
         notFound();
 
-    const dbInstance = db;
-    const event = await dbInstance.selectFrom(tEvents)
-        .where(tEvents.eventHidden.equals(/* false= */ 0))
-            .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
-        .select({
-            name: tEvents.eventShortName,
-            fullName: tEvents.eventName,
-        })
-        .limit(1)
-        .executeSelectNoneOrOne();
+    const event = await Cache.getInstance('ManifestLatestEvent').getOrInsert(async () => {
+        return db.selectFrom(tEvents)
+            .where(tEvents.eventHidden.equals(/* false= */ 0))
+            .select({
+                name: tEvents.eventShortName,
+                fullName: tEvents.eventName,
+            })
+            .orderBy(tEvents.eventEndTime, 'desc')
+            .limit(1)
+            .executeSelectNoneOrOne();
+    });
 
     const administrationShortcut: MetadataRoute.Manifest['shortcuts'] = [];
     if (authenticationContext.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam })) {
