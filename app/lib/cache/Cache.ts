@@ -57,7 +57,7 @@ interface CacheEntry<T extends CacheType> extends CacheEntryMetadata {
 /**
  * Serializes parameters to a stable string representation for map key storage.
  */
-function serializeParams(params: any): string {
+export function serializeParams(params: any): string {
     if (params === undefined || params === null)
         return '';
 
@@ -216,6 +216,26 @@ export class Cache<T extends CacheType> {
         this.pruneExpiredEntries();
         for (const { accessCount, bytes, lastAccessTime } of this.#entries.values())
             yield { accessCount, bytes, lastAccessTime };
+    }
+
+    /**
+     * Returns the metadata corresponding to the given |params|. Defaults to `undefined`.
+     */
+    getMetadata(...args: CacheAccessArgs<T>): CacheEntryMetadata | undefined;
+    getMetadata(params?: any): CacheEntryMetadata | undefined {
+        this.pruneExpiredEntries();
+
+        const key = serializeParams(params);
+        const entry = this.#entries.get(key);
+
+        if (!entry)
+            return undefined;
+
+        return {
+            accessCount: entry.accessCount,
+            bytes: entry.bytes,
+            lastAccessTime: entry.lastAccessTime,
+        };
     }
 
     /**

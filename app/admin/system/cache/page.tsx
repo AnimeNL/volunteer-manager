@@ -14,21 +14,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-
-/**
- * Formats a number of bytes into a human-readable string.
- */
-function formatBytes(bytes: number): string {
-    if (bytes <= 0)
-        return '0 bytes';
-
-    const k = 1024;
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    const sizes = [ 'bytes', 'KB', 'MB', 'GB', 'TB' ];
-    const size = parseFloat((bytes / k ** i).toFixed(1));
-    return `${size} ${sizes[i]}`;
-}
+import { formatBytes } from './formatBytes';
 
 /**
  * Data source through which the caches can be listed.
