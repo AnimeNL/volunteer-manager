@@ -4,9 +4,9 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { Cache } from '@lib/cache';
 import { RecordLog, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
-import { clearEnvironmentCache } from '@lib/Environment';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { nanoid } from '@lib/nanoid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -78,7 +78,7 @@ export async function createEnvironment(formData: unknown) {
             },
         });
 
-        clearEnvironmentCache();
+        Cache.getInstance('Environments').clear();
 
         return {
             success: true,
@@ -168,7 +168,7 @@ export async function createTeam(formData: unknown) {
             },
         });
 
-        clearEnvironmentCache();
+        Cache.getInstance('Environments').clear();
 
         return {
             success: true,
@@ -229,7 +229,7 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
             },
         });
 
-        clearEnvironmentCache();
+        Cache.getInstance('Environments').clear();
         clearPageMetadataCache('environment');
 
         return {
@@ -379,7 +379,7 @@ export async function updateEnvironment(environmentId: number, formData: unknown
             },
         });
 
-        clearEnvironmentCache();
+        Cache.getInstance('Environments').clear();
         clearPageMetadataCache('environment');
 
         return { success: true, refresh: true };
@@ -482,7 +482,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
             },
         });
 
-        clearEnvironmentCache();
+        Cache.getInstance('Environments').clear();
         clearPageMetadataCache('team');
 
         return { success: true, refresh: true };

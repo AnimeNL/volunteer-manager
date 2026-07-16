@@ -6,11 +6,9 @@ import { headers } from 'next/headers';
 import type { PaletteMode } from '@mui/material';
 
 import type { EnvironmentPurpose } from './database/Types';
-import db, { tEnvironments, tTeams } from '@lib/database';
 
-declare namespace globalThis {
-    let animeConEnvironmentCache: Map<string, Environment> | undefined;
-}
+import { Cache } from '@lib/cache';
+import db, { tEnvironments, tTeams } from '@lib/database';
 
 /**
  * Type to narrow the domain of an environment, which must have a TLD.
@@ -64,48 +62,39 @@ export interface Environment {
 }
 
 /**
- * Loads the environment configuration from the database, which will then be stored in the cache
- * (`kEnvironmentCache`) so that it can be quickly accessed thereafter.
- *
- * Environment configuration exists exclusively in the database. Adding a new environment is as easy
- * as creating a new row in the `teams` table and ensuring that the domain in the `team_environment`
- * column ends up with the Volunteer Manager.
- *
- * The cache will have to be cleared after changing team configuration or colour settings. This will
- * be done automatically in the applicable API calls (e.g. //api/admin/update-team), but may have
- * to be triggered manually when changing the database directly.
+ * Loads the environment configuration from the database, which will then be stored in the cache so
+ * that it can be quickly accessed thereafter.
  */
-async function loadEnvironmentsFromDatabase(): Promise<void> {
-    const teamsJoin = tTeams.forUseInLeftJoin();
+async function loadCachedEnvironmentsFromDatabase() {
+    return Cache.getInstance('Environments').getOrInsert(async () => {
+        const teamsJoin = tTeams.forUseInLeftJoin();
 
-    const dbInstance = db;
-    const environments = await dbInstance.selectFrom(tEnvironments)
-        .leftJoin(teamsJoin)
-            .on(teamsJoin.teamEnvironmentId.equals(tEnvironments.environmentId))
-                .and(teamsJoin.teamDeleted.isNull())
-        .where(tEnvironments.environmentDeleted.isNull())
-        .select({
-            id: tEnvironments.environmentId,
-            colours: {
-                dark: tEnvironments.environmentColourDarkMode,
-                light: tEnvironments.environmentColourLightMode,
-            },
-            description: tEnvironments.environmentDescription,
-            domain: tEnvironments.environmentDomain,
-            purpose: tEnvironments.environmentPurpose,
-            teams: dbInstance.aggregateAsArrayOfOneColumn(teamsJoin.teamSlug),
-            title: tEnvironments.environmentTitle,
-        })
-        .groupBy(tEnvironments.environmentId)
-        .executeSelectMany();
+        const dbInstance = db;
+        const environments = await dbInstance.selectFrom(tEnvironments)
+            .leftJoin(teamsJoin)
+                .on(teamsJoin.teamEnvironmentId.equals(tEnvironments.environmentId))
+                    .and(teamsJoin.teamDeleted.isNull())
+            .where(tEnvironments.environmentDeleted.isNull())
+            .select({
+                id: tEnvironments.environmentId,
+                colours: {
+                    dark: tEnvironments.environmentColourDarkMode,
+                    light: tEnvironments.environmentColourLightMode,
+                },
+                description: tEnvironments.environmentDescription,
+                domain: tEnvironments.environmentDomain,
+                purpose: tEnvironments.environmentPurpose,
+                teams: dbInstance.aggregateAsArrayOfOneColumn(teamsJoin.teamSlug),
+                title: tEnvironments.environmentTitle,
+            })
+            .groupBy(tEnvironments.environmentId)
+            .executeSelectMany();
 
-    globalThis.animeConEnvironmentCache = new Map();
-    for (const environment of environments) {
-        globalThis.animeConEnvironmentCache.set(environment.domain, {
+        return environments.map(environment => ({
             ...environment,
             domain: environment.domain as EnvironmentDomain,
-        });
-    }
+        }));
+    });
 }
 
 /**
@@ -113,25 +102,15 @@ async function loadEnvironmentsFromDatabase(): Promise<void> {
  * Will return "undefined" in case no appropriate environment can be found.
  */
 export async function determineEnvironment(): Promise<Environment | undefined> {
-    if (!globalThis.animeConEnvironmentCache)
-        await loadEnvironmentsFromDatabase();
-
+    const environments = await loadCachedEnvironmentsFromDatabase() || [];
     const requestOrigin =
         /* dev environment= */ process.env.APP_ENVIRONMENT_OVERRIDE ??
         /* production server= */ (await headers()).get('Host');
 
-    for (const [ environmentName, environment ] of globalThis.animeConEnvironmentCache!.entries()) {
-        if (requestOrigin?.endsWith(environmentName))
+    for (const environment of environments) {
+        if (requestOrigin?.endsWith(environment.domain))
             return environment;
     }
 
     return undefined;
-}
-
-/**
- * Clears the environment cache. Should be called when environment settings have been updated, as
- * the cached configuration will no longer be valid after that has happened.
- */
-export function clearEnvironmentCache() {
-    globalThis.animeConEnvironmentCache = undefined;
 }

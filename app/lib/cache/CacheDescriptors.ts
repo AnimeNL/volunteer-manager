@@ -1,6 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EnvironmentPurpose } from '../database/Types';
+import type { PaletteMode } from '@mui/material/styles';
+
 /**
  * Contents of each of the caches known to the system.
  */
@@ -8,6 +11,19 @@ interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
     // Web App Manifest
     // ---------------------------------------------------------------------------------------------
+
+    Environments: {
+        Parameters: undefined;
+        Contents: {
+            id: number;
+            colours: { [key in PaletteMode]: string };
+            description: string;
+            domain: `${string}.${string}`;
+            purpose: EnvironmentPurpose;
+            teams: string[];
+            title: string;
+        }[];
+    };
 
     ManifestLatestEvent: {
         Parameters: undefined;
@@ -133,6 +149,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
     // Web App Manifest
     // ---------------------------------------------------------------------------------------------
+
+    Environments: {
+        name: 'Environments',
+        description: 'Environments (i.e. tenants) on the Volunteer Manager.',
+        type: 'permanent',
+    },
 
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
