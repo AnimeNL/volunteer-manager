@@ -363,6 +363,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 autoHeight
                 columns={columns}
                 dataSource={dataSource}
+                dataSourceKeepPreviousData
 
                 density="compact"
                 pageSizeOptions={kPageSizeOptions}
