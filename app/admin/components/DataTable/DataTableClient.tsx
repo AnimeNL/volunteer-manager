@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
     type GridPaginationModel, type GridRowModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
@@ -329,20 +329,29 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
         return columns;
 
-    }, [ props.columns, props.source.delete, isMobile, subject ]);
+    }, [ props.columns, props.source.delete, isMobile, subject, props.protectedColumn ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the `GridDataSource` based on the available Server Actions in the `props`.
     // ---------------------------------------------------------------------------------------------
 
+    const sourceRef = useRef(props.source);
+    sourceRef.current = props.source;
+
+    const contextRef = useRef(context);
+    contextRef.current = context;
+
     const dataSource = useMemo((): GridDataSource => {
-        (void refreshTrigger);  // silence the Biome warning
+        (void props.source.id);  // silence the Biome warning
+        (void refreshTrigger);   // silence the Biome warning
+
         return {
             getRows: async (params) => {
-                return props.source.list(context, params);
+                return sourceRef.current.list(contextRef.current, params);
             },
         };
-    }, [ context, props.source, refreshTrigger ]);
+
+    }, [ props.source.id, refreshTrigger ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mess:
