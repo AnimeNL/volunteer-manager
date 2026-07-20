@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 import Link from '@app/LinkProxy';
 
@@ -22,6 +23,9 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioLogo } from '../webhooks/twilio/[id]/TwilioLogo';
+import { WeeztixAuthorizeButton } from './WeeztixAuthorizeButton';
+import { WeeztixLogo } from './WeeztixLogo';
+import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -47,7 +51,7 @@ const kGoogleLocationOptions = [
  * Volunteer Manager integrates with.
  */
 export default async function IntegrationsPage() {
-    await requireAuthenticationContext({
+    const { user } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.settings',
     });
@@ -80,6 +84,13 @@ export default async function IntegrationsPage() {
         'integration-twilio-messaging-sid-sms',
         'integration-twilio-messaging-sid-whatsapp',
         'integration-twilio-region',
+
+        // Weeztix:
+        'integration-weeztix-access-token',
+        'integration-weeztix-client-id',
+        'integration-weeztix-client-secret',
+        'integration-weeztix-redirect-url',
+        'integration-weeztix-refresh-token',
 
         // YourTicketProvider:
         'integration-ytp-api-key',
@@ -115,11 +126,21 @@ export default async function IntegrationsPage() {
             messagingSidWhatsapp: settings['integration-twilio-messaging-sid-whatsapp'] ?? '',
             region: settings['integration-twilio-region'],
         },
+        Weeztix: {
+            accessToken: settings['integration-weeztix-access-token'] ?? '',
+            clientId: settings['integration-weeztix-client-id'] ?? '',
+            clientSecret: settings['integration-weeztix-client-secret'] ?? '',
+            redirectUrl: settings['integration-weeztix-redirect-url'] ??
+                `https://${(await headers()).get('Host')}/admin/system/integrations/weeztix-oauth`,
+            refreshToken: settings['integration-weeztix-refresh-token'] ?? '',
+        },
         YourTicketProvider: {
             apiKey: settings['integration-ytp-api-key'] ?? '',
             endpoint: settings['integration-ytp-endpoint'] ?? '',
         },
     };
+
+    const weeztixState = await generateWeeztixState(user.id);
 
     const twilioRegions = Object.values(kTwilioRegion).map(region => ({
         id: region,
@@ -283,6 +304,47 @@ export default async function IntegrationsPage() {
 
             { /* ****************************************************************************** */ }
 
+            <FormGridSection action={ updateIntegration.bind(null, 'Weeztix') }
+                             headerAction={
+                                <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
+                                                        state={weeztixState} />
+                             }
+                             defaultValues={{
+                                 Weeztix: defaultValues['Weeztix']
+                             }}
+                             title="Weeztix" icon={ <WeeztixLogo /> }>
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="body2">
+                        API integration with the{' '}
+                        <MuiLink component={Link} href="https://weeztix.com/">
+                            Weeztix API
+                        </MuiLink>, which AnimeCon uses for ticketing purposes.
+                    </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[clientId]" label="Client ID" fullWidth
+                                      size="small" required />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[clientSecret]" label="Client secret" fullWidth
+                                      size="small" required />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextFieldElement name="Weeztix[redirectUrl]" label="Redirect URL"
+                                      fullWidth required size="small" />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[accessToken]" label="Access token" fullWidth
+                                      size="small" slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[refreshToken]" label="Refresh token" fullWidth
+                                      size="small"  slotProps={{ input: { disabled: true } }} />
+                </Grid>
+            </FormGridSection>
+
+            { /* ****************************************************************************** */ }
+
             <FormGridSection action={ updateIntegration.bind(null, 'YourTicketProvider') }
                              defaultValues={{
                                  YourTicketProvider: defaultValues['YourTicketProvider']
@@ -293,7 +355,7 @@ export default async function IntegrationsPage() {
                         API integration with the{' '}
                         <MuiLink component={Link} href="https://www.yourticketprovider.nl/">
                             YourTicketProvider API
-                        </MuiLink>, which AnimeCon uses for ticketing purposes.
+                        </MuiLink>, which AnimeCon used to use for ticketing purposes.
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12 }}>

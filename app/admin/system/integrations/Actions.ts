@@ -45,6 +45,11 @@ const kIntegrationSettingsData = z.object({
         messagingSidWhatsapp: z.string().nonempty(),
         region: z.enum(kTwilioRegion),
     }).optional(),
+    Weeztix: z.object({
+        clientId: z.string().nonempty(),
+        clientSecret: z.string().nonempty(),
+        redirectUrl: z.string().nonempty(),
+    }).optional(),
     YourTicketProvider: z.object({
         apiKey: z.string().nonempty(),
         endpoint: z.url(),
@@ -106,6 +111,15 @@ export async function updateIntegration(integration: Integration, formData: unkn
                     'integration-twilio-messaging-sid-sms': data.Twilio!.messagingSidSms,
                     'integration-twilio-messaging-sid-whatsapp': data.Twilio!.messagingSidWhatsapp,
                     'integration-twilio-region': data.Twilio!.region,
+                });
+
+                break;
+
+            case 'Weeztix':
+                await writeSettings({
+                    'integration-weeztix-client-id': data.Weeztix!.clientId,
+                    'integration-weeztix-client-secret': data.Weeztix!.clientSecret,
+                    'integration-weeztix-redirect-url': data.Weeztix!.redirectUrl,
                 });
 
                 break;

@@ -39,7 +39,7 @@ interface LogTypeParameterMap {
     };
 
     UpdateIntegrationSettings: {
-        integration: 'AnimeCon' | 'Email' | 'Google' | 'Twilio' | 'YourTicketProvider';
+        integration: 'AnimeCon' | 'Email' | 'Google' | 'Twilio' | 'Weeztix' | 'YourTicketProvider';
     }
 
     // ---------------------------------------------------------------------------------------------

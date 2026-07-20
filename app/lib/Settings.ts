@@ -133,6 +133,15 @@ export type Settings = {
     'integration-twilio-messaging-sid-whatsapp': string;
     'integration-twilio-region': TwilioRegion;
 
+    // Weeztix:
+    'integration-weeztix-access-token': string;
+    'integration-weeztix-access-token-expiration': number;
+    'integration-weeztix-client-id': string;
+    'integration-weeztix-client-secret': string;
+    'integration-weeztix-redirect-url': string;
+    'integration-weeztix-refresh-token': string;
+    'integration-weeztix-refresh-token-expiration': number;
+
     // YourTicketProvider:
     'integration-ytp-api-key': string;
     'integration-ytp-endpoint': string;
@@ -242,6 +251,7 @@ export async function writeSettings<T extends keyof Settings>(
         if (keysToInsert.length) {
             await dbInstance.insertInto(tSettings)
                 .values(keysToInsert)
+                .onConflictDoUpdateSet({ settingValue: tSettings.settingValue })
                 .executeInsert();
         }
     });

@@ -56,7 +56,7 @@ export async function ActivityCard() {
                                     <InfoOutlinedIcon fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText primary={row.message}
-                                              secondary={row.initiatorUser.name}
+                                              secondary={row.initiatorUser?.name}
                                               slotProps={{
                                                   primary: { noWrap: true },
                                                   secondary: { noWrap: true },
