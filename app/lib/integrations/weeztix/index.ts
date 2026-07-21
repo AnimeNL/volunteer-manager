@@ -18,6 +18,8 @@ export async function createWeeztixClient(settings?: WeeztixClientSettings)
         const configuration = await readSettings([
             'integration-weeztix-access-token',
             'integration-weeztix-access-token-expiration',
+            'integration-weeztix-client-id',
+            'integration-weeztix-client-secret',
             'integration-weeztix-refresh-token',
             'integration-weeztix-refresh-token-expiration',
         ]);
@@ -40,6 +42,8 @@ export async function createWeeztixClient(settings?: WeeztixClientSettings)
                 expiration: Temporal.Instant.fromEpochMilliseconds(
                     configuration['integration-weeztix-refresh-token-expiration']!),
             },
+            clientId: configuration['integration-weeztix-client-id']!,
+            clientSecret: configuration['integration-weeztix-client-secret']!,
         };
     }
 

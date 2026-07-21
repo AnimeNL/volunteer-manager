@@ -20,3 +20,15 @@ export const kGetEventsResponse = z.array(z.object({
  * Expected response for the /event/{type?} API.
  */
 export type GetEventsResponse = z.infer<typeof kGetEventsResponse>;
+
+/**
+ * Expected response when refreshing the OAuth token.
+ * @see https://docs.weeztix.com/docs/introduction/authentication/refresh-token
+ */
+export const kRefreshTokenResponse = z.object({
+    token_type: z.literal('Bearer'),
+    expires_in: z.number(),
+    access_token: z.string().nonempty(),
+    refresh_token: z.string().nonempty(),
+    refresh_token_expires_in: z.number(),
+});
