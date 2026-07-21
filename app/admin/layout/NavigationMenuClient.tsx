@@ -142,7 +142,9 @@ function NavigationItemClient(props: { item: NavigationItem, path: string }) {
             </ListItemText>
             { (!!props.item.badge && typeof props.item.badge.value === 'number') &&
                 <Badge badgeContent={props.item.badge.value} color={props.item.badge.severity} /> }
-            { (!!props.item.badge && typeof props.item.badge.value !== 'number') &&
+            { (!!props.item.badge
+                   && typeof props.item.badge.value !== 'number'
+                   && !!props.item.badge.value) &&
                 <Badge variant="dot" color={ props.item.badge.severity ?? 'primary' } /> }
         </NavigationMenuListItem>
     );

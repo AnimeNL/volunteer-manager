@@ -17,6 +17,7 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { Temporal } from '@lib/Temporal';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls } from '@lib/database';
 
@@ -28,6 +29,7 @@ export default async function DefaultMenu() {
     const { access, user } = await requireAuthenticationContext({ check: 'admin' });
 
     let badges: Record<string, number> = {
+        integrations: 0,
         logs: 0,
         outbox: 0,
         webhooks: 0,
@@ -65,6 +67,21 @@ export default async function DefaultMenu() {
                 webhooks: twilioWebhookValue,
             })
             .executeSelectOne();
+    }
+
+    if (access.can('system.internals.settings')) {
+        const weeztixExpiration = await readSetting('integration-weeztix-refresh-token-expiration');
+        if (!!weeztixExpiration) {
+            const expirationInstant = Temporal.Instant.fromEpochMilliseconds(weeztixExpiration);
+            const currentInstant = Temporal.Now.instant();
+
+            const timeUntilExpiration = currentInstant.until(expirationInstant, {
+                largestUnit: 'hours',
+            });
+
+            if (timeUntilExpiration.hours < /* 2 weeks= */ 14 * 24)
+                badges.integrations = 1;
+        }
     }
 
     return (
@@ -147,6 +164,7 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: ApiIcon,
+                        badge: { severity: 'warning', value: !!badges.integrations },
                         label: 'Integrations',
                         permission: 'root',
                         url: '/admin/system/integrations',

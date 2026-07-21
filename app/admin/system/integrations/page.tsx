@@ -11,17 +11,20 @@ import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 import { default as MuiLink } from '@mui/material/Link';
 import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
+import Chip from '@mui/material/Chip';
 import EmailIcon from '@mui/icons-material/Email';
 import GoogleIcon from '@mui/icons-material/Google';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import ReadMoreIcon from '@mui/icons-material/ReadMore';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { Temporal } from '@lib/Temporal';
 import { TwilioLogo } from '../webhooks/twilio/[id]/TwilioLogo';
 import { WeeztixAuthorizeButton } from './WeeztixAuthorizeButton';
 import { WeeztixLogo } from './WeeztixLogo';
@@ -91,6 +94,7 @@ export default async function IntegrationsPage() {
         'integration-weeztix-client-secret',
         'integration-weeztix-redirect-url',
         'integration-weeztix-refresh-token',
+        'integration-weeztix-refresh-token-expiration',
 
         // YourTicketProvider:
         'integration-ytp-api-key',
@@ -139,6 +143,31 @@ export default async function IntegrationsPage() {
             endpoint: settings['integration-ytp-endpoint'] ?? '',
         },
     };
+
+    let weeztixExpirationWarning: React.ReactNode;
+
+    const weeztixExpiration = settings['integration-weeztix-refresh-token-expiration'];
+    if (!!weeztixExpiration) {
+        const currentZonedDateTime = Temporal.Now.zonedDateTimeISO('UTC');
+
+        const expirationInstant = Temporal.Instant.fromEpochMilliseconds(weeztixExpiration);
+        const expirationZonedDateTime = expirationInstant.toZonedDateTimeISO('UTC');
+
+        const daysRemaining = currentZonedDateTime.until(expirationZonedDateTime, {
+            largestUnit: 'days',
+        }).days;
+
+        if (daysRemaining <= 0) {
+            weeztixExpirationWarning = (
+                <Chip label="expired" color="error" variant="outlined" size="small" />
+            );
+        } else if (daysRemaining < /* ~one month= */ 31) {
+            weeztixExpirationWarning = (
+                <Chip label={`T-${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`}
+                      color="warning" variant="outlined" size="small" />
+            );
+        }
+    }
 
     const weeztixState = await generateWeeztixState(user.id);
 
@@ -306,8 +335,11 @@ export default async function IntegrationsPage() {
 
             <FormGridSection action={ updateIntegration.bind(null, 'Weeztix') }
                              headerAction={
-                                <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
-                                                        state={weeztixState} />
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                    {weeztixExpirationWarning}
+                                    <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
+                                                            state={weeztixState} />
+                                </Stack>
                              }
                              defaultValues={{
                                  Weeztix: defaultValues['Weeztix']
