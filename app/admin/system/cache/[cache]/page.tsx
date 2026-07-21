@@ -210,7 +210,8 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
                            subject="cache entry"
                            listViewProps={{
                                primaryField: 'params',
-                               secondaryTemplate: '{sizeLabel}, last access: {lastAccess}'
+                               secondaryTemplate:
+                                   '{sizeLabel}, last access (x{accessCount}): {lastAccess}'
                            }} />
             </Section>
         </>

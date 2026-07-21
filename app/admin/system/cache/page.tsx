@@ -178,6 +178,7 @@ export default async function CacheManagementPage() {
                                primaryField: 'name',
                                secondaryField: 'sizeLabel',
                                startComponent: CacheTypeCell,
+                               linkTemplate: './cache/{id}',
                            }} />
             </Section>
         </>
