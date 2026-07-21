@@ -2,11 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EnvironmentDomain } from './Environment';
+import { Cache } from './cache/Cache';
 import db, { tContent, tTeams } from './database';
-
-declare namespace globalThis {
-    let animeConContentCache: Map<string, Content> | undefined;
-}
 
 /**
  * Interface defining the information that will be made available for a particular piece of content
@@ -23,13 +20,6 @@ export interface Content {
      * the <Markdown> element to ensure proper display.
      */
     markdown: string;
-}
-
-/**
- * Clears the cached content cache. Should be called when the state is being invalidated.
- */
-export function clearContentCache() {
-    globalThis.animeConContentCache = new Map();
 }
 
 /**
@@ -53,11 +43,14 @@ export async function getContent(
     substitutions?: ContentSubstitutions)
         : Promise<Content | undefined>
 {
-    globalThis.animeConContentCache ??= new Map;
+    const cache = Cache.getInstance('Content');
+    const cacheKey = {
+        environment,
+        eventId,
+        path: path.join('/'),
+    };
 
-    const uniqueContentKey = `${environment}-${eventId}-${path.join('/')}`;
-
-    let content = globalThis.animeConContentCache.get(uniqueContentKey) || null;
+    let content = cache.get<Content>(cacheKey);
     if (!content) {
         content = await db.selectFrom(tContent)
             .innerJoin(tTeams)
@@ -75,8 +68,8 @@ export async function getContent(
             .limit(1)
             .executeSelectNoneOrOne();
 
-        if (!!content)
-            globalThis.animeConContentCache.set(uniqueContentKey, content);
+        if (content)
+            cache.set(cacheKey, content);
     }
 
     if (!content)

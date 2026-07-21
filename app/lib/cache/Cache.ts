@@ -241,8 +241,8 @@ export class Cache<T extends CacheType> {
     /**
      * Returns the value corresponding to the given |params|. Defaults to `undefined`.
      */
-    get(...args: CacheAccessArgs<T>): CacheContents<T> | null | undefined;
-    get(params?: any): CacheContents<T> | null | undefined {
+    get<Result = CacheContents<T>>(...args: CacheAccessArgs<T>): Result | null | undefined;
+    get(params?: any): any {
         this.pruneExpiredEntries();
 
         const key = serializeParams(params);
@@ -258,9 +258,9 @@ export class Cache<T extends CacheType> {
      * Returns the value corresponding to the given |params|, or populates the cache with the given
      * |populateFn|.
      */
-    getOrInsert(...args: CacheGetOrInsertArgs<T>): Promise<CacheContents<T> | null>;
+    getOrInsert<Result = CacheContents<T>>(...args: CacheGetOrInsertArgs<T>): Promise<Result | null>;
     async getOrInsert(paramsOrPopulateFn: any, maybePopulateFn?: any)
-        : Promise<CacheContents<T> | null>
+        : Promise<any>
     {
         this.pruneExpiredEntries();
 

@@ -12,6 +12,18 @@ interface CacheDescriptorMap {
     // Shared caches
     // ---------------------------------------------------------------------------------------------
 
+    Content: {
+        Parameters: {
+            environment: string;
+            eventId: number;
+            path: string;
+        };
+        Contents: {
+            title: string;
+            markdown: string;
+        };
+    };
+
     Environments: {
         Parameters: undefined;
         Contents: {
@@ -154,6 +166,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
     // Shared caches
     // ---------------------------------------------------------------------------------------------
+
+    Content: {
+        name: 'Content',
+        description: 'Content and knowledge base articles published across the system.',
+        type: 'permanent',
+    },
 
     Environments: {
         name: 'Environments',

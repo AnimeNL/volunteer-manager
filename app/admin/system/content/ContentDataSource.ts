@@ -5,10 +5,10 @@ import { z } from 'zod';
 
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import type { User } from '@lib/auth/User';
+import { Cache } from '@lib/cache/Cache';
 import { type ContentType, kContentType } from '@lib/database/Types';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { clearContentCache } from '@lib/Content';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
@@ -20,7 +20,7 @@ export function clearContentCacheForEventAndType(eventId: number, type: ContentT
     if (type === 'FAQ')
         ScheduleCache.clear('knowledge', eventId);
 
-    clearContentCache();
+    Cache.getInstance('Content').delete({ eventId });
 }
 
 /**
