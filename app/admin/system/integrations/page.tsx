@@ -16,9 +16,10 @@ import EmailIcon from '@mui/icons-material/Email';
 import GoogleIcon from '@mui/icons-material/Google';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
-import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
@@ -197,7 +198,9 @@ export default async function IntegrationsPage() {
                              headerAction={
                                  <IconButton LinkComponent={Link} size="small"
                                              href="/admin/system/integrations/animecon">
-                                     <ReadMoreIcon color="primary" />
+                                     <Tooltip title="More information...">
+                                         <InfoOutlinedIcon color="primary" fontSize="small" />
+                                     </Tooltip>
                                  </IconButton>
                              }>
                 <Grid size={{ xs: 12 }}>
@@ -335,10 +338,16 @@ export default async function IntegrationsPage() {
 
             <FormGridSection action={ updateIntegration.bind(null, 'Weeztix') }
                              headerAction={
-                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                                     {weeztixExpirationWarning}
                                     <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
                                                             state={weeztixState} />
+                                    <IconButton LinkComponent={Link} size="small"
+                                             href="/admin/system/integrations/weeztix">
+                                        <Tooltip title="More information...">
+                                            <InfoOutlinedIcon color="primary" fontSize="small" />
+                                        </Tooltip>
+                                    </IconButton>
                                 </Stack>
                              }
                              defaultValues={{

@@ -7,7 +7,7 @@ import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import IconButton from '@mui/material/IconButton';
-import LoginIcon from '@mui/icons-material/Login';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -70,7 +70,7 @@ export function WeeztixAuthorizeButton(props: WeeztixAuthorizeButtonProps) {
         <>
             <IconButton size="small" onClick={handleOpenDialog}>
                 <Tooltip title="OAuth authorization...">
-                    <LoginIcon color="primary" fontSize="small" />
+                    <LockOpenIcon color="primary" fontSize="small" />
                 </Tooltip>
             </IconButton>
             <ConfirmationDialog open={dialogOpen} onClose={handleCloseDialog} confirmLabel="Proceed"

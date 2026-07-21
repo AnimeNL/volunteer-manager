@@ -9,12 +9,11 @@ import { z } from 'zod/v4';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { Temporal } from '@lib/Temporal';
 import { WeeztixLogo } from '../WeeztixLogo';
 import { generateWeeztixState } from './generateWeeztixState';
@@ -77,7 +76,7 @@ export default async function WeeztixOAuthCallback(
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <Suspense fallback={ <AuthorizationLoading /> }>
+                <Suspense fallback={ <SectionLoading disablePadding /> }>
                     <Authorization code={code} />
                 </Suspense>
             </Section>
@@ -210,20 +209,5 @@ async function Authorization(props: { code: string }) {
                 Back to integrations
             </Button>
         </>
-    );
-}
-
-/**
- * Placeholder component to show while authorization with the Weeztix server is being completed.
- */
-function AuthorizationLoading() {
-    return (
-        <Stack direction="column" spacing={0.25} sx={{ marginTop: '0px !important' }}>
-            <Skeleton animation="wave" height={8} width="90%" />
-            <Skeleton animation="wave" height={8} width="85%" />
-            <Skeleton animation="wave" height={8} width="88%" />
-            <Skeleton animation="wave" height={8} width="92%" />
-            <Skeleton animation="wave" height={8} width="98%" />
-        </Stack>
     );
 }
