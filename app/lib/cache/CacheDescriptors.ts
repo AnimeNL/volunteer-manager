@@ -9,7 +9,7 @@ import type { PaletteMode } from '@mui/material/styles';
  */
 interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
-    // Web App Manifest
+    // Shared caches
     // ---------------------------------------------------------------------------------------------
 
     Environments: {
@@ -31,6 +31,11 @@ interface CacheDescriptorMap {
             name: string;
             fullName: string;
         };
+    },
+
+    Settings: {
+        Parameters: string;
+        Contents: { value: unknown };  // any JSON-serialisable value
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -147,7 +152,7 @@ export type CacheDescriptor<T extends CacheType> = {
  */
 export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
-    // Web App Manifest
+    // Shared caches
     // ---------------------------------------------------------------------------------------------
 
     Environments: {
@@ -159,6 +164,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
+        type: 'permanent',
+    },
+
+    Settings: {
+        name: 'Settings',
+        description: 'Server-side configuration settings.',
         type: 'permanent',
     },
 

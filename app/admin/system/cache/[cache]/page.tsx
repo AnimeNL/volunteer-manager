@@ -203,9 +203,9 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <DataTable columns={columns} source={cacheEntryDataSource} disableFooter
+                <DataTable columns={columns} source={cacheEntryDataSource}
                            context={{ cacheName: cache.descriptor.name }}
-                           defaultSort={{ field: 'lastAccess', sort: 'desc' }}
+                           defaultSort={{ field: 'accessCount', sort: 'desc' }}
                            pageSize={25}
                            subject="cache entry"
                            listViewProps={{

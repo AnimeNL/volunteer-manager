@@ -4,6 +4,7 @@
 import type { AiSupportedModel } from './integrations/genai/Models';
 import type { GeminiApi, TextGenerationComplexity, TextGenerationThinkingLevel } from './integrations/genai/Client';
 import type { TwilioRegion } from './integrations/twilio/TwilioTypes';
+import { Cache } from '@lib/cache/Cache';
 import db, { tSettings } from '@lib/database';
 
 /**
@@ -190,22 +191,56 @@ export async function readSetting<T extends keyof Settings>(setting: T)
 /**
  * Reads the settings whose names are included in the given `settings`. An object will be returned
  * with the setting values, or `undefined` when they cannot be loaded. This function will end up
- * issuing a database call.
+ * issuing a database call unless all `settings` are cached.
  */
 export async function readSettings<T extends keyof Settings>(settings: T[])
     : Promise<{ [k in T]: Settings[k] | undefined }>
 {
+    const cache = Cache.getInstance('Settings');
+    const result: { [k in T]: Settings[k] | undefined } = { /* empty */ } as any;
+
+    const uncachedSettings: T[] = [];
+
+    // First attempt to read the settings from the cache. The cache will eventually saturate after
+    // which all subsequent settings can be read from the memory cache.
+    for (const setting of settings) {
+        const cached = cache.get(setting);
+        if (cached && typeof cached === 'object')
+            result[setting] = cached.value as any;
+        else
+            uncachedSettings.push(setting);
+    }
+
+    // If all settings were successfully obtained from the cache, bail out now as the requested
+    // information can be made available. Otherwise we fetch the information from the database.
+    if (!uncachedSettings.length)
+        return result;
+
     const storedValues = await db.selectFrom(tSettings)
-        .where(tSettings.settingName.in(settings))
+        .where(tSettings.settingName.in(uncachedSettings))
         .select({
             name: tSettings.settingName,
             value: tSettings.settingValue,
         })
         .executeSelectMany();
 
-    const result: { [k in T]: Settings[k] | undefined } = { /* empty */ } as any;
-    for (const { name, value } of storedValues)
-        result[name as keyof typeof result] = JSON.parse(value);
+    const existingSettings = new Set<string>();
+    for (const { name, value } of storedValues) {
+        existingSettings.add(name);
+
+        const parsedValue = JSON.parse(value);
+
+        result[name as T] = parsedValue;
+        cache.set(name, { value: parsedValue });
+    }
+
+    for (const setting of uncachedSettings) {
+        if (existingSettings.has(setting))
+            continue;
+
+        result[setting] = undefined;
+        cache.set(setting, { value: undefined });
+    }
 
     return result;
 }
@@ -255,4 +290,10 @@ export async function writeSettings<T extends keyof Settings>(
                 .executeInsert();
         }
     });
+
+    const cache = Cache.getInstance('Settings');
+
+    for (const [ setting, value ] of Object.entries(settings))
+        cache.set(setting, { value });
 }
+
