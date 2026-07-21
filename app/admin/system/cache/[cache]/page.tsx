@@ -165,6 +165,11 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
             field: 'params',
             headerName: 'Parameters',
             flex: 3,
+
+            template: 'text',
+            templateProps: {
+                href: cache.descriptor.linkTemplate,
+            },
         },
         {
             field: 'accessCount',

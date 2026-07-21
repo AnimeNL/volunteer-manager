@@ -44,7 +44,7 @@ export function CacheTypeCell({ row }: CacheTypeCellProps) {
         case 'ttl':
             return (
                 <Tooltip title="TTL cache">
-                    <AccessTimeIcon fontSize="small" color="info" />
+                    <AccessTimeIcon fontSize="small" color="warning" />
                 </Tooltip>
             );
         case 'lru':

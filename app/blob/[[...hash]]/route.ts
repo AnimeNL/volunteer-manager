@@ -4,6 +4,7 @@
 import type { NextRequest } from 'next/server';
 import { notFound } from 'next/navigation';
 
+import { Cache } from '@lib/cache';
 import { readBlobDataByHash } from '@lib/database/BlobStore';
 
 /**
@@ -15,7 +16,11 @@ export async function GET(request: NextRequest, context: RouteContext<'/blob/[[.
     if (Array.isArray(params.hash) && params.hash.length && params.hash[0].endsWith('.png')) {
         const hash = params.hash[0].substring(0, params.hash[0].length - 4);
 
-        const data = await readBlobDataByHash(hash);
+        const data = await Cache.getInstance('Blob').getOrInsert(hash, async () => {
+            const dbResult = await readBlobDataByHash(hash);
+            return dbResult ?? null;
+        });
+
         if (data) {
             return new Response(data.bytes, {
                 headers: [

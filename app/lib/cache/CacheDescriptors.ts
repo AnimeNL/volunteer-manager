@@ -12,6 +12,14 @@ interface CacheDescriptorMap {
     // Shared caches
     // ---------------------------------------------------------------------------------------------
 
+    Blob: {
+        Parameters: string;
+        Contents: {
+            bytes: Uint8Array<ArrayBuffer>;
+            mimeType: string;
+        };
+    },
+
     Content: {
         Parameters: {
             environment: string;
@@ -124,6 +132,11 @@ export type CacheDescriptor<T extends CacheType> = {
     description: string;
 
     /**
+     * Optional link template to provide click-through functionality in the UI.
+     */
+    linkTemplate?: string;
+
+    /**
      * Whether this is an internal cache, which should not be considered by `getAll()`.
      */
     internal?: true;
@@ -166,6 +179,14 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
     // Shared caches
     // ---------------------------------------------------------------------------------------------
+
+    Blob: {
+        name: 'Blob',
+        description: 'LRU cache of binary data retrieved from the database.',
+        linkTemplate: '/blob/{params}.png',
+        type: 'lru',
+        maxSize: 100,
+    },
 
     Content: {
         name: 'Content',
