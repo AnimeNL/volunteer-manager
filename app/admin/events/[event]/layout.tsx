@@ -27,7 +27,6 @@ import type { User } from '@lib/auth/User';
 import { AdminContent } from '../../AdminContent';
 import { AdminPageContainer } from '../../AdminPageContainer';
 import { type AdminSidebarMenuEntry, AdminSidebar } from '../../AdminSidebar';
-import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import db, { tActivities, tEvents, tEventsSalesConfiguration, tEventsTeams, tHotelsAssignments,

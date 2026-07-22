@@ -13,6 +13,7 @@ import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateEventCache } from '@lib/cache';
 import db, { tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -171,6 +172,8 @@ async function updateEventSettings(eventId: number, formData: unknown) {
             })
             .where(tEvents.eventId.equals(eventId))
             .executeUpdate();
+
+        await invalidateEventCache(eventId);
 
         RecordLog({
             type: kLogType.AdminUpdateEvent,

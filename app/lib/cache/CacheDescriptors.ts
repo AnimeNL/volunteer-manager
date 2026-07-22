@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { PaletteMode } from '@mui/material/styles';
 
@@ -45,6 +46,11 @@ interface CacheDescriptorMap {
         }[];
     };
 
+    EventCache: {
+        Parameters: string;  // event slug
+        Contents: CachedEvent;
+    };
+
     ManifestLatestEvent: {
         Parameters: undefined;
         Contents: {
@@ -57,6 +63,16 @@ interface CacheDescriptorMap {
         Parameters: string;
         Contents: { value: unknown };  // any JSON-serialisable value
     },
+
+    TeamCache: {
+        Parameters: string;  // team slug
+        Contents: CachedTeam;
+    };
+
+    UrlSlugs: {
+        Parameters: { event: number } | { team: number };
+        Contents: string;
+    };
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Dashboard
@@ -200,6 +216,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         type: 'permanent',
     },
 
+    EventCache: {
+        name: 'EventCache',
+        description: 'Contextual event information used throughout the system.',
+        type: 'permanent',
+    },
+
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
@@ -209,6 +231,18 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     Settings: {
         name: 'Settings',
         description: 'Server-side configuration settings.',
+        type: 'permanent',
+    },
+
+    TeamCache: {
+        name: 'TeamCache',
+        description: 'Contextual team information used throughout the system.',
+        type: 'permanent',
+    },
+
+    UrlSlugs: {
+        name: 'UrlSlugs',
+        description: 'URL-safe slugs to both event and team unique IDs.',
         type: 'permanent',
     },
 

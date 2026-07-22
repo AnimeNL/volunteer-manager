@@ -77,7 +77,7 @@ export type PermissionAccessCheck =
 /**
  * A set of permissions that should be checked in a particular manner.
  */
-type PermissionSet = { type: 'and' | 'or', checks: PermissionAccessCheck[] };
+export type PermissionSet = { type: 'and' | 'or', checks: PermissionAccessCheck[] };
 
 export function and(...permissions: PermissionAccessCheck[]): PermissionSet {
     return { type: 'and', checks: permissions };

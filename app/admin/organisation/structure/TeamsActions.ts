@@ -8,6 +8,7 @@ import { Cache } from '@lib/cache';
 import { RecordLog, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
+import { invalidateTeamCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
@@ -158,6 +159,8 @@ export async function createTeam(formData: unknown) {
                 .executeInsert();
         }
 
+        await invalidateTeamCache(data.slug);
+
         RecordLog({
             type: kLogType.AdminTeamCreate,
             sourceUser: props.user,
@@ -269,6 +272,8 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to store the newly generated key…' };
 
+        await invalidateTeamCache(teamId);
+
         RecordLog({
             type: kLogType.AdminTeamResetKey,
             sourceUser: props.user,
@@ -316,6 +321,8 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
 
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team state in the database…' };
+
+        await invalidateTeamCache(teamId);
 
         RecordLog({
             type: kLogType.AdminTeamEnable,
@@ -473,6 +480,8 @@ export async function updateTeam(teamId: number, formData: unknown) {
 
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team in the database…' };
+
+        await invalidateTeamCache(teamId);
 
         RecordLog({
             type: kLogType.AdminUpdateTeam,
