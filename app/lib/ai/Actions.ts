@@ -107,7 +107,7 @@ export async function executeCommunicationPrompt(
                     author,
                     event: await queryEventContext(dbInstance, data.eventId),
                     recipient,
-                    team: await queryTeamContext(dbInstance, data.teamId),
+                    team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationCancelledPrompt>;
 
                 break;
@@ -119,7 +119,9 @@ export async function executeCommunicationPrompt(
                     author,
                     event: await queryEventContext(dbInstance, data.eventId),
                     recipient,
-                    team: await queryTeamContext(dbInstance, data.teamId),
+                    team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
+
+                    // TODO: Merge `teamInviteKey` back into `team`
                     teamInviteKey:
                         await queryTeamInviteKeyContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationReminderPrompt>;
@@ -133,8 +135,8 @@ export async function executeCommunicationPrompt(
                     author,
                     event: await queryEventContext(dbInstance, data.eventId),
                     recipient,
-                    oldTeam: await queryTeamContext(dbInstance, data.oldTeamId),
-                    newTeam: await queryTeamContext(dbInstance, data.newTeamId),
+                    oldTeam: await queryTeamContext(dbInstance, data.eventId, data.oldTeamId),
+                    newTeam: await queryTeamContext(dbInstance, data.eventId, data.newTeamId),
                 } satisfies GetPromptParameters<prompts.TeamChangePrompt>;
 
                 break;
