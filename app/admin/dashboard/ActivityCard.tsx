@@ -56,11 +56,7 @@ export async function ActivityCard() {
                                     <InfoOutlinedIcon fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText primary={row.message}
-                                              secondary={row.initiatorUser?.name}
-                                              slotProps={{
-                                                  primary: { noWrap: true },
-                                                  secondary: { noWrap: true },
-                                              }} />
+                                              slotProps={{ primary: { noWrap: true } }} />
                                 <Typography color="textDisabled" variant="body2" noWrap
                                             sx={{ ml: 2, flexShrink: 0 }}>
                                     <LocalDateDuration dateTime={row.date} />

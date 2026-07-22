@@ -24,7 +24,7 @@ export default async function EventSettingsTeamsPage(
                         { label: 'Configuration' },
                      ]}>
                 <SectionIntroduction>
-                    Settings regarding the teams that are participating in {event.shortName}.
+                    Configuration regarding {event.shortName}'s dates, facilities and identity.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>

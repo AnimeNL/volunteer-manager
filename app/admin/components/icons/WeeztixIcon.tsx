@@ -4,9 +4,9 @@
 import SvgIcon, { type SvgIconProps } from '@mui/material/SvgIcon';
 
 /**
- * SVG variant of Weeztix's icon.
+ * Coloured version of the Google logo, created by Gemini.
  */
-export function WeeztixLogo(props: SvgIconProps) {
+export function WeeztixIcon(props: SvgIconProps) {
     const { sx, color, ...otherProps } = props;
     return (
         <SvgIcon viewBox="0 0 24 24" color={color}

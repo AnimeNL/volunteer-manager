@@ -5,14 +5,14 @@ import type { Metadata } from 'next';
 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
-import { AccountSettingsForm, type AccountSettings } from '../organisation/accounts/[id]/settings/AccountSettings';
-import { Section } from '../components/Section';
-import { SectionIntroduction } from '../components/SectionIntroduction';
-import { FormGridSection } from '../components/FormGridSection';
+import { AccountSettingsForm, type AccountSettings } from '../../organisation/accounts/[id]/settings/AccountSettings';
+import { Section } from '../../components/Section';
+import { SectionIntroduction } from '../../components/SectionIntroduction';
+import { FormGridSection } from '../../components/FormGridSection';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
-import { updateAccountSettings } from '../organisation/accounts/[id]/AccountActions';
+import { updateAccountSettings } from '../../organisation/accounts/[id]/AccountActions';
 
 /**
  * The <AccountSettingsPage> component enables a user to change the settings associated with their

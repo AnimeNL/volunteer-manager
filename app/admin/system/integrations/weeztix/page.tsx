@@ -14,7 +14,7 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
-import { WeeztixLogo } from '../WeeztixLogo';
+import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weeztix';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -34,7 +34,7 @@ export default async function WeeztixIntegrationPage() {
 
     return (
         <>
-            <Section icon={ <WeeztixLogo /> } title="Weeztix"
+            <Section icon={ <WeeztixIcon /> } title="Weeztix"
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Integrations', href: '/admin/system/integrations' },

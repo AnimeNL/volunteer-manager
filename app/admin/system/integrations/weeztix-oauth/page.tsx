@@ -15,7 +15,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { Temporal } from '@lib/Temporal';
-import { WeeztixLogo } from '../WeeztixLogo';
+import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { generateWeeztixState } from './generateWeeztixState';
 import { readSettings, writeSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -64,7 +64,7 @@ export default async function WeeztixOAuthCallback(
 
     return (
         <>
-            <Section icon={ <WeeztixLogo /> } title="Weeztix authorization"
+            <Section icon={ <WeeztixIcon /> } title="Weeztix authorization"
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Integrations', href: '/admin/system/integrations' },

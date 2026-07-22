@@ -1,11 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type SvgIcon from '@mui/material/SvgIcon';
 import GroupsIcon from '@mui/icons-material/Groups';
-import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
+import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -22,7 +23,7 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
     return (
         <SectionTabContext access={access} tabs={[
             {
-                Icon: ModelTrainingIcon,
+                Icon: GeminiIcon as typeof SvgIcon,
                 label: 'Models',
                 url: '/admin/system/ai/models',
                 urlMatchMode: 'prefix',

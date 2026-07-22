@@ -13,7 +13,7 @@ import type { TwilioOutboxType } from '@lib/database/Types';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TwilioLogo } from './TwilioLogo';
+import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
 
@@ -92,7 +92,7 @@ export default async function TwilioWebhooksPage(
 
     return (
         <>
-            <Section icon={ <TwilioLogo /> } title={`Twilio #${params.id}`} breadcrumbs={[
+            <Section icon={ <TwilioIcon /> } title={`Twilio #${params.id}`} breadcrumbs={[
                             { label: 'Communication', href: '/admin/system/communication' },
                             { label: 'Webhooks', href: '/admin/system/webhooks' },
                             { label: `Twilio #${params.id}` }

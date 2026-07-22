@@ -91,7 +91,8 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 permission: 'event.settings',
                 scope: { event },
             },
-            url: `/admin/events/${event}/settings`,
+            url: `/admin/events/${event}/settings/configuration`,
+            urlPrefix: `/admin/events/${event}/settings`,
         },
     ];
 

@@ -13,22 +13,22 @@ import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import Chip from '@mui/material/Chip';
 import EmailIcon from '@mui/icons-material/Email';
-import GoogleIcon from '@mui/icons-material/Google';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
+import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { GoogleIcon } from '@app/admin/components/icons/GoogleIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Temporal } from '@lib/Temporal';
-import { TwilioLogo } from '../webhooks/twilio/[id]/TwilioLogo';
+import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
 import { WeeztixAuthorizeButton } from './WeeztixAuthorizeButton';
-import { WeeztixLogo } from './WeeztixLogo';
+import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -306,7 +306,7 @@ export default async function IntegrationsPage() {
 
             <FormGridSection action={ updateIntegration.bind(null, 'Twilio') }
                              defaultValues={{ Twilio: defaultValues['Twilio'] }}
-                             title="Twilio" icon={ <TwilioLogo /> }>
+                             title="Twilio" icon={ <TwilioIcon /> }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
                         Twilio is used to send SMS and WhatsApp messages to select volunteers.
@@ -353,7 +353,7 @@ export default async function IntegrationsPage() {
                              defaultValues={{
                                  Weeztix: defaultValues['Weeztix']
                              }}
-                             title="Weeztix" icon={ <WeeztixLogo /> }>
+                             title="Weeztix" icon={ <WeeztixIcon /> }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
                         API integration with the{' '}
@@ -390,7 +390,7 @@ export default async function IntegrationsPage() {
                              defaultValues={{
                                  YourTicketProvider: defaultValues['YourTicketProvider']
                              }}
-                             title="YourTicketProvider" icon={ <LocalActivityIcon /> }>
+                             title="YourTicketProvider" icon={ <CmComIcon /> }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
                         API integration with the{' '}

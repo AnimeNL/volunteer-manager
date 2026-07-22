@@ -8,12 +8,12 @@ import { SelectElement, SliderElement, TextFieldElement }
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
-import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import type { GeminiApi, TextGenerationThinkingLevel } from '@lib/integrations/genai/Client';
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { GeminiModelSelect } from './GeminiModelSelect';
 import { ModelPlayground } from './ModelPlayground';
 import { Section } from '@app/admin/components/Section';
@@ -84,7 +84,7 @@ export default async function ModelsAiPage() {
 
     return (
         <>
-            <Section icon={ <ModelTrainingIcon color="primary" /> } title="Models"
+            <Section icon={ <GeminiIcon /> } title="Models"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI', href: '/admin/system/ai' },

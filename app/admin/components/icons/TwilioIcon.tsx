@@ -4,9 +4,9 @@
 import SvgIcon, { type SvgIconProps } from '@mui/material/SvgIcon';
 
 /**
- * SVG variant of Twilio's icon. Red circle with four red dots centered within them.
+ * Coloured version of the twilio.com logo, created by Gemini.
  */
-export function TwilioLogo(props: SvgIconProps) {
+export function TwilioIcon(props: SvgIconProps) {
     return (
         <SvgIcon viewBox="0 0 24 24" {...props}>
             <circle cx="12" cy="12" r="11" fill="#F22F46" />
