@@ -481,6 +481,8 @@ export async function updateTeam(teamId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team in the database…' };
 
+        Cache.getInstance('Environments').clear();
+
         await invalidateTeamCache(teamId);
 
         RecordLog({
@@ -490,9 +492,6 @@ export async function updateTeam(teamId: number, formData: unknown) {
                 team: data.title,
             },
         });
-
-        Cache.getInstance('Environments').clear();
-        clearPageMetadataCache('team');
 
         return { success: true, refresh: true };
     });

@@ -3,7 +3,9 @@
 
 import type { Metadata } from 'next';
 
-import db, { tEnvironments, tTeams, tUsers } from '@lib/database';
+import { getEvent, getTeam } from '@lib/cache';
+
+import db, { tEnvironments, tUsers } from '@lib/database';
 
 /**
  * Type that defines the fetcher for a special value, orthogonal to its data source.
@@ -13,7 +15,7 @@ type SpecialValueFetcher = (value: string) => Promise<string | undefined>;
 /**
  * Type that defines the sort of special values that are known to this sytem.
  */
-type SpecialValues = 'environment' | 'team' | 'user';
+type SpecialValues = 'environment' | 'user';
 
 /**
  * Name of the product. Will be the last component in every page's title.
@@ -25,7 +27,6 @@ const kProductName = 'AnimeCon Volunteer Manager';
  */
 const kSpecialValueCache: { [key in SpecialValues]: Map<any, string> } = {
     environment: new Map<string, string>(),
-    team: new Map<string, string>(),
     user: new Map<number, string>(),
 };
 
@@ -38,13 +39,6 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
             .where(tEnvironments.environmentDomain.equals(value))
                 .and(tEnvironments.environmentDeleted.isNull())
             .selectOneColumn(tEnvironments.environmentTitle)
-            .executeSelectNoneOrOne() ?? undefined;
-    },
-
-    team: async (value: string) => {
-        return await db.selectFrom(tTeams)
-            .where(tTeams.teamSlug.equals(value))
-            .selectOneColumn(tTeams.teamTitle)
             .executeSelectNoneOrOne() ?? undefined;
     },
 
@@ -64,10 +58,12 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
  * Special value types are:
  *
  *   { environment } - the parameter must include the environment's domain
+ *   { event } - the parameter must include the event's URL-safe slug
  *   { team } - the parameter must include the team's URL-safe slug
  *   { user } - the parameter must include the user ID
  */
-type PathValue = string | { environment: string } | { team: string } | { user: string };
+type PathValue =
+    string | { environment: string } | { event: string } | { team: string } | { user: string };
 
 /**
  * Creates a generateMetadata() function compatible with Next.js based on the given `path`. The path
@@ -104,6 +100,28 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
             lazyParamsInitialised = true;
             lazyParams = await props.params;
         }
+
+        // (1) Substitute { environment: domain } with the environment's title.
+        // todo
+
+        // (2) Substitute { event: slug } with the event's short name.
+        if ('event' in component) {
+            const event = await getEvent(lazyParams[component.event]);
+            resolvedPath.push(event?.shortName || '{event}');
+        }
+
+        // (3) Substitute { team: slug } with the team's title.
+        if ('team' in component) {
+            const team = await getTeam(lazyParams[component.team]);
+            resolvedPath.push(team?.name || '{team}');
+        }
+
+        // (4) Substitute { user: id } with the user's name.
+        // todo
+
+        // -----------------------------------------------------------------------------------------
+        // TODO: Clean-up this outdated caching mechanism:
+        // -----------------------------------------------------------------------------------------
 
         for (const [ key, fetcher ] of Object.entries(kSpecialValueFetcher)) {
             const typedKey = key as SpecialValues;

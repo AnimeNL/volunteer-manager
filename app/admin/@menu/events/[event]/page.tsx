@@ -85,7 +85,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: SettingsOutlinedIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { severity: 'warning', value: true },  // migration in progress
             label: 'Settings',
             permission: {
                 permission: 'event.settings',

@@ -253,7 +253,8 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     AdminNavigationActiveEvents: {
         name: 'AdminNavigationActiveEvents',
         description: 'Active events for use in the admin navigation.',
-        type: 'permanent',
+        type: 'ttl',
+        ttl: 300,
     },
 
     // ---------------------------------------------------------------------------------------------
