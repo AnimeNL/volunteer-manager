@@ -9,10 +9,8 @@ ARG NODE_VERSION=26.5.0-slim
 
 FROM node:${NODE_VERSION} AS dependencies
 
-# Install Git, to be able to authenticate when installing the source tree.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
-    rm -rf /var/lib/apt/lists/*
+# Install Git, to be able to authenticate when fetching the source tree
+RUN apt-get update && apt-get install -y git
 
 # Set working directory
 WORKDIR /app
@@ -66,11 +64,6 @@ RUN --mount=type=cache,target=/app/.next/cache \
 # ============================================
 
 FROM node:${NODE_VERSION} AS runner
-
-# Install curl, to be able to run healthchecks within the container
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
