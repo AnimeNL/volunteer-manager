@@ -2,6 +2,11 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
+ * Locale to use in textual date representations.
+ */
+const kEffectiveLocale = 'en-GB';
+
+/**
  * Regular expression using which we parse the format passed to the `format` function. It combines
  * the original expression with the one used in the _advancedFormat_ plugin, as we support both.
  *
@@ -74,14 +79,14 @@ function withOrdinal(number: number): string {
  * @see https://day.js.org/docs/en/display/format
  * @see https://day.js.org/docs/en/plugin/advanced-format
  */
-export function formatDate(dateTime: Temporal.Instant, format: string, locale?: string): string;
+export function formatDate(dateTime: Temporal.Instant, format: string): string;
 export function formatDate(
     dateTime: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainTime,
-    format: string, locale?: string): string;
+    format: string): string;
 export function formatDate(
     dateTime: Temporal.ZonedDateTime,
-    format: string, locale?: string): string;
-export function formatDate(dateTime: any, format: string, locale?: string): string {
+    format: string): string;
+export function formatDate(dateTime: any, format: string): string {
     let zonedDateTime: Temporal.ZonedDateTime;
 
     if (dateTime instanceof Temporal.Instant) {
@@ -100,8 +105,6 @@ export function formatDate(dateTime: any, format: string, locale?: string): stri
         throw new Error(`Invalid value passed for DateTime (t=${typeof dateTime}, v=${dateTime})`);
     }
 
-    const effectiveLocale = locale ?? 'en-GB';
-
     const matches = (match: string) => {
         switch (match) {
             case 'YY':
@@ -114,9 +117,9 @@ export function formatDate(dateTime: any, format: string, locale?: string): stri
             case 'MM':
                 return `0${zonedDateTime.month}`.substr(-2);
             case 'MMM':
-                return zonedDateTime.toLocaleString(effectiveLocale, { month: 'short' });
+                return zonedDateTime.toLocaleString(kEffectiveLocale, { month: 'short' });
             case 'MMMM':
-                return zonedDateTime.toLocaleString(effectiveLocale, { month: 'long' });
+                return zonedDateTime.toLocaleString(kEffectiveLocale, { month: 'long' });
 
             case 'D':
                 return `${zonedDateTime.day}`;
@@ -127,11 +130,11 @@ export function formatDate(dateTime: any, format: string, locale?: string): stri
             case 'Do':  // advancedFormat plugin
                 return withOrdinal(zonedDateTime.day);
             case 'dd':
-                return zonedDateTime.toLocaleString(effectiveLocale, { weekday: 'narrow' });
+                return zonedDateTime.toLocaleString(kEffectiveLocale, { weekday: 'narrow' });
             case 'ddd':
-                return zonedDateTime.toLocaleString(effectiveLocale, { weekday: 'short' });
+                return zonedDateTime.toLocaleString(kEffectiveLocale, { weekday: 'short' });
             case 'dddd':
-                return zonedDateTime.toLocaleString(effectiveLocale, { weekday: 'long' });
+                return zonedDateTime.toLocaleString(kEffectiveLocale, { weekday: 'long' });
 
             case 'W':  // advancedFormat plugin
             case 'w':  // advancedFormat plugin
@@ -273,19 +276,4 @@ export function isBefore<T>(input: T, reference: T): boolean {
     if (input instanceof Temporal.ZonedDateTime)
         return Temporal.ZonedDateTime.compare(input, reference as any) < 0;
     throw new Error(`Invalid type given to isBefore(): ${typeof input}`);
-}
-
-/**
- * Converts the given `date` in the user's local timezone to a Temporal `ZonedDateTime` object.
- */
-export function fromLocalDate(date: Date): Temporal.ZonedDateTime {
-    return Temporal.Instant.fromEpochMilliseconds(date.getTime()).toZonedDateTimeISO('UTC');
-}
-
-/**
- * Converts the given `input` to a regular JavaScript `Date` object.
- */
-export function toLocalDate(input: Temporal.ZonedDateTime): Date {
-    return new Date(
-        input.withTimeZone(Temporal.Now.timeZoneId()).epochMilliseconds);
 }

@@ -5,7 +5,23 @@
 
 import type { TrainingsRowModel } from '@app/api/admin/trainings/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { formatDate, fromLocalDate, toLocalDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
+
+/**
+ * Converts the given `date` in the user's local timezone to a Temporal `ZonedDateTime` object.
+ */
+function fromLocalDate(date: Date): Temporal.ZonedDateTime {
+    return Temporal.Instant.fromEpochMilliseconds(date.getTime()).toZonedDateTimeISO('UTC');
+}
+
+/**
+ * Converts the given `input` to a regular JavaScript `Date` object.
+ */
+function toLocalDate(input: Temporal.ZonedDateTime): Date {
+    return new Date(
+        input.withTimeZone(Temporal.Now.timeZoneId()).epochMilliseconds);
+}
+
 
 /**
  * Props accepted by the <TrainingConfigurationTable> component.
