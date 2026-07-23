@@ -44,7 +44,7 @@ const kDependencies = [
     },
     {
         name: 'Node.js',
-        url: '',
+        url: 'https://nodejs.org/',
         version: process.env.NEXT_PUBLIC_VERSION_NODEJS,
     },
     {

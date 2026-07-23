@@ -9,8 +9,9 @@ ARG NODE_VERSION=26.5.0-slim
 
 FROM node:${NODE_VERSION} AS dependencies
 
-# Install Git, to be able to authenticate when fetching the source tree
-RUN apt-get update && apt-get install -y git
+# Install Git, to be able to authenticate when fetching the source tree. Install curl as it powers
+# the Coolify container healthcheck.
+RUN apt-get update && apt-get install -y git curl
 
 # Set working directory
 WORKDIR /app
