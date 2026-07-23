@@ -35,6 +35,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
 import { updateIntegration } from './Actions';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 
 /**
  * Google endpoint locations that are available in the Volunteer Manager.
@@ -198,7 +199,9 @@ export default async function IntegrationsPage() {
                                  <IconButton LinkComponent={Link} size="small"
                                              href="/admin/system/integrations/animecon">
                                      <Tooltip title="More information...">
-                                         <InfoOutlinedIcon color="primary" fontSize="small" />
+                                         <TooltipIconWrapper>
+                                             <InfoOutlinedIcon color="primary" fontSize="small" />
+                                         </TooltipIconWrapper>
                                      </Tooltip>
                                  </IconButton>
                              }>
@@ -344,7 +347,10 @@ export default async function IntegrationsPage() {
                                     <IconButton LinkComponent={Link} size="small"
                                              href="/admin/system/integrations/weeztix">
                                         <Tooltip title="More information...">
-                                            <InfoOutlinedIcon color="primary" fontSize="small" />
+                                            <TooltipIconWrapper>
+                                                <InfoOutlinedIcon color="primary"
+                                                                  fontSize="small" />
+                                            </TooltipIconWrapper>
                                         </Tooltip>
                                     </IconButton>
                                 </Stack>

@@ -16,4 +16,6 @@
  * Manually adding a (named) <span> element solves this problem, because the <Tooltip> now sees the
  * same element regardless of rendering mode used, event listeners and attributes are injected.
  */
-export const TooltipIconWrapper = 'span';
+export function TooltipIconWrapper(props: React.PropsWithChildren) {
+    return <span style={{ lineHeight: 0 }}>{props.children}</span>
+}
