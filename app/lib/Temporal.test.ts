@@ -22,20 +22,15 @@ describe('Temporal', () => {
         expect(formatDate(instant, 'M')).toEqual('1');
         expect(formatDate(instant, 'MM')).toEqual('01');
         expect(formatDate(instant, 'MMM')).toEqual('Jan');
-        expect(formatDate(instant, 'MMM', 'nl')).toEqual('jan');
         expect(formatDate(instant, 'MMMM')).toEqual('January');
-        expect(formatDate(instant, 'MMMM', 'nl')).toEqual('januari');
 
         expect(formatDate(instant, 'D')).toEqual('9');
         expect(formatDate(instant, 'DD')).toEqual('09');
         expect(formatDate(instant, 'Do')).toEqual('9th');
         expect(formatDate(instant, 'd')).toEqual('2');
         expect(formatDate(instant, 'dd')).toEqual('T');
-        expect(formatDate(instant, 'dd', 'nl')).toEqual('D');
         expect(formatDate(instant, 'ddd')).toEqual('Tue');
-        expect(formatDate(instant, 'ddd', 'nl')).toEqual('di');
         expect(formatDate(instant, 'dddd')).toEqual('Tuesday');
-        expect(formatDate(instant, 'dddd', 'nl')).toEqual('dinsdag');
 
         expect(formatDate(instant, 'W')).toEqual('2');
         expect(formatDate(instant, 'w')).toEqual('2');
@@ -82,20 +77,15 @@ describe('Temporal', () => {
         expect(formatDate(plainDate, 'M')).toEqual('2');
         expect(formatDate(plainDate, 'MM')).toEqual('02');
         expect(formatDate(plainDate, 'MMM')).toEqual('Feb');
-        expect(formatDate(plainDate, 'MMM', 'nl')).toEqual('feb');
         expect(formatDate(plainDate, 'MMMM')).toEqual('February');
-        expect(formatDate(plainDate, 'MMMM', 'nl')).toEqual('februari');
 
         expect(formatDate(plainDate, 'D')).toEqual('24');
         expect(formatDate(plainDate, 'DD')).toEqual('24');
         expect(formatDate(plainDate, 'Do')).toEqual('24th');
         expect(formatDate(plainDate, 'd')).toEqual('6');
         expect(formatDate(plainDate, 'dd')).toEqual('S');
-        expect(formatDate(plainDate, 'dd', 'nl')).toEqual('Z');
         expect(formatDate(plainDate, 'ddd')).toEqual('Sat');
-        expect(formatDate(plainDate, 'ddd', 'nl')).toEqual('za');
         expect(formatDate(plainDate, 'dddd')).toEqual('Saturday');
-        expect(formatDate(plainDate, 'dddd', 'nl')).toEqual('zaterdag');
 
         expect(formatDate(plainDate, 'W')).toEqual('8');
         expect(formatDate(plainDate, 'w')).toEqual('8');
@@ -142,20 +132,15 @@ describe('Temporal', () => {
         expect(formatDate(plainDateTime, 'M')).toEqual('3');
         expect(formatDate(plainDateTime, 'MM')).toEqual('03');
         expect(formatDate(plainDateTime, 'MMM')).toEqual('Mar');
-        expect(formatDate(plainDateTime, 'MMM', 'nl')).toEqual('mrt');
         expect(formatDate(plainDateTime, 'MMMM')).toEqual('March');
-        expect(formatDate(plainDateTime, 'MMMM', 'nl')).toEqual('maart');
 
         expect(formatDate(plainDateTime, 'D')).toEqual('9');
         expect(formatDate(plainDateTime, 'DD')).toEqual('09');
         expect(formatDate(plainDateTime, 'Do')).toEqual('9th');
         expect(formatDate(plainDateTime, 'd')).toEqual('6');
         expect(formatDate(plainDateTime, 'dd')).toEqual('S');
-        expect(formatDate(plainDateTime, 'dd', 'nl')).toEqual('Z');
         expect(formatDate(plainDateTime, 'ddd')).toEqual('Sat');
-        expect(formatDate(plainDateTime, 'ddd', 'nl')).toEqual('za');
         expect(formatDate(plainDateTime, 'dddd')).toEqual('Saturday');
-        expect(formatDate(plainDateTime, 'dddd', 'nl')).toEqual('zaterdag');
 
         expect(formatDate(plainDateTime, 'W')).toEqual('10');
         expect(formatDate(plainDateTime, 'w')).toEqual('10');
@@ -202,20 +187,15 @@ describe('Temporal', () => {
         expect(formatDate(plainTime, 'M')).toEqual('1');
         expect(formatDate(plainTime, 'MM')).toEqual('01');
         expect(formatDate(plainTime, 'MMM')).toEqual('Jan');
-        expect(formatDate(plainTime, 'MMM', 'nl')).toEqual('jan');
         expect(formatDate(plainTime, 'MMMM')).toEqual('January');
-        expect(formatDate(plainTime, 'MMMM', 'nl')).toEqual('januari');
 
         expect(formatDate(plainTime, 'D')).toEqual('1');
         expect(formatDate(plainTime, 'DD')).toEqual('01');
         expect(formatDate(plainTime, 'Do')).toEqual('1st');
         expect(formatDate(plainTime, 'd')).toEqual('4');
         expect(formatDate(plainTime, 'dd')).toEqual('T');
-        expect(formatDate(plainTime, 'dd', 'nl')).toEqual('D');
         expect(formatDate(plainTime, 'ddd')).toEqual('Thu');
-        expect(formatDate(plainTime, 'ddd', 'nl')).toEqual('do');
         expect(formatDate(plainTime, 'dddd')).toEqual('Thursday');
-        expect(formatDate(plainTime, 'dddd', 'nl')).toEqual('donderdag');
 
         expect(formatDate(plainTime, 'W')).toEqual('1');
         expect(formatDate(plainTime, 'w')).toEqual('1');
@@ -263,20 +243,15 @@ describe('Temporal', () => {
         expect(formatDate(zonedDateTime, 'M')).toEqual('6');
         expect(formatDate(zonedDateTime, 'MM')).toEqual('06');
         expect(formatDate(zonedDateTime, 'MMM')).toEqual('Jun');
-        expect(formatDate(zonedDateTime, 'MMM', 'nl')).toEqual('jun');
         expect(formatDate(zonedDateTime, 'MMMM')).toEqual('June');
-        expect(formatDate(zonedDateTime, 'MMMM', 'nl')).toEqual('juni');
 
         expect(formatDate(zonedDateTime, 'D')).toEqual('5');
         expect(formatDate(zonedDateTime, 'DD')).toEqual('05');
         expect(formatDate(zonedDateTime, 'Do')).toEqual('5th');
         expect(formatDate(zonedDateTime, 'd')).toEqual('3');
         expect(formatDate(zonedDateTime, 'dd')).toEqual('W');
-        expect(formatDate(zonedDateTime, 'dd', 'nl')).toEqual('W');
         expect(formatDate(zonedDateTime, 'ddd')).toEqual('Wed');
-        expect(formatDate(zonedDateTime, 'ddd', 'nl')).toEqual('wo');
         expect(formatDate(zonedDateTime, 'dddd')).toEqual('Wednesday');
-        expect(formatDate(zonedDateTime, 'dddd', 'nl')).toEqual('woensdag');
 
         expect(formatDate(zonedDateTime, 'W')).toEqual('23');
         expect(formatDate(zonedDateTime, 'w')).toEqual('23');

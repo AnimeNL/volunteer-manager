@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 
 import { Markdown } from '@components/Markdown';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
-import { RegistrationLayout } from '../registration/RegistrationLayout';
+import { RegistrationLayout } from '../../registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { getStaticContent } from '@lib/Content';
