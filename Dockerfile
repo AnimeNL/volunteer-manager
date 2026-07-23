@@ -10,7 +10,7 @@ ARG NODE_VERSION=25.5.0-slim
 FROM node:${NODE_VERSION} AS dependencies
 
 # Install Git, to be able to authenticate when fetching the source tree
-RUN apt-get install -y git
+RUN apt-get update && apt-get install -y git
 
 # Set working directory
 WORKDIR /app
