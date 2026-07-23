@@ -1,59 +1,99 @@
 # syntax=docker/dockerfile:1
 # check=skip=SecretsUsedInArgOrEnv
 
-FROM node:24-alpine AS base
+# ============================================
+# Stage 1: Dependencies Installation Stage
+# ============================================
 
-# 1. Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat git
+ARG NODE_VERSION=25.5.0-slim
 
+FROM node:${NODE_VERSION} AS dependencies
+
+# Install Git, to be able to authenticate when fetching the source tree
+RUN apt-get install -y git
+
+# Set working directory
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+# Copy package-related files first to leverage Docker's caching mechanism
+COPY package.json package-lock.json* pnpm-lock.yaml* .npmrc* ./
 
-# Install dependencies based on the preferred package manager
 ARG GH_TOKEN
-RUN git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://git@github.com/" \
-    && npm ci --force
+RUN git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://git@github.com/"
 
-# 2. Rebuild the source code only when needed
-FROM base AS builder
+# Install project dependencies with frozen lockfile for reproducible builds
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+  if [ -f package-lock.json ]; then \
+    npm ci --no-audit --no-fund; \
+  elif [ -f pnpm-lock.yaml ]; then \
+    corepack enable pnpm && pnpm install --frozen-lockfile; \
+  else \
+    echo "No lockfile found." && exit 1; \
+  fi
+
+# ============================================
+# Stage 2: Build Next.js application in standalone mode
+# ============================================
+
+FROM node:${NODE_VERSION} AS builder
+
+# Set working directory
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy project dependencies from dependencies stage
+COPY --from=dependencies /app/node_modules ./node_modules
+
+# Copy application source code
 COPY . .
-
-# This will do the trick, use the corresponding env file for each environment.
-RUN npm run build
-
-# 3. Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 anime
-RUN adduser --system --uid 1001 anime
+# Build Next.js application
+RUN --mount=type=cache,target=/app/.next/cache \
+  if [ -f package-lock.json ]; then \
+    npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then \
+    corepack enable pnpm && pnpm build; \
+  else \
+    echo "No lockfile found." && exit 1; \
+  fi
 
-COPY --from=builder --chown=anime:anime /app/public ./public
+# ============================================
+# Stage 3: Run Next.js application
+# ============================================
+
+FROM node:${NODE_VERSION} AS runner
+
+# Set working directory
+WORKDIR /app
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Copy production assets
+COPY --from=builder --chown=node:node /app/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
-RUN chown anime:anime .next
+RUN chown node:node .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=anime:anime /app/.next/standalone ./
-COPY --from=builder --chown=anime:anime /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 
-USER anime
+# Switch to non-root user for security best practices
+USER node
 
-# Sets the port on which the Next.js server should be running, which differs for staging and prod.
-ARG PORT=3001
+# Expose port 3000 to allow HTTP traffic
+EXPOSE 3000
 
-EXPOSE $PORT
-
+# Expose the environment information to the runtime
 ENV PORT=$PORT
 ENV HOSTNAME="0.0.0.0"
 
+# Start Next.js standalone server
 CMD ["node", "server.js"]
