@@ -59,12 +59,24 @@ export interface DataTableListViewProps<RowModel extends object> {
     /**
      * Component to display at the start of the list item, if any.
      */
-    startComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+    startComponent?:
+        React.JSXElementConstructor<{ context?: any, listView?: boolean, row: RowModel }>;
+
+    /**
+     * Optional context to share with the `startComponent`. Must be serialisable by React.
+     */
+    startComponentContext?: any;
 
     /**
      * Component to display at the end of the list item, if any.
      */
-    endComponent?: React.JSXElementConstructor<{ row: RowModel, listView?: boolean }>;
+    endComponent?:
+        React.JSXElementConstructor<{ context?: any, listView?: boolean, row: RowModel }>;
+
+    /**
+     * Optional context to share with the `endComponent`. Must be serialisable by React.
+     */
+    endComponentContext?: any;
 
     /**
      * Template from which the URL to link to can be derived. Can contain any of the fields as
@@ -175,7 +187,9 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
         }}>
 
             { props.listViewProps.startComponent &&
-                <props.listViewProps.startComponent row={props.row} listView /> }
+                <props.listViewProps.startComponent
+                    context={props.listViewProps.startComponentContext}
+                    listView row={props.row} /> }
 
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
@@ -199,7 +213,8 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                 </Typography>}
 
             { props.listViewProps.endComponent &&
-                <props.listViewProps.endComponent row={props.row} listView /> }
+                <props.listViewProps.endComponent context={props.listViewProps.endComponentContext}
+                                                  listView row={props.row} /> }
 
             { !!props.onDelete && (
                 <>

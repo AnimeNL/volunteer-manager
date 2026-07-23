@@ -74,8 +74,7 @@ tables:
     default: "NULL"
   - name: log_format_updated
     type: datetime
-    nullable: true
-    default: "NULL"
+    nullable: false
   indexes:
   - name: log_type
     def: UNIQUE KEY log_type (log_type) USING BTREE
@@ -94,7 +93,7 @@ tables:
       `log_type` varchar(48) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
       `log_type_visible` tinyint(1) unsigned NOT NULL,
       `log_format` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-      `log_format_updated` datetime DEFAULT NULL,
+      `log_format_updated` datetime NOT NULL,
       UNIQUE KEY `log_type` (`log_type`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: hotels_assignments
