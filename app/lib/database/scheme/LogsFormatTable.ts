@@ -14,6 +14,7 @@ import {
 
 export class LogsFormatTable extends Table<DBConnection, 'LogsFormatTable'> {
     logType = this.column('log_type', 'string');
+    logTypeVisible = this.column('log_type_visible', 'int');
     logFormat = this.optionalColumnWithDefaultValue('log_format', 'string');
     logFormatUpdated = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('log_format_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 

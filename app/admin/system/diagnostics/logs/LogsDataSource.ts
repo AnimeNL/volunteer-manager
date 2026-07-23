@@ -113,6 +113,8 @@ export const logsDataSource = createDataSource('system/diagnostics/logs', withCo
                 .on(initiatorUserJoin.userId.equals(tLogs.logSourceUserId))
             .where(tLogs.logSourceUserId.equalsIfValue(context.userId).or(
                 tLogs.logTargetUserId.equalsIfValue(context.userId)))
+                .and(formatJoin.logTypeVisible.isNull().or(
+                    formatJoin.logTypeVisible.equals(/* true= */ 1)))
                 .and(tLogs.logDeleted.isNull())
                 .and(tLogs.logData.containsInsensitiveIfValue(params.search).or(
                     affectedUserJoin.name.containsInsensitiveIfValue(params.search).or(

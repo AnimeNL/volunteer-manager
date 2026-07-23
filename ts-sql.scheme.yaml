@@ -65,6 +65,9 @@ tables:
   - name: log_type
     type: varchar(48)
     nullable: false
+  - name: log_type_visible
+    type: tinyint(1) unsigned
+    nullable: false
   - name: log_format
     type: text
     nullable: true
@@ -89,6 +92,7 @@ tables:
   def: |-
     CREATE TABLE `logs_format` (
       `log_type` varchar(48) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+      `log_type_visible` tinyint(1) unsigned NOT NULL,
       `log_format` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
       `log_format_updated` datetime DEFAULT NULL,
       UNIQUE KEY `log_type` (`log_type`)
