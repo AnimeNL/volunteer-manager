@@ -28,6 +28,10 @@ interface LogTypeParameterMap {
     // Administration > Dashboard > System
     // ---------------------------------------------------------------------------------------------
 
+    CreateLogMessageFormat: {
+        type: string;
+    };
+
     CreateSchedulerTask: {
         taskName: string;
     };
@@ -93,6 +97,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Dashboard > System
     // ---------------------------------------------------------------------------------------------
 
+    CreateLogMessageFormat: 'CreateLogMessageFormat',
     CreateSchedulerTask: 'CreateSchedulerTask',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',

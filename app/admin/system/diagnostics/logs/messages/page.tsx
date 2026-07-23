@@ -9,9 +9,12 @@ import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
+import { LogBuilder } from '@lib/log/index';
+import { LogFormatAction } from './LogFormatAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import db, { tLogsFormat } from '@lib/database';
 
 /**
@@ -82,6 +85,51 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
 });
 
 /**
+ * Data schema expected by the `createLogFormat` server action.
+ */
+const kCreateLogFormatData = z.object({
+    type: z.string().nonempty(),
+    format: z.string().nonempty(),
+});
+
+/**
+ * Server action that creates a new log message formatting rule. The rule will be enabled by default
+ * as, at the very least, its functionality will be tested and confirmed.
+ */
+async function createLogFormat(formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kCreateLogFormatData, async ({ type, format }, props) => {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'system.internals.settings',
+        });
+
+        const dbInstance = db;
+        const success = await dbInstance.insertInto(tLogsFormat)
+            .set({
+                logType: type,
+                logFormat: format,
+                logTypeVisible: 1,
+                logFormatUpdated: dbInstance.currentZonedDateTime(),
+            })
+            .executeInsert();
+
+        if (!success)
+            return { success: false, error: 'Unable to store the new format in the database…' };
+
+        LogBuilder.for('CreateLogMessageFormat')
+            .withInitiatorUser(props.user)
+            .record({ type: type });
+
+        return {
+            success: true,
+            close: true,
+        };
+    });
+}
+
+
+/**
  * Page through which administrators are able to manage message formatting, i.e. how log entries
  * should be presented on the log overview page. Restricted to administrators as this is relatively
  * easy to mess up.
@@ -140,6 +188,7 @@ export default async function SystemLogsMessageFormattingPage() {
     return (
         <>
             <Section icon={ <ReceiptOutlinedIcon color="primary" /> } title="Message formatting"
+                     headerAction={ <LogFormatAction createLogFormatFn={createLogFormat} /> }
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Diagnostics', href: '/admin/system/diagnostics' },
