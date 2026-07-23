@@ -12,8 +12,6 @@ export default async function NotFoundPage() {
     return <ErrorPage statusCode={404} />;
 }
 
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
     title: 'Not found | AnimeCon Volunteering Teams',
 };

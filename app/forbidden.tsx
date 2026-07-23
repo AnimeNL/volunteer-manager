@@ -12,8 +12,6 @@ export default async function ForbiddenPage() {
     return <ErrorPage statusCode={403} />;
 }
 
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
     title: 'No access | AnimeCon Volunteering Teams',
 };

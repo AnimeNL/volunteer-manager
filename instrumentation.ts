@@ -3,6 +3,10 @@
 
 import { SchedulerRunner } from '@lib/scheduler/SchedulerRunner';
 
+if (!globalThis.Temporal) {
+    await import('temporal-polyfill/global');
+}
+
 /**
  * Instrumentation function that will automatically be called whenever a new Next.js server instance
  * is bootstrapped. We use this to create our own event loop using which we invoke the Volunteer

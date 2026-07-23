@@ -23,7 +23,7 @@
   "private": true,
   "homepage": "https://github.com/AnimeNL/volunteer-manager",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=26.0.0"
   },
   "overrides": {
     "@mui/material": "$@mui/material",

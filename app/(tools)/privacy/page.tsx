@@ -36,8 +36,6 @@ export default async function PrivacyPage() {
     );
 }
 
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
     title: 'GDPR & Data Sharing Policies | AnimeCon Volunteering Teams',
 };
