@@ -58,6 +58,8 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
     );
 }
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Volunteering Guide | AnimeCon Volunteering Teams',
 };

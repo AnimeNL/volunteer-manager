@@ -35,3 +35,5 @@ export default function StatuszPage() {
         </Stack>
     );
 }
+
+export const dynamic = 'force-dynamic';
