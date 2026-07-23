@@ -9,7 +9,6 @@ import { MariaDBConnection } from 'ts-sql-query/connections/MariaDBConnection';
 import { MariaDBPoolQueryRunner } from 'ts-sql-query/queryRunners/MariaDBPoolQueryRunner';
 import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
-import type { PlainDate, ZonedDateTime } from '@lib/Temporal';
 import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
 
 declare namespace globalThis {
@@ -61,15 +60,15 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
      * Value representing the current date and time. Evaluated on the database server.
      */
     currentZonedDateTime = () =>
-        this.fragmentWithType<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'required')
-            .sql`current_timestamp`;
+        this.fragmentWithType<Temporal.ZonedDateTime>(
+            'customLocalDateTime', 'ZonedDateTime', 'required').sql`current_timestamp`;
 
     /**
      * Helper function to retrieve a string representation (YYYY-MM-DD) of a DATE column. Works for
      * both required and optional columns.
      */
     dateAsString = this.buildFragmentWithMaybeOptionalArgs(
-        this.arg<PlainDate>('customLocalDate', 'PlainDate', 'optional')
+        this.arg<Temporal.PlainDate>('customLocalDate', 'PlainDate', 'optional')
     ).as(value => {
         return this.fragmentWithType('string', 'optional').sql`date_format(${value}, "%Y-%m-%d")`;
     });
@@ -79,7 +78,7 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
      * TIMESTAMP column. Works for both required and optional columns.
      */
     dateTimeAsDateString = this.buildFragmentWithMaybeOptionalArgs(
-        this.arg<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'optional')
+        this.arg<Temporal.ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'optional')
     ).as(value => {
         return this.fragmentWithType('string', 'optional').sql`date_format(${value}, "%Y-%m-%d")`;
     });
@@ -89,7 +88,7 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
      * a DATETIME or TIMESTAMP column. Works for both required and optional columns.
      */
     dateTimeAsString = this.buildFragmentWithMaybeOptionalArgs(
-        this.arg<ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'optional')
+        this.arg<Temporal.ZonedDateTime>('customLocalDateTime', 'ZonedDateTime', 'optional')
     ).as(value => {
         return this.fragmentWithType('string', 'optional')
             .sql`date_format(${value}, "%Y-%m-%dT%TZ[UTC]")`;

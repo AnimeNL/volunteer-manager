@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { isBefore, type ZonedDateTime } from '@lib/Temporal';
+import { isBefore } from '@lib/Temporal';
 import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts,
     tShiftsCategories, tEvents } from '@lib/database';
 
@@ -185,7 +185,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
 
         const rows = volunteers.data.map(volunteer => {
             const communication: Record<string, string> = {};
-            const communicationPrompts: Map<string, ZonedDateTime> = new Map();
+            const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
             for (const item of volunteer.communication) {
                 const latestCommunication = communicationPrompts.get(item.promptId);
                 if (!latestCommunication || isBefore(latestCommunication, item.date))

@@ -11,14 +11,11 @@ import type { DBConnection } from "../Connection";
 import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
-import {
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class DutyBookViewersTable extends Table<DBConnection, 'DutyBookViewersTable'> {
     dutyBookId = this.column('duty_book_id', 'int');
     dutyBookViewerUserId = this.column('duty_book_viewer_user_id', 'int');
-    dutyBookViewerDate = this.columnWithDefaultValue<ZonedDateTime>('duty_book_viewer_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    dutyBookViewerDate = this.columnWithDefaultValue<Temporal.ZonedDateTime>('duty_book_viewer_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('duty_book_viewers');

@@ -12,9 +12,6 @@ import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
 import {
-    ZonedDateTime,
-} from "../../Temporal";
-import {
     EventAvailabilityStatus,
 } from "../Types";
 
@@ -24,23 +21,23 @@ export class EventsTable extends Table<DBConnection, 'EventsTable'> {
     eventShortName = this.column('event_short_name', 'string');
     eventSlug = this.column('event_slug', 'string');
     eventHidden = this.columnWithDefaultValue('event_hidden', 'int');
-    eventStartTime = this.column<ZonedDateTime>('event_start_time', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    eventEndTime = this.column<ZonedDateTime>('event_end_time', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    eventStartTime = this.column<Temporal.ZonedDateTime>('event_start_time', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    eventEndTime = this.column<Temporal.ZonedDateTime>('event_end_time', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     eventTimingPublished = this.column('event_timing_published', 'int');
     availabilityBuildUp = this.columnWithDefaultValue('availability_build_up', 'int');
     availabilityTearDown = this.columnWithDefaultValue('availability_tear_down', 'int');
     hotelEnabled = this.columnWithDefaultValue('hotel_enabled', 'int');
     hotelInformationPublished = this.columnWithDefaultValue('hotel_information_published', 'int');
-    hotelPreferencesStart = this.optionalColumnWithDefaultValue<ZonedDateTime>('hotel_preferences_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    hotelPreferencesEnd = this.optionalColumnWithDefaultValue<ZonedDateTime>('hotel_preferences_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    hotelPreferencesStart = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('hotel_preferences_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    hotelPreferencesEnd = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('hotel_preferences_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     refundEnabled = this.columnWithDefaultValue('refund_enabled', 'int');
     refundInformationPublished = this.columnWithDefaultValue('refund_information_published', 'int');
-    refundRequestsStart = this.optionalColumnWithDefaultValue<ZonedDateTime>('refund_requests_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    refundRequestsEnd = this.optionalColumnWithDefaultValue<ZonedDateTime>('refund_requests_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    refundRequestsStart = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_requests_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    refundRequestsEnd = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_requests_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     trainingEnabled = this.columnWithDefaultValue('training_enabled', 'int');
     trainingInformationPublished = this.columnWithDefaultValue('training_information_published', 'int');
-    trainingPreferencesStart = this.optionalColumnWithDefaultValue<ZonedDateTime>('training_preferences_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    trainingPreferencesEnd = this.optionalColumnWithDefaultValue<ZonedDateTime>('training_preferences_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    trainingPreferencesStart = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('training_preferences_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    trainingPreferencesEnd = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('training_preferences_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     eventAvailabilityStatus = this.column<EventAvailabilityStatus>('event_availability_status', 'enum', 'EventAvailabilityStatus');
     eventLocation = this.optionalColumnWithDefaultValue('event_location', 'string');
     eventTimezone = this.column('event_timezone', 'string');

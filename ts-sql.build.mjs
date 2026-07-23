@@ -131,8 +131,7 @@ do {
                     type: {
                         kind: 'customLocalDate',
                         tsType: {
-                            importPath: './app/lib/Temporal',
-                            name: 'PlainDate',
+                            name: 'Temporal.PlainDate',
                         },
                         adapter: {
                             importPath: './app/lib/database/TemporalTypeAdapter',
@@ -151,8 +150,7 @@ do {
                         kind: 'customLocalDateTime',
                         dbType: { name: 'dateTime' },
                         tsType: {
-                            importPath: './app/lib/Temporal',
-                            name: 'ZonedDateTime',
+                            name: 'Temporal.ZonedDateTime',
                         },
                         adapter: {
                             importPath: './app/lib/database/TemporalTypeAdapter',
@@ -170,8 +168,7 @@ do {
                     type: {
                         kind: 'customLocalTime',
                         tsType: {
-                            importPath: './app/lib/Temporal',
-                            name: 'PlainTime',
+                            name: 'Temporal.PlainTime',
                         },
                         adapter: {
                             importPath: './app/lib/database/TemporalTypeAdapter',
@@ -190,8 +187,7 @@ do {
                         kind: 'customLocalDateTime',
                         dbType: { name: 'timestamp' },
                         tsType: {
-                            importPath: './app/lib/Temporal',
-                            name: 'ZonedDateTime',
+                            name: 'Temporal.ZonedDateTime',
                         },
                         adapter: {
                             importPath: './app/lib/database/TemporalTypeAdapter',

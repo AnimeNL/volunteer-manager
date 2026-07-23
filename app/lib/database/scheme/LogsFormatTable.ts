@@ -11,14 +11,11 @@ import type { DBConnection } from "../Connection";
 import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
-import {
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class LogsFormatTable extends Table<DBConnection, 'LogsFormatTable'> {
     logType = this.column('log_type', 'string');
     logFormat = this.optionalColumnWithDefaultValue('log_format', 'string');
-    logFormatUpdated = this.optionalColumnWithDefaultValue<ZonedDateTime>('log_format_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    logFormatUpdated = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('log_format_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('logs_format');

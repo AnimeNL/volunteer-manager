@@ -14,9 +14,6 @@ import {
 import {
     ActivityType,
 } from "../Types";
-import {
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class ActivitiesLocationsTable extends Table<DBConnection, 'ActivitiesLocationsTable'> {
     locationId = this.column('location_id', 'int');
@@ -25,9 +22,9 @@ export class ActivitiesLocationsTable extends Table<DBConnection, 'ActivitiesLoc
     locationName = this.column('location_name', 'string');
     locationDisplayName = this.optionalColumnWithDefaultValue('location_display_name', 'string');
     locationAreaId = this.column('location_area_id', 'int');
-    locationCreated = this.column<ZonedDateTime>('location_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    locationUpdated = this.column<ZonedDateTime>('location_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    locationDeleted = this.optionalColumnWithDefaultValue<ZonedDateTime>('location_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    locationCreated = this.column<Temporal.ZonedDateTime>('location_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    locationUpdated = this.column<Temporal.ZonedDateTime>('location_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    locationDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('location_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('activities_locations');

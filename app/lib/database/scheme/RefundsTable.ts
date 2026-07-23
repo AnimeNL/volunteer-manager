@@ -11,9 +11,6 @@ import type { DBConnection } from "../Connection";
 import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
-import {
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class RefundsTable extends Table<DBConnection, 'RefundsTable'> {
     userId = this.column('user_id', 'int');
@@ -21,8 +18,8 @@ export class RefundsTable extends Table<DBConnection, 'RefundsTable'> {
     refundTicketNumber = this.optionalColumnWithDefaultValue('refund_ticket_number', 'string');
     refundAccountIban = this.column('refund_account_iban', 'string');
     refundAccountName = this.column('refund_account_name', 'string');
-    refundRequested = this.columnWithDefaultValue<ZonedDateTime>('refund_requested', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    refundConfirmed = this.optionalColumnWithDefaultValue<ZonedDateTime>('refund_confirmed', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    refundRequested = this.columnWithDefaultValue<Temporal.ZonedDateTime>('refund_requested', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    refundConfirmed = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_confirmed', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('refunds');

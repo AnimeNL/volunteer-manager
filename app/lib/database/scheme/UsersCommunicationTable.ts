@@ -11,9 +11,6 @@ import type { DBConnection } from "../Connection";
 import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
-import {
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class UsersCommunicationTable extends Table<DBConnection, 'UsersCommunicationTable'> {
     userId = this.column('user_id', 'int');
@@ -22,7 +19,7 @@ export class UsersCommunicationTable extends Table<DBConnection, 'UsersCommunica
     communicationTeamId = this.column('communication_team_id', 'int');
     communicationPromptId = this.column('communication_prompt_id', 'string');
     communicationSenderId = this.column('communication_sender_id', 'int');
-    communicationDate = this.column<ZonedDateTime>('communication_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    communicationDate = this.column<Temporal.ZonedDateTime>('communication_date', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('users_communication');

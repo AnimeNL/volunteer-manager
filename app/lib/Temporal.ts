@@ -2,22 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
- * Type definition of a `ZonedDateTime`, as the `ts-sql-codegen` library insists on the type name
- * and the export name being identical, which is not the case for `Temporal`.
- *
- * @todo Delete this
- */
-export type ZonedDateTime = Temporal.ZonedDateTime;
-
-/**
- * Export top-level type definitions for the plain date and time types.
- *
- * @todo Delete this
- */
-export type PlainDate = Temporal.PlainDate;
-export type PlainTime = Temporal.PlainTime;
-
-/**
  * Regular expression using which we parse the format passed to the `format` function. It combines
  * the original expression with the one used in the _advancedFormat_ plugin, as we support both.
  *

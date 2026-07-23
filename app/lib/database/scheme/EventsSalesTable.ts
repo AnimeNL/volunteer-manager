@@ -11,17 +11,13 @@ import type { DBConnection } from "../Connection";
 import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
-import {
-    PlainDate,
-    ZonedDateTime,
-} from "../../Temporal";
 
 export class EventsSalesTable extends Table<DBConnection, 'EventsSalesTable'> {
     eventId = this.column('event_id', 'int');
     eventSaleId = this.column('event_sale_id', 'int');
-    eventSaleDate = this.column<PlainDate>('event_sale_date', 'customLocalDate', 'date', TemporalTypeAdapter);
+    eventSaleDate = this.column<Temporal.PlainDate>('event_sale_date', 'customLocalDate', 'date', TemporalTypeAdapter);
     eventSaleCount = this.column('event_sale_count', 'int');
-    eventSaleUpdated = this.column<ZonedDateTime>('event_sale_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    eventSaleUpdated = this.column<Temporal.ZonedDateTime>('event_sale_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('events_sales');
