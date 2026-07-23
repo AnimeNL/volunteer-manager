@@ -14,7 +14,7 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { RerunTaskButton } from './RerunTaskButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
 

@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import Collapse from '@mui/material/Collapse';
 
 import type { TrainingsAssignmentsRowModel } from '@app/api/admin/trainings/assignments/[[...id]]/route';
-import { Temporal } from '@lib/Temporal';
 import { TrainingAssignments } from './TrainingAssignments';
 import { TrainingConfiguration } from './TrainingConfiguration';
 import { TrainingExternal } from './TrainingExternal';

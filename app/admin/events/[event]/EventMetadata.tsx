@@ -17,7 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { PageInfo } from '../verifyAccessAndFetchPageInfo';
-import { Temporal, isAfter, isBefore } from '@lib/Temporal';
+import { isAfter, isBefore } from '@lib/Temporal';
 
 /**
  * Formats the difference between `from` and `to`.

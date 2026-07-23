@@ -5,7 +5,7 @@
 
 import type { TrainingsRowModel } from '@app/api/admin/trainings/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal, formatDate, fromLocalDate, toLocalDate } from '@lib/Temporal';
+import { formatDate, fromLocalDate, toLocalDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <TrainingConfigurationTable> component.

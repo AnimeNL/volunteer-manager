@@ -17,7 +17,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 
 /**
  * Props accepted by the <StatisticsLayout> component.

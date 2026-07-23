@@ -12,7 +12,6 @@ import Typography from '@mui/material/Typography';
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import type { TrainingsExtraRowModel } from '@app/api/admin/trainings/extra/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal } from '@lib/Temporal';
 
 /**
  * Props accepted by the <TrainingExternal> component.

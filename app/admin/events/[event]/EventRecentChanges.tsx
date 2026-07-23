@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 
 import type { PageInfo } from '../verifyAccessAndFetchPageInfo';
 import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 
 /**
  * Whether the volunteer's application `status` is still pending.

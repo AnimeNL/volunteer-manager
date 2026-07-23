@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 
 /**
  * Props accepted by the <LocalDateDuration> component.

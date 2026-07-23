@@ -40,7 +40,7 @@ import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { Avatar } from '@components/Avatar';
 import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Type definition for a bullet point of information associated with an application.

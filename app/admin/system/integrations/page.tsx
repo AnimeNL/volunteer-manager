@@ -25,7 +25,6 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { GoogleIcon } from '@app/admin/components/icons/GoogleIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal } from '@lib/Temporal';
 import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
 import { WeeztixAuthorizeButton } from './WeeztixAuthorizeButton';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';

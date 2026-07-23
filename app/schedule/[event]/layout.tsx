@@ -13,10 +13,10 @@ import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleContextManager } from './ScheduleContextManager';
 import { ScheduleTheme } from './ScheduleTheme';
-import { Temporal, isAfter } from '@lib/Temporal';
 import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
+import { isAfter } from '@lib/Temporal';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';

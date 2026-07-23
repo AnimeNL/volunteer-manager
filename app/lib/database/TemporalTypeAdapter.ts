@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { DefaultTypeAdapter, TypeAdapter } from 'ts-sql-query/TypeAdapter';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Regular expressions used to interpret received dates as either dates or times.

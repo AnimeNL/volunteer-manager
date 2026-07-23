@@ -15,7 +15,7 @@ import Table from '@mui/material/Table';
 import Typography from '@mui/material/Typography';
 
 import type { TrainingsDataExport } from '@app/api/exports/route';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { useSelectElementText } from './useSelectElementText';
 
 /**

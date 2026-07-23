@@ -16,8 +16,8 @@ import StarRateOutlinedIcon from '@mui/icons-material/StarRateOutlined';
 import Typography from '@mui/material/Typography';
 
 import type { DisplayShiftInfo } from '../DisplayContext';
-import { Temporal, formatDate } from '@lib/Temporal';
 import { VolunteersDialog } from './VolunteersDialog';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Number of entries to display on the future volunteer list.

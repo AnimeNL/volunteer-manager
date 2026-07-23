@@ -15,7 +15,6 @@ import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
 import { NavigationMenu } from '../layout/NavigationMenu';
-import { Temporal } from '@lib/Temporal';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';

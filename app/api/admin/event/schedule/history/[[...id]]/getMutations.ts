@@ -9,7 +9,7 @@ export interface EventScheduleHistoryRowModel {
     mutation: string;
 }
 import { type Mutation, kMutation } from '@lib/database/Types';
-import { type Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import db, { tScheduleLogs, tSchedule, tShifts, tUsers } from '@lib/database';
 
 /**

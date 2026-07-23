@@ -18,7 +18,7 @@ import type { AccessControl } from '@lib/auth/AccessControl';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
 import { InlineAccountLink } from '../components/InlineAccountLink';
-import { Temporal, formatDate, formatDuration } from '@lib/Temporal';
+import { formatDate, formatDuration } from '@lib/Temporal';
 import { queryBirthdays } from '../(tools)/birthdays/queryBirthdays';
 
 /**

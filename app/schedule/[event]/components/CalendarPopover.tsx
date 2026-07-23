@@ -17,7 +17,6 @@ import { Calendar, type CalendarEvent } from '@AnimeNL/volunteer-manager-timelin
 import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 
 import type { PublicVendorSchedule } from '@app/api/event/schedule/PublicSchedule';
-import { Temporal } from '@lib/Temporal';
 import { currentInstant, currentTimezone } from '../CurrentTime';
 import { useIsMobile } from '../lib/useIsMobile';
 

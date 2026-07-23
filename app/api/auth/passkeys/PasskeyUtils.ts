@@ -4,7 +4,6 @@
 import type { VerifiedRegistrationResponse } from '@simplewebauthn/server';
 
 import type { ActionProps } from '@app/api/Action';
-import type { Temporal } from '@lib/Temporal';
 import db, { tUsersPasskeys, tUsers } from '@lib/database';
 
 type PasskeyRegistration = NonNullable<VerifiedRegistrationResponse['registrationInfo']>;

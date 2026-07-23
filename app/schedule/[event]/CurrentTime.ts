@@ -3,7 +3,6 @@
 
 'use client';
 
-import { Temporal } from '@lib/Temporal';
 
 declare namespace globalThis {
     let animeConTimeCache: Map<number, Temporal.ZonedDateTime>;

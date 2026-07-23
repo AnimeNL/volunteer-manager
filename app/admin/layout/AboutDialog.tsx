@@ -21,7 +21,7 @@ import ListItemText from '@mui/material/ListItemText';
 import NavigateNextOutlinedIcon from '@mui/icons-material/NavigateNextOutlined';
 import Typography from '@mui/material/Typography';
 
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Dependencies that should be included in the dialog. Version information is sourced at build time.

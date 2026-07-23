@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AccessControl } from '@lib/auth/AccessControl';
-import { Temporal } from '@lib/Temporal';
 import db, { tEvents, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 /**

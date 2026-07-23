@@ -9,7 +9,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import Tooltip from '@mui/material/Tooltip';
 import UpdateDisabledIcon from '@mui/icons-material/UpdateDisabled';
 
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Cell that displays an icon to indicate why the export no longer is available. A fair amount of

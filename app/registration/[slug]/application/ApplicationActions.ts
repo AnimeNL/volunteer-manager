@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import { Publish } from '@lib/subscriptions';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
-import { isAfter, isBefore, Temporal } from '@lib/Temporal';
+import { isAfter, isBefore } from '@lib/Temporal';
 import { determineAvailabilityStatus } from '@lib/EnvironmentContext';
 import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from './[team]/availability/getPublicEventsForFestival';

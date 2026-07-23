@@ -38,7 +38,7 @@ import { SetTitle } from '../../components/SetTitle';
 import { SubHeader } from '../../components/SubHeader';
 import { callApi } from '@lib/callApi';
 import { currentTimestamp, toZonedDateTime } from '../../CurrentTime';
-import { formatDate, type Temporal } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 import { kEnforceSingleLine } from '../../Constants';
 import { kLogicalDayChangeHour } from '../../lib/isDifferentDay';

@@ -5,7 +5,6 @@
 
 import { useRouter } from 'next/navigation';
 
-import { Temporal } from '@lib/Temporal';
 import { Timeline, type TimelineEvent } from '@app/admin/components/Timeline';
 
 /**

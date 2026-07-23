@@ -23,7 +23,7 @@ import Table from '@mui/material/Table';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Information about an individual confirmation.

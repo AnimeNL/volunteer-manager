@@ -12,7 +12,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import { InlineFavouriteStar } from './InlineFavouriteStar';
 import { ListItemDetails } from './ListItemDetails';
 import { ListItemEventText } from './ListItemEventText';
-import { formatDate, type Temporal } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { isDifferentDay } from '../lib/isDifferentDay';
 import { toZonedDateTime } from '../CurrentTime';
 

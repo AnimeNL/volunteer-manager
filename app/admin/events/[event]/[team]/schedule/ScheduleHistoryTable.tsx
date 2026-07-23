@@ -8,7 +8,7 @@ import Link from '@app/LinkProxy';
 import { default as MuiLink } from '@mui/material/Link';
 
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 import type { EventScheduleHistoryContext, EventScheduleHistoryRowModel }
     from '@app/api/admin/event/schedule/history/[[...id]]/route';

@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { styled } from '@mui/material/styles';
 
 /**

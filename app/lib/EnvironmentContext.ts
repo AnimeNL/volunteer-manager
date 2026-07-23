@@ -5,8 +5,8 @@ import crypto from 'node:crypto';
 
 import type { Environment } from './Environment';
 import type { RegistrationStatus } from './database/Types';
-import { Temporal, isBefore } from '@lib/Temporal';
 import { getAuthenticationContext, type AuthenticationContext } from './auth/AuthenticationContext';
+import { isBefore } from '@lib/Temporal';
 import db, { tEnvironmentsEvents, tEvents, tEventsTeams, tTeams, tUsersEvents }
     from '@lib/database';
 

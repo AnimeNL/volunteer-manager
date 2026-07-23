@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 
 import type { NardoRowModel } from '@app/api/nardo/[[...id]]/route';
 import { type RemoteDataTableColumn, RemoteDataTable } from '../../components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * The <AdviceDataTable> component displays the pieces of advice that Del a Rie Advies is able to

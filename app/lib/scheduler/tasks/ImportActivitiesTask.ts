@@ -8,7 +8,6 @@ import { z } from 'zod/v4';
 import type { Activity, Location, Timeslot } from '@lib/integrations/animecon';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { TaskWithParams } from '../Task';
-import { Temporal } from '@lib/Temporal';
 import { createAnimeConClient } from '@lib/integrations/animecon';
 
 import type { Mutation, MutationSeverity } from '@lib/database/Types';

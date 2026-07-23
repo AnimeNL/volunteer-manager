@@ -9,7 +9,6 @@ import { useTheme } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 
-import { Temporal } from '@lib/Temporal';
 
 import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 import { Schedule as ScheduleInternal } from '@AnimeNL/volunteer-manager-timeline';

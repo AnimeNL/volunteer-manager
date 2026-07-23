@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Temporal } from '@lib/Temporal';
 import { createColourInterpolator, type ColourInterpolator } from './createColourInterpolator';
 import db, { tActivities, tSchedule, tShifts, tShiftsCategories, tTeams, tUsersEvents }
     from '@lib/database';

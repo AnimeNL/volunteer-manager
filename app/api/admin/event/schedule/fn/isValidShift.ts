@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Event } from '@lib/EventLoader';
-import type { Temporal } from '@lib/Temporal';
 import { getTimeslots } from './getTimeslots';
 import { readSettings } from '@lib/Settings';
 import { determineAvailability } from './determineAvailability';

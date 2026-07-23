@@ -3,7 +3,6 @@
 
 import { z } from 'zod/v4';
 
-import { Temporal } from '@lib/Temporal';
 
 /**
  * Type that allows the correct API definition to be exported. From the client-side consumer point

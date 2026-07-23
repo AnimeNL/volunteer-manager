@@ -11,7 +11,6 @@ import { EventStatusCell, EventTeamsCell } from './EventRowComponents';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal } from '@lib/Temporal';
 import { createEvent } from './createEvent';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';

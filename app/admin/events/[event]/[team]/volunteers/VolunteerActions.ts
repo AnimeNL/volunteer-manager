@@ -4,7 +4,6 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { Temporal } from '@lib/Temporal';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';

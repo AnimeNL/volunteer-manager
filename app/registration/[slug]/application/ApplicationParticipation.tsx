@@ -18,7 +18,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
 
 import { HiddenInput } from '@components/HiddenInput';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 import type { kServiceHoursProperty, kServiceTimingProperty } from './ApplicationActions';
 import { kAvailabilityBuildUpTearDownScheme } from './AvailabilityBuildUpTearDownScheme';

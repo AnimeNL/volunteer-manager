@@ -14,7 +14,6 @@ import Typography from '@mui/material/Typography';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
-import { Temporal } from '@lib/Temporal';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { generateWeeztixState } from './generateWeeztixState';
 import { readSettings, writeSettings } from '@lib/Settings';

@@ -5,7 +5,6 @@ import type { ModelTextResponse } from '@lib/integrations/genai/Client';
 import type { Prompt } from './Prompt';
 import { PromptValidator } from './PromptValidator';
 import { SystemPrompt } from './prompts';
-import { Temporal } from '@lib/Temporal';
 import { createAiClient } from '@lib/integrations/genai';
 import { readUserSetting } from '@lib/UserSettings';
 

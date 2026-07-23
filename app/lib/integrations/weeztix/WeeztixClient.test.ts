@@ -4,7 +4,6 @@
 import { vi } from 'vitest';
 
 import { WeeztixClient, type WeeztixClientSettings } from './WeeztixClient';
-import { Temporal } from '@lib/Temporal';
 import { writeSettings } from '@lib/Settings';
 
 vi.mock('@lib/Settings', () => ({
@@ -85,7 +84,7 @@ describe('WeeztixClient', () => {
         expect(events).toHaveLength(1);
 
         expect(fetchSpy).toHaveBeenCalledTimes(2);
-        
+
         // Assert token refresh call
         expect(fetchSpy.mock.calls[0][0]).toBe('https://auth.weeztix.com/tokens');
         expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({

@@ -4,7 +4,7 @@
 import type { YourTicketProviderTicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 import { ImportYourTicketProviderTask } from './ImportYourTicketProviderTask';
 import { TaskContext } from '../TaskContext';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { useMockConnection } from '@lib/database/Connection';
 
 describe('ImportYourTicketProviderTask', () => {

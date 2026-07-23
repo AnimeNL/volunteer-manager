@@ -3,7 +3,6 @@
 
 import { z } from 'zod/v4';
 
-import { Temporal } from '@lib/Temporal';
 import { validateTime } from './validateTime';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';

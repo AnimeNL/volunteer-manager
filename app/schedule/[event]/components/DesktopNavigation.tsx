@@ -29,8 +29,8 @@ import { useTheme } from '@mui/material/styles';
 import type { PublicSchedule } from '@app/api/event/schedule/PublicSchedule';
 import { Alert } from './Alert';
 import { ScheduleContext } from '../ScheduleContext';
-import { type Temporal, formatDate } from '@lib/Temporal';
 import { currentZonedDateTime } from '../CurrentTime';
+import { formatDate } from '@lib/Temporal';
 
 import { kDesktopMenuWidthPx } from '../Constants';
 

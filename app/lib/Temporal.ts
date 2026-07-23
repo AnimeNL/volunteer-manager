@@ -1,17 +1,18 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Temporal } from 'temporal-polyfill';
-export { Temporal };
-
 /**
  * Type definition of a `ZonedDateTime`, as the `ts-sql-codegen` library insists on the type name
  * and the export name being identical, which is not the case for `Temporal`.
+ *
+ * @todo Delete this
  */
 export type ZonedDateTime = Temporal.ZonedDateTime;
 
 /**
  * Export top-level type definitions for the plain date and time types.
+ *
+ * @todo Delete this
  */
 export type PlainDate = Temporal.PlainDate;
 export type PlainTime = Temporal.PlainTime;

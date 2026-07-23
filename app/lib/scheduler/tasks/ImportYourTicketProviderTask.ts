@@ -5,7 +5,6 @@ import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovi
 import type { YourTicketProviderTicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
-import { Temporal } from '@lib/Temporal';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import { isTest } from '@lib/isTest';
 import db, { tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';

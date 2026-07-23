@@ -17,7 +17,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { PageInfo } from '../verifyAccessAndFetchPageInfo';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <EventDeadlines> component.

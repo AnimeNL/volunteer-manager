@@ -29,10 +29,10 @@ import type { ChangeEventContext, ScheduleEvent } from '@app/admin/components/Sc
 import type { GetScheduleResult } from '@app/api/admin/event/schedule/getSchedule';
 import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { DocumentationButton } from '@app/admin/components/DocumentationButton';
-import { SectionHeader } from '@app/admin/components/SectionHeader';
-import { Temporal, formatDate } from '@lib/Temporal';
-import { callApi } from '@lib/callApi';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
+import { SectionHeader } from '@app/admin/components/SectionHeader';
+import { callApi } from '@lib/callApi';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Information regarding the schedule context.

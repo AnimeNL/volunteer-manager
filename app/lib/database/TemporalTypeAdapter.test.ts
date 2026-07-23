@@ -4,7 +4,7 @@
 import type { DefaultTypeAdapter } from 'ts-sql-query/TypeAdapter';
 
 import { TemporalTypeAdapter } from './TemporalTypeAdapter';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 describe('TemporalTypeAdapter', () => {
     const adapter = TemporalTypeAdapter;

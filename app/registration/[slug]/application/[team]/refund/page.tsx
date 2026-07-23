@@ -14,7 +14,7 @@ import { FormSubmitButton } from '@components/FormSubmitButton';
 import { Markdown } from '@components/Markdown';
 import { RefundConfirmation } from './RefundConfirmation';
 import { RefundRequest } from './RefundRequest';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import db, { tEvents, tRefunds } from '@lib/database';

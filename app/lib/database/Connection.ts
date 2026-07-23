@@ -11,7 +11,6 @@ import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
 import type { PlainDate, ZonedDateTime } from '@lib/Temporal';
 import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
-import { Temporal } from '@lib/Temporal';
 
 declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;

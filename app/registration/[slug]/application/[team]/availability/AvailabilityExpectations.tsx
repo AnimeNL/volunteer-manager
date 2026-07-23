@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { EventTimeslotEntry } from './getPublicEventsForFestival';
-import { Temporal, formatDate, isAfter, isBefore } from '@lib/Temporal';
+import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 
 import type { AvailabilityDayInfo, AvailabilityExpectation } from './AvailabilityExpectationsClient';
 import { AvailabilityExpectationDay, AvailabilityLegend } from './AvailabilityExpectationsClient';

@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
 import { EventCardHighlight } from './EventCardHighlight';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import db, { tEvents, tStorage } from '@lib/database';
 

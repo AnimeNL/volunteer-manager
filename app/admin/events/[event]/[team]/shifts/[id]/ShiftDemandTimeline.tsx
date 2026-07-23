@@ -8,7 +8,6 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
-import { Temporal } from '@lib/Temporal';
 import { Timeline, type TimelineEvent, type TimelineEventMutation } from '@app/admin/components/Timeline';
 import { VisibilityContext } from './ShiftTeamVisibilityContext';
 

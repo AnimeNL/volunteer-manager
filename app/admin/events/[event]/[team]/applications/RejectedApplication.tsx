@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography';
 import type { ServerAction } from '@lib/serverAction';
 import { Avatar } from '@components/Avatar';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <RejectedApplication> component.

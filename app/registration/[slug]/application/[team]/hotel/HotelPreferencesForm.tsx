@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 
 import { CollapsableGrid } from '@components/CollapsableGrid';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { dayjs } from '@lib/DateTime';
 
 /**

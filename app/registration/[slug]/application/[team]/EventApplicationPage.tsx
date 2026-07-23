@@ -22,8 +22,8 @@ import type { EnvironmentContext } from '@lib/EnvironmentContext';
 import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { Registration } from './getRegistration';
 import type { User } from '@lib/auth/User';
-import { Temporal, formatDate, isBefore, isAfter } from '@lib/Temporal';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
+import { formatDate, isBefore, isAfter } from '@lib/Temporal';
 
 import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
 

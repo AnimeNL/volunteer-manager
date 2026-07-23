@@ -9,7 +9,6 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { Temporal } from '@lib/Temporal';
 import { CardTimeslotEntry, type CardTimeslot } from './CardTimeslotEntry';
 
 /**

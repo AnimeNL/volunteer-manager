@@ -9,7 +9,6 @@ import { useTheme } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 
-import { Temporal } from '@lib/Temporal';
 import { Timeline as TimelineInternal } from '@AnimeNL/volunteer-manager-timeline';
 
 import type { TimelineEvent, TimelineEventMutation, TimelineProps as TimelineInternalProps }

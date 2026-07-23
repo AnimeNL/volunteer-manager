@@ -14,8 +14,8 @@ import { deepmerge } from '@mui/utils';
 
 import type { Environment } from '@lib/Environment';
 import type { EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
-import { Temporal, isBefore } from '@lib/Temporal';
 import { Markdown } from '@components/Markdown';
+import { isBefore } from '@lib/Temporal';
 
 /**
  * Manual styles that apply to the <WelcomeCard> client component.

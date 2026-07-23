@@ -3,7 +3,6 @@
 
 'use client';
 
-import type { Temporal } from '@lib/Temporal';
 
 /**
  * At which hour does the logical festival day change?

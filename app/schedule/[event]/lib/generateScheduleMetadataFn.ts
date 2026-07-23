@@ -4,7 +4,6 @@
 import type { ParamMap } from '../../../../.next/types/routes';
 import type { Metadata } from 'next';
 
-import { Temporal } from '@lib/Temporal';
 import db, { tEvents } from '@lib/database';
 
 interface TitleCache {

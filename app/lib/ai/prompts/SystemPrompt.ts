@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Prompt } from '../Prompt';
-import { Temporal } from '@lib/Temporal';
 
 /**
  * Parameters accepted by this prompt.

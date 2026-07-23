@@ -4,7 +4,7 @@
 import Typography from '@mui/material/Typography';
 
 import { ConfirmationBox } from '../hotel/ConfirmationBox';
-import { type Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <TrainingConfirmation> component.

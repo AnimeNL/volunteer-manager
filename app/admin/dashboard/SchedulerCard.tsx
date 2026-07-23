@@ -18,7 +18,7 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 

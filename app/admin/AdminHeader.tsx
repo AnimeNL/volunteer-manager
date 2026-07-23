@@ -14,7 +14,6 @@ import type { User } from '@lib/auth/User';
 import { AdminHeaderEventsMenu } from './AdminHeaderEventsMenu';
 import { AdminHeaderSettingsButton } from './AdminHeaderSettingsButton';
 import { AdminHeaderPromoDialog } from './AdminHeaderPromoDialog';
-import { Temporal } from '@lib/Temporal';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { updateAccountSettings } from './organisation/accounts/[id]/AccountActions';
 import { writeUserSetting } from '@lib/UserSettings';

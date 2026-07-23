@@ -4,7 +4,6 @@
 import type { z } from 'zod/v4';
 
 import type { GetEventsResponse } from './WeeztixTypes';
-import { Temporal } from '@lib/Temporal';
 import { writeSettings } from '@lib/Settings';
 
 import { kGetEventsResponse, kRefreshTokenResponse } from './WeeztixTypes';
@@ -90,7 +89,7 @@ const kWeeztixTokenRefreshEndpoint = 'https://auth.weeztix.com/tokens';
 
 /**
  * Client through which we communicate with the Weeztix API, utilising their REST endpoints.
- * 
+ *
  * @see https://docs.weeztix.com/api/dashboard/dashboard
  * @see https://docs.weeztix.com/docs/
  */

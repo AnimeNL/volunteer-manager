@@ -9,7 +9,7 @@ import { default as MuiLink } from '@mui/material/Link';
 
 import type { NardoPersonalisedRowModel } from '@app/api/nardo/personalised/[[...id]]/route';
 import { type RemoteDataTableColumn, RemoteDataTable } from '../../../components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * The <PersonalisedAdviceDataTable> component displays the generated, personalised pieces of advice

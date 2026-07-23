@@ -9,7 +9,7 @@ import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { type ActionProps, executeAction } from '../Action';
 import { type VendorTeam, kExportType, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
 import { RecordLog, kLogType } from '@lib/Log';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';
 
 import db, { tEvents, tExports, tExportsLogs, tRefunds, tRoles, tTeams, tTrainings,

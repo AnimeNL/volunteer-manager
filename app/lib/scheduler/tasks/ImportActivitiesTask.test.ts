@@ -4,7 +4,7 @@
 import type { Activity, Floor, Location, Timeslot } from '@lib/integrations/animecon';
 import { ImportActivitiesTask, type StoredActivity, type StoredTimeslot } from './ImportActivitiesTask';
 import { TaskContext } from '../TaskContext';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { useMockConnection } from '@lib/database/Connection';
 
 import { kMutationSeverity } from '@lib/database/Types';

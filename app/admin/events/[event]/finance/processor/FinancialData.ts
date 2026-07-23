@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventSalesCategory } from '@lib/database/Types';
-import { Temporal } from '@lib/Temporal';
 import db, { tActivities, tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
 
 /**

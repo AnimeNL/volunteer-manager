@@ -22,7 +22,7 @@ import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
 import { ApplicationAvailabilityForm } from '@app/registration/[slug]/application/ApplicationParticipation';
 import { AvailabilityTimelineImpl } from './AvailabilityTimelineImpl';
 import { HiddenInput } from '@components/HiddenInput';
-import { Temporal, isAfter, isBefore } from '@lib/Temporal';
+import { isAfter, isBefore } from '@lib/Temporal';
 
 import { kAvailabilityTimelineColours, kAvailabilityTimelineTitles }
     from './AvailabilityTimelineImpl';

@@ -12,7 +12,7 @@ import Paper from '@mui/material/Paper';
 
 import type { RefundRequestRowModel } from '@app/api/admin/refunds/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <RefundsTable> component.

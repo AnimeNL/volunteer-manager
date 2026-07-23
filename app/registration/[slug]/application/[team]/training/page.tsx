@@ -14,13 +14,13 @@ import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
 import { Markdown } from '@components/Markdown';
-import { Temporal, isAfter, isBefore } from '@lib/Temporal';
 import { TrainingConfirmation } from './TrainingConfirmation';
 import { TrainingPreferencesForm } from './TrainingPreferencesForm';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getStaticContent } from '@lib/Content';
 import { getTrainingOptions } from './getTrainingOptions';
+import { isAfter, isBefore } from '@lib/Temporal';
 import db, { tEvents, tRoles, tTrainings, tTrainingsAssignments, tUsersEvents } from '@lib/database';
 
 import * as actions from '../../ApplicationActions';

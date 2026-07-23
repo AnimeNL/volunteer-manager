@@ -22,8 +22,8 @@ import { FeedbackDialog } from '../components/FeedbackDialog';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { SetTitle } from '../components/SetTitle';
 import { SubHeader } from '../components/SubHeader';
-import { Temporal, formatDate } from '@lib/Temporal';
 import { TimedAccordionSummary } from '../components/TimedAccordionSummary';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <FeedbackPage> component.

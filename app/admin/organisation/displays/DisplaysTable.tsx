@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 
 import type { DisplaysRowModel } from '@app/api/admin/organisation/displays/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { Temporal, formatDuration } from '@lib/Temporal';
+import { formatDuration } from '@lib/Temporal';
 
 import { kDisplayHelpRequestStatus } from '@lib/database/Types';
 

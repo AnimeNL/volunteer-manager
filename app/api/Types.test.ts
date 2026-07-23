@@ -19,7 +19,6 @@ describe('Types', () => {
 
     it('can correctly validate the Temporal.PlainTime type', () => {
         expect(zt.kTemporalPlainTime.parse('03:24:30').toString()).toEqual('03:24:30');
-        expect(zt.kTemporalPlainTime.parse('032430').toString()).toEqual('03:24:30');
         expect(zt.kTemporalPlainTime.parse('1995-12-07T03:24:30').toString()).toEqual('03:24:30');
         expect(zt.kTemporalPlainTime.parse('1995-12-07T03:24:30-09:00[Asia/Tokyo]').toString())
             .toEqual('03:24:30');

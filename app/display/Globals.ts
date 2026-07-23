@@ -3,7 +3,6 @@
 
 'use client';
 
-import { Temporal } from '@lib/Temporal';
 import device from './lib/Device';
 
 declare namespace globalThis {

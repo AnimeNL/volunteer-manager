@@ -15,7 +15,6 @@ import type { VendorScheduleEntry } from '@app/api/admin/vendors/updateVendorSch
 import type { VendorTeam } from '@lib/database/Types';
 import { Schedule, type ScheduleEvent, type ScheduleMarker, type ScheduleResource } from '@app/admin/components/Schedule';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
-import { Temporal } from '@lib/Temporal';
 import { callApi } from '@lib/callApi';
 
 /**

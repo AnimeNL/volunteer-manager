@@ -11,7 +11,6 @@ import { Calendar, type CalendarEvent } from '@AnimeNL/volunteer-manager-timelin
 import '@AnimeNL/volunteer-manager-timeline/dist/volunteer-manager-timeline.css';
 
 import type { DisplayShiftInfo } from '../DisplayContext';
-import { Temporal } from '@lib/Temporal';
 import { determineColour } from '@components/Avatar';
 
 /**

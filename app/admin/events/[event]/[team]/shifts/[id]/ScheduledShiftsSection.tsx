@@ -13,7 +13,6 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { Temporal } from '@lib/Temporal';
 import { Timeline, type TimelineEvent } from '@app/admin/components/Timeline';
 import { VisibilityContext } from './ShiftTeamVisibilityContext';
 

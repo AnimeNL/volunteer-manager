@@ -26,7 +26,7 @@ import type { ContentRowModel } from './ContentDataSource';
 import type { SectionHeaderProps } from '../../components/SectionHeader';
 import type { ServerActionResult } from '@lib/serverAction';
 import { Section } from '../../components/Section';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 import { validateContentPath } from './ContentCreate';
 
 import '@mdxeditor/editor/style.css';

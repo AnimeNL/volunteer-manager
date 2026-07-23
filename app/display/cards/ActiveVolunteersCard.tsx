@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 
 import type { DisplayShiftInfo } from '../DisplayContext';
 import { Avatar } from '@app/components/Avatar';
-import { Temporal, formatDate } from '@lib/Temporal';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Props accepted by the <ActiveVolunteerCard> component.
