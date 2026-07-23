@@ -80,6 +80,9 @@ COPY --from=builder --chown=node:node /app/public ./public
 RUN mkdir .next
 RUN chown node:node .next
 
+# Install "curl" to support the healthcheck
+COPY --from=curlimages/curl:latest /usr/bin/curl /usr/local/bin/curl
+
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=node:node /app/.next/standalone ./
