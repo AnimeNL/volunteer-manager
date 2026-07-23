@@ -1175,14 +1175,6 @@ tables:
     type: text
     nullable: true
     default: "NULL"
-  - name: availability_build_up
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: availability_tear_down
-    type: text
-    nullable: true
-    default: "NULL"
   - name: availability_event_limit
     type: int(8) unsigned
     nullable: true
@@ -1314,8 +1306,6 @@ tables:
       `hotel_eligible` tinyint(1) unsigned DEFAULT NULL,
       `training_eligible` tinyint(1) unsigned DEFAULT NULL,
       `availability_build_up_tear_down` text DEFAULT NULL,
-      `availability_build_up` text DEFAULT NULL,
-      `availability_tear_down` text DEFAULT NULL,
       `availability_event_limit` int(8) unsigned DEFAULT NULL,
       `availability_exceptions` text DEFAULT NULL,
       `availability_timeslots` text DEFAULT NULL,
@@ -2094,30 +2084,6 @@ tables:
     type: tinyint(1)
     nullable: false
     default: "0"
-  - name: enable_applications_start
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: enable_applications_end
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: enable_registration_start
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: enable_registration_end
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: enable_schedule_start
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: enable_schedule_end
-    type: datetime
-    nullable: true
-    default: "NULL"
   - name: whatsapp_link
     type: text
     nullable: true
@@ -2172,12 +2138,6 @@ tables:
       `team_target_size` int(4) unsigned NOT NULL,
       `team_maximum_size` int(8) unsigned DEFAULT NULL,
       `enable_team` tinyint(1) NOT NULL DEFAULT 0,
-      `enable_applications_start` datetime DEFAULT NULL,
-      `enable_applications_end` datetime DEFAULT NULL,
-      `enable_registration_start` datetime DEFAULT NULL,
-      `enable_registration_end` datetime DEFAULT NULL,
-      `enable_schedule_start` datetime DEFAULT NULL,
-      `enable_schedule_end` datetime DEFAULT NULL,
       `whatsapp_link` text DEFAULT NULL,
       UNIQUE KEY `event_id_2` (`event_id`,`team_id`),
       KEY `event_id` (`event_id`),
@@ -2185,68 +2145,6 @@ tables:
       CONSTRAINT `events_teams_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `events_teams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: events_deadlines
-  type: BASE TABLE
-  columns:
-  - name: deadline_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: deadline_date
-    type: date
-    nullable: false
-  - name: deadline_owner_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: deadline_title
-    type: text
-    nullable: false
-  - name: deadline_description
-    type: text
-    nullable: false
-  - name: deadline_completed
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: deadline_deleted
-    type: datetime
-    nullable: true
-    default: "NULL"
-  indexes:
-  - name: event_id
-    def: KEY event_id (event_id) USING BTREE
-    table: events_deadlines
-    columns:
-    - event_id
-  - name: PRIMARY
-    def: PRIMARY KEY (deadline_id) USING BTREE
-    table: events_deadlines
-    columns:
-    - deadline_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (deadline_id)
-    table: events_deadlines
-    columns:
-    - deadline_id
-  def: |-
-    CREATE TABLE `events_deadlines` (
-      `deadline_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `event_id` int(8) unsigned NOT NULL,
-      `deadline_date` date NOT NULL,
-      `deadline_owner_id` int(8) unsigned DEFAULT NULL,
-      `deadline_title` text NOT NULL,
-      `deadline_description` text NOT NULL,
-      `deadline_completed` datetime DEFAULT NULL,
-      `deadline_deleted` datetime DEFAULT NULL,
-      PRIMARY KEY (`deadline_id`),
-      KEY `event_id` (`event_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: schedule
   type: BASE TABLE
   columns:
@@ -3626,50 +3524,6 @@ tables:
       `event_sale_id` int(8) unsigned NOT NULL,
       `event_sale_date` date NOT NULL,
       `event_sale_count` int(8) NOT NULL,
-      `event_sale_updated` datetime NOT NULL,
-      UNIQUE KEY `event_id` (`event_id`,`event_sale_id`,`event_sale_date`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: events_sales_bak
-  type: BASE TABLE
-  columns:
-  - name: event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: event_sale_id
-    type: int(8) unsigned
-    nullable: false
-  - name: event_sale_date
-    type: date
-    nullable: false
-  - name: event_sale_count
-    type: int(8) unsigned
-    nullable: false
-  - name: event_sale_updated
-    type: datetime
-    nullable: false
-  indexes:
-  - name: event_id
-    def: UNIQUE KEY event_id (event_id, event_sale_id, event_sale_date) USING BTREE
-    table: events_sales_bak
-    columns:
-    - event_id
-    - event_sale_id
-    - event_sale_date
-  constraints:
-  - name: event_id
-    type: UNIQUE
-    def: UNIQUE KEY event_id (event_id, event_sale_id, event_sale_date)
-    table: events_sales_bak
-    columns:
-    - event_id
-    - event_sale_id
-    - event_sale_date
-  def: |-
-    CREATE TABLE `events_sales_bak` (
-      `event_id` int(8) unsigned NOT NULL,
-      `event_sale_id` int(8) unsigned NOT NULL,
-      `event_sale_date` date NOT NULL,
-      `event_sale_count` int(8) unsigned NOT NULL,
       `event_sale_updated` datetime NOT NULL,
       UNIQUE KEY `event_id` (`event_id`,`event_sale_id`,`event_sale_date`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
