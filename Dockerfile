@@ -5,7 +5,7 @@
 # Stage 1: Dependencies Installation Stage
 # ============================================
 
-ARG NODE_VERSION=25.5.0-slim
+ARG NODE_VERSION=26.5.0-slim
 
 FROM node:${NODE_VERSION} AS dependencies
 
