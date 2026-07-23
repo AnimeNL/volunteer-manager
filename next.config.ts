@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
         NEXT_PUBLIC_VERSION_MUI: muiMaterialPackage.version,
         NEXT_PUBLIC_VERSION_MUI_X: muiDataGridPremiumPackage.version,
         NEXT_PUBLIC_VERSION_NEXTJS: nextPackage.version,
+        NEXT_PUBLIC_VERSION_NODEJS: process.versions.node,
         NEXT_PUBLIC_VERSION_REACT: reactPackage.version,
     },
     experimental: {

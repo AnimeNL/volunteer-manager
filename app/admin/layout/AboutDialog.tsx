@@ -43,6 +43,11 @@ const kDependencies = [
         version: process.env.NEXT_PUBLIC_VERSION_NEXTJS,
     },
     {
+        name: 'Node.js',
+        url: '',
+        version: process.env.NEXT_PUBLIC_VERSION_NODEJS,
+    },
+    {
         name: 'React',
         url: 'https://react.dev/',
         version: process.env.NEXT_PUBLIC_VERSION_REACT,
