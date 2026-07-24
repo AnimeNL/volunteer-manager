@@ -46,6 +46,10 @@ interface LogTypeParameterMap {
         integration: 'AnimeCon' | 'Email' | 'Google' | 'Twilio' | 'Weeztix' | 'YourTicketProvider';
     }
 
+    UpdateLogMessageFormat: {
+        type: string;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams
     // ---------------------------------------------------------------------------------------------
@@ -101,6 +105,7 @@ export const kLogType: { [k in LogType]: k } = {
     CreateSchedulerTask: 'CreateSchedulerTask',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
+    UpdateLogMessageFormat: 'UpdateLogMessageFormat',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams

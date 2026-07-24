@@ -88,6 +88,7 @@ export class DataSourceWrapper {
         const props: DataSourceProps = {
             access: authenticationContext.access,
             authenticationContext,
+            user: authenticationContext.user!,
         };
 
         const verifiedContextResult = await z.safeParseAsync(this.#context, context ?? {});
@@ -136,6 +137,7 @@ export class DataSourceWrapper {
         const props: DataSourceProps = {
             access: authenticationContext.access,
             authenticationContext,
+            user: authenticationContext.user!,
         };
 
         const verifiedContextResult = await z.safeParseAsync(this.#context, context);
@@ -211,6 +213,13 @@ export class DataSourceWrapper {
                         updatedRowValidation.error || previousRowValidation.error);
 
                     return false;  // show a visual error in the user interface
+                }
+
+                if (updatedRowValidation.data.id !== previousRowValidation.data.id) {
+                    this.reportError(
+                        operation, context, 'Updated and previous rows must have the same IDs');
+
+                    notFound();  // does not return
                 }
 
                 const result = await this.#dataSource.update!(

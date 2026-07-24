@@ -81,6 +81,35 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
             rowCount: formats.count,
             rows: formats.data,
         };
+    },
+
+    async update(updatedRow, previousRow, props, context) {
+        const updated = Temporal.Now.zonedDateTimeISO();
+
+        await db.update(tLogsFormat)
+            .set({
+                logTypeVisible: updatedRow.visible ? 1 : 0,
+                logFormat: updatedRow.format,
+                logFormatUpdated: updated,
+            })
+            .where(tLogsFormat.logType.equals(updatedRow.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateLogMessageFormat')
+            .withInitiatorUser(props.user)
+            .withDiff({
+                format: {
+                    before: previousRow.format!,
+                    after: updatedRow.format!,
+                },
+                visible: {
+                    before: previousRow.visible,
+                    after: updatedRow.visible,
+                },
+            })
+            .record({ type: updatedRow.id });
+
+        return { ...updatedRow, updated: updated.toString() };
     }
 });
 
@@ -146,6 +175,7 @@ export default async function SystemLogsMessageFormattingPage() {
             headerAlign: 'center',
             headerName: 'Visible',
             align: 'center',
+            editable: true,
             type: 'boolean',
             width: 50,
 
@@ -171,6 +201,7 @@ export default async function SystemLogsMessageFormattingPage() {
         {
             field: 'format',
             headerName: 'Format',
+            editable: true,
             flex: 2,
         },
         {
