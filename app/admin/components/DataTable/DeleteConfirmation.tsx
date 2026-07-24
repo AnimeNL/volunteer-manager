@@ -103,7 +103,7 @@ function DeleteConfirmationDrawer(props: DeleteConfirmationProps) {
 /**
  * Styled drawer. Adjusted styling to behave like a Material UI bottom sheet.
  */
-const StyledDrawer = styled(Drawer)(({ theme }) => ({
+export const StyledDrawer = styled(Drawer)(({ theme }) => ({
     [`& .${drawerClasses.paper}`]: {
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
@@ -111,13 +111,14 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
         paddingRight: theme.spacing(2),
         paddingBottom: theme.spacing(4),
         paddingTop: theme.spacing(1),
+        maxHeight: '90vh',
     },
 }));
 
 /**
  * Styled title, with amended spacing around it.
  */
-const DrawerTitle = styled(Typography)(({ theme }) => ({
+export const DrawerTitle = styled(Typography)(({ theme }) => ({
     margin: theme.spacing(1, 0),
     fontWeight: 'bold',
 }));
@@ -125,7 +126,7 @@ const DrawerTitle = styled(Typography)(({ theme }) => ({
 /**
  * Container for the buttons available to the user, where they select what should happen.
  */
-const ButtonContainer = styled(Box)(({ theme }) => ({
+export const ButtonContainer = styled(Box)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(1.5),
