@@ -43,8 +43,8 @@ export interface DataSourceInterface<
     /**
      * Updates a row in the data source.
      */
-    update?(context: unknown, updatedRow: GridRowModel, previousRow: GridRowModel)
-        : Promise<boolean>;
+    update?(context: unknown, params: GridRowModel, previousParams: GridRowModel)
+        : Promise<boolean | GridRowModel>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

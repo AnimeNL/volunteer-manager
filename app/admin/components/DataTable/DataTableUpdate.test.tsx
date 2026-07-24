@@ -152,4 +152,57 @@ describe('DataTable - Update', () => {
             expect(screen.getByText('Failed to update the row')).toBeDefined();
         });
     });
+
+    it('is able to update a row on desktop and apply returned row model', async () => {
+        let updateInvokedWith: any = null;
+
+        const dataSource = createDataSource('test/update-row-return-model', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async update(params, previousParams) {
+                updateInvokedWith = params;
+                // return a modified row model with an extra change (e.g. role updated by server)
+                return {
+                    ...params,
+                    role: 'Lead Manager',
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', editable: true },
+            { field: 'role' },
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        const cell = screen.getByText('Amia Bell');
+        fireEvent.doubleClick(cell);
+
+        const input = await screen.findByDisplayValue('Amia Bell');
+        fireEvent.change(input, { target: { value: 'Amia Ring' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => {
+            expect(updateInvokedWith).toEqual({ id: 1, name: 'Amia Ring', role: 'Manager' });
+            // The table should be updated with the returned row model (which has role 'Lead Manager')
+            expect(screen.getByText('Lead Manager')).toBeDefined();
+        });
+    });
 });

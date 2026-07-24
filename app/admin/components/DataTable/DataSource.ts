@@ -70,12 +70,12 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param previousRow The row as it currently exists in the data source.
      * @param props Props indicating the circumstances under which this data source is used.
      * @param context When set, contextual information required by this data source.
-     * @returns A boolean indicating whether the update succeeded.
+     * @returns A boolean indicating whether the update succeeded, or the updated row model itself.
      */
     update?(updatedRow: z.infer<ZodRowModel>,
             previousRow: z.infer<ZodRowModel>,
             props: DataSourceProps,
-            context: z.infer<ZodContext>): Promise<boolean>;
+            context: z.infer<ZodContext>): Promise<boolean | z.infer<ZodRowModel>>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

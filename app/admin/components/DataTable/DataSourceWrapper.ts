@@ -120,8 +120,8 @@ export class DataSourceWrapper {
      * and all operation-specific parameters will be validated prior to being used.
      */
     async call(operation: 'create', context: unknown): Promise<GridRowModel>;
-    async call(operation: 'delete', context: unknown, row: GridRowModel): Promise<boolean>;
-    async call(operation: 'update', context: unknown, currentRow: GridRowModel, previousRow: GridRowModel): Promise<boolean>;
+    async call(operation: 'delete', context: unknown, params: GridRowModel): Promise<boolean>;
+    async call(operation: 'update', context: unknown, params: GridRowModel, previousParams: GridRowModel): Promise<boolean | GridRowModel>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
@@ -213,9 +213,22 @@ export class DataSourceWrapper {
                     return false;  // show a visual error in the user interface
                 }
 
-                return this.#dataSource.update!(
+                const result = await this.#dataSource.update!(
                     updatedRowValidation.data, previousRowValidation.data, props,
                     verifiedContext);
+
+                if (typeof result === 'object' && result !== null) {
+                    const resultValidation = await this.#rowModel.safeParseAsync(result);
+                    if (!resultValidation.success) {
+                        this.reportWarning(
+                            operation, context, 'Data source returned an invalid row after update',
+                            resultValidation.error);
+
+                        return false;
+                    }
+                }
+
+                return result;
             }
 
             case 'list': {

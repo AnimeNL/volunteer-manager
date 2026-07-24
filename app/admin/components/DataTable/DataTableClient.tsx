@@ -351,14 +351,16 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             },
             updateRow: props.source.update
                 ? async (params) => {
-                      const success = await sourceRef.current.update!(
+                      const result = await sourceRef.current.update!(
                           contextRef.current, params.updatedRow, params.previousRow);
 
                       // TODO: Improve the error handling for failed updates.
-                      if (!success)
+                      if (result === false)
                           throw new Error('Failed to update the row');
 
-                      return params.updatedRow;
+                      return typeof result === 'object' && result !== null
+                          ? result
+                          : params.updatedRow;
                   }
                 : undefined,
         };
