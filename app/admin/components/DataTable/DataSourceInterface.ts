@@ -38,7 +38,13 @@ export interface DataSourceInterface<
     /**
      * Deletes a row in the data source.
      */
-    delete?(context: unknown, params: GridRowModel): Promise<boolean>;
+    delete?(context: unknown, row: GridRowModel): Promise<boolean>;
+
+    /**
+     * Updates a row in the data source.
+     */
+    update?(context: unknown, updatedRow: GridRowModel, previousRow: GridRowModel)
+        : Promise<boolean>;
 
     /**
      * Retrieves the rows in accordance with the `params`.

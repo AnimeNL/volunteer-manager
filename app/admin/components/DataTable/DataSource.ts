@@ -8,7 +8,7 @@ import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { DataSourceProps } from './DataSourceProps';
 
-export type DataSourceOperation = 'create' | 'delete' | 'list';
+export type DataSourceOperation = 'create' | 'delete' | 'list' | 'update';
 
 /**
  * Interface that has to be provided in order for a <DataTable> component to be able to gather or
@@ -54,12 +54,26 @@ export interface DataSource<ZodContext, ZodRowModel> {
     /**
      * Deletes a row in the data source.
      *
-     * @param params Parameters identifying what to delete.
+     * @param row The row as it currently exists in the data source.
      * @param props Props indicating the circumstances under which this data source is used.
      * @param context When set, contextual information required by this data source.
      * @returns A boolean indicating whether the deletion succeeded.
      */
-    delete?(params: z.infer<ZodRowModel>,
+    delete?(row: z.infer<ZodRowModel>,
+            props: DataSourceProps,
+            context: z.infer<ZodContext>): Promise<boolean>;
+
+    /**
+     * Updates a row in the data source.
+     *
+     * @param updatedRow The row as it has been updated in the data source.
+     * @param previousRow The row as it currently exists in the data source.
+     * @param props Props indicating the circumstances under which this data source is used.
+     * @param context When set, contextual information required by this data source.
+     * @returns A boolean indicating whether the update succeeded.
+     */
+    update?(updatedRow: z.infer<ZodRowModel>,
+            previousRow: z.infer<ZodRowModel>,
             props: DataSourceProps,
             context: z.infer<ZodContext>): Promise<boolean>;
 

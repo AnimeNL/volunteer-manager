@@ -96,6 +96,7 @@ export function createDataSource(...args: any) {
         create: undefined,
         delete: undefined,
         list: listProxy.bind(null, dataSourceId),
+        update: undefined,
     };
 
     if (Object.hasOwn(instance, 'create'))
@@ -103,6 +104,9 @@ export function createDataSource(...args: any) {
 
     if (Object.hasOwn(instance, 'delete'))
         dataSourceInterface.delete = deleteProxy.bind(null, dataSourceId);
+
+    if (Object.hasOwn(instance, 'update'))
+        dataSourceInterface.update = updateProxy.bind(null, dataSourceId);
 
     return dataSourceInterface;
 }
@@ -124,7 +128,7 @@ export async function authorizeDataSource<DataSourceType extends DataSourceInter
     const authorizedOperations =
         await dataSourceWrapper.batchAuthorizeOperations(authenticationContext, context);
 
-    for (const operation of [ 'create', 'delete', 'list' ] as DataSourceOperation[]) {
+    for (const operation of [ 'create', 'delete', 'list', 'update' ] as DataSourceOperation[]) {
         if (!authorizedOperations.has(operation))
             delete authorizedDataSource[operation];
     }
@@ -148,14 +152,14 @@ async function createProxy(dataSourceId: string, context: unknown) {
 /**
  * Proxy Server Action towards deleting a row in the associated data source.
  */
-async function deleteProxy(dataSourceId: string, context: unknown, params: GridRowModel) {
+async function deleteProxy(dataSourceId: string, context: unknown, row: GridRowModel) {
     'use server';
 
     const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
     if (!dataSourceWrapper)
         notFound();
 
-    return dataSourceWrapper.call('delete', context, params);
+    return dataSourceWrapper.call('delete', context, row);
 }
 
 /**
@@ -169,6 +173,21 @@ async function listProxy(dataSourceId: string, context: unknown, params: GridGet
         notFound();
 
     return dataSourceWrapper.call('list', context, params);
+}
+
+/**
+ * Proxy Server Action towards updating a row in the associated data source.
+ */
+async function updateProxy(
+    dataSourceId: string, context: unknown, updatedRow: GridRowModel, previousRow: GridRowModel)
+{
+    'use server';
+
+    const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
+    if (!dataSourceWrapper)
+        notFound();
+
+    return dataSourceWrapper.call('update', context, updatedRow, previousRow);
 }
 
 /**

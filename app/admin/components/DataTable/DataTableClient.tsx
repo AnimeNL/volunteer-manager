@@ -349,9 +349,21 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             getRows: async (params) => {
                 return sourceRef.current.list(contextRef.current, params);
             },
+            updateRow: props.source.update
+                ? async (params) => {
+                      const success = await sourceRef.current.update!(
+                          contextRef.current, params.updatedRow, params.previousRow);
+
+                      // TODO: Improve the error handling for failed updates.
+                      if (!success)
+                          throw new Error('Failed to update the row');
+
+                      return params.updatedRow;
+                  }
+                : undefined,
         };
 
-    }, [ props.source.id, refreshTrigger ]);
+    }, [ props.source.id, props.source.update, refreshTrigger ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mess:
@@ -373,6 +385,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 columns={columns}
                 dataSource={dataSource}
                 dataSourceKeepPreviousData
+
+                editMode={sourceRef.current.update ? 'row' : undefined}
 
                 density="compact"
                 pageSizeOptions={kPageSizeOptions}

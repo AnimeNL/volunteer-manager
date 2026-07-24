@@ -37,6 +37,7 @@ function toAccessOperation(operation: DataSourceOperation): AccessOperation {
     switch (operation) {
         case 'create':
         case 'delete':
+        case 'update':
             return operation;
 
         case 'list':
@@ -94,7 +95,7 @@ export class DataSourceWrapper {
             throw new Error('Invalid context passed to a data source, unable to authorize');
 
         const allowedOperations = new Set<DataSourceOperation>;
-        for (const operation of [ 'create', 'delete', 'list' ] as DataSourceOperation[]) {
+        for (const operation of [ 'create', 'delete', 'list', 'update' ] as DataSourceOperation[]) {
             if (!Object.hasOwn(this.#dataSource, operation))
                 continue;  // operation not supported by the data source
 
@@ -119,7 +120,8 @@ export class DataSourceWrapper {
      * and all operation-specific parameters will be validated prior to being used.
      */
     async call(operation: 'create', context: unknown): Promise<GridRowModel>;
-    async call(operation: 'delete', context: unknown, params: GridRowModel): Promise<boolean>;
+    async call(operation: 'delete', context: unknown, row: GridRowModel): Promise<boolean>;
+    async call(operation: 'update', context: unknown, currentRow: GridRowModel, previousRow: GridRowModel): Promise<boolean>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
     async call(operation: DataSourceOperation, context: unknown, ...args: any) {
@@ -190,6 +192,30 @@ export class DataSourceWrapper {
                 }
 
                 return this.#dataSource.delete!(deletingRowValidation.data, props, verifiedContext);
+            }
+
+            case 'update': {
+                if (!Object.hasOwn(this.#dataSource, 'update')) {
+                    this.reportError(
+                        operation, context, 'Data source does not support update() operations');
+
+                    notFound();  // does not return
+                }
+
+                const updatedRowValidation = await this.#rowModel.safeParseAsync(args[0]);
+                const previousRowValidation = await this.#rowModel.safeParseAsync(args[1]);
+
+                if (!updatedRowValidation.success || !previousRowValidation.success) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the row model given by the client',
+                        updatedRowValidation.error || previousRowValidation.error);
+
+                    return false;  // show a visual error in the user interface
+                }
+
+                return this.#dataSource.update!(
+                    updatedRowValidation.data, previousRowValidation.data, props,
+                    verifiedContext);
             }
 
             case 'list': {
