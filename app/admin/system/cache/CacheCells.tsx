@@ -38,19 +38,19 @@ export function CacheTypeCell({ row }: CacheTypeCellProps) {
         case 'permanent':
             return (
                 <Tooltip title="Permanent cache">
-                    <AllInclusiveIcon fontSize="small" color="success" />
+                    <AllInclusiveIcon color="primary" fontSize="small" />
                 </Tooltip>
             );
         case 'ttl':
             return (
                 <Tooltip title="TTL cache">
-                    <AccessTimeIcon fontSize="small" color="warning" />
+                    <AccessTimeIcon color="primary" fontSize="small" />
                 </Tooltip>
             );
         case 'lru':
             return (
                 <Tooltip title="LRU cache">
-                    <MemoryIcon fontSize="small" color="warning" />
+                    <MemoryIcon color="primary" fontSize="small" />
                 </Tooltip>
             );
         default:
