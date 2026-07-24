@@ -21,6 +21,7 @@ import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowH
     from './DataTableListViewRow';
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
+import { DataTableRowEditor } from './DataTableRowEditor';
 import { DeleteConfirmation } from './DeleteConfirmation';
 import { isProtectedRow } from './Utilities';
 import { useDataTableState } from './useDataTableState';
@@ -279,6 +280,31 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     }, [ context, deleteCandidate, props.source, subject ]);
 
     // ---------------------------------------------------------------------------------------------
+    // Ability to edit rows from the data table on a mobile device, when exposed by the source.
+    // ---------------------------------------------------------------------------------------------
+
+    const [ editCandidate, setEditCandidate ] = useState<GridRowModel | undefined>();
+
+    const handleEditClose = useCallback(() => setEditCandidate(undefined), []);
+    const handleEditSave = useCallback(async (updatedRow: GridRowModel) => {
+        if (editCandidate === undefined)
+            return;
+
+        setError(undefined);
+        try {
+            const result = await props.source.update!(context, updatedRow, editCandidate);
+            if (result === false) {
+                setError(`Unable to update this ${subject}`);
+            } else {
+                setRefreshTrigger(prev => prev + 1);
+                setEditCandidate(undefined);
+            }
+        } catch (err: any) {
+            setError(`Unable to update this ${subject} (${err.message})`);
+        }
+    }, [ context, editCandidate, props.source, subject ]);
+
+    // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
     // redefine their interface several times, which are handled here.
     //
@@ -422,11 +448,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row}
                                 onDelete={props.source.delete ? setDeleteCandidate : undefined}
+                                onEdit={props.source.update ? setEditCandidate : undefined}
                                 protectedColumn={props.protectedColumn} /> :
                             <DataTableListViewRow
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row}
                                 onDelete={props.source.delete ? setDeleteCandidate : undefined}
+                                onEdit={props.source.update ? setEditCandidate : undefined}
                                 protectedColumn={props.protectedColumn} />,
                 }}
 
@@ -450,6 +478,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 onClose={handleDeleteClose}
                 onDelete={handleDelete}
                 loading={deleteLoading}
+                subject={subject} />
+            <DataTableRowEditor
+                open={editCandidate !== undefined}
+                onClose={handleEditClose}
+                onSave={handleEditSave}
+                row={editCandidate}
+                columns={props.columns}
                 subject={subject} />
         </>
     );

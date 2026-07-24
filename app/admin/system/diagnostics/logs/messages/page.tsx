@@ -83,7 +83,7 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
         };
     },
 
-    async update(updatedRow, previousRow, props, context) {
+    async update(updatedRow, previousRow, props) {
         const updated = Temporal.Now.zonedDateTimeISO();
 
         await db.update(tLogsFormat)

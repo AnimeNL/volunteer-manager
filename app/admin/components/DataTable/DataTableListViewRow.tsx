@@ -111,6 +111,11 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
     onDelete?: (row: GridRowModel<any>) => void;
 
     /**
+     * Callback when a row is requested to be edited.
+     */
+    onEdit?: (row: GridRowModel<any>) => void;
+
+    /**
      * Column through which it can be derived whether this row has been protected. Protected rows
      * cannot be deleted.
      */
@@ -173,9 +178,12 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
     // ---------------------------------------------------------------------------------------------
 
     const handleEditClick = useCallback((event: React.MouseEvent) => {
+        setMenuAnchor(null);
         event.stopPropagation();
 
-    }, [ /* no deps */]);
+        props.onEdit?.(props.row);
+
+    }, [ props.onEdit, props.row ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -216,7 +224,7 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                 <props.listViewProps.endComponent context={props.listViewProps.endComponentContext}
                                                   listView row={props.row} /> }
 
-            { !!props.onDelete && (
+            { (!!props.onDelete || !!props.onEdit) && (
                 <>
                     <IconButton aria-label="Actions" size="small" onClick={handleOpenMenu}
                                 sx={{ mr: -1 }}>
@@ -227,16 +235,16 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                                   onClose={handleCloseMenu}
                                   anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
                                   transformOrigin={{ vertical: 'center', horizontal: 'right' }}>
-                            <IconButton component="li" disabled onClick={handleEditClick}
+                            <IconButton component="li" disabled={!props.onEdit} onClick={handleEditClick}
                                         aria-label="Edit">
-                                <EditIcon color="disabled" fontSize="medium" />
+                                <EditIcon color={props.onEdit ? 'primary' : 'disabled'} fontSize="medium" />
                             </IconButton>
-                            { !isProtected &&
+                            { !!props.onDelete && !isProtected &&
                                 <IconButton component="li" onClick={handleDeleteClick}
                                             aria-label="Delete">
                                     <DeleteForeverIcon color="error" fontSize="medium" />
                                 </IconButton> }
-                            { !!isProtected &&
+                            { !!props.onDelete && isProtected &&
                                 <IconButton component="li" disabled>
                                     <DeleteForeverIcon color="disabled" fontSize="medium" />
                                 </IconButton> }

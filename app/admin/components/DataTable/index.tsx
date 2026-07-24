@@ -6,10 +6,7 @@
 //   - Functionality:
 //     - Create rows
 //     - Reorder rows
-//     - Update rows (w/ refresh on update?)
 //   - Presentation:
-//     - Responsive display by default
-//       - Ability to update rows through a dialog
 //     - Tree data?
 
 import { z } from 'zod';

@@ -205,4 +205,72 @@ describe('DataTable - Update', () => {
             expect(screen.getByText('Lead Manager')).toBeDefined();
         });
     });
+
+    it('is able to update a row on mobile', async () => {
+        let updateInvokedWith: any = null;
+        let updatePreviousInvokedWith: any = null;
+
+        const dataSource = createDataSource('test/update-row-mobile', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async update(params, previousParams) {
+                updateInvokedWith = params;
+                updatePreviousInvokedWith = previousParams;
+                return true;
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [{ field: 'name', editable: true }];
+
+        mocks.useIsMobile.mockReturnValue(true);
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        // Click the actions button to open the menu.
+        const actionButtons = screen.getAllByRole('button', { name: 'Actions' });
+        expect(actionButtons.length).toBeGreaterThan(0);
+        fireEvent.click(actionButtons[0]);
+
+        // After clicking actions, the edit button should be visible.
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Edit' })).toBeDefined();
+        });
+
+        const editMenuItem = screen.getByRole('button', { name: 'Edit' });
+        fireEvent.click(editMenuItem);
+
+        // Edit drawer should open.
+        await waitFor(() => {
+            expect(screen.getByText('Edit item')).toBeDefined();
+        });
+
+        // Edit field value.
+        const nameInput = screen.getByLabelText('name');
+        expect(nameInput).toBeDefined();
+        fireEvent.change(nameInput, { target: { value: 'Amia Ring' } });
+
+        const saveButton = screen.getByRole('button', { name: 'Save' });
+        fireEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(updateInvokedWith).toEqual({ id: 1, name: 'Amia Ring', role: 'Manager' });
+            expect(updatePreviousInvokedWith).toEqual({ id: 1, name: 'Amia Bell', role: 'Manager' });
+        });
+    });
 });
