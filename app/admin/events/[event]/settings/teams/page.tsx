@@ -106,7 +106,7 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
         };
     },
 
-    async update(updatedRow: any, previousRow: any, props, context) {
+    async update(updatedRow, previousRow, props, context) {
         const event = context.event;
 
         const team = await getTeam(updatedRow.id);

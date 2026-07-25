@@ -15,7 +15,7 @@ export type DataSourceOperation = 'create' | 'delete' | 'list' | 'update';
  * mutate a particular data source. Must remain compatible with the serialisation protocol used for
  * React Server Functions, as bound instances will be passed over the wire.
  */
-export interface DataSource<ZodContext, ZodRowModel> {
+export interface DataSource<Context, RowModel> {
     /**
      * Decides whether this data source may be used by unauthenticated visitors. This is disallowed
      * by default, as the vast majority of operations are only available to signed in users.
@@ -40,7 +40,7 @@ export interface DataSource<ZodContext, ZodRowModel> {
      */
     authorize(operation: AccessOperation,
               props: DataSourceProps,
-              context: z.infer<ZodContext>): Promise<void>;
+              context: Context): Promise<void>;
 
     /**
      * Creates a new row in the data source.
@@ -49,7 +49,7 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A row model representation of the newly created row.
      */
-    create?(props: DataSourceProps, context: z.infer<ZodContext>): Promise<ZodRowModel>;
+    create?(props: DataSourceProps, context: Context): Promise<RowModel>;
 
     /**
      * Deletes a row in the data source.
@@ -59,9 +59,9 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A boolean indicating whether the deletion succeeded.
      */
-    delete?(row: z.infer<ZodRowModel>,
+    delete?(row: RowModel,
             props: DataSourceProps,
-            context: z.infer<ZodContext>): Promise<boolean>;
+            context: Context): Promise<boolean>;
 
     /**
      * Updates a row in the data source.
@@ -72,10 +72,10 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A boolean indicating whether the update succeeded, or the updated row model itself.
      */
-    update?(updatedRow: z.infer<ZodRowModel>,
-            previousRow: z.infer<ZodRowModel>,
+    update?(updatedRow: RowModel,
+            previousRow: RowModel,
             props: DataSourceProps,
-            context: z.infer<ZodContext>): Promise<boolean | z.infer<ZodRowModel>>;
+            context: Context): Promise<boolean | RowModel>;
 
     /**
      * Retrieves the rows in accordance with the `params`.
@@ -85,10 +85,10 @@ export interface DataSource<ZodContext, ZodRowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A response containing the paginated rows that have been requested.
      */
-    list?<RowModelSortField = keyof z.infer<ZodRowModel>>(
-        params: DataSourceListParams<RowModelSortField>,
+    list?(
+        params: DataSourceListParams<keyof RowModel>,
         props: DataSourceProps,
-        context: z.infer<ZodContext>): Promise<DataSourceGetRowsResponse<ZodRowModel>>;
+        context: Context): Promise<DataSourceGetRowsResponse<RowModel>>;
 }
 
 /**
@@ -135,9 +135,9 @@ export interface DataSourceListParams<RowModelSortField = any> {
 /**
  * Variant of `GridGetRowsResponse` where the `rows` property is appropriately typed.
  */
-interface DataSourceGetRowsResponse<ZodRowModel> extends Omit<GridGetRowsResponse, 'rows'> {
+interface DataSourceGetRowsResponse<RowModel> extends Omit<GridGetRowsResponse, 'rows'> {
     /**
      * Rows fetched as a response of this action.
      */
-    rows: z.infer<ZodRowModel>[];
+    rows: RowModel[];
 }
