@@ -80,7 +80,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
     const handleSave = useCallback(async (data: FieldValues) => {
         setLoading(true);
 
-        const coercedValues = { ...data };
+        const coercedValues = { ...row, ...data };
         for (const column of visibleColumns) {
             if (column.type === 'number') {
                 const val = coercedValues[column.field];
@@ -95,7 +95,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
         await onSave(coercedValues);
         setLoading(false);
 
-    }, [onSave, visibleColumns]);
+    }, [ onSave, row, visibleColumns ]);
 
     // ----------------------------------------------------------------------------------------------
 
