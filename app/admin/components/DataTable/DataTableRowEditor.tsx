@@ -87,7 +87,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 if (val !== undefined && val !== null && val !== '') {
                     coercedValues[column.field] = Number(val);
                 } else {
-                    coercedValues[column.field] = '';
+                    coercedValues[column.field] = undefined;
                 }
             }
         }

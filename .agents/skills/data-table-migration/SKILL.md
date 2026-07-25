@@ -23,6 +23,8 @@ If that is not the case, you must:
    - Implement filtering in `list()` if possible using `params.search`. This should always be case
      insensitive. If filtering is not possible or excessively complicated, ask me how to proceed.
    - Use `executeAccessCheck()` in `authorize()` to avoid excess database queries.
+   - Use `kEventTransformer` or `kTeamTransformer` when the context given to a data source is either
+     an event or a team. Use of `getEventBySlug()` is strictly prohibited.
 
 2. Identify the best way to implement the new <DataTable>:
    - Try to match existing columns when you can. `renderCell` and `renderHeader` must not be used,

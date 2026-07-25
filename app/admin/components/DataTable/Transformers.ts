@@ -4,22 +4,15 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import db, { tEvents, tTeams } from '@lib/database';
+import { getEvent, getTeam } from '@lib/cache';
 
 /**
- * Zod transformer that takes a URL-safe event slug and transforms it to a representation of that
- * event from the database. A `notFound()` exception will be thrown when the `event` is not valid.
+ * Zod transformer that takes a URL-safe event slug or a unique event ID and transforms it to a
+ * representation of that event from the database. The returned data will be aggressively cached.
+ * A `notFound()` exception will be thrown when the `event` is not valid.
  */
-export const kEventTransformer = z.string().transform(async event => {
-    const eventInfo = await db.selectFrom(tEvents)
-        .where(tEvents.eventSlug.equals(event))
-        .select({
-            id: tEvents.eventId,
-            slug: tEvents.eventSlug,
-            festivalId: tEvents.eventFestivalId,
-        })
-        .executeSelectNoneOrOne();
-
+export const kEventTransformer = (z.string().or(z.number())).transform(async event => {
+    const eventInfo = await getEvent(event);
     if (!eventInfo)
         notFound();
 
@@ -27,18 +20,12 @@ export const kEventTransformer = z.string().transform(async event => {
 });
 
 /**
- * Zod transformer that takes a URL-safe team slug and transforms it to a representation of that
- * team from the database. A `notFound()` exception will be thrown when the `team` is not valid.
+ * Zod transformer that takes a URL-safe team slug or a unique team ID and transforms it to a
+ * representation of that team from the database. The returned data will be aggressively cached. A
+ * `notFound()` exception will be thrown when the `team` is not valid.
  */
 export const kTeamTransformer = z.string().transform(async team => {
-    const teamInfo = await db.selectFrom(tTeams)
-        .where(tTeams.teamSlug.equals(team))
-        .select({
-            id: tTeams.teamId,
-            slug: tTeams.teamSlug,
-        })
-        .executeSelectNoneOrOne();
-
+    const teamInfo = await getTeam(team);
     if (!teamInfo)
         notFound();
 
