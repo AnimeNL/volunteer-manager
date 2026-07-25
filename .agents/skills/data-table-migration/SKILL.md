@@ -26,8 +26,8 @@ If that is not the case, you must:
 
 2. Identify the best way to implement the new <DataTable>:
    - Try to match existing columns when you can. `renderCell` and `renderHeader` must not be used,
-     and custom components are necessary for those. DO NOT ADD COMPONENTS WITHOUT ASKING. Rather,
-     use the templates when available, or ask for confirmation to add one. When adding a new
+     and custom components are necessary for those. DO NOT ADD CUSTOM COMPONENTS WITHOUT ASKING.
+     Rather, use the templates when available, or ask for confirmation to add one. When adding a new
      component, create a new file "FeatureCells.tsx" (where "Feature" is something applicable) that
      has a 'use client' directive at the top.
    - Date columns must have a width of 185. Icon-only columns a width of 50. All other columns must

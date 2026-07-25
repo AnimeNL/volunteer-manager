@@ -209,7 +209,6 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
                    listViewProps={{
                        primaryField: 'recipient.name',
                        secondaryField: 'message',
-//                       secondaryTemplate: '› {sender.name}: {message}',
                        dateField: 'date',
                        dateFieldFormat: 'YYYY-MM-DD',
                        startComponent: MessageDeliveredCell,

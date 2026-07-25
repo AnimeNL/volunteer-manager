@@ -50,7 +50,6 @@ import type { EventFinanceEndpoints } from '@app/api/admin/event/finance/[[...id
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
 import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/route';
-import type { EventTeamEndpoints } from '@app/api/admin/event/teams/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { NardoEndpoints } from '@app/api/nardo/[[...id]]/route';
@@ -87,7 +86,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
         '/api/admin/event/shifts': EventShiftEndpoints['list'],
-        '/api/admin/event/teams': EventTeamEndpoints['list'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
@@ -179,7 +177,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],
         '/api/admin/event/shifts/:id': EventShiftEndpoints['update'],
-        '/api/admin/event/teams/:id': EventTeamEndpoints['update'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],
