@@ -28,6 +28,7 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 slug: tEvents.eventSlug,
                 name: tEvents.eventName,
                 shortName: tEvents.eventShortName,
+                festivalId: tEvents.eventFestivalId,
             })
             .executeSelectNoneOrOne();
 

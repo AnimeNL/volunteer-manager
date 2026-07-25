@@ -24,6 +24,11 @@ export interface CachedEvent {
      * Short name (e.g. "AnimeCon 2027") identifying this event.
      */
     shortName: string;
+
+    /**
+     * Unique ID of the festival as assigned in AnPlan.
+     */
+    festivalId?: number;
 }
 
 /**
