@@ -27,6 +27,11 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
     id: z.string(),
 
     /**
+     * Whether this log type is still being recorded.
+     */
+    active: z.boolean(),
+
+    /**
      * Whether this log type is visible.
      */
     visible: z.boolean(),
@@ -50,9 +55,10 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
     },
 
     async list(params, props) {
-        let sortField: 'id' | 'visible' | 'format' | 'updated' = 'id';
+        let sortField: 'id' | 'active' | 'visible' | 'format' | 'updated' = 'id';
         switch (params.sort.field) {
             case 'id':
+            case 'active':
             case 'visible':
             case 'format':
             case 'updated':
@@ -68,11 +74,13 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
             ))
             .select({
                 id: tLogsFormat.logType,
+                active: tLogsFormat.logTypeDeprecated.equals(/* false= */ 0),
                 visible: tLogsFormat.logTypeVisible.equals(/* true= */ 1),
                 format: tLogsFormat.logFormat,
                 updated: dbInstance.dateTimeAsString(tLogsFormat.logFormatUpdated),
             })
-            .orderBy(sortField, params.sort.direction)
+            .orderBy('active', 'desc')
+                .orderBy(sortField, params.sort.direction)
             .limit(params.page.limit)
                 .offset(params.page.offset)
             .executeSelectPage();
@@ -88,6 +96,7 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
 
         await db.update(tLogsFormat)
             .set({
+                logTypeDeprecated: updatedRow.active ? 0 : 1,
                 logTypeVisible: updatedRow.visible ? 1 : 0,
                 logFormat: updatedRow.format,
                 logFormatUpdated: updated,
@@ -138,6 +147,7 @@ async function createLogFormat(formData: unknown) {
             .set({
                 logType: type,
                 logFormat: format,
+                logTypeDeprecated: 0,
                 logTypeVisible: 1,
                 logFormatUpdated: dbInstance.currentZonedDateTime(),
             })
@@ -156,7 +166,6 @@ async function createLogFormat(formData: unknown) {
         };
     });
 }
-
 
 /**
  * Page through which administrators are able to manage message formatting, i.e. how log entries
@@ -203,6 +212,29 @@ export default async function SystemLogsMessageFormattingPage() {
             headerName: 'Format',
             editable: true,
             flex: 2,
+        },
+        {
+            field: 'active',
+            headerAlign: 'center',
+            headerName: 'Active',
+            align: 'center',
+            editable: true,
+            type: 'boolean',
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                component: BooleanCell,
+                componentContext: {
+                    field: 'active',
+                    tooltips: {
+                        header: 'Is this type still active?',
+                        falsyValue: 'No longer being recorded',
+                        truthyValue: 'Actively being recorded',
+                    },
+                },
+                headerComponent: BooleanHeader,
+            },
         },
         {
             field: 'updated',

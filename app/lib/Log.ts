@@ -73,7 +73,6 @@ export const kLogType = {
     AdminEventTrainingExtraMutation: 'admin-event-training-extra',
     AdminEventWebsiteSettingsUpdate: 'admin-event-website-settings-update',
     AdminExportMutation: 'admin-export-mutation',
-    AdminFeedbackResponse: 'admin-feedback-response',
     AdminHotelAssignVolunteer: 'admin-hotel-assign-volunteer',
     AdminHotelAssignVolunteerDelete: 'admin-hotel-assign-volunteer-delete',
     AdminHotelBookingMutation: 'admin-hotel-booking-mutation',
