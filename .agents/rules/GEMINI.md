@@ -12,7 +12,7 @@ Run "npm run build" to build the code.
 Run "npm run lint" to lint the code. Only fix lint errors that you introduced.
 
 ## Running tests
-Run "npm run tests" to run all the tests.
+Run "npm run test" to run all the tests.
 
 # Coding rules
 
@@ -34,7 +34,7 @@ Before adding code in a file, read the file's exports, the immediate caller, and
 If you don't understand why existing code is structured the way it is, ask before adding to it.
 
 ## Match the codebase's conventions, even if you disagree
-If the codebase uses snake_case and you'd prefer camelCase: snake_case.
+You must match the codebase's naming and styling conventions, line length limits, and so on.
 Disagreement is a separate conversation. Inside the codebase, conformance > taste.
 If you genuinely think the convention is harmful, surface it. Don't fork it silently.
 

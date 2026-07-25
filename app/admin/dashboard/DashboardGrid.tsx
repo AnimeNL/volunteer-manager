@@ -30,7 +30,9 @@ export function DashboardGrid(props: DashboardGridProps) {
     const isTabletSized = useMediaQuery(theme.breakpoints.up('md'));
     const isDesktopSized = useMediaQuery(theme.breakpoints.up('xl'));
 
-    const columnsCount = isDesktopSized ? 4 : (isTabletSized ? 2 : 1);
+    // TODO: Desktop-sized clients can comfortably display four columns, but right now there aren't
+    // enough cards to fill that space. We therefore give them two columns as well.
+    const columnsCount = isDesktopSized ? 2 : (isTabletSized ? 2 : 1);
 
     const columns: React.ReactNode[][] = Array.from({ length: columnsCount }, () => []);
     for (let index = 0; index < props.cards.length; ++index)
