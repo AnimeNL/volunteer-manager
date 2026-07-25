@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 

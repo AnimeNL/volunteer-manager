@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 

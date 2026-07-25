@@ -3,7 +3,7 @@
 
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { LicenseInfo } from '@mui/x-license';
 

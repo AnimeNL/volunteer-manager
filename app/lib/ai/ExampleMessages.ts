@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { readUserSetting, writeUserSetting } from '@lib/UserSettings';
 import { writeSetting } from '@lib/Settings';
@@ -36,7 +36,7 @@ export async function readExampleMessages(userId?: number): Promise<ExampleMessa
 /**
  * Writes example messages to storage. The `messages`, which must be an array of strings, will be
  * written to the database with empty and invalid entries removed.
- * 
+ *
  * @param messages Array of messages that are the general writing examples.
  */
 export async function writeExampleMessages(messages: ExampleMessage[]) {
