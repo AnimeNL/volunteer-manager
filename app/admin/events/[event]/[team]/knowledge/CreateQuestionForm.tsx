@@ -12,7 +12,6 @@ import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
 import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
-import type { ContentScope } from '@app/admin/system/content/ContentScope';
 import type { ServerActionResult } from '@lib/serverAction';
 import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
 

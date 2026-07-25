@@ -22,7 +22,10 @@ const globalForDataSources = globalThis as unknown as {
  * supplied ID when `createDataSource` is being called and wrapped by a helper class. A single
  * registry is used for the server, whereas the following pattern exists to aid the Next HMR.
  */
-const kDataSourceRegistry = globalForDataSources.kDataSourceRegistry ??= new Map;
+if (!globalForDataSources.kDataSourceRegistry) {
+    globalForDataSources.kDataSourceRegistry = new Map();
+}
+const kDataSourceRegistry = globalForDataSources.kDataSourceRegistry;
 
 /**
  * Creates a new data source from the given `dataSourceInstance`. It's stored in a registry based on

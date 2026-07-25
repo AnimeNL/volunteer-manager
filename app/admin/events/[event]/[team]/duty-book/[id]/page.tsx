@@ -19,7 +19,6 @@ import { VisibilityToggle } from './VisibilityToggle';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { readSetting } from '@lib/Settings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 

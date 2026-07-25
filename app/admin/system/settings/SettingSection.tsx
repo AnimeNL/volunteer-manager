@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 
 import { type FieldValues, FormContainer, CheckboxElement, TextFieldElement }
     from '@proxy/react-hook-form-mui';

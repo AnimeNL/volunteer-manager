@@ -59,9 +59,9 @@ function Text(props: TypographyProps & { tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' |
         case 'h5':
         case 'h6':
             return <Typography {...props} variant="h6" />
+        case 'p':
+            return <Typography {...props} />
     }
-
-    return <Typography {...props} />
 }
 
 /**

@@ -175,7 +175,7 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
                 name: userContext.name,
                 tenure: userContext.events,
             },
-            date: '',
+            date: currentLocalDate,
             event: {
                 endDate,
                 location: event.location ?? 'The Netherlands',

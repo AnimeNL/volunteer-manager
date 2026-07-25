@@ -1,13 +1,23 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
         "useIgnoreFile": true
     },
     "files": {
-        "ignoreUnknown": false
+        "ignoreUnknown": true
     },
+    "overrides": [
+        {
+            "includes": [
+                "public/images/logo.svg"
+            ],
+            "linter": {
+                "enabled": false
+            }
+        }
+    ],
     "formatter": {
         "enabled": true,
         "includes": ["app/**/*.ts"],
@@ -22,7 +32,7 @@
             "next": "recommended"
         },
         "rules": {
-            "recommended": false,
+            "preset": "none",
             "complexity": {
                 "noArguments": "error",
                 "noCommaOperator": "error",

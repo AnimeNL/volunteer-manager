@@ -7,7 +7,6 @@ import { z } from 'zod/v4';
 import { Publish } from '@lib/subscriptions';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
-import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tEnvironments, tEvents, tTeams, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
