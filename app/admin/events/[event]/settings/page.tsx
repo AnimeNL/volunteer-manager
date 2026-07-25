@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { EventDatesTable } from './EventDatesTable';
-import { EventSettings } from './EventSettings';
 import { Section } from '@app/admin/components/Section';
 import { SettingsHeader } from './SettingsHeader';
 import { generateEventMetadataFn } from '../generateEventMetadataFn';
@@ -30,7 +29,6 @@ export default async function EventSettingsPage(
     return (
         <>
             <SettingsHeader event={event} />
-            <EventSettings event={event.id} timezone={event.timezone} />
             <Section title="Deadlines and highlights">
                 <EventDatesTable event={event} leaders={leaders} />
             </Section>

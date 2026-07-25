@@ -62,6 +62,11 @@ interface LogTypeParameterMap {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    UpdateEventSettings: {
+        event: string;  // short name
+        type: 'basic' | 'feature' | 'integration';
+    };
+
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
@@ -126,6 +131,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
 
     // ---------------------------------------------------------------------------------------------
