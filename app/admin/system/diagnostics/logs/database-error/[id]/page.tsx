@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
@@ -13,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tLogs } from '@lib/database';
 
@@ -109,6 +109,5 @@ export default async function DatabaseErrorLogPage(
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Database Error | System logs | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn('Database error', 'System logs', 'Diagnostics', 'System');

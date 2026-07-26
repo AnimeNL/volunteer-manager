@@ -1,7 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
@@ -24,6 +23,7 @@ import Typography from '@mui/material/Typography';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
@@ -155,7 +155,11 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
                             <ListItemText slotProps={{ secondary: { component: 'div' } }}
                                         primary="IP address" secondary={
                                 <>
-                                    {source.ipAddress}
+                                    <MuiLink
+                                        component={Link}
+                                        href={`/admin/system/diagnostics/ip/${source.ipAddress}`}>
+                                        {source.ipAddress}
+                                    </MuiLink>
                                     { source.ipAddress === '::1' &&
                                         <Chip color="info" label="dev" size="small"
                                               sx={{ ml: .5 }} /> }
@@ -169,7 +173,7 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
                             </ListItemIcon>
                             <ListItemText primary="Account" secondary={
                                 <MuiLink component={Link}
-                                        href={`/admin/organisation/accounts/${user.id}`}>
+                                         href={`/admin/organisation/accounts/${user.id}`}>
                                     {user.name}
                                 </MuiLink>
                             } />
@@ -190,6 +194,5 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Issue | Error logs | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'Error logs', 'Diagnostics', 'System');

@@ -10,6 +10,11 @@ import { logsDataSource, type LogsRowModel } from './LogsDataSource';
  */
 interface LogsDataTableProps {
     /**
+     * IP address for which the log entries should be filtered.
+     */
+    ipAddress?: string;
+
+    /**
      * Optional setting for the number of items that should be shown per page.
      */
     pageSize?: 10 | 25 | 50 | 100;
@@ -77,7 +82,7 @@ export function LogsDataTable(props: LogsDataTableProps) {
         <DataTable
             columns={columns}
             source={logsDataSource}
-            context={{ userId: props.userId }}
+            context={{ ipAddress: props.ipAddress, userId: props.userId }}
             defaultSort={{ field: 'date', sort: 'desc' }}
             subject="log entry"
             pageSize={props.pageSize}

@@ -54,8 +54,8 @@ interface CacheDescriptorMap {
     IP2Location: {
         Parameters: string;
         Contents: {
-            country_code: string;
-            country_name: string;
+            country_code?: string;
+            country_name?: string;
             region_name?: string;
             city_name?: string;
             latitude?: number;

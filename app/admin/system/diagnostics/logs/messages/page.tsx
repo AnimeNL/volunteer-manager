@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
@@ -13,6 +12,7 @@ import { LogBuilder } from '@lib/log/index';
 import { LogFormatAction } from './LogFormatAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tLogsFormat } from '@lib/database';
@@ -276,6 +276,6 @@ export default async function SystemLogsMessageFormattingPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Messages | System logs | AnimeCon Volunteer Manager',
-};
+
+export const generateMetadata =
+    createGenerateMetadataFn('Message formatting', 'System logs', 'Diagnostics', 'System');

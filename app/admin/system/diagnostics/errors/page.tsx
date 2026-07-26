@@ -1,7 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
@@ -12,6 +11,7 @@ import { IssueTypeCell, LocalBuildCell } from './IssueTypeCell';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
@@ -232,6 +232,4 @@ export default async function ErrorLogsPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Error logs | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Error logs', 'Diagnostics', 'System');

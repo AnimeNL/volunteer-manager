@@ -11,14 +11,14 @@ import { Cache } from '@lib/cache';
  * @see https://www.ip2location.com/documentation/ip2location-database-db11
  */
 const kLocationSchema = z.object({
-    country_code: z.string(),
-    country_name: z.string(),
-    region_name: z.string().optional(),
-    city_name: z.string().optional(),
+    country_code: z.string().transform(v => v === '-' ? undefined : v).optional(),
+    country_name: z.string().transform(v => v === '-' ? undefined : v).optional(),
+    region_name: z.string().transform(v => v === '-' ? undefined : v).optional(),
+    city_name: z.string().transform(v => v === '-' ? undefined : v).optional(),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    zip_code: z.string().optional(),
-    time_zone: z.string().optional(),
+    zip_code: z.string().transform(v => v === '-' ? undefined : v).optional(),
+    time_zone: z.string().transform(v => v === '-' ? undefined : v).optional(),
 });
 
 /**

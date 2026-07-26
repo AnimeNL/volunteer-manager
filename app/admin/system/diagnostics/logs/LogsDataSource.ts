@@ -14,6 +14,11 @@ import { resolveTemplate } from '@app/admin/components/DataTable/Utilities';
  */
 export const logsDataSource = createDataSource('system/diagnostics/logs', withContext({
     /**
+     * Optional filter indicating for which IP address logs should be retrieved.
+     */
+    ipAddress: z.string().optional(),
+
+    /**
      * Optional filter indicating for which user logs should be retrieved.
      */
     userId: z.number().optional(),
@@ -113,6 +118,7 @@ export const logsDataSource = createDataSource('system/diagnostics/logs', withCo
                 .on(initiatorUserJoin.userId.equals(tLogs.logSourceUserId))
             .where(tLogs.logSourceUserId.equalsIfValue(context.userId).or(
                 tLogs.logTargetUserId.equalsIfValue(context.userId)))
+                .and(tLogs.logSourceIpAddress.equalsIfValue(context.ipAddress))
                 .and(formatJoin.logTypeVisible.isNull().or(
                     formatJoin.logTypeVisible.equals(/* true= */ 1)))
                 .and(tLogs.logDeleted.isNull())

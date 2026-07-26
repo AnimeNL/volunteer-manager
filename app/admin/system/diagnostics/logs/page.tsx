@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 
 import FindReplaceIcon from '@mui/icons-material/FindReplace';
@@ -14,6 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -63,6 +63,4 @@ export default async function SystemLogsPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'System logs | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('System logs', 'Diagnostics', 'System');
