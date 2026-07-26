@@ -62,12 +62,12 @@ describe('callApi', () => {
     it('is able to substitute REST path parameters from the request to the endpoint', async () => {
         scheduledResponse = new Response(JSON.stringify({ success: true }), { status: 200 });
 
-        const response = await callApi('delete', '/api/nardo/:id', {
+        const response = await callApi('delete', '/api/admin/organisation/displays/:id', {
             id: 42,
         });
 
         expect(latestRequestInput).not.toBeUndefined();
-        expect(latestRequestInput).toEqual('/api/nardo/42');
+        expect(latestRequestInput).toEqual('/api/admin/organisation/displays/42');
 
         expect(latestRequestInit).not.toBeUndefined();
         expect(latestRequestInit?.body).toEqual('{}');

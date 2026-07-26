@@ -17,6 +17,8 @@ export class NardoTable extends Table<DBConnection, 'NardoTable'> {
     nardoAdvice = this.column('nardo_advice', 'string');
     nardoAuthorId = this.column('nardo_author_id', 'int');
     nardoAuthorDate = this.columnWithDefaultValue<Temporal.ZonedDateTime>('nardo_author_date', 'customLocalDateTime', 'timestamp', TemporalTypeAdapter);
+    nardoUpdated = this.columnWithDefaultValue<Temporal.ZonedDateTime>('nardo_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    nardoDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('nardo_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     nardoVisible = this.columnWithDefaultValue('nardo_visible', 'int');
 
     constructor() {

@@ -446,7 +446,14 @@ tables:
     type: timestamp
     nullable: false
     default: current_timestamp()
-    extraDef: on update current_timestamp()
+  - name: nardo_updated
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: nardo_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
   - name: nardo_visible
     type: tinyint(1)
     nullable: false
@@ -469,7 +476,9 @@ tables:
       `nardo_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `nardo_advice` text NOT NULL,
       `nardo_author_id` int(8) unsigned NOT NULL,
-      `nardo_author_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      `nardo_author_date` timestamp NOT NULL DEFAULT current_timestamp(),
+      `nardo_updated` datetime NOT NULL DEFAULT current_timestamp(),
+      `nardo_deleted` datetime DEFAULT NULL,
       `nardo_visible` tinyint(1) NOT NULL DEFAULT 1,
       PRIMARY KEY (`nardo_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

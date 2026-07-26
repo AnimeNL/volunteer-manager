@@ -105,7 +105,7 @@ describe('DataTable - Create', () => {
         });
 
         // The button should be in the footer.
-        const createBtn = screen.getByRole('button', { name: 'Create item' });
+        const createBtn = screen.getByRole('button', { name: 'Create' });
         expect(createBtn).toBeDefined();
 
         // Click create button.
@@ -170,7 +170,7 @@ describe('DataTable - Create', () => {
             expect(screen.getByText('Amia Bell')).toBeDefined();
         });
 
-        const createBtn = screen.getByRole('button', { name: 'Create item' });
+        const createBtn = screen.getByRole('button', { name: 'Create' });
         expect(createBtn).toBeDefined();
 
         fireEvent.click(createBtn);

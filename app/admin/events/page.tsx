@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import { default as TopLevelLayout } from '../TopLevelLayout';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
-import { EventSettingsForm } from './[event]/settings/EventSettingsForm';
+import { EventSettingsForm } from './[event]/settings/configuration/EventSettingsForm';
 import { EventStatusCell, EventTeamsCell } from './EventRowComponents';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';

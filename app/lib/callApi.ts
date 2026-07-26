@@ -52,7 +52,6 @@ import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/
 import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
-import type { NardoEndpoints } from '@app/api/nardo/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
 import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
 import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id]]/route';
@@ -104,7 +103,6 @@ export type ApiEndpoints = {
         '/api/event/hotels/:event': HotelsDefinition,
         '/api/event/trainings/:event': TrainingsDefinition,
         '/api/display': DisplayDefinition,
-        '/api/nardo': NardoEndpoints['list'],
         '/api/nardo/personalised': NardoPersonalisedEndpoints['list'],
     },
     'post': {
@@ -148,7 +146,6 @@ export type ApiEndpoints = {
         '/api/event/schedule/duty-book': DutyBookReportDefinition,
         '/api/event/schedule/feedback': SubmitFeedbackDefinition,
         '/api/exports': ExportsDefinition,
-        '/api/nardo': NardoEndpoints['create'],
         '/api/nardo/personalised': NardoPersonalisedEndpoints['create'],
     },
     'delete': {
@@ -168,7 +165,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/admin/vendors/:id': VendorEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
-        '/api/nardo/:id': NardoEndpoints['delete'],
     },
     'put': {
         '/api/admin/content/categories/:id': ContentCategoriesEndpoints['update'],
@@ -197,7 +193,6 @@ export type ApiEndpoints = {
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
         '/api/event/schedule/help-request': UpdateHelpRequestDefinition,
         '/api/event/schedule/notes': UpdateNotesDefinition,
-        '/api/nardo/:id': NardoEndpoints['update'],
     },
 };
 

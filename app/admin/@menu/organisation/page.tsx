@@ -8,7 +8,7 @@ import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import ShareIcon from '@mui/icons-material/Share';
 import TabletIcon from '@mui/icons-material/Tablet';
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
+import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
 
 import { NavigationMenu } from '../../layout/NavigationMenu';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -87,7 +87,7 @@ export default async function OrganisationMenu() {
                 id: 'services',
                 items: [
                     {
-                        Icon: TipsAndUpdatesIcon,
+                        Icon: TipsAndUpdatesOutlinedIcon,
                         badge: { severity: 'error', value: true },  // migration not started
                         label: 'Del a Rie Advies',
                         permission: 'organisation.nardo',
