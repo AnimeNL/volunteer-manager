@@ -14,6 +14,12 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
      * The unique identifier of the column. Strictly typed based on the `RowModel`.
      */
     field: keyof RowModel & string;
+
+    /**
+     * For editable columns, whether a value is required prior to being submittable.
+     */
+    required?: boolean;
+
 } & (
     {
         /**

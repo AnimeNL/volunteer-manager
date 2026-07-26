@@ -9,12 +9,10 @@ import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cell
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
-import { LogFormatAction } from './LogFormatAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { executeServerAction } from '@lib/serverAction';
 import db, { tLogsFormat } from '@lib/database';
 
 /**
@@ -55,6 +53,27 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
     },
 
     async create(row, props, context) {
+        if (!row.id || !row.format)
+            return false;  // required fields omitted
+
+        const dbInstance = db;
+        const success = await dbInstance.insertInto(tLogsFormat)
+            .set({
+                logType: row.id,
+                logFormat: row.format,
+                logTypeDeprecated: row.active ? 0 : 1,
+                logTypeVisible: row.visible ? 1 : 0,
+                logFormatUpdated: dbInstance.currentZonedDateTime(),
+            })
+            .executeInsert();
+
+        if (!success)
+            return false;
+
+        LogBuilder.for('CreateLogMessageFormat')
+            .withInitiatorUser(props.user)
+            .record({ type: row.id });
+
         return true;
     },
 
@@ -127,51 +146,6 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
 });
 
 /**
- * Data schema expected by the `createLogFormat` server action.
- */
-const kCreateLogFormatData = z.object({
-    type: z.string().nonempty(),
-    format: z.string().nonempty(),
-});
-
-/**
- * Server action that creates a new log message formatting rule. The rule will be enabled by default
- * as, at the very least, its functionality will be tested and confirmed.
- */
-async function createLogFormat(formData: unknown) {
-    'use server';
-    return executeServerAction(formData, kCreateLogFormatData, async ({ type, format }, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.settings',
-        });
-
-        const dbInstance = db;
-        const success = await dbInstance.insertInto(tLogsFormat)
-            .set({
-                logType: type,
-                logFormat: format,
-                logTypeDeprecated: 0,
-                logTypeVisible: 1,
-                logFormatUpdated: dbInstance.currentZonedDateTime(),
-            })
-            .executeInsert();
-
-        if (!success)
-            return { success: false, error: 'Unable to store the new format in the database…' };
-
-        LogBuilder.for('CreateLogMessageFormat')
-            .withInitiatorUser(props.user)
-            .record({ type: type });
-
-        return {
-            success: true,
-            close: true,
-        };
-    });
-}
-
-/**
  * Page through which administrators are able to manage message formatting, i.e. how log entries
  * should be presented on the log overview page. Restricted to administrators as this is relatively
  * easy to mess up.
@@ -210,12 +184,15 @@ export default async function SystemLogsMessageFormattingPage() {
         {
             field: 'id',
             headerName: 'Type',
+            editable: true,
+            required: true,
             flex: 1,
         },
         {
             field: 'format',
             headerName: 'Format',
             editable: true,
+            required: true,
             flex: 2,
         },
         {
@@ -257,7 +234,6 @@ export default async function SystemLogsMessageFormattingPage() {
     return (
         <>
             <Section icon={ <ReceiptOutlinedIcon color="primary" /> } title="Message formatting"
-                     headerAction={ <LogFormatAction createLogFormatFn={createLogFormat} /> }
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Diagnostics', href: '/admin/system/diagnostics' },

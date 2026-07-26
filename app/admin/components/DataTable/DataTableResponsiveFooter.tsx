@@ -88,7 +88,8 @@ export function DataTableResponsiveFooter(
                                     variant="outlined" color="inherit"
                                     sx={{
                                         marginLeft: '10px !important',
-                                        marginRight: '3px !important'
+                                        marginRight: '3px !important',
+                                        opacity: 0.4,
                                     }} >
                                 Create
                             </Button>

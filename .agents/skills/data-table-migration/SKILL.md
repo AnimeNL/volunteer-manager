@@ -12,8 +12,8 @@ to the new <DataTable> component. This has two benefits:
 1. The data source (using `createDataSource`) can live with the component, often in page.tsx
 2. There don't need to be additional API endpoints to support this API.
 
-The <DataTable> component does not yet support creating new entries, or reordering entries. If you
-are asked to migrate a table using those features, abort and explain that this is not yet possible.
+The <DataTable> component does not yet support reordering entries or treeview display. If you are
+asked to migrate a table using those features, abort and explain that this is not yet possible.
 
 If that is not the case, you must:
 

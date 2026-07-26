@@ -110,6 +110,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 <Stack spacing={1.5} sx={{ my: 1 }}>
                     { visibleColumns.filter(column => !!column.editable).map(column => {
                         const label = column.description || column.headerName || column.field;
+                        const required = !!column.required;
 
                         if (column.type === 'singleSelect') {
                             const rawOptions = typeof (column as any).valueOptions === 'function'
@@ -132,14 +133,15 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                             return (
                                 <SelectElement key={column.field} name={column.field}
                                                label={label} options={options} fullWidth
-                                               size="small" />
+                                               size="small" required={required} />
                             );
                         }
 
                         if (column.type === 'boolean') {
                             return (
                                 <CheckboxElement key={column.field} name={column.field}
-                                                 label={label} size="small" sx={{ my: 0 }} />
+                                                 label={label} size="small" required={required}
+                                                 sx={{ my: 0 }} />
                             );
                         }
 
@@ -147,13 +149,14 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                             return (
                                 <TextFieldElement key={column.field} name={column.field}
                                                   label={label} type="number" fullWidth
-                                                  size="small" />
+                                                  size="small" required={required} />
                             );
                         }
 
                         return (
                             <TextFieldElement key={column.field} name={column.field}
-                                              label={label} type="text" fullWidth size="small" />
+                                              label={label} type="text" fullWidth size="small"
+                                              required={required} />
                         );
                     })}
                 </Stack>
