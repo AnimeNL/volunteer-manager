@@ -235,10 +235,11 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                                   onClose={handleCloseMenu}
                                   anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
                                   transformOrigin={{ vertical: 'center', horizontal: 'right' }}>
-                            <IconButton component="li" disabled={!props.onEdit} onClick={handleEditClick}
-                                        aria-label="Edit">
-                                <EditIcon color={props.onEdit ? 'primary' : 'disabled'} fontSize="medium" />
-                            </IconButton>
+                            { !!props.onEdit &&
+                                <IconButton component="li" onClick={handleEditClick}
+                                            aria-label="Edit">
+                                    <EditIcon color="primary" fontSize="medium" />
+                                </IconButton> }
                             { !!props.onDelete && !isProtected &&
                                 <IconButton component="li" onClick={handleDeleteClick}
                                             aria-label="Delete">
@@ -283,7 +284,7 @@ export function DataTableListViewButtonRow(props: DataTableListViewRowProps) {
 const IconMenu = styled(Menu)(({ theme }) => ({
     [`& .${menuClasses.list}`]: {
         display: 'flex',
-        padding: theme.spacing(1, 1),
+        padding: theme.spacing(1.5),
     },
 }));
 
