@@ -4,7 +4,6 @@
 'use client';
 
 import { FormContainer } from '@proxy/react-hook-form-mui';
-import { useForm } from '@proxy/react-hook-form-mui';
 
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -48,7 +47,7 @@ export interface DataTableActionProps {
     confirm: React.ReactNode;
 
     /**
-     * Optional form context when the dialog/drawer encapsulates a form.
+     * Form context when the dialog/drawer encapsulates a form.
      */
     formContext: any;
 
@@ -56,11 +55,6 @@ export interface DataTableActionProps {
      * Optional callback for form submission, required if formContext is provided.
      */
     onSubmit?: (data: any) => Promise<void> | void;
-
-    /**
-     * Optional children containing custom content (e.g. form fields).
-     */
-    children?: React.ReactNode;
 }
 
 /**
@@ -89,36 +83,24 @@ const DrawerTitle = styled(Typography)(({ theme }) => ({
 /**
  * Component for the action dialog (desktop).
  */
-function DataTableActionDialog(props: DataTableActionProps) {
-    const { open, onClose, title, description, confirm, onSubmit, children } = props;
-
-    // biome-ignore lint/correctness/useHookAtTopLevel: fixed, well defined usage:
-    const formContext = props.formContext ?? useForm();
-
-    const content = (
-        <>
-            <DialogTitle>
-                {title}
-            </DialogTitle>
-            <DialogContent>
-                {description && (
-                    <Typography variant="body2" sx={{ mb: children ? 2 : 0 }}>
-                        {description}
-                    </Typography>
-                )}
-                {children}
-            </DialogContent>
-            <DialogActions sx={{ p: 2, pt: 0 }}>
-                <Button onClick={onClose}>Cancel</Button>
-                {confirm}
-            </DialogActions>
-        </>
-    );
-
+function DataTableActionDialog(props: React.PropsWithChildren<DataTableActionProps>) {
     return (
-        <Dialog open={open} onClose={onClose} fullWidth>
-            <FormContainer formContext={formContext} onSuccess={onSubmit}>
-                {content}
+        <Dialog open={props.open} onClose={props.onClose} fullWidth>
+            <FormContainer formContext={props.formContext} onSuccess={props.onSubmit}>
+                <DialogTitle>
+                    {props.title}
+                </DialogTitle>
+                <DialogContent>
+                    { props.description &&
+                        <Typography variant="body2" sx={{ mb: props.children ? 2 : 0 }}>
+                            {props.description}
+                        </Typography> }
+                    {props.children}
+                </DialogContent>
+                <DialogActions sx={{ p: 2, pt: 0 }}>
+                    <Button onClick={props.onClose}>Cancel</Button>
+                    {props.confirm}
+                </DialogActions>
             </FormContainer>
         </Dialog>
     );
@@ -127,36 +109,25 @@ function DataTableActionDialog(props: DataTableActionProps) {
 /**
  * Component for the action drawer (mobile).
  */
-function DataTableActionDrawer(props: DataTableActionProps) {
-    const { open, onClose, title, description, confirm, onSubmit, children } = props;
-
-    // biome-ignore lint/correctness/useHookAtTopLevel: fixed, well defined usage:
-    const formContext = props.formContext ?? useForm();
-
-    const content = (
-        <>
-            <DrawerTitle variant="h6">
-                {title}
-            </DrawerTitle>
-            {description && (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: children ? 2 : 0 }}>
-                    {description}
-                </Typography>
-            )}
-            {children}
-            <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                {confirm}
-                <Button onClick={onClose} variant="text">
-                    Cancel
-                </Button>
-            </Stack>
-        </>
-    );
-
+function DataTableActionDrawer(props: React.PropsWithChildren<DataTableActionProps>) {
     return (
-        <StyledDrawer anchor="bottom" open={open} onClose={onClose}>
-            <FormContainer formContext={formContext} onSuccess={onSubmit}>
-                {content}
+        <StyledDrawer anchor="bottom" open={props.open} onClose={props.onClose}>
+            <FormContainer formContext={props.formContext} onSuccess={props.onSubmit}>
+                <DrawerTitle variant="h6">
+                    {props.title}
+                </DrawerTitle>
+                { props.description &&
+                    <Typography variant="body2" color="text.secondary"
+                                sx={{ mb: props.children ? 2 : 0 }}>
+                        {props.description}
+                    </Typography> }
+                {props.children}
+                <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                    {props.confirm}
+                    <Button onClick={props.onClose} variant="text">
+                        Cancel
+                    </Button>
+                </Stack>
             </FormContainer>
         </StyledDrawer>
     );
@@ -164,9 +135,10 @@ function DataTableActionDrawer(props: DataTableActionProps) {
 
 /**
  * The <DataTableAction> base component provides a responsive dialog (desktop) or drawer (mobile)
- * for common table actions, handling titles, description text, custom children, and uniform action buttons.
+ * for common table actions, handling titles, description text, custom children, and uniform action
+ * buttons.
  */
-export function DataTableAction(props: DataTableActionProps) {
+export function DataTableAction(props: React.PropsWithChildren<DataTableActionProps>) {
     const isMobile = useIsMobile();
     return isMobile ? <DataTableActionDrawer {...props} />
                     : <DataTableActionDialog {...props} />;

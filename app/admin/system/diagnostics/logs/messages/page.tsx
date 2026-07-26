@@ -265,6 +265,7 @@ export default async function SystemLogsMessageFormattingPage() {
             <Section noHeader>
                 <DataTable columns={columns} source={logsFormatDataSource}
                            defaultSort={{ field: 'id', sort: 'asc' }}
+                           subject="log message format"
                            listViewProps={{
                                primaryField: 'id',
                                secondaryField: 'format',

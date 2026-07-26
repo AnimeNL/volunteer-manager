@@ -3,6 +3,8 @@
 
 'use client';
 
+import { useForm } from '@proxy/react-hook-form-mui';
+
 import Button from '@mui/material/Button';
 
 import { DataTableAction, type DataTableActionProps } from './DataTableAction';
@@ -35,6 +37,7 @@ export interface DeleteConfirmationProps extends Pick<DataTableActionProps, 'ope
 export function DeleteConfirmation(props: DeleteConfirmationProps) {
     const { open, onClose, onDelete, loading, subject = 'item' } = props;
 
+    const formContext = useForm();
     const description =
         `Are you sure that you want to remove this ${subject}? This action can't be undone once ` +
         'you confirm its deletion.';
@@ -42,7 +45,7 @@ export function DeleteConfirmation(props: DeleteConfirmationProps) {
     return (
         <DataTableAction
             open={open} onClose={onClose} title={`Delete this ${subject}?`}
-            description={description}
+            description={description} formContext={formContext}
             confirm={
                 <Button onClick={onDelete} loading={loading} variant="contained" color="error">
                     Delete

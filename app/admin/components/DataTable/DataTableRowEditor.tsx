@@ -100,9 +100,8 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
         >
             <Box sx={{ overflowY: 'auto', maxHeight: '55vh', my: 1, px: 0.5 }}>
                 <Stack spacing={2.5} sx={{ py: 1 }}>
-                    { visibleColumns.map(column => {
+                    { visibleColumns.filter(column => !!column.editable).map(column => {
                         const label = column.headerName || column.field;
-                        const isEditable = !!column.editable;
 
                         if (column.type === 'singleSelect') {
                             const rawOptions = typeof (column as any).valueOptions === 'function'
@@ -124,31 +123,29 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
 
                             return (
                                 <SelectElement key={column.field} name={column.field}
-                                               label={label} options={options}
-                                               disabled={!isEditable} fullWidth size="small" />
+                                               label={label} options={options} fullWidth
+                                               size="small" />
                             );
                         }
 
                         if (column.type === 'boolean') {
                             return (
                                 <CheckboxElement key={column.field} name={column.field}
-                                                 label={label} disabled={!isEditable} />
+                                                 label={label} />
                             );
                         }
 
                         if (column.type === 'number') {
                             return (
                                 <TextFieldElement key={column.field} name={column.field}
-                                                  label={label} type="number"
-                                                  disabled={!isEditable} fullWidth
+                                                  label={label} type="number" fullWidth
                                                   size="small" />
                             );
                         }
 
                         return (
                             <TextFieldElement key={column.field} name={column.field}
-                                              label={label} type="text" disabled={!isEditable}
-                                              fullWidth size="small" />
+                                              label={label} type="text" fullWidth size="small" />
                         );
                     })}
                 </Stack>
