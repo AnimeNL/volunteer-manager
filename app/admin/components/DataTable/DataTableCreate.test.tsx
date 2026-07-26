@@ -130,6 +130,71 @@ describe('DataTable - Create', () => {
         });
     });
 
+    it('is able to create a row via the header button on desktop', async () => {
+        let createInvokedWith: any = null;
+
+        const dataSource = createDataSource('test/create-row-header-desktop', kExampleRowModel, {
+            async authorize() {},
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async create(row) {
+                createInvokedWith = row;
+                return {
+                    id: 3,
+                    name: row.name ?? '',
+                    role: row.role ?? '',
+                };
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', editable: true },
+            { field: 'role', editable: true }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        // The button should be in the header.
+        const createBtn = screen.getByRole('button', { name: 'Create a new item' });
+        expect(createBtn).toBeDefined();
+
+        // Click create button.
+        fireEvent.click(createBtn);
+
+        // Dialog should open.
+        await waitFor(() => {
+            expect(screen.getByRole('heading', { name: 'Create item' })).toBeDefined();
+        });
+
+        // Fill form.
+        const nameInput = screen.getByLabelText('name');
+        const roleInput = screen.getByLabelText('role');
+        fireEvent.change(nameInput, { target: { value: 'Header Expert' } });
+        fireEvent.change(roleInput, { target: { value: 'Tester' } });
+
+        const submitBtn = screen.getByRole('button', { name: 'Create' });
+        fireEvent.click(submitBtn);
+
+        await waitFor(() => {
+            expect(createInvokedWith).toEqual({ name: 'Header Expert', role: 'Tester' });
+        });
+    });
+
     it('is able to create a row via the footer button on mobile', async () => {
         let createInvokedWith: any = null;
 

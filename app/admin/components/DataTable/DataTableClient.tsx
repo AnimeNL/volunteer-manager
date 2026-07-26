@@ -8,6 +8,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
     type GridPaginationModel, type GridRowModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
 
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Alert from '@mui/material/Alert';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import IconButton from '@mui/material/IconButton';
@@ -336,7 +337,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const columns = useMemo(() => {
         const columns: GridColDef[] = [ /* none yet */ ];
 
-        // TODO: Add the ability to create rows to the |delete| column.
         if (!isMobile && !!props.source.delete) {
             columns.push({
                 display: 'flex',
@@ -345,6 +345,20 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 sortable: false,
                 width: 50,
                 align: 'center',
+
+                renderHeader: () => {
+                    if (!props.source.create)
+                        return null;
+
+                    return (
+                        <Tooltip title={`Create a new ${subject}`}>
+                            <IconButton aria-label={`Create a new ${subject}`} size="small"
+                                        onClick={ () => setCreateOpen(true) }>
+                                <AddCircleIcon color="success" fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    );
+                },
 
                 renderCell: params => {
                     if (isProtectedRow(params.row, props.protectedColumn)) {
@@ -376,7 +390,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
         return columns;
 
-    }, [ props.columns, props.source.delete, isMobile, subject, props.protectedColumn ]);
+    }, [ props.columns, props.source.create, props.source.delete, isMobile, subject,
+         props.protectedColumn ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the `GridDataSource` based on the available Server Actions in the `props`.
