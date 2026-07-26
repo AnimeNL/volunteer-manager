@@ -452,6 +452,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 disableColumnFilter
                 disableColumnMenu
                 disableColumnReorder
+                disableColumnResize
                 disableColumnSelector
                 disableMultipleColumnsSorting
                 disablePivoting

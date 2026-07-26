@@ -79,7 +79,6 @@ export const kLogType = {
     AdminImpersonateVolunteer: 'admin-impersonate-volunteer',
     AdminKnowledgeBaseCategoryMutation: 'admin-knowledge-base-category-mutation',
     AdminKnowledgeBaseMutation: 'admin-knowledge-base-mutation',
-    AdminNardoMutation: 'admin-nardo-mutation',
     AdminProgramMutation: 'admin-program-mutation',
     AdminRefundMutation: 'admin-refund-mutation',
     AdminResetAccessCode: 'admin-reset-access-code',

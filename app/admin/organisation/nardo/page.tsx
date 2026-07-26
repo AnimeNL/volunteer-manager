@@ -96,7 +96,19 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
         return true;
     },
 
-    async list(params, props) {
+    async list(params) {
+        let sortField: 'advice' | 'author.name' | 'date' = 'date';
+        switch (params.sort.field) {
+            case 'advice':
+            case 'date':
+                sortField = params.sort.field;
+                break;
+
+            case 'author':
+                sortField = 'author.name';
+                break;
+        }
+
         const dbInstance = db;
         const results = await dbInstance.selectFrom(tNardo)
             .innerJoin(tUsers)
@@ -113,8 +125,7 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
                 },
                 date: dbInstance.dateTimeAsString(tNardo.nardoUpdated),
             })
-            .orderByFromStringIfValue(
-                params.sort ? `${String(params.sort.field)} ${params.sort.direction}` : null)
+            .orderBy(sortField, params.sort.direction)
             .limit(params.page.limit)
                 .offset(params.page.offset)
             .executeSelectPage();
@@ -206,7 +217,7 @@ export default async function NardoPage() {
                 <DataTable columns={columns}
                            source={nardoDataSource}
                            defaultSort={{ field: 'date', sort: 'desc' }}
-                           pageSize={50} subject="advice"
+                           pageSize={50} subject="expert advice"
                            listViewProps={{
                                primaryField: 'advice',
                                secondaryTemplate: 'By {author.name}',

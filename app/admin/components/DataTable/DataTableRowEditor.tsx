@@ -70,7 +70,8 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
     }, [open, row, reset]);
 
     const visibleColumns = useMemo(() =>
-        props.columns.filter(col => !col.field.startsWith('__')), [ props.columns ]);
+        props.columns.filter(col => !col.field.startsWith('__'))
+                     .filter(col => !!col.editable), [ props.columns ]);
 
     // ----------------------------------------------------------------------------------------------
 
@@ -106,9 +107,9 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 </Button>
             }>
             <Box sx={{ overflowY: 'auto', maxHeight: '55vh' }}>
-                <Divider />
+                { visibleColumns.length > 1 && <Divider /> }
                 <Stack spacing={1.5} sx={{ my: 1 }}>
-                    { visibleColumns.filter(column => !!column.editable).map(column => {
+                    { visibleColumns.map(column => {
                         const label = column.description || column.headerName || column.field;
                         const required = !!column.required;
 
@@ -160,7 +161,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                         );
                     })}
                 </Stack>
-                <Divider />
+                { visibleColumns.length > 1 && <Divider /> }
             </Box>
         </DataTableAction>
     );
