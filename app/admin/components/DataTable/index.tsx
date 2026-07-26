@@ -4,7 +4,6 @@
 // TODO:
 // - Client side:
 //   - Functionality:
-//     - Create rows
 //     - Reorder rows
 //   - Presentation:
 //     - Tree data?

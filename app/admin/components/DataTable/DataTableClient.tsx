@@ -10,6 +10,7 @@ import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterM
 
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
@@ -331,7 +332,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // redefine their interface several times, which are handled here.
     //
     // TODO: Automatically generated column for reordering
-    // TODO: Column amendments (e.g. addition)
     // ---------------------------------------------------------------------------------------------
 
     const columns = useMemo(() => {
@@ -516,6 +516,12 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 }}
 
                 onDataSourceError={handleDataSourceError} />
+            { isMobile && !!props.source.create && (
+                <Button fullWidth variant="outlined" color="success"
+                        startIcon={ <AddCircleIcon color="success" /> }
+                        onClick={ () => setCreateOpen(true) }>
+                    Add {subject}
+                </Button> ) }
             <DeleteConfirmation
                 open={deleteCandidate !== undefined}
                 onClose={handleDeleteClose}
