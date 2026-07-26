@@ -62,6 +62,8 @@ interface LogTypeParameterMap {
     // Administration > Organisation > Services
     // ---------------------------------------------------------------------------------------------
 
+    CreateNardoAdvice: NoParameters;
+
     DeleteNardoAdvice: NoParameters;
 
     UpdateNardoAdvice: NoParameters;
@@ -139,6 +141,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Organisation > Services
     // ---------------------------------------------------------------------------------------------
 
+    CreateNardoAdvice: 'CreateNardoAdvice',
     DeleteNardoAdvice: 'DeleteNardoAdvice',
     UpdateNardoAdvice: 'UpdateNardoAdvice',
 

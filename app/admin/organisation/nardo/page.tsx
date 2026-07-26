@@ -49,6 +49,30 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
         });
     },
 
+    async create(partialRow, props) {
+        console.log(partialRow);
+        if (!partialRow.advice)
+            return false;
+
+        const dbInstance = db;
+        const affectedRows = await dbInstance.insertInto(tNardo)
+            .set({
+                nardoAdvice: partialRow.advice,
+                nardoAuthorId: props.user.id,
+                nardoAuthorDate: dbInstance.currentZonedDateTime(),
+                nardoUpdated: dbInstance.currentZonedDateTime(),
+            })
+            .executeInsert();
+
+        if (affectedRows) {
+            LogBuilder.for('CreateNardoAdvice')
+                .withInitiatorUser(props.user)
+                .record();
+        }
+
+        return true;
+    },
+
     async delete(row, props) {
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tNardo)
@@ -77,9 +101,9 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
         const results = await dbInstance.selectFrom(tNardo)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tNardo.nardoAuthorId))
-            .where(tNardo.nardoVisible.equals(/* true= */ 1)
+            .where(tNardo.nardoDeleted.isNull())
                 .and(tNardo.nardoAdvice.containsInsensitiveIfValue(params.search).or(
-                     tUsers.name.containsInsensitiveIfValue(params.search))))
+                     tUsers.name.containsInsensitiveIfValue(params.search)))
             .select({
                 id: tNardo.nardoId,
                 advice: tNardo.nardoAdvice,
@@ -144,6 +168,7 @@ export default async function NardoPage() {
             headerName: 'Advice',
             sortable: true,
             editable: true,
+            required: true,
             flex: 3,
         },
         {

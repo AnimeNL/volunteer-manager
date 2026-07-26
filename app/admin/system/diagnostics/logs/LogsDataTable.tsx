@@ -73,7 +73,7 @@ export function LogsDataTable(props: LogsDataTableProps) {
 
             template: 'account',
             templateProps: {
-                noAccountLabel: 'Anonymous',
+                noAccountLabel: 'Nobody',
             },
         },
     ];
