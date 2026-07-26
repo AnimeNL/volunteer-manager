@@ -11,6 +11,7 @@ import { CheckboxElement, SelectElement, TextFieldElement, useForm, type FieldVa
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 
 import type { Column } from './Column';
@@ -96,12 +97,12 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 <Button type="submit" loading={loading} variant="contained" color="primary">
                     Save
                 </Button>
-            }
-        >
-            <Box sx={{ overflowY: 'auto', maxHeight: '55vh', my: 1, px: 0.5 }}>
-                <Stack spacing={2.5} sx={{ py: 1 }}>
+            }>
+            <Box sx={{ overflowY: 'auto', maxHeight: '55vh' }}>
+                <Divider />
+                <Stack spacing={1.5} sx={{ my: 1 }}>
                     { visibleColumns.filter(column => !!column.editable).map(column => {
-                        const label = column.headerName || column.field;
+                        const label = column.description || column.headerName || column.field;
 
                         if (column.type === 'singleSelect') {
                             const rawOptions = typeof (column as any).valueOptions === 'function'
@@ -131,7 +132,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                         if (column.type === 'boolean') {
                             return (
                                 <CheckboxElement key={column.field} name={column.field}
-                                                 label={label} />
+                                                 label={label} size="small" sx={{ my: 0 }} />
                             );
                         }
 
@@ -149,6 +150,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                         );
                     })}
                 </Stack>
+                <Divider />
             </Box>
         </DataTableAction>
     );
