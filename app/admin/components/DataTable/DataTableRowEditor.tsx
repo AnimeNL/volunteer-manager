@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GridRowModel } from '@mui/x-data-grid-premium';
-import { CheckboxElement, FormContainer, SelectElement, TextFieldElement, useForm, type FieldValues }
+import { CheckboxElement, SelectElement, TextFieldElement, useForm, type FieldValues }
     from '@proxy/react-hook-form-mui';
 
 import Box from '@mui/material/Box';
@@ -14,22 +14,12 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
 import type { Column } from './Column';
-import { ButtonContainer, DrawerTitle, StyledDrawer } from './DeleteConfirmation';
+import { DataTableAction, type DataTableActionProps } from './DataTableAction';
 
 /**
  * Props accepted by the <DataTableRowEditor> component.
  */
-interface DataTableRowEditorProps {
-    /**
-     * Whether the editor drawer should be open.
-     */
-    open: boolean;
-
-    /**
-     * Callback when the editor has been closed.
-     */
-    onClose: () => void;
-
+interface DataTableRowEditorProps extends Pick<DataTableActionProps, 'open' | 'onClose'> {
     /**
      * Callback when the changes have been saved.
      */
@@ -100,76 +90,69 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
     // ----------------------------------------------------------------------------------------------
 
     return (
-        <StyledDrawer anchor="bottom" open={open} onClose={onClose}>
-            <DrawerTitle variant="h6">
-                Edit {subject}
-            </DrawerTitle>
-            <FormContainer formContext={form} onSuccess={handleSave}>
-                <Box sx={{ overflowY: 'auto', maxHeight: '55vh', my: 1, px: 0.5 }}>
-                    <Stack spacing={2.5} sx={{ py: 1 }}>
-                        { visibleColumns.map(column => {
-                            const label = column.headerName || column.field;
-                            const isEditable = !!column.editable;
+        <DataTableAction
+            open={open} onClose={onClose} title={`Edit ${subject}`} formContext={form}
+            onSubmit={handleSave} confirm={
+                <Button type="submit" loading={loading} variant="contained" color="primary">
+                    Save
+                </Button>
+            }
+        >
+            <Box sx={{ overflowY: 'auto', maxHeight: '55vh', my: 1, px: 0.5 }}>
+                <Stack spacing={2.5} sx={{ py: 1 }}>
+                    { visibleColumns.map(column => {
+                        const label = column.headerName || column.field;
+                        const isEditable = !!column.editable;
 
-                            if (column.type === 'singleSelect') {
-                                const rawOptions = typeof (column as any).valueOptions === 'function'
-                                    ? (column as any).valueOptions({ row: row ?? {} })
-                                    : (column as any).valueOptions;
+                        if (column.type === 'singleSelect') {
+                            const rawOptions = typeof (column as any).valueOptions === 'function'
+                                ? (column as any).valueOptions({ row: row ?? {} })
+                                : (column as any).valueOptions;
 
-                                const options = Array.isArray(rawOptions)
-                                    ? rawOptions.map(option => {
-                                          if (typeof option === 'object' && option !== null) {
-                                              return {
-                                                id: option.value,
-                                                label: String(option.label || option.value)
-                                              };
-                                          }
+                            const options = Array.isArray(rawOptions)
+                                ? rawOptions.map(option => {
+                                      if (typeof option === 'object' && option !== null) {
+                                          return {
+                                            id: option.value,
+                                            label: String(option.label || option.value)
+                                          };
+                                      }
 
-                                          return { id: option, label: String(option) };
-                                      })
-                                    : [];
-
-                                return (
-                                    <SelectElement key={column.field} name={column.field}
-                                                   label={label} options={options}
-                                                   disabled={!isEditable} fullWidth size="small" />
-                                );
-                            }
-
-                            if (column.type === 'boolean') {
-                                return (
-                                    <CheckboxElement key={column.field} name={column.field}
-                                                     label={label} disabled={!isEditable} />
-                                );
-                            }
-
-                            if (column.type === 'number') {
-                                return (
-                                    <TextFieldElement key={column.field} name={column.field}
-                                                      label={label} type="number"
-                                                      disabled={!isEditable} fullWidth
-                                                      size="small" />
-                                );
-                            }
+                                      return { id: option, label: String(option) };
+                                  })
+                                : [];
 
                             return (
-                                <TextFieldElement key={column.field} name={column.field}
-                                                  label={label} type="text" disabled={!isEditable}
-                                                  fullWidth size="small" />
+                                <SelectElement key={column.field} name={column.field}
+                                               label={label} options={options}
+                                               disabled={!isEditable} fullWidth size="small" />
                             );
-                        })}
-                    </Stack>
-                </Box>
-                <ButtonContainer sx={{ mt: 2 }}>
-                    <Button type="submit" loading={loading} variant="contained" color="primary">
-                        Save
-                    </Button>
-                    <Button onClick={onClose} variant="text">
-                        Cancel
-                    </Button>
-                </ButtonContainer>
-            </FormContainer>
-        </StyledDrawer>
+                        }
+
+                        if (column.type === 'boolean') {
+                            return (
+                                <CheckboxElement key={column.field} name={column.field}
+                                                 label={label} disabled={!isEditable} />
+                            );
+                        }
+
+                        if (column.type === 'number') {
+                            return (
+                                <TextFieldElement key={column.field} name={column.field}
+                                                  label={label} type="number"
+                                                  disabled={!isEditable} fullWidth
+                                                  size="small" />
+                            );
+                        }
+
+                        return (
+                            <TextFieldElement key={column.field} name={column.field}
+                                              label={label} type="text" disabled={!isEditable}
+                                              fullWidth size="small" />
+                        );
+                    })}
+                </Stack>
+            </Box>
+        </DataTableAction>
     );
 }
-
