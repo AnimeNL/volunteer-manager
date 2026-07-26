@@ -1,21 +1,16 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
+import NotesIcon from '@mui/icons-material/Notes';
 import Typography from '@mui/material/Typography';
 
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Markdown } from '@components/Markdown';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tNardoPersonalised, tUsers } from '@lib/database';
@@ -54,55 +49,44 @@ export default async function NardoPersonalisedAdvicePage(
         notFound();
 
     return (
-        <Grid container spacing={2}>
-            <BackButtonGrid href="/admin/organisation/nardo/personalised">
-                Back to personalised advice
-            </BackButtonGrid>
-
-            <Grid size={{ xs: 12 }} sx={{ mt: -1 }}><Divider /></Grid>
-            <Grid size={{ xs: 12 }} sx={{ mt: -2 }}>
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">Volunteer</TableCell>
-                            <TableCell>
-                                <MuiLink component={Link}
-                                         href={`/admin/organisation/accounts/${advice.user.id}`}>
-                                    {advice.user.name}
-                                </MuiLink>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">Date</TableCell>
-                            <TableCell>
-                                <LocalDateTime dateTime={advice.date}
-                                               format="YYYY-MM-DD HH:mm:ss" />
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </Grid>
-
-            <Grid size={{ xs: 12 }}>
-                <Typography variant="h6" sx={{ mt: -1, mb: 1 }}>
-                    Generated advice
-                </Typography>
+        <>
+            <Section icon={ <GeminiIcon /> }
+                    title={`Expert advice #${id}`}
+                    breadcrumbs={[
+                        { label: 'Organisation', href: '/admin/organisation' },
+                        { label: 'Del a Rie Advies', href: '/admin/organisation/nardo' },
+                        { label: 'Personalised advice', href: '/admin/organisation/nardo/personalised' },
+                        { label: `#${id}` },
+                    ]}>
+                <SectionIntroduction>
+                    Personalised advice generated for <strong>{advice.user.name}</strong> based on
+                    their participation.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                <KeyValueList items={[
+                    {
+                        key: 'Volunteer',
+                        value: advice.user,
+                        valueTemplate: 'account',
+                    },
+                    {
+                        key: 'Date',
+                        value: advice.date,
+                        valueTemplate: 'localDateTime',
+                    },
+                ]} />
                 <Markdown defaultVariant="body2">{advice.output}</Markdown>
-            </Grid>
-
-            <Grid size={{ xs: 12 }}><Divider /></Grid>
-            <Grid size={{ xs: 12 }}>
-                <Typography variant="h6" sx={{ mt: -1, mb: 1 }}>
-                    Input prompt
-                </Typography>
+            </Section>
+            <Section icon={ <NotesIcon /> } title="Input prompt">
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                     {advice.input}
                 </Typography>
-            </Grid>
-
-        </Grid>
+            </Section>
+        </>
     );
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn('Personalised Advice', 'Del a Rie Advies', 'Organisation');
+    createGenerateMetadataFn({ param: 'id' }, 'Personalised Advice', 'Del a Rie Advies',
+                             'Organisation');

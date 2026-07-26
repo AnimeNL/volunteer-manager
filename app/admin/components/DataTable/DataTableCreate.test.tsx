@@ -135,6 +135,7 @@ describe('DataTable - Create', () => {
 
         const dataSource = createDataSource('test/create-row-header-desktop', kExampleRowModel, {
             async authorize() {},
+            async delete() { return true; },
             async list(params) {
                 return {
                     rowCount: kExampleRowData.length,
@@ -235,7 +236,7 @@ describe('DataTable - Create', () => {
             expect(screen.getByText('Amia Bell')).toBeDefined();
         });
 
-        const createBtn = screen.getByRole('button', { name: 'Create' });
+        const createBtn = screen.getByRole('button', { name: 'Add item' });
         expect(createBtn).toBeDefined();
 
         fireEvent.click(createBtn);

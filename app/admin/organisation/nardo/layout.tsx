@@ -1,9 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import RecommendIcon from '@mui/icons-material/Recommend';
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
+import type SvgIcon from '@mui/material/SvgIcon';
+import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
 
+import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext'
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -20,13 +21,13 @@ export default async function NardoLayout(props: LayoutProps<'/admin/organisatio
     return (
         <SectionTabContext access={access} tabs={[
             {
-                Icon: TipsAndUpdatesIcon,
+                Icon: TipsAndUpdatesOutlinedIcon,
                 label: 'Advice',
                 url: '/admin/organisation/nardo',
                 urlMatchMode: 'strict',
             },
             {
-                Icon: RecommendIcon,
+                Icon: GeminiIcon as typeof SvgIcon,
                 label: 'Personalised advice',
                 url: '/admin/organisation/nardo/personalised',
                 urlMatchMode: 'prefix',

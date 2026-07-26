@@ -7,7 +7,6 @@ import { z } from 'zod/v4';
 import { type DataTableEndpoints, createDataTableApi } from '../../../createDataTableApi';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { RecordLog, kLogType } from '@lib/Log';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
 import { getEventBySlug } from '@lib/EventLoader';
 import { readSetting } from '@lib/Settings';
@@ -87,7 +86,7 @@ export type NardoPersonalisedRowModel = z.infer<typeof kNardoPersonalisedRowMode
  * The Del a Rie Advies API is implemented as a regular, editable DataTable API. All operations are
  * gated on Nardo permission, and mutations will be logged as appropriate.
  */
-export const { GET, POST } =
+export const { POST } =
 createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
     accessCheck(request, action, props) {
         switch (action) {
@@ -103,16 +102,9 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
                 // in the implementation of the `create()` function.
                 break;
 
-            case 'list':
-                executeAccessCheck(props.authenticationContext, {
-                    check: 'admin',
-                    permission: 'organisation.nardo',
-                });
-
-                break;
-
             case 'delete':
             case 'get':
+            case 'list':
             case 'reorder':
             case 'update':
                 throw new Error('Not supported by this API');
@@ -231,31 +223,6 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
                 output: nardoPersonalisedOutput,
             },
         }
-    },
-
-    async list({ pagination, sort }, props) {
-        const dbInstance = db;
-        const results = await dbInstance.selectFrom(tNardoPersonalised)
-            .innerJoin(tUsers)
-                .on(tUsers.userId.equals(tNardoPersonalised.nardoPersonalisedUserId))
-            .select({
-                id: tNardoPersonalised.nardoPersonalisedId,
-                date: dbInstance.dateTimeAsString(tNardoPersonalised.nardoPersonalisedDate),
-                userId: tUsers.userId,
-                userName: tUsers.name,
-                input: tNardoPersonalised.nardoPersonalisedInput,
-                output: tNardoPersonalised.nardoPersonalisedOutput,
-            })
-            .orderByFromStringIfValue(sort ? `${sort.field} ${sort.sort}` : null)
-            .limit(pagination ? pagination.pageSize : 50)
-                .offsetIfValue(pagination ? pagination.page * pagination.pageSize : 0)
-            .executeSelectPage();
-
-        return {
-            success: true,
-            rowCount: results.count,
-            rows: results.data,
-        };
     },
 
     async writeLog(request, mutation, props) {

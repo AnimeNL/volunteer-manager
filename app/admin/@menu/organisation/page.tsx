@@ -88,7 +88,7 @@ export default async function OrganisationMenu() {
                 items: [
                     {
                         Icon: TipsAndUpdatesOutlinedIcon,
-                        badge: { severity: 'error', value: true },  // migration not started
+                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Del a Rie Advies',
                         permission: 'organisation.nardo',
                         url: '/admin/organisation/nardo',

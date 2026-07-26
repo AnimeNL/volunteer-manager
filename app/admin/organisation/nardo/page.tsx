@@ -194,7 +194,7 @@ export default async function NardoPage() {
             field: 'date',
             headerName: 'Date',
             sortable: true,
-            width: 185,
+            width: 115,
 
             template: 'date',
         },
@@ -209,8 +209,8 @@ export default async function NardoPage() {
                          { label: 'Del a Rie Advies' },
                      ]}>
                 <SectionIntroduction>
-                    Expert advice offered by our friends from <strong>Del a Rie Advies</strong>.
-                    Volunteers will ocassionally see these pieces of advice in their portals.
+                    Expert advice offered by our friends from <strong>Del a Rie Advies</strong> will
+                    ocassionally be shared with volunteers.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>

@@ -1,9 +1,93 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { PersonalisedAdviceDataTable } from './PersonalisedAdviceDataTable';
-import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { z } from 'zod/v4';
+
+import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
+    from '@app/admin/components/DataTable';
+import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tNardoPersonalised, tUsers } from '@lib/database';
+
+/**
+ * Data source through which the personalised advice can be retrieved.
+ */
+const nardoPersonalisedDataSource =
+    createDataSource('organisation/nardo/personalised', withRowModel({
+        /**
+         * Unique ID of the piece of personalised advice.
+         */
+        id: z.number(),
+
+        /**
+         * Date and time at which the advice was generated.
+         */
+        date: z.string(),
+
+        /**
+         * The volunteer who requested this advice.
+         */
+        user: z.object({
+            id: z.number(),
+            name: z.string(),
+        }),
+
+        /**
+         * The piece of personalised advice that has been created.
+         */
+        output: z.string(),
+
+    }), {
+        async authorize(operation, props) {
+            executeAccessCheck(props.authenticationContext, {
+                check: 'admin',
+                permission: 'organisation.nardo',
+            });
+        },
+
+        async list(params) {
+            let sortField: 'date' | 'user.name' | 'output' = 'date';
+            switch (params.sort.field) {
+                case 'date':
+                case 'output':
+                    sortField = params.sort.field;
+                    break;
+
+                case 'user':
+                    sortField = 'user.name';
+                    break;
+            }
+
+            const dbInstance = db;
+            const results = await dbInstance.selectFrom(tNardoPersonalised)
+                .innerJoin(tUsers)
+                    .on(tUsers.userId.equals(tNardoPersonalised.nardoPersonalisedUserId))
+                .where(tUsers.name.containsInsensitiveIfValue(params.search).or(
+                    tNardoPersonalised.nardoPersonalisedOutput.containsInsensitiveIfValue(
+                        params.search)))
+                .select({
+                    id: tNardoPersonalised.nardoPersonalisedId,
+                    date: dbInstance.dateTimeAsString(tNardoPersonalised.nardoPersonalisedDate),
+                    user: {
+                        id: tUsers.userId,
+                        name: tUsers.name,
+                    },
+                    output: tNardoPersonalised.nardoPersonalisedOutput,
+                })
+                .orderBy(sortField, params.sort.direction)
+                .limit(params.page.limit)
+                    .offset(params.page.offset)
+                .executeSelectPage();
+
+            return {
+                rowCount: results.count,
+                rows: results.data,
+            };
+        },
+    });
 
 /**
  * This is the landing page for the Del a Rie Advies personalised advice service. These are AI
@@ -15,7 +99,65 @@ export default async function NardoPersonalisedPage() {
         permission: 'organisation.nardo',
     });
 
-    return <PersonalisedAdviceDataTable />;
+    const columns: Column<ExtractRowModel<typeof nardoPersonalisedDataSource>>[] = [
+        {
+            field: 'date',
+            headerName: 'Date',
+            sortable: true,
+            width: 185,
+
+            template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+                href: './personalised/{id}',
+            },
+        },
+        {
+            field: 'user',
+            headerName: 'Volunteer',
+            sortable: true,
+            flex: 1,
+
+            template: 'account',
+        },
+        {
+            field: 'output',
+            headerName: 'Advice',
+            sortable: true,
+            flex: 3,
+        },
+    ];
+
+    return (
+        <>
+            <Section icon={ <GeminiIcon /> }
+                     title="Personalised advice"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Del a Rie Advies', href: '/admin/organisation/nardo' },
+                         { label: 'Personalised advice' },
+                     ]}>
+                <SectionIntroduction>
+                    Personalised advice generated by the Gemini division of <strong>Del a Rie Advies
+                    </strong>.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                <DataTable columns={columns}
+                           source={nardoPersonalisedDataSource}
+                           defaultSort={{ field: 'date', sort: 'desc' }}
+                           pageSize={50}
+                           subject="piece of advice"
+                           listViewProps={{
+                               primaryField: 'output',
+                               secondaryTemplate: 'For {user.name}',
+                               dateField: 'date',
+                               linkTemplate: './personalised/{id}'
+                           }} />
+            </Section>
+        </>
+    );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Del a Rie Advies', 'Organisation');
+export const generateMetadata =
+    createGenerateMetadataFn('Personalised advice', 'Del a Rie Advies', 'Organisation');

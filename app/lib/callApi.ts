@@ -103,7 +103,6 @@ export type ApiEndpoints = {
         '/api/event/hotels/:event': HotelsDefinition,
         '/api/event/trainings/:event': TrainingsDefinition,
         '/api/display': DisplayDefinition,
-        '/api/nardo/personalised': NardoPersonalisedEndpoints['list'],
     },
     'post': {
         '/api/admin/content/categories': ContentCategoriesEndpoints['create'],
