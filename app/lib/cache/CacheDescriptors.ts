@@ -51,6 +51,20 @@ interface CacheDescriptorMap {
         Contents: CachedEvent;
     };
 
+    IP2Location: {
+        Parameters: string;
+        Contents: {
+            country_code: string;
+            country_name: string;
+            region_name?: string;
+            city_name?: string;
+            latitude?: number;
+            longitude?: number;
+            zip_code?: string;
+            time_zone?: string;
+        };
+    };
+
     ManifestLatestEvent: {
         Parameters: undefined;
         Contents: {
@@ -220,6 +234,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'EventCache',
         description: 'Contextual event information used throughout the system.',
         type: 'permanent',
+    },
+
+    IP2Location: {
+        name: 'IP2Location',
+        description: 'IP-to-location lookups used for diagnostics and investigation.',
+        type: 'ttl',
+        ttl: 86400,  // one day
     },
 
     ManifestLatestEvent: {
