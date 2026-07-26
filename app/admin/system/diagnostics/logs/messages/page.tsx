@@ -54,6 +54,10 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
         });
     },
 
+    async create(row, props, context) {
+        return true;
+    },
+
     async list(params, props) {
         let sortField: 'id' | 'active' | 'visible' | 'format' | 'updated' = 'id';
         switch (params.sort.field) {

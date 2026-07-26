@@ -170,17 +170,13 @@ describe('DataSourceWrapper', () => {
                     rows: [ /* none */ ],
                 };
             },
-            async create(props, context) {
-                return {
-                    id: 42,
-                    name: 'John Doe',
-                };
+            async create(partialRow, props, context) {
+                return true;
             },
         });
 
-        const row = await wrapper.call('create', { /* empty */ });
-        expect(row.id).toBe(42);
-        expect(row.name).toBe('John Doe');
+        const result = await wrapper.call('create', { /* empty */ }, { name: 'Jane Doe' });
+        expect(result).toBeTruthy();
 
         expect(errorLogDelegateInvoked).toBeFalsy();
     });

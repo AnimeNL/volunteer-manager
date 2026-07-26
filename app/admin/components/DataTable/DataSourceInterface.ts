@@ -33,7 +33,7 @@ export interface DataSourceInterface<
      * Creates a new row in the data source. Returns the row model for the newly created row, in
      * which the new ID must have been populated.
      */
-    create?(context: unknown): Promise<GridRowModel>;
+    create?(context: unknown, partialRow: GridRowModel): Promise<boolean>;
 
     /**
      * Deletes a row in the data source.

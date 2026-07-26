@@ -22,6 +22,16 @@ import { DataTableAction, type DataTableActionProps } from './DataTableAction';
  */
 interface DataTableRowEditorProps extends Pick<DataTableActionProps, 'open' | 'onClose'> {
     /**
+     * The columns configuration for the data table.
+     */
+    columns: Column<any>[];
+
+    /**
+     * Whether the editor is creating a new row instead of editing an existing one.
+     */
+    create?: boolean;
+
+    /**
      * Callback when the changes have been saved.
      */
     onSave: (updatedRow: GridRowModel) => Promise<void>;
@@ -30,11 +40,6 @@ interface DataTableRowEditorProps extends Pick<DataTableActionProps, 'open' | 'o
      * The row model currently being edited.
      */
     row?: GridRowModel;
-
-    /**
-     * The columns configuration for the data table.
-     */
-    columns: Column<any>[];
 
     /**
      * Subject describing what is being edited.
@@ -48,7 +53,7 @@ interface DataTableRowEditorProps extends Pick<DataTableActionProps, 'open' | 'o
  * more accessible.
  */
 export function DataTableRowEditor(props: DataTableRowEditorProps) {
-    const { open, onClose, onSave, row } = props;
+    const { open, onClose, onSave, row, create } = props;
 
     const subject = props.subject ?? 'item';
 
@@ -58,8 +63,9 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
     const { reset } = form;
 
     useEffect(() => {
-        if (open && row)
-            reset({ ...row });
+        if (open) {
+            reset(row ? { ...row } : {});
+        }
 
     }, [open, row, reset]);
 
@@ -92,10 +98,11 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
 
     return (
         <DataTableAction
-            open={open} onClose={onClose} title={`Edit ${subject}`} formContext={form}
-            onSubmit={handleSave} confirm={
+            open={open} onClose={onClose} onSubmit={handleSave} formContext={form}
+            title={ create ? `Create ${subject}` : `Edit ${subject}` }
+            confirm={
                 <Button type="submit" loading={loading} variant="contained" color="primary">
-                    Save
+                    {create ? 'Create' : 'Save'}
                 </Button>
             }>
             <Box sx={{ overflowY: 'auto', maxHeight: '55vh' }}>

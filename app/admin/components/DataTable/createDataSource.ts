@@ -142,14 +142,14 @@ export async function authorizeDataSource<DataSourceType extends DataSourceInter
 /**
  * Proxy Server Action towards creating a new row on the associated data source.
  */
-async function createProxy(dataSourceId: string, context: unknown) {
+async function createProxy(dataSourceId: string, context: unknown, partialRow: GridRowModel) {
     'use server';
 
     const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
     if (!dataSourceWrapper)
         notFound();
 
-    return dataSourceWrapper.call('create', context);
+    return dataSourceWrapper.call('create', context, partialRow);
 }
 
 /**

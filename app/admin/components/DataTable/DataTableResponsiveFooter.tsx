@@ -11,7 +11,9 @@ import { Toolbar, ToolbarButton, QuickFilter, QuickFilterControl, QuickFilterCle
     gridPaginationModelSelector, gridPaginationRowCountSelector, gridPageCountSelector }
         from '@mui/x-data-grid-premium';
 
+import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -44,7 +46,8 @@ const kNumberFormat = new Intl.NumberFormat('en-GB');
  *
  * Context is derived from the MUI X DataGrid context API, no props are necessary.
  */
-export function DataTableResponsiveFooterWithQuickSearch(props: GridSlotsComponentsProps['footer'])
+export function DataTableResponsiveFooterWithQuickSearch(
+    props: GridSlotsComponentsProps['footer'] & { onCreate?: () => void; subject?: string })
 {
     return <DataTableResponsiveFooter {...props} quickSearch />;
 }
@@ -59,9 +62,13 @@ export function DataTableResponsiveFooterWithQuickSearch(props: GridSlotsCompone
  * Context is derived from the MUI X DataGrid context API, no props are necessary.
  */
 export function DataTableResponsiveFooter(
-    props: GridSlotsComponentsProps['footer'] & { quickSearch?: boolean })
+    props: GridSlotsComponentsProps['footer'] & {
+        quickSearch?: boolean;
+        onCreate?: () => void;
+        subject?: string;
+    })
 {
-    const { quickSearch, ...otherProps } = props;
+    const { quickSearch, onCreate, subject, ...otherProps } = props;
 
     const rootProps = useGridRootProps();
 
@@ -74,11 +81,26 @@ export function DataTableResponsiveFooter(
                 alignItems: isMobile ? 'stretch' : 'center',
                 justifyContent: 'space-between',
             }} {...otherProps}>
-                { !!quickSearch && <DataTableResponsiveQuickSearch isMobile={isMobile} /> }
-                { (!quickSearch && !isMobile) && <Box /> }
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                    { (!isMobile && !!onCreate) &&
+                        <>
+                            <Button size="small" startIcon={ <AddIcon /> } onClick={onCreate}
+                                    variant="outlined" color="inherit"
+                                    sx={{
+                                        marginLeft: '10px !important',
+                                        marginRight: '3px !important'
+                                    }} >
+                                Create
+                            </Button>
+                            <Divider flexItem orientation="vertical"
+                                     sx={{ marginRight: '-8px !important' }} />
+                        </> }
+                    { !!quickSearch && <DataTableResponsiveQuickSearch isMobile={isMobile} /> }
+                </Stack>
+                { (!quickSearch && !onCreate && !isMobile) && <Box /> }
                 { !rootProps.hideFooterPagination &&
                     <Box>
-                        { (!!isMobile && quickSearch) && <Divider sx={{ my: 1 }} /> }
+                        { (!!isMobile && (quickSearch || !!onCreate)) && <Divider sx={{ my: 1 }} /> }
                         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
                             { !isMobile && <DataTableResponsivePageSizeSelector /> }
                             { !isMobile && <Divider flexItem orientation="vertical" /> }
@@ -215,14 +237,15 @@ function DataTableResponsiveQuickSearch(props: { isMobile: boolean }) {
     return (
         <StyledToolbar sx={ props.isMobile ? {
             minHeight: 40,
-            paddingTop: 2,
-            paddingBottom: 1,
+            paddingTop: 1,
+            paddingBottom: 0,
+            flexGrow: 1,
 
             '& > div': { width: '100%' },
 
         } : { /* empty */ }}>
 
-            <StyledQuickFilter expanded={props.isMobile ? true : undefined}>
+            <StyledQuickFilter expanded={ props.isMobile ? true : undefined }>
                 { !props.isMobile &&
                     <QuickFilterTrigger render={ (triggerProps: object, state) => (
                         <Tooltip title="Search" enterDelay={0}>

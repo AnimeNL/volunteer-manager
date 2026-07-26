@@ -120,7 +120,7 @@ export class DataSourceWrapper {
      * Calls into the given `operation` on the data sourced wrapped by `this`. Both the `context`
      * and all operation-specific parameters will be validated prior to being used.
      */
-    async call(operation: 'create', context: unknown): Promise<GridRowModel>;
+    async call(operation: 'create', context: unknown, partialRow: GridRowModel): Promise<boolean>;
     async call(operation: 'delete', context: unknown, params: GridRowModel): Promise<boolean>;
     async call(operation: 'update', context: unknown, params: GridRowModel, previousParams: GridRowModel): Promise<boolean | GridRowModel>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
@@ -164,15 +164,16 @@ export class DataSourceWrapper {
                     notFound();  // does not return
                 }
 
-                const createdRow = await this.#dataSource.create!(props, verifiedContext);
-                const createdRowValidation = await this.#rowModel.safeParseAsync(createdRow);
-                if (!createdRowValidation.success) {
-                    this.reportWarning(
-                        operation, context, 'Data source creates an invalid row model',
-                        createdRowValidation.error);
+                const creatingRowValidation = await this.#rowModel.partial().safeParseAsync(args[0]);
+                if (!creatingRowValidation.success) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the row model given by the client',
+                        creatingRowValidation.error);
+
+                    notFound();  // does not return
                 }
 
-                return createdRow;
+                return this.#dataSource.create!(creatingRowValidation.data, props, verifiedContext);
             }
 
             case 'delete': {

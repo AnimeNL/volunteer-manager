@@ -251,7 +251,6 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // obtained from the user prior to actually deleting any data.
     // ---------------------------------------------------------------------------------------------
 
-    // xxx?
     const [ refreshTrigger, setRefreshTrigger ] = useState<number>(0);
 
     const [ deleteCandidate, setDeleteCandidate ] = useState<GridRowModel | undefined>();
@@ -278,6 +277,28 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             setDeleteLoading(false);
         }
     }, [ context, deleteCandidate, props.source, subject ]);
+
+    // ---------------------------------------------------------------------------------------------
+    // Ability to create rows in the data table, when exposed by the source.
+    // ---------------------------------------------------------------------------------------------
+
+    const [ createOpen, setCreateOpen ] = useState<boolean>(false);
+
+    const handleCreateClose = useCallback(() => setCreateOpen(false), []);
+    const handleCreateSave = useCallback(async (newRow: GridRowModel) => {
+        setError(undefined);
+        try {
+            const result = await props.source.create!(context, newRow);
+            if (!result) {
+                setError(`Unable to create this ${subject}`);
+            } else {
+                setRefreshTrigger(prev => prev + 1);
+                setCreateOpen(false);
+            }
+        } catch (err: any) {
+            setError(`Unable to create this ${subject} (${err.message})`);
+        }
+    }, [ context, props.source, subject ]);
 
     // ---------------------------------------------------------------------------------------------
     // Ability to edit rows from the data table on a mobile device, when exposed by the source.
@@ -471,6 +492,12 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                             ? DataTableProminentSearchToolbar
                             : undefined,
                 }}
+                slotProps={{
+                    footer: {
+                        onCreate: props.source.create ? () => setCreateOpen(true) : undefined,
+                        subject,
+                    } as any,
+                }}
 
                 onDataSourceError={handleDataSourceError} />
             <DeleteConfirmation
@@ -483,9 +510,16 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 open={editCandidate !== undefined}
                 onClose={handleEditClose}
                 onSave={handleEditSave}
-                row={editCandidate}
                 columns={props.columns}
-                subject={subject} />
+                subject={subject}
+                row={editCandidate} />
+            <DataTableRowEditor
+                open={createOpen}
+                onClose={handleCreateClose}
+                onSave={handleCreateSave}
+                columns={props.columns}
+                subject={subject}
+                create />
         </>
     );
 }

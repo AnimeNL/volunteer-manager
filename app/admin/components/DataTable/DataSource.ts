@@ -42,11 +42,14 @@ export interface DataSource<Context, RowModel> {
     /**
      * Creates a new row in the data source.
      *
+     * @param partialRow Partial row model to create.
      * @param props Props indicating the circumstances under which this data source is used.
      * @param context When set, contextual information required by this data source.
-     * @returns A row model representation of the newly created row.
+     * @returns A boolean indicating whether the new row was created.
      */
-    create?(props: DataSourceProps, context: Context): Promise<RowModel>;
+    create?(partialRow: Partial<RowModel>,
+            props: DataSourceProps,
+            context: Context): Promise<boolean>;
 
     /**
      * Deletes a row in the data source.
