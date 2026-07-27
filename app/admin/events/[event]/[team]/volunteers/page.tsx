@@ -5,12 +5,15 @@ import Link from '@app/LinkProxy';
 import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
+import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PersonIcon from '@mui/icons-material/Person';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
 import ShareIcon from '@mui/icons-material/Share';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -95,16 +98,7 @@ export default async function EventVolunteersPage(
     if (!access.can('event.volunteers.information', 'read', { event: event.slug, team: team.slug }))
         forbidden();
 
-    let headerAction: React.ReactNode;
-    if (access.can('organisation.exports')) {
-        headerAction = (
-            <Tooltip title="Export volunteer list">
-                <IconButton LinkComponent={Link} href="/admin/organisation/exports/create">
-                    <ShareIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
-        );
-    }
+
 
     const columns: Column<VolunteerRowModel>[] = [
         {
@@ -183,6 +177,10 @@ export default async function EventVolunteersPage(
         },
     ];
 
+    // ---------------------------------------------------------------------------------------------
+    // Cancelled volunteers:
+    // ---------------------------------------------------------------------------------------------
+
     const dbInstance = db;
     const cancelledVolunteers = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
@@ -197,6 +195,10 @@ export default async function EventVolunteersPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
+    // ---------------------------------------------------------------------------------------------
+    // Total number of volunteers for use in the header:
+    // ---------------------------------------------------------------------------------------------
+
     const totalVolunteerCount = await dbInstance.selectFrom(tUsersEvents)
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
@@ -204,10 +206,35 @@ export default async function EventVolunteersPage(
         .selectCountAll()
         .executeSelectOne();
 
+    // ---------------------------------------------------------------------------------------------
+
+    let headerAction: React.ReactNode;
+    if (access.can('organisation.exports')) {
+        headerAction = (
+            <Tooltip title="Export volunteer list">
+                <IconButton LinkComponent={Link} href="/admin/organisation/exports/create"
+                            size="small">
+                    <ShareIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        );
+    }
+
     return (
         <>
-            <Section headerAction={headerAction} title={`${event.shortName} ${team.name}`}
-                     subtitle={`${totalVolunteerCount} people`}>
+            <Section icon={ <PersonIcon color="primary" /> } title="Volunteers"
+                     subtitle={`${totalVolunteerCount}`} headerAction={headerAction}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Volunteers' },
+                     ]}>
+                <SectionIntroduction>
+                    List of individuals who together serve as {event.shortName}'s{' '}
+                    <strong>{team.name}</strong>.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
                 <DataTable columns={columns} source={volunteerDataSource} search="prominent"
                            context={{ eventId: event.id, teamId: team.id }} disableFooter
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
@@ -219,12 +246,13 @@ export default async function EventVolunteersPage(
                            }} />
             </Section>
             { cancelledVolunteers.length > 0 &&
-                <Section title="No longer participating…">
+                <Section icon={ <CancelPresentationIcon /> } title="Cancellations">
                     <SectionIntroduction>
                         The following volunteers cancelled their participation and are no longer
-                        expected to help out the {team.name}.
+                        expected to help us out.
                     </SectionIntroduction>
-                    <List disablePadding sx={{
+                    <Divider />
+                    <List dense disablePadding sx={{
                         mx: '-16px !important',
                         mt: '8px !important',
                         mb: '-8px !important'
@@ -233,7 +261,7 @@ export default async function EventVolunteersPage(
                             <ListItemButton key={volunteer.id} LinkComponent={Link}
                                             href={`./volunteers/${volunteer.id}`}>
                                 <ListItemIcon>
-                                    <PersonIcon color="primary" fontSize="small" />
+                                    <PersonOffIcon color="primary" fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText primary={volunteer.name} />
                             </ListItemButton> ) }

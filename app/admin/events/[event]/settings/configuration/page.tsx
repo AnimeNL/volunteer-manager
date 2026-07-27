@@ -3,6 +3,7 @@
 
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
+import Alert from '@mui/material/Alert';
 import ApiIcon from '@mui/icons-material/Api';
 import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
@@ -79,6 +80,8 @@ export default async function EventSettingsTeamsPage(
     const defaultValues = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
         .select({
+            suspended: tEvents.eventHidden.equals(/* true= */ 1),
+
             event: {
                 endTime: dbInstance.dateTimeAsString(tEvents.eventEndTime),
                 eventTimingPublished: tEvents.eventTimingPublished,
@@ -119,7 +122,19 @@ export default async function EventSettingsTeamsPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                Action bar (suspend, image, slug)
+                { !!defaultValues.suspended &&
+                    <Alert variant="outlined" severity="warning">
+                        {event.shortName} has been suspended. Senior privileges have been revoked
+                        and public references have been removed.
+                    </Alert> }
+                { !defaultValues.suspended &&
+                    <Alert variant="outlined" severity="success">
+                        {event.shortName} is live. Senior provileges have been granted and public
+                        references to the event remain available.
+                    </Alert> }
+                <Typography variant="body1">
+                    TODO Action bar (suspend, image, slug)
+                </Typography>
             </Section>
             <FormGridSection icon={ <EventIcon /> } title="Event" action={identityFn}
                              defaultValues={defaultValues.event}>

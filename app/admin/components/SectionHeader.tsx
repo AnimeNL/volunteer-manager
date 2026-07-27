@@ -69,7 +69,7 @@ export function SectionHeader(props: SectionHeaderProps) {
                     { props.title }
                     { props.subtitle &&
                         <Typography component="span" variant="h5"
-                                    sx={{ color: 'action.active', paddingLeft: 1 }}>
+                                    sx={{ fontWeight: '300', opacity: 0.5, paddingLeft: 1 }}>
                             ({ props.subtitle })
                         </Typography> }
                 </Typography>

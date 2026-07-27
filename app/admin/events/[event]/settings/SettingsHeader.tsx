@@ -22,7 +22,6 @@ import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
 import { LazyAvatarEditor } from '@components/LazyAvatarEditor';
 import { SettingDialog } from '@app/admin/components/SettingDialog';
-import { TransitionAlert } from '@app/admin/components/TransitionAlert';
 import { callApi } from '@lib/callApi';
 
 /**
@@ -180,19 +179,6 @@ export function SettingsHeader(props: SettingsHeaderProps) {
 
                 </Stack>
             </ContrastBox>
-            <TransitionAlert severity={ event.hidden ? 'error' : 'success' } sx={{ mt: 2 }}>
-                { event.hidden &&
-                    <>
-                        <strong>{event.shortName}</strong> is currently suspended. Senior rights
-                        granted for this event have been revoked, public references have been
-                        removed.
-                    </> }
-                { !event.hidden &&
-                    <>
-                        <strong>{event.shortName}</strong> is live. Senior rights granted for this
-                        event are active, and public references to the event remain available.
-                    </> }
-            </TransitionAlert>
             <SettingDialog title={`Publish ${event.shortName}`} open={publishOpen}
                            description={kPublishDescription} submitLabel="Publish"
                            onClose={handleClose} onSubmit={handlePublish} />
