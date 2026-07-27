@@ -67,7 +67,7 @@
     "scrypt-js": "^3.0.1",
     "swr": "^2.4.2",
     "temporal-polyfill": "^1.0.1",
-    "ts-sql-query": "2.0.0-beta.1",
+    "ts-sql-query": "2.0.0-beta.2",
     "twilio": "^6.0.2",
     "zod": "^4.4.3"
   },

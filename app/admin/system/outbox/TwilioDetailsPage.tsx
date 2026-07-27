@@ -91,20 +91,20 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                         valueTemplate: 'localDateTime',
                     },
                     {
-                        condition: !message.sender.name,
+                        condition: !message.sender?.name,
                         key: 'Sender',
                         value: 'Unknown',
                     },
                     {
-                        condition: !!message.sender.user,
+                        condition: !!message.sender?.user,
                         key: 'Sender',
-                        value: message.sender.user!,
+                        value: message.sender?.user!,
                         valueTemplate: 'account',
                     },
                     {
-                        condition: !!message.sender.name,
+                        condition: !!message.sender?.name,
                         key: '⤷ phone number',
-                        value: message.sender.name,
+                        value: message.sender?.name,
                     },
                     {
                         condition: !!message.recipient.user,
