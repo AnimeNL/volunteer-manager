@@ -43,6 +43,7 @@ export class LogBuilder<T extends LogType> {
 
     #type: T;
 
+    #condition: boolean = true;
     #diff: LogDifferences | undefined;
     #severity: LogSeverity = 'Info';
 
@@ -54,6 +55,15 @@ export class LogBuilder<T extends LogType> {
     }
 
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Set a `condition` for recording this log entry. If evaluates to `false`, `record()` and
+     * `recordImmediately()` will be no-ops.
+     */
+    withCondition(condition: boolean): this {
+        this.#condition = condition;
+        return this;
+    }
 
     /**
      * Record the `diff` as the differences that were written as part of this action. The `diff`
@@ -99,6 +109,9 @@ export class LogBuilder<T extends LogType> {
      * the regular request flow to not block the user experience.
      */
     record(params?: LogTypeParameters<T>): void {
+        if (!this.#condition)
+            return;
+
         RecordAfterRequestFinished(this.build(params));
     }
 
@@ -107,6 +120,9 @@ export class LogBuilder<T extends LogType> {
      * caller is expected to `await` on the call completing.
      */
     recordImmediately(params?: LogTypeParameters<T>): Promise<void> {
+        if (!this.#condition)
+            return Promise.resolve();
+
         return RecordImmediately(this.build(params));
     }
 

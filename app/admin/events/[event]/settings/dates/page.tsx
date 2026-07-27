@@ -106,11 +106,10 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
             .returningLastInsertedId()
             .executeInsert();
 
-        if (insertId) {
-            LogBuilder.for('CreateEventKeyDate')
-                .withInitiatorUser(props.user)
-                .record({ event: context.event.shortName });
-        }
+        LogBuilder.for('CreateEventKeyDate')
+            .withCondition(!!insertId)
+            .withInitiatorUser(props.user)
+            .record({ event: context.event.shortName });
 
         return !!insertId;
     },
@@ -127,14 +126,13 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
                 .and(tEventsDates.dateDeleted.isNull())
             .executeUpdate();
 
-        if (affectedRows) {
-            LogBuilder.for('DeleteEventKeyDate')
-                .withInitiatorUser(props.user)
-                .record({
-                    event: event.shortName,
-                    title: row.title,
-                });
-        }
+        LogBuilder.for('DeleteEventKeyDate')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                title: row.title,
+            });
 
         return !!affectedRows;
     },
@@ -186,32 +184,31 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
                 .and(tEventsDates.dateDeleted.isNull())
             .executeUpdate();
 
-        if (affectedRows) {
-            LogBuilder.for('UpdateEventKeyDate')
-                .withInitiatorUser(props.user)
-                .withDiff({
-                    Completed: {
-                        before: previousRow.completed,
-                        after: row.completed,
-                    },
-                    Description: {
-                        before: previousRow.description,
-                        after: row.description,
-                    },
-                    Owner: {
-                        before: previousRow.ownerUserId || 0,
-                        after: row.ownerUserId || 0,
-                    },
-                    Title: {
-                        before: previousRow.title,
-                        after: row.title,
-                    },
-                })
-                .record({
-                    event: context.event.shortName,
-                    title: row.title,
-                });
-        }
+        LogBuilder.for('UpdateEventKeyDate')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withDiff({
+                Completed: {
+                    before: previousRow.completed,
+                    after: row.completed,
+                },
+                Description: {
+                    before: previousRow.description,
+                    after: row.description,
+                },
+                Owner: {
+                    before: previousRow.ownerUserId || 0,
+                    after: row.ownerUserId || 0,
+                },
+                Title: {
+                    before: previousRow.title,
+                    after: row.title,
+                },
+            })
+            .record({
+                event: context.event.shortName,
+                title: row.title,
+            });
 
         return !!affectedRows;
     },

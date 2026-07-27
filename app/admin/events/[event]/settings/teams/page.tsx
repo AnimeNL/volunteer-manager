@@ -157,14 +157,13 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
             return !!affectedRows;
         });
 
-        if (success) {
-            LogBuilder.for('UpdateEventTeamParticipation')
-                .withInitiatorUser(props.user)
-                .record({
-                    event: context.event.shortName,
-                    team: team.name,
-                });
-        }
+        LogBuilder.for('UpdateEventTeamParticipation')
+            .withCondition(success)
+            .withInitiatorUser(props.user)
+            .record({
+                event: context.event.shortName,
+                team: team.name,
+            });
 
         return !!success;
     },

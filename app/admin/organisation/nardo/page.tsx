@@ -64,11 +64,10 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
             })
             .executeInsert();
 
-        if (affectedRows) {
-            LogBuilder.for('CreateNardoAdvice')
-                .withInitiatorUser(props.user)
-                .record();
-        }
+        LogBuilder.for('CreateNardoAdvice')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record();
 
         return true;
     },
@@ -81,17 +80,16 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
                 .and(tNardo.nardoVisible.equals(/* true= */ 1))
             .executeUpdate();
 
-        if (affectedRows) {
-            LogBuilder.for('DeleteNardoAdvice')
-                .withInitiatorUser(props.user)
-                .withDiff({
-                    Advice: {
-                        before: row.advice,
-                        after: '',
-                    },
-                })
-                .record();
-        }
+        LogBuilder.for('DeleteNardoAdvice')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withDiff({
+                Advice: {
+                    before: row.advice,
+                    after: '',
+                },
+            })
+            .record();
 
         return true;
     },
@@ -147,17 +145,16 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
                 .and(tNardo.nardoVisible.equals(/* true= */ 1))
             .executeUpdate();
 
-        if (affectedRows) {
-            LogBuilder.for('UpdateNardoAdvice')
-                .withInitiatorUser(props.user)
-                .withDiff({
-                    Advice: {
-                        before: previousRow.advice,
-                        after: row.advice,
-                    },
-                })
-                .record();
-        }
+        LogBuilder.for('UpdateNardoAdvice')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withDiff({
+                Advice: {
+                    before: previousRow.advice,
+                    after: row.advice,
+                },
+            })
+            .record();
 
         return true;
     },

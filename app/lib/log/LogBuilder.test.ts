@@ -1,9 +1,48 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { vi } from 'vitest';
 import { LogBuilder } from './LogBuilder';
+import { RecordAfterRequestFinished, RecordImmediately } from './LogRecorder';
+
+vi.mock('./LogRecorder', () => ({
+    RecordAfterRequestFinished: vi.fn(),
+    RecordImmediately: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe('LogBuilder', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should record when condition is true', async () => {
+        LogBuilder.for('TestWithoutParameters')
+            .withCondition(true)
+            .record();
+
+        expect(RecordAfterRequestFinished).toHaveBeenCalledTimes(1);
+
+        await LogBuilder.for('TestWithoutParameters')
+            .withCondition(true)
+            .recordImmediately();
+
+        expect(RecordImmediately).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not record when condition is false', async () => {
+        LogBuilder.for('TestWithoutParameters')
+            .withCondition(false)
+            .record();
+
+        expect(RecordAfterRequestFinished).not.toHaveBeenCalled();
+
+        await LogBuilder.for('TestWithoutParameters')
+            .withCondition(false)
+            .recordImmediately();
+
+        expect(RecordImmediately).not.toHaveBeenCalled();
+    });
+
     it('should be able to record the log type', () => {
         const message = LogBuilder.for('TestWithoutParameters')
             .build();
