@@ -13,7 +13,8 @@ import { styled } from '@mui/material/styles';
  */
 interface LocalDateTimeProps {
     /**
-     * An ISO 8601 date + time + offset format, a bracketed time zone suffix, and (if the calendar
+     * Date and time to display in this component. This either can be a plain date (YYYY-MM-DD), or
+     * an ISO 8601 date + time + offset format, a bracketed time zone suffix, and (if the calendar
      * is not iso8601) a calendar suffix.
      */
     dateTime: string;
@@ -35,10 +36,15 @@ interface LocalDateTimeProps {
  */
 export function LocalDateTime(props: LocalDateTimeProps) {
     const formattedDateTime = useMemo(() => {
-        const dateTime = Temporal.ZonedDateTime.from(props.dateTime);
-        const localDateTime = dateTime.withTimeZone(Temporal.Now.timeZoneId());
+        let dateTime: Temporal.PlainDate | Temporal.ZonedDateTime;
+        if (props.dateTime.length === /** len(YYYY-MM-DD)= */ 10) {
+            dateTime = Temporal.PlainDate.from(props.dateTime);
+        } else {
+            const zonedDateTime = Temporal.ZonedDateTime.from(props.dateTime);
+            dateTime = zonedDateTime.withTimeZone(Temporal.Now.timeZoneId());
+        }
 
-        return formatDate(localDateTime, props.format);
+        return formatDate(dateTime, props.format);
 
     }, [ props.dateTime, props.format ]);
 

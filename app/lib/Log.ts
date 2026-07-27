@@ -58,7 +58,6 @@ export const kLogType = {
     AdminEventApplicationMove: 'admin-event-application-move',
     AdminEventApplicationRelease: 'admin-event-application-release',
     AdminEventCreate: 'admin-event-create',
-    AdminEventDateMutation: 'admin-event-date-mutation',
     AdminEventHotelMutation: 'admin-event-hotel',
     AdminEventProgramRequestUpdate: 'admin-event-program-request-update',
     AdminEventPublishInfo: 'admin-event-publish-info',

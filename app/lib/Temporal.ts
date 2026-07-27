@@ -79,12 +79,9 @@ function withOrdinal(number: number): string {
  * @see https://day.js.org/docs/en/display/format
  * @see https://day.js.org/docs/en/plugin/advanced-format
  */
-export function formatDate(dateTime: Temporal.Instant, format: string): string;
 export function formatDate(
-    dateTime: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainTime,
-    format: string): string;
-export function formatDate(
-    dateTime: Temporal.ZonedDateTime,
+    dateTime: Temporal.Instant | Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainTime |
+              Temporal.ZonedDateTime,
     format: string): string;
 export function formatDate(dateTime: any, format: string): string {
     let zonedDateTime: Temporal.ZonedDateTime;

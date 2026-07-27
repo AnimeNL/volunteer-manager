@@ -27,8 +27,8 @@ export default async function EventSettingsLayout(
             },
             {
                 Icon: EditCalendarIcon,
-                label: 'Deadlines',
-                url: `/admin/events/${event.slug}/settings/deadlines`,
+                label: 'Key dates',
+                url: `/admin/events/${event.slug}/settings/dates`,
             },
             {
                 Icon: GroupsIcon,

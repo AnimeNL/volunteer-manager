@@ -45,7 +45,6 @@ import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 
 import type { ContentCategoriesEndpoints } from '@app/api/admin/content/categories/[[...id]]/route';
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
-import type { EventDatesEndpoints } from '@app/api/admin/event/dates/[[...id]]/route';
 import type { EventFinanceEndpoints } from '@app/api/admin/event/finance/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
@@ -79,7 +78,6 @@ type ApiResponseType<T> = T extends { response: object } ? T['response'] : void;
 export type ApiEndpoints = {
     'get': {
         '/api/admin/content/categories': ContentCategoriesEndpoints['list'],
-        '/api/admin/event/dates': EventDatesEndpoints['list'],
         '/api/admin/event/finance': EventFinanceEndpoints['list'],
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
@@ -106,7 +104,6 @@ export type ApiEndpoints = {
     },
     'post': {
         '/api/admin/content/categories': ContentCategoriesEndpoints['create'],
-        '/api/admin/event/dates': EventDatesEndpoints['create'],
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/event/shifts': EventShiftEndpoints['create'],
@@ -149,7 +146,6 @@ export type ApiEndpoints = {
     },
     'delete': {
         '/api/admin/content/categories/:id': ContentCategoriesEndpoints['delete'],
-        '/api/admin/event/dates/:id': EventDatesEndpoints['delete'],
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['delete'],
@@ -167,7 +163,6 @@ export type ApiEndpoints = {
     },
     'put': {
         '/api/admin/content/categories/:id': ContentCategoriesEndpoints['update'],
-        '/api/admin/event/dates/:id': EventDatesEndpoints['update'],
         '/api/admin/event/finance/:id': EventFinanceEndpoints['update'],
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],

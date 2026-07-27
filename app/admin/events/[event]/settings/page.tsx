@@ -1,11 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { EventDatesTable } from './EventDatesTable';
-import { Section } from '@app/admin/components/Section';
 import { SettingsHeader } from './SettingsHeader';
 import { generateEventMetadataFn } from '../generateEventMetadataFn';
-import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
 /**
@@ -24,15 +21,8 @@ export default async function EventSettingsPage(
         },
     });
 
-    const leaders = await getLeadersForEvent(event.id);
-
     return (
-        <>
-            <SettingsHeader event={event} />
-            <Section title="Deadlines and highlights">
-                <EventDatesTable event={event} leaders={leaders} />
-            </Section>
-        </>
+        <SettingsHeader event={event} />
     );
 }
 

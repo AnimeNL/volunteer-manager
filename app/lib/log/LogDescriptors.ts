@@ -72,6 +72,20 @@ interface LogTypeParameterMap {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    CreateEventKeyDate: {
+        event: string;  // short name
+    };
+
+    DeleteEventKeyDate: {
+        event: string;  // short name
+        title: string;
+    };
+
+    UpdateEventKeyDate: {
+        event: string;  // short name
+        title: string;
+    };
+
     UpdateEventSettings: {
         event: string;  // short name
         type: 'basic' | 'feature' | 'integration';
@@ -149,6 +163,9 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    CreateEventKeyDate: 'CreateEventKeyDate',
+    DeleteEventKeyDate: 'DeleteEventKeyDate',
+    UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
 
