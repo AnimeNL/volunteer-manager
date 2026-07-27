@@ -176,8 +176,12 @@ export default async function NardoPage() {
             headerName: 'Advice',
             sortable: true,
             editable: true,
-            required: true,
             flex: 3,
+
+            editorProps: {
+                placeholder: 'What would Nardo say?',
+                required: true,
+            },
         },
         {
             field: 'author',

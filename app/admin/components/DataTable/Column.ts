@@ -16,9 +16,19 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
     field: keyof RowModel & string;
 
     /**
-     * For editable columns, whether a value is required prior to being submittable.
+     * When given, configures the editor component's behaviour for this particular column.
      */
-    required?: boolean;
+    editorProps?: {
+        /**
+         * Placeholder value to display in the editor, if any.
+         */
+        placeholder?: string;
+
+        /**
+         * Whether a value is required prior to being submittable.
+         */
+        required?: boolean;
+    };
 
 } & (
     {

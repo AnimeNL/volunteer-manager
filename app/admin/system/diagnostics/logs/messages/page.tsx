@@ -185,15 +185,23 @@ export default async function SystemLogsMessageFormattingPage() {
             field: 'id',
             headerName: 'Type',
             editable: true,
-            required: true,
             flex: 1,
+
+            editorProps: {
+                placeholder: 'YourTypeName',
+                required: true,
+            },
         },
         {
             field: 'format',
             headerName: 'Format',
             editable: true,
-            required: true,
             flex: 2,
+
+            editorProps: {
+                placeholder: 'The actual log message',
+                required: true,
+            },
         },
         {
             field: 'active',

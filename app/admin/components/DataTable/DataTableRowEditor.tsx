@@ -111,7 +111,9 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 <Stack spacing={1.5} sx={{ my: 1 }}>
                     { visibleColumns.map(column => {
                         const label = column.description || column.headerName || column.field;
-                        const required = !!column.required;
+
+                        const placeholder = column.editorProps?.placeholder;
+                        const required = !!column.editorProps?.required;
 
                         if (column.type === 'singleSelect') {
                             const rawOptions = typeof (column as any).valueOptions === 'function'
@@ -150,14 +152,15 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                             return (
                                 <TextFieldElement key={column.field} name={column.field}
                                                   label={label} type="number" fullWidth
-                                                  size="small" required={required} />
+                                                  size="small" required={required}
+                                                  placeholder={placeholder} />
                             );
                         }
 
                         return (
                             <TextFieldElement key={column.field} name={column.field}
                                               label={label} type="text" fullWidth size="small"
-                                              required={required} />
+                                              required={required} placeholder={placeholder} />
                         );
                     })}
                 </Stack>

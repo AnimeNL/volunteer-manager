@@ -236,37 +236,50 @@ export default async function EventSettingsDatesPage(
             headerName: 'Date',
             editable: true,
             sortable: true,
-            required: true,
             width: 115,
 
             template: 'date',
+
+            editorProps: {
+                placeholder: 'YYYY-MM-DD',
+                required: true,
+            },
         },
         {
             field: 'type',
             headerName: 'Type',
             editable: true,
             sortable: true,
-            required: true,
             width: 175,
 
             type: 'singleSelect',
             valueOptions: Object.values(kDateType).map(type =>
                 ({ label: kDateTypeLabel[type], value: type })),
+
+            editorProps: {
+                required: true,
+            },
         },
         {
             field: 'title',
             headerName: 'Title',
             editable: true,
             sortable: true,
-            required: true,
             flex: 1,
+
+            editorProps: {
+                required: true,
+            },
         },
         {
             field: 'description',
             headerName: 'Description',
             editable: true,
-            required: true,
             flex: 2,
+
+            editorProps: {
+                required: true,
+            },
         },
         {
             field: 'ownerUserId',
