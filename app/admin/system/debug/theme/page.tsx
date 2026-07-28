@@ -4,9 +4,11 @@
 import type { Metadata } from 'next';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { computePalette } from '@app/admin/layout/ThemeUtilities';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kThemeImageVersion } from '@app/config';
@@ -105,8 +107,11 @@ export default async function ThemeDebugPage() {
             width: 900,
             aspectRatio: 3.5,
         },
-
     ];
+
+    const colors = [ '#2196f3', '#e91e63', '#795548', '#ffeb3b', '#8bc34a', '#673ab7' ]
+    const colorIndices =
+        [ '50', '100', '200', '300', '400', '500', '600', '700', '800', '900' ] as const;
 
     return (
         <>
@@ -116,6 +121,25 @@ export default async function ThemeDebugPage() {
                     Volunteer Manager. They're updated for each event to keep everything looking
                     fresh!
                 </SectionIntroduction>
+            </Section>
+            <Section title="Colours">
+                { colors.map(baseColor => {
+                    const palette = computePalette(baseColor);
+                    return (
+                        <Stack key={baseColor} direction="row" spacing={2} sx={{
+                            justifyContent: 'space-between',
+                        }}>
+                            { colorIndices.map(index =>
+                                <Box key={index}
+                                     sx={{
+                                         backgroundColor: palette[index],
+                                         flexGrow: 1,
+                                         height: '40px',
+                                         minWidth: '10px',
+                                     }} /> )}
+                        </Stack>
+                    );
+                }) }
             </Section>
             { kImages.map(image =>
                 <Section key={image.src} title={image.label} subtitle={image.area}>

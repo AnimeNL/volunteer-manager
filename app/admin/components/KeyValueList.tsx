@@ -72,7 +72,7 @@ interface KeyValueListProps {
         /**
          * Value to display. May be a React component.
          */
-        value: {
+        value: undefined | {
             id: number;
             name: string;
         };
@@ -139,7 +139,7 @@ export function KeyValueList(props: KeyValueListProps) {
                                 <Typography variant="body2">
                                     {item.value}
                                 </Typography> }
-                            { item.valueTemplate === 'account' &&
+                            { (item.valueTemplate === 'account' && !!item.value) &&
                                 <Typography variant="body2">
                                     <InlineAccountLink user={item.value} />
                                 </Typography> }

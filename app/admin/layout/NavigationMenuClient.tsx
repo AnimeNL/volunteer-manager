@@ -160,20 +160,21 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
         padding: theme.spacing('3px', 3.25, '3px', 2),
         margin: theme.spacing('1px', 0),
 
-        [`&:hover .${listItemIconClasses.root}, &.active .${listItemIconClasses.root}`]: {
-            color: theme.vars?.palette.primary.dark,
-        },
-
         transition: theme.transitions.create('background-color', { duration: kTransitionDuration }),
     },
     theme.applyStyles('light', {
         '&:hover, &.active': {
-            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.main} 40%, #fff)`,
+            backgroundColor: theme.vars?.palette.primaryPalette[100],
+        },
+
+        [`&:hover .${listItemIconClasses.root}, &.active .${listItemIconClasses.root}`]: {
+            color: theme.vars?.palette.primaryPalette[800],
         },
     }),
     theme.applyStyles('dark', {
         '&:hover, &.active': {
-            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.main} 40%, #000)`,
+            backgroundColor:
+                `color-mix(in oklch, ${theme.vars?.palette.primaryPalette[100]} 45%, #000)`,
         },
     }),
 ]));

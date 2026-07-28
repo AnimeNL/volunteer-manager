@@ -87,10 +87,10 @@ const SidebarButtonTooltip = styled(({ className, ...props }: TooltipProps) => (
      <Tooltip describeChild {...props} arrow placement="right" classes={{ popper: className }} />
 ))(({ theme }) => ({
      [`& .${tooltipClasses.arrow}`]: {
-        color: theme.palette.primary.dark,
+        color: theme.vars?.palette.primaryPalette[800],
      },
      [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: theme.palette.primary.dark,
+        backgroundColor: theme.vars?.palette.primaryPalette[800],
         color: theme.palette.primary.contrastText,
      },
 }));
@@ -111,28 +111,13 @@ interface SidebarIconButtonProps extends IconButtonProps {
  */
 const SidebarIconButton = styled(({ active, ...props }: SidebarIconButtonProps) => (
     <IconButton {...props} />
-))(({ active, theme }) => [
-    {
-        borderRadius: theme.vars?.shape.borderRadius,
-        color: theme.vars?.palette.common.white,
-        transition: theme.transitions.create('background-color'),
+))(({ active, theme }) => ({
+    backgroundColor: active ? theme.vars?.palette.primaryPalette[800] : undefined,
+    borderRadius: theme.vars?.shape.borderRadius,
+    color: theme.vars?.palette.common.white,
+    transition: theme.transitions.create('background-color'),
+
+    '&:active, &:hover': {
+        backgroundColor: theme.vars?.palette.primaryPalette[500]
     },
-    theme.applyStyles('light', {
-        backgroundColor:
-            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`
-                   : undefined,
-
-        '&:active, &:hover': {
-            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 60%, #000)`
-        },
-    }),
-    theme.applyStyles('dark', {
-        backgroundColor:
-            active ? `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`
-                   : undefined,
-
-        '&:active, &:hover': {
-            backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 40%, #000)`
-        },
-    }),
-]);
+}));

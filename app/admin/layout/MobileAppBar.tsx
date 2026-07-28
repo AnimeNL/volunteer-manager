@@ -104,6 +104,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
  */
 const AppBar = styled(MuiAppBar)(({ theme }) => ([
     {
+        backgroundColor: theme.vars?.palette.primaryPalette[800],
         backgroundImage: 'none',
 
         '& .anime-logo': {
@@ -112,11 +113,7 @@ const AppBar = styled(MuiAppBar)(({ theme }) => ([
             padding: theme.spacing(0.5),
         },
     },
-    theme.applyStyles('light', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
-    }),
     theme.applyStyles('dark', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
         color: theme.vars?.palette.text.primary,
     }),
 ]));

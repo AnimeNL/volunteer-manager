@@ -124,29 +124,20 @@ export const NavigationSidebarLogo = styled((props: NavigationSidebarLogoProps) 
             </SvgIcon>
         </Box>
     );
-})(({ theme }) => [
-    {
-        borderRadius: theme.shape.borderRadius,
+})(({ theme }) => ({
+    backgroundColor: theme.vars?.palette.primaryPalette[800],
+    borderRadius: theme.shape.borderRadius,
 
-        alignSelf: 'stretch',
-        aspectRatio: 1,
-        lineHeight: 0,
+    alignSelf: 'stretch',
+    aspectRatio: 1,
+    lineHeight: 0,
 
-        '& svg': { height: 'unset', width: 'unset', },
-        '& .background': {
-            fill: '#eff3f4',
-        },
+    '& svg': { height: 'unset', width: 'unset', },
+    '& .background': {
+        fill: '#eff3f4',
     },
-    theme.applyStyles('light', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
-        '& .outline': {
-            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 85%, #000)`,
-        },
-    }),
-    theme.applyStyles('dark', {
-        backgroundColor: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
-        '& .outline': {
-            stroke: `color-mix(in oklch, ${theme.vars?.palette.primary.dark} 65%, #000)`,
-        },
-    }),
-]);
+
+    '& .outline': {
+        stroke: theme.vars?.palette.primaryPalette[800],
+    },
+}));

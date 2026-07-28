@@ -4,8 +4,11 @@
 'use client';
 
 import { Inter } from 'next/font/google';
+import { useMemo } from 'react';
 
-import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider as MuiThemeProvider, createTheme, type Color } from '@mui/material/styles';
+
+import { type ColorPalette } from './ThemeUtilities';
 
 /**
  * The Inter font, loaded through NextJS' font stack, with default settings for Material UI.
@@ -24,52 +27,69 @@ declare module '@mui/material/styles' {
     interface TypeBackground {
         sidebar: string | undefined;
     }
+
+    interface Palette {
+        primaryPalette: Color;
+    }
+
+    interface PaletteOptions {
+        primaryPalette: Color;
+    }
 }
 
 /**
- * Theme of the administration area. All pages must support both Dark Mode and responsive display,
- * so we avoid hardcoding any colour, size or setting anywhere in our code other than this
- * particular function.
+ * Props accepted by the <ThemeProvider> component.
  */
-const kTheme = createTheme({
-    colorSchemes: {
-        dark: {
-            palette: {
-                background: {
-                    default: '#1e1e1e',
-                    paper: '#272727',
-                    sidebar: '#0a0a0a',
-                },
-            } as any,  // fixme
-        },
-        light: {
-            palette: {
-                background: {
-                    default: '#eff3f4',
-                    paper: '#ffffff',
-                    sidebar: '#0a0a0a',
-                },
-            } as any,  // fixme
-        },
-    },
-    cssVariables: {
-        colorSchemeSelector: 'class',
-    },
-    shape: {
-        borderRadius: 8,
-    },
-    typography: {
-        fontFamily: kInterFont.style.fontFamily,
-    },
-});
+interface ThemeProviderProps {
+    /**
+     * Colour palette that should be used for the administration interface.
+     */
+    palette: ColorPalette;
+}
 
 /**
  * Provider that is able to give context to all child elements about the appearance, colours, fonts
  * and other settings associated wdith displaying this particular page.
  */
-export function ThemeProvider(props: React.PropsWithChildren) {
+export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>) {
+    const theme = useMemo(() => createTheme({
+        colorSchemes: {
+            dark: {
+                palette: {
+                    primary: { main: props.palette[500] },
+                    primaryPalette: props.palette,
+                    background: {
+                        default: '#1e1e1e',
+                        paper: '#272727',
+                        sidebar: '#0a0a0a',
+                    },
+                } as any,  // fixme
+            },
+            light: {
+                palette: {
+                    primary: { main: props.palette[500] },
+                    primaryPalette: props.palette,
+                    background: {
+                        default: '#eff3f4',
+                        paper: '#ffffff',
+                        sidebar: '#0a0a0a',
+                    },
+                } as any,  // fixme
+            },
+        },
+        cssVariables: {
+            colorSchemeSelector: 'class',
+        },
+        shape: {
+            borderRadius: 8,
+        },
+        typography: {
+            fontFamily: kInterFont.style.fontFamily,
+        },
+    }), [ /* intentionally key on the main colour= */ props.palette[500] ]);
+
     return (
-        <MuiThemeProvider theme={kTheme}>
+        <MuiThemeProvider theme={theme}>
             {props.children}
         </MuiThemeProvider>
     );

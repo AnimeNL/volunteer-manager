@@ -14,8 +14,10 @@ import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { ThemeProvider } from './layout/ThemeProvider';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
+import { computePalette, type ColorPalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { readSetting } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tEvents } from '@lib/database';
 
@@ -70,6 +72,10 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     // Whether the new layout should be enabled. Available through context.
     const isLayoutV2 = !!settings['user-admin-experimental-layout'];
 
+    let palette: ColorPalette | undefined;
+    if (isLayoutV2)
+        palette = computePalette(await readSetting('admin-theme-color') || '#2196f3');
+
     const enableOrganisation = checkPermission(access, kDashboardPermissions);
 
     return (
@@ -86,7 +92,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                 paletteMode={paletteMode} palette={environment.colours}>
 
                 { isLayoutV2 &&
-                    <ThemeProvider>
+                    <ThemeProvider palette={palette!}>
                         <ResponsiveLayout
                             children={props.children}
                             menu={props.menu}
@@ -105,7 +111,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                             minHeight: '100vh',
                             minWidth:
                                 !!settings['user-admin-experimental-responsive'] ? undefined
-                                                                                : 1280,
+                                                                                 : 1280,
                             padding: 2,
                             scrollbarGutter: 'stable',
                         }}>

@@ -26,6 +26,16 @@ export default async function SettingsPage() {
     // default values in case none could be retrieved from the database. The page's content will be
     // dynamically composed based on this configuration.
     const settingsConfiguration: { [k: string]: ConfigurableSetting[] } = {
+        'Admin settings': [
+            {
+                setting: 'admin-theme-color',
+                type: 'string',
+                defaultValue: '#2196f3',
+
+                label: 'Theme colour',
+                description: 'Theme colour for the administration area.',
+            },
+        ],
         'Display settings': [
             {
                 setting: 'display-check-in-rate-seconds',

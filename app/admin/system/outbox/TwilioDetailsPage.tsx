@@ -98,7 +98,7 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                     {
                         condition: !!message.sender?.user,
                         key: 'Sender',
-                        value: message.sender?.user!,
+                        value: message.sender?.user,
                         valueTemplate: 'account',
                     },
                     {
