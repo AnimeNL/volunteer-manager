@@ -23,6 +23,7 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
                 adminSubmitBackground: '#343125',
             } satisfies AdminPalette as any,
 
+            primaryPalette: undefined as any,
             primary: {
                 main: '#388bfd',
             },
@@ -41,6 +42,7 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
                 adminSubmitBackground: '#fff4e5',
             } satisfies AdminPalette as any,
 
+            primaryPalette: undefined as any,
             primary: {
                 main: '#37474F',
             },

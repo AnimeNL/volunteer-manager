@@ -62,6 +62,7 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
                 default: '#000000',
                 paper: lighten(grey[900], .01),
             },
+            primaryPalette: undefined as any,
         },
     },
     light: { /* no mixins yet */ },

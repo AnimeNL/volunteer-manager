@@ -166,6 +166,7 @@ function createScheduleTheme(mode: PaletteMode, palette: { dark: string; light: 
                 default: mode === 'dark' ? '#181818' : lighten(baseColour, 0.94),
                 paper: mode === 'dark' ? '#212121' : '#ffffff',
             },
+            primaryPalette: undefined as any,
             primary: {
                 main,
             },

@@ -71,6 +71,7 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         'user-ai-example-messages-promo-time': 'number',
 
         // User settings that cannot be updated through this mechanism:
+        'admin-theme-color': 'unknown',
         'ai-communication-personality-prompt': 'unknown',
         'ai-example-messages': 'unknown',
         'user-admin-menu-state': 'unknown',

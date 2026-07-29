@@ -64,6 +64,7 @@ function createDisplayTheme() {
                 default: '#0b0b0b',
                 paper: '#2c3339',
             },
+            primaryPalette: undefined as any,
             secondary: {
                 main: '#eeeeee',
             },

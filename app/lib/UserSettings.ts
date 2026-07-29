@@ -64,7 +64,7 @@ export async function readUserSetting<T extends keyof UserSettingsMap>(userId: n
  * cannot be loaded or have no defaults. This function will end up issuing a database call.
  */
 export async function readUserSettings<T extends keyof UserSettingsMap>(
-    userId: number, settings: T[])
+    userId: number, settings: T[], disableFallback?: boolean)
         : Promise<{ [k in T]: UserSettingsMap[k] | undefined }>
 {
     const usersSettingsJoin = tUsersSettings.forUseInLeftJoin();
@@ -75,7 +75,8 @@ export async function readUserSettings<T extends keyof UserSettingsMap>(
         .where(tSettings.settingName.in(settings))
         .select({
             name: tSettings.settingName,
-            value: usersSettingsJoin.settingValue.valueWhenNull(tSettings.settingValue),
+            value: usersSettingsJoin.settingValue.valueWhenNull(
+                tSettings.settingValue.onlyWhenOrNull(disableFallback !== true)),
         })
         .executeSelectMany();
 
