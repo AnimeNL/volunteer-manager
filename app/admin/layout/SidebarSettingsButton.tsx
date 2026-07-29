@@ -5,10 +5,14 @@
 
 import Link from '@app/LinkProxy';
 import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Button, { buttonClasses } from '@mui/material/Button';
+import CircleIcon from '@mui/icons-material/Circle';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import Divider from '@mui/material/Divider';
+import HideSourceIcon from '@mui/icons-material/HideSource';
+import IconButton from '@mui/material/IconButton';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -18,13 +22,17 @@ import MenuItem from '@mui/material/MenuItem';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
+import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tooltip from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 import { useColorScheme  } from '@mui/material/styles';
 
 import { AboutDialog } from './AboutDialog';
 import { SidebarButton } from './SidebarButton';
+
+import { updateUserColour } from './ThemeActions';
 
 /**
  * Props accepted by the <SidebarSettingsButton> component.
@@ -42,6 +50,8 @@ interface SidebarSettingsButtonProps {
  */
 export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
     const isMobile = !!props.isMobile;
+
+    const router = useRouter();
 
     const { mode, setMode } = useColorScheme();
 
@@ -75,6 +85,11 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
         setAnchorElement(null);
     }, [ /* no deps */ ]);
 
+    const handlePickColour = useCallback(async (colour?: string) => {
+        await updateUserColour(colour);
+        router.refresh();
+    }, [ router ]);
+
     return (
         <>
             { !!props.isMobile &&
@@ -104,6 +119,28 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
                             <DarkModeIcon fontSize="small" />
                         </ToggleButton>
                     </ToggleButtonGroup>
+                </MenuItem>
+                <Divider />
+                <MenuItem dense disableRipple disableTouchRipple>
+                    <Stack direction="row" spacing={1} sx={{
+                        flexGrow: 1,
+                        justifyContent: 'space-between'
+                    }}>
+                        <Tooltip title="Default colour">
+                            <IconButton size="small" onClick={ () => handlePickColour() }>
+                                <HideSourceIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <IconButton size="small" onClick={ () => handlePickColour('#2196f3') }>
+                            <CircleIcon htmlColor="#2196f3" />
+                        </IconButton>
+                        <IconButton size="small" onClick={ () => handlePickColour('#ffc107') }>
+                            <CircleIcon htmlColor="#ffc107" />
+                        </IconButton>
+                        <IconButton size="small" onClick={ () => handlePickColour('#e91e63') }>
+                            <CircleIcon htmlColor="#e91e63" />
+                        </IconButton>
+                    </Stack>
                 </MenuItem>
                 <Divider />
                 <MenuItem dense onClick={handleAboutDialogOpen}>

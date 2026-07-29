@@ -17,7 +17,6 @@ import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { computePalette, type ColorPalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { readSetting } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 import db, { tEvents } from '@lib/database';
 
@@ -58,12 +57,13 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
         access.can('event.visible', { event: event.slug, team: kAnyTeam }))
 
     const settings = await readUserSettings(user.id, [
+        'admin-theme-color',
         'ai-example-messages',
         'user-admin-experimental-dark-mode',
         'user-admin-experimental-layout',
         'user-admin-experimental-responsive',
         'user-ai-example-messages-promo-time',
-    ], /* disableFallback= */ true);
+    ]);
 
     // Determine the palette mode for the administration area. Dark Mode is not officially supported
     // just yet, but can be experimentally enabled through user settings.
@@ -74,7 +74,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
 
     let palette: ColorPalette | undefined;
     if (isLayoutV2)
-        palette = computePalette(await readSetting('admin-theme-color') || '#2196f3');
+        palette = computePalette(settings['admin-theme-color'] || '#2196f3');
 
     const enableOrganisation = checkPermission(access, kDashboardPermissions);
 

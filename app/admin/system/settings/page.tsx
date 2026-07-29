@@ -33,7 +33,8 @@ export default async function SettingsPage() {
                 defaultValue: '#2196f3',
 
                 label: 'Theme colour',
-                description: 'Theme colour for the administration area.',
+                description:
+                    'Theme colour for the administration area. May be overridden by the user.',
             },
         ],
         'Display settings': [
