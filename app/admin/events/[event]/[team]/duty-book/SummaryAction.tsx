@@ -80,11 +80,11 @@ export function SummaryAction(props: SummaryActionProps) {
                             }}>{summary}</Markdown> }
                         { !summary &&
                             <>
-                                <Skeleton variant="text" animation="wave" width="80%" height={16} />
-                                <Skeleton variant="text" animation="wave" width="60%" height={16} />
-                                <Skeleton variant="text" animation="wave" width="70%" height={16} />
-                                <Skeleton variant="text" animation="wave" width="70%" height={16} />
-                                <Skeleton variant="text" animation="wave" width="40%" height={16} />
+                                <Skeleton variant="text" animation="wave" width="85%" height={8} />
+                                <Skeleton variant="text" animation="wave" width="65%" height={8} />
+                                <Skeleton variant="text" animation="wave" width="80%" height={8} />
+                                <Skeleton variant="text" animation="wave" width="75%" height={8} />
+                                <Skeleton variant="text" animation="wave" width="55%" height={8} />
                             </> }
                     </DialogContent>
                     <Divider />

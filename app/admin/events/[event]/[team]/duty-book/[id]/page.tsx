@@ -8,21 +8,24 @@ import { TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import Grid from '@mui/material/Grid';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
-import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
-    from '@app/admin/components/DataTable';
+import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
+    withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
+
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { SectionClearAction } from '@app/admin/components/SectionClearAction';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VisibilityToggle } from './VisibilityToggle';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 
 import * as actions from '../DutyBookActions';
+
 
 /**
  * Data source through which the viewing history of an incident can be retrieved.
@@ -34,14 +37,14 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
     incidentId: z.number(),
 
     /**
-     * Slug of the event to display the duty book for.
+     * Event that the Duty Book is in scope for.
      */
-    eventSlug: z.string(),
+    event: kEventTransformer,
 
     /**
-     * Slug of the team to display the duty book for.
+     * Team that the Duty Book is in scope for.
      */
-    teamSlug: z.string(),
+    team: kTeamTransformer,
 
 }), withRowModel({
     /**
@@ -61,6 +64,7 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
         id: z.number(),
         name: z.string(),
     }),
+
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
@@ -69,8 +73,8 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
                 permission: 'event.duty-book',
                 operation: 'read',
                 scope: {
-                    event: context.eventSlug,
-                    team: context.teamSlug,
+                    event: context.event.slug,
+                    team: context.event.slug,
                 },
             },
         });
@@ -110,22 +114,31 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
 export default async function EventTeamDutyBookIncidentPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book/[id]'>)
 {
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!team.flagEnableDutyBook)
+    const params = await props.params;
+
+    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+        permission: 'event.duty-book',
+        operation: 'read',
+        scope: {
+            event: params.event,
+            team: params.team,
+        },
+    });
+
+    if (!team.flags.enableDutyBook)
         notFound();
 
     const dbInstance = db;
-
-    const incidentId = (await props.params).id;
     const incident = await dbInstance.selectFrom(tDutyBook)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tDutyBook.dutyBookEventId))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
-        .where(tDutyBook.dutyBookId.equals(parseInt(incidentId, /* radix= */ 10)))
+        .where(tDutyBook.dutyBookId.equals(parseInt(params.id, /* radix= */ 10)))
             .and(tDutyBook.dutyBookDeleted.isNull())
         .select({
             id: tDutyBook.dutyBookId,
+            authorFirstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             defaultValues: {
                 author: tUsers.name,
                 event: tEvents.eventShortName,
@@ -143,13 +156,13 @@ export default async function EventTeamDutyBookIncidentPage(
 
     if (incident.defaultValues.created) {
         incident.defaultValues.created =
-            formatDate(incident.defaultValues.created.withTimeZone(event.timezone),
+            formatDate(incident.defaultValues.created.withTimeZone(event.timeZone),
                        'YYYY-MM-DD HH:mm:ss') as any;
     }
 
     if (incident.defaultValues.hidden) {
         incident.defaultValues.hidden =
-            formatDate(incident.defaultValues.hidden.withTimeZone(event.timezone),
+            formatDate(incident.defaultValues.hidden.withTimeZone(event.timeZone),
                        'YYYY-MM-DD HH:mm:ss') as any;
     }
 
@@ -158,10 +171,12 @@ export default async function EventTeamDutyBookIncidentPage(
         .selectOneColumn(dbInstance.count(tDutyBookViewers.dutyBookViewerUserId))
         .executeSelectOne();
 
-    const deleteIncidentFn = actions.deleteIncident.bind(null, event.id, team.slug, incident.id);
-    const updateDetailsFn = actions.updateDetails.bind(null, event.id, team.slug, incident.id);
+    // ---------------------------------------------------------------------------------------------
+
+    const deleteIncidentFn = actions.deleteIncident.bind(null, event.slug, team.slug, incident.id);
+    const updateDetailsFn = actions.updateDetails.bind(null, event.slug, team.slug, incident.id);
     const visibilityToggleFn =
-        actions.updateVisibility.bind(null, event.id, team.slug, incident.id);
+        actions.updateVisibility.bind(null, event.slug, team.slug, incident.id);
 
     let sectionClearAction: React.ReactNode = undefined;
     if (access.can('event.duty-book', 'delete', { event: event.slug, team: team.slug })) {
@@ -174,10 +189,14 @@ export default async function EventTeamDutyBookIncidentPage(
         );
     }
 
+    // ---------------------------------------------------------------------------------------------
+
     const canUpdate = access.can('event.duty-book', 'update', {
         event: event.slug,
         team: team.slug
     });
+
+    // ---------------------------------------------------------------------------------------------
 
     const columns: Column<ExtractRowModel<typeof viewingHistoryDataSource>>[] = [
         {
@@ -201,8 +220,22 @@ export default async function EventTeamDutyBookIncidentPage(
 
     return (
         <>
-            <Section title="Duty book incident" subtitle={event.shortName}
-                     headerAction={sectionClearAction}>
+            <Section icon={ <OutlinedFlagIcon color="primary" /> }
+                     title={`Incident #${params.id}`} headerAction={sectionClearAction}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         {
+                            label: 'Duty book',
+                            href: `/admin/events/${event.slug}/${team.slug}/duty-book`
+                         },
+                         { label: `Incident #${params.id}` },
+                     ]}>
+                <SectionIntroduction>
+                    An incident reported by {incident.authorFirstName} during {event.shortName}.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
                 <VisibilityToggle
                     hidden={incident.hidden}
                     toggleFn={visibilityToggleFn} />
@@ -234,19 +267,11 @@ export default async function EventTeamDutyBookIncidentPage(
                     </Grid>
                 </FormGrid>
             </Section>
-            <Section title="Incident viewing history" subtitle={`${viewersCount}`}>
-                <SectionIntroduction>
-                    We record the first time a volunteer reads a Duty Book entry to understand the
-                    effectiveness of the book for spreading awareness.
-                </SectionIntroduction>
+            <Section title="Viewing history" subtitle={`${viewersCount}`}>
                 <DataTable
                     columns={columns}
                     source={viewingHistoryDataSource}
-                    context={{
-                        incidentId: incident.id,
-                        eventSlug: event.slug,
-                        teamSlug: team.slug,
-                    }}
+                    context={{ incidentId: incident.id, event: event.slug, team: team.slug }}
                     defaultSort={{ field: 'user', sort: 'asc' }}
                     pageSize={100}
                     disableSearch
@@ -260,4 +285,6 @@ export default async function EventTeamDutyBookIncidentPage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Duty book incident');
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id', prefix: 'Incident #' }, 'Duty book', { team: 'team' },
+                             { event: 'event' });

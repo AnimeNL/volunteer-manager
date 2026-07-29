@@ -47,7 +47,8 @@ export function DeleteConfirmation(props: DeleteConfirmationProps) {
             open={open} onClose={onClose} title={`Delete this ${subject}?`}
             description={description} formContext={formContext}
             confirm={
-                <Button onClick={onDelete} loading={loading} variant="contained" color="error">
+                <Button onClick={onDelete} loading={loading} variant="contained" color="error"
+                        autoFocus>
                     Delete
                 </Button>
             }

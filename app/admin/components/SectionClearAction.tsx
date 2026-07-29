@@ -87,9 +87,11 @@ export function SectionClearAction(props: SectionClearActionProps) {
         }
     }, [ action, form, router, verb ]);
 
+    const capitalisedVerb = verb.charAt(0).toUpperCase() + verb.slice(1);;
+
     return (
         <>
-            <Tooltip title={`Clear the ${subject}`}>
+            <Tooltip title={`${capitalisedVerb} the ${subject}…`}>
                 <IconButton onClick={ () => setConfirmationOpen(true) } size="small">
                     {icon}
                 </IconButton>

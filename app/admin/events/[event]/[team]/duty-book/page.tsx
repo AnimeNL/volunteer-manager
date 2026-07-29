@@ -4,18 +4,22 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+
+import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
+    withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
+
 import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { SummaryAction } from './SummaryAction';
 import { VisibilityHeaderCell, VisibilityCell } from './VisibilityCell';
 import { createAiClient } from '@lib/integrations/genai';
-import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tDutyBook, tEvents, tTeams, tUsers } from '@lib/database';
 
 /**
@@ -88,19 +92,14 @@ async function generateSummary(event: string, team: string) {
  */
 const dutyBookDataSource = createDataSource('event/team/duty-book', withContext({
     /**
-     * Unique ID of the event to display the duty book for.
+     * Event that the Duty Book is in scope for.
      */
-    eventId: z.number(),
+    event: kEventTransformer,
 
     /**
-     * Slug of the event to display the duty book for.
+     * Team that the Duty Book is in scope for.
      */
-    eventSlug: z.string(),
-
-    /**
-     * Slug of the team to display the duty book for.
-     */
-    teamSlug: z.string(),
+    team: kTeamTransformer,
 
 }), withRowModel({
     /**
@@ -139,8 +138,8 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
                 permission: 'event.duty-book',
                 operation: 'read',
                 scope: {
-                    event: context.eventSlug,
-                    team: context.teamSlug,
+                    event: context.event.slug,
+                    team: context.team.slug,
                 },
             },
         });
@@ -151,7 +150,7 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
         const results = await dbInstance.selectFrom(tDutyBook)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
-            .where(tDutyBook.dutyBookEventId.equals(context.eventId))
+            .where(tDutyBook.dutyBookEventId.equals(context.event.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
                 .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
                     tDutyBook.dutyBookIncident.containsInsensitiveIfValue(params.search).or(
@@ -193,7 +192,7 @@ export default async function EventTeamDutyBookPage(
 {
     const params = await props.params;
 
-    const { event, team } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
         permission: 'event.duty-book',
         operation: 'read',
         scope: {
@@ -249,31 +248,41 @@ export default async function EventTeamDutyBookPage(
         }
     ];
 
-    if (!team.flagEnableDutyBook)
+    if (!team.flags.enableDutyBook)
         notFound();
 
     const generateSummaryFn = generateSummary.bind(null, event.slug, team.slug);
 
     return (
-        <Section title="Duty book" subtitle={event.shortName}
-                 headerAction={ <SummaryAction generateSummaryFn={generateSummaryFn} /> }>
-            <SectionIntroduction>
-                The duty book lists all reported incidents during this festival. The information
-                can be consumed in the portal as well.
-            </SectionIntroduction>
-            <DataTable columns={columns} source={dutyBookDataSource}
-                       context={{ eventId: event.id, eventSlug: event.slug, teamSlug: team.slug }}
-                       defaultSort={{ field: 'date', sort: 'desc' }}
-                       listViewProps={{
-                           primaryField: 'user.name',
-                           secondaryField: 'summary',
-                           dateField: 'date',
-                           dateFieldFormat: 'ddd, HH:mm',
-                           startComponent: VisibilityCell,
-                           linkTemplate: './duty-book/{id}',
-                       }} />
-        </Section>
+        <>
+            <Section icon={ <OutlinedFlagIcon color="primary" /> } title="Duty book"
+                     headerAction={ <SummaryAction generateSummaryFn={generateSummaryFn} /> }
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Duty book' },
+                     ]}>
+                <SectionIntroduction>
+                    The duty book lists all reported incidents during {event.shortName}. The
+                    information can be consumed in the portal as well.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader>
+                <DataTable columns={columns} source={dutyBookDataSource}
+                           context={{ event: event.slug, team: team.slug }}
+                           defaultSort={{ field: 'date', sort: 'desc' }}
+                           listViewProps={{
+                               primaryField: 'user.name',
+                               secondaryField: 'summary',
+                               dateField: 'date',
+                               dateFieldFormat: 'ddd, HH:mm',
+                               startComponent: VisibilityCell,
+                               linkTemplate: './duty-book/{id}',
+                           }} />
+            </Section>
+        </>
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Duty book');
+export const generateMetadata =
+    createGenerateMetadataFn('Duty book', { team: 'team' }, { event: 'event' });

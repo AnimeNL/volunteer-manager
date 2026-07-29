@@ -27,6 +27,14 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
                 id: tTeams.teamId,
                 slug: tTeams.teamSlug,
                 name: tTeams.teamTitle,
+                flags: {
+                    enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
+                    enableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
+                    managesContent: tTeams.teamFlagManagesContent.equals(/* true= */ 1),
+                    managesFirstAid: tTeams.teamFlagManagesFirstAid.equals(/* true= */ 1),
+                    managesKnowledgeBase: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),
+                    managesSecurity: tTeams.teamFlagManagesSecurity.equals(/* true= */ 1),
+                },
             })
             .executeSelectNoneOrOne();
 

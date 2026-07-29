@@ -64,8 +64,8 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
  *   { user } - the parameter must include the user ID
  */
 type PathValue =
-    string | { environment: string } | { event: string } | { param: string } | { team: string } |
-             { user: string };
+    string | { environment: string } | { event: string } | { team: string } | { user: string } |
+             { param: string, prefix?: string, suffix?: string };
 
 /**
  * Creates a generateMetadata() function compatible with Next.js based on the given `path`. The path
@@ -113,8 +113,10 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
         }
 
         // (3) Substitute { param: name } with the param's literal value.
-        if ('param' in component)
-            resolvedPath.push(lazyParams[component.param] || `{${component.param}}`);
+        if ('param' in component) {
+            const value = lazyParams[component.param] || `{${component.param}}`;
+            resolvedPath.push(`${component.prefix || ''}${value}${component.suffix || ''}`)
+        }
 
         // (4) Substitute { team: slug } with the team's title.
         if ('team' in component) {

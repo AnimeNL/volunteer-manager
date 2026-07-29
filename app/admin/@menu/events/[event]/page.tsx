@@ -4,7 +4,6 @@
 import { notFound } from 'next/navigation';
 
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
-import BookIcon from '@mui/icons-material/Book';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
@@ -14,6 +13,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PersonIcon from '@mui/icons-material/Person';
 import RepeatIcon from '@mui/icons-material/Repeat';
@@ -168,8 +168,8 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                     url: `/admin/events/${event.slug}/${team.slug}/applications`,
                 },
                 {
-                    Icon: BookIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    Icon: OutlinedFlagIcon,
+                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Duty book',
                     url: `/admin/events/${event.slug}/${team.slug}/duty-book`,
                     condition: team.flagEnableDutyBook,

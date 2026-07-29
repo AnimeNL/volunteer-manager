@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { SettingsHeader } from './SettingsHeader';
-import { generateEventMetadataFn } from '../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
 /**
@@ -26,4 +26,4 @@ export default async function EventSettingsPage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Settings');
+export const generateMetadata = createGenerateMetadataFn('Settings', { event: 'event' });

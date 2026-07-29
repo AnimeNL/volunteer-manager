@@ -4,25 +4,10 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tDutyBook, tEvents } from '@lib/database';
-
-/**
- * Retrieves the name and slug of the given `eventId` from the database. Resolves to `undefined`
- * when that event is not accessible for any reason.
- */
-async function getEventNameAndSlug(eventId: number): Promise<{ name: string, slug: string } | null>
-{
-    return db.selectFrom(tEvents)
-        .where(tEvents.eventId.equals(eventId))
-        .select({
-            name: tEvents.eventShortName,
-            slug: tEvents.eventSlug,
-        })
-        .executeSelectNoneOrOne();
-}
-
+import { getEvent } from '@lib/cache';
+import db, { tDutyBook } from '@lib/database';
 
 /**
  * Zod type that describes the data necessary to soft-remove a Duty Book entry.
@@ -33,39 +18,34 @@ const kDeleteIncidentData = z.object({ /* nothing */ });
  * Server action that soft deletes a Duty Book entry. Data remains in the database.
  */
 export async function deleteIncident(
-    eventId: number, team: string, dutyBookId: number, formData: unknown)
+    eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
     'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
-        const event = await getEventNameAndSlug(eventId);
+        const event = await getEvent(eventSlug);
         if (!event)
             notFound();
 
-        if (!props.access.can('event.duty-book', 'delete', { event: event.slug, team }))
+        if (!props.access.can('event.duty-book', 'delete', { event: event.slug, team: teamSlug }))
             forbidden();
 
         const dbInstance = db;
-
         const affectedRows = await dbInstance.update(tDutyBook)
             .set({
                 dutyBookDeleted: dbInstance.currentZonedDateTime(),
             })
-            .where(tDutyBook.dutyBookId.equals(dutyBookId))
+            .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminDeleteDutyBook,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                data: {
-                    id: dutyBookId,
-                    event: event.name,
-                    hidden: data.hidden,
-                },
+        LogBuilder.for('DeleteDutyBookIncident')
+            .withInitiatorUser(props.user)
+            .withCondition(!!affectedRows)
+            .withSeverity('Warning')
+            .record({
+                event: event.name,
+                incidentId,
             });
-        }
 
         return {
             success: true,
@@ -86,41 +66,35 @@ const kUpdateDetailsData = z.object({
  * Server action that updates the details associated with a Duty Book entry.
  */
 export async function updateDetails(
-    eventId: number, team: string, dutyBookId: number, formData: unknown)
+    eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
     'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
-        const event = await getEventNameAndSlug(eventId);
+        const event = await getEvent(eventSlug);
         if (!event)
             notFound();
 
-        if (!props.access.can('event.duty-book', 'update', { event: event.slug, team }))
+        if (!props.access.can('event.duty-book', 'update', { event: event.slug, team: teamSlug }))
             forbidden();
 
         const dbInstance = db;
-
         const affectedRows = await dbInstance.update(tDutyBook)
             .set({
                 dutyBookAiSummary: data.summary,
                 dutyBookIncident: data.incident,
             })
-            .where(tDutyBook.dutyBookId.equals(dutyBookId))
+            .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminUpdateDutyBookDetails,
-                severity: kLogSeverity.Info,
-                sourceUser: props.user,
-                data: {
-                    id: dutyBookId,
-                    event: event.name,
-                    incident: data.incident,
-                    summary: data.summary,
-                },
+        LogBuilder.for('UpdateDutyBookIncident')
+            .withInitiatorUser(props.user)
+            .withCondition(!!affectedRows)
+            .withSeverity('Info')
+            .record({
+                event: event.name,
+                incidentId,
             });
-        }
 
         return { success: true };
     });
@@ -138,43 +112,38 @@ const kUpdateVisibilityData = z.object({
  * reveal all information to volunteers, useful in case they contain sensitive information.
  */
 export async function updateVisibility(
-    eventId: number, team: string, dutyBookId: number, formData: unknown)
+    eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
     'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
-        const event = await getEventNameAndSlug(eventId);
+        const event = await getEvent(eventSlug);
         if (!event)
             notFound();
 
         // Note: All (senior) volunteers with read access to Duty Book entries can hide them,
         // although the ability to delete and/or edit them is separately restricted.
-        if (!props.access.can('event.duty-book', 'read', { event: event.slug, team }))
+        if (!props.access.can('event.duty-book', 'read', { event: event.slug, team: teamSlug }))
             forbidden();
 
         const dbInstance = db;
-
         const affectedRows = await dbInstance.update(tDutyBook)
             .set({
                 dutyBookHidden:
                     data.hidden ? dbInstance.currentZonedDateTime()
                                 : null,
             })
-            .where(tDutyBook.dutyBookId.equals(dutyBookId))
+            .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminUpdateDutyBookVisibility,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                data: {
-                    id: dutyBookId,
-                    event: event.name,
-                    hidden: data.hidden,
-                },
+        LogBuilder.for('UpdateDutyBookIncidentVisibility')
+            .withInitiatorUser(props.user)
+            .withCondition(!!affectedRows)
+            .withSeverity('Info')
+            .record({
+                event: event.name,
+                incidentId,
             });
-        }
 
         return { success: true };
     });

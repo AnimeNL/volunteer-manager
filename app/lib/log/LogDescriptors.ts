@@ -97,6 +97,25 @@ interface LogTypeParameterMap {
     };
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Volunteers > Team
+    // ---------------------------------------------------------------------------------------------
+
+    DeleteDutyBookIncident: {
+        event: string;  // short name
+        incidentId: number;
+    };
+
+    UpdateDutyBookIncident: {
+        event: string;  // short name
+        incidentId: number;
+    };
+
+    UpdateDutyBookIncidentVisibility: {
+        event: string;  // short name
+        incidentId: number;
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
     // ---------------------------------------------------------------------------------------------
 
@@ -168,6 +187,14 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Volunteers > Team
+    // ---------------------------------------------------------------------------------------------
+
+    DeleteDutyBookIncident: 'DeleteDutyBookIncident',
+    UpdateDutyBookIncident: 'UpdateDutyBookIncident',
+    UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:

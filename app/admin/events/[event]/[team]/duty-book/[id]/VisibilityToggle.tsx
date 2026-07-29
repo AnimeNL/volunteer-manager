@@ -55,18 +55,16 @@ export function VisibilityToggle(props: VisibilityToggleProps) {
                }} >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="inherit">
-                    { !props.hidden &&
-                        'The details of this incident are visible to all volunteers.' }
-                    { !!props.hidden &&
-                        'The details of this incident have been hidden from volunteers.' }
+                    { !props.hidden && 'Incident details are shared with volunteers.' }
+                    { !!props.hidden && 'Incident details are hidden from volunteers.' }
                 </Typography>
                 { !props.hidden &&
                     <Button onClick={() => toggle('true')} size="small">
-                        Hide
+                        Restrict
                     </Button> }
                 { !!props.hidden &&
                     <Button onClick={() => toggle('false')} size="small">
-                        Unhide
+                        Share
                     </Button> }
             </Stack>
         </Alert>
