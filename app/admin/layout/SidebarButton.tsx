@@ -7,7 +7,7 @@ import Link from '@app/LinkProxy';
 
 import type SvgIcon from '@mui/material/SvgIcon';
 import IconButton, { type IconButtonProps } from '@mui/material/IconButton';
-import Tooltip, { type TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import Tooltip from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 
 /**
@@ -63,37 +63,21 @@ export function SidebarButton(props: SidebarButtonProps) {
         return (
             <SidebarIconButton LinkComponent={Link} sx={props.sx} { ...{ href: props.href }}
                                active={props.active} onClick={props.onClick}>
-                <SidebarButtonTooltip title={props.title}>
+                <Tooltip describeChild arrow placement="right" title={props.title}>
                     <props.Icon />
-                </SidebarButtonTooltip>
+                </Tooltip>
             </SidebarIconButton>
         );
     } else {
         return (
             <SidebarIconButton onClick={props.onClick} sx={props.sx} active={props.active}>
-                <SidebarButtonTooltip title={props.title}>
+                <Tooltip describeChild arrow placement="right" title={props.title}>
                     <props.Icon />
-                </SidebarButtonTooltip>
+                </Tooltip>
             </SidebarIconButton>
         );
     }
 }
-
-/**
- * Tooltip used to illustrate what the particular button will be used for. Will be displayed on the
- * right-hand side of the button in a dark variant of the primary theme colour.
- */
-const SidebarButtonTooltip = styled(({ className, ...props }: TooltipProps) => (
-     <Tooltip describeChild {...props} arrow placement="right" classes={{ popper: className }} />
-))(({ theme }) => ({
-     [`& .${tooltipClasses.arrow}`]: {
-        color: theme.vars?.palette.primaryPalette[800],
-     },
-     [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: theme.vars?.palette.primaryPalette[800],
-        color: theme.palette.primary.contrastText,
-     },
-}));
 
 /**
  * Props accepted by the <SidebarIconButton> component.

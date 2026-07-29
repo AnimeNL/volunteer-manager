@@ -77,6 +77,21 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
                 } as any,  // fixme
             },
         },
+        components: {
+            MuiTooltip: {
+                styleOverrides: {
+                    arrow: {
+                        color: props.palette[800],
+                    },
+                    tooltip: {
+                        backgroundColor: props.palette[800],
+                        color: '#ffffff',
+                    },
+                },
+            },
+            acThemeDarkColor: '--undefined--',
+            acThemeLightColor: '--undefined--',
+        },
         cssVariables: {
             colorSchemeSelector: 'class',
         },
