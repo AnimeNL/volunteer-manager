@@ -20,7 +20,7 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
             return undefined;
     }
 
-    return await Cache.getInstance('EventCache').getOrInsert(slug, async (slug) => {
+    return await Cache.getInstance('EventCache').getOrInsert(slug, async slug => {
         return db.selectFrom(tEvents)
             .where(tEvents.eventSlug.equals(slug))
             .select({
@@ -28,8 +28,13 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 slug: tEvents.eventSlug,
                 name: tEvents.eventName,
                 shortName: tEvents.eventShortName,
-                festivalId: tEvents.eventFestivalId,
                 timeZone: tEvents.eventTimezone,
+
+                integrations: {
+                    anPlanFestivalId: tEvents.eventFestivalId,
+                    weeztixGuid: tEvents.eventWeeztixGuid,
+                    yourTicketProviderId: tEvents.eventYtpId,
+                },
             })
             .executeSelectNoneOrOne();
 

@@ -398,21 +398,21 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
     },
 
     async list(params, props, context) {
-        if (!context.event.festivalId)
+        const festivalId = context.event.integrations?.anPlanFestivalId;
+        if (!festivalId)
             notFound();
 
         switch (context.scope.category) {
             case 'activities':
-                return await queryActivitiesHistory(params, context.event.festivalId);
+                return await queryActivitiesHistory(params, festivalId);
             case 'activity':
-                return await queryActivityHistory(
-                    params, context.event.festivalId, context.scope.activityId);
+                return await queryActivityHistory(params, festivalId, context.scope.activityId);
             case 'areas':
-                return await queryAreasHistory(params, context.event.festivalId);
+                return await queryAreasHistory(params, festivalId);
             case 'locations':
-                return await queryLocationsHistory(params, context.event.festivalId);
+                return await queryLocationsHistory(params, festivalId);
             case 'requests':
-                return await queryRequestsHistory(params, context.event.festivalId);
+                return await queryRequestsHistory(params, festivalId);
         }
     }
 });

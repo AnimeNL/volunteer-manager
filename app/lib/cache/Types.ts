@@ -26,14 +26,29 @@ export interface CachedEvent {
     shortName: string;
 
     /**
-     * Unique ID of the festival as assigned in AnPlan.
-     */
-    festivalId?: number;
-
-    /**
      * Timezone in which the event will be taking place.
      */
     timeZone: Temporal.TimeZoneLike;
+
+    /**
+     * External services that this event integrates with.
+     */
+    integrations?: {
+        /**
+         * Festival ID assigned to this event in AnPlan.
+         */
+        anPlanFestivalId?: number;
+
+        /**
+         * GUID assigned to ticket sales for this event in Weeztix.
+         */
+        weeztixGuid?: string;
+
+        /**
+         * ID assigned to ticket sales for this event in YourTicketProvider / CM.com.
+         */
+        yourTicketProviderId?: number;
+    };
 }
 
 /**

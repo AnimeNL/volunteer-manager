@@ -20,7 +20,7 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
             return undefined;
     }
 
-    return await Cache.getInstance('TeamCache').getOrInsert(slug, async (slug) => {
+    return await Cache.getInstance('TeamCache').getOrInsert(slug, async slug => {
         return db.selectFrom(tTeams)
             .where(tTeams.teamSlug.equals(slug))
             .select({
