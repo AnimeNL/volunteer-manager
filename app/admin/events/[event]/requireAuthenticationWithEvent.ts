@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
+import type { BooleanPermission } from '@lib/auth/Access';
 import { type AuthenticationContext, type PermissionAccessCheck, executeAccessCheck }
     from '@lib/auth/AuthenticationContext';
 import { type CachedEvent, getEvent } from '@lib/cache';
@@ -31,11 +32,28 @@ export async function requireAuthenticationWithEvent(
     if (!event)
         notFound();
 
-    // TODO: Apply `permission`
+    let accessCheckPermission: PermissionAccessCheck | undefined;
+
+    // Automatically append the `scope`, which is cumbersome and verbose to repeat in each Server
+    // Action that needs to do authentication. Compound permissions are not supported for now.
+    if (permission) {
+        if (typeof permission === 'string') {
+            accessCheckPermission = {
+                permission: permission as BooleanPermission,
+                scope: { event: event.slug },
+            };
+        } else {
+            accessCheckPermission = {
+                ...permission,
+                scope: { event: event.slug },
+            } as PermissionAccessCheck;
+        }
+    }
 
     executeAccessCheck(authenticationContext, {
         check: 'admin-event',
         event: event.slug,
+        permission: accessCheckPermission,
     });
 
     return { event };

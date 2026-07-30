@@ -32,7 +32,7 @@ const kEventFeaturesData = z.object({
 export async function updateEventFeatures(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventFeaturesData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext);
+            eventSlug, props.authenticationContext, 'event.settings');
 
         await db.update(tEvents)
             .set({
@@ -80,8 +80,8 @@ const kEventIdentityData = z.object({
  */
 export async function updateEventIdentity(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIdentityData, async (data, props) => {
-        const { event } =
-            await requireAuthenticationWithEvent(eventSlug, props.authenticationContext);
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
 
         await db.update(tEvents)
             .set({
@@ -128,7 +128,7 @@ const kEventIntegrationsData = z.object({
 export async function updateEventIntegrations(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIntegrationsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext);
+            eventSlug, props.authenticationContext, 'event.settings');
 
         await db.update(tEvents)
             .set({
