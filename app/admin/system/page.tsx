@@ -2,19 +2,15 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
-import Link from '@app/LinkProxy';
 
-import type SvgIcon from '@mui/material/SvgIcon';
 import ApiIcon from '@mui/icons-material/Api';
 import AppsIcon from '@mui/icons-material/Apps';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
 import LoopIcon from '@mui/icons-material/Loop';
-import Paper from '@mui/material/Paper';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
+import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
@@ -32,56 +28,34 @@ export default async function SystemPage() {
                     the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
-            <Grid container spacing={2}>
-                <OverviewPageTile Icon={AutoAwesomeIcon} href="/admin/system/ai/communication"
-                                  label="AI" />
-                <OverviewPageTile Icon={QueryStatsIcon} href="/admin/system/diagnostics/logs"
-                                  label="Diagnostics" />
-                <OverviewPageTile Icon={ApiIcon} href="/admin/system/integrations"
-                                  label="Integrations" />
-                <OverviewPageTile Icon={LoopIcon} href="/admin/system/scheduler"
-                                  label="Scheduler" />
-                <OverviewPageTile Icon={SettingsOutlinedIcon} href="/admin/system/settings"
-                                  label="Settings" />
-            </Grid>
+            <OverviewTiles tiles={[
+                {
+                    Icon: AutoAwesomeIcon,
+                    href: '/admin/system/ai/communication',
+                    label: 'AI',
+                },
+                {
+                    Icon: QueryStatsIcon,
+                    href: '/admin/system/diagnostics/logs',
+                    label: 'Diagnostics',
+                },
+                {
+                    Icon: ApiIcon,
+                    href: '/admin/system/integrations',
+                    label: 'Integrations',
+                },
+                {
+                    Icon: LoopIcon,
+                    href: '/admin/system/scheduler',
+                    label: 'Scheduler',
+                },
+                {
+                    Icon: SettingsOutlinedIcon,
+                    href: '/admin/system/settings',
+                    label: 'Settings',
+                },
+            ]} />
         </>
-    );
-}
-
-/**
- * Props accepted by the <OverviewPageTile> component.
- */
-interface OverviewPageTileProps {
-    /**
-     * Icon to display on the tile.
-     */
-    Icon: typeof SvgIcon;
-
-    /**
-     * URL that the tile should link to.
-     */
-    href: string;
-
-    /**
-     * Label to display next to the icon.
-     */
-    label: string;
-}
-
-/**
- * Tile to display on the overview page. Will link through to the actual page with an icon and a
- * descriptive text. Designed to be responsive.
- */
-export function OverviewPageTile(props: OverviewPageTileProps) {
-    return (
-        <Grid size={{ xs: 6, md: 4, lg: 3 }}>
-            <Paper sx={{ p: 1 }}>
-                <Button LinkComponent={Link} href={props.href} fullWidth
-                        startIcon={ <props.Icon /> } color="inherit">
-                    {props.label}
-                </Button>
-            </Paper>
-        </Grid>
     );
 }
 

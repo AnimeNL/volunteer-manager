@@ -1,13 +1,12 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Grid from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 
-import { OverviewPageTile } from '../page';
+import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -27,14 +26,23 @@ export default async function DiagnosticsPage() {
                     Collection of pages that provide insight in the Volunteer Manager's behaviour.
                 </SectionIntroduction>
             </Section>
-            <Grid container spacing={2}>
-                <OverviewPageTile Icon={ReportGmailerrorredIcon}
-                                  href="/admin/system/diagnostics/errors" label="Error logs" />
-                <OverviewPageTile Icon={LocationSearchingIcon} href="/admin/system/diagnostics/ip"
-                                  label="IP Addresses" />
-                <OverviewPageTile Icon={InfoOutlinedIcon} href="/admin/system/diagnostics/logs"
-                                  label="System logs" />
-            </Grid>
+            <OverviewTiles tiles={[
+                {
+                    Icon: ReportGmailerrorredIcon,
+                    href: '/admin/system/diagnostics/errors',
+                    label: 'Error logs',
+                },
+                {
+                    Icon: LocationSearchingIcon,
+                    href: '/admin/system/diagnostics/ip',
+                    label: 'IP Addresses',
+                },
+                {
+                    Icon: InfoOutlinedIcon,
+                    href: '/admin/system/diagnostics/logs',
+                    label: 'System logs',
+                },
+            ]} />
         </>
     );
 }

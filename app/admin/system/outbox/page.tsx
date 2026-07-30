@@ -3,13 +3,12 @@
 
 import type { Metadata } from 'next';
 
-import Grid from '@mui/material/Grid';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import { OverviewPageTile } from '../page';
+import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
@@ -29,14 +28,23 @@ export default async function OutboxPage() {
                     Collection of pages that provide insight to messages sent through the portal.
                 </SectionIntroduction>
             </Section>
-            <Grid container spacing={2}>
-                <OverviewPageTile Icon={MailOutlinedIcon} href="/admin/system/outbox/email"
-                                  label="E-mail" />
-                <OverviewPageTile Icon={TextsmsOutlinedIcon} href="/admin/system/outbox/sms"
-                                  label="SMS" />
-                <OverviewPageTile Icon={WhatsAppIcon} href="/admin/system/outbox/whatsapp"
-                                  label="WhatsApp" />
-            </Grid>
+            <OverviewTiles tiles={[
+                {
+                    Icon: MailOutlinedIcon,
+                    href: '/admin/system/outbox/email',
+                    label: 'E-mail',
+                },
+                {
+                    Icon: TextsmsOutlinedIcon,
+                    href: '/admin/system/outbox/sms',
+                    label: 'SMS',
+                },
+                {
+                    Icon: WhatsAppIcon,
+                    href: '/admin/system/outbox/whatsapp',
+                    label: 'WhatsApp',
+                },
+            ]} />
         </>
     );
 }

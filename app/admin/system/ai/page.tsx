@@ -2,13 +2,12 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
-import { OverviewPageTile } from '../page';
+import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
@@ -28,16 +27,28 @@ export default async function ArtificialIntelligencePage() {
                     scaling our communication services.
                 </SectionIntroduction>
             </Section>
-            <Grid container spacing={2}>
-                <OverviewPageTile Icon={ModelTrainingIcon} href="/admin/system/ai/models"
-                                  label="Models" />
-                <OverviewPageTile Icon={SmartToyIcon} href="/admin/system/ai/features"
-                                  label="Features" />
-                <OverviewPageTile Icon={QuestionAnswerOutlinedIcon}
-                                  href="/admin/system/ai/communication" label="Communication" />
-                <OverviewPageTile Icon={GroupsIcon} href="/admin/system/ai/nardo"
-                                  label="Del a Rie Advies" />
-            </Grid>
+            <OverviewTiles tiles={[
+                {
+                    Icon: ModelTrainingIcon,
+                    href: '/admin/system/ai/models',
+                    label: 'Models',
+                },
+                {
+                    Icon: SmartToyIcon,
+                    href: '/admin/system/ai/features',
+                    label: 'Features',
+                },
+                {
+                    Icon: QuestionAnswerOutlinedIcon,
+                    href: '/admin/system/ai/communication',
+                    label: 'Communication',
+                },
+                {
+                    Icon: GroupsIcon,
+                    href: '/admin/system/ai/nardo',
+                    label: 'Del a Rie Advies',
+                },
+            ]} />
         </>
     );
 }
