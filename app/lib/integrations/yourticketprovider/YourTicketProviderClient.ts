@@ -25,6 +25,7 @@ export interface YourTicketProviderClientSettings {
  * The YourTicketProvider client integrates with the YTP Ticketing API to obtain information about
  * the products and tickets sold for particular events.
  *
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  * @see https://www.yourticketprovider.nl/account/accountintegrations/ticketing-api
  */
 export class YourTicketProviderClient {
@@ -62,10 +63,9 @@ export class YourTicketProviderClient {
     }
 
     /**
-     * Calls the /Events({id})/Tickets API, which returns information about the tickets associated
-     * with the given event `id`. This is a slow API, and may take some time to complete.
+     * Calls the /Event(<id>)/Tickets API, which returns all ticket types created for the event.
      */
-    async getEventTickets(id: number): Promise<YourTicketProviderTicketsResponse> {
+    async listTicketTypes(id: number): Promise<YourTicketProviderTicketsResponse> {
         const url =
             `${this.#settings.endpoint}/Events(${id})/Tickets?api_key=${this.#settings.apiKey}`;
 

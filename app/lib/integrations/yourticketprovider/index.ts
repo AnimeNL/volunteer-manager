@@ -4,6 +4,8 @@
 import { YourTicketProviderClient, type YourTicketProviderClientSettings } from './YourTicketProviderClient';
 import { readSettings } from '@lib/Settings';
 
+export type { YourTicketProviderClient };
+
 /**
  * Gets an instance of the YourTicketProvider client with either the `settings` when given, or
  * default configuration loaded from the database when omitted.
