@@ -87,8 +87,8 @@ type CacheDeleteArgs<T extends CacheType> =
  * Arguments expected by the cache getter method, i.e. `getOrInsert()`.
  */
 type CacheGetOrInsertArgs<T extends CacheType> = [CacheParameters<T>] extends [undefined]
-    ? [ populateFn: CachePopulateFn<T> ]
-    : [ params: CacheParameters<T>, populateFn: CachePopulateFn<T> ];
+    ? [ populateFn: CachePopulateFn<T>, skipCache?: boolean ]
+    : [ params: CacheParameters<T>, populateFn: CachePopulateFn<T>, skipCache?: boolean ];
 
 /**
  * Arguments expected by the cache setter method, i.e. `set()`.
@@ -259,20 +259,33 @@ export class Cache<T extends CacheType> {
      * |populateFn|.
      */
     getOrInsert<Result = CacheContents<T>>(...args: CacheGetOrInsertArgs<T>): Promise<Result | null>;
-    async getOrInsert(paramsOrPopulateFn: any, maybePopulateFn?: any)
+    async getOrInsert(paramsOrPopulateFn: any, maybePopulateFn?: any, maybeSkipCache?: boolean)
         : Promise<any>
     {
         this.pruneExpiredEntries();
 
-        const params = maybePopulateFn === undefined ? undefined : paramsOrPopulateFn;
-        const populateFn = maybePopulateFn === undefined ? paramsOrPopulateFn : maybePopulateFn;
+        let params: any;
+        let populateFn: any;
+        let skipCache: boolean | undefined;
 
-        const key = serializeParams(params);
-        const entry = this.#entries.get(key);
+        if (typeof maybePopulateFn === 'function') {
+            params = paramsOrPopulateFn;
+            populateFn = maybePopulateFn;
+            skipCache = maybeSkipCache;
+        } else {
+            params = undefined;
+            populateFn = paramsOrPopulateFn;
+            skipCache = maybePopulateFn;
+        }
 
-        if (entry) {
-            this.touchEntry(key, entry);
-            return entry.contents;
+        if (!skipCache) {
+            const key = serializeParams(params);
+            const entry = this.#entries.get(key);
+
+            if (entry) {
+                this.touchEntry(key, entry);
+                return entry.contents;
+            }
         }
 
         const contents = await populateFn(params);

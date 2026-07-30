@@ -110,6 +110,73 @@ describe('Cache', () => {
         expect(nullCallCount).toEqual(1);
     });
 
+    it('should respect the skipCache parameter', async () => {
+        // Scenario 1: Cache with parameters (TestCacheWithParams)
+        {
+            const cache = Cache.getInstance('TestCacheWithParams');
+            cache.clear();
+
+            const params = { a: 42, b: 'hello' };
+            let callCount = 0;
+            const populateFn = async () => {
+                callCount++;
+                return `value-${callCount}`;
+            };
+
+            // First call: should run populateFn and cache result
+            const result1 = await cache.getOrInsert(params, populateFn, /* skipCache= */ false);
+            expect(result1).toEqual('value-1');
+            expect(callCount).toEqual(1);
+
+            // Second call with skipCache = false: should hit cache
+            const result2 = await cache.getOrInsert(params, populateFn, /* skipCache= */ false);
+            expect(result2).toEqual('value-1');
+            expect(callCount).toEqual(1);
+
+            // Third call with skipCache = true: should bypass cache lookup, run populateFn, and store/return new value
+            const result3 = await cache.getOrInsert(params, populateFn, /* skipCache= */ true);
+            expect(result3).toEqual('value-2');
+            expect(callCount).toEqual(2);
+
+            // Fourth call with skipCache = false: should hit cache with the updated value
+            const result4 = await cache.getOrInsert(params, populateFn, /* skipCache= */ false);
+            expect(result4).toEqual('value-2');
+            expect(callCount).toEqual(2);
+        }
+
+        // Scenario 2: Cache without parameters (AdminNavigationActiveEvents)
+        {
+            const cache = Cache.getInstance('AdminNavigationActiveEvents');
+            cache.clear();
+
+            let callCount = 0;
+            const populateFn = async () => {
+                callCount++;
+                return [ { concluded: false, label: `Event ${callCount}`, slug: `event-${callCount}` } ];
+            };
+
+            // First call: should run populateFn and cache result
+            const result1 = await cache.getOrInsert(populateFn, /* skipCache= */ false);
+            expect(result1?.[0].slug).toEqual('event-1');
+            expect(callCount).toEqual(1);
+
+            // Second call with skipCache = false: should hit cache
+            const result2 = await cache.getOrInsert(populateFn, /* skipCache= */ false);
+            expect(result2?.[0].slug).toEqual('event-1');
+            expect(callCount).toEqual(1);
+
+            // Third call with skipCache = true: should bypass cache, run populateFn, and store/return new value
+            const result3 = await cache.getOrInsert(populateFn, /* skipCache= */ true);
+            expect(result3?.[0].slug).toEqual('event-2');
+            expect(callCount).toEqual(2);
+
+            // Fourth call with skipCache = false: should hit cache with the updated value
+            const result4 = await cache.getOrInsert(populateFn, /* skipCache= */ false);
+            expect(result4?.[0].slug).toEqual('event-2');
+            expect(callCount).toEqual(2);
+        }
+    });
+
     it('should support deleting entries by partial parameter matches', () => {
         const cache = Cache.getInstance('TestCacheWithParams');
 
