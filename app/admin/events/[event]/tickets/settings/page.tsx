@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import type { ServerAction } from '@lib/serverAction';
 import type { TicketService } from '@lib/tickets/TicketService';
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { RefreshCacheAction } from './RefreshCacheAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
@@ -18,7 +19,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 
-import { updateTicketSettings } from '../TicketActions';
+import { clearEventTicketTypesCache, updateTicketSettings } from '../TicketActions';
 
 /**
  * Page displaying the settings for ticket management during this event. Information will be fetched
@@ -39,11 +40,13 @@ export default async function EventTicketsSettingsPage(
     if (!service)
         notFound();
 
+    const refreshAction = clearEventTicketTypesCache.bind(null, event.slug);
     const updateAction = updateTicketSettings.bind(null, event.slug);
 
     return (
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Ticket settings"
+                     headerAction={ <RefreshCacheAction action={refreshAction} /> }
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
