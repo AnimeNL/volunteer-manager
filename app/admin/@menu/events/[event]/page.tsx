@@ -10,6 +10,7 @@ import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LanguageIcon from '@mui/icons-material/Language';
+import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
@@ -108,7 +109,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         {
             Icon: EventNoteIcon,
             badge: { severity: 'error', value: true },  // migration not started
-            condition: !!event.festivalId,
+            condition: !!event.integrations?.anPlanFestivalId,
             label: 'Program',
             url: `/admin/events/${event.slug}/program`,
         },
@@ -122,6 +123,19 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 scope: eventScope,
             },
             url: `/admin/events/${event.slug}/refunds`,
+        },
+        {
+            Icon: LocalActivityOutlinedIcon,
+            badge: { severity: 'success', value: true },  // migration completed
+            condition:
+                !!event.integrations?.weeztixGuid || !!event.integrations?.yourTicketProviderId,
+            label: 'Tickets',
+            permission: {
+                permission: 'event.tickets',
+                scope: eventScope,
+            },
+            url: `/admin/events/${event.slug}/tickets/volunteers`,
+            urlPrefix: `/admin/events/${event.slug}/tickets`,
         },
         {
             Icon: HistoryEduIcon,

@@ -14,9 +14,7 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventSettingsLayout(
     props: LayoutProps<'/admin/events/[event]/settings'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'system.internals.ai',
-    });
+    const { access, event } = await requireAuthenticationContextWithEvent(props);
 
     return (
         <SectionTabContext access={access} tabs={[

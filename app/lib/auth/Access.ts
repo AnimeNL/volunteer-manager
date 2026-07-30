@@ -173,6 +173,15 @@ export const kPermissions = {
         type: 'crud',
     },
 
+    'event.tickets': {
+        name: 'Ticket management',
+        description:
+            'This permission grants access to the ticket management tools for a particular ' +
+            'event, where volunteer tickets can be granted and revoked.',
+        requireEvent: true,
+        type: 'boolean',
+    },
+
     'event.trainings': {
         name: 'Training management',
         description:
@@ -569,6 +578,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.settings',
         // note: event.shift-categories omitted
         'event.shifts',
+        'event.tickets',
         'event.trainings',
         'event.vendors',
         'event.visible',
@@ -620,6 +630,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: event.shifts:delete omitted
         'event.shifts:read',
         // note: event.shifts:update omitted
+        // note: event.tickets omitted
         // note: event.trainings omitted
         // note: event.vendors:create omitted
         // note: event.vendors:delete omitted
