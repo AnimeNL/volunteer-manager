@@ -3,42 +3,16 @@
 
 'use server';
 
-import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
-import { executeAccessCheck, type AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { getEvent, invalidateEventCache } from '@lib/cache';
+import { invalidateEventCache } from '@lib/cache';
+import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
 import db, { tEvents } from '@lib/database';
 
 import { kEventAvailabilityStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
-
-/**
- * Helper function that requires information about the `eventSlug` to be available (& will HTTP 404
- * when it's not) and assertains that the `authenticationContext` has access to its settings.
- */
-async function requireEventAndExecuteSettingsAccessCheck(
-    eventSlug: string, authenticationContext: AuthenticationContext)
-{
-    const event = await getEvent(eventSlug);
-    if (!event)
-        notFound();
-
-    executeAccessCheck(authenticationContext, {
-        check: 'admin-event',
-        event: event.slug,
-        permission: {
-            permission: 'event.settings',
-            scope: {
-                event: event.slug,
-            }
-        },
-    });
-
-    return event;
-}
 
 /**
  * Data that needs to be available to update an event's features.
@@ -57,7 +31,7 @@ const kEventFeaturesData = z.object({
  */
 export async function updateEventFeatures(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventFeaturesData, async (data, props) => {
-        const event = await requireEventAndExecuteSettingsAccessCheck(
+        const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext);
 
         await db.update(tEvents)
@@ -106,8 +80,8 @@ const kEventIdentityData = z.object({
  */
 export async function updateEventIdentity(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIdentityData, async (data, props) => {
-        const event = await requireEventAndExecuteSettingsAccessCheck(
-            eventSlug, props.authenticationContext);
+        const { event } =
+            await requireAuthenticationWithEvent(eventSlug, props.authenticationContext);
 
         await db.update(tEvents)
             .set({
@@ -153,7 +127,7 @@ const kEventIntegrationsData = z.object({
  */
 export async function updateEventIntegrations(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIntegrationsData, async (data, props) => {
-        const event = await requireEventAndExecuteSettingsAccessCheck(
+        const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext);
 
         await db.update(tEvents)

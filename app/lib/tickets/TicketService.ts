@@ -3,6 +3,7 @@
 
 import type { TicketBackend } from './TicketBackend';
 import type { TicketType } from './Types';
+import { Cache } from '../cache';
 
 /**
  * The `TicketService` is the primary API through which event tickets can be managed, for example to
@@ -11,15 +12,20 @@ import type { TicketType } from './Types';
  */
 export class TicketService {
     #backend: TicketBackend;
+    #event: string;
 
-    constructor(backend: TicketBackend) {
+    constructor(backend: TicketBackend, event: string) {
         this.#backend = backend;
+        this.#event = event;
     }
 
     /**
-     * Lists the ticket types that exist for the current event. This will make an API call.
+     * Lists the ticket types that exist for the current event. This will prefer to return from the
+     * local cache unless `skipCache` is set to `true`.
      */
-    async listTicketTypes(): Promise<TicketType[]> {
-        return this.#backend.listTicketTypes();
+    async listTicketTypes(skipCache?: boolean): Promise<TicketType[]> {
+        return await Cache.getInstance('EventTicketTypes').getOrInsert(this.#event, async () => {
+            return this.#backend.listTicketTypes()
+        }, skipCache) || [ /* no ticket types */ ];
     }
 }

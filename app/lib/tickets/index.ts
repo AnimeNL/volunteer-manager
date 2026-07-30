@@ -15,6 +15,8 @@ export async function createTicketService(eventIdentifier: number | string)
     : Promise<TicketService | undefined>
 {
     const event = await getEvent(eventIdentifier);
+    if (!event)
+        return undefined;
 
     let backend: TicketBackend | undefined;
     if (!!event?.integrations?.yourTicketProviderId) {
@@ -28,5 +30,5 @@ export async function createTicketService(eventIdentifier: number | string)
 
     await backend.initialise();
 
-    return new TicketService(backend);
+    return new TicketService(backend, event.slug);
 }
