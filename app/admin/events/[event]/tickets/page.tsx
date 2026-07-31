@@ -18,6 +18,7 @@ export default async function EventTicketsPage(
     const params = await props.params;
     const { event } = await requireAuthenticationContextWithEvent(props, {
         permission: 'event.tickets',
+        operation: 'read',
         scope: {
             event: params.event,
         },

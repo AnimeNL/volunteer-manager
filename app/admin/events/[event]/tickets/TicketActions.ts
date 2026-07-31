@@ -14,6 +14,33 @@ import db, { tEvents } from '@lib/database';
 import { kEventTicketProvider } from '@lib/database/Types';
 
 /**
+ * Data that needs to be available to create a new ticket.
+ */
+const kCreateExternalTicketData = z.object({
+    firstName: z.string().nonempty(),
+    lastName: z.string().nonempty(),
+    displayName: z.string().optional(),
+    email: z.email().nonempty(),
+});
+
+/**
+ * Server Action through which a ticket for an external volunteer can be created.
+ */
+export async function createExternalTicket(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kCreateExternalTicketData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'create',
+            });
+
+        // TODO: Actually issue the ticket
+
+        return { success: false };
+    });
+}
+
+/**
  * Data that needs to be available to update the ticket settings.
  */
 const kTicketSettingsData = z.object({
@@ -29,7 +56,7 @@ const kTicketSettingsData = z.object({
 export async function updateTicketSettings(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kTicketSettingsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.tickets');
+            eventSlug, props.authenticationContext, 'event.settings');
 
         const validEnvironment = !!data.provider && !!data.ticketId;
 
@@ -50,7 +77,7 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
         Cache.getInstance('EventTicketTypes').delete(event.slug);
 
         LogBuilder.for('UpdateEventTicketSettings')
-            .withCondition(!!affectedRows && false)  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .withDiff({
                 Provider: {

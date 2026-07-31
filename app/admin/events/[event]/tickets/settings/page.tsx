@@ -47,7 +47,7 @@ export default async function EventTicketsSettingsPage(
     props: PageProps<'/admin/events/[event]/tickets/settings'>)
 {
     const params = await props.params;
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationContextWithEvent(props, {
         permission: 'event.settings',
         scope: {
             event: params.event,
@@ -66,6 +66,8 @@ export default async function EventTicketsSettingsPage(
     const refreshAction = clearEventTicketTypesCache.bind(null, event.slug);
     const updateAction = updateTicketSettings.bind(null, event.slug);
 
+    const readOnly = !access.can('event.settings', { event: event.slug });
+
     return (
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Ticket settings"
@@ -83,11 +85,12 @@ export default async function EventTicketsSettingsPage(
                 <FormGrid action={updateAction} defaultValues={defaultValues} spacing={2}>
                      <Grid size={{ xs: 12 }}>
                         <SelectElement name="provider" label="Ticketing partner"
-                                       options={kProviderOptions} fullWidth size="small" />
+                                       options={kProviderOptions} fullWidth size="small"
+                                       slotProps={{ select: { disabled: readOnly } }} />
                      </Grid>
                 { !!service &&
                     <Suspense fallback={ <SectionLoading /> }>
-                        <TicketSettings service={service} />
+                        <TicketSettings readOnly={readOnly} service={service} />
                     </Suspense> }
                 </FormGrid>
             </Section>
@@ -99,7 +102,7 @@ export default async function EventTicketsSettingsPage(
  * Component that fetches ticket settings from the `service` and then displays a form grid through
  * which settings can be amended. Loading is deferred until the service responds.
  */
-async function TicketSettings(props: { service: TicketService }) {
+async function TicketSettings(props: { readOnly: boolean; service: TicketService }) {
     const types = await props.service.listTicketTypes();
     const typeOptions = [
         { id: '', label: 'None' },
@@ -115,17 +118,20 @@ async function TicketSettings(props: { service: TicketService }) {
                     </Alert> }
                 { !!types.length &&
                     <SelectElement name="ticketId" label="Volunteer ticket type"
-                                   options={typeOptions} fullWidth size="small" /> }
+                                   options={typeOptions} fullWidth size="small"
+                                   slotProps={{ select: { disabled: props.readOnly } }} /> }
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
                 <SelectElement name="autoGrant" label="Automatically grant tickets" required
                                options={kEnableAutomationOptions} fullWidth size="small"
-                               disabled={!types.length} />
+                               disabled={!types.length}
+                               slotProps={{ select: { disabled: props.readOnly } }} />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
                 <SelectElement name="autoRevoke" label="Automatically revoke tickets" required
                                options={kEnableAutomationOptions} fullWidth size="small"
-                               disabled={!types.length} />
+                               disabled={!types.length}
+                               slotProps={{ select: { disabled: props.readOnly } }} />
             </Grid>
         </>
     );

@@ -132,6 +132,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             label: 'Tickets',
             permission: {
                 permission: 'event.tickets',
+                operation: 'read',
                 scope: eventScope,
             },
             url: `/admin/events/${event.slug}/tickets/volunteers`,
