@@ -11,6 +11,11 @@ const mockUsePathname = vi.fn(() => currentPathname);
 
 vi.mock('next/navigation', () => ({
     usePathname: () => mockUsePathname(),
+    useRouter: () => ({
+        push: () => {},
+        replace: () => {},
+        refresh: () => {},
+    }),
 }));
 
 describe('MobileAppBar', () => {

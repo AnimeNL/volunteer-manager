@@ -11,8 +11,8 @@
     "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
     "lint": "biome check",
     "lint:fix": "biome lint --write",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "cross-env NODE_OPTIONS=--no-webstorage vitest run",
+    "test:watch": "cross-env NODE_OPTIONS=--no-webstorage vitest"
   },
   "repository": {
     "type": "git",
