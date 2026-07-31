@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Diversity1Icon from '@mui/icons-material/Diversity1';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
@@ -21,6 +22,13 @@ export default async function EventTicketsLayout(
                 Icon: LocalActivityOutlinedIcon,
                 label: 'Volunteers',
                 url: `/admin/events/${event.slug}/tickets/volunteers`,
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: Diversity1Icon,
+                label: 'Externals',
+                url: `/admin/events/${event.slug}/tickets/externals`,
+                urlMatchMode: 'prefix',
             },
             {
                 Icon: SettingsOutlinedIcon,
