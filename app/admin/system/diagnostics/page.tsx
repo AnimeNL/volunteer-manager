@@ -1,9 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
@@ -26,21 +24,11 @@ export default async function DiagnosticsPage() {
                     Collection of pages that provide insight in the Volunteer Manager's behaviour.
                 </SectionIntroduction>
             </Section>
-            <OverviewTiles tiles={[
-                {
-                    Icon: ReportGmailerrorredIcon,
-                    href: '/admin/system/diagnostics/errors',
-                    label: 'Error logs',
-                },
+            <OverviewTiles layout tiles={[
                 {
                     Icon: LocationSearchingIcon,
                     href: '/admin/system/diagnostics/ip',
                     label: 'IP Addresses',
-                },
-                {
-                    Icon: InfoOutlinedIcon,
-                    href: '/admin/system/diagnostics/logs',
-                    label: 'System logs',
                 },
             ]} />
         </>
