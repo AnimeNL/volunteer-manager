@@ -96,6 +96,10 @@ interface LogTypeParameterMap {
         team: string;  // name
     };
 
+    UpdateEventTicketSettings: {
+        event: string;  // short name
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team
     // ---------------------------------------------------------------------------------------------
@@ -187,6 +191,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
+    UpdateEventTicketSettings: 'UpdateEventTicketSettings',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team

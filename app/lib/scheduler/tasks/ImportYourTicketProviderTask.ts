@@ -231,7 +231,7 @@ export class ImportYourTicketProviderTask extends Task {
         if (!this.#client)
             this.#client = await createYourTicketProviderClient();
 
-        const tickets = await this.#client.listTicketTypes(yourTicketProviderId);
+        const tickets = await this.#client.listTicketsAndProducts(yourTicketProviderId);
         return tickets.map(ticket => ({
             ...ticket,
             Name: ticket.Name.trim(),

@@ -22,6 +22,22 @@ export const kGetEventsResponse = z.array(z.object({
 export type GetEventsResponse = z.infer<typeof kGetEventsResponse>;
 
 /**
+ * Expected response for the /event/:guid/ticket/{type?} API.
+ * @see https://docs.weeztix.com/api/dashboard/get-event-tickets
+ */
+export const kGetTicketTypesResponse = z.array(z.object({
+    guid: z.string().nonempty(),
+    name: z.string().nonempty(),
+    min_price: z.number(),
+    status: z.enum([ 'sold_out', 'not_sold_right_now', 'available' ]),
+}));
+
+/**
+ * Expected response for the /event/:guid/ticket/{type?} API.
+ */
+export type GetTicketTypesResponse = z.infer<typeof kGetTicketTypesResponse>;
+
+/**
  * Expected response when refreshing the OAuth token.
  * @see https://docs.weeztix.com/docs/introduction/authentication/refresh-token
  */

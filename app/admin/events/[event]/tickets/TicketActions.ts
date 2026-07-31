@@ -6,14 +6,21 @@
 import { z } from 'zod/v4';
 
 import { Cache } from '@lib/cache';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
+import db, { tEvents } from '@lib/database';
+
+import { kEventTicketProvider } from '@lib/database/Types';
 
 /**
  * Data that needs to be available to update the ticket settings.
  */
 const kTicketSettingsData = z.object({
-    
+    provider: z.enum(kEventTicketProvider).or(z.literal('')),
+    ticketId: z.string().optional(),
+    autoGrant: z.literal([ 0, 1 ]),
+    autoRevoke: z.literal([ 0, 1 ]),
 });
 
 /**
@@ -24,7 +31,47 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.tickets');
 
-        // TODO: Not yet implemented
+        const validEnvironment = !!data.provider && !!data.ticketId;
+
+        const autoGrant = validEnvironment && data.autoGrant === 1;
+        const autoRevoke = validEnvironment && data.autoRevoke === 1;
+
+        const affectedRows = await db.update(tEvents)
+            .set({
+                ticketsProvider: data.provider === '' ? null : data.provider,
+                ticketsAutoGrantTicketId: data.ticketId,
+                ticketsAutoGrantEnabled: autoGrant ? 1 : 0,
+                ticketsAutoRevokeEnabled: autoRevoke ? 1 : 0,
+            })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        Cache.getInstance('EventCache').delete(event.slug);
+        Cache.getInstance('EventTicketTypes').delete(event.slug);
+
+        LogBuilder.for('UpdateEventTicketSettings')
+            .withCondition(!!affectedRows && false)  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            .withInitiatorUser(props.user)
+            .withDiff({
+                Provider: {
+                    before: event.tickets?.provider || '',
+                    after: data.provider,
+                },
+                TicketType: {
+                    before: event.tickets?.ticketId || '',
+                    after: data.ticketId || '',
+                },
+                AutoGrant: {
+                    before: !!event.tickets?.enableAutoGrant,
+                    after: autoGrant,
+                },
+                AutoRevoke: {
+                    before: !!event.tickets?.enableAutoRevoke,
+                    after: autoRevoke,
+                },
+            })
+            .withSeverity('Warning')
+            .record({ event: event.shortName });
 
         return { success: true };
     });

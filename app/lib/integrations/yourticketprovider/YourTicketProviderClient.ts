@@ -63,9 +63,10 @@ export class YourTicketProviderClient {
     }
 
     /**
-     * Calls the /Event(<id>)/Tickets API, which returns all ticket types created for the event.
+     * Calls the /Event(<id>)/Tickets API, which returns all ticket types and (sub)products that
+     * have been created for the event.
      */
-    async listTicketTypes(id: number): Promise<YourTicketProviderTicketsResponse> {
+    async listTicketsAndProducts(id: number): Promise<YourTicketProviderTicketsResponse> {
         const url =
             `${this.#settings.endpoint}/Events(${id})/Tickets?api_key=${this.#settings.apiKey}`;
 

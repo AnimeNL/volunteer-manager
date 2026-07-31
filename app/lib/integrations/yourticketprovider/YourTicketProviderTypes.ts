@@ -89,6 +89,11 @@ export const kYourTicketProviderTicketsResponse = z.object({
          * information no longer is accurate.
          */
         Live: z.boolean(),
+
+        /**
+         * Whether this is a ticket (`false`) or a subproduct (`true`).
+         */
+        IsSubproduct: z.boolean(),
     })),
 });
 

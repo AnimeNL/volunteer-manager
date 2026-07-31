@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EventTicketProvider } from '@lib/database/Types';
+
 /**
  * Information globally cached for a particular event.
  */
@@ -48,6 +50,31 @@ export interface CachedEvent {
          * ID assigned to ticket sales for this event in YourTicketProvider / CM.com.
          */
         yourTicketProviderId?: number;
+    };
+
+    /**
+     * Ticket automation that's been configured for this event.
+     */
+    tickets?: {
+        /**
+         * Ticketing partner selected for this event.
+         */
+        provider?: EventTicketProvider;
+
+        /**
+         * Whether to automatically grant tickets when they're accepted in a team.
+         */
+        enableAutoGrant?: boolean;
+
+        /**
+         * Whether to automatically revoke volunteer tickets when their participation ends.
+         */
+        enableAutoRevoke?: boolean;
+
+        /**
+         * Unique ID of the ticket that volunteers should be assigned.
+         */
+        ticketId?: string;
     };
 }
 

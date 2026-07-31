@@ -210,8 +210,8 @@ export default async function EventSettingsTeamsPage(
                                       type="number" fullWidth size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                     <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID"
-                                       type="number" fullWidth size="small" />
+                     <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID" fullWidth
+                                       size="small" />
                 </Grid>
             </FormGridSection>
         </>

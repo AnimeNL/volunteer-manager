@@ -3,6 +3,7 @@
 
 import type { TicketBackend } from './TicketBackend';
 import { TicketService } from './TicketService';
+import { Weeztix } from './backends/Weeztix';
 import { YourTicketProvider } from './backends/YourTicketProvider';
 import { getEvent } from '@lib/cache';
 
@@ -19,10 +20,18 @@ export async function createTicketService(eventIdentifier: number | string)
         return undefined;
 
     let backend: TicketBackend | undefined;
-    if (!!event?.integrations?.yourTicketProviderId) {
-        backend = new YourTicketProvider(event.integrations.yourTicketProviderId);
-    } else if (!!event?.integrations?.weeztixGuid) {
-        throw new Error('No backend implementation for Weeztix');
+    switch (event.tickets?.provider) {
+        case 'Weeztix':
+            if (!!event?.integrations?.weeztixGuid)
+                backend = new Weeztix(event.integrations.weeztixGuid);
+
+            break;
+
+        case 'YourTicketProvider':
+            if (!!event?.integrations?.yourTicketProviderId)
+                backend = new YourTicketProvider(event.integrations.yourTicketProviderId);
+
+            break;
     }
 
     if (!backend)

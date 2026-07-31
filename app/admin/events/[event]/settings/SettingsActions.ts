@@ -5,6 +5,7 @@
 
 import { z } from 'zod/v4';
 
+import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { invalidateEventCache } from '@lib/cache';
@@ -34,7 +35,7 @@ export async function updateEventFeatures(eventSlug: string, formData: unknown) 
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.settings');
 
-        await db.update(tEvents)
+        const affectedRows = await db.update(tEvents)
             .set({
                 eventAvailabilityStatus: data.availabilityStatus,
                 hotelEnabled: data.hotelEnabled,
@@ -49,6 +50,7 @@ export async function updateEventFeatures(eventSlug: string, formData: unknown) 
         await invalidateEventCache(event.id);
 
         LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .record({
                 event: event.shortName,
@@ -83,7 +85,7 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.settings');
 
-        await db.update(tEvents)
+        const affectedRows = await db.update(tEvents)
             .set({
                 eventEndTime: data.endTime,
                 eventLocation: data.location,
@@ -99,6 +101,7 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
         await invalidateEventCache(event.id);
 
         LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .record({
                 event: event.shortName,
@@ -130,7 +133,7 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.settings');
 
-        await db.update(tEvents)
+        const affectedRows = await db.update(tEvents)
             .set({
                 eventFestivalId: data.festivalId,
                 eventHotelRoomForm: data.hotelRoomForm,
@@ -142,7 +145,12 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
 
         await invalidateEventCache(event.id);
 
+        // Clear the `EventTicketTypes` cache in case the Weeztix or YourTicketProvider values
+        // changed, in which case they will no longer be relevant.
+        Cache.getInstance('EventTicketTypes').clear();
+
         LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .record({
                 event: event.shortName,

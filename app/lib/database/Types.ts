@@ -139,6 +139,16 @@ export const kEventSalesCategory = {
 } as const;
 
 /**
+ * Ticket provider to integrate with for volunteer tickets.
+ * @see Table `events`
+ */
+export type EventTicketProvider = Values<typeof kEventTicketProvider>;
+export const kEventTicketProvider = {
+    Weeztix: 'Weeztix',
+    YourTicketProvider: 'YourTicketProvider',
+} as const;
+
+/**
  * Type of export that a particular entry describes.
  * @see Table `exports`
  */

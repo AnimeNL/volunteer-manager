@@ -2,13 +2,13 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 
+import { SelectElement } from '@app/components/proxy/react-hook-form-mui';
+
+import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import Typography from '@mui/material/Typography';
 
-import type { ServerAction } from '@lib/serverAction';
 import type { TicketService } from '@lib/tickets/TicketService';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { RefreshCacheAction } from './RefreshCacheAction';
@@ -19,7 +19,25 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 
+import { kEventTicketProvider } from '@lib/database/Types';
+
 import { clearEventTicketTypesCache, updateTicketSettings } from '../TicketActions';
+
+/**
+ * Options available for the user to select whether the automation should be enabled.
+ */
+const kEnableAutomationOptions = [
+    { id: 0, label: 'Disabled' },
+    { id: 1, label: 'Enabled' },
+];
+
+/**
+ * Ticket provider options that are integrated with the portal.
+ */
+const kProviderOptions = [
+    { id: '', label: 'None' },
+    ...Object.values(kEventTicketProvider).map(provider => ({ id: provider, label: provider })),
+];
 
 /**
  * Page displaying the settings for ticket management during this event. Information will be fetched
@@ -37,8 +55,13 @@ export default async function EventTicketsSettingsPage(
     });
 
     const service = await createTicketService(event.slug);
-    if (!service)
-        notFound();
+
+    const defaultValues = {
+        provider: event.tickets?.provider,
+        autoGrant: event.tickets?.enableAutoGrant ? 1 : 0,
+        autoRevoke: event.tickets?.enableAutoRevoke ? 1 : 0,
+        ticketId: event.tickets?.ticketId,
+    };
 
     const refreshAction = clearEventTicketTypesCache.bind(null, event.slug);
     const updateAction = updateTicketSettings.bind(null, event.slug);
@@ -57,9 +80,16 @@ export default async function EventTicketsSettingsPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                <Suspense fallback={ <SectionLoading /> }>
-                    <TicketSettings action={updateAction} service={service} />
-                </Suspense>
+                <FormGrid action={updateAction} defaultValues={defaultValues} spacing={2}>
+                     <Grid size={{ xs: 12 }}>
+                        <SelectElement name="provider" label="Ticketing partner"
+                                       options={kProviderOptions} fullWidth size="small" />
+                     </Grid>
+                { !!service &&
+                    <Suspense fallback={ <SectionLoading /> }>
+                        <TicketSettings service={service} />
+                    </Suspense> }
+                </FormGrid>
             </Section>
         </>
     );
@@ -69,21 +99,35 @@ export default async function EventTicketsSettingsPage(
  * Component that fetches ticket settings from the `service` and then displays a form grid through
  * which settings can be amended. Loading is deferred until the service responds.
  */
-async function TicketSettings(props: { action: ServerAction, service: TicketService }) {
+async function TicketSettings(props: { service: TicketService }) {
     const types = await props.service.listTicketTypes();
+    const typeOptions = [
+        { id: '', label: 'None' },
+        ...types.map(type => ({ id: `${type.id}`, label: type.name })),
+    ];
+
     return (
-        <FormGrid action={props.action} spacing={2}>
-            { types.map(type =>
-                <Grid key={type.id} size={{ xs: 6, md: 4 }}>
-                    <Typography variant="subtitle2" noWrap>
-                        {type.name}
-                    </Typography>
-                    <Typography variant="body2" noWrap>
-                        {type.id} — €{type.price}
-                    </Typography>
-                </Grid>
-            )}
-        </FormGrid>
+        <>
+            <Grid size={{ xs: 12 }}>
+                { !types.length &&
+                    <Alert severity="warning" variant="outlined">
+                        Unable to obtain available ticket types from the ticketing partner.
+                    </Alert> }
+                { !!types.length &&
+                    <SelectElement name="ticketId" label="Volunteer ticket type"
+                                   options={typeOptions} fullWidth size="small" /> }
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+                <SelectElement name="autoGrant" label="Automatically grant tickets" required
+                               options={kEnableAutomationOptions} fullWidth size="small"
+                               disabled={!types.length} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+                <SelectElement name="autoRevoke" label="Automatically revoke tickets" required
+                               options={kEnableAutomationOptions} fullWidth size="small"
+                               disabled={!types.length} />
+            </Grid>
+        </>
     );
 }
 

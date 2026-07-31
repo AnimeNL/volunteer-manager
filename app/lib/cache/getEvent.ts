@@ -35,6 +35,13 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                     weeztixGuid: tEvents.eventWeeztixGuid,
                     yourTicketProviderId: tEvents.eventYtpId,
                 },
+
+                tickets: {
+                    provider: tEvents.ticketsProvider,
+                    enableAutoGrant: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
+                    enableAutoRevoke: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
+                    ticketId: tEvents.ticketsAutoGrantTicketId,
+                },
             })
             .executeSelectNoneOrOne();
 

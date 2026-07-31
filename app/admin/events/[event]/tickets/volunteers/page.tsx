@@ -25,7 +25,8 @@ export default async function EventTicketsVolunteersPage(
 
     return (
         <>
-            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> } title="Tickets"
+            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
+                     title="Volunteer tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },

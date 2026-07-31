@@ -336,6 +336,22 @@ tables:
     type: datetime
     nullable: true
     default: "NULL"
+  - name: tickets_auto_grant_enabled
+    type: tinyint(1)
+    nullable: false
+    default: "0"
+  - name: tickets_auto_grant_ticket_id
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: tickets_auto_revoke_enabled
+    type: tinyint(1)
+    nullable: false
+    default: "0"
+  - name: tickets_provider
+    type: enum('Weeztix','YourTicketProvider')
+    nullable: true
+    default: "NULL"
   - name: training_enabled
     type: tinyint(1) unsigned
     nullable: false
@@ -415,6 +431,10 @@ tables:
       `refund_information_published` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `refund_requests_start` datetime DEFAULT NULL,
       `refund_requests_end` datetime DEFAULT NULL,
+      `tickets_auto_grant_enabled` tinyint(1) NOT NULL DEFAULT 0,
+      `tickets_auto_grant_ticket_id` text DEFAULT NULL,
+      `tickets_auto_revoke_enabled` tinyint(1) NOT NULL DEFAULT 0,
+      `tickets_provider` enum('Weeztix','YourTicketProvider') DEFAULT NULL,
       `training_enabled` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `training_information_published` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `training_preferences_start` datetime DEFAULT NULL,

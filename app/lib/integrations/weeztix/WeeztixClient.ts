@@ -3,10 +3,9 @@
 
 import type { z } from 'zod/v4';
 
-import type { GetEventsResponse } from './WeeztixTypes';
 import { writeSettings } from '@lib/Settings';
 
-import { kGetEventsResponse, kRefreshTokenResponse } from './WeeztixTypes';
+import * as weeztix from './WeeztixTypes';
 
 /**
  * Settings required by the Weeztix integration.
@@ -111,9 +110,22 @@ export class WeeztixClient {
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Array of events that exist in our Weeztix account.
      */
-    async listEvents(): Promise<GetEventsResponse> {
-        return this.issueRequest(kGetEventsResponse, {
+    async listEvents(): Promise<weeztix.GetEventsResponse> {
+        return this.issueRequest(weeztix.kGetEventsResponse, {
             api: '/event/normal',
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Lists the ticket types that have been associated with the given `eventGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of tickets that exist in our Weeztix account for this event.
+     */
+    async listTicketTypes(eventGuid: string): Promise<weeztix.GetTicketTypesResponse> {
+        return this.issueRequest(weeztix.kGetTicketTypesResponse, {
+            api: `/event/${eventGuid}/ticket`,
             method: 'GET',
         });
     }
@@ -208,7 +220,7 @@ export class WeeztixClient {
         }
 
         const unverifiedResponseJson = await response.json();
-        const verifiedResponse = kRefreshTokenResponse.parse(unverifiedResponseJson);
+        const verifiedResponse = weeztix.kRefreshTokenResponse.parse(unverifiedResponseJson);
 
         const accessToken = verifiedResponse.access_token;
         const accessTokenExpiration = Temporal.Now.instant().add({

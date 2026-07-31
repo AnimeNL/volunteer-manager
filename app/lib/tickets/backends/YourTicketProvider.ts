@@ -30,8 +30,10 @@ export class YourTicketProvider implements TicketBackend {
         if (!this.#client)
             throw new Error('Unable to execute listTicketTypes() without a valid client');
 
-        const types = await this.#client.listTicketTypes(this.#eventId);
-        return types.map(type => ({
+        const types = await this.#client.listTicketsAndProducts(this.#eventId);
+        const tickets = types.filter(type => !type.IsSubproduct);
+
+        return tickets.map(type => ({
             id: type.Id,
             name: type.Name,
             price: type.Price,

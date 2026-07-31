@@ -12,6 +12,7 @@ import {
     TemporalTypeAdapter,
 } from "../TemporalTypeAdapter";
 import {
+    EventTicketProvider,
     EventAvailabilityStatus,
 } from "../Types";
 
@@ -34,6 +35,10 @@ export class EventsTable extends Table<DBConnection, 'EventsTable'> {
     refundInformationPublished = this.columnWithDefaultValue('refund_information_published', 'int');
     refundRequestsStart = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_requests_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     refundRequestsEnd = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_requests_end', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    ticketsAutoGrantEnabled = this.columnWithDefaultValue('tickets_auto_grant_enabled', 'int');
+    ticketsAutoGrantTicketId = this.optionalColumnWithDefaultValue('tickets_auto_grant_ticket_id', 'string');
+    ticketsAutoRevokeEnabled = this.columnWithDefaultValue('tickets_auto_revoke_enabled', 'int');
+    ticketsProvider = this.optionalColumnWithDefaultValue<EventTicketProvider>('tickets_provider', 'enum', 'EventTicketProvider');
     trainingEnabled = this.columnWithDefaultValue('training_enabled', 'int');
     trainingInformationPublished = this.columnWithDefaultValue('training_information_published', 'int');
     trainingPreferencesStart = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('training_preferences_start', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
