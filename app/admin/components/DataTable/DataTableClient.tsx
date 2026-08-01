@@ -24,7 +24,7 @@ import { DataTableListViewButtonRow, DataTableListViewRow, calculateListViewRowH
 import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolbar';
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
 import { DataTableRowEditor } from './DataTableRowEditor';
-import { DeleteConfirmation } from './DeleteConfirmation';
+import { ResponsiveConfirmationDialog } from '../ResponsiveConfirmationDialog';
 import { isProtectedRow } from './Utilities';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
@@ -256,28 +256,19 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     const [ refreshTrigger, setRefreshTrigger ] = useState<number>(0);
 
     const [ deleteCandidate, setDeleteCandidate ] = useState<GridRowModel | undefined>();
-    const [ deleteLoading, setDeleteLoading ] = useState<boolean>(false);
 
     const handleDeleteClose = useCallback(() => setDeleteCandidate(undefined), []);
     const handleDelete = useCallback(async () => {
         if (deleteCandidate === undefined)
             return;
 
-        setDeleteLoading(true);
-        setError(undefined);
-        try {
-            const success = await props.source.delete!(context, deleteCandidate);
-            if (success) {
-                setRefreshTrigger(prev => prev + 1);
-                setDeleteCandidate(undefined);
-            } else {
-                setError(`Unable to delete this ${subject}`);
-            }
-        } catch (err: any) {
-            setError(`Unable to delete this ${subject} (${err.message})`);
-        } finally {
-            setDeleteLoading(false);
-        }
+        const success = await props.source.delete!(context, deleteCandidate);
+        if (!success)
+            throw new Error(`Unable to delete this ${subject}`);
+
+        setRefreshTrigger(prev => prev + 1);
+        setDeleteCandidate(undefined);
+
     }, [ context, deleteCandidate, props.source, subject ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -288,18 +279,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
     const handleCreateClose = useCallback(() => setCreateOpen(false), []);
     const handleCreateSave = useCallback(async (newRow: GridRowModel) => {
-        setError(undefined);
-        try {
-            const result = await props.source.create!(context, newRow);
-            if (!result) {
-                setError(`Unable to create this ${subject}`);
-            } else {
-                setRefreshTrigger(prev => prev + 1);
-                setCreateOpen(false);
-            }
-        } catch (err: any) {
-            setError(`Unable to create this ${subject} (${err.message})`);
-        }
+        const result = await props.source.create!(context, newRow);
+        if (!result)
+            throw new Error(`Unable to create this ${subject}`);
+
+        setRefreshTrigger(prev => prev + 1);
+        setCreateOpen(false);
+
     }, [ context, props.source, subject ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -313,18 +299,13 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         if (editCandidate === undefined)
             return;
 
-        setError(undefined);
-        try {
-            const result = await props.source.update!(context, updatedRow, editCandidate);
-            if (result === false) {
-                setError(`Unable to update this ${subject}`);
-            } else {
-                setRefreshTrigger(prev => prev + 1);
-                setEditCandidate(undefined);
-            }
-        } catch (err: any) {
-            setError(`Unable to update this ${subject} (${err.message})`);
-        }
+        const result = await props.source.update!(context, updatedRow, editCandidate);
+        if (result === false)
+            throw new Error(`Unable to update this ${subject}`);
+
+        setRefreshTrigger(prev => prev + 1);
+        setEditCandidate(undefined);
+
     }, [ context, editCandidate, props.source, subject ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -522,12 +503,16 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                         onClick={ () => setCreateOpen(true) }>
                     Add {subject}
                 </Button> ) }
-            <DeleteConfirmation
+            <ResponsiveConfirmationDialog
                 open={deleteCandidate !== undefined}
                 onClose={handleDeleteClose}
-                onDelete={handleDelete}
-                loading={deleteLoading}
-                subject={subject} />
+                onConfirm={handleDelete} confirmLabel="Delete"
+                title={ `Delete this ${subject}?` }>
+
+                Are you sure that you want to remove this {props.subject}? This action can't be
+                undone once you confirm its deletion
+
+            </ResponsiveConfirmationDialog>
             <DataTableRowEditor
                 open={editCandidate !== undefined}
                 onClose={handleEditClose}

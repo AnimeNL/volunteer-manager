@@ -3,24 +3,23 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { GridRowModel } from '@mui/x-data-grid-premium';
-import { CheckboxElement, SelectElement, TextFieldElement, useForm, type FieldValues }
+import { CheckboxElement, SelectElement, TextFieldElement, type FieldValues }
     from '@proxy/react-hook-form-mui';
 
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 
 import type { Column } from './Column';
-import { DataTableAction, type DataTableActionProps } from './DataTableAction';
+import { ResponsiveFormDialog, type ResponsiveFormDialogProps } from '../ResponsiveFormDialog';
 
 /**
  * Props accepted by the <DataTableRowEditor> component.
  */
-interface DataTableRowEditorProps extends Pick<DataTableActionProps, 'open' | 'onClose'> {
+interface DataTableRowEditorProps extends Pick<ResponsiveFormDialogProps, 'open' | 'onClose'> {
     /**
      * The columns configuration for the data table.
      */
@@ -57,18 +56,6 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
 
     const subject = props.subject ?? 'item';
 
-    const [ loading, setLoading ] = useState<boolean>(false);
-
-    const form = useForm({ defaultValues: row ?? {} });
-    const { reset } = form;
-
-    useEffect(() => {
-        if (open) {
-            reset(row ? { ...row } : {});
-        }
-
-    }, [open, row, reset]);
-
     const visibleColumns = useMemo(() =>
         props.columns.filter(col => !col.field.startsWith('__'))
                      .filter(col => !!col.editable), [ props.columns ]);
@@ -76,8 +63,6 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
     // ----------------------------------------------------------------------------------------------
 
     const handleSave = useCallback(async (data: FieldValues) => {
-        setLoading(true);
-
         const coercedValues = { ...row, ...data };
         for (const column of visibleColumns) {
             if (column.type === 'number') {
@@ -91,21 +76,18 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
         }
 
         await onSave(coercedValues);
-        setLoading(false);
 
     }, [ onSave, row, visibleColumns ]);
 
     // ----------------------------------------------------------------------------------------------
 
     return (
-        <DataTableAction
-            open={open} onClose={onClose} onSubmit={handleSave} formContext={form}
+        <ResponsiveFormDialog
+            open={open} onClose={onClose} onSubmit={handleSave}
+            defaultValues={ row ?? { /* none */ } }
             title={ create ? `Create ${subject}` : `Edit ${subject}` }
-            confirm={
-                <Button type="submit" loading={loading} variant="contained" color="primary">
-                    {create ? 'Create' : 'Save'}
-                </Button>
-            }>
+            submitColor="primary" submitLabel={ create ? 'Create' : 'Save' }>
+
             <Box sx={{ overflowY: 'auto', maxHeight: '55vh' }}>
                 { visibleColumns.length > 1 && <Divider /> }
                 <Stack spacing={1.5} sx={{ my: 1 }}>
@@ -166,6 +148,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                 </Stack>
                 { visibleColumns.length > 1 && <Divider /> }
             </Box>
-        </DataTableAction>
+
+        </ResponsiveFormDialog>
     );
 }

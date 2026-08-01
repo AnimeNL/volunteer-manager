@@ -23,7 +23,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
 import { type ApiEndpoints, callApi } from '@lib/callApi';
-import { DeleteConfirmation } from './DataTable/DeleteConfirmation';
+import { ResponsiveFormDialog, type ResponsiveFormDialogProps } from './ResponsiveFormDialog';
 
 type GridSortItem = GridSortModel[number];
 
@@ -195,7 +195,6 @@ export function RemoteDataTable<
     const [ rows, setRows ] = useState<RowModel[]>([ /* no rows */]);
 
     const [ deleteCandidate, setDeleteCandidate ] = useState<number | undefined>();
-    const [ deleteLoading, setDeleteLoading ] = useState<boolean>(false);
 
     // ---------------------------------------------------------------------------------------------
     // Capability: (C)reate new rows
@@ -486,7 +485,6 @@ export function RemoteDataTable<
     // ---------------------------------------------------------------------------------------------
 
     const handleDelete = useCallback(async () => {
-        setDeleteLoading(true);
         setError(undefined);
         try {
             if (!enableDelete)
@@ -525,7 +523,6 @@ export function RemoteDataTable<
             setError(`Unable to delete a ${subject} (${error.message})`);
         } finally {
             setDeleteCandidate(undefined);
-            setDeleteLoading(false);
         }
     }, [ context, deleteCandidate, enableDelete, props.endpoint, refreshOnUpdate, router, subject ])
 
@@ -578,8 +575,42 @@ export function RemoteDataTable<
                 open={!!deleteCandidate}
                 onClose={resetDeleteCandidate}
                 onDelete={handleDelete}
-                loading={deleteLoading}
                 subject={subject} />
         </>
+    );
+}
+
+/**
+ * Props accepted by the <DeleteConfirmation> component.
+ */
+interface DeleteConfirmationProps
+    extends Pick<ResponsiveFormDialogProps, 'open' | 'onClose'>
+{
+    /**
+     * Callback when the delete action has been confirmed.
+     */
+    onDelete: () => Promise<void> | void;
+
+    /**
+     * Subject describing what is being deleted.
+     * @default "item"
+     */
+    subject?: string;
+}
+
+/**
+ * The <DeleteConfirmation> component encapsulates the confirmation dialog or drawer when deleting
+ * items in the admin panels. Appearance is responsive.
+ */
+function DeleteConfirmation(props: DeleteConfirmationProps) {
+    const description =
+        `Are you sure that you want to remove this ${props.subject}? This action can't be undone ` +
+        'once you confirm its deletion.';
+
+    return (
+        <ResponsiveFormDialog open={props.open} onClose={props.onClose}
+                              title={`Delete this ${props.subject || 'item'}?`}
+                              description={description}
+                              onSubmit={props.onDelete} submitColor="error" submitLabel="Delete" />
     );
 }
