@@ -16,6 +16,62 @@ import { kEventAvailabilityStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
+ * Data that needs to be available to update an event's cover image.
+ */
+const kChangeEventImageData = z.object({
+    // TODO
+});
+
+/**
+ * Server Action through which an event's cover image can be updated.
+ */
+export async function changeEventImage(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kChangeEventImageData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
+
+        // TODO: Implement this action.
+
+        return { success: false };
+    });
+}
+
+/**
+ * Data that needs to be available to update an event's URL-safe slug.
+ */
+const kChangeEventSlugData = z.object({
+    slug: z.string().nonempty(),
+});
+
+/**
+ * Server Action through which an event's URL-safe slug can be updated.
+ */
+export async function changeEventSlug(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kChangeEventSlugData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
+
+        // TODO: Implement this action.
+
+        return { success: false };
+    });
+}
+
+/**
+ * Server Action through which an event can be published or unpublished.
+ */
+export async function publishEvent(eventSlug: string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
+
+        // TODO: Implement this action.
+
+        return { success: true };
+    });
+}
+
+/**
  * Data that needs to be available to update an event's features.
  */
 const kEventFeaturesData = z.object({

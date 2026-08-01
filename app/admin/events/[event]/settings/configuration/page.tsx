@@ -11,16 +11,21 @@ import Grid from '@mui/material/Grid';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Typography from '@mui/material/Typography';
 
+import { ActionBar } from '@app/admin/components/ActionBar';
+import { ChangeImageQuickAction } from './ChangeImageQuickAction';
+import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
 import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { PublishQuickAction } from './PublishQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tEvents } from '@lib/database';
 
-import { updateEventFeatures, updateEventIdentity, updateEventIntegrations } from '../SettingsActions';
 import { kEventAvailabilityStatus, type EventAvailabilityStatus } from '@lib/database/Types';
+
+import * as actions from '../SettingsActions';
 
 /**
  * Options that can be presented to the senior in regards to the event availability status.
@@ -72,9 +77,9 @@ export default async function EventSettingsTeamsPage(
         },
     });
 
-    const featuresFn = updateEventFeatures.bind(null, event.slug);
-    const identityFn = updateEventIdentity.bind(null, event.slug);
-    const integrationsFn = updateEventIntegrations.bind(null, event.slug);
+    const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
+    const identityFn = actions.updateEventIdentity.bind(null, event.slug);
+    const integrationsFn = actions.updateEventIntegrations.bind(null, event.slug);
 
     const dbInstance = db;
     const defaultValues = await dbInstance.selectFrom(tEvents)
@@ -109,6 +114,10 @@ export default async function EventSettingsTeamsPage(
         })
         .executeSelectOne();
 
+    const changeImageAction = actions.changeEventImage.bind(null, event.slug);
+    const changeSlugAction = actions.changeEventSlug.bind(null, event.slug);
+    const publishAction = actions.publishEvent.bind(null, event.slug);
+
     return (
         <>
             <Section icon={ <SettingsSuggestIcon color="primary" /> } title="Configuration"
@@ -132,9 +141,12 @@ export default async function EventSettingsTeamsPage(
                         {event.shortName} is live. Senior provileges have been granted and public
                         references to the event remain available.
                     </Alert> }
-                <Typography variant="body1">
-                    TODO Action bar (suspend, image, slug)
-                </Typography>
+                <ActionBar>
+                    <PublishQuickAction action={publishAction}
+                                        suspended={!!defaultValues.suspended} />
+                    <ChangeImageQuickAction action={changeImageAction} />
+                    <ChangeSlugQuickAction action={changeSlugAction} />
+                </ActionBar>
             </Section>
             <FormGridSection icon={ <EventIcon /> } title="Event" action={identityFn}
                              defaultValues={defaultValues.event}>
