@@ -86,6 +86,11 @@ interface LogTypeParameterMap {
         title: string;
     };
 
+    UpdateEventPublicationStatus: {
+        event: string;  // short name
+        status: 'Published' | 'Suspended';
+    };
+
     UpdateEventSettings: {
         event: string;  // short name
         type: 'basic' | 'feature' | 'integration';
@@ -189,6 +194,7 @@ export const kLogType: { [k in LogType]: k } = {
     CreateEventKeyDate: 'CreateEventKeyDate',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     UpdateEventKeyDate: 'UpdateEventKeyDate',
+    UpdateEventPublicationStatus: 'UpdateEventPublicationStatus',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateEventTicketSettings: 'UpdateEventTicketSettings',

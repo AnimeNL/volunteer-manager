@@ -25,11 +25,6 @@ export const kUpdateEventDefinition = z.object({
         event: z.string(),
 
         /**
-         * Whether the event should be hidden. Will be updated when set to a value.
-         */
-        eventHidden: z.boolean().optional(),
-
-        /**
          * The event identity image, encoded in the PNG format, represented as a string.
          */
         eventIdentity: z.string().optional(),
@@ -76,29 +71,6 @@ export async function updateEvent(request: Request, props: ActionProps): Promise
     const event = await getEventBySlug(request.event);
     if (!event)
         notFound();
-
-    if (request.eventHidden !== undefined) {
-        const affectedRows = await db.update(tEvents)
-            .set({
-                eventHidden: request.eventHidden ? 1 : 0,
-            })
-            .where(tEvents.eventId.equals(event.eventId))
-            .executeUpdate(/* min= */ 0, /* max= */ 1);
-
-        if (affectedRows > 0) {
-            RecordLog({
-                type: kLogType.AdminUpdateEvent,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                data: {
-                    action: 'the publication status',
-                    event: event.shortName,
-                }
-            });
-        }
-
-        return { success: !!affectedRows };
-    }
 
     if (request.eventIdentity !== undefined) {
         const eventIdentityId = await storeBlobData({

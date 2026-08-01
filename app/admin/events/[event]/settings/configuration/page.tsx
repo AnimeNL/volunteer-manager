@@ -79,8 +79,6 @@ export default async function EventSettingsTeamsPage(
     const defaultValues = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
         .select({
-            suspended: tEvents.eventHidden.equals(/* true= */ 1),
-
             event: {
                 endTime: dbInstance.dateTimeAsString(tEvents.eventEndTime),
                 eventTimingPublished: tEvents.eventTimingPublished,
@@ -125,19 +123,18 @@ export default async function EventSettingsTeamsPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                { !!defaultValues.suspended &&
+                { !event.published &&
                     <Alert variant="outlined" severity="warning">
                         {event.shortName} has been suspended. Senior privileges have been revoked
                         and public references have been removed.
                     </Alert> }
-                { !defaultValues.suspended &&
+                { !!event.published &&
                     <Alert variant="outlined" severity="success">
                         {event.shortName} is live. Senior provileges have been granted and public
                         references to the event remain available.
                     </Alert> }
                 <ActionBar>
-                    <PublishQuickAction action={publishAction}
-                                        suspended={!!defaultValues.suspended} />
+                    <PublishQuickAction action={publishAction} published={event.published} />
                     <ChangeImageQuickAction action={changeImageAction} />
                     <ChangeSlugQuickAction action={changeSlugAction} />
                 </ActionBar>

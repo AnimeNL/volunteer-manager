@@ -65,7 +65,28 @@ export async function publishEvent(eventSlug: string) {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.settings');
 
-        // TODO: Implement this action.
+        const affectedRows = await db.update(tEvents)
+            .set({
+                eventHidden: event.published ? 1 : 0,
+            })
+            .where(tEvents.eventId.equals(event.id))
+                .and(tEvents.eventHidden.equals(event.published ? 0 : 1))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        // Active events in the navigation area now has to consider the updated status of |event|,
+        // for which the cache has to be manually cleared.
+        Cache.getInstance('AdminNavigationActiveEvents').clear();
+
+        LogBuilder.for('UpdateEventPublicationStatus')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+                status: event.published ? 'Suspended' : 'Published',
+            });
 
         return { success: true };
     });

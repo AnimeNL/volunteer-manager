@@ -86,8 +86,9 @@ export function ResponsiveFormDialog(props: React.PropsWithChildren<ResponsiveFo
 
     const ContainerProps = useMemo(() => ({
         defaultValues: defaultValues,
+        formContext: formContext,
         onSuccess: handleSubmit,
-    }), [ handleSubmit, defaultValues ]);
+    }), [ formContext, handleSubmit, defaultValues ]);
 
     return (
         <ResponsiveDialog closeLabel="Cancel"
@@ -100,7 +101,7 @@ export function ResponsiveFormDialog(props: React.PropsWithChildren<ResponsiveFo
                                   </Alert>
                               </Collapse> }
                           additionalButtons={
-                              <Button onClick={handleSubmit} loading={loading} variant="contained"
+                              <Button loading={loading} variant="contained"
                                       color={submitColor || 'primary'} size="small"
                                       type="submit" autoFocus>
                                   { submitLabel || 'Submit' }

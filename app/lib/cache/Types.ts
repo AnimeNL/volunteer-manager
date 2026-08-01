@@ -28,6 +28,11 @@ export interface CachedEvent {
     shortName: string;
 
     /**
+     * Whether the event has been published.
+     */
+    published: boolean;
+
+    /**
      * Timezone in which the event will be taking place.
      */
     timeZone: Temporal.TimeZoneLike;
