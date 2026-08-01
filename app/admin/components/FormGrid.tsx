@@ -9,6 +9,7 @@ import { useFormState } from 'react-hook-form-mui';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 
@@ -70,16 +71,18 @@ function InnerFormGrid(props: { callToAction?: string }) {
             <Grid size={{ xs: 12 }}>
                 <Stack direction="row" spacing={1} sx={{
                     alignItems: 'center',
-                    backgroundColor: 'animecon.adminSubmitBackground',
                     borderRadius: 2,
-                    padding: 1,
-                    mb: 2,
+                    marginTop: '-4px',
+                    marginBottom: '12px',
                 }}>
-                    <Button variant="contained" type="submit" loading={!!formContext.isPending}>
+                    <Button variant="contained" type="submit" loading={!!formContext.isPending}
+                            startIcon={ <DoneAllIcon /> } size="small" sx={{
+                                marginY: '4px !important',
+                            }}>
                         { props.callToAction ?? 'Save changes' }
                     </Button>
                     { (!!formContext.result && !formContext.result.success) &&
-                        <Alert severity="warning" sx={{
+                        <Alert severity="error" variant="outlined" sx={{
                             flexGrow: 1,
                             px: 1,
                             py: 0,

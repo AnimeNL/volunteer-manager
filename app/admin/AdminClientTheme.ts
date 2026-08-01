@@ -20,7 +20,6 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
             animecon: {
                 adminExampleBackground: '#212121',
                 adminHeaderBackground: '#0d419d',
-                adminSubmitBackground: '#343125',
             } satisfies AdminPalette as any,
 
             primaryPalette: undefined as any,
@@ -39,7 +38,6 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
             animecon: {
                 adminExampleBackground: '#eeeeee',
                 adminHeaderBackground: '#37474F',
-                adminSubmitBackground: '#fff4e5',
             } satisfies AdminPalette as any,
 
             primaryPalette: undefined as any,
