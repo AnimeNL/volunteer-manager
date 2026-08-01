@@ -14,7 +14,10 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventTicketsLayout(
     props: LayoutProps<'/admin/events/[event]/tickets'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props);
+    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+        permission: 'event.tickets',
+        operation: 'read',
+    });
 
     return (
         <SectionTabContext access={access} tabs={[

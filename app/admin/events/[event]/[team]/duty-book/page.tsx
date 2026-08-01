@@ -190,15 +190,9 @@ export type DutyBookRowModel = ExtractRowModel<typeof dutyBookDataSource>;
 export default async function EventTeamDutyBookPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book'>)
 {
-    const params = await props.params;
-
     const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
         permission: 'event.duty-book',
         operation: 'read',
-        scope: {
-            event: params.event,
-            team: params.team,
-        },
     });
 
     const columns: Column<DutyBookRowModel>[] = [

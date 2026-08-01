@@ -46,12 +46,9 @@ const kProviderOptions = [
 export default async function EventTicketsSettingsPage(
     props: PageProps<'/admin/events/[event]/tickets/settings'>)
 {
-    const params = await props.params;
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
+        permission: 'event.tickets',
+        operation: 'read',
     });
 
     const service = await createTicketService(event.slug);

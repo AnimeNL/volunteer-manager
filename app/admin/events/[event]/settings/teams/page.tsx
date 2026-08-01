@@ -175,13 +175,7 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
 export default async function EventSettingsTeamsPage(
     props: PageProps<'/admin/events/[event]/settings/teams'>)
 {
-    const params = await props.params;
-    const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
-    });
+    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
 
     const columns: Column<ExtractRowModel<typeof eventTeamsDataSource>>[] = [
         {

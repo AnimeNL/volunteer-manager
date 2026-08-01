@@ -110,7 +110,10 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
 export async function clearEventTicketTypesCache(eventSlug: string) {
     return executeServerAction(new FormData(), z.object({}), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.tickets');
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'read',
+            });
 
         const cache = Cache.getInstance('EventTicketTypes');
         cache.delete(event.slug);

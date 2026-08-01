@@ -220,13 +220,7 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
 export default async function EventSettingsDatesPage(
     props: PageProps<'/admin/events/[event]/settings/dates'>)
 {
-    const params = await props.params;
-    const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
-    });
+    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
 
     const leaders = await getLeadersForEvent(event.id);
 

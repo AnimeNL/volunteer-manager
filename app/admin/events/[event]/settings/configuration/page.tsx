@@ -69,13 +69,7 @@ const kServiceStatusOptions = [
 export default async function EventSettingsTeamsPage(
     props: PageProps<'/admin/events/[event]/settings/configuration'>)
 {
-    const params = await props.params;
-    const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
-    });
+    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
 
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);

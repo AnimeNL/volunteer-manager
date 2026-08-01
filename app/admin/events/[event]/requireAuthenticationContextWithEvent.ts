@@ -33,7 +33,7 @@ export async function requireAuthenticationContextWithEvent(
         event: params.event,
         team: params.team,
         permission,
-    });
+    }, /* scope= */ params);
 
     const event = await getEvent(params.event);
     if (!event)

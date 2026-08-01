@@ -129,18 +129,20 @@ type AuthenticationAccessCheck = AuthenticationAccessCheckTypes & {
 /**
  * Executes a permission `check` on the given `access` object.
  */
-function checkIndividualPermission(access: AccessControl, check: PermissionAccessCheck): boolean {
+function checkIndividualPermission(
+    access: AccessControl, check: PermissionAccessCheck, scope?: AccessScope): boolean
+{
     if (typeof check === 'string')
-        return access.can(check as BooleanPermission);
+        return access.can(check as BooleanPermission, scope);
 
     if ('operation' in check) {
         const permission = check.permission as CRUDPermission;
-        if (access.can(permission, check.operation, check.scope))
+        if (access.can(permission, check.operation, check.scope ?? scope))
             return true;  // permission has been granted
 
     } else {
         const permission = check.permission as BooleanPermission;
-        if (access.can(permission, check.scope))
+        if (access.can(permission, check.scope ?? scope))
             return true;  // permission has been granted
     }
 
@@ -152,18 +154,19 @@ function checkIndividualPermission(access: AccessControl, check: PermissionAcces
  * that should be executed with a particular result in mind.
  */
 export function checkPermission(
-    access: AccessControl, permission: PermissionAccessCheck | PermissionSet): boolean
+    access: AccessControl, permission: PermissionAccessCheck | PermissionSet, scope?: AccessScope)
+        : boolean
 {
     if (typeof permission !== 'string' && 'type' in permission) {
         let count = 0;
         for (const individualPermission of permission.checks)
-            count += checkIndividualPermission(access, individualPermission) ? 1 : 0;
+            count += checkIndividualPermission(access, individualPermission, scope) ? 1 : 0;
 
         return permission.type === 'and' ? /* && */ count === permission.checks.length
                                          : /* || */ count > 0;
     }
 
-    return checkIndividualPermission(access, permission);
+    return checkIndividualPermission(access, permission, scope);
 }
 
 /**
@@ -174,9 +177,10 @@ export function checkPermission(
  * @note Access checks can be done inline when requiring an authentication context to exist.
  */
 export function executeAccessCheck(
-    context: AuthenticationContext, access: AuthenticationAccessCheck): void | never
+    context: AuthenticationContext, access: AuthenticationAccessCheck, scope?: AccessScope)
+        : void | never
 {
-    if (access.permission && !checkPermission(context.access, access.permission)) {
+    if (access.permission && !checkPermission(context.access, access.permission, scope)) {
         !!context.user ? forbidden()
                        : unauthorized();
     }
@@ -217,15 +221,15 @@ export function executeAccessCheck(
  * will issue a HTTP 404 Not Found error when none could be loaded. May only be used by server-side
  * components, as authentication requires a database query.
  */
-export async function requireAuthenticationContext(access?: AuthenticationAccessCheck)
-    : Promise<UserAuthenticationContext>
+export async function requireAuthenticationContext(
+    access?: AuthenticationAccessCheck, scope?: AccessScope): Promise<UserAuthenticationContext>
 {
     const authenticationContext = await getAuthenticationContext();
     if (!authenticationContext.user)
         unauthorized();
 
     if (access)
-        executeAccessCheck(authenticationContext, access);
+        executeAccessCheck(authenticationContext, access, scope);
 
     return authenticationContext;
 }

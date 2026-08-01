@@ -3,9 +3,9 @@
 
 import { notFound } from 'next/navigation';
 
-import type { BooleanPermission } from '@lib/auth/Access';
-import { type AuthenticationContext, type PermissionAccessCheck, executeAccessCheck }
+import type { AuthenticationContext, PermissionAccessCheck, PermissionSet }
     from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck }from '@lib/auth/AuthenticationContext';
 import { type CachedEvent, getEvent } from '@lib/cache';
 
 /**
@@ -25,35 +25,19 @@ interface RequireAuthenticationWithEventResult {
 export async function requireAuthenticationWithEvent(
     eventIdentifier: number | string,
     authenticationContext: AuthenticationContext,
-    permission?: Omit<PermissionAccessCheck, 'scope'>)
+    permission?: PermissionAccessCheck | PermissionSet)
         : Promise<RequireAuthenticationWithEventResult>
 {
     const event = await getEvent(eventIdentifier);
     if (!event)
         notFound();
 
-    let accessCheckPermission: PermissionAccessCheck | undefined;
-
-    // Automatically append the `scope`, which is cumbersome and verbose to repeat in each Server
-    // Action that needs to do authentication. Compound permissions are not supported for now.
-    if (permission) {
-        if (typeof permission === 'string') {
-            accessCheckPermission = {
-                permission: permission as BooleanPermission,
-                scope: { event: event.slug },
-            };
-        } else {
-            accessCheckPermission = {
-                ...permission,
-                scope: { event: event.slug },
-            } as PermissionAccessCheck;
-        }
-    }
-
     executeAccessCheck(authenticationContext, {
         check: 'admin-event',
         event: event.slug,
-        permission: accessCheckPermission,
+        permission,
+    }, {
+        event: event.slug
     });
 
     return { event };

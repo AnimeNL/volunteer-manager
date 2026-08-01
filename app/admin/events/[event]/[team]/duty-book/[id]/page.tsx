@@ -119,10 +119,6 @@ export default async function EventTeamDutyBookIncidentPage(
     const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
         permission: 'event.duty-book',
         operation: 'read',
-        scope: {
-            event: params.event,
-            team: params.team,
-        },
     });
 
     if (!team.flags.enableDutyBook)

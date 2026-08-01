@@ -14,12 +14,9 @@ import { requireAuthenticationContextWithEvent } from '../../../requireAuthentic
 export default async function EventTicketsExternalPage(
     props: PageProps<'/admin/events/[event]/tickets/externals/[id]'>)
 {
-    const params = await props.params;
     const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
+        permission: 'event.tickets',
+        operation: 'read',
     });
 
     const external = {

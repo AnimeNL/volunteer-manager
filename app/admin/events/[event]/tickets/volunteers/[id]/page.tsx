@@ -20,10 +20,8 @@ export default async function EventTicketsVolunteerPage(
 {
     const params = await props.params;
     const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
+        permission: 'event.tickets',
+        operation: 'read',
     });
 
     const dbInstance = db;

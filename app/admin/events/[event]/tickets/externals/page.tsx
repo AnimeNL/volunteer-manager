@@ -22,12 +22,9 @@ import { createExternalTicket } from '../TicketActions';
 export default async function EventTicketsExternalsPage(
     props: PageProps<'/admin/events/[event]/tickets/externals'>)
 {
-    const params = await props.params;
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
+        permission: 'event.tickets',
+        operation: 'read',
     });
 
     // TODO: Fetch all tickets in our category from the ticket provider

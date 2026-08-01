@@ -15,12 +15,9 @@ import { requireAuthenticationContextWithEvent } from '../../requireAuthenticati
 export default async function EventTicketsVolunteersPage(
     props: PageProps<'/admin/events/[event]/tickets/volunteers'>)
 {
-    const params = await props.params;
     const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.settings',
-        scope: {
-            event: params.event,
-        },
+        permission: 'event.tickets',
+        operation: 'read',
     });
 
     return (
