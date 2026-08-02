@@ -278,10 +278,6 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
 
         await invalidateEventCache(event.id);
 
-        // Clear the `EventTicketTypes` cache in case the Weeztix or YourTicketProvider values
-        // changed, in which case they will no longer be relevant.
-        Cache.getInstance('EventTicketTypes').clear();
-
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)

@@ -39,5 +39,5 @@ export async function createTicketService(eventIdentifier: number | string)
 
     await backend.initialise();
 
-    return new TicketService(backend, event.slug);
+    return new TicketService(backend);
 }

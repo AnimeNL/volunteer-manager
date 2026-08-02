@@ -52,11 +52,6 @@ interface CacheDescriptorMap {
         Contents: CachedEvent;
     };
 
-    EventTicketTypes: {
-        Parameters: string;  // event slug
-        Contents: TicketType[];
-    };
-
     IP2Location: {
         Parameters: string;
         Contents: {
@@ -240,13 +235,6 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'EventCache',
         description: 'Contextual event information used throughout the system.',
         type: 'permanent',
-    },
-
-    EventTicketTypes: {
-        name: 'EventTicketTypes',
-        description: 'Ticket types for an event as they exist for the ticket provider.',
-        type: 'ttl',
-        ttl: 3600,  // one hour
     },
 
     IP2Location: {

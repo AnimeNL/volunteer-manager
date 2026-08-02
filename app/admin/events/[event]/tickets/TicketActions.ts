@@ -99,7 +99,6 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
             .executeUpdate();
 
         Cache.getInstance('EventCache').delete(event.slug);
-        Cache.getInstance('EventTicketTypes').delete(event.slug);
 
         LogBuilder.for('UpdateEventTicketSettings')
             .withCondition(!!affectedRows)
@@ -124,24 +123,6 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
             })
             .withSeverity('Warning')
             .record({ event: event.shortName });
-
-        return { success: true };
-    });
-}
-
-/**
- * Server Action through which the event ticket types cache can be cleared.
- */
-export async function clearEventTicketTypesCache(eventSlug: string) {
-    return executeServerAction(new FormData(), z.object({}), async (data, props) => {
-        const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
-                operation: 'read',
-            });
-
-        const cache = Cache.getInstance('EventTicketTypes');
-        cache.delete(event.slug);
 
         return { success: true };
     });

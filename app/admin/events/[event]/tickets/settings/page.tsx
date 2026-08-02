@@ -11,7 +11,6 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import type { TicketService } from '@lib/tickets/TicketService';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { RefreshCacheAction } from './RefreshCacheAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
@@ -21,7 +20,7 @@ import { requireAuthenticationContextWithEvent } from '../../requireAuthenticati
 
 import { kEventTicketProvider } from '@lib/database/Types';
 
-import { clearEventTicketTypesCache, updateTicketSettings } from '../TicketActions';
+import { updateTicketSettings } from '../TicketActions';
 
 /**
  * Options available for the user to select whether the automation should be enabled.
@@ -60,7 +59,6 @@ export default async function EventTicketsSettingsPage(
         volunteerTicketId: event.tickets?.volunteerTicketId,
     };
 
-    const refreshAction = clearEventTicketTypesCache.bind(null, event.slug);
     const updateAction = updateTicketSettings.bind(null, event.slug);
 
     const readOnly = !access.can('event.settings', { event: event.slug });
@@ -68,7 +66,6 @@ export default async function EventTicketsSettingsPage(
     return (
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Ticket settings"
-                     headerAction={ <RefreshCacheAction action={refreshAction} /> }
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
