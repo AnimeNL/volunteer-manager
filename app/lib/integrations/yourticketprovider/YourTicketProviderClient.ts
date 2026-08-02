@@ -1,8 +1,9 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { YourTicketProviderOrganisersResponse, YourTicketProviderTicketsResponse } from './YourTicketProviderTypes';
-import { kYourTicketProviderOrganisersResponse, kYourTicketProviderTicketsResponse } from './YourTicketProviderTypes';
+import type { z } from 'zod/v4';
+
+import * as ytp from './YourTicketProviderTypes';
 
 /**
  * Settings required by the YourTicketProvider integration.
@@ -19,6 +20,26 @@ export interface YourTicketProviderClientSettings {
      * Endpoint through which the YourTicketProvider API can be reached.
      */
     endpoint: string;
+}
+
+/**
+ * Properties that make up a request to the YourTicketProvider APIs.
+ */
+interface YourTicketProviderRequest {
+    /**
+     * Pathname to the API that should be called, e.g. "/event".
+     */
+    api: string;
+
+    /**
+     * Request method using which the API should be called.
+     */
+    method: 'DELETE' | 'GET' | 'POST' | 'PUT';
+
+    /**
+     * Whether this request is a retry following a (necessary) refresh of the access token.
+     */
+    retry?: boolean;
 }
 
 /**
@@ -51,6 +72,46 @@ export class YourTicketProviderClient {
     }
 
     /**
+     * Lists the events accessible for the current authentication token.
+     *
+     * @param organiserId ID of the organiser for whom event information should be listed.
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our YourTicketProvider account.
+     */
+    async listEvents(organiserId: number): Promise<ytp.OrganiserEventResponse> {
+        return (await this.issueRequest(ytp.kOrganiserEventResponse, {
+            api: `/Organisers(${organiserId})/Events`,
+            method: 'GET',
+        })).value;
+    }
+
+    /**
+     * Lists the organisers accessible with the current authentication token.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our YourTicketProvider account.
+     */
+    async listOrganisers(): Promise<ytp.OrganisersResponse> {
+        return (await this.issueRequest(ytp.kOrganisersResponse, {
+            api: '/Organisers',
+            method: 'GET',
+        })).value;
+    }
+
+    /**
+     * Lists both tickets and products that have been created for the given `eventId`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our YourTicketProvider account.
+     */
+    async listTicketsAndProducts(id: number): Promise<ytp.TicketsResponse> {
+        return (await this.issueRequest(ytp.kTicketsResponse, {
+            api: `/Events(${id})/Tickets`,
+            method: 'GET',
+        })).value;
+    }
+
+    /**
      * Lists the tickets that have been issued for the given `eventId` and `ticketId`.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.
@@ -62,62 +123,42 @@ export class YourTicketProviderClient {
     }
 
     // ---------------------------------------------------------------------------------------------
-    // CLEANUP:
+    // Internal behaviour:
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Calls the /Organisers API, which returns a list of the organisers that the given API Key has
-     * access to. This is used to avoid requiring user information for the service's health check.
+     * Issues the given `request` on the YourTicketProvider endpoint.
+     *
+     * Requests are made with an API key that does not expire. The response will be validated based
+     * on the given `schema`, where failures will be considered fatal and will thus throw an
+     * exception. The validated `T` will be returned.
+     *
+     * @param schema Schema to validate YourTicketProvider' response with.
+     * @param request Request to issue to YourTicketProvider' endpoint.
+     * @returns Validated response given by the YourTicketProvider server.
      */
-    async getOrganisers(): Promise<YourTicketProviderOrganisersResponse> {
-        const url = `${this.#settings.endpoint}/Organisers?api_key=${this.#settings.apiKey}`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: [
-                [ 'Accept', 'application/json' ],
-                [ 'Authorization', `${this.#settings.apiKey}`],
-            ],
-            next: {
-                revalidate: /* seconds= */ 300,
-            }
+    private async issueRequest<T>(schema: z.ZodType<T>, request: YourTicketProviderRequest)
+        : Promise<T>
+    {
+        const endpoint = `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.apiKey}`;
+        const response = await fetch(endpoint, {
+            method: request.method,
+            headers: {
+                Accept: 'application/json',
+                Authorization: `${this.#settings.apiKey}`,
+            },
         });
 
-        if (!response.ok)
-            throw new Error(`Unable to call into the YTP API (${response.statusText})`);
+        if (!response.ok) {
+            throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
+                cause: await response.json(),
+            });
+        }
 
         const unverifiedResponseJson = await response.json();
-        const verifiedResponseJson =
-            kYourTicketProviderOrganisersResponse.parse(unverifiedResponseJson);
 
-        return verifiedResponseJson.value;
-    }
-
-    /**
-     * Calls the /Event(<id>)/Tickets API, which returns all ticket types and (sub)products that
-     * have been created for the event.
-     */
-    async listTicketsAndProducts(id: number): Promise<YourTicketProviderTicketsResponse> {
-        const url =
-            `${this.#settings.endpoint}/Events(${id})/Tickets?api_key=${this.#settings.apiKey}`;
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: [
-                [ 'Accept', 'application/json' ],
-                [ 'Authorization', `${this.#settings.apiKey}`],
-            ],
-            next: {
-                revalidate: /* seconds= */ 300,
-            }
-        });
-
-        if (!response.ok)
-            throw new Error(`Unable to call into the YTP API (${response.statusText})`);
-
-        const unverifiedResponseJson = await response.json();
-        const verifiedResponseJson =
-            kYourTicketProviderTicketsResponse.parse(unverifiedResponseJson);
-
-        return verifiedResponseJson.value;
+        // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
+        // method. Exceptions are considered fatal, and it's up to the caller to recover.
+        return schema.parse(unverifiedResponseJson);
     }
 }

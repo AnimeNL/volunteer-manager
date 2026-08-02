@@ -4,9 +4,59 @@
 import { z } from 'zod/v4';
 
 /**
+ * Type definition for YourTicketProvider's response when querying event responses.
+ */
+export const kOrganiserEventResponse = z.object({
+    /**
+     * Array of the response values.
+     */
+    value: z.array(z.object({
+        /**
+         * Unique ID of the event
+         */
+        Id: z.number(),
+
+        /**
+         * Name of the event.
+         */
+        Name: z.string(),
+
+        /**
+         * Description of the event.
+         */
+        Description: z.string(),
+
+        /**
+         * Whether the event can start selling.
+         */
+        Live: z.boolean(),
+
+        /**
+         * Name of the location where the event takes place.
+         */
+        LocationName: z.string(),
+
+        /**
+         * Start date and time of the event ("YYYY-MM-DDTHH:mm:ssZ").
+         */
+        StartDateTime: z.iso.datetime(),
+
+        /**
+         * End date and time of the event ("YYYY-MM-DDTHH:mm:ssZ").
+         */
+        EndDateTime: z.iso.datetime(),
+    })),
+});
+
+/**
+ * Interface describing the data we expect from the Organiser Events API.
+ */
+export type OrganiserEventResponse = z.infer<typeof kOrganiserEventResponse>['value'];
+
+/**
  * Type definition that defines the response we expect when calling the Organisers API.
  */
-export const kYourTicketProviderOrganisersResponse = z.object({
+export const kOrganisersResponse = z.object({
     /**
      * Array of the response values.
      */
@@ -41,13 +91,12 @@ export const kYourTicketProviderOrganisersResponse = z.object({
 /**
  * Interface describing the data we expect from the Organisers API.
  */
-export type YourTicketProviderOrganisersResponse =
-    z.infer<typeof kYourTicketProviderOrganisersResponse>['value'];
+export type OrganisersResponse = z.infer<typeof kOrganisersResponse>['value'];
 
 /**
  * Type definition that defines the response we expect when calling the Tickets API.
  */
-export const kYourTicketProviderTicketsResponse = z.object({
+export const kTicketsResponse = z.object({
     /**
      * Array of response values.
      */
@@ -100,5 +149,4 @@ export const kYourTicketProviderTicketsResponse = z.object({
 /**
  * Interface describing the data we expect from the Tickets API.
  */
-export type YourTicketProviderTicketsResponse =
-    z.infer<typeof kYourTicketProviderTicketsResponse>['value'];
+export type TicketsResponse = z.infer<typeof kTicketsResponse>['value'];

@@ -395,7 +395,17 @@ export default async function IntegrationsPage() {
                              defaultValues={{
                                  YourTicketProvider: defaultValues['YourTicketProvider']
                              }}
-                             title="YourTicketProvider" icon={ <CmComIcon /> }>
+                             title="YourTicketProvider" icon={ <CmComIcon /> }
+                             headerAction={
+                                 <IconButton LinkComponent={Link} size="small"
+                                             href="/admin/system/integrations/yourticketprovider">
+                                     <Tooltip title="More information...">
+                                         <TooltipIconWrapper>
+                                             <InfoOutlinedIcon color="primary" fontSize="small" />
+                                         </TooltipIconWrapper>
+                                     </Tooltip>
+                                 </IconButton>
+                             }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
                         API integration with the{' '}
