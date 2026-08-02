@@ -98,9 +98,26 @@ export interface CachedTeam {
     slug: string;
 
     /**
-     * Name using which the team should be represented in the user interface.
+     * Domain on which the team's content and portal access will be served.
+     */
+    domain: string;
+
+    /**
+     * Name using which the team should be referred to in writing.
+     * @example "Volunteering Crew"
      */
     name: string;
+
+    /**
+     * Title using which the team should be referred to in user interface.
+     * @example "Crew"
+     */
+    title: string;
+
+    /**
+     * Private invite key used to generate targetted invite links for this team.
+     */
+    inviteKey: string;
 
     /**
      * Flags that have been set for this team.

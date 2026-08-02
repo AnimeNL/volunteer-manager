@@ -3,6 +3,7 @@
 
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
+import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
 import ShareIcon from '@mui/icons-material/Share';
 import Stack from '@mui/material/Stack';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
@@ -19,7 +20,8 @@ import { RejectedApplication } from './RejectedApplication';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateInviteKey } from '@lib/EnvironmentContext';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam }
+    from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -51,17 +53,13 @@ function NoPendingApplications() {
 export default async function ApplicationsPage(
     props: PageProps<'/admin/events/[event]/[team]/applications'>)
 {
-    const params = await props.params;
-    const accessScope = {
-        event: params.event,
-        team: params.team,
-    };
-
-    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event, team, user } = await requireAuthenticationContextWithEventAndTeam(props,
+    {
         permission: 'event.applications',
         operation: 'read',
-        scope: accessScope,
     });
+
+    const accessScope = { event: event.slug, team: team.slug };
 
     // ---------------------------------------------------------------------------------------------
     // Fetch all pending and rejected applications from the database. The pending ones will be ready
@@ -137,9 +135,9 @@ export default async function ApplicationsPage(
     // ---------------------------------------------------------------------------------------------
 
     let inviteLink: string | undefined;
-    if (!team.flagManagesContent) {
+    if (!team.flags.managesContent) {
         inviteLink  = `https://${team.domain}/registration/${event.slug}/application`;
-        inviteLink += `?invite=${generateInviteKey(event.slug, team.key)}`;
+        inviteLink += `?invite=${generateInviteKey(event.slug, team.inviteKey)}`;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -212,10 +210,14 @@ export default async function ApplicationsPage(
 
     return (
         <>
-            <Section title="Applications" subtitle={team.name}>
+            <Section icon={ <NewReleasesOutlinedIcon color="primary" /> } title="Applications"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Applications' },
+                     ]}>
                 <SectionIntroduction>
-                    Please try to review and respond to each application within a week, and be sure
-                    to discuss selection criteria with your Staff member!
+                    Pending applications for the {team.name} during {event.shortName}.
                 </SectionIntroduction>
                 { !!inviteLink &&
                     <TextField size="small" fullWidth value={inviteLink}
@@ -228,7 +230,6 @@ export default async function ApplicationsPage(
                                    },
                                }} /> }
             </Section>
-
             { applications.length === 0 && <NoPendingApplications /> }
             { applications.length > 0 &&
                 <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>

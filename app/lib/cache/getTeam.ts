@@ -4,7 +4,7 @@
 import type { CachedTeam } from './Types';
 import { Cache } from './Cache';
 import { getUrlSlug, invalidateUrlSlug } from './getUrlSlug';
-import db, { tTeams } from '@lib/database';
+import db, { tEnvironments, tTeams } from '@lib/database';
 
 /**
  * Returns basic information about the given `team` uniquely identified by either its ID or slug.
@@ -22,11 +22,16 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
 
     return await Cache.getInstance('TeamCache').getOrInsert(slug, async slug => {
         return db.selectFrom(tTeams)
+            .innerJoin(tEnvironments)
+                .on(tEnvironments.environmentId.equals(tTeams.teamEnvironmentId))
             .where(tTeams.teamSlug.equals(slug))
             .select({
                 id: tTeams.teamId,
                 slug: tTeams.teamSlug,
+                domain: tEnvironments.environmentDomain,
                 name: tTeams.teamTitle,
+                title: tTeams.teamName,
+                inviteKey: tTeams.teamInviteKey,
                 flags: {
                     enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
                     enableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),

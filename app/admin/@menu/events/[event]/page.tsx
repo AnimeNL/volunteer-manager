@@ -13,7 +13,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PersonIcon from '@mui/icons-material/Person';
@@ -172,8 +172,8 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             id: `${event.slug}-${team.slug}`,
             items: [
                 {
-                    Icon: NewReleasesIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    Icon: NewReleasesOutlinedIcon,
+                    badge: { severity: 'warning', value: true },  // migration in progress
                     label: 'Applications',
                     permission: {
                         permission: 'event.applications',
@@ -268,7 +268,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: LanguageIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    badge: { severity: 'warning', value: true },  // migration in progress
                     label: 'Website',
                     url: `/admin/events/${event.slug}/${team.slug}/website`,
                     condition: team.flagManagesContent,
