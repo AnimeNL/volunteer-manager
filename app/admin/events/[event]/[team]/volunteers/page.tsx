@@ -5,13 +5,13 @@ import Link from '@app/LinkProxy';
 import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import PersonIcon from '@mui/icons-material/Person';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
 import ShareIcon from '@mui/icons-material/Share';
@@ -246,17 +246,13 @@ export default async function EventVolunteersPage(
                            }} />
             </Section>
             { cancelledVolunteers.length > 0 &&
-                <Section icon={ <CancelPresentationIcon /> } title="Cancellations">
+                <Section icon={ <NotInterestedIcon /> } title="Cancellations">
                     <SectionIntroduction>
                         The following volunteers cancelled their participation and are no longer
                         expected to help us out.
                     </SectionIntroduction>
                     <Divider />
-                    <List dense disablePadding sx={{
-                        mx: '-16px !important',
-                        mt: '8px !important',
-                        mb: '-8px !important'
-                    }}>
+                    <List dense disablePadding sx={{ margin: '8px -16px -8px -16px !important' }}>
                         { cancelledVolunteers.map(volunteer =>
                             <ListItemButton key={volunteer.id} LinkComponent={Link}
                                             href={`./volunteers/${volunteer.id}`}>

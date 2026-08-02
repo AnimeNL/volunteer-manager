@@ -264,7 +264,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
-                    url: `/admin/events/${event.slug}/crew/volunteers`,
+                    url: `/admin/events/${event.slug}/${team.slug}/volunteers`,
                 },
                 {
                     Icon: LanguageIcon,

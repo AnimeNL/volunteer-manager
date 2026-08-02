@@ -1,9 +1,17 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
 import ShareIcon from '@mui/icons-material/Share';
 import Stack from '@mui/material/Stack';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
@@ -13,10 +21,9 @@ import Typography from '@mui/material/Typography';
 import type { PartialServerAction, ServerAction, ServerActionResult } from '@lib/serverAction';
 import { Application } from './Application';
 import { ApplicationForm } from './ApplicationForm';
-import { CollapsableSection } from '@app/admin/components/CollapsableSection';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { PlaceholderPaper } from '@app/admin/components/PlaceholderPaper';
-import { RejectedApplication } from './RejectedApplication';
+import { ReconsiderApplicationButton } from './ReconsiderApplicationButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateInviteKey } from '@lib/EnvironmentContext';
@@ -27,6 +34,7 @@ import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents } fro
 import { kRegistrationStatus } from '@lib/database/Types';
 
 import * as actions from './ApplicationActions';
+import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 
 /**
  * Component that displays a placeholder when no applications are currently pending for the team in
@@ -230,6 +238,7 @@ export default async function ApplicationsPage(
                                    },
                                }} /> }
             </Section>
+
             { applications.length === 0 && <NoPendingApplications /> }
             { applications.length > 0 &&
                 <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
@@ -253,34 +262,39 @@ export default async function ApplicationsPage(
 
             { !!createApplicationFn &&
                 <FormGridSection action={createApplicationFn} title="Create an application"
+                                 icon={ <PersonAddAltIcon /> }
                                  callToAction="Create the application" defaultValues={createValues}>
                     <SectionIntroduction important>
-                        This feature lets you quickly create an application on behalf of any
-                        registered volunteer. Please make sure all information is accurate, as you
-                        are responsible for its correctness. The application will still need to be
-                        approved, at which point the volunteer will be notified.
+                        Quickly create an application on behalf of any registered volunteer. The
+                        application will still have to be approved.
                     </SectionIntroduction>
                     <ApplicationForm eventId={event.id} teamId={team.id} />
                 </FormGridSection> }
 
-            <CollapsableSection in={!!rejections.length} title="Rejected applications">
-                { !!rejectApplicationFn &&
-                    <SectionIntroduction important>
-                        You don't have permission to reconsider these applications. If you believe
-                        someone should be reconsidered, please contact your Staff member.
-                    </SectionIntroduction> }
-                <Stack direction="column" spacing={2}>
-                    { rejections.map(application =>
-                        <RejectedApplication key={application.userId}
-                                             application={application}
-                                             reconsiderFn={
-                                                 !!reconsiderApplicationFn
-                                                     ? reconsiderApplicationFn.bind(
-                                                         null, application.userId)
-                                                     : undefined
-                                             } /> )}
-                </Stack>
-            </CollapsableSection>
+            { !!rejections.length &&
+                <Section icon={ <NotInterestedIcon /> } title="Rejections">
+                    <SectionIntroduction>
+                        The following volunteers were rejected and will not be helping us out.
+                    </SectionIntroduction>
+                    <Divider />
+                    <List dense disablePadding sx={{ margin: '8px -16px -8px -16px !important' }}>
+                        { rejections.map(application =>
+                            <ListItem key={application.userId}>
+                                <ListItemIcon>
+                                    <PersonOffIcon color="primary" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText primary={application.name}
+                                              secondary={
+                                                  <LocalDateTime dateTime={application.date!}
+                                                                 format="dddd, MMMM D, YYYY" />
+                                              } />
+                                { !!reconsiderApplicationFn &&
+                                    <ReconsiderApplicationButton
+                                        action={ reconsiderApplicationFn.bind(
+                                                     null, application.userId) } /> }
+                            </ListItem> ) }
+                    </List>
+                </Section> }
         </>
     );
 }

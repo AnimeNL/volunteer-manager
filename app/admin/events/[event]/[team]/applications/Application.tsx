@@ -383,7 +383,7 @@ export function Application(props: ApplicationProps) {
 
     return (
         <>
-            <Paper sx={{ minHeight: '100%' }}>
+            <Paper sx={{ display: 'flex', minHeight: '100%' }}>
                 <Stack direction="column">
                     <CardHeader action={actions}
                                 avatar={
@@ -398,7 +398,7 @@ export function Application(props: ApplicationProps) {
                     <CardContent sx={{ flex: 1, py: '0 !important' }}>
                         <List dense>
                             { information.map(({ icon, message }, index) =>
-                                <ListItem key={index}>
+                                <ListItem key={index} sx={{ px: 1.2 }}>
                                     <ListItemIcon>
                                         {icon}
                                     </ListItemIcon>

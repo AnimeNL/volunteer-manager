@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { YourTicketProviderTicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
+import type { TicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 import { ImportYourTicketProviderTask } from './ImportYourTicketProviderTask';
 import { TaskContext } from '../TaskContext';
 import { formatDate } from '@lib/Temporal';
@@ -20,7 +20,7 @@ describe('ImportYourTicketProviderTask', () => {
         endTime: string;  // YYYY-MM-DD HH:mm:ss
         yourTicketProviderId: number;
 
-        apiTickets?: YourTicketProviderTicketsResponse;
+        apiTickets?: TicketsResponse;
 
         existingProducts?: {
             id: number;
@@ -171,6 +171,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     }
                 ],
 
@@ -220,6 +221,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     }
                 ],
 
@@ -269,6 +271,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     },
                     {
                         Id: 152224,
@@ -277,6 +280,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     }
                 ],
 
@@ -336,6 +340,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 120,  // <-- updated from "100"
                         CurrentAvailable: 70,
                         Live: true,
+                        IsSubproduct: false,
                     }
                 ],
 
@@ -385,6 +390,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     }
                 ],
 
@@ -426,6 +432,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     },
                     {
                         Id: 143338,
@@ -435,6 +442,7 @@ describe('ImportYourTicketProviderTask', () => {
                         Amount: 100,
                         CurrentAvailable: 50,
                         Live: true,
+                        IsSubproduct: false,
                     },
                 ],
 

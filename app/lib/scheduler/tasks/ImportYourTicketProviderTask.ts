@@ -1,8 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { TicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider/YourTicketProviderClient';
-import type { YourTicketProviderTicketsResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
@@ -226,7 +226,7 @@ export class ImportYourTicketProviderTask extends Task {
      * information, to remove excess spacing from names and descriptions.
      */
     async fetchEventTicketsFromApi(yourTicketProviderId: number)
-        : Promise<YourTicketProviderTicketsResponse | undefined>
+        : Promise<TicketsResponse | undefined>
     {
         if (!this.#client)
             this.#client = await createYourTicketProviderClient();
