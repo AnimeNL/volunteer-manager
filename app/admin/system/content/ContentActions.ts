@@ -3,14 +3,16 @@
 
 'use server';
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { ContentScope } from './ContentScope';
 import { clearContentCacheForEventAndType, writeContentLog } from './ContentDataSource';
 import { executeServerAction } from '@lib/serverAction';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { getEvent } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
-import db, { tContent, tContentCategories, tEvents, tUsers } from '@lib/database';
+import db, { tContent, tContentCategories, tUsers } from '@lib/database';
 
 /**
  * Server action schema for creating a new content item.
@@ -24,7 +26,7 @@ const kCreateContentData = z.object({
 /**
  * Server action to create a new content item.
  */
-export async function createContent(scope: ContentScope, row: unknown) {
+export async function createContent(scope: ContentScope, linkPrefix: string, row: unknown) {
     return executeServerAction(row, kCreateContentData, async (data, props) => {
         if (scope.eventId === 0) {
             executeAccessCheck(props.authenticationContext, {
@@ -32,14 +34,13 @@ export async function createContent(scope: ContentScope, row: unknown) {
                 permission: 'system.content',
             });
         } else {
-            const eventSlug = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(scope.eventId))
-                .selectOneColumn(tEvents.eventSlug)
-                .executeSelectOne();
+            const event = await getEvent(scope.eventId);
+            if (!event)
+                notFound();
 
             executeAccessCheck(props.authenticationContext, {
                 check: 'admin-event',
-                event: eventSlug,
+                event: event.slug,
             });
         }
 
@@ -84,7 +85,7 @@ export async function createContent(scope: ContentScope, row: unknown) {
 
         return {
             success: true,
-            contentId: insertId,
+            redirect: `${linkPrefix}/${insertId}`,
         };
     });
 }
@@ -100,14 +101,13 @@ export async function fetchContent(scope: ContentScope, id: number) {
                 permission: 'system.content',
             });
         } else {
-            const eventSlug = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(scope.eventId))
-                .selectOneColumn(tEvents.eventSlug)
-                .executeSelectOne();
+            const event = await getEvent(scope.eventId);
+            if (!event)
+                notFound();
 
             executeAccessCheck(props.authenticationContext, {
                 check: 'admin-event',
-                event: eventSlug,
+                event: event.slug,
             });
         }
 
@@ -169,14 +169,13 @@ export async function updateContent(scope: ContentScope, id: number, row: unknow
                 permission: 'system.content',
             });
         } else {
-            const eventSlug = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(scope.eventId))
-                .selectOneColumn(tEvents.eventSlug)
-                .executeSelectOne();
+            const event = await getEvent(scope.eventId);
+            if (!event)
+                notFound();
 
             executeAccessCheck(props.authenticationContext, {
                 check: 'admin-event',
-                event: eventSlug,
+                event: event.slug,
             });
         }
 

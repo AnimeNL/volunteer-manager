@@ -72,7 +72,7 @@ export default async function EventTeamFaqPage(
 
     const scope = createKnowledgeBaseScope(event.id);
 
-    const createFn = createContent.bind(null, scope);
+    const createFn = createContent.bind(null, scope, /* linkPrefix= */ './knowledge/');
 
     return (
         <>

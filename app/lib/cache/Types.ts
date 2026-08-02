@@ -35,7 +35,7 @@ export interface CachedEvent {
     /**
      * Timezone in which the event will be taking place.
      */
-    timeZone: Temporal.TimeZoneLike;
+    timeZone: string;
 
     /**
      * External services that this event integrates with.
@@ -101,6 +101,11 @@ export interface CachedTeam {
      * Domain on which the team's content and portal access will be served.
      */
     domain: string;
+
+    /**
+     * Unique ID of the environment on which the team's domain operates.
+     */
+    environmentId: number;
 
     /**
      * Name using which the team should be referred to in writing.

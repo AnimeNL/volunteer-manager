@@ -3,18 +3,14 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-import { type FieldValues, type FieldValue, FormContainer, TextFieldElement }
+import { type FieldValues, type FieldValue, TextFieldElement }
     from '@proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
 
-import type { ServerActionResult } from '@lib/serverAction';
-import { SubmitCollapse } from '../../components/SubmitCollapse';
+import type { ServerAction } from '@lib/serverAction';
+import { FormGrid } from '../../components/FormGrid';
 
 /**
  * Validates the path for content that should be added to the scope. We only validate syntax here,
@@ -34,13 +30,7 @@ interface ContentCreateProps {
     /**
      * Server Action through which creation of a new content page can be submitted.
      */
-    createFn: (row: { path: string; title: string }) => Promise<ServerActionResult>;
-
-    /**
-     * Prefix to apply to links to content management pages shown in the table.
-     * @default "./content/"
-     */
-    linkPrefix?: string;
+    createFn: ServerAction;
 
     /**
      * Prefix to display at the beginning of the content's path.
@@ -53,53 +43,26 @@ interface ContentCreateProps {
  * handles prefixes, URL validation, and forwards the user to the modify page once done.
  */
 export function ContentCreate(props: ContentCreateProps) {
-    const [ error, setError ] = useState<string | undefined>();
-    const [ invalidated, setInvalidated ] = useState<boolean>(false);
-    const [ loading, setLoading ] = useState<boolean>(false);
-
-    const router = useRouter();
-
-    const handleChange = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
-    const handleSubmit = useCallback(async (data: FieldValues) => {
-        setLoading(true);
-        setError(undefined);
-        try {
-            const response = await props.createFn({
-                path: data.path,
-                title: data.title,
-            });
-
-            if (response.success)
-                router.push(`${props.linkPrefix ?? './content/'}${response.contentId}`);
-            else
-                setError(response.error ?? 'Unable to create the new content');
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [ props.createFn, props.linkPrefix, router ]);
-
     return (
-        <FormContainer onSuccess={handleSubmit}>
-            <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="title" label="Content title" fullWidth size="small"
-                                      onChange={handleChange} required />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <Stack direction="row" spacing={1}>
-                        { props.pathPrefix &&
-                            <Typography sx={{ pt: '9px' }}>
-                                {props.pathPrefix}
-                            </Typography> }
-                        <TextFieldElement name="path" label="Content path" fullWidth size="small"
-                                          required onChange={handleChange}
-                                          rules={{ validate: validateContentPath }} />
-                    </Stack>
-                </Grid>
+        <FormGrid action={props.createFn} callToAction="Create page">
+            <Grid size={{ xs: 12 }}>
+                <TextFieldElement name="title" label="Content title" fullWidth size="small"
+                                  required />
             </Grid>
-            <SubmitCollapse error={error} loading={loading} open={invalidated} sx={{ mt: 2 }} />
-        </FormContainer>
+            <Grid size={{ xs: 12 }}>
+                <TextFieldElement name="path" label="Content path" fullWidth size="small"
+                                  required rules={{ validate: validateContentPath }}
+                                  slotProps= {{
+                                      input: {
+                                          startAdornment:
+                                              props.pathPrefix
+                                                  ? <InputAdornment position="start">
+                                                        {props.pathPrefix}
+                                                    </InputAdornment>
+                                                  : undefined,
+                                      }
+                                  }} />
+            </Grid>
+        </FormGrid>
     );
 }

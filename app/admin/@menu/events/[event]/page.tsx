@@ -268,9 +268,9 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: LanguageIcon,
-                    badge: { severity: 'warning', value: true },  // migration in progress
+                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Website',
-                    url: `/admin/events/${event.slug}/${team.slug}/website`,
+                    url: `/admin/events/${event.slug}/${team.slug}/website/content`,
                     condition: team.flagManagesContent,
                 },
             ],

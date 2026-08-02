@@ -79,7 +79,7 @@ export function ContentList(props: ContentListProps) {
             subject="page"
             listViewProps={{
                 primaryField: 'title',
-                secondaryField: 'path',
+                secondaryTemplate: `${props.pathPrefix ?? ''}{path}`,
                 dateField: 'updatedOn',
                 dateFieldFormat: 'YYYY-MM-DD',
                 linkTemplate: `${props.linkPrefix ?? './content/'}{id}`,

@@ -20,8 +20,8 @@ export default async function EventSettingsPage(
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Settings"
                      breadcrumbs={[
-                        { label: event.shortName, href: `/admin/events/${event.slug}` },
-                        { label: 'Settings' },
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: 'Settings' },
                      ]}>
                 <SectionIntroduction>
                     Settings related to {event.shortName} in the Volunteer Manager.

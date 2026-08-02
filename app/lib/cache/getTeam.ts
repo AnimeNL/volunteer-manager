@@ -29,6 +29,7 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
                 id: tTeams.teamId,
                 slug: tTeams.teamSlug,
                 domain: tEnvironments.environmentDomain,
+                environmentId: tEnvironments.environmentId,
                 name: tTeams.teamTitle,
                 title: tTeams.teamName,
                 inviteKey: tTeams.teamInviteKey,

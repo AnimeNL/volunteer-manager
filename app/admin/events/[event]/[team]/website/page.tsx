@@ -1,51 +1,38 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
+import LanguageIcon from '@mui/icons-material/Language';
 
-import Divider from '@mui/material/Divider';
-import Typography from '@mui/material/Typography';
-
-import { ContentCreate } from '@app/admin/system/content/ContentCreate';
-import { ContentList } from '@app/admin/system/content/ContentList';
-import { createContent } from '@app/admin/system/content/ContentActions';
-import { createEventScope } from '@app/admin/system/content/ContentScope';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { OverviewTiles } from '@app/admin/components/OverviewTiles';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthenticationContextWithEventAndTeam }
+    from '../../requireAuthenticationContextWithEventAndTeam';
 
 /**
- * The <EventWebsitePage> page lists the content pages that exist for this team's website, together
- * with the ability to create new pages. Navigation is enabled through the surrounding layout.
+ * Overview page for managing an event's settings.
  */
-export default async function EventWebsitePage(
+export default async function EventTeamWebsitePage(
     props: PageProps<'/admin/events/[event]/[team]/website'>)
 {
-    const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!team.flagManagesContent)
-        notFound();
-
-    const pathPrefix = `/registration/${event.slug}/`;
-    const scope = createEventScope(event.id, team.id);
-
-    const createFn = createContent.bind(null, scope);
-
+    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props);
     return (
         <>
-            <ContentList linkPrefix="./website/content/"
-                         pathPrefix={pathPrefix} scope={scope} />
-
-            <Divider sx={{ mt: 2, mb: 1 }} />
-            <Typography variant="h6" sx={{
-                marginTop: '8px !important',
-                marginBottom: '-8px !important',
-            }}>
-                Create a new page
-            </Typography>
-
-            <ContentCreate createFn={createFn} linkPrefix="./website/content/"
-                           pathPrefix={pathPrefix} />
+            <Section icon={ <LanguageIcon color="primary" /> } title="Website"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Website' },
+                     ]}>
+                <SectionIntroduction>
+                    Website management for {team.domain}.
+                </SectionIntroduction>
+            </Section>
+            <OverviewTiles layout />
         </>
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Website');
+export const generateMetadata = createGenerateMetadataFn(
+    'Website', { team: 'team' }, { event: 'event' });

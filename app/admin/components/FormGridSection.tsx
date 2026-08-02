@@ -11,7 +11,7 @@ import { Section } from './Section';
  * Props accepted by the <FormGridSection> component.
  */
 export type FormGridSectionProps =
-    FormGridProps & (Omit<SectionHeaderProps, 'sx'> | { noHeader: true });
+    FormGridProps & (Omit<SectionHeaderProps, 'sx'> | { noHeader: true }) & { tabs?: boolean };
 
 /**
  * The <FormGridSection> component represents a visually separated section of a page in the admin
@@ -31,7 +31,7 @@ export function FormGridSection(props: React.PropsWithChildren<FormGridSectionPr
 
     if ('noHeader' in props) {
         return (
-            <Section noHeader>
+            <Section noHeader tabs={props.tabs}>
                 <FormGrid {...formGridProps}>{props.children}</FormGrid>
             </Section>
         );
@@ -46,7 +46,7 @@ export function FormGridSection(props: React.PropsWithChildren<FormGridSectionPr
     };
 
     return (
-        <Section {...sectionHeaderProps}>
+        <Section {...sectionHeaderProps} tabs={props.tabs}>
             <FormGrid {...formGridProps}>
                 {props.children}
             </FormGrid>

@@ -4,7 +4,6 @@
 import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { PaletteMode } from '@mui/material/styles';
-import type { TicketType } from '../tickets/Types';
 
 /**
  * Contents of each of the caches known to the system.

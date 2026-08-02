@@ -17,6 +17,7 @@ import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import InputAdornment from '@mui/material/InputAdornment';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -172,12 +173,12 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
 
     return (
         <FormContainer defaultValues={defaultValues} onSuccess={handleSave}>
-            <Stack direction="column" spacing={2}>
+            <Stack direction="column" spacing={1.5}>
                 <SectionComponent {...sectionHeaderProps}>
                     {children}
                     <Grid container spacing={2} sx={{
                         margin: useHeader ? '8px -8px -8px -8px !important'
-                                          : '0px -8px -4px -8px !important'
+                                          : '0px 0px -4px 0px !important'
                     }}>
                         { !!categories &&
                             <Grid size={{ xs: 12, md: 4 }}>
@@ -190,22 +191,24 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                         </Grid>
                         { !pathHidden &&
                             <Grid size={{ xs: 12 }}>
-                                <Stack direction="row" spacing={1}>
-                                    { pathPrefix &&
-                                        <Typography sx={{ pt: '9px' }}>
-                                            {pathPrefix}
-                                        </Typography> }
-                                    <TextFieldElement name="path" label="Content path" fullWidth
-                                                      size="small" required={!contentProtected}
-                                                      rules={{
-                                                          validate:
-                                                              contentProtected ? undefined
-                                                                              : validateContentPath
-                                                      }}
-                                                      slotProps={{
-                                                          input: { readOnly: !!contentProtected }
-                                                      }} />
-                                </Stack>
+                                <TextFieldElement
+                                    name="path" label="Content path" fullWidth
+                                    size="small" required={!contentProtected}
+                                    rules={{
+                                        validate: contentProtected ? undefined
+                                                                   : validateContentPath
+                                    }}
+                                    slotProps={{
+                                        input: {
+                                            readOnly: !!contentProtected,
+                                            startAdornment:
+                                                props.pathPrefix
+                                                    ? <InputAdornment position="start">
+                                                          {props.pathPrefix}
+                                                      </InputAdornment>
+                                                    : undefined,
+                                        }
+                                    }} />
                             </Grid> }
                     </Grid>
                 </SectionComponent>
@@ -220,7 +223,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                     <Divider sx={{ marginTop: '8px !important' }} /> }
                 <SectionComponent noHeader>
                     <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                        <Button loading={!!loading} variant="contained" type="submit">
+                        <Button loading={!!loading} variant="contained" type="submit" size="small">
                             Save changes
                         </Button>
                         { error &&
@@ -252,6 +255,9 @@ const MdxEditorContainer = styled(Box)(({ theme }) => ([
         '& .mdxeditor': {
             '--baseTextContrast': theme.vars?.palette.text.primary,
             fontSize: theme.typography.body2.fontSize,
+        },
+        '& ._selectTrigger_f3hmk_308': {
+            backgroundColor: 'transparent',
         },
     },
     theme.applyStyles('dark', {

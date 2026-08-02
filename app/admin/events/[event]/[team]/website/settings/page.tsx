@@ -1,25 +1,31 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
+import { default as MuiLink } from '@mui/material/Link';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
+
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthenticationContextWithEventAndTeam }
+    from '../../../requireAuthenticationContextWithEventAndTeam';
 import db, { tEnvironmentsEvents } from '@lib/database';
 
 import * as actions from '../WebsiteActions';
 
 /**
- * The <EventWebsiteSettingsPage> page allows settings relating to the website to be changed, such
- * as availability and timelines.
+ * The <EventTeamWebsiteSettingsPage> page allows settings relating to the website to be changed.
  */
-export default async function EventWebsiteSettingsPage(
+export default async function EventTeamWebsiteSettingsPage(
     props: PageProps<'/admin/events/[event]/[team]/website/settings'>)
 {
-    const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!team.flagManagesContent)
+    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props);
+    if (!team.flags.managesContent)
         notFound();
 
     const dbInstance = db;
@@ -45,15 +51,37 @@ export default async function EventWebsiteSettingsPage(
         .executeSelectNoneOrOne() ?? undefined;
 
     return (
-        <FormGrid action={action} defaultValues={defaultValues} timezone={event.timezone}>
-            <AvailabilityWindow label="Accept applications" timezone={event.timezone}
-                                start="acceptApplicationsStart" end="acceptApplicationsEnd" />
-            <AvailabilityWindow label="Publish content" timezone={event.timezone}
-                                start="publishContentStart" end="publishContentEnd" />
-            <AvailabilityWindow label="Publish portal" timezone={event.timezone}
-                                start="publishPortalStart" end="publishPortalEnd" />
-        </FormGrid>
+        <>
+            <Section icon={ <SettingsSuggestIcon color="primary" /> } title="Settings"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         {
+                             label: 'Website',
+                             href: `/admin/events/${event.slug}/${team.slug}/website`,
+                         },
+                         { label: 'Settings' },
+                     ]}>
+                <SectionIntroduction>
+                    Configuration settings for{' '}
+                    <MuiLink component={Link} target="_blank"
+                             href={`https://${team.domain}/registration/${event.slug}`}>
+                        {team.domain}
+                    </MuiLink> in scope of {event.shortName}.
+                </SectionIntroduction>
+            </Section>
+            <FormGridSection noHeader tabs action={action} defaultValues={defaultValues}
+                             timezone={event.timeZone}>
+                <AvailabilityWindow label="Accept applications" timezone={event.timeZone}
+                                    start="acceptApplicationsStart" end="acceptApplicationsEnd" />
+                <AvailabilityWindow label="Publish content" timezone={event.timeZone}
+                                    start="publishContentStart" end="publishContentEnd" />
+                <AvailabilityWindow label="Publish portal" timezone={event.timeZone}
+                                    start="publishPortalStart" end="publishPortalEnd" />
+            </FormGridSection>
+        </>
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Website settings');
+export const generateMetadata = createGenerateMetadataFn(
+    'Settings', 'Website', { team: 'team' }, { event: 'event' });

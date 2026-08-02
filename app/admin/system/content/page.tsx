@@ -25,7 +25,7 @@ export default async function ContentPage() {
 
     const scope = createGlobalScope();
 
-    const createFn = createContent.bind(null, scope);
+    const createFn = createContent.bind(null, scope, /* linkPrefix= */ './content/');
 
     return (
         <>
