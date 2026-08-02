@@ -100,6 +100,7 @@ export default async function IntegrationsPage() {
         // YourTicketProvider:
         'integration-ytp-api-key',
         'integration-ytp-endpoint',
+        'integration-ytp-queue-endpoint',
     ]);
 
     const defaultValues = {
@@ -142,6 +143,7 @@ export default async function IntegrationsPage() {
         YourTicketProvider: {
             apiKey: settings['integration-ytp-api-key'] ?? '',
             endpoint: settings['integration-ytp-endpoint'] ?? '',
+            queueEndpoint: settings['integration-ytp-queue-endpoint'] ?? '',
         },
     };
 
@@ -421,6 +423,10 @@ export default async function IntegrationsPage() {
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="YourTicketProvider[endpoint]" label="Endpoint" fullWidth
                                       size="small" required />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextFieldElement name="YourTicketProvider[queueEndpoint]"
+                                      label="Queue endpoint" fullWidth size="small" required />
                 </Grid>
             </FormGridSection>
         </>

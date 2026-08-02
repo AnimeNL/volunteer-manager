@@ -20,27 +20,55 @@ export interface YourTicketProviderClientSettings {
      * Endpoint through which the YourTicketProvider API can be reached.
      */
     endpoint: string;
+
+    /**
+     * Endpoint through which we can check YourTicketProvider's sales queue load.
+     */
+    queueEndpoint: string;
 }
 
 /**
  * Properties that make up a request to the YourTicketProvider APIs.
  */
-interface YourTicketProviderRequest {
+type YourTicketProviderRequest = ({
     /**
      * Pathname to the API that should be called, e.g. "/event".
      */
     api: string;
 
     /**
+     * Full endpoint to the API that should be called, e.g. "https://foo.com/Endpoint".
+     */
+    endpoint?: never;
+
+} | {
+    /**
+     * Pathname to the API that should be called, e.g. "/event".
+     */
+    api?: never;
+
+    /**
+     * Full endpoint to the API that should be called, e.g. "https://foo.com/Endpoint".
+     */
+    endpoint: string;
+
+}) & {
+    /**
      * Request method using which the API should be called.
      */
     method: 'DELETE' | 'GET' | 'POST' | 'PUT';
 
     /**
-     * Whether this request is a retry following a (necessary) refresh of the access token.
+     * Request body that should be included with the API call.
      */
-    retry?: boolean;
-}
+    body?: string;
+};
+
+/**
+ * Maximum number of seconds we will wait prior to submitting a purchase. Any queueing times longer
+ * than this value will throw an exception, and should be retried later.
+ */
+const kMaximumQueueWaitTimeSeconds = 15;
 
 /**
  * The YourTicketProvider client integrates with the YTP Ticketing API to obtain information about
@@ -66,9 +94,53 @@ export class YourTicketProviderClient {
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Array of events that exist in our YourTicketProvider account.
      */
-    async createTicket(eventId: number, request: unknown) {
-        // TODO: Implement this method.
+    async createTicket(eventId: number, request: ytp.CreateTicketRequest) {
+        // Parse the `request` to validate that correct input data has been given.
+        const validatedRequest = ytp.kCreateTicketRequest.parse(request);
+
+        const requiredQueueTime = await this.determineQueueTime(eventId);
+        if (requiredQueueTime > kMaximumQueueWaitTimeSeconds) {
+            throw new Error(
+                `Requested to wait ${requiredQueueTime}s (max: ${kMaximumQueueWaitTimeSeconds}s)`);
+        }
+
+        // Wait for `requiredQueueTime` when a queue is in place and it's below the threshold at
+        // which we're willing to wait for the purchase to complete.
+        if (requiredQueueTime > 0) {
+            console.info(`Waiting for ${requiredQueueTime}s to continue ticket purchase...`);
+            await new Promise(resolve => setTimeout(resolve, requiredQueueTime * 1000));
+        }
+
+        // TODO: Implement the rest of the implementation from here on out. YourTicketProvider
+        // rejects all purchase requests for now, given that the event is not live yet.
         return undefined;
+    }
+
+    /**
+     * Determines the queue time for a purchase request for the given `eventId`. The purchase queue
+     * must be checked prior to filing a purchase, in line with YourTicketProvider's requirements.
+     *
+     * @param eventId ID of the event for which the queue duration is to be decided.
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Number of seconds we have to wait prior to making a purchase.
+     */
+    async determineQueueTime(eventId: number): Promise<number> {
+        try {
+            return (await this.issueRequest(ytp.kQueueNeededResponse, {
+                endpoint: `${this.#settings.queueEndpoint}/${eventId}`,
+                method: 'GET',
+            })).queueTimeInSeconds;
+
+        } catch (error: any) {
+            if (error.message.includes('is not valid JSON'))
+                return /* no timeout, API error= */ 0;
+
+            console.warn(error);
+        }
+
+        // If we cannot determine the amount of time we're requested to wait, then wait one second
+        // longer than the maximum wait time to abort the purchase.
+        return kMaximumQueueWaitTimeSeconds + 1;
     }
 
     /**
@@ -140,7 +212,10 @@ export class YourTicketProviderClient {
     private async issueRequest<T>(schema: z.ZodType<T>, request: YourTicketProviderRequest)
         : Promise<T>
     {
-        const endpoint = `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.apiKey}`;
+        const composedEndpoint =
+            `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.apiKey}`;
+
+        const endpoint = request.endpoint || composedEndpoint;
         const response = await fetch(endpoint, {
             method: request.method,
             headers: {

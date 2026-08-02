@@ -152,6 +152,7 @@ export type Settings = {
     // YourTicketProvider:
     'integration-ytp-api-key': string;
     'integration-ytp-endpoint': string;
+    'integration-ytp-queue-endpoint': string;
 
     // ---------------------------------------------------------------------------------------------
     // Schedule settings:

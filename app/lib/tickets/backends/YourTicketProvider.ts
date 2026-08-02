@@ -31,7 +31,22 @@ export class YourTicketProvider implements TicketBackend {
             throw new Error('Unable to execute createTicket() without a valid client');
 
         const ticket = await this.#client.createTicket(this.#eventId, {
-            // TODO
+            EventId: this.#eventId,
+            Email: request.emailAddress,
+            Language: 'en',
+            Complimentary: true,
+            HasAcceptedTermsAndAgreements: true,
+            PurchasedItems: [
+                {
+                    TicketId: Number(request.type),
+                    TicketHolderEmail: request.emailAddress,
+                    TicketHolderFirstname: request.firstName,
+                    TicketHolderLastname: request.lastName,
+                    // TODO: TicketHolderOrganisation
+                    // TODO: TicketHolderDepartment
+                    // TODO: TicketHolderPosition
+                }
+            ],
         });
 
         console.log(ticket);

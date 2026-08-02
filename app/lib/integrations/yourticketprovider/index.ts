@@ -18,6 +18,7 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
             // YourTicketProvider:
             'integration-ytp-api-key',
             'integration-ytp-endpoint',
+            'integration-ytp-queue-endpoint',
         ]);
 
         for (const [ key, value ] of Object.entries(configuration)) {
@@ -30,6 +31,7 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
         settings = {
             apiKey: configuration['integration-ytp-api-key']!,
             endpoint: configuration['integration-ytp-endpoint']!,
+            queueEndpoint: configuration['integration-ytp-queue-endpoint']!,
         };
     }
 
