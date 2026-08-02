@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateEventCache } from '@lib/cache';
+import { getEvent, invalidateEventCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
 import db, { tEvents } from '@lib/database';
 
@@ -40,20 +40,53 @@ export async function changeEventImage(eventSlug: string, formData: unknown) {
  * Data that needs to be available to update an event's URL-safe slug.
  */
 const kChangeEventSlugData = z.object({
-    slug: z.string().nonempty(),
+    slug: z.string().nonempty().regex(/^[A-Za-z0-9\-_.~]+$/, {
+        message: 'The slug must only contain URL-safe characters.',
+    }),
 });
 
 /**
  * Server Action through which an event's URL-safe slug can be updated.
  */
-export async function changeEventSlug(eventSlug: string, formData: unknown) {
+export async function changeEventSlug(existingEventSlug: string, formData: unknown) {
     return executeServerAction(formData, kChangeEventSlugData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            existingEventSlug, props.authenticationContext, 'event.settings');
 
-        // TODO: Implement this action.
+        const possibleDuplicatedSlugEvent = await getEvent(data.slug);
+        if (!!possibleDuplicatedSlugEvent) {
+            return {
+                success: false,
+                error: `${possibleDuplicatedSlugEvent.shortName} already uses this slug.`
+            };
+        }
 
-        return { success: false };
+        const affectedRows = await db.update(tEvents)
+            .set({
+                eventSlug: data.slug,
+            })
+            .where(tEvents.eventId.equals(event.id))
+                .and(tEvents.eventSlug.equals(existingEventSlug))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+        await invalidateEventCache(event.slug);
+
+        // Active events in the navigation area now has to consider that the |event|'s slug, and
+        // thus URL, may have changed.
+        Cache.getInstance('AdminNavigationActiveEvents').clear();
+
+        LogBuilder.for('UpdateEventSlug')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+                oldSlug: event.slug,
+                newSlug: data.slug,
+            });
+
+        return { success: true };
     });
 }
 

@@ -96,6 +96,12 @@ interface LogTypeParameterMap {
         type: 'basic' | 'feature' | 'integration';
     };
 
+    UpdateEventSlug: {
+        event: string;  // short name
+        oldSlug: string;
+        newSlug: string;
+    };
+
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
@@ -196,6 +202,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventPublicationStatus: 'UpdateEventPublicationStatus',
     UpdateEventSettings: 'UpdateEventSettings',
+    UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateEventTicketSettings: 'UpdateEventTicketSettings',
 

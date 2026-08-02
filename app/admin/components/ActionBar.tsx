@@ -63,7 +63,7 @@ const ActionBarInputLabel = styled(InputLabel)(({ theme }) => ({
  * Stack, with adjusted spacing to match expectations.
  */
 const ActionBarStack = styled(Stack)(({ theme }) => ({
-    color: theme.vars?.palette.primary.light,
+    color: `color-mix(in srgb, ${theme.vars?.palette.text.primary} 75%, transparent)`,
     padding: theme.spacing(0, 1.5, 1.5, 1.5),
     marginTop: theme.spacing(-1),
 }));

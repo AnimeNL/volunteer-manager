@@ -112,7 +112,8 @@ export type ServerActionResult = {
 /**
  * Type definition that represents a plain React server action.
  */
-export type ServerAction = (formData: unknown) => Promise<ServerActionResult>;
+export type ServerAction<InputType = unknown> =
+    (formData: InputType) => Promise<ServerActionResult>;
 
 /**
  * Type definition that represents a partial ServerAction, i.e. one to which other parameters still

@@ -48,20 +48,20 @@ export interface ResponsiveFormDialogProps<T extends FieldValues = FieldValues>
  * Component that provides a responsive dialog interface appropriate for the device on which it's
  * being displayed. Wraps the component's contents in a form context.
  */
-export function ResponsiveFormDialog(props: React.PropsWithChildren<ResponsiveFormDialogProps>) {
+export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(props: React.PropsWithChildren<ResponsiveFormDialogProps<T>>) {
     const { defaultValues, onSubmit, submitColor, submitLabel, ...responsiveDialogProps } = props;
 
     const [ error, setError ] = useState<string | undefined>();
     const [ loading, setLoading ] = useState<boolean>(false);
 
-    const formContext = useForm({ defaultValues: defaultValues ?? { /* none */ } });
+    const formContext = useForm<T>({ defaultValues: defaultValues ?? {} as DefaultValues<T> });
     const formContextReset = formContext.reset;
 
     useEffect(() => {
         if (!props.open)
             return;
 
-        formContextReset(defaultValues ? { ...defaultValues } : {});
+        formContextReset(defaultValues ? { ...defaultValues } : {} as DefaultValues<T>);
 
         setError(undefined);
         setLoading(false);
@@ -74,7 +74,7 @@ export function ResponsiveFormDialog(props: React.PropsWithChildren<ResponsiveFo
         setError(undefined);
         setLoading(true);
         try {
-            await onSubmit?.(data);
+            await onSubmit?.(data as T);
         } catch (error: any) {
             setError(error.message || 'An internal error has occurred');
         } finally {
@@ -95,7 +95,7 @@ export function ResponsiveFormDialog(props: React.PropsWithChildren<ResponsiveFo
                           {...responsiveDialogProps}
                           Container={FormContainer} ContainerProps={ContainerProps}
                           additionalContent={
-                              <Collapse in={!!error} sx={{ margin: '0 -8px 0 -8px !important' }}>
+                              <Collapse in={!!error} sx={{ marginTop: '0px !important' }}>
                                   <Alert severity="error" sx={{ marginTop: 2 }}>
                                       {error}
                                   </Alert>

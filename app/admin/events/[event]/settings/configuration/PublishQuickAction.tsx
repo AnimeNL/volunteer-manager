@@ -62,7 +62,8 @@ export function PublishQuickAction(props: PublishQuickActionProps) {
 
     return (
         <>
-            <Button startIcon={buttonStartIcon} size="small" variant="outlined" color="inherit"
+            <Button startIcon={buttonStartIcon} size="small" variant="outlined"
+                    color={ props.published ? 'error' : 'success' }
                     onClick={handleConfirmationOpen}>
                 {buttonLabel}
             </Button>

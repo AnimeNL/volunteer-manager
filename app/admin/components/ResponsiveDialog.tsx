@@ -112,7 +112,7 @@ function ResponsiveDialogDesktop(props: React.PropsWithChildren<ResponsiveDialog
                         {props.additionalContent}
                     </Stack>
                 </DialogContent>
-                <DialogActions sx={{ p: 2, pt: 0 }}>
+                <DialogActions sx={{ p: 2, pt: 0, pr: 3, pb: 2.5 }}>
                     <Button onClick={props.onClose} size="small">
                         { props.closeLabel || 'Close' }
                     </Button>

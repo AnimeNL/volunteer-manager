@@ -28,11 +28,6 @@ export const kUpdateEventDefinition = z.object({
          * The event identity image, encoded in the PNG format, represented as a string.
          */
         eventIdentity: z.string().optional(),
-
-        /**
-         * The updated event slug that this event should be changed to.
-         */
-        eventSlug: z.string().optional(),
     }),
     response: z.strictObject({
         /**
@@ -101,33 +96,6 @@ export async function updateEvent(request: Request, props: ActionProps): Promise
         }
 
         return { success: false };
-    }
-
-    if (request.eventSlug !== undefined) {
-        const otherEvent = await getEventBySlug(request.eventSlug);
-        if (otherEvent)
-            return { success: false };  // the new slug is already taken
-
-        const affectedRows = await db.update(tEvents)
-            .set({
-                eventSlug: request.eventSlug,
-            })
-            .where(tEvents.eventId.equals(event.eventId))
-            .executeUpdate(/* min= */ 0, /* max= */ 1);
-
-        if (affectedRows > 0) {
-            RecordLog({
-                type: kLogType.AdminUpdateEvent,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                data: {
-                    action: 'the URL slug',
-                    event: event.shortName,
-                }
-            });
-        }
-
-        return { success: !!affectedRows, slug: request.eventSlug };
     }
 
     return { success: false };

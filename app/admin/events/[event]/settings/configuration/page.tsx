@@ -136,7 +136,7 @@ export default async function EventSettingsTeamsPage(
                 <ActionBar>
                     <PublishQuickAction action={publishAction} published={event.published} />
                     <ChangeImageQuickAction action={changeImageAction} />
-                    <ChangeSlugQuickAction action={changeSlugAction} />
+                    <ChangeSlugQuickAction action={changeSlugAction} slug={event.slug} />
                 </ActionBar>
             </Section>
             <FormGridSection icon={ <EventIcon /> } title="Event" action={identityFn}
