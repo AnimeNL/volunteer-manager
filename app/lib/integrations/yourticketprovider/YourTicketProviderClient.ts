@@ -35,6 +35,36 @@ export class YourTicketProviderClient {
         this.#settings = settings;
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Public APIs:
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a new ticket with the YourTicketProvider backend based on the given `request`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our YourTicketProvider account.
+     */
+    async createTicket(eventId: number, request: unknown) {
+        // TODO: Implement this method.
+        return undefined;
+    }
+
+    /**
+     * Lists the tickets that have been issued for the given `eventId` and `ticketId`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of tickets that exist in our YourTicketProvider account for this event.
+     */
+    async listTicketsForType(eventId: number, ticketTypeId: number) {
+        // TODO: Implement this method.
+        return [];
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // CLEANUP:
+    // ---------------------------------------------------------------------------------------------
+
     /**
      * Calls the /Organisers API, which returns a list of the organisers that the given API Key has
      * access to. This is used to avoid requiring user information for the service's health check.

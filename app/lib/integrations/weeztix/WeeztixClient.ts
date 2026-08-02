@@ -104,6 +104,17 @@ export class WeeztixClient {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * Creates a new ticket with the Weeztix backend based on the given `request`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our Weeztix account.
+     */
+    async createTicket(eventGuid: string, request: unknown) {
+        // TODO: Implement this method.
+        return undefined;
+    }
+
+    /**
      * Lists events that are accessible with the authentication token, past and future. Soft deleted
      * events will be omitted from the listing.
      *
@@ -128,6 +139,17 @@ export class WeeztixClient {
             api: `/event/${eventGuid}/ticket`,
             method: 'GET',
         });
+    }
+
+    /**
+     * Lists the tickets that have been issued for the given `eventGuid` and `ticketTypeGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of tickets that exist in our Weeztix account for this event.
+     */
+    async listTicketsForType(eventGuid: string, ticketTypeGuid: string) {
+        // TODO: Implement this method.
+        return [];
     }
 
     // ---------------------------------------------------------------------------------------------

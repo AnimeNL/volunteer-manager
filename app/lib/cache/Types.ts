@@ -79,7 +79,7 @@ export interface CachedEvent {
         /**
          * Unique ID of the ticket that volunteers should be assigned.
          */
-        ticketId?: string;
+        volunteerTicketId?: string;
     };
 }
 

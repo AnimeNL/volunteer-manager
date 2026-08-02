@@ -57,7 +57,7 @@ export default async function EventTicketsSettingsPage(
         provider: event.tickets?.provider,
         autoGrant: event.tickets?.enableAutoGrant ? 1 : 0,
         autoRevoke: event.tickets?.enableAutoRevoke ? 1 : 0,
-        ticketId: event.tickets?.ticketId,
+        volunteerTicketId: event.tickets?.volunteerTicketId,
     };
 
     const refreshAction = clearEventTicketTypesCache.bind(null, event.slug);
@@ -114,7 +114,7 @@ async function TicketSettings(props: { readOnly: boolean; service: TicketService
                         Unable to obtain available ticket types from the ticketing partner.
                     </Alert> }
                 { !!types.length &&
-                    <SelectElement name="ticketId" label="Volunteer ticket type"
+                    <SelectElement name="volunteerTicketId" label="Volunteer ticket type"
                                    options={typeOptions} fullWidth size="small"
                                    slotProps={{ select: { disabled: props.readOnly } }} /> }
             </Grid>

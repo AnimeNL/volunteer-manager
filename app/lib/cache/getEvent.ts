@@ -41,7 +41,7 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                     provider: tEvents.ticketsProvider,
                     enableAutoGrant: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
                     enableAutoRevoke: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
-                    ticketId: tEvents.ticketsAutoGrantTicketId,
+                    volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
                 },
             })
             .executeSelectNoneOrOne();

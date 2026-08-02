@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { TicketType } from './Types';
+import type { Ticket, TicketCreateRequest, TicketType } from './Types';
 
 /**
  * The `TicketBackend` is the interface that must be implemented for each ticket service that the
@@ -14,7 +14,17 @@ export interface TicketBackend {
     initialise(): Promise<void>;
 
     /**
+     * Creates a new ticket based on the given `request`.
+     */
+    createTicket(request: TicketCreateRequest): Promise<Ticket | undefined>;
+
+    /**
      * Lists the ticket types that exist for the current event.
      */
     listTicketTypes(): Promise<TicketType[]>;
+
+    /**
+     * Lists the tickets that exist for the type identified by `id`.
+     */
+    listTicketsForType(id: number | string): Promise<Ticket[]>;
 }

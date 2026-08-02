@@ -3,10 +3,12 @@
 
 'use server';
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
+import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
 import db, { tEvents } from '@lib/database';
@@ -34,7 +36,30 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
                 operation: 'create',
             });
 
-        // TODO: Actually issue the ticket
+        const service = await createTicketService(event.id);
+        if (!service || !event.tickets?.volunteerTicketId)
+            notFound();
+
+        try {
+            const ticket = await service.createTicket({
+                type: event.tickets.volunteerTicketId,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                displayName: data.displayName,
+                emailAddress: data.email,
+            });
+
+            console.log(ticket);
+
+            // TODO: Log
+
+        } catch (error: any) {
+            console.error(error);
+            return {
+                success: false,
+                error: error.message,
+            };
+        }
 
         return { success: false };
     });
@@ -85,7 +110,7 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
                     after: data.provider,
                 },
                 TicketType: {
-                    before: event.tickets?.ticketId || '',
+                    before: event.tickets?.volunteerTicketId || '',
                     after: data.ticketId || '',
                 },
                 AutoGrant: {

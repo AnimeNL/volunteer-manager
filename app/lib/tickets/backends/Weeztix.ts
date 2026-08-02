@@ -1,8 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Ticket, TicketCreateRequest, TicketType } from '../Types';
 import type { TicketBackend } from '../TicketBackend';
-import type { TicketType } from '../Types';
 import { type WeeztixClient, createWeeztixClient } from '@app/lib/integrations/weeztix';
 
 /**
@@ -25,6 +25,19 @@ export class Weeztix implements TicketBackend {
         this.#client = await createWeeztixClient();
     }
 
+    async createTicket(request: TicketCreateRequest): Promise<Ticket | undefined> {
+        if (!this.#client)
+            throw new Error('Unable to execute createTicket() without a valid client');
+
+        const ticket = await this.#client.createTicket(this.#eventGuid, {
+            // TODO
+        });
+
+        console.log(ticket);
+
+        return undefined;
+    }
+
     async listTicketTypes(): Promise<TicketType[]> {
         if (!this.#client)
             throw new Error('Unable to execute listTicketTypes() without a valid client');
@@ -36,5 +49,17 @@ export class Weeztix implements TicketBackend {
             price: type.min_price,
             active: true,
         }));
+    }
+
+    async listTicketsForType(id: number | string): Promise<Ticket[]> {
+        if (!this.#client)
+            throw new Error('Unable to execute listTicketsForType() without a valid client');
+
+        const tickets = await this.#client.listTicketsForType(this.#eventGuid, id.toString());
+        console.log(tickets);
+
+        return tickets.map(ticket => ({
+            // TODO
+        } as any));
     }
 }
