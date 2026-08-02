@@ -32,7 +32,6 @@ import type { TrainingsDefinition } from '@app/api/event/trainings/[event]/route
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
 import type { UpdateApplicationDefinition } from '@app/api/application/updateApplication';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
-import type { UpdateEventDefinition } from '@app/api/admin/updateEvent';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
@@ -115,7 +114,6 @@ export type ApiEndpoints = {
         '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
-        '/api/admin/update-event': UpdateEventDefinition,
         '/api/admin/update-settings': UpdateSettingsDefinition,
         '/api/admin/vendors': VendorEndpoints['create'],
         '/api/admin/volunteer-contact-info': VolunteerContactInfoDefinition,

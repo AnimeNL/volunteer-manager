@@ -84,6 +84,11 @@ export interface AvatarEditorProps {
      * Borders ([ x, y ]; in pixels) to display on top of the overlay.
      */
     border?: [ number, number ];
+
+    /**
+     * Whether to display the dialog in the full window viewport.
+     */
+    fullWidth?: boolean;
 }
 
 /**
@@ -192,7 +197,8 @@ export default function AvatarEditor(props: AvatarEditorProps) {
                                        : [ 0, 0, 0, .68 ];
 
     return (
-        <Dialog onClose={handleDialogClose} open={!!open}>
+        <Dialog onClose={handleDialogClose} open={!!open} fullWidth={props.fullWidth}
+                maxWidth={ props.fullWidth ? 'lg' : 'sm' }>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent dividers sx={{ padding: 0, paddingTop: 2, paddingBottom: 1 }}>
                 <ReactAvatarEditor width={width} height={height} scale={zoomLevel}

@@ -10,16 +10,17 @@ import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { getEvent, invalidateEventCache } from '@lib/cache';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
+import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents } from '@lib/database';
 
-import { kEventAvailabilityStatus } from '@lib/database/Types';
+import { kFileType, kEventAvailabilityStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * Data that needs to be available to update an event's cover image.
  */
 const kChangeEventImageData = z.object({
-    // TODO
+    imageData: z.string().nonempty(),
 });
 
 /**
@@ -30,9 +31,31 @@ export async function changeEventImage(eventSlug: string, formData: unknown) {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, 'event.settings');
 
-        // TODO: Implement this action.
+        const eventIdentityId = await storeBlobData({
+            bytes: Buffer.from(data.imageData, 'base64'),
+            mimeType: 'image/png',
+            type: kFileType.EventIdentity,
+        });
 
-        return { success: false };
+        if (eventIdentityId === false)
+            return { success: false, error: 'The event image could not be stored.' };
+
+        const affectedRows = await db.update(tEvents)
+            .set({ eventIdentityId })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        LogBuilder.for('UpdateEventImage')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+            });
+
+        return { success: true };
     });
 }
 

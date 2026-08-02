@@ -21,7 +21,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
-import db, { tEvents } from '@lib/database';
+import db, { tEvents, tStorage } from '@lib/database';
 
 import { kEventAvailabilityStatus, type EventAvailabilityStatus } from '@lib/database/Types';
 
@@ -75,8 +75,12 @@ export default async function EventSettingsTeamsPage(
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);
     const integrationsFn = actions.updateEventIntegrations.bind(null, event.slug);
 
+    const storageJoin = tStorage.forUseInLeftJoin();
+
     const dbInstance = db;
     const defaultValues = await dbInstance.selectFrom(tEvents)
+        .leftJoin(storageJoin)
+            .on(storageJoin.fileId.equals(tEvents.eventIdentityId))
         .where(tEvents.eventId.equals(event.id))
         .select({
             event: {
@@ -103,6 +107,7 @@ export default async function EventSettingsTeamsPage(
                 yourTicketProviderId: tEvents.eventYtpId,
                 weeztixEventGuid: tEvents.eventWeeztixGuid,
             },
+            identityHash: storageJoin.fileHash,
         })
         .executeSelectOne();
 
@@ -135,7 +140,8 @@ export default async function EventSettingsTeamsPage(
                     </Alert> }
                 <ActionBar>
                     <PublishQuickAction action={publishAction} published={event.published} />
-                    <ChangeImageQuickAction action={changeImageAction} />
+                    <ChangeImageQuickAction action={changeImageAction}
+                                            imageHash={defaultValues.identityHash} />
                     <ChangeSlugQuickAction action={changeSlugAction} slug={event.slug} />
                 </ActionBar>
             </Section>

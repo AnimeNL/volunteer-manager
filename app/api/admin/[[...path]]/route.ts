@@ -4,7 +4,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '../../Action';
 
-import { updateEvent, kUpdateEventDefinition } from '../updateEvent';
 import { updateSettings, kUpdateSettingsDefinition } from '../updateSettings';
 import { volunteerContactInfo, kVolunteerContactInfoDefinition } from '../volunteerContactInfo';
 import { volunteerRoles, kVolunteerRolesDefinition } from '../volunteerRoles';
@@ -24,8 +23,6 @@ export async function POST(request: NextRequest, props: RouteProps): Promise<Res
 
     const action = Object.hasOwn(params, 'path') ? params.path?.join('/') : null;
     switch (action) {
-        case 'update-event':
-            return executeAction(request, kUpdateEventDefinition, updateEvent);
         case 'update-settings':
             return executeAction(request, kUpdateSettingsDefinition, updateSettings);
         case 'volunteer-contact-info':
