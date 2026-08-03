@@ -2,13 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
 
 import { RegistrationContentContainer } from './RegistrationContentContainer';
-
-vi.mock('next/navigation', () => ({
-    useSearchParams: () => new URLSearchParams(),
-}));
 
 describe('RegistrationContentContainer', () => {
     it.skip('should list no active events when the environment has no assigned teams', async () => {

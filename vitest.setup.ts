@@ -36,3 +36,41 @@ if (typeof window !== 'undefined') {
         });
     };
 }
+
+vi.mock('next/navigation', () => {
+    class HTTPAccessFallbackError extends Error {
+        digest: string;
+        constructor(status: number) {
+            super(`NEXT_HTTP_ERROR_FALLBACK;${status}`);
+            this.digest = `NEXT_HTTP_ERROR_FALLBACK;${status}`;
+        }
+    }
+
+    return {
+        useRouter: () => ({
+            push: vi.fn(),
+            replace: vi.fn(),
+            refresh: vi.fn(),
+            back: vi.fn(),
+            forward: vi.fn(),
+            prefetch: vi.fn(),
+        }),
+        usePathname: () => '/',
+        useSearchParams: () => new URLSearchParams(),
+        useParams: () => ({}),
+        unauthorized: () => {
+            throw new HTTPAccessFallbackError(401);
+        },
+        forbidden: () => {
+            throw new HTTPAccessFallbackError(403);
+        },
+        notFound: () => {
+            throw new HTTPAccessFallbackError(404);
+        },
+        redirect: (url: string) => {
+            throw new Error(`Redirect to ${url}`);
+        },
+    };
+});
+
+

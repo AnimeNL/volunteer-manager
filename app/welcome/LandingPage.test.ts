@@ -14,9 +14,6 @@ vi.mock('next/headers', () => ({
     }),
 }));
 
-vi.mock('next/navigation', () => ({
-    useSearchParams: () => new URLSearchParams(),
-}));
 
 const kEnvironment: Environment = {
     id: 9001,
