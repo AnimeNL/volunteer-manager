@@ -39,7 +39,7 @@ import { AccountRestrictedChip } from '@app/admin/organisation/accounts/[id]/Acc
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { Avatar } from '@components/Avatar';
 import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
-import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
+import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 import { formatDate } from '@lib/Temporal';
 
 /**
@@ -253,7 +253,7 @@ interface ApplicationProps {
     /**
      * Server Action to invoke when the volunteer should be moved to another team.
      */
-    moveFn?: ServerAction;
+    moveFn?: ServerAction<{ team: string }>;
 
     /**
      * Server Action to invoke when the volunteer should be rejected.
@@ -441,37 +441,41 @@ export function Application(props: ApplicationProps) {
             </Paper>
 
             { (!!claimEverOpen && !!props.claimFn) &&
-                <ServerActionDialog action={props.claimFn} open={claimOpen}
-                                    onClose={handleCloseClaim}
-                                    title={`Claim ${application.firstName}'s application`}
-                                    submitLabel={ !application.claim ? 'Claim' : 'Release' }>
-                    <Typography sx={{ mb: 2 }}>
+                <ResponsiveFormDialog action={props.claimFn}
+                                      open={claimOpen} onClose={handleCloseClaim}
+                                      title={`Claim ${application.firstName}'s application`}
+                                      submitLabel={ !application.claim ? 'Claim' : 'Release' }>
+                    <Typography variant="body2">
                         { !application.claim &&
                             <>
-                                You're about to claim <strong>{application.name}</strong>'s
+                                You're about to claim <strong>{application.firstName}</strong>'s
                                 application, which helps signals to others that you're working on
                                 it. They will not be informed of this.
                             </> }
                         { !!application.claim &&
                             <>
                                 You're about to release the claim on{' '}
-                                <strong>{application.name}</strong>'s application, opening it up for
-                                anyone to decide. They will not be informed of this.
+                                <strong>{application.firstName}</strong>'s application, opening it
+                                up for anyone to decide. They will not be informed of this.
                             </> }
                     </Typography>
-                </ServerActionDialog> }
+                </ResponsiveFormDialog> }
 
             { (!!moveEverOpen && !!props.moveFn) &&
-                <ServerActionDialog action={props.moveFn} open={moveOpen} onClose={handleCloseMove}
-                                    title={`Move ${application.firstName}'s application`}
-                                    submitLabel="Move">
-                    <Typography sx={{ mb: 2 }}>
-                        You're about to move <strong>{application.firstName}</strong>'s application
-                        to be considered by another team. They will not be informed of this.
+                <ResponsiveFormDialog action={props.moveFn}
+                                      open={moveOpen} onClose={handleCloseMove}
+                                      title={`Move ${application.firstName}'s application`}
+                                      submitLabel="Move">
+
+                    <Typography variant="body2">
+                        Ask another team to consider <strong>{application.firstName}</strong>'s
+                        application.
                     </Typography>
-                    <SelectElement name="team" label="Destination" options={props.availableTeams}
+
+                    <SelectElement name="team" label="Team" options={props.availableTeams}
                                    size="small" fullWidth />
-                </ServerActionDialog> }
+
+                </ResponsiveFormDialog> }
 
             { (!!approveEverOpen && !!props.approveFn) &&
                 <CommunicationDialog title={`Approve ${application.firstName}'s application`}

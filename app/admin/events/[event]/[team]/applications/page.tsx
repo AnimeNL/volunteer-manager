@@ -241,7 +241,7 @@ export default async function ApplicationsPage(
 
             { applications.length === 0 && <NoPendingApplications /> }
             { applications.length > 0 &&
-                <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
+                <Grid container spacing={1.5} sx={{ alignItems: 'stretch' }}>
                     { applications.map(application => {
                         const approveFn = approveApplicationFn?.bind(null, application.userId);
                         const claimFn = claimApplicationFn?.bind(null, application.userId);
