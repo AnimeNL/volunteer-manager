@@ -46,182 +46,32 @@ import { formatDate } from '@lib/Temporal';
  * Type definition for a bullet point of information associated with an application.
  */
 interface ApplicationBulletPoint {
-    /**
-     * Icon that should signify what the information is about.
-     */
     icon: React.ReactNode;
-
-    /**
-     * Information to display on the bullet point.
-     */
     message: React.ReactNode;
 }
 
-/**
- * Function that composes a bullet point on the volunteer's age during the event.
- */
-function composeAgeBulletPoint(application: ApplicationProps['application']) {
-    return {
-        icon: application.age >= 18 ? <CheckCircleIcon fontSize="small" color="success" />
-                                    : <HelpOutlinedIcon fontSize="small" color="warning" />,
-        message:
-            <>
-                {application.firstName} will be {application.age} years old during the event.
-            </>
-    };
-}
-
-/**
- * Function that composes a bullet point on the volunteer's intended availability.
- */
-function composeAvailabilityBulletPoint(application: ApplicationProps['application']) {
-    return {
-        icon: application.fullyAvailable ? <CheckCircleIcon fontSize="small" color="success" />
-                                         : <HelpOutlinedIcon fontSize="small" color="warning" />,
-        message:
-            <>
-                They indicated that they
-                <strong> {application.fullyAvailable ? 'will be' : 'will not be'} </strong>
-                fully available.
-            </>
-    };
-}
-
-/**
- * Function that composes a bullet point on the volunteer's past participation.
- */
-function composeParticipationHistoryBulletPoint(application: ApplicationProps['application']) {
-    if (!application.history) {
-        return {
-            icon: <InfoIcon fontSize="small" color="info" />,
-            message: `${application.firstName} has not helped out at AnimeCon before.`,
-        };
-    }
-
-    return {
-        icon: <InfoIcon fontSize="small" color="info" />,
-        message:
-            <>
-                {application.firstName} has volunteered
-                <strong>{ application.history === 1 ? ' once' :
-                    ` ${application.history} times`}</strong> before.
-            </>
-    };
-}
-
-/**
- * Function that composes a bullet point on the volunteer's participation preferences.
- */
-function composePreferencesBulletPoint(application: ApplicationProps['application']) {
-    if (!application.preferences)
-        return undefined;
-
-    return {
-        icon: <InfoIcon fontSize="small" color="info" />,
-        message:
-            <>
-                They shared some preferences: "<strong><em>{application.preferences}</em></strong>"
-            </>
-    };
-}
-
-/**
- * Function that composes a bullet point on the volunteer's participation timing preferences.
- */
-function composeTimingPreferenceBulletPoint(application: ApplicationProps['application']) {
-    return {
-        icon: <InfoIcon fontSize="small" color="info" />,
-        message:
-            <>
-                They're happy to volunteer for up to <strong>{application.preferenceHours} hours
-                </strong>, preferrably between the hours of
-                <strong> {`0${application.preferenceTimingStart}`.substr(-2)}:00
-                </strong> – <strong>
-                    {`0${application.preferenceTimingEnd}`.substr(-2)}:00</strong>.
-            </>
-    };
-}
-
-/**
- * Props accepted by the <Application> component.
- */
 interface ApplicationProps {
     /**
      * Basic information about the volunteer's application that will be shown in this interface.
      */
     application: {
-        /**
-         * Unique ID of the user for whom this card is being displayed.
-         */
         userId: number;
-
-        /**
-         * URL to the volunteer's avatar, when known.
-         */
         avatar?: string;
-
-        /**
-         * Date at which the application was received, in a Temporal-compatible serialisation.
-         */
         date?: string;
-
-        /**
-         * Number of events that the volunteer has helped out with before.
-         */
         history: number;
-
-        /**
-         * Name of the volunteer, as they would like to be known by.
-         */
         name: string;
-
-        /**
-         * First name of the volunteer, for use where more concise display is preferred.
-         */
         firstName: string;
-
-        /**
-         * Age of the volunteer during the time where the event happens.
-         */
         age: number;
-
-        /**
-         * Whether the volunteer has indicated to be fully available during the event.
-         */
         fullyAvailable: boolean;
-
-        /**
-         * Participation preferences that the volunteer has indicated.
-         */
         preferences?: string;
-
-        /**
-         * Intended number of hours that the volunteer would prefer to help out with.
-         */
         preferenceHours?: number;
-
-        /**
-         * When known, preferred timing of the volunteer's activities.
-         */
         preferenceTimingStart?: number;
         preferenceTimingEnd?: number;
-
-        /**
-         * Information about the owner of this application, i.e. the user who has claimed it.
-         */
         claim?: {
             name: string;
             isCurrentUser: boolean;
         };
-
-        /**
-         * Language in which the communication should be written, when known.
-         */
         language?: CommunicationLanguage;
-
-        /**
-         * Reason that this applicant's account has been suspended, if any.
-         */
         suspended?: string;
     };
 
@@ -262,21 +112,83 @@ interface ApplicationProps {
 }
 
 /**
- * The <Application> component represents an individual application that can be acted upon, either
- * by finding out more information about the applicant, by approving or rejecting it, or by moving
- * it to be another team's problem.
+ * The <Application> component represents an individual application that can be acted upon.
  */
 export function Application(props: ApplicationProps) {
     const { application, eventId, teamId } = props;
 
-    const information: ApplicationBulletPoint[] = [
-        composeParticipationHistoryBulletPoint(application),
-        composeTimingPreferenceBulletPoint(application),
-        composePreferencesBulletPoint(application),
-        composeAvailabilityBulletPoint(application),
-        composeAgeBulletPoint(application),
+    const information: ApplicationBulletPoint[] = [];
 
-    ].filter(Boolean) as ApplicationBulletPoint[];
+    // Participation history:
+    if (application.history) {
+        information.push({
+            icon: <InfoIcon fontSize="small" color="info" />,
+            message: (
+                <>
+                    {application.firstName} has volunteered{' '}
+                    <strong>
+                        {application.history === 1 ? 'once' : `${application.history} times`}
+                    </strong> before.
+                </>
+            ),
+        });
+    } else {
+        information.push({
+            icon: <InfoIcon fontSize="small" color="info" />,
+            message: `${application.firstName} has not helped out at AnimeCon before.`,
+        });
+    }
+
+    // Timing preferences:
+    if (application.preferenceHours !== undefined &&
+        application.preferenceTimingStart !== undefined &&
+        application.preferenceTimingEnd !== undefined)
+    {
+        const start = String(application.preferenceTimingStart).padStart(2, '0');
+        const end = String(application.preferenceTimingEnd).padStart(2, '0');
+        information.push({
+            icon: <InfoIcon fontSize="small" color="info" />,
+            message: (
+                <>
+                    They're happy to volunteer for up to <strong>{application.preferenceHours}{' '}
+                    hours</strong>, preferably between <strong>{start}:00</strong> –
+                    <strong>{end}:00</strong>.
+                </>
+            ),
+        });
+    }
+
+    // Participation preferences:
+    if (application.preferences) {
+        information.push({
+            icon: <InfoIcon fontSize="small" color="info" />,
+            message:
+                <>
+                    They shared some preferences:
+                    "<strong><em>{application.preferences}</em></strong>"
+                </>,
+        });
+    }
+
+    // Availability:
+    information.push({
+        icon: application.fullyAvailable ? <CheckCircleIcon fontSize="small" color="success" />
+                                         : <HelpOutlinedIcon fontSize="small" color="warning" />,
+        message: (
+            <>
+                They indicated that they{' '}
+                <strong>{application.fullyAvailable ? 'will be' : 'will not be'}</strong>{' '}
+                fully available.
+            </>
+        ),
+    });
+
+    // Age:
+    information.push({
+        icon: application.age >= 18 ? <CheckCircleIcon fontSize="small" color="success" />
+                                    : <HelpOutlinedIcon fontSize="small" color="warning" />,
+        message: <>{application.firstName} will be {application.age} years old during the event.</>,
+    });
 
     // ---------------------------------------------------------------------------------------------
 
@@ -352,8 +264,6 @@ export function Application(props: ApplicationProps) {
                 {accountAction}
             </Stack>
         );
-    } else if (!!accountAction || !!moveAction) {
-        actions = accountAction || moveAction;
     }
 
     // ---------------------------------------------------------------------------------------------

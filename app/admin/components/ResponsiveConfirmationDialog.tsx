@@ -26,7 +26,7 @@ interface ResponsiveConfirmationDialogProps
     /**
      * Callback to invoke when the user has confirmed the operation.
      */
-    onConfirm?: () => Promise<void> | void;
+    onConfirm: () => Promise<void> | void;
 }
 
 /**

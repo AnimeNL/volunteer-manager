@@ -23,8 +23,7 @@ interface ReconsiderApplicationButtonProps {
 }
 
 /**
- * The <ReconsiderApplicationButton> component displays a button that invokes a Server Action when
- * clicked, which will in turn move their application back to the pending stack.
+ * A button that moves a rejected application back to the pending stack.
  */
 export function ReconsiderApplicationButton(props: ReconsiderApplicationButtonProps) {
     const [ loading, setLoading ] = useState<boolean>(false);
@@ -34,10 +33,9 @@ export function ReconsiderApplicationButton(props: ReconsiderApplicationButtonPr
     const handleReconsider = useCallback(async () => {
         setLoading(true);
         try {
-            const result = await props.action?.(new FormData);
+            const result = await props.action(new FormData);
             if (!!result.success)
                 router.refresh();
-
         } finally {
             setLoading(false);
         }

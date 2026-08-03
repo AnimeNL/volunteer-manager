@@ -44,36 +44,27 @@ export async function claimApplication(
         if (!event || !team)
             notFound();
 
-        const claimedByUsersJoin = tUsers.forUseInLeftJoinAs('cbuj');
-
-        const dbInstance = db;
-        const existingClaim = await dbInstance.selectFrom(tUsersEvents)
-            .innerJoin(tUsers)
-                .on(tUsers.userId.equals(tUsersEvents.userId))
-            .leftJoin(claimedByUsersJoin)
-                .on(claimedByUsersJoin.userId.equals(tUsersEvents.registrationOwnerId))
+        const existingClaim = await db.selectFrom(tUsersEvents)
             .where(tUsersEvents.userId.equals(userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .select({
-                name: tUsers.name,
-                claimedBy: claimedByUsersJoin.name,
+                registrationOwnerId: tUsersEvents.registrationOwnerId,
             })
             .executeSelectOne();
 
-        const affectedRows = await dbInstance.update(tUsersEvents)
+        const isClaimed = existingClaim.registrationOwnerId !== null;
+
+        const affectedRows = await db.update(tUsersEvents)
             .set({
-                registrationOwnerId:
-                    !!existingClaim.claimedBy ? null
-                                              : props.user.id,
+                registrationOwnerId: isClaimed ? null : props.user.id,
             })
             .where(tUsersEvents.userId.equals(userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
 
-        LogBuilder.for(!!existingClaim.claimedBy ? 'ReleaseApplication'
-                                                 : 'ClaimApplication')
+        LogBuilder.for(isClaimed ? 'ReleaseApplication' : 'ClaimApplication')
             .withCondition(!!affectedRows)
             .withSeverity('Warning')
             .withInitiatorUser(props.user)
@@ -87,9 +78,7 @@ export async function claimApplication(
             success: true,
             close: true,
             refresh: true,
-
-            message:
-                `The application has been ${!!existingClaim.claimedBy ? 'released' : 'claimed'}`,
+            message: `The application has been ${isClaimed ? 'released' : 'claimed'}`,
         };
     });
 }
