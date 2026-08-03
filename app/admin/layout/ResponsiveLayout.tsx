@@ -76,10 +76,21 @@ const DesktopPageWrapper = styled(Stack)(({ theme }) => ({
     minHeight: '100dvh',
     padding: theme.spacing(1),
 
-    '& > :nth-child(-n + 2)': {
+    '& > :nth-child(1)': {
         position: 'sticky',
         top: '8px',
         height: 'calc(100dvh - 16px)',
+    },
+
+    '& > :nth-child(2)': {
+        position: 'sticky',
+        top: '8px',
+        height: 'fit-content',
+    },
+
+    '& > :nth-child(2).is-taller': {
+        top: 'auto',
+        bottom: '8px',
     },
 }));
 

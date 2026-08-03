@@ -4,7 +4,7 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useCallback, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 
 import Badge from '@mui/material/Badge';
@@ -76,9 +76,42 @@ interface NavigationMenuClientProps {
  */
 export function NavigationMenuClient(props: NavigationMenuClientProps) {
     const path = usePathname();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Toggles the `is-taller` class when the menu exceeds the viewport height. This allows tall
+    // menus to scroll inline and stick to the bottom, while short menus remain sticky at the top,
+    // without introducing scrolling jank or component re-render overhead.
+    useEffect(() => {
+        if (!containerRef.current)
+            return;
+
+        const updateTallerClass = () => {
+            if (!containerRef.current)
+                return;
+            const height = containerRef.current.offsetHeight;
+            const viewportHeight = window.innerHeight;
+            if (height > viewportHeight - 16) {
+                containerRef.current.classList.add('is-taller');
+            } else {
+                containerRef.current.classList.remove('is-taller');
+            }
+        };
+
+        const observer = new ResizeObserver(() => {
+            updateTallerClass();
+        });
+
+        observer.observe(containerRef.current);
+        window.addEventListener('resize', updateTallerClass);
+
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', updateTallerClass);
+        };
+    }, []);
 
     return (
-        <NavigationMenuContainer>
+        <NavigationMenuContainer ref={containerRef}>
             <NavigationMenuTitle variant="subtitle1">
                 {props.title}
             </NavigationMenuTitle>
