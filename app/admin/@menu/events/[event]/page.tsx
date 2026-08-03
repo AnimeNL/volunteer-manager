@@ -173,7 +173,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             items: [
                 {
                     Icon: NewReleasesOutlinedIcon,
-                    badge: { severity: 'warning', value: true },  // migration in progress
+                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Applications',
                     permission: {
                         permission: 'event.applications',

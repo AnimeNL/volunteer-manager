@@ -1,6 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -13,16 +14,13 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
 import ShareIcon from '@mui/icons-material/Share';
-import Stack from '@mui/material/Stack';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 
 import type { PartialServerAction, ServerAction, ServerActionResult } from '@lib/serverAction';
 import { Application } from './Application';
 import { ApplicationForm } from './ApplicationForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { PlaceholderPaper } from '@app/admin/components/PlaceholderPaper';
+import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { ReconsiderApplicationButton } from './ReconsiderApplicationButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -34,24 +32,6 @@ import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents } fro
 import { kRegistrationStatus } from '@lib/database/Types';
 
 import * as actions from './ApplicationActions';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-
-/**
- * Component that displays a placeholder when no applications are currently pending for the team in
- * question. They might still be able to create new applications, but in a sense it's a dull page.
- */
-function NoPendingApplications() {
-    return (
-        <PlaceholderPaper sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-start' }}>
-                <TaskAltIcon color="disabled" />
-                <Typography sx={{ color: 'text.disabled' }}>
-                    There are no pending applications
-                </Typography>
-            </Stack>
-        </PlaceholderPaper>
-    );
-}
 
 /**
  * The <ApplicationsPage> allows team leads to see individuals who have applied to participate in
@@ -239,7 +219,10 @@ export default async function ApplicationsPage(
                                }} /> }
             </Section>
 
-            { applications.length === 0 && <NoPendingApplications /> }
+            { applications.length === 0 &&
+                <Alert severity="success" variant="filled">
+                    There are no pending applications!
+                </Alert> }
             { applications.length > 0 &&
                 <Grid container spacing={1.5} sx={{ alignItems: 'stretch' }}>
                     { applications.map(application => {

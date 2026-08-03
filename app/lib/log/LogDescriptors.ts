@@ -119,9 +119,39 @@ interface LogTypeParameterMap {
     // Administration > Volunteers > Team
     // ---------------------------------------------------------------------------------------------
 
+    ClaimApplication: {
+        event: string;  // short name
+        team: string;  // title ("Volunteering Crew")
+    };
+
+    CreateApplication: {
+        event: string;  // short name
+        team: string;  // title ("Volunteering Crew")
+    };
+
+    DecideApplication: {
+        event: string;  // short name
+        team: string;  // title ("Volunteering Crew")
+        verdict: 'Accepted' | 'Rejected';
+    };
+
     DeleteDutyBookIncident: {
         event: string;  // short name
         incidentId: number;
+    };
+
+    MoveApplication: {
+        team: string;  // short name
+    };
+
+    ReconsiderApplication: {
+        event: string;  // short name
+        team: string;  // title ("Volunteering Crew")
+    };
+
+    ReleaseApplication: {
+        event: string;  // short name
+        team: string;  // title ("Volunteering Crew")
     };
 
     UpdateDutyBookIncident: {
@@ -215,7 +245,13 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Volunteers > Team
     // ---------------------------------------------------------------------------------------------
 
+    ClaimApplication: 'ClaimApplication',
+    CreateApplication: 'CreateApplication',
+    DecideApplication: 'DecideApplication',
     DeleteDutyBookIncident: 'DeleteDutyBookIncident',
+    MoveApplication: 'MoveApplication',
+    ReconsiderApplication: 'ReconsiderApplication',
+    ReleaseApplication: 'ReleaseApplication',
     UpdateDutyBookIncident: 'UpdateDutyBookIncident',
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
 
