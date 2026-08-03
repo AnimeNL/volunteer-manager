@@ -3,54 +3,10 @@
 
 'use client';
 
-import type { PaletteMode } from '@mui/material';
-import type { Theme, ThemeOptions } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
-import { deepmerge } from '@mui/utils';
-import { grey } from '@mui/material/colors';
 
 import type { AdminPalette } from '@app/schedule/[event]/ScheduleTheme';
-
-/**
- * Mixins that should be added to a created type depending on the chosen palette mode.
- */
-const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
-    dark: {
-        palette: {
-            animecon: {
-                adminExampleBackground: '#212121',
-                adminHeaderBackground: '#0d419d',
-            } satisfies AdminPalette as any,
-
-            primaryPalette: undefined as any,
-            primary: {
-                main: '#388bfd',
-            },
-
-            background: {
-                default: '#111111',
-                paper: grey[900],
-            },
-        },
-    },
-    light: {
-        palette: {
-            animecon: {
-                adminExampleBackground: '#eeeeee',
-                adminHeaderBackground: '#37474F',
-            } satisfies AdminPalette as any,
-
-            primaryPalette: undefined as any,
-            primary: {
-                main: '#37474F',
-            },
-
-            background: {
-                default: '#f8faf0',
-            },
-        },
-    },
-};
 
 /**
  * Cached version of the theme to use for the administration area.
@@ -60,21 +16,35 @@ let globalAdminTheme: Theme | undefined;
 /**
  * Returns the theme to use in the administrative area.
  */
-export function createAdminTheme(mode: PaletteMode, palette: { dark: string; light: string }) {
-    if (!globalAdminTheme || globalAdminTheme.palette.mode !== mode) {
-        globalAdminTheme = createTheme(deepmerge(kThemePaletteModeMixins[mode], {
+export function createAdminTheme(palette: { dark: string; light: string }) {
+    if (!globalAdminTheme) {
+        globalAdminTheme = createTheme({
             palette: {
-                mode,
+                mode: 'light',
+
+                animecon: {
+                    adminExampleBackground: '#eeeeee',
+                    adminHeaderBackground: '#37474F',
+                } satisfies AdminPalette as any,
+
+                background: {
+                    default: '#f8faf0',
+                },
+
+                primaryPalette: undefined as any,
+                primary: {
+                    main: '#37474F',
+                },
 
                 secondary: {
-                    main: palette[mode],
+                    main: palette.light,
                 },
 
                 DataGrid: {
                     bg: 'transparent',
                 },
-            }
-        }));
+            } as any
+        });
     }
 
     return globalAdminTheme;

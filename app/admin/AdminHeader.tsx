@@ -41,9 +41,7 @@ interface AdminHeaderProps {
      */
     settings: {
         'ai-example-messages'?: string[];
-        'user-admin-experimental-dark-mode'?: boolean;
         'user-admin-experimental-layout'?: boolean;
-        'user-admin-experimental-responsive'?: boolean;
         'user-ai-example-messages-promo-time'?: number;
     };
 
@@ -88,9 +86,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
 
     const accountSettings: AccountSettings = {
         exampleMessages: props.settings['ai-example-messages'] ?? [ /* no example messages */ ],
-        experimentalDarkMode: !!props.settings['user-admin-experimental-dark-mode'],
         experimentalLayout: !!props.settings['user-admin-experimental-layout'],
-        experimentalResponsive: !!props.settings['user-admin-experimental-responsive'],
     };
 
     const saveSettingsFn = updateAccountSettings.bind(null, user.id);

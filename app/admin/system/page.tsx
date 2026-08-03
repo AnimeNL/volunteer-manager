@@ -6,9 +6,11 @@ import type { Metadata } from 'next';
 import ApiIcon from '@mui/icons-material/Api';
 import AppsIcon from '@mui/icons-material/Apps';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import StorageIcon from '@mui/icons-material/Storage';
 
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
@@ -33,6 +35,16 @@ export default async function SystemPage() {
                     Icon: AutoAwesomeIcon,
                     href: '/admin/system/ai/communication',
                     label: 'AI',
+                },
+                {
+                    Icon: FolderCopyOutlinedIcon,
+                    href: '/admin/system/cache',
+                    label: 'Cache',
+                },
+                {
+                    Icon: StorageIcon,
+                    href: '/admin/system/database',
+                    label: 'Database',
                 },
                 {
                     Icon: QueryStatsIcon,

@@ -59,15 +59,9 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
     const settings = await readUserSettings(user.id, [
         'admin-theme-color',
         'ai-example-messages',
-        'user-admin-experimental-dark-mode',
         'user-admin-experimental-layout',
-        'user-admin-experimental-responsive',
         'user-ai-example-messages-promo-time',
     ]);
-
-    // Determine the palette mode for the administration area. Dark Mode is not officially supported
-    // just yet, but can be experimentally enabled through user settings.
-    const paletteMode = !!settings['user-admin-experimental-dark-mode'] ? 'dark' : 'light';
 
     // Whether the new layout should be enabled. Available through context.
     const isLayoutV2 = !!settings['user-admin-experimental-layout'];
@@ -87,9 +81,8 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                     canAccessAccounts: access.can('organisation.accounts', 'read'),
                     isLayoutV2,
                 }}
-                enableResponsiveLayout={
-                    !!settings['user-admin-experimental-responsive'] || isLayoutV2 }
-                paletteMode={paletteMode} palette={environment.colours}>
+                enableResponsiveLayout={isLayoutV2}
+                palette={environment.colours}>
 
                 { isLayoutV2 &&
                     <ThemeProvider palette={palette!}>
@@ -109,9 +102,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                         <Box sx={{
                             backgroundColor: 'background.default',
                             minHeight: '100vh',
-                            minWidth:
-                                !!settings['user-admin-experimental-responsive'] ? undefined
-                                                                                 : 1280,
+                            minWidth: 1280,
                             padding: 2,
                             scrollbarGutter: 'stable',
                         }}>

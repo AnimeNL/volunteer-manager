@@ -5,7 +5,7 @@
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
-import { ThemeProvider, type PaletteMode } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import { type TAdminClientContext, AdminClientContext } from './AdminClientContext';
@@ -26,11 +26,6 @@ interface AdminClientProvidersProps {
     enableResponsiveLayout?: boolean;
 
     /**
-     * Palette mode that should be active for the admin area.
-     */
-    paletteMode: PaletteMode;
-
-    /**
      * Palette that should be used as the primary colours in the admin area.
      */
     palette: {
@@ -49,7 +44,7 @@ export function AdminClientProviders(props: React.PropsWithChildren<AdminClientP
         useMediaQuery(theme => theme.breakpoints.down('md'));
 
     return (
-        <ThemeProvider theme={createAdminTheme(props.paletteMode, props.palette)}>
+        <ThemeProvider theme={createAdminTheme(props.palette)}>
             <AdminClientContext.Provider value={{ ...props.context, isMobile }}>
                 <NuqsAdapter>
                     {props.children}

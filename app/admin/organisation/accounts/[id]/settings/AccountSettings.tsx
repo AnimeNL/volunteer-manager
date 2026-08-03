@@ -61,21 +61,6 @@ export function AccountSettingsForm(props: AccountSettingsFormProps) {
 
             <Grid size={{ xs: 3 }}>
                 <Typography variant="subtitle2">
-                    Enable Dark Mode
-                </Typography>
-                <Typography variant="body2" color="textDisabled">
-                    This feature is experimental!
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 9 }}>
-                <CheckboxElement name="experimentalDarkMode" size="small"
-                                 readOnly={!!props.readOnly} />
-            </Grid>
-
-            <Grid size={{ xs: 12 }}><Divider /></Grid>
-
-            <Grid size={{ xs: 3 }}>
-                <Typography variant="subtitle2">
                     Enable Layout Refresh
                 </Typography>
                 <Typography variant="body2" color="textDisabled">
@@ -87,20 +72,6 @@ export function AccountSettingsForm(props: AccountSettingsFormProps) {
                                  readOnly={!!props.readOnly} />
             </Grid>
 
-            <Grid size={{ xs: 12 }}><Divider /></Grid>
-
-            <Grid size={{ xs: 3 }}>
-                <Typography variant="subtitle2">
-                    Enable Responsive Layout
-                </Typography>
-                <Typography variant="body2" color="textDisabled">
-                    This feature is experimental!
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 9 }}>
-                <CheckboxElement name="experimentalResponsive" size="small"
-                                 readOnly={!!props.readOnly} />
-            </Grid>
         </>
     );
 }
