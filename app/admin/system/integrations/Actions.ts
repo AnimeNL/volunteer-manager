@@ -53,7 +53,7 @@ const kIntegrationSettingsData = z.object({
     YourTicketProvider: z.object({
         apiKey: z.string().nonempty(),
         endpoint: z.url(),
-        queueEndpoint: z.url(),
+        queueEndpoint: z.url().or(z.literal('')).nullish(),
     }).optional(),
 });
 
@@ -129,7 +129,8 @@ export async function updateIntegration(integration: Integration, formData: unkn
                 await writeSettings({
                     'integration-ytp-api-key': data.YourTicketProvider!.apiKey,
                     'integration-ytp-endpoint': data.YourTicketProvider!.endpoint,
-                    'integration-ytp-queue-endpoint': data.YourTicketProvider!.queueEndpoint,
+                    'integration-ytp-queue-endpoint':
+                        data.YourTicketProvider!.queueEndpoint || undefined,
                 });
 
                 break;

@@ -31,11 +31,6 @@ export interface TicketCreateRequest {
     lastName: string;
 
     /**
-     * Optional display name to show on the ticket, superseding their actual name.
-     */
-    displayName?: string;
-
-    /**
      * E-mail address to which ticket information should be sent.
      */
     emailAddress: string;

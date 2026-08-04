@@ -21,7 +21,6 @@ import { kEventTicketProvider } from '@lib/database/Types';
 const kCreateExternalTicketData = z.object({
     firstName: z.string().nonempty(),
     lastName: z.string().nonempty(),
-    displayName: z.string().optional(),
     email: z.email().nonempty(),
 });
 
@@ -45,23 +44,31 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
                 type: event.tickets.volunteerTicketId,
                 firstName: data.firstName,
                 lastName: data.lastName,
-                displayName: data.displayName,
                 emailAddress: data.email,
             });
 
-            console.log(ticket);
+            if (!ticket)
+                return { success: false, error: 'Unable to issue a ticket at this time' };
 
-            // TODO: Log
+            LogBuilder.for('CreateExternalTicket')
+                .withInitiatorUser(props.user)
+                .withSeverity('Error')
+                .build({
+                    event: event.shortName,
+                    recipient: `${data.firstName} ${data.lastName}`,
+                });
+
+            return {
+                success: true,
+                redirect: `./externals/${ticket.id}`,
+            };
 
         } catch (error: any) {
-            console.error(error);
             return {
                 success: false,
                 error: error.message,
             };
         }
-
-        return { success: false };
     });
 }
 

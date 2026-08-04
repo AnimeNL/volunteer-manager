@@ -25,13 +25,16 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
             if (value !== undefined)
                 continue;
 
+            if (key === 'integration-ytp-queue-endpoint')
+                continue;  // undefined value allowed
+
             throw new Error(`Unable to instantiate the YTP client, missing setting ${key}`);
         }
 
         settings = {
             apiKey: configuration['integration-ytp-api-key']!,
             endpoint: configuration['integration-ytp-endpoint']!,
-            queueEndpoint: configuration['integration-ytp-queue-endpoint']!,
+            queueEndpoint: configuration['integration-ytp-queue-endpoint'],
         };
     }
 

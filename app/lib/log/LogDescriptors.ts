@@ -76,6 +76,11 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    CreateExternalTicket: {
+        event: string;  // short name
+        recipient: string;
+    };
+
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
@@ -232,6 +237,7 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     CreateEventKeyDate: 'CreateEventKeyDate',
+    CreateExternalTicket: 'CreateExternalTicket',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     UpdateEventImage: 'UpdateEventImage',
     UpdateEventKeyDate: 'UpdateEventKeyDate',

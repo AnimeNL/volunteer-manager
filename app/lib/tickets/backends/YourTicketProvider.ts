@@ -26,17 +26,18 @@ export class YourTicketProvider implements TicketBackend {
         this.#client = await createYourTicketProviderClient();
     }
 
-    async createTicket(request: TicketCreateRequest): Promise<Ticket | undefined> {
+    async createTicket(request: TicketCreateRequest): Promise<Ticket> {
         if (!this.#client)
             throw new Error('Unable to execute createTicket() without a valid client');
 
         const ticket = await this.#client.createTicket(this.#eventId, {
             EventId: this.#eventId,
             Email: request.emailAddress,
+            IncludeTicketGuarantee: false,
             Language: 'en',
             Complimentary: true,
             HasAcceptedTermsAndAgreements: true,
-            PurchasedItems: [
+            PurchaseItems: [
                 {
                     TicketId: Number(request.type),
                     TicketHolderEmail: request.emailAddress,
@@ -49,9 +50,7 @@ export class YourTicketProvider implements TicketBackend {
             ],
         });
 
-        console.log(ticket);
-
-        return undefined;
+        return { id: ticket.Id };
     }
 
     async listTicketTypes(): Promise<TicketType[]> {

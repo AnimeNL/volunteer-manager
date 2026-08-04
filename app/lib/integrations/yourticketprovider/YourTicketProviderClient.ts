@@ -24,7 +24,7 @@ export interface YourTicketProviderClientSettings {
     /**
      * Endpoint through which we can check YourTicketProvider's sales queue load.
      */
-    queueEndpoint: string;
+    queueEndpoint?: string;
 }
 
 /**
@@ -61,7 +61,7 @@ type YourTicketProviderRequest = ({
     /**
      * Request body that should be included with the API call.
      */
-    body?: string;
+    body?: any;
 };
 
 /**
@@ -94,7 +94,9 @@ export class YourTicketProviderClient {
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Array of events that exist in our YourTicketProvider account.
      */
-    async createTicket(eventId: number, request: ytp.CreateTicketRequest) {
+    async createTicket(eventId: number, request: ytp.CreateTicketRequest)
+        : Promise<ytp.CreateTicketResponse>
+    {
         // Parse the `request` to validate that correct input data has been given.
         const validatedRequest = ytp.kCreateTicketRequest.parse(request);
 
@@ -111,9 +113,11 @@ export class YourTicketProviderClient {
             await new Promise(resolve => setTimeout(resolve, requiredQueueTime * 1000));
         }
 
-        // TODO: Implement the rest of the implementation from here on out. YourTicketProvider
-        // rejects all purchase requests for now, given that the event is not live yet.
-        return undefined;
+        return await this.issueRequest(ytp.kCreateTicketResponse, {
+            api: '/Purchases',
+            method: 'POST',
+            body: validatedRequest,
+        });
     }
 
     /**
@@ -125,6 +129,11 @@ export class YourTicketProviderClient {
      * @returns Number of seconds we have to wait prior to making a purchase.
      */
     async determineQueueTime(eventId: number): Promise<number> {
+        if (!this.#settings.queueEndpoint) {
+            console.warn('[YTP] Ticket purchase queue confirmation has been disabled');
+            return 0;
+        }
+
         try {
             return (await this.issueRequest(ytp.kQueueNeededResponse, {
                 endpoint: `${this.#settings.queueEndpoint}/${eventId}`,
@@ -132,9 +141,6 @@ export class YourTicketProviderClient {
             })).queueTimeInSeconds;
 
         } catch (error: any) {
-            if (error.message.includes('is not valid JSON'))
-                return /* no timeout, API error= */ 0;
-
             console.warn(error);
         }
 
@@ -215,13 +221,22 @@ export class YourTicketProviderClient {
         const composedEndpoint =
             `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.apiKey}`;
 
+        let body: BodyInit | undefined;
+        let headers: HeadersInit = [
+            [ 'Accept', 'application/json' ],
+            [ 'Authorization', `${this.#settings.apiKey}` ],
+        ];
+
+        if (!!request.body) {
+            body = JSON.stringify(request.body);
+            headers = [ ...headers, [ 'Content-Type', 'application/json' ] ];
+        }
+
         const endpoint = request.endpoint || composedEndpoint;
         const response = await fetch(endpoint, {
             method: request.method,
-            headers: {
-                Accept: 'application/json',
-                Authorization: `${this.#settings.apiKey}`,
-            },
+            headers,
+            body,
         });
 
         if (!response.ok) {

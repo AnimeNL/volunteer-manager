@@ -16,7 +16,7 @@ export interface TicketBackend {
     /**
      * Creates a new ticket based on the given `request`.
      */
-    createTicket(request: TicketCreateRequest): Promise<Ticket | undefined>;
+    createTicket(request: TicketCreateRequest): Promise<Ticket>;
 
     /**
      * Lists the ticket types that exist for the current event.

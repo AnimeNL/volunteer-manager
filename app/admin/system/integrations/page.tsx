@@ -413,7 +413,7 @@ export default async function IntegrationsPage() {
                         API integration with the{' '}
                         <MuiLink component={Link} href="https://www.yourticketprovider.nl/">
                             YourTicketProvider API
-                        </MuiLink>, which AnimeCon used to use for ticketing purposes.
+                        </MuiLink>, which AnimeCon uses for ticketing purposes.
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -426,7 +426,7 @@ export default async function IntegrationsPage() {
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="YourTicketProvider[queueEndpoint]"
-                                      label="Queue endpoint" fullWidth size="small" required />
+                                      label="Queue endpoint" fullWidth size="small" />
                 </Grid>
             </FormGridSection>
         </>

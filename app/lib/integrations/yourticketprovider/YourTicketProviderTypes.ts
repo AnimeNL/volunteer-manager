@@ -9,10 +9,11 @@ import { z } from 'zod/v4';
 export const kCreateTicketRequest = z.object({
     EventId: z.number(),
     Email: z.email(),
+    IncludeTicketGuarantee: z.literal(false),
     Language: z.string().nonempty(),
     Complimentary: z.literal(true),
     HasAcceptedTermsAndAgreements: z.literal(true),
-    PurchasedItems: z.array(z.object({
+    PurchaseItems: z.array(z.object({
         TicketId: z.number(),
         TicketHolderEmail: z.email(),
         TicketHolderFirstname: z.string().nonempty(),
@@ -32,7 +33,18 @@ export type CreateTicketRequest = z.infer<typeof kCreateTicketRequest>;
  * Type definition for the response parameters for a ticket creation request.
  */
 export const kCreateTicketResponse = z.object({
-    // TODO
+    Id: z.number(),
+    EventId: z.number(),
+    IsTicketClaimRequired: z.boolean(),
+    TicketClaimUrl: z.string().nullish(),
+    TotalAmount: z.number(),
+    Reference: z.string(),
+    PaymentUrl: z.string().nullish(),
+    Secret: z.string(),
+    Paid: z.boolean(),
+    PaidDate: z.iso.datetime(),
+    Complimentary: z.boolean(),
+    Cancelled: z.boolean(),
 });
 
 /**

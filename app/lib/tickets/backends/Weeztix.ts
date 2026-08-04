@@ -25,17 +25,8 @@ export class Weeztix implements TicketBackend {
         this.#client = await createWeeztixClient();
     }
 
-    async createTicket(request: TicketCreateRequest): Promise<Ticket | undefined> {
-        if (!this.#client)
-            throw new Error('Unable to execute createTicket() without a valid client');
-
-        const ticket = await this.#client.createTicket(this.#eventGuid, {
-            // TODO
-        });
-
-        console.log(ticket);
-
-        return undefined;
+    async createTicket(request: TicketCreateRequest): Promise<Ticket> {
+        throw new Error('Not yet implemented');
     }
 
     async listTicketTypes(): Promise<TicketType[]> {

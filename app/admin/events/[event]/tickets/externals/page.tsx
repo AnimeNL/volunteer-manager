@@ -134,13 +134,10 @@ export default async function EventTicketsExternalsPage(
                                               fullWidth size="small" />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="displayName" label="Display name" fullWidth
-                                              size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
                             <TextFieldElement name="email" label="E-mail address" required fullWidth
                                               type="email" size="small" />
                         </Grid>
+                        { /* TODO: Display name? */ }
                         { /* TODO: Team? */ }
                         { /* TODO: Function? */ }
                     </FormGrid>
