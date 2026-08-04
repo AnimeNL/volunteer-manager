@@ -79,11 +79,7 @@ describe('DataTable - Create', () => {
             },
             async create(row) {
                 createInvokedWith = row;
-                return {
-                    id: 3,
-                    name: row.name ?? '',
-                    role: row.role ?? '',
-                };
+                return true;
             },
         });
 
@@ -145,11 +141,7 @@ describe('DataTable - Create', () => {
             },
             async create(row) {
                 createInvokedWith = row;
-                return {
-                    id: 3,
-                    name: row.name ?? '',
-                    role: row.role ?? '',
-                };
+                return true;
             },
         });
 
@@ -210,11 +202,7 @@ describe('DataTable - Create', () => {
             },
             async create(row) {
                 createInvokedWith = row;
-                return {
-                    id: 3,
-                    name: row.name ?? '',
-                    role: row.role ?? '',
-                };
+                return true;
             },
         });
 

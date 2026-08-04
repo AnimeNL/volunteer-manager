@@ -37,9 +37,6 @@ const nextConfig: NextConfig = {
         serverActions: {
             bodySizeLimit: '5mb',
         },
-
-        // https://nextjs.org/docs/app/guides/view-transitions
-        viewTransition: true,
     },
     output: 'standalone',
     reactStrictMode: true,
