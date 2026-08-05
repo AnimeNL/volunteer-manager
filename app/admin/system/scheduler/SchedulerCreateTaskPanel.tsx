@@ -78,7 +78,7 @@ function CreateNoopComplexTaskPanel() {
 const kTaskOptions = [
     { id: 'DutyBookSummaryTask', label: 'Generate Duty Book Summary' },
     { id: 'ImportActivitiesTask', label: 'Import Activities (AnPlan)' },
-    { id: 'ImportYourTicketProviderTask', label: 'Import Sales (YourTicketProvider)' },
+    { id: 'YourTicketProviderImportTask', label: 'Import Sales (YourTicketProvider)' },
     { id: 'NoopComplexTask', label: 'No-op Task (Complex)' },
     { id: 'NoopTask', label: 'No-op Task' },
     { id: 'PopulateSchedulerTask', label: 'Populate Scheduler' },
