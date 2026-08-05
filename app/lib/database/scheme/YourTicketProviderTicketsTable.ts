@@ -18,7 +18,6 @@ export class YourTicketProviderTicketsTable extends Table<DBConnection, 'YourTic
     ytpTicketName = this.column('ytp_ticket_name', 'string');
     ytpTicketPrice = this.column('ytp_ticket_price', 'int');
     ytpTicketAmount = this.column('ytp_ticket_amount', 'int');
-    ytpTicketCurrentAvailable = this.column('ytp_ticket_current_available', 'int');
     ytpTicketSoldOut = this.column('ytp_ticket_sold_out', 'int');
     ytpTicketLive = this.column('ytp_ticket_live', 'int');
     ytpTicketIsSubproduct = this.column('ytp_ticket_is_subproduct', 'int');

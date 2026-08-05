@@ -26,9 +26,31 @@ interface YourTicketProviderImportTaskConfiguration {
 /**
  * Information already known about tickets for a particular event.
  */
-interface ExistingTicketInformation {
+interface KnownTicketInformation {
     id: number;
-    // TODO: Other information necessary to apply a diff
+
+    Name: string;
+    Price: number;
+    Amount: number;
+    SoldOut: boolean;
+    Live: boolean;
+    IsSubProduct: boolean;
+    SalesStart?: Temporal.ZonedDateTime;
+    SalesEnd?: Temporal.ZonedDateTime;
+    Updated: Temporal.ZonedDateTime;
+}
+
+/**
+ * Returns whether the |lhs| and |rhs| represent different `ZonedDateTime` instances.
+ */
+function ZonedDateTimesAreDifferent(lhs?: Temporal.ZonedDateTime, rhs?: Temporal.ZonedDateTime) {
+    if (!!lhs !== !!rhs)
+        return true;  // one holds a value, the other does not
+
+    if (!lhs || !rhs)
+        return false;  // neither holds a value
+
+    return Temporal.ZonedDateTime.compare(lhs.round('seconds'), rhs.round('seconds')) !== 0;
 }
 
 /**
@@ -101,7 +123,15 @@ export class YourTicketProviderImportTask extends Task {
                 mostRecentPurchase: dbInstance.max(purchasesJoin.ytpPurchaseDatePaid),
                 tickets: dbInstance.aggregateAsArray({
                     id: ticketsJoin.ytpTicketId,
-                    // TODO: Other information necessary to apply a diff
+                    Name: ticketsJoin.ytpTicketName,
+                    Price: ticketsJoin.ytpTicketPrice,
+                    Amount: ticketsJoin.ytpTicketAmount,
+                    SoldOut: ticketsJoin.ytpTicketSoldOut.equals(/* true= */ 1),
+                    Live: ticketsJoin.ytpTicketLive.equals(/* true= */ 1),
+                    IsSubProduct: ticketsJoin.ytpTicketIsSubproduct.equals(/* true= */ 1),
+                    SalesStart: ticketsJoin.ytpTicketSalesStart,
+                    SalesEnd: ticketsJoin.ytpTicketSalesEnd,
+                    Updated: ticketsJoin.ytpTicketUpdated,
                 }),
             })
             .groupBy(tEvents.eventYtpEventId)
@@ -119,6 +149,9 @@ export class YourTicketProviderImportTask extends Task {
             }
         }
 
+        // TODO: Logging
+        // TODO: Rescheduling interval
+
         return true;
     }
 
@@ -127,10 +160,101 @@ export class YourTicketProviderImportTask extends Task {
     /**
      * Method to import the ticket types that exist for the given `eventId`.
      */
-    private async importTicketTypes(eventId: number, existingTickets: ExistingTicketInformation[])
+    private async importTicketTypes(eventId: number, knownTickets: KnownTicketInformation[])
         : Promise<boolean>
     {
-        return false;
+        const knownTicketsMap = new Map(knownTickets.map(ticket => [ ticket.id, ticket ]));
+
+        const liveTickets = await this.#client.listTicketsAndProducts(eventId);
+        if (!liveTickets.length)
+            return false;  // no tickets have been created for the event
+
+        const dbInstance = db;
+        return await dbInstance.transaction(async () => {
+            const seenTickets = new Set<number>();
+
+            for (const liveTicket of liveTickets) {
+                const knownTicket = knownTicketsMap.get(liveTicket.Id);
+
+                let ytpTicketSalesStart: Temporal.ZonedDateTime | undefined;
+                let ytpTicketSalesEnd: Temporal.ZonedDateTime | undefined;
+
+                if (!!liveTicket.SalesStart) {
+                    ytpTicketSalesStart =
+                        Temporal.Instant.from(liveTicket.SalesStart)
+                            .round('seconds').toZonedDateTimeISO('UTC');
+                }
+
+                if (!!liveTicket.SalesEnd) {
+                    ytpTicketSalesEnd =
+                        Temporal.Instant.from(liveTicket.SalesEnd)
+                            .round('seconds').toZonedDateTimeISO('UTC');
+                }
+
+                let ytpTicketUpdated: Temporal.ZonedDateTime | undefined;
+                if (!!knownTicket) {
+                    ytpTicketUpdated = knownTicket.Updated;
+                    if (knownTicket.Name !== liveTicket.Name ||
+                        knownTicket.Price !== liveTicket.Price ||
+                        knownTicket.Amount !== liveTicket.Amount ||
+                        knownTicket.SoldOut !== !!liveTicket.SoldOut ||
+                        knownTicket.Live !== !!liveTicket.Live ||
+                        knownTicket.IsSubProduct !== !!liveTicket.IsSubproduct ||
+                        ZonedDateTimesAreDifferent(knownTicket.SalesStart, ytpTicketSalesStart) ||
+                        ZonedDateTimesAreDifferent(knownTicket.SalesEnd, ytpTicketSalesEnd))
+                    {
+                        ytpTicketUpdated = Temporal.Now.zonedDateTimeISO('UTC');
+                    }
+                }
+
+                await dbInstance.insertInto(tYourTicketProviderTickets)
+                    .set({
+                        ytpTicketId: liveTicket.Id,
+                        ytpTicketEventId: eventId,
+                        ytpTicketName: liveTicket.Name,
+                        ytpTicketPrice: liveTicket.Price,
+                        ytpTicketAmount: liveTicket.Amount,
+                        ytpTicketSoldOut: liveTicket.SoldOut ? 1 : 0,
+                        ytpTicketLive: liveTicket.Live ? 1 : 0,
+                        ytpTicketIsSubproduct: liveTicket.IsSubproduct ? 1 : 0,
+                        ytpTicketSalesStart,
+                        ytpTicketSalesEnd,
+                        ytpTicketCreated: dbInstance.currentZonedDateTime(),
+                        ytpTicketUpdated: dbInstance.currentZonedDateTime(),
+                        ytpTicketDeleted: null,
+                    })
+                    .onConflictDoUpdateSet({
+                        ytpTicketName: liveTicket.Name,
+                        ytpTicketPrice: liveTicket.Price,
+                        ytpTicketAmount: liveTicket.Amount,
+                        ytpTicketSoldOut: liveTicket.SoldOut ? 1 : 0,
+                        ytpTicketLive: liveTicket.Live ? 1 : 0,
+                        ytpTicketIsSubproduct: liveTicket.IsSubproduct ? 1 : 0,
+                        ytpTicketSalesStart,
+                        ytpTicketSalesEnd,
+                        ytpTicketUpdated,
+                        ytpTicketDeleted: null,
+                    })
+                    .executeInsert();
+
+                seenTickets.add(liveTicket.Id);
+            }
+
+            for (const knownTicket of knownTickets) {
+                if (seenTickets.has(knownTicket.id))
+                    continue;
+
+                await dbInstance.update(tYourTicketProviderTickets)
+                    .set({
+                        ytpTicketDeleted: dbInstance.currentZonedDateTime(),
+                    })
+                    .where(tYourTicketProviderTickets.ytpTicketId.equals(knownTicket.id))
+                        .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
+                    .executeUpdate();
+            }
+
+            return true;
+        });
     }
 
     /**

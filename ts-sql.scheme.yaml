@@ -3506,9 +3506,6 @@ tables:
   - name: ytp_ticket_amount
     type: int(4) unsigned
     nullable: false
-  - name: ytp_ticket_current_available
-    type: int(4) unsigned
-    nullable: false
   - name: ytp_ticket_sold_out
     type: tinyint(1) unsigned
     nullable: false
@@ -3568,7 +3565,6 @@ tables:
       `ytp_ticket_name` text NOT NULL,
       `ytp_ticket_price` int(4) unsigned NOT NULL,
       `ytp_ticket_amount` int(4) unsigned NOT NULL,
-      `ytp_ticket_current_available` int(4) unsigned NOT NULL,
       `ytp_ticket_sold_out` tinyint(1) unsigned NOT NULL,
       `ytp_ticket_live` tinyint(1) unsigned NOT NULL,
       `ytp_ticket_is_subproduct` tinyint(1) unsigned NOT NULL,
