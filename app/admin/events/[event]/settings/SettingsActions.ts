@@ -254,7 +254,8 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
 const kEventIntegrationsData = z.object({
     festivalId: z.number().nullish(),
     hotelRoomForm: z.url().nullish(),
-    yourTicketProviderId: z.number().nullish(),
+    yourTicketProviderEventId: z.number().nullish(),
+    yourTicketProviderExternalEventId: z.string().nullish(),
     weeztixEventGuid: z.string().nullish(),
 });
 
@@ -270,7 +271,8 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
             .set({
                 eventFestivalId: data.festivalId,
                 eventHotelRoomForm: data.hotelRoomForm,
-                eventYtpId: data.yourTicketProviderId,
+                eventYtpEventId: data.yourTicketProviderEventId,
+                eventYtpExternalEventId: data.yourTicketProviderExternalEventId,
                 eventWeeztixGuid: data.weeztixEventGuid,
             })
             .where(tEvents.eventId.equals(event.id))

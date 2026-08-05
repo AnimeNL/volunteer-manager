@@ -208,13 +208,13 @@ export class ImportYourTicketProviderTask extends Task {
         return await dbInstance.selectFrom(tEvents)
             .where(tEvents.eventHidden.equals(/* false= */ 0))
                 .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
-                .and(tEvents.eventYtpId.isNotNull())
+                .and(tEvents.eventYtpEventId.isNotNull())
             .select({
                 id: tEvents.eventId,
                 slug: tEvents.eventSlug,
                 name: tEvents.eventShortName,
                 endTime: tEvents.eventEndTime,
-                yourTicketProviderId: tEvents.eventYtpId,
+                yourTicketProviderId: tEvents.eventYtpEventId,
             })
             .orderBy(tEvents.eventEndTime, 'desc')
             .executeSelectMany() as EventInfo[];

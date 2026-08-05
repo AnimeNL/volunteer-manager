@@ -34,7 +34,8 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 integrations: {
                     anPlanFestivalId: tEvents.eventFestivalId,
                     weeztixGuid: tEvents.eventWeeztixGuid,
-                    yourTicketProviderId: tEvents.eventYtpId,
+                    yourTicketProviderEventId: tEvents.eventYtpEventId,
+                    yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
                 },
 
                 tickets: {

@@ -104,7 +104,8 @@ export default async function EventSettingsTeamsPage(
             integrations: {
                 festivalId: tEvents.eventFestivalId,
                 hotelRoomForm: tEvents.eventHotelRoomForm,
-                yourTicketProviderId: tEvents.eventYtpId,
+                yourTicketProviderEventId: tEvents.eventYtpEventId,
+                yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
                 weeztixEventGuid: tEvents.eventWeeztixGuid,
             },
             identityHash: storageJoin.fileHash,
@@ -214,11 +215,16 @@ export default async function EventSettingsTeamsPage(
                                       fullWidth size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="yourTicketProviderId"
+                    <TextFieldElement name="yourTicketProviderEventId"
                                       label="YourTicketProvider Event ID"
                                       type="number" fullWidth size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="yourTicketProviderExternalEventId"
+                                      label="YourTicketProvider External Event ID"
+                                      fullWidth size="small" />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
                      <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID" fullWidth
                                        size="small" />
                 </Grid>

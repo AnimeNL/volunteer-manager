@@ -49,7 +49,9 @@ export class EventsTable extends Table<DBConnection, 'EventsTable'> {
     eventHotelRoomForm = this.optionalColumnWithDefaultValue('event_hotel_room_form', 'string');
     eventFestivalId = this.optionalColumnWithDefaultValue('event_festival_id', 'int');
     eventIdentityId = this.optionalColumnWithDefaultValue('event_identity_id', 'int');
-    eventYtpId = this.optionalColumnWithDefaultValue('event_ytp_id', 'int');
+    //eventYtpId = this.optionalColumnWithDefaultValue('event_ytp_id', 'int');
+    eventYtpEventId = this.optionalColumnWithDefaultValue('event_ytp_event_id', 'int');
+    eventYtpExternalEventId = this.optionalColumnWithDefaultValue('event_ytp_external_event_id', 'string');
     eventWeeztixGuid = this.optionalColumnWithDefaultValue('event_weeztix_guid', 'string');
 
     constructor() {

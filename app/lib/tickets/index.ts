@@ -28,8 +28,8 @@ export async function createTicketService(eventIdentifier: number | string)
             break;
 
         case 'YourTicketProvider':
-            if (!!event?.integrations?.yourTicketProviderId)
-                backend = new YourTicketProvider(event.integrations.yourTicketProviderId);
+            if (!!event?.integrations?.yourTicketProviderEventId)
+                backend = new YourTicketProvider(event.integrations.yourTicketProviderEventId);
 
             break;
     }
