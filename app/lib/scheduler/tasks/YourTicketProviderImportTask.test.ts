@@ -6,10 +6,16 @@ import { TaskContext } from '../TaskContext';
 import { useMockConnection } from '@lib/database/Connection';
 
 const mockListTicketsAndProducts = vi.fn();
+const mockQueryVisitorInformation = vi.fn();
+const mockFetchPurchase = vi.fn();
+const mockFetchPurchaseItems = vi.fn();
 
 vi.mock('@lib/integrations/yourticketprovider', () => ({
     createYourTicketProviderClient: async () => ({
         listTicketsAndProducts: mockListTicketsAndProducts,
+        queryVisitorInformation: mockQueryVisitorInformation,
+        fetchPurchase: mockFetchPurchase,
+        fetchPurchaseItems: mockFetchPurchaseItems,
     }),
 }));
 
@@ -20,6 +26,9 @@ describe('YourTicketProviderImportTask', () => {
 
     beforeEach(async () => {
         mockListTicketsAndProducts.mockReset();
+        mockQueryVisitorInformation.mockReset();
+        mockFetchPurchase.mockReset();
+        mockFetchPurchaseItems.mockReset();
         const context = TaskContext.forEphemeralTask('YourTicketProviderImportTask', {});
         task = new YourTicketProviderImportTask(context);
         await (task as any).initialise();
@@ -233,5 +242,231 @@ describe('YourTicketProviderImportTask', () => {
 
         const result = await (task as any).importTicketTypes(123, knownTickets);
         expect(result).toBe(true);
+    });
+
+    describe('importPurchases', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('returns false when no purchases are returned by the Visitor Information API', async () => {
+            mockQueryVisitorInformation.mockResolvedValueOnce([]);
+
+            const result = await (task as any).importPurchases(123, 'ext-event-id');
+            expect(result).toBe(false);
+        });
+
+        it('skips updating when no changes are identified in the purchase', async () => {
+            const livePurchases = [
+                {
+                    id: 'purchase-12345',
+                    productId: 'prod-101',
+                    reference: 'REF12345',
+                    date: '2026-08-05T12:00:00Z',
+                    lastUpdated: '2026-08-05T12:05:00Z',
+                    tickets: [
+                        {
+                            id: 'ticket-99001',
+                            ticketTypeId: '1001',
+                            barcode: '1234567890123',
+                            source: 'Webshop',
+                            status: 'Valid',
+                            lastUpdated: '2026-08-05T12:05:00Z',
+                            basicInformation: {
+                                firstname: 'John',
+                                lastname: 'Doe',
+                            },
+                        }
+                    ]
+                }
+            ];
+            mockQueryVisitorInformation.mockResolvedValueOnce(livePurchases);
+
+            mockConnection.expect('selectManyRows', () => {
+                return [
+                    {
+                        id: 12345,
+                        tickets: [
+                            {
+                                barcode: '1234567890123',
+                                complimentary: false,
+                                cancelled: null,
+                                holder: 'John Doe',
+                            }
+                        ]
+                    }
+                ];
+            });
+
+            const result = await (task as any).importPurchases(123, 'ext-event-id');
+            expect(result).toBe(true);
+
+            expect(mockFetchPurchase).not.toHaveBeenCalled();
+            expect(mockFetchPurchaseItems).not.toHaveBeenCalled();
+        });
+
+        it('updates the purchase when a change is identified', async () => {
+            const livePurchases = [
+                {
+                    id: 'purchase-12345',
+                    productId: 'prod-101',
+                    reference: 'REF12345',
+                    date: '2026-08-05T12:00:00Z',
+                    lastUpdated: '2026-08-05T12:05:00Z',
+                    tickets: [
+                        {
+                            id: 'ticket-99001',
+                            ticketTypeId: '1001',
+                            barcode: '1234567890123',
+                            source: 'Webshop',
+                            status: 'Cancelled',
+                            lastUpdated: '2026-08-05T12:05:00Z',
+                            basicInformation: {
+                                firstname: 'John',
+                                lastname: 'Doe',
+                            },
+                        }
+                    ]
+                }
+            ];
+            mockQueryVisitorInformation.mockResolvedValueOnce(livePurchases);
+
+            mockConnection.expect('selectManyRows', () => {
+                return [
+                    {
+                        id: 12345,
+                        tickets: [
+                            {
+                                barcode: '1234567890123',
+                                complimentary: false,
+                                cancelled: null,
+                                holder: 'John Doe',
+                            }
+                        ]
+                    }
+                ];
+            });
+
+            const mockPurchase = {
+                Id: 12345,
+                EventId: 123,
+                TotalAmount: 4500,
+                PaidDate: '2026-08-05T12:00:00Z',
+                Cancelled: true,
+                HasAcceptedTermsAndAgreements: true,
+            };
+            const mockItems = [
+                {
+                    Id: 99001,
+                    TicketId: 1001,
+                    Barcode: 1234567890123,
+                    TicketHolderFirstname: 'John',
+                    TicketHolderInsertion: null,
+                    TicketHolderLastname: 'Doe',
+                }
+            ];
+
+            mockFetchPurchase.mockResolvedValueOnce(mockPurchase);
+            mockFetchPurchaseItems.mockResolvedValueOnce(mockItems);
+
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into your_ticket_provider_purchases');
+                expect(params[0]).toBe(12345);
+                expect(params[1]).toBe(123);
+                expect(params[2]).toBe(0);
+                return 1;
+            });
+            mockConnection.expect('commit');
+
+            const resultPromise = (task as any).importPurchases(123, 'ext-event-id');
+            await vi.runAllTimersAsync();
+            const result = await resultPromise;
+
+            expect(result).toBe(true);
+            expect(mockFetchPurchase).toHaveBeenCalledWith(12345);
+            expect(mockFetchPurchaseItems).toHaveBeenCalledWith(12345);
+        });
+
+        it('inserts a new purchase when it is not in the database', async () => {
+            const livePurchases = [
+                {
+                    id: 'purchase-67890',
+                    productId: 'prod-102',
+                    reference: 'REF67890',
+                    date: '2026-08-05T12:00:00Z',
+                    lastUpdated: '2026-08-05T12:05:00Z',
+                    tickets: [
+                        {
+                            id: 'ticket-99002',
+                            ticketTypeId: '1002',
+                            barcode: '9876543210987',
+                            source: 'GuestList',
+                            status: 'Valid',
+                            lastUpdated: '2026-08-05T12:05:00Z',
+                            basicInformation: {
+                                firstname: 'Jane',
+                                lastname: 'Smith',
+                            },
+                        }
+                    ]
+                }
+            ];
+            mockQueryVisitorInformation.mockResolvedValueOnce(livePurchases);
+
+            mockConnection.expect('selectManyRows', () => {
+                return [];
+            });
+
+            const mockPurchase = {
+                Id: 67890,
+                EventId: 123,
+                TotalAmount: 0,
+                PaidDate: '2026-08-05T12:00:00Z',
+                Cancelled: false,
+                HasAcceptedTermsAndAgreements: true,
+            };
+            const mockItems = [
+                {
+                    Id: 99002,
+                    TicketId: 1002,
+                    Barcode: 9876543210987,
+                    TicketHolderFirstname: 'Jane',
+                    TicketHolderInsertion: 'de',
+                    TicketHolderLastname: 'Smith',
+                }
+            ];
+
+            mockFetchPurchase.mockResolvedValueOnce(mockPurchase);
+            mockFetchPurchaseItems.mockResolvedValueOnce(mockItems);
+
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into your_ticket_provider_purchases');
+                expect(params[0]).toBe(67890);
+                expect(params[1]).toBe(123);
+                expect(params[2]).toBe(1);
+                expect(params[3]).toBeUndefined();
+                expect(params[4]).toBe('2026-08-05 12:00:00');
+                expect(params[5]).toBe(99002);
+                expect(params[6]).toBe(1002);
+                expect(params[7]).toBe('9876543210987');
+                expect(params[8]).toBe('Jane de Smith');
+                return 1;
+            });
+            mockConnection.expect('commit');
+
+            const resultPromise = (task as any).importPurchases(123, 'ext-event-id');
+            await vi.runAllTimersAsync();
+            const result = await resultPromise;
+
+            expect(result).toBe(true);
+            expect(mockFetchPurchase).toHaveBeenCalledWith(67890);
+            expect(mockFetchPurchaseItems).toHaveBeenCalledWith(67890);
+        });
     });
 });
