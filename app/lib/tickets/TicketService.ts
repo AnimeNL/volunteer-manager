@@ -21,7 +21,7 @@ export class TicketService {
      * depending on requirements of the chosen ticketing partner. Ticket creation may fail for a
      * variety of reasons, largely outside of our control.
      */
-    async createTicket(request: TicketCreateRequest): Promise<Ticket | undefined> {
+    async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
         return this.#backend.createTicket(request);
     }
 

@@ -60,7 +60,7 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
 
             return {
                 success: true,
-                redirect: `./externals/${ticket.id}`,
+                redirect: `./externals/${ticket.purchaseId}`,
             };
 
         } catch (error: any) {

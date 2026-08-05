@@ -6,6 +6,8 @@ import type { TicketBackend } from '../TicketBackend';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 
+import db, { tYourTicketProviderPurchases } from '@lib/database';
+
 /**
  * Implementation of the `TicketBackend` specific to YourTicketProvider and/or CM.com.
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
@@ -26,7 +28,7 @@ export class YourTicketProvider implements TicketBackend {
         this.#client = await createYourTicketProviderClient();
     }
 
-    async createTicket(request: TicketCreateRequest): Promise<Ticket> {
+    async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
         if (!this.#client)
             throw new Error('Unable to execute createTicket() without a valid client');
 
@@ -50,7 +52,7 @@ export class YourTicketProvider implements TicketBackend {
             ],
         });
 
-        return { id: ticket.Id };
+        return { purchaseId: ticket.Id };
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
@@ -68,15 +70,19 @@ export class YourTicketProvider implements TicketBackend {
         }));
     }
 
-    async listTicketsForType(id: number | string): Promise<Ticket[]> {
-        if (!this.#client)
-            throw new Error('Unable to execute listTicketsForType() without a valid client');
-
-        const tickets = await this.#client.listTicketsForType(this.#eventId, Number(id));
-        console.log(tickets);
-
-        return tickets.map(ticket => ({
-            // TODO
-        } as any));
+    async listTicketsForType(ticketId: number | string): Promise<Ticket[]> {
+        return db.selectFrom(tYourTicketProviderPurchases)
+            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+                .and(tYourTicketProviderPurchases.ytpPurchaseItemTicketId.equals(Number(ticketId)))
+            .select({
+                id: tYourTicketProviderPurchases.ytpPurchaseItemId,
+                purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
+                ticketId: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
+                barcode: tYourTicketProviderPurchases.ytpPurchaseItemBarcode,
+                holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
+                cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled,
+                paid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
+            })
+            .executeSelectMany();
     }
 }

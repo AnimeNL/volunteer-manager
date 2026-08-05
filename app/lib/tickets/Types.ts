@@ -9,6 +9,36 @@ export interface Ticket {
      * Unique ID of this ticket.
      */
     id: number | string;
+
+    /**
+     * Unique ID of the purchase that this ticket was issued for.
+     */
+    purchaseId: number | string;
+
+    /**
+     * Unique ID of the ticket type that this ticket is an example of.
+     */
+    ticketId: number | string;
+
+    /**
+     * Barcode through which the ticket can be scanned.
+     */
+    barcode?: string;
+
+    /**
+     * Name of the holder of the ticket. May be anonimised after an event concludes.
+     */
+    holder?: string;
+
+    /**
+     * Date on which the ticket has been cancelled, if any.
+     */
+    cancelled?: Temporal.ZonedDateTime;
+
+    /**
+     * Date on which the ticket has been paid, if any.
+     */
+    paid?: Temporal.ZonedDateTime;
 }
 
 /**

@@ -14,6 +14,7 @@ import { DataTable, createDataSource, kEventTransformer, withContext, withRowMod
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { ValidityCell, ValidityHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -35,6 +36,21 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
      * Unique ID of the date as it exists in the database.
      */
     id: z.number().or(z.string()),
+
+    /**
+     * Name of the person who holds the ticket, when known.
+     */
+    holder: z.string().nullish(),
+
+    /**
+     * Name of the order that this ticket is part of.
+     */
+    order: z.string(),
+
+    /**
+     * Whether the ticket has been cancelled,
+     */
+    cancelled: z.boolean(),
 
 }), {
     async authorize(operation, props, context) {
@@ -59,13 +75,39 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
         if (!context.event.tickets?.volunteerTicketId)
             return { rowCount: 0, rows: [] };  // no ticket has been specified
 
-        const tickets = await service.listTicketsForType(context.event.tickets.volunteerTicketId);
+        const searchQuery = params.search?.toLocaleLowerCase();
 
-        // TODO: Filter away those associated with known volunteers
+        const tickets = await service.listTicketsForType(context.event.tickets.volunteerTicketId);
+        const filteredTickets = tickets.filter(ticket => {
+            if (!searchQuery)
+                return true;
+
+            return ticket.barcode?.toLocaleLowerCase().includes(searchQuery) ||
+                   ticket.holder?.toLocaleLowerCase().includes(searchQuery) ||
+                   `ref${ticket.purchaseId}`.includes(searchQuery);
+        });
+
+        const sortedTickets = filteredTickets.sort((lhs, rhs) => {
+            if (lhs.cancelled !== rhs.cancelled)
+                return lhs.cancelled ? 1 : -1;  // sort cancelled tickets last
+
+            if (lhs.holder && rhs.holder)
+                return lhs.holder.localeCompare(rhs.holder);  // sort by name when known
+
+            return 0;
+        });
+
+        const selectedTickets = sortedTickets.slice(
+            params.page.offset, params.page.offset + params.page.limit);
 
         return {
-            rowCount: tickets.length,
-            rows: tickets,
+            rowCount: sortedTickets.length,
+            rows: selectedTickets.map(ticket => ({
+                id: ticket.purchaseId,
+                holder: ticket.holder,
+                order: `REF${ticket.purchaseId}`,
+                cancelled: !!ticket.cancelled,
+            })),
         };
     },
 });
@@ -91,6 +133,34 @@ export default async function EventTicketsExternalsPage(
     const columns: Column<ExtractRowModel<typeof eventExternalTicketDataSource>>[] = [
         {
             field: 'id',
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                headerComponent: ValidityHeaderCell,
+                component: ValidityCell,
+            },
+        },
+        {
+            field: 'holder',
+            headerName: 'Ticket holder',
+            sortable: false,
+            flex: 2,
+
+            template: 'text',
+            templateProps: {
+                defaultValue: 'Identity anonimised',
+                href: './externals/{id}',
+            },
+        },
+        {
+            field: 'order',
+            headerName: 'Order',
+            sortable: false,
+            flex: 1,
         },
     ];
 
@@ -112,10 +182,12 @@ export default async function EventTicketsExternalsPage(
             <Section noHeader tabs>
                 <DataTable columns={columns} source={eventExternalTicketDataSource}
                            context={{ event: event.slug }}
-                           defaultSort={{ field: 'id', sort: 'asc' }}
+                           defaultSort={{ field: 'holder', sort: 'asc' }}
                            subject="ticket"
                            listViewProps={{
-                               primaryField: 'id',
+                               primaryField: 'holder',
+                               startComponent: ValidityCell,
+                               linkTemplate: './externals/{id}',
                            }} />
             </Section>
             { serviceCanCreateTickets &&

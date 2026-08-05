@@ -23,7 +23,7 @@ export async function createTicketService(eventIdentifier: number | string)
     switch (event.tickets?.provider) {
         case 'Weeztix':
             if (!!event?.integrations?.weeztixGuid)
-                backend = new Weeztix(event.integrations.weeztixGuid);
+                backend = new Weeztix();
 
             break;
 
