@@ -7,6 +7,8 @@ import { TaskContext } from '../TaskContext';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import db, { tEvents, tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
+let totalExecutions = 0;
+
 /**
  * Configuration options available for the `YourTicketProviderImportTask` mechanism.
  */
@@ -62,13 +64,6 @@ function ZonedDateTimesAreDifferent(lhs?: Temporal.ZonedDateTime, rhs?: Temporal
  * strict operational need to keep a copy ceases to be relevant.
  */
 export class YourTicketProviderImportTask extends Task {
-    static run() {
-        const taskContext = TaskContext.forEphemeralTask('YourTicketProviderImportTask', null);
-        const task = new YourTicketProviderImportTask(taskContext);
-
-        return task.execute();
-    }
-
     /**
      * The default interval for the import task, when no precise granularity can be decided upon.
      */
@@ -116,6 +111,11 @@ export class YourTicketProviderImportTask extends Task {
     override async execute(): Promise<boolean> {
         await this.initialise();
 
+        if (++totalExecutions > 20) {
+            this.log.error('Total execution safeguard exceeded; skipping');
+            return false;
+        }
+
         const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
         const ticketsJoin = tYourTicketProviderTickets.forUseInLeftJoin();
 
@@ -158,6 +158,7 @@ export class YourTicketProviderImportTask extends Task {
                 throw new Error(`Unable to update ${event.name} data without an event ID`);
 
             this.log.info(`Starting data import for ${event.name}`);
+            console.log(`Starting data import for ${event.name}`);  // temporary
 
             await this.importTicketTypes(event.context.eventId, event.tickets);
 
@@ -299,7 +300,7 @@ export class YourTicketProviderImportTask extends Task {
         mostRecentPurchase ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
 
         this.log.info('[Purchases] Fetching purchases from the YourTicketProvider API');
-        this.log.info('[Purchases] w/ last updated = ', mostRecentPurchase.toString());
+        this.log.info(`[Purchases] w/ last updated = ${mostRecentPurchase.toString()}`);
 
         const recentPurchases = await this.#client.queryVisitorInformation(externalEventId, {
             type: 'lastUpdated',
@@ -511,7 +512,7 @@ export class YourTicketProviderImportTask extends Task {
             return;
         }
 
-        this.log.info('Interval: The event is still very far out, using maximum interval.');
+        this.log.info('[Interval] The event is still very far out, using maximum interval.');
         this.setIntervalForRepeatingTask(maximumInterval);
     }
 }
