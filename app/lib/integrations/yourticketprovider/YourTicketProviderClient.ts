@@ -250,6 +250,40 @@ export class YourTicketProviderClient {
         return [];
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Ticketing API:
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Fetches the purchase with the given `purchaseId`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Information about this specific purpose.
+     */
+    async fetchPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseResponse> {
+        return this.issueRequest(ytp.kTicketingPurchaseResponse, {
+            api: `/Purchases(${purchaseId})`,
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Fetches the items that were purchased as part of the given `purchaseId`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Information about this specific purpose.
+     */
+    async fetchPurchaseItems(purchaseId: number): Promise<ytp.TicketingPurchaseItemsResponse> {
+        return (await this.issueRequest(ytp.kTIcketingPurchaseItemsResponse, {
+            api: `/Purchases(${purchaseId})/PurchaseItems`,
+            method: 'GET',
+        })).value;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Visitor Information API:
+    // ---------------------------------------------------------------------------------------------
+
     /**
      * Queries the Visitor Information API for the given `request`.
      *
@@ -257,7 +291,9 @@ export class YourTicketProviderClient {
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Array of purchases and tickets that are in scope of the request.
      */
-    async queryVisitorInformation(externalEventId: string, request: VisitorInformationRequest) {
+    async queryVisitorInformation(externalEventId: string, request: VisitorInformationRequest)
+        : Promise<ytp.VisitorInformationResponse>
+    {
         if (!this.#settings.visitorApiKey)
             throw new Error('Unable to query the Visitor Information API without an API key');
 

@@ -2363,6 +2363,12 @@ tables:
     table: your_ticket_provider_purchases
     columns:
     - ytp_purchase_id
+  - name: ytp_purchase_id_3
+    def: KEY ytp_purchase_id_3 (ytp_purchase_id, ytp_purchase_event_id) USING BTREE
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_id
+    - ytp_purchase_event_id
   - name: ytp_purchase_item_ticket_id
     def: KEY ytp_purchase_item_ticket_id (ytp_purchase_item_ticket_id) USING BTREE
     table: your_ticket_provider_purchases
@@ -2398,7 +2404,8 @@ tables:
       UNIQUE KEY `ytp_purchase_id` (`ytp_purchase_id`,`ytp_purchase_event_id`,`ytp_purchase_item_id`),
       KEY `ytp_purchase_event_id` (`ytp_purchase_event_id`),
       KEY `ytp_purchase_id_2` (`ytp_purchase_id`),
-      KEY `ytp_purchase_item_ticket_id` (`ytp_purchase_item_ticket_id`)
+      KEY `ytp_purchase_item_ticket_id` (`ytp_purchase_item_ticket_id`),
+      KEY `ytp_purchase_id_3` (`ytp_purchase_id`,`ytp_purchase_event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: outbox_email
   type: BASE TABLE

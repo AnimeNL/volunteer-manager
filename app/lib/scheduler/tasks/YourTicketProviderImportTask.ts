@@ -58,8 +58,8 @@ function ZonedDateTimesAreDifferent(lhs?: Temporal.ZonedDateTime, rhs?: Temporal
  *
  * There are two specific data points that will be synchronised by this task. First, the ticket
  * types that exist for each live event, and second, metadata associated with each of the individual
- * purchased items. A pseudonomous variant of an item's holder will be stored ("Peter B."), whereas
- * all other information will intentionally be ignored from a privacy point of view.
+ * purchased items. All stored data is expected to be anonimised after the event concludes, and the
+ * strict operational need to keep a copy ceases to be relevant.
  */
 export class YourTicketProviderImportTask extends Task {
     static run() {
@@ -90,7 +90,7 @@ export class YourTicketProviderImportTask extends Task {
     private async initialise(): Promise<void> {
         this.#client = await createYourTicketProviderClient();
         this.#configuration = {
-            delayBetweenPurchaseImportsMs: 500,
+            delayBetweenPurchaseImportsMs: 1000,
             maximumPurchasesPerExecution: 10,
         };
     }
@@ -150,12 +150,9 @@ export class YourTicketProviderImportTask extends Task {
                 await this.importPurchases(
                     event.context.eventId, event.context.externalEventId, event.mostRecentPurchase);
             } else {
-                this.log.debug('[Purchases] Skipping due to missing external event ID');
+                this.log.debug('[Purchases] No external event ID has been defined; skipping');
             }
         }
-
-        // TODO: Logging
-        // TODO: Rescheduling interval
 
         return true;
     }
@@ -170,12 +167,18 @@ export class YourTicketProviderImportTask extends Task {
     {
         const knownTicketsMap = new Map(knownTickets.map(ticket => [ ticket.id, ticket ]));
 
+        this.log.info('[Tickets] Fetching ticket types from the YourTicketProvider API');
+
         const liveTickets = await this.#client.listTicketsAndProducts(eventId);
-        if (!liveTickets.length)
-            return false;  // no tickets have been created for the event
+        if (!liveTickets.length) {
+            this.log.warning('[Tickets] No tickets were returned by the API; skipping');
+            return false;
+        }
+
+        this.log.info(`[Tickets] YourTicketProvider responded with ${liveTickets.length} type(s)`);
 
         const dbInstance = db;
-        return await dbInstance.transaction(async () => {
+        return dbInstance.transaction(async () => {
             const seenTickets = new Set<number>();
 
             let added = 0, deleted = 0, updated = 0;
@@ -264,7 +267,6 @@ export class YourTicketProviderImportTask extends Task {
             }
 
             this.log.info(`[Tickets] Added: ${added}, updated: ${updated}, deleted: ${deleted}`);
-
             return true;
         });
     }
@@ -277,14 +279,187 @@ export class YourTicketProviderImportTask extends Task {
         eventId: number, externalEventId: string, mostRecentPurchase?: Temporal.ZonedDateTime)
             : Promise<boolean>
     {
-        return false;
+        mostRecentPurchase ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
+
+        this.log.info('[Purchases] Fetching purchases from the YourTicketProvider API');
+        this.log.info('[Purchases] w/ last updated = ', mostRecentPurchase.toString());
+
+        const recentPurchases = await this.#client.queryVisitorInformation(externalEventId, {
+            type: 'lastUpdated',
+            since: mostRecentPurchase,
+            take: this.#configuration.maximumPurchasesPerExecution,
+            skip: 0,
+        });
+
+        if (!recentPurchases.length) {
+            this.log.warning('[Purchases] No purchases were returned by the API; skipping');
+            return false;
+        }
+
+        this.log.info(
+            `[Purchases] YourTicketProvider responded with ${recentPurchases.length} purchase(s)`);
+
+        // -----------------------------------------------------------------------------------------
+        // (1) Fetch existing information from the database to enable early elimination. Each ticket
+        //     import requires two additional API calls, which we want to minimise.
+        // -----------------------------------------------------------------------------------------
+
+        const recentPurchaseIds = recentPurchases.map(purchase =>
+            parseInt(purchase.reference.slice(3), /* radix= */ 10));
+
+        const dbInstance = db;
+        const knownPurchaseRecords = await dbInstance.selectFrom(tYourTicketProviderPurchases)
+            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(eventId))
+                .and(tYourTicketProviderPurchases.ytpPurchaseId.in(recentPurchaseIds))
+            .select({
+                id: tYourTicketProviderPurchases.ytpPurchaseId,
+                tickets: dbInstance.aggregateAsArray({
+                    barcode: tYourTicketProviderPurchases.ytpPurchaseItemBarcode,
+                    complimentary:
+                        tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(/* true= */ 1),
+                    cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled,
+                    holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
+                }),
+            })
+            .groupBy(tYourTicketProviderPurchases.ytpPurchaseId)
+            .executeSelectMany();
+
+        const knownPurchaseRecordMap =
+            new Map(knownPurchaseRecords.map(record => [ record.id, record ]));
+
+        // -----------------------------------------------------------------------------------------
+        // (2) Process the latest updated purchases. Early eliminate updates when none of the data
+        //     we store has been invalidated.
+        // -----------------------------------------------------------------------------------------
+
+        let updated = 0;
+        for (const purchase of recentPurchases) {
+            const purchaseId = parseInt(purchase.reference.slice(3), /* radix= */ 10);
+
+            let cancellationDate: Temporal.ZonedDateTime | undefined;
+
+            const knownPurchase = knownPurchaseRecordMap.get(purchaseId);
+            if (!!knownPurchase && knownPurchase.tickets.length === purchase.tickets.length) {
+                const knownTicketsMap = new Map(
+                    knownPurchase.tickets.map(ticket => [ ticket.barcode, ticket ]));
+
+                let changeIdentified = false;
+                for (const ticket of purchase.tickets) {
+                    const knownTicket = knownTicketsMap.get(ticket.barcode);
+                    if (!knownTicket) {
+                        changeIdentified = true;
+                        break;
+                    }
+
+                    if (!cancellationDate && !!knownTicket.cancelled)
+                        cancellationDate = knownTicket.cancelled;
+
+                    const complimentary = ticket.source === 'GuestList';
+                    if (complimentary !== knownTicket.complimentary) {
+                        changeIdentified = true;
+                        break;
+                    }
+
+                    const cancelled = ticket.status !== 'Valid';
+                    if (cancelled !== !!knownTicket.cancelled) {
+                        changeIdentified = true;
+                        break;
+                    }
+
+                    const fullName =
+                        `${ticket.basicInformation.firstname} ${ticket.basicInformation.lastname}`;
+
+                    const normalisedFullName = fullName.replace(/\s+/g, ' ').trim();
+                    if (normalisedFullName !== knownTicket.holder) {
+                        changeIdentified = true;
+                        break;
+                    }
+
+                    // If we reach this point in the control flow then no changes have been found in
+                    // this |ticket|. This may very well end up being the case for all tickets.
+                }
+
+                // When no changes in the existing tickets have been identified, this update most
+                // likely represents a scan or an update in fields we don't care about. Skip it.
+                if (!changeIdentified) {
+                    this.log.debug(
+                        `[Purchases] No changes identified in purchase ${purchaseId}; skipping`);
+                    continue;
+                }
+            }
+
+            const delayMs = this.#configuration.delayBetweenPurchaseImportsMs;
+            if (delayMs > 0) {
+                this.log.debug(`[Purchases] Waiting ${delayMs}ms…`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+
+            this.log.info(`[Purchases] Updating purchase ${purchaseId} using the Ticketing API`);
+            {
+                await this.importIndividualPurchase(eventId, purchaseId, cancellationDate);
+                updated++;
+            }
+        }
+
+        this.log.info(`[Purchases] Completed the synchronisation (updated = ${updated})`);
+        return true;
     }
 
     /**
      * Method to import all metadata required for the given `purchaseId` that exists with the given
      * `eventId`. This will issue two API calls to the YourTicketProvider API.
      */
-    private async importIndividualPurchase(eventId: number, purchaseId: number): Promise<boolean> {
-        return false;
+    private async importIndividualPurchase(
+        eventId: number, purchaseId: number, cancellationDate?: Temporal.ZonedDateTime)
+            : Promise<boolean>
+    {
+        const purchase = await this.#client.fetchPurchase(purchaseId);
+        const purchaseItems = await this.#client.fetchPurchaseItems(purchaseId);
+
+        const dbInstance = db;
+        return dbInstance.transaction(async () => {
+            for (const item of purchaseItems) {
+                let ytpPurchaseDatePaid: Temporal.ZonedDateTime | undefined;
+                let ytpPurchaseDateCancelled: Temporal.ZonedDateTime | undefined = cancellationDate;
+
+                if (!!purchase.PaidDate) {
+                    ytpPurchaseDatePaid =
+                        Temporal.Instant.from(purchase.PaidDate)
+                            .round('seconds').toZonedDateTimeISO('UTC');
+                }
+
+                if (!!purchase.Cancelled && !cancellationDate)
+                    ytpPurchaseDateCancelled = Temporal.Now.zonedDateTimeISO('UTC');
+
+                const ytpPurchaseItemHolder = [
+                    item.TicketHolderFirstname,
+                    item.TicketHolderInsertion,
+                    item.TicketHolderLastname,
+                ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+
+                await dbInstance.insertInto(tYourTicketProviderPurchases)
+                    .set({
+                        ytpPurchaseId: purchaseId,
+                        ytpPurchaseEventId: eventId,
+                        ytpPurchaseComplimentary: purchase.TotalAmount === 0 ? 1 : 0,
+                        ytpPurchaseDateCancelled,
+                        ytpPurchaseDatePaid,
+                        ytpPurchaseItemId: item.Id,
+                        ytpPurchaseItemTicketId: item.TicketId,
+                        ytpPurchaseItemBarcode: `${item.Barcode}`,
+                        ytpPurchaseItemHolder,
+                    })
+                    .onConflictDoUpdateSet({
+                        ytpPurchaseComplimentary: purchase.TotalAmount === 0 ? 1 : 0,
+                        ytpPurchaseDateCancelled,
+                        ytpPurchaseDatePaid,
+                        ytpPurchaseItemBarcode: `${item.Barcode}`,
+                        ytpPurchaseItemHolder,
+                    })
+                    .executeInsert();
+            }
+
+            return true;
+        });
     }
 }

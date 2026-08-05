@@ -133,6 +133,74 @@ export const kTicketsResponse = z.object({
  */
 export type TicketsResponse = z.infer<typeof kTicketsResponse>['value'];
 
+// -------------------------------------------------------------------------------------------------
+// Ticketing API:
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * API: /Purchases(<Id>)/PurchaseItems
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTIcketingPurchaseItemsResponse = z.object({
+    value: z.array(z.object({
+        Id: z.number(),
+        TicketId: z.number(),
+        HasToBeClaimed: z.boolean(),
+        IsClaimed: z.boolean(),
+        ClaimDateTime: z.iso.datetime().nullish(),
+        Barcode: z.number(),
+        TicketHolderEmail: z.string().nullish(),
+        TicketHolderFirstname: z.string().nullish(),
+        TicketHolderInsertion: z.string().nullish(),
+        TicketHolderLastname: z.string().nullish(),
+        TicketHolderOrganisation: z.string().nullish(),
+        TicketHolderDepartment: z.string().nullish(),
+        TicketHolderPosition: z.string().nullish(),
+        IsGroupTicket: z.boolean(),
+        NumberOfUsersAllowedEntranceWithTicket: z.number(),
+        // TODO: CustomQuestionAnswers
+    })),
+});
+
+/**
+ * API: /Purchases(<Id>)/PurchaseItems
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseItemsResponse =
+    z.infer<typeof kTIcketingPurchaseItemsResponse>['value'];
+
+/**
+ * API: /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseResponse = z.object({
+    Id: z.number(),
+    EventId: z.number(),
+    Email: z.string().nullish(),
+    IncludeTicketGuarantee: z.boolean(),
+    IsTicketClaimRequired: z.boolean(),
+    TicketClaimUrl: z.string().nullish(),
+    Language: z.string().nullish(),
+    TotalAmount: z.number(),
+    Reference: z.string(),
+    BasketId: z.number().nullish(),
+    HasAcceptedTermsAndAgreements: z.literal(true),
+    Secret: z.string().nullish(),
+    Paid: z.boolean(),
+    PaidDate: z.iso.datetime(),
+    Cancelled: z.boolean(),
+});
+
+/**
+ * API: /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseResponse = z.infer<typeof kTicketingPurchaseResponse>;
+
+// -------------------------------------------------------------------------------------------------
+// Visitor Information API:
+// -------------------------------------------------------------------------------------------------
+
 /**
  * Type definition for the information given to us by the Visitor Information API.
  * @see https://ytpstorage1.blob.core.windows.net/media/VisitorInformationApi.pdf
@@ -140,7 +208,7 @@ export type TicketsResponse = z.infer<typeof kTicketsResponse>['value'];
 export const kVisitorInformationResponse = z.array(z.object({
     id: z.string(),
     productId: z.string(),
-    reference: z.string(),
+    reference: z.string().regex(/^REF\d+$/),
     date: z.iso.datetime(),
     lastUpdated: z.iso.datetime(),
     tickets: z.array(z.object({
@@ -148,7 +216,7 @@ export const kVisitorInformationResponse = z.array(z.object({
         ticketTypeId: z.string(),
         barcode: z.string(),
         source: z.string(),  // GuestList |
-        status: z.string(),  // Valid |
+        status: z.enum([ 'Valid', 'Invalid', 'Cancelled', 'Refunded', 'Sold' ]),
         lastUpdated: z.iso.datetime(),
         basicInformation: z.object({
             firstname: z.string().nullish(),
