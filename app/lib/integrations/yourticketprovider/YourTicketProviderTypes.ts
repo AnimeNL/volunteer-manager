@@ -111,13 +111,20 @@ export type QueueNeededResponse = z.infer<typeof kOrganisersResponse>['value'];
 export const kTicketsResponse = z.object({
     value: z.array(z.object({
         Id: z.number(),
+        EventId: z.number(),
         Name: z.string(),
         Description: z.string().optional(),
         Price: z.number(),
         Amount: z.number(),
-        CurrentAvailable: z.number().nullable(),
+        MinTicketsPerUser: z.number().nullish(),
+        MaxTicketsPerUser: z.number().nullish(),
+        CurrentAvailable: z.number().nullish(),
+        SoldOut: z.boolean().nullish(),
+        ProvisionallySoldOut: z.boolean().nullish(),
         Live: z.boolean(),
         IsSubproduct: z.boolean(),
+        SalesStart: z.iso.datetime().nullish(),
+        SalesEnd: z.iso.datetime().nullish(),
     })),
 });
 
@@ -125,3 +132,32 @@ export const kTicketsResponse = z.object({
  * Interface describing the data we expect from the Tickets API.
  */
 export type TicketsResponse = z.infer<typeof kTicketsResponse>['value'];
+
+/**
+ * Type definition for the information given to us by the Visitor Information API.
+ * @see https://ytpstorage1.blob.core.windows.net/media/VisitorInformationApi.pdf
+ */
+export const kVisitorInformationResponse = z.array(z.object({
+    id: z.string(),
+    productId: z.string(),
+    reference: z.string(),
+    date: z.iso.datetime(),
+    lastUpdated: z.iso.datetime(),
+    tickets: z.array(z.object({
+        id: z.string(),
+        ticketTypeId: z.string(),
+        barcode: z.string(),
+        source: z.string(),  // GuestList |
+        status: z.string(),  // Valid |
+        lastUpdated: z.iso.datetime(),
+        basicInformation: z.object({
+            firstname: z.string().nullish(),
+            lastname: z.string().nullish(),
+        }),
+    })),
+}));
+
+/**
+ * Interface describing the data we expect from the Visitor Information API.
+ */
+export type VisitorInformationResponse = z.infer<typeof kVisitorInformationResponse>;

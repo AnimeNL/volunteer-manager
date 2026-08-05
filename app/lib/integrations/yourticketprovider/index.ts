@@ -16,7 +16,8 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
     if (!settings) {
         const configuration = await readSettings([
             // YourTicketProvider:
-            'integration-ytp-api-key',
+            'integration-ytp-ticketing-api-key',
+            'integration-ytp-visitor-api-key',
             'integration-ytp-endpoint',
             'integration-ytp-queue-endpoint',
         ]);
@@ -32,7 +33,8 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
         }
 
         settings = {
-            apiKey: configuration['integration-ytp-api-key']!,
+            ticketingApiKey: configuration['integration-ytp-ticketing-api-key']!,
+            visitorApiKey: configuration['integration-ytp-visitor-api-key']!,
             endpoint: configuration['integration-ytp-endpoint']!,
             queueEndpoint: configuration['integration-ytp-queue-endpoint'],
         };

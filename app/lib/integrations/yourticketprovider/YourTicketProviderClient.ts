@@ -10,11 +10,21 @@ import * as ytp from './YourTicketProviderTypes';
  */
 export interface YourTicketProviderClientSettings {
     /**
-     * API key that will be the authentication token for the YourTicketProvider API integration.
-     * This must be the API key by the event's owner; it's not sufficient to have access to the
-     * event through another account.
+     * API key that will be the authentication token for the YourTicketProvider Ticketing API
+     * integration. This must be the API key by the event's owner; it's not sufficient to have
+     * access to the event through another account.
+     *
+     * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
      */
-    apiKey: string;
+    ticketingApiKey: string;
+
+    /**
+     * API key that will be the authentication token for the YourTicketProvider Visitor Information
+     * API integration. This is a separate system for an unknown reason.
+     *
+     * @see https://ytpstorage1.blob.core.windows.net/media/VisitorInformationApi.pdf
+     */
+    visitorApiKey: string;
 
     /**
      * Endpoint through which the YourTicketProvider API can be reached.
@@ -63,6 +73,46 @@ type YourTicketProviderRequest = ({
      */
     body?: any;
 };
+
+/**
+ * Properties necessary to issue a request to the Visitor Information API.
+ *
+ * @see https://ytpstorage1.blob.core.windows.net/media/VisitorInformationApi.pdf
+ */
+type VisitorInformationRequest =
+    {
+        /**
+         * Type of request to issue to the API.
+         */
+        type: 'lastUpdated',
+
+        /**
+         * Time since which any updated purchases should be retrieved.
+         */
+        since: Temporal.ZonedDateTime;
+
+        /**
+         * Number of records to skip for pagination. (Should default to "0".)
+         */
+        skip: number;
+
+        /**
+         * Number of records to retrieve.
+         */
+        take: number;
+
+    } |
+    {
+        /**
+         * Type of request to issue to the API.
+         */
+        type: 'barcode',
+
+        /**
+         * Barcode to search for in the system.
+         */
+        barcode: string;
+    };
 
 /**
  * Maximum number of seconds we will wait prior to submitting a purchase. Any queueing times longer
@@ -200,6 +250,55 @@ export class YourTicketProviderClient {
         return [];
     }
 
+    /**
+     * Queries the Visitor Information API for the given `request`.
+     *
+     * @see https://ytpstorage1.blob.core.windows.net/media/VisitorInformationApi.pdf
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of purchases and tickets that are in scope of the request.
+     */
+    async queryVisitorInformation(externalEventId: string, request: VisitorInformationRequest) {
+        if (!this.#settings.visitorApiKey)
+            throw new Error('Unable to query the Visitor Information API without an API key');
+
+        const endpointParams = new URLSearchParams();
+        switch (request.type) {
+            case 'barcode':
+                endpointParams.set('barcode', request.barcode);
+                break;
+
+            case 'lastUpdated':
+                endpointParams.set(
+                    'lastUpdatedSince', request.since.toInstant().round('seconds').toString());
+                endpointParams.set('skip', request.skip.toString());
+                endpointParams.set('take', request.take.toString());
+                break;
+        }
+
+        const endpointBaseUrl = 'https://www.yourticketprovider.nl/api/integration/products';
+        const endpoint = `${endpointBaseUrl}/${externalEventId}/purchases?${endpointParams}`;
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: [
+                [ 'Accept', 'application/json' ],
+                [ 'Authorization', `Bearer ${this.#settings.visitorApiKey}` ],
+            ],
+        });
+
+        if (!response.ok) {
+            throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
+                cause: await response.json(),
+            });
+        }
+
+        const unverifiedResponseJson = await response.json();
+
+        // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
+        // method. Exceptions are considered fatal, and it's up to the caller to recover.
+        return ytp.kVisitorInformationResponse.parse(unverifiedResponseJson);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Internal behaviour:
     // ---------------------------------------------------------------------------------------------
@@ -219,12 +318,12 @@ export class YourTicketProviderClient {
         : Promise<T>
     {
         const composedEndpoint =
-            `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.apiKey}`;
+            `${this.#settings.endpoint}${request.api}?api_key=${this.#settings.ticketingApiKey}`;
 
         let body: BodyInit | undefined;
         let headers: HeadersInit = [
             [ 'Accept', 'application/json' ],
-            [ 'Authorization', `${this.#settings.apiKey}` ],
+            [ 'Authorization', `${this.#settings.ticketingApiKey}` ],
         ];
 
         if (!!request.body) {

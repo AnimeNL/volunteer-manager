@@ -150,7 +150,8 @@ export type Settings = {
     'integration-weeztix-refresh-token-expiration': number;
 
     // YourTicketProvider:
-    'integration-ytp-api-key': string;
+    'integration-ytp-ticketing-api-key': string;
+    'integration-ytp-visitor-api-key': string;
     'integration-ytp-endpoint': string;
     'integration-ytp-queue-endpoint': string;
 

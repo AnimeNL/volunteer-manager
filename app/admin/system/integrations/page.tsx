@@ -98,7 +98,8 @@ export default async function IntegrationsPage() {
         'integration-weeztix-refresh-token-expiration',
 
         // YourTicketProvider:
-        'integration-ytp-api-key',
+        'integration-ytp-ticketing-api-key',
+        'integration-ytp-visitor-api-key',
         'integration-ytp-endpoint',
         'integration-ytp-queue-endpoint',
     ]);
@@ -141,7 +142,8 @@ export default async function IntegrationsPage() {
             refreshToken: settings['integration-weeztix-refresh-token'] ?? '',
         },
         YourTicketProvider: {
-            apiKey: settings['integration-ytp-api-key'] ?? '',
+            ticketingApiKey: settings['integration-ytp-ticketing-api-key'] ?? '',
+            visitorApiKey: settings['integration-ytp-visitor-api-key'] ?? '',
             endpoint: settings['integration-ytp-endpoint'] ?? '',
             queueEndpoint: settings['integration-ytp-queue-endpoint'] ?? '',
         },
@@ -417,8 +419,12 @@ export default async function IntegrationsPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="YourTicketProvider[apiKey]" label="API Key" fullWidth
-                                      size="small" required />
+                    <TextFieldElement name="YourTicketProvider[ticketingApiKey]" required
+                                      label="Ticketing API Key" fullWidth size="small" />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextFieldElement name="YourTicketProvider[visitorApiKey]" required
+                                      label="Visitor Information API Key" fullWidth size="small" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="YourTicketProvider[endpoint]" label="Endpoint" fullWidth

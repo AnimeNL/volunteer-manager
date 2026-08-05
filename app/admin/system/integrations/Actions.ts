@@ -51,7 +51,8 @@ const kIntegrationSettingsData = z.object({
         redirectUrl: z.string().nonempty(),
     }).optional(),
     YourTicketProvider: z.object({
-        apiKey: z.string().nonempty(),
+        ticketingApiKey: z.string().nonempty(),
+        visitorApiKey: z.string().nonempty(),
         endpoint: z.url(),
         queueEndpoint: z.url().or(z.literal('')).nullish(),
     }).optional(),
@@ -127,7 +128,8 @@ export async function updateIntegration(integration: Integration, formData: unkn
 
             case 'YourTicketProvider':
                 await writeSettings({
-                    'integration-ytp-api-key': data.YourTicketProvider!.apiKey,
+                    'integration-ytp-ticketing-api-key': data.YourTicketProvider!.ticketingApiKey,
+                    'integration-ytp-visitor-api-key': data.YourTicketProvider!.visitorApiKey,
                     'integration-ytp-endpoint': data.YourTicketProvider!.endpoint,
                     'integration-ytp-queue-endpoint':
                         data.YourTicketProvider!.queueEndpoint || undefined,
