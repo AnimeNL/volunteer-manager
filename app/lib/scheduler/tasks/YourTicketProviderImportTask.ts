@@ -111,6 +111,7 @@ export class YourTicketProviderImportTask extends Task {
                 .on(purchasesJoin.ytpPurchaseEventId.equals(tEvents.eventYtpEventId))
             .leftJoin(ticketsJoin)
                 .on(ticketsJoin.ytpTicketEventId.equals(tEvents.eventYtpEventId))
+                    .and(ticketsJoin.ytpTicketDeleted.isNull())
             .where(tEvents.eventHidden.equals(/* false= */ 0))
                 .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
                 .and(tEvents.eventYtpEventId.isNotNull())
@@ -141,11 +142,15 @@ export class YourTicketProviderImportTask extends Task {
             if (!event.context?.eventId)
                 throw new Error(`Unable to update ${event.name} data without an event ID`);
 
+            this.log.info(`Starting data import for ${event.name}`);
+
             await this.importTicketTypes(event.context.eventId, event.tickets);
 
             if (!!event.context.externalEventId) {
                 await this.importPurchases(
                     event.context.eventId, event.context.externalEventId, event.mostRecentPurchase);
+            } else {
+                this.log.debug('[Purchases] Skipping due to missing external event ID');
             }
         }
 
@@ -173,6 +178,8 @@ export class YourTicketProviderImportTask extends Task {
         return await dbInstance.transaction(async () => {
             const seenTickets = new Set<number>();
 
+            let added = 0, deleted = 0, updated = 0;
+
             for (const liveTicket of liveTickets) {
                 const knownTicket = knownTicketsMap.get(liveTicket.Id);
 
@@ -191,20 +198,22 @@ export class YourTicketProviderImportTask extends Task {
                             .round('seconds').toZonedDateTimeISO('UTC');
                 }
 
-                let ytpTicketUpdated: Temporal.ZonedDateTime | undefined;
+                let ytpTicketUpdated = Temporal.Now.zonedDateTimeISO('UTC');
                 if (!!knownTicket) {
-                    ytpTicketUpdated = knownTicket.Updated;
-                    if (knownTicket.Name !== liveTicket.Name ||
-                        knownTicket.Price !== liveTicket.Price ||
-                        knownTicket.Amount !== liveTicket.Amount ||
-                        knownTicket.SoldOut !== !!liveTicket.SoldOut ||
-                        knownTicket.Live !== !!liveTicket.Live ||
-                        knownTicket.IsSubProduct !== !!liveTicket.IsSubproduct ||
-                        ZonedDateTimesAreDifferent(knownTicket.SalesStart, ytpTicketSalesStart) ||
-                        ZonedDateTimesAreDifferent(knownTicket.SalesEnd, ytpTicketSalesEnd))
+                    if (knownTicket.Name === liveTicket.Name &&
+                        knownTicket.Price === liveTicket.Price &&
+                        knownTicket.Amount === liveTicket.Amount &&
+                        knownTicket.SoldOut === !!liveTicket.SoldOut &&
+                        knownTicket.Live === !!liveTicket.Live &&
+                        knownTicket.IsSubProduct === !!liveTicket.IsSubproduct &&
+                        !ZonedDateTimesAreDifferent(knownTicket.SalesStart, ytpTicketSalesStart) &&
+                        !ZonedDateTimesAreDifferent(knownTicket.SalesEnd, ytpTicketSalesEnd))
                     {
-                        ytpTicketUpdated = Temporal.Now.zonedDateTimeISO('UTC');
+                        ytpTicketUpdated = knownTicket.Updated;
+                        updated++;
                     }
+                } else {
+                    added++;
                 }
 
                 await dbInstance.insertInto(tYourTicketProviderTickets)
@@ -244,6 +253,7 @@ export class YourTicketProviderImportTask extends Task {
                 if (seenTickets.has(knownTicket.id))
                     continue;
 
+                deleted++;
                 await dbInstance.update(tYourTicketProviderTickets)
                     .set({
                         ytpTicketDeleted: dbInstance.currentZonedDateTime(),
@@ -252,6 +262,8 @@ export class YourTicketProviderImportTask extends Task {
                         .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
                     .executeUpdate();
             }
+
+            this.log.info(`[Tickets] Added: ${added}, updated: ${updated}, deleted: ${deleted}`);
 
             return true;
         });
