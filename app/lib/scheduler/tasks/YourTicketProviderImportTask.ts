@@ -70,6 +70,20 @@ export class YourTicketProviderImportTask extends Task {
     }
 
     /**
+     * The default interval for the import task, when no precise granularity can be decided upon.
+     */
+    static readonly kIntervalMaximum = /* 12 hours= */ 12 * 3600 * 1000;
+
+    /**
+     * Intervals for the tasks based on the number of days until the event happens.
+     */
+    static readonly kIntervalConfiguration = [
+        { maximumDays: /*  2 weeks= */   14, intervalMs: /* 1 hour= */      3600 * 1000 },
+        { maximumDays: /*  4 weeks= */   28, intervalMs: /* 3 hours= */ 3 * 3600 * 1000 },
+        { maximumDays: /* 12 weeks= */   56, intervalMs: /* 6 hours= */ 6 * 3600 * 1000 },
+    ];
+
+    /**
      * Executes a one-off import of the given `purchaseId` in context of the given `eventId`. This
      * will issue two API calls to the YourTicketProvider API.
      */
@@ -117,6 +131,7 @@ export class YourTicketProviderImportTask extends Task {
                 .and(tEvents.eventYtpEventId.isNotNull())
             .select({
                 name: tEvents.eventShortName,
+                endTime: tEvents.eventEndTime,
                 context: {
                     eventId: tEvents.eventYtpEventId,
                     externalEventId: tEvents.eventYtpExternalEventId,
@@ -152,6 +167,8 @@ export class YourTicketProviderImportTask extends Task {
             } else {
                 this.log.debug('[Purchases] No external event ID has been defined; skipping');
             }
+
+            this.updateTaskIntervalForFestivalDate(event.endTime);
         }
 
         return true;
@@ -461,5 +478,40 @@ export class YourTicketProviderImportTask extends Task {
 
             return true;
         });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Updates the task interval for |this| task based on how close we are to the `endTime` of the
+     * festival it's running for.
+     *
+     * @param endTime Time at which the festival is expected to end.
+     */
+    private updateTaskIntervalForFestivalDate(endTime: Temporal.ZonedDateTime): void {
+        const configuration = YourTicketProviderImportTask.kIntervalConfiguration;
+        const maximumInterval = YourTicketProviderImportTask.kIntervalMaximum;
+
+        const differenceInDays = endTime.since(Temporal.Now.zonedDateTimeISO('UTC'), {
+            largestUnit: 'days',
+        }).days;
+
+        if (differenceInDays < 0) {
+            this.log.debug('[Interval] The event happened in the past, using maximum value.');
+            this.setIntervalForRepeatingTask(maximumInterval);
+            return;
+        }
+
+        for (const { maximumDays, intervalMs } of configuration) {
+            if (differenceInDays > maximumDays)
+                continue;
+
+            this.log.info(`[Interval] Updating to ${intervalMs}ms (days=${differenceInDays})`);
+            this.setIntervalForRepeatingTask(intervalMs);
+            return;
+        }
+
+        this.log.info('Interval: The event is still very far out, using maximum interval.');
+        this.setIntervalForRepeatingTask(maximumInterval);
     }
 }

@@ -469,4 +469,45 @@ describe('YourTicketProviderImportTask', () => {
             expect(mockFetchPurchaseItems).toHaveBeenCalledWith(67890);
         });
     });
+
+    describe('updateTaskIntervalForFestivalDate', () => {
+        it('should scale the task interval based on duration until the festival', () => {
+            // Force initialize repeating task interval so context allows updates.
+            task.contextForTesting.setIntervalForRepeatingTask(
+                YourTicketProviderImportTask.kIntervalMaximum, /* force= */ true);
+
+            expect(task.contextForTesting.intervalMsForTesting).toBe(
+                YourTicketProviderImportTask.kIntervalMaximum);
+
+            // Cast |task| to any to allow this test calling the private method.
+            const anonymousTask = task as any;
+
+            // 1. Event in the past
+            anonymousTask.updateTaskIntervalForFestivalDate(
+                Temporal.Now.zonedDateTimeISO('UTC').subtract({ days: 1 }));
+            expect(task.contextForTesting.intervalMsForTesting).toBe(
+                YourTicketProviderImportTask.kIntervalMaximum);
+
+            // 2. Within 14 days (e.g. 5 days)
+            anonymousTask.updateTaskIntervalForFestivalDate(
+                Temporal.Now.zonedDateTimeISO('UTC').add({ days: 5 }));
+            expect(task.contextForTesting.intervalMsForTesting).toBe(3600 * 1000);
+
+            // 3. Within 28 days (e.g. 20 days)
+            anonymousTask.updateTaskIntervalForFestivalDate(
+                Temporal.Now.zonedDateTimeISO('UTC').add({ days: 20 }));
+            expect(task.contextForTesting.intervalMsForTesting).toBe(3 * 3600 * 1000);
+
+            // 4. Within 56 days (e.g. 45 days)
+            anonymousTask.updateTaskIntervalForFestivalDate(
+                Temporal.Now.zonedDateTimeISO('UTC').add({ days: 45 }));
+            expect(task.contextForTesting.intervalMsForTesting).toBe(6 * 3600 * 1000);
+
+            // 5. Far in the future (e.g. 90 days)
+            anonymousTask.updateTaskIntervalForFestivalDate(
+                Temporal.Now.zonedDateTimeISO('UTC').add({ days: 90 }));
+            expect(task.contextForTesting.intervalMsForTesting).toBe(
+                YourTicketProviderImportTask.kIntervalMaximum);
+        });
+    });
 });
