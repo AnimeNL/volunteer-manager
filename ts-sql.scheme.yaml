@@ -394,6 +394,14 @@ tables:
     type: int(8) unsigned
     nullable: true
     default: "NULL"
+  - name: event_ytp_event_id
+    type: int(4)
+    nullable: true
+    default: "NULL"
+  - name: event_ytp_external_event_id
+    type: text
+    nullable: true
+    default: "NULL"
   - name: event_weeztix_guid
     type: text
     nullable: true
@@ -446,6 +454,8 @@ tables:
       `event_festival_id` int(8) unsigned DEFAULT NULL,
       `event_identity_id` int(8) unsigned DEFAULT NULL,
       `event_ytp_id` int(8) unsigned DEFAULT NULL,
+      `event_ytp_event_id` int(4) DEFAULT NULL,
+      `event_ytp_external_event_id` text DEFAULT NULL,
       `event_weeztix_guid` text DEFAULT NULL,
       PRIMARY KEY (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -2309,6 +2319,87 @@ tables:
       CONSTRAINT `schedule_updated_by` FOREIGN KEY (`schedule_updated_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
       CONSTRAINT `schedule_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: your_ticket_provider_purchases
+  type: BASE TABLE
+  columns:
+  - name: ytp_purchase_id
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_purchase_event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_purchase_complimentary
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: ytp_purchase_date_cancelled
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: ytp_purchase_date_paid
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: ytp_purchase_item_id
+    type: int(4)
+    nullable: false
+  - name: ytp_purchase_item_ticket_id
+    type: int(4)
+    nullable: false
+  - name: ytp_purchase_item_barcode
+    type: text
+    nullable: false
+  - name: ytp_purchase_item_holder
+    type: text
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: ytp_purchase_event_id
+    def: KEY ytp_purchase_event_id (ytp_purchase_event_id) USING BTREE
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_event_id
+  - name: ytp_purchase_id_2
+    def: KEY ytp_purchase_id_2 (ytp_purchase_id) USING BTREE
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_id
+  - name: ytp_purchase_item_ticket_id
+    def: KEY ytp_purchase_item_ticket_id (ytp_purchase_item_ticket_id) USING BTREE
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_item_ticket_id
+  - name: ytp_purchase_id
+    def: UNIQUE KEY ytp_purchase_id (ytp_purchase_id, ytp_purchase_event_id, ytp_purchase_item_id) USING BTREE
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_id
+    - ytp_purchase_event_id
+    - ytp_purchase_item_id
+  constraints:
+  - name: ytp_purchase_id
+    type: UNIQUE
+    def: UNIQUE KEY ytp_purchase_id (ytp_purchase_id, ytp_purchase_event_id, ytp_purchase_item_id)
+    table: your_ticket_provider_purchases
+    columns:
+    - ytp_purchase_id
+    - ytp_purchase_event_id
+    - ytp_purchase_item_id
+  def: |-
+    CREATE TABLE `your_ticket_provider_purchases` (
+      `ytp_purchase_id` int(4) unsigned NOT NULL,
+      `ytp_purchase_event_id` int(4) unsigned NOT NULL,
+      `ytp_purchase_complimentary` tinyint(1) unsigned NOT NULL,
+      `ytp_purchase_date_cancelled` datetime DEFAULT NULL,
+      `ytp_purchase_date_paid` datetime DEFAULT NULL,
+      `ytp_purchase_item_id` int(4) NOT NULL,
+      `ytp_purchase_item_ticket_id` int(4) NOT NULL,
+      `ytp_purchase_item_barcode` text NOT NULL,
+      `ytp_purchase_item_holder` text DEFAULT NULL,
+      UNIQUE KEY `ytp_purchase_id` (`ytp_purchase_id`,`ytp_purchase_event_id`,`ytp_purchase_item_id`),
+      KEY `ytp_purchase_event_id` (`ytp_purchase_event_id`),
+      KEY `ytp_purchase_id_2` (`ytp_purchase_id`),
+      KEY `ytp_purchase_item_ticket_id` (`ytp_purchase_item_ticket_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: outbox_email
   type: BASE TABLE
   columns:
@@ -3397,6 +3488,99 @@ tables:
       KEY `outbox_to_user_id` (`outbox_to_user_id`),
       KEY `outbox_sender_user_id` (`outbox_sender_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: your_ticket_provider_tickets
+  type: BASE TABLE
+  columns:
+  - name: ytp_ticket_id
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_ticket_event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_ticket_name
+    type: text
+    nullable: false
+  - name: ytp_ticket_price
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_ticket_amount
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_ticket_current_available
+    type: int(4) unsigned
+    nullable: false
+  - name: ytp_ticket_sold_out
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: ytp_ticket_live
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: ytp_ticket_is_subproduct
+    type: tinyint(1) unsigned
+    nullable: false
+  - name: ytp_ticket_sales_start
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: ytp_ticket_sales_end
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: ytp_ticket_created
+    type: datetime
+    nullable: false
+  - name: ytp_ticket_updated
+    type: datetime
+    nullable: false
+  - name: ytp_ticket_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: ytp_ticket_event_id
+    def: KEY ytp_ticket_event_id (ytp_ticket_event_id) USING BTREE
+    table: your_ticket_provider_tickets
+    columns:
+    - ytp_ticket_event_id
+  - name: ytp_ticket_id_2
+    def: KEY ytp_ticket_id_2 (ytp_ticket_id) USING BTREE
+    table: your_ticket_provider_tickets
+    columns:
+    - ytp_ticket_id
+  - name: ytp_ticket_id
+    def: UNIQUE KEY ytp_ticket_id (ytp_ticket_id, ytp_ticket_event_id) USING BTREE
+    table: your_ticket_provider_tickets
+    columns:
+    - ytp_ticket_id
+    - ytp_ticket_event_id
+  constraints:
+  - name: ytp_ticket_id
+    type: UNIQUE
+    def: UNIQUE KEY ytp_ticket_id (ytp_ticket_id, ytp_ticket_event_id)
+    table: your_ticket_provider_tickets
+    columns:
+    - ytp_ticket_id
+    - ytp_ticket_event_id
+  def: |-
+    CREATE TABLE `your_ticket_provider_tickets` (
+      `ytp_ticket_id` int(4) unsigned NOT NULL,
+      `ytp_ticket_event_id` int(4) unsigned NOT NULL,
+      `ytp_ticket_name` text NOT NULL,
+      `ytp_ticket_price` int(4) unsigned NOT NULL,
+      `ytp_ticket_amount` int(4) unsigned NOT NULL,
+      `ytp_ticket_current_available` int(4) unsigned NOT NULL,
+      `ytp_ticket_sold_out` tinyint(1) unsigned NOT NULL,
+      `ytp_ticket_live` tinyint(1) unsigned NOT NULL,
+      `ytp_ticket_is_subproduct` tinyint(1) unsigned NOT NULL,
+      `ytp_ticket_sales_start` datetime DEFAULT NULL,
+      `ytp_ticket_sales_end` datetime DEFAULT NULL,
+      `ytp_ticket_created` datetime NOT NULL,
+      `ytp_ticket_updated` datetime NOT NULL,
+      `ytp_ticket_deleted` datetime DEFAULT NULL,
+      UNIQUE KEY `ytp_ticket_id` (`ytp_ticket_id`,`ytp_ticket_event_id`),
+      KEY `ytp_ticket_id_2` (`ytp_ticket_id`),
+      KEY `ytp_ticket_event_id` (`ytp_ticket_event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: environments
   type: BASE TABLE
   columns:

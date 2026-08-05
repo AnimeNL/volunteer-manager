@@ -61,6 +61,8 @@ export { tUsersPasskeys } from './scheme/UsersPasskeysTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';
 export { tVendorsSchedule } from './scheme/VendorsScheduleTable';
 export { tVendors } from './scheme/VendorsTable';
+export { tYourTicketProviderPurchases } from './scheme/YourTicketProviderPurchasesTable';
+export { tYourTicketProviderTickets } from './scheme/YourTicketProviderTicketsTable';
 
 export const tUsers = new class extends UsersTable {
     name = this.displayName.valueWhenNull(this.firstName.concat(' ').concat(this.lastName));

@@ -54,7 +54,7 @@ export interface CachedEvent {
         /**
          * ID assigned to ticket sales for this event in YourTicketProvider / CM.com.
          */
-        yourTicketProviderId?: number;
+        yourTicketProviderEventId?: number;
 
         /**
          * External ID assigned to ticket sales for this event in YourTicketProvider / CM.com.
