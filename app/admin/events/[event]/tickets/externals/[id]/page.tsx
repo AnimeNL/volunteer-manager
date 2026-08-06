@@ -15,6 +15,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { QrCode } from '@app/components/QrCode';
 import { Section } from '@app/admin/components/Section';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -112,7 +113,8 @@ export default async function EventTicketsExternalPage(
                                 <Typography variant="subtitle2" noWrap>
                                     {ticket.ticketName}
                                 </Typography> }
-                            { /* TODO: QR code */ }
+                            { !!ticket.barcode &&
+                                <QrCode content={ticket.barcode} /> }
                         </Paper>
                     </Grid> )}
 
