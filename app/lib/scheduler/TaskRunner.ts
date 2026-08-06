@@ -86,11 +86,10 @@ export class TaskRunner {
                           : kTaskResult.TaskFailure;
 
         } catch (error: any) {
-            if (error instanceof ZodError)
-                return kTaskResult.InvalidParameters;
-
             context.log.exception(error.message, error);
-            return kTaskResult.TaskException;
+            return error instanceof ZodError
+                ? kTaskResult.InvalidParameters
+                : kTaskResult.TaskException;
         }
     }
 }
