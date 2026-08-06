@@ -86,6 +86,10 @@ export function BirthdayCalendar(props: BirthdayCalendarProps) {
         });
     }, [ setMonth ]);
 
+    const handleDateChange = useCallback((date: Date) => {
+        setVisibleDate(() => date);
+    }, [ setVisibleDate ]);
+
     const handlePrevious = useCallback(() => {
         setVisibleDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
     }, [ setVisibleDate ]);
@@ -128,13 +132,13 @@ export function BirthdayCalendar(props: BirthdayCalendarProps) {
                             events={events}
                             readOnly
                             visibleDate={visibleDate}
-                            onVisibleDateChange={setVisibleDate} /> }
+                            onVisibleDateChange={handleDateChange} /> }
                     { !isMobile &&
                         <StandaloneMonthViewPremium
                             events={events}
                             readOnly
                             visibleDate={visibleDate}
-                            onVisibleDateChange={setVisibleDate} /> }
+                            onVisibleDateChange={handleDateChange} /> }
                 </Box>
             </Stack>
         </ResponsivePaper>
