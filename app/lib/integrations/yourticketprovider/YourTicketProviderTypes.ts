@@ -215,13 +215,15 @@ export const kVisitorInformationResponse = z.array(z.object({
         id: z.string(),
         ticketTypeId: z.string(),
         barcode: z.string(),
-        source: z.string(),  // GuestList |
+        source: z.string(),  // GuestList | Purchase |
         status: z.enum([ 'Valid', 'Invalid', 'Cancelled', 'Refunded', 'Sold' ]),
         lastUpdated: z.iso.datetime(),
         basicInformation: z.object({
             firstname: z.string().nullish(),
             lastname: z.string().nullish(),
-        }),
+        }).optional(),
+        customInformation: z.array(z.any()),
+        scans: z.array(z.any()),
     })),
 }));
 

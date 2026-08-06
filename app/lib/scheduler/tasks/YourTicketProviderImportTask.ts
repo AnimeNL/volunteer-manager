@@ -7,8 +7,6 @@ import { TaskContext } from '../TaskContext';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import db, { tEvents, tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
-let totalExecutions = 0;
-
 /**
  * Configuration options available for the `YourTicketProviderImportTask` mechanism.
  */
@@ -111,11 +109,6 @@ export class YourTicketProviderImportTask extends Task {
     override async execute(): Promise<boolean> {
         await this.initialise();
 
-        if (++totalExecutions > 20) {
-            this.log.error('Total execution safeguard exceeded; skipping');
-            return false;
-        }
-
         const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
         const ticketsJoin = tYourTicketProviderTickets.forUseInLeftJoin();
 
@@ -158,7 +151,6 @@ export class YourTicketProviderImportTask extends Task {
                 throw new Error(`Unable to update ${event.name} data without an event ID`);
 
             this.log.info(`Starting data import for ${event.name}`);
-            console.log(`Starting data import for ${event.name}`);  // temporary
 
             await this.importTicketTypes(event.context.eventId, event.tickets);
 
@@ -384,11 +376,12 @@ export class YourTicketProviderImportTask extends Task {
                         break;
                     }
 
-                    const fullName =
-                        `${ticket.basicInformation.firstname} ${ticket.basicInformation.lastname}`;
+                    const basicInformationTicketHolder = [
+                        ticket.basicInformation?.firstname,
+                        ticket.basicInformation?.lastname,
+                    ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || undefined;
 
-                    const normalisedFullName = fullName.replace(/\s+/g, ' ').trim();
-                    if (normalisedFullName !== knownTicket.holder) {
+                    if (basicInformationTicketHolder !== knownTicket.holder) {
                         changeIdentified = true;
                         break;
                     }
@@ -453,7 +446,7 @@ export class YourTicketProviderImportTask extends Task {
                     item.TicketHolderFirstname,
                     item.TicketHolderInsertion,
                     item.TicketHolderLastname,
-                ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+                ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
 
                 await dbInstance.insertInto(tYourTicketProviderPurchases)
                     .set({
