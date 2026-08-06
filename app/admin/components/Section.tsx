@@ -1,6 +1,10 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
+
+import Button from '@mui/material/Button';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import Stack from '@mui/material/Stack';
 
 import type { SectionBreadcrumbsProps } from './SectionBreadcrumbs';
@@ -14,6 +18,12 @@ import { SectionTabs } from './SectionTabs';
  * Other props, e.g. that of the header, will be included.
  */
 interface SectionOwnProps extends Partial<SectionBreadcrumbsProps> {
+    /**
+     * Whether the content should have a back button to a broader overview. A string may be given
+     * in case a custom label should be applied.
+     */
+    back?: boolean | string;
+
     /**
      * Whether a tab bar should be shown at the section's top.
      */
@@ -39,7 +49,7 @@ export type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: t
  * require them, to enable interaction such as a clear button.
  */
 export function Section(props: React.PropsWithChildren<SectionProps>) {
-    const { breadcrumbs, children, tabs, ...sectionHeaderProps } = props;
+    const { back, breadcrumbs, children, tabs, ...sectionHeaderProps } = props;
 
     return (
         <ResponsivePaper sx={{ p: 2 }}>
@@ -47,6 +57,15 @@ export function Section(props: React.PropsWithChildren<SectionProps>) {
             { !!breadcrumbs && <SectionBreadcrumbs breadcrumbs={breadcrumbs} /> }
             <Stack direction="column" spacing={2} sx={ !!tabs ? { mt: 2 } : undefined }>
                 { !('noHeader' in sectionHeaderProps) && <SectionHeader {...sectionHeaderProps} /> }
+                { !!back &&
+                    <Button LinkComponent={Link} href="." startIcon={ <KeyboardArrowLeftIcon /> }
+                            size="small"
+                            sx={{
+                                justifyContent: 'flex-start',
+                                margin: '-8px !important',
+                            }}>
+                        { typeof back === 'string' ? back : 'Previous page' }
+                    </Button> }
                 {children}
             </Stack>
         </ResponsivePaper>

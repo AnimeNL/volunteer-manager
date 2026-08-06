@@ -2,6 +2,62 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 /**
+ * Interface that describes a singular purchase, that may contain multiple individual tickets.
+ */
+export interface Purchase {
+    /**
+     * Unique ID of the purchase.
+     */
+    id: number | string;
+
+    /**
+     * Unique ID of the event that the purchase was made for.
+     */
+    eventId: number | string;
+
+    /**
+     * Date on which the purchase has been cancelled, if any.
+     */
+    cancelled?: Temporal.ZonedDateTime;
+
+    /**
+     * Date on which the purchase has been paid, if any.
+     */
+    paid?: Temporal.ZonedDateTime;
+
+    /**
+     * Tickets that were created as part of this purchase.
+     */
+    tickets: {
+        /**
+         * Unique ID of this ticket.
+         */
+        id: number | string;
+
+        /**
+         * Unique ID of the ticket type that this ticket is an example of.
+         */
+        ticketId: number | string;
+
+        /**
+         * Name of the ticket type, when known.
+         */
+        ticketName?: string;
+
+        /**
+         * Barcode through which the ticket can be scanned.
+         */
+        barcode?: string;
+
+        /**
+         * Name of the holder of the ticket. May be anonimised after an event concludes.
+         */
+        holder?: string;
+
+    }[];
+}
+
+/**
  * Interface that describes the information that will be obtained for each ticket.
  */
 export interface Ticket {

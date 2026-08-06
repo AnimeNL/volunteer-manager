@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Ticket, TicketCreateRequest, TicketType } from './Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types';
 
 /**
  * The `TicketBackend` is the interface that must be implemented for each ticket service that the
@@ -14,9 +14,19 @@ export interface TicketBackend {
     initialise(): Promise<void>;
 
     /**
+     * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
+     */
+    createPurchaseLink(purchaseId: number | string): string | undefined;
+
+    /**
      * Creates a new ticket based on the given `request`.
      */
     createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>>;
+
+    /**
+     * Fetches the purchase identified by the given `purchaseId`.
+     */
+    fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined>;
 
     /**
      * Lists the ticket types that exist for the current event.

@@ -1,12 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Ticket, TicketCreateRequest, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
 import type { TicketBackend } from '../TicketBackend';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 
-import db, { tYourTicketProviderPurchases } from '@lib/database';
+import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Implementation of the `TicketBackend` specific to YourTicketProvider and/or CM.com.
@@ -26,6 +26,11 @@ export class YourTicketProvider implements TicketBackend {
 
     async initialise(): Promise<void> {
         this.#client = await createYourTicketProviderClient();
+    }
+
+    createPurchaseLink(purchaseId: number | string): string | undefined {
+        const baseUrl = 'https://www.yourticketprovider.nl/account/events/manage/guests';
+        return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;
     }
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
@@ -53,6 +58,33 @@ export class YourTicketProvider implements TicketBackend {
         });
 
         return { purchaseId: ticket.Id };
+    }
+
+    async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
+        const dbInstance = db;
+
+        const yourTicketProviderTicketsJoin = tYourTicketProviderTickets.forUseInLeftJoin();
+
+        return await dbInstance.selectFrom(tYourTicketProviderPurchases)
+            .leftJoin(yourTicketProviderTicketsJoin)
+                .on(yourTicketProviderTicketsJoin.ytpTicketId.equals(
+                    tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
+            .where(tYourTicketProviderPurchases.ytpPurchaseId.equals(Number(purchaseId)))
+            .select({
+                id: tYourTicketProviderPurchases.ytpPurchaseId,
+                eventId: tYourTicketProviderPurchases.ytpPurchaseEventId,
+                cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled,
+                paid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
+                tickets: dbInstance.aggregateAsArray({
+                    id: tYourTicketProviderPurchases.ytpPurchaseItemId,
+                    ticketId: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
+                    ticketName: yourTicketProviderTicketsJoin.ytpTicketName,
+                    barcode: tYourTicketProviderPurchases.ytpPurchaseItemBarcode,
+                    holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
+                }),
+            })
+            .groupBy(tYourTicketProviderPurchases.ytpPurchaseId)
+            .executeSelectNoneOrOne() ?? undefined;
     }
 
     async listTicketTypes(): Promise<TicketType[]> {

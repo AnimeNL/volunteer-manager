@@ -48,6 +48,11 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
     order: z.string(),
 
     /**
+     * Date at which the ticket was created, if any.
+     */
+    created: z.iso.datetime().optional(),
+
+    /**
      * Whether the ticket has been cancelled,
      */
     cancelled: z.boolean(),
@@ -106,6 +111,7 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
                 id: ticket.purchaseId,
                 holder: ticket.holder,
                 order: `REF${ticket.purchaseId}`,
+                created: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
             })),
         };
@@ -145,22 +151,34 @@ export default async function EventTicketsExternalsPage(
             },
         },
         {
-            field: 'holder',
-            headerName: 'Ticket holder',
+            field: 'order',
+            headerName: 'Order',
             sortable: false,
-            flex: 2,
+            width: 150,
 
             template: 'text',
             templateProps: {
-                defaultValue: 'Identity anonimised',
                 href: './externals/{id}',
             },
         },
         {
-            field: 'order',
-            headerName: 'Order',
-            sortable: false,
+            field: 'holder',
+            headerName: 'Ticket holder',
+            sortable: true,
             flex: 1,
+
+            template: 'text',
+            templateProps: {
+                defaultValue: 'Identity anonimised',
+            },
+        },
+        {
+            field: 'created',
+            headerName: 'Created',
+            sortable: true,
+            width: 150,
+
+            template: 'date',
         },
     ];
 
@@ -186,6 +204,7 @@ export default async function EventTicketsExternalsPage(
                            subject="ticket"
                            listViewProps={{
                                primaryField: 'holder',
+                               secondaryTemplate: 'REF{id}',
                                startComponent: ValidityCell,
                                linkTemplate: './externals/{id}',
                            }} />

@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Ticket, TicketCreateRequest, TicketType } from './Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types';
 import type { TicketBackend } from './TicketBackend';
 
 /**
@@ -17,12 +17,26 @@ export class TicketService {
     }
 
     /**
+     * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
+     */
+    createPurchaseLink(purchaseId: number | string): string | undefined {
+        return this.#backend.createPurchaseLink(purchaseId);
+    }
+
+    /**
      * Creates a new ticket based on the given `request`. This may end up calling multiple APIs
      * depending on requirements of the chosen ticketing partner. Ticket creation may fail for a
      * variety of reasons, largely outside of our control.
      */
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
         return this.#backend.createTicket(request);
+    }
+
+    /**
+     * Fetches the purchase identified by the given `purchaseId`.
+     */
+    async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
+        return this.#backend.fetchPurchase(purchaseId);
     }
 
     /**
