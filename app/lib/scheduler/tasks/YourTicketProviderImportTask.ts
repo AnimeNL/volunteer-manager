@@ -129,7 +129,7 @@ export class YourTicketProviderImportTask extends Task {
                     eventId: tEvents.eventYtpEventId,
                     externalEventId: tEvents.eventYtpExternalEventId,
                 },
-                mostRecentPurchase: dbInstance.max(purchasesJoin.ytpPurchaseDatePaid),
+                mostRecentUpdate: dbInstance.max(purchasesJoin.ytpPurchaseItemUpdated),
                 tickets: dbInstance.aggregateAsArray({
                     id: ticketsJoin.ytpTicketId,
                     Name: ticketsJoin.ytpTicketName,
@@ -156,7 +156,7 @@ export class YourTicketProviderImportTask extends Task {
 
             if (!!event.context.externalEventId) {
                 await this.importPurchases(
-                    event.context.eventId, event.context.externalEventId, event.mostRecentPurchase);
+                    event.context.eventId, event.context.externalEventId, event.mostRecentUpdate);
             } else {
                 this.log.debug('[Purchases] No external event ID has been defined; skipping');
             }
@@ -283,20 +283,20 @@ export class YourTicketProviderImportTask extends Task {
 
     /**
      * Method to import the latest purchases for the given `eventId` that happened after the given
-     * `mostRecentPurchase`. This will issue up to 2n+1 API calls to the YourTicketProvider API
+     * `mostRecentUpdate`. This will issue up to 2n+1 API calls to the YourTicketProvider API
      */
     private async importPurchases(
-        eventId: number, externalEventId: string, mostRecentPurchase?: Temporal.ZonedDateTime)
+        eventId: number, externalEventId: string, mostRecentUpdate?: Temporal.ZonedDateTime)
             : Promise<boolean>
     {
-        mostRecentPurchase ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
+        mostRecentUpdate ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
 
         this.log.info('[Purchases] Fetching purchases from the YourTicketProvider API');
-        this.log.info(`[Purchases] w/ last updated = ${mostRecentPurchase.toString()}`);
+        this.log.info(`[Purchases] w/ last updated = ${mostRecentUpdate.toString()}`);
 
         const recentPurchases = await this.#client.queryVisitorInformation(externalEventId, {
             type: 'lastUpdated',
-            since: mostRecentPurchase,
+            since: mostRecentUpdate,
             take: this.#configuration.maximumPurchasesPerExecution,
             skip: 0,
         });
@@ -459,6 +459,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseItemTicketId: item.TicketId,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
+                        ytpPurchaseItemUpdated: dbInstance.currentZonedDateTime(),
                     })
                     .onConflictDoUpdateSet({
                         ytpPurchaseComplimentary: purchase.TotalAmount === 0 ? 1 : 0,
@@ -466,6 +467,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseDatePaid,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
+                        ytpPurchaseItemUpdated: dbInstance.currentZonedDateTime(),
                     })
                     .executeInsert();
             }

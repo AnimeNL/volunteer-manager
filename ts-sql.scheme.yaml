@@ -2352,6 +2352,9 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: ytp_purchase_item_updated
+    type: datetime
+    nullable: false
   indexes:
   - name: ytp_purchase_event_id
     def: KEY ytp_purchase_event_id (ytp_purchase_event_id) USING BTREE
@@ -2401,6 +2404,7 @@ tables:
       `ytp_purchase_item_ticket_id` int(4) NOT NULL,
       `ytp_purchase_item_barcode` text NOT NULL,
       `ytp_purchase_item_holder` text DEFAULT NULL,
+      `ytp_purchase_item_updated` datetime NOT NULL,
       UNIQUE KEY `ytp_purchase_id` (`ytp_purchase_id`,`ytp_purchase_event_id`,`ytp_purchase_item_id`),
       KEY `ytp_purchase_event_id` (`ytp_purchase_event_id`),
       KEY `ytp_purchase_id_2` (`ytp_purchase_id`),

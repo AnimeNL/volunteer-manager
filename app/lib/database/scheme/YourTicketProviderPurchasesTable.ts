@@ -22,6 +22,7 @@ export class YourTicketProviderPurchasesTable extends Table<DBConnection, 'YourT
     ytpPurchaseItemTicketId = this.column('ytp_purchase_item_ticket_id', 'int');
     ytpPurchaseItemBarcode = this.column('ytp_purchase_item_barcode', 'string');
     ytpPurchaseItemHolder = this.optionalColumnWithDefaultValue('ytp_purchase_item_holder', 'string');
+    ytpPurchaseItemUpdated = this.column<Temporal.ZonedDateTime>('ytp_purchase_item_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('your_ticket_provider_purchases');
