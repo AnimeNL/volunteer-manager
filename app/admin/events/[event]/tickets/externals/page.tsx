@@ -38,6 +38,11 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
     id: z.number().or(z.string()),
 
     /**
+     * Unique ID of the purchase as it exists in the database.
+     */
+    purchaseId: z.number().or(z.string()),
+
+    /**
      * Name of the person who holds the ticket, when known.
      */
     holder: z.string().nullish(),
@@ -108,7 +113,8 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
         return {
             rowCount: sortedTickets.length,
             rows: selectedTickets.map(ticket => ({
-                id: ticket.purchaseId,
+                id: ticket.id,
+                purchaseId: ticket.purchaseId,
                 holder: ticket.holder,
                 order: `REF${ticket.purchaseId}`,
                 created: ticket.paid?.toString(),
@@ -158,7 +164,7 @@ export default async function EventTicketsExternalsPage(
 
             template: 'text',
             templateProps: {
-                href: './externals/{id}',
+                href: './externals/{purchaseId}',
             },
         },
         {
@@ -169,7 +175,7 @@ export default async function EventTicketsExternalsPage(
 
             template: 'text',
             templateProps: {
-                defaultValue: 'Identity anonimised',
+                defaultValue: 'Identity unknown…',
             },
         },
         {
@@ -204,9 +210,9 @@ export default async function EventTicketsExternalsPage(
                            subject="ticket"
                            listViewProps={{
                                primaryField: 'holder',
-                               secondaryTemplate: 'REF{id}',
+                               secondaryTemplate: 'REF{purchaseId}',
                                startComponent: ValidityCell,
-                               linkTemplate: './externals/{id}',
+                               linkTemplate: './externals/{purchaseId}',
                            }} />
             </Section>
             { serviceCanCreateTickets &&

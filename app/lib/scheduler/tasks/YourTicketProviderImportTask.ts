@@ -20,7 +20,20 @@ interface YourTicketProviderImportTaskConfiguration {
      * Maximum number of purchases to import per execution of this task. Importing purchases issues
      * up to 2n+1 API calls to the YourTicketProvider API, so we want to be careful.
      */
-    maximumPurchasesPerExecution: number;
+    maximumPurchaseImportsPerExecution: number;
+
+    /**
+     * The Visitor Information API has an oddity where the `lastUpdatedSince` parameter seems to be
+     * sensitive to timezones even when everything is indicated in zulu time. Considering more
+     * purchases from this API, without actually importing more, will avoid the sync getting stuck.
+     */
+    maximumPurchaseConsideredPerExecution: number;
+
+    /**
+     * Number of hours to subtract from the most recent update to compensate for race conditions in
+     * the update process, i.e. failures or overlapping requests.
+     */
+    raceConditionCompensationHours: number;
 }
 
 /**
@@ -98,7 +111,9 @@ export class YourTicketProviderImportTask extends Task {
         this.#client = await createYourTicketProviderClient();
         this.#configuration = {
             delayBetweenPurchaseImportsMs: 1000,
-            maximumPurchasesPerExecution: 10,
+            maximumPurchaseImportsPerExecution: 10,
+            maximumPurchaseConsideredPerExecution: 100,
+            raceConditionCompensationHours: 12,
         };
     }
 
@@ -109,13 +124,17 @@ export class YourTicketProviderImportTask extends Task {
     override async execute(): Promise<boolean> {
         await this.initialise();
 
-        const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
         const ticketsJoin = tYourTicketProviderTickets.forUseInLeftJoin();
 
         const dbInstance = db;
+        const mostRecentUpdateSubQuery = dbInstance.subSelectUsing(tEvents)
+            .from(tYourTicketProviderPurchases)
+                .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(
+                    tEvents.eventYtpEventId))
+            .selectOneColumn(dbInstance.max(tYourTicketProviderPurchases.ytpPurchaseItemUpdated))
+            .forUseAsInlineQueryValue();
+
         const applicableEvents = await dbInstance.selectFrom(tEvents)
-            .leftJoin(purchasesJoin)
-                .on(purchasesJoin.ytpPurchaseEventId.equals(tEvents.eventYtpEventId))
             .leftJoin(ticketsJoin)
                 .on(ticketsJoin.ytpTicketEventId.equals(tEvents.eventYtpEventId))
                     .and(ticketsJoin.ytpTicketDeleted.isNull())
@@ -129,7 +148,7 @@ export class YourTicketProviderImportTask extends Task {
                     eventId: tEvents.eventYtpEventId,
                     externalEventId: tEvents.eventYtpExternalEventId,
                 },
-                mostRecentUpdate: dbInstance.max(purchasesJoin.ytpPurchaseItemUpdated),
+                mostRecentUpdate: mostRecentUpdateSubQuery,
                 tickets: dbInstance.aggregateAsArray({
                     id: ticketsJoin.ytpTicketId,
                     Name: ticketsJoin.ytpTicketName,
@@ -152,7 +171,7 @@ export class YourTicketProviderImportTask extends Task {
 
             this.log.info(`Starting data import for ${event.name}`);
 
-            await this.importTicketTypes(event.context.eventId, event.tickets);
+            //await this.importTicketTypes(event.context.eventId, event.tickets);
 
             if (!!event.context.externalEventId) {
                 await this.importPurchases(
@@ -290,6 +309,9 @@ export class YourTicketProviderImportTask extends Task {
             : Promise<boolean>
     {
         mostRecentUpdate ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
+        mostRecentUpdate = mostRecentUpdate.subtract({
+            hours: this.#configuration.raceConditionCompensationHours,
+        });
 
         this.log.info('[Purchases] Fetching purchases from the YourTicketProvider API');
         this.log.info(`[Purchases] w/ last updated = ${mostRecentUpdate.toString()}`);
@@ -297,7 +319,7 @@ export class YourTicketProviderImportTask extends Task {
         const recentPurchases = await this.#client.queryVisitorInformation(externalEventId, {
             type: 'lastUpdated',
             since: mostRecentUpdate,
-            take: this.#configuration.maximumPurchasesPerExecution,
+            take: this.#configuration.maximumPurchaseConsideredPerExecution,
             skip: 0,
         });
 
@@ -345,11 +367,17 @@ export class YourTicketProviderImportTask extends Task {
         let updated = 0;
         for (const purchase of recentPurchases) {
             const purchaseId = parseInt(purchase.reference.slice(3), /* radix= */ 10);
+            const lastUpdated = Temporal.Instant.from(purchase.lastUpdated);
 
             let cancellationDate: Temporal.ZonedDateTime | undefined;
 
             const knownPurchase = knownPurchaseRecordMap.get(purchaseId);
-            if (!!knownPurchase && knownPurchase.tickets.length === purchase.tickets.length) {
+            if (!!knownPurchase && knownPurchase.tickets.length !== purchase.tickets.length) {
+                this.log.error(
+                    `[Purchases] Order REF${purchaseId} is expected to have ` +
+                    `${knownPurchase.tickets.length} ticket(s), received ${purchase.tickets.length}`
+                );
+            } else if (!!knownPurchase) {
                 const knownTicketsMap = new Map(
                     knownPurchase.tickets.map(ticket => [ ticket.barcode, ticket ]));
 
@@ -406,10 +434,11 @@ export class YourTicketProviderImportTask extends Task {
             }
 
             this.log.info(`[Purchases] Updating purchase ${purchaseId} using the Ticketing API`);
-            {
-                await this.importIndividualPurchase(eventId, purchaseId, cancellationDate);
-                updated++;
-            }
+
+            await this.importIndividualPurchase(eventId, purchaseId, cancellationDate, lastUpdated);
+
+            if (++updated >= this.#configuration.maximumPurchaseImportsPerExecution)
+                break;
         }
 
         this.log.info(`[Purchases] Completed the synchronisation (updated = ${updated})`);
@@ -421,7 +450,8 @@ export class YourTicketProviderImportTask extends Task {
      * `eventId`. This will issue two API calls to the YourTicketProvider API.
      */
     private async importIndividualPurchase(
-        eventId: number, purchaseId: number, cancellationDate?: Temporal.ZonedDateTime)
+        eventId: number, purchaseId: number, cancellationDate?: Temporal.ZonedDateTime,
+        lastUpdated?: Temporal.Instant)
             : Promise<boolean>
     {
         const purchase = await this.#client.fetchPurchase(purchaseId);
@@ -439,8 +469,17 @@ export class YourTicketProviderImportTask extends Task {
                             .round('seconds').toZonedDateTimeISO('UTC');
                 }
 
-                if (!!purchase.Cancelled && !cancellationDate)
-                    ytpPurchaseDateCancelled = Temporal.Now.zonedDateTimeISO('UTC');
+                if (!!purchase.Cancelled && !cancellationDate) {
+                    ytpPurchaseDateCancelled =
+                        lastUpdated?.toZonedDateTimeISO('UTC')
+                            || Temporal.Now.zonedDateTimeISO('UTC');
+                }
+
+                const ytpPurchaseItemUpdated =
+                    lastUpdated?.toZonedDateTimeISO('UTC')
+                        || ytpPurchaseDateCancelled
+                        || ytpPurchaseDatePaid
+                        || Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
 
                 const ytpPurchaseItemHolder = [
                     item.TicketHolderFirstname,
@@ -459,7 +498,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseItemTicketId: item.TicketId,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
-                        ytpPurchaseItemUpdated: dbInstance.currentZonedDateTime(),
+                        ytpPurchaseItemUpdated,
                     })
                     .onConflictDoUpdateSet({
                         ytpPurchaseComplimentary: purchase.TotalAmount === 0 ? 1 : 0,
@@ -467,7 +506,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseDatePaid,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
-                        ytpPurchaseItemUpdated: dbInstance.currentZonedDateTime(),
+                        ytpPurchaseItemUpdated,
                     })
                     .executeInsert();
             }

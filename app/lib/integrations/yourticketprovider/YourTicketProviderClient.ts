@@ -303,12 +303,14 @@ export class YourTicketProviderClient {
                 endpointParams.set('barcode', request.barcode);
                 break;
 
-            case 'lastUpdated':
-                endpointParams.set(
-                    'lastUpdatedSince', request.since.toInstant().round('seconds').toString());
+            case 'lastUpdated': {
+                const lastUpdatedInstant = request.since.round('seconds').toInstant()
+
+                endpointParams.set('lastUpdatedSince', lastUpdatedInstant.toString());
                 endpointParams.set('skip', request.skip.toString());
                 endpointParams.set('take', request.take.toString());
                 break;
+            }
         }
 
         const endpointBaseUrl = 'https://www.yourticketprovider.nl/api/integration/products';
@@ -332,7 +334,31 @@ export class YourTicketProviderClient {
 
         // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
         // method. Exceptions are considered fatal, and it's up to the caller to recover.
-        return ytp.kVisitorInformationResponse.parse(unverifiedResponseJson);
+        const responseJson = ytp.kVisitorInformationResponse.parse(unverifiedResponseJson);
+
+        // Sort the retrieved entries based on their last updated time in ascending order. The API
+        // response seems to consistently do this, but other timing issues convince me that this is
+        // a worthy layer of added safety.
+        const lastUpdatedCache: Map<string, Temporal.Instant> = new Map();
+
+        responseJson.sort((lhs, rhs) => {
+            let lhsLastUpdated = lastUpdatedCache.get(lhs.reference);
+            let rhsLastUpdated = lastUpdatedCache.get(rhs.reference);
+
+            if (!lhsLastUpdated) {
+                lhsLastUpdated = Temporal.Instant.from(lhs.lastUpdated);
+                lastUpdatedCache.set(lhs.reference, lhsLastUpdated);
+            }
+
+            if (!rhsLastUpdated) {
+                rhsLastUpdated = Temporal.Instant.from(rhs.lastUpdated);
+                lastUpdatedCache.set(rhs.reference, rhsLastUpdated);
+            }
+
+            return Temporal.Instant.compare(lhsLastUpdated, rhsLastUpdated);
+        });
+
+        return responseJson;
     }
 
     // ---------------------------------------------------------------------------------------------
