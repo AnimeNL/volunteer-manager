@@ -171,7 +171,7 @@ export class YourTicketProviderImportTask extends Task {
 
             this.log.info(`Starting data import for ${event.name}`);
 
-            //await this.importTicketTypes(event.context.eventId, event.tickets);
+            await this.importTicketTypes(event.context.eventId, event.tickets);
 
             if (!!event.context.externalEventId) {
                 await this.importPurchases(
