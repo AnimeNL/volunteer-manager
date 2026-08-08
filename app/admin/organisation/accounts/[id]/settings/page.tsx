@@ -1,14 +1,20 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
 
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+
 import { AccountSettingsForm, type AccountSettings } from './AccountSettings';
-import { FormGrid } from '@app/admin/components/FormGrid';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { updateAccountSettings } from '../AccountActions';
 import { readUserSettings } from '@lib/UserSettings';
+import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tUsers } from '@lib/database';
+
+import { updateAccountSettings } from '../AccountActions';
 
 /**
  * The <AccountSettingsPage> component displays the settings that have been associated with this
@@ -25,11 +31,23 @@ export default async function AccountSettingsPage(
         },
     });
 
-    const userId = parseInt((await props.params).id, /* radix= */ 10);
-    if (!Number.isSafeInteger(userId))
+    const { id } = await props.params;
+
+    const account = await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(parseInt(id, /* radix= */ 10) || 0))
+            .and(tUsers.anonymized.isNull())
+        .select({
+            id: tUsers.userId,
+            name: tUsers.name,
+        })
+        .executeSelectNoneOrOne();
+
+    if (!account)
         notFound();
 
-    const userSettings = await readUserSettings(userId, [
+    const readOnly = !access.can('organisation.accounts', 'update');
+
+    const userSettings = await readUserSettings(account.id, [
         'ai-example-messages',
         'user-admin-experimental-layout',
     ], /* disableFallback= */ true);
@@ -39,13 +57,26 @@ export default async function AccountSettingsPage(
         experimentalLayout: !!userSettings['user-admin-experimental-layout'],
     };
 
-    const readOnly = !access.can('organisation.accounts', 'update');
-    const updateAccountSettingsFn = updateAccountSettings.bind(null, userId);
+    const updateSettingsFn = updateAccountSettings.bind(null, account.id);
 
     return (
-        <FormGrid action={updateAccountSettingsFn} defaultValues={defaultValues}>
-            <AccountSettingsForm readOnly={readOnly} />
-        </FormGrid>
+        <>
+            <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Settings"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Accounts', href: '/admin/organisation/accounts' },
+                         { label: account.name, href: `/admin/organisation/accounts/${account.id}` },
+                         { label: 'Settings' },
+                     ]}>
+                <SectionIntroduction>
+                    Account settings for {account.name} on the Volunteer Manager. Changes will take
+                    effect immediately.
+                </SectionIntroduction>
+            </Section>
+            <FormGridSection noHeader tabs action={updateSettingsFn} defaultValues={defaultValues}>
+                <AccountSettingsForm readOnly={readOnly} />
+            </FormGridSection>
+        </>
     );
 }
 
