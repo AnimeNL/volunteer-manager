@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EventTicketProvider } from '@lib/database/Types';
 import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
 import type { TicketBackend } from '../TicketBackend';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
@@ -23,6 +24,8 @@ export class YourTicketProvider implements TicketBackend {
     // ---------------------------------------------------------------------------------------------
     // TicketBackend implementation:
     // ---------------------------------------------------------------------------------------------
+
+    get id(): EventTicketProvider { return 'YourTicketProvider' };
 
     async initialise(): Promise<void> {
         this.#client = await createYourTicketProviderClient();

@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EventTicketProvider } from '@lib/database/Types';
 import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types';
 
 /**
@@ -8,6 +9,11 @@ import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types'
  * Volunteer Manager integrates with. This abstraction layer exists in case we switch providers.
  */
 export interface TicketBackend {
+    /**
+     * ID of the ticket provider this backend implements.
+     */
+    get id(): EventTicketProvider;
+
     /**
      * One-time initialisation of the ticket backend. Guaranteed to be called before any other API.
      */

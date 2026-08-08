@@ -17,6 +17,11 @@ export class TicketService {
     }
 
     /**
+     * ID of the ticket provider this backend implements.
+     */
+    get id() { return this.#backend.id; }
+
+    /**
      * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
      */
     createPurchaseLink(purchaseId: number | string): string | undefined {

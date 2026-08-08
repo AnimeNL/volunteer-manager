@@ -14,7 +14,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
-import db, { tUsers, tUsersEvents } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 /**
  * Data source for volunteer tickets granted for an event.
@@ -69,17 +69,36 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
         if (!context.event.tickets?.volunteerTicketId)
             return { rowCount: 0, rows: [] };  // no ticket has been specified
 
+        const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
+        const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
+
         const dbInstance = db;
+
+        const purchaseIdCast = dbInstance.fragmentWithType('int', 'optional')
+            .sql`CAST(${usersEventsTicketsJoin.ticketProviderPurchaseId} AS INTEGER)`;
+
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
+            .leftJoin(usersEventsTicketsJoin)
+                .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
+                    .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
+            .leftJoin(yourTicketProviderPurchasesJoin)
+                .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
+                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.registrationStatus.equals('Accepted'))
+                .and(tUsers.name.containsInsensitiveIfValue(params.search)
+                    .or(usersEventsTicketsJoin.ticketProviderPurchaseId.containsInsensitiveIfValue(
+                        params.search)))
             .select({
                 id: tUsersEvents.userId,
                 name: tUsers.name,
-                // TODO: order
-                // TODO: created
+                yourTicketProvider: {
+                    order: yourTicketProviderPurchasesJoin.ytpPurchaseId,
+                    created: dbInstance.dateTimeAsString(
+                        yourTicketProviderPurchasesJoin.ytpPurchaseDatePaid)
+                },
             })
             .groupBy(tUsersEvents.userId)
             .orderBy('name', 'asc')
@@ -89,7 +108,22 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
 
         return {
             rowCount: volunteers.count,
-            rows: volunteers.data,
+            rows: volunteers.data.map(volunteer => {
+                let order: string | undefined;
+                let created: string | undefined;
+
+                if (!!volunteer.yourTicketProvider?.order) {
+                    order = `REF${volunteer.yourTicketProvider.order}`;
+                    created = volunteer.yourTicketProvider.created;
+                }
+
+                return {
+                    id: volunteer.id,
+                    name: volunteer.name,
+                    order,
+                    created,
+                };
+            }),
         };
     },
 });
@@ -138,7 +172,11 @@ export default async function EventTicketsVolunteersPage(
             flex: 1,
 
             // TODO: Chips for the team(s) they participate in?
-            // TODO: Link to something?
+
+            template: 'text',
+            templateProps: {
+                href: './volunteers/{id}',
+            },
         },
         {
             field: 'created',
@@ -170,9 +208,9 @@ export default async function EventTicketsVolunteersPage(
                            subject="ticket"
                            listViewProps={{
                                primaryField: 'name',
-                               secondaryTemplate: 'REF{purchaseId}',
+                               secondaryField: 'order',
                                startComponent: IssuedCell,
-                               linkTemplate: './volunteers/{purchaseId}',
+                               linkTemplate: './volunteers/{id}',
                            }} />
             </Section>
         </>

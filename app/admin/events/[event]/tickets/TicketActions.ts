@@ -11,9 +11,61 @@ import { LogBuilder } from '@lib/log/index';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
-import db, { tEvents } from '@lib/database';
+import db, { tEvents, tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
+
+/**
+ * Data required to associate a purchase with a volunteer.
+ */
+const kAssociatePurchaseData = z.object({
+    ticketProvider: z.enum(kEventTicketProvider),
+    userId: z.number(),
+});
+
+/**
+ * Server Action that allows the given `purchaseId` to be associated with a volunteer.
+ */
+export async function associatePurchase(
+    eventSlug: string, purchaseId: string | number, formData: unknown)
+{
+    return executeServerAction(formData, kAssociatePurchaseData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'create',
+            });
+
+        const affectedRows = await db.insertInto(tUsersEventsTickets)
+            .set({
+                userId: data.userId,
+                eventId: event.id,
+                ticketProvider: 'YourTicketProvider',
+                ticketProviderPurchaseId: purchaseId.toString(),
+            })
+            .onConflictDoNothing()
+            .executeInsert();
+
+        if (!affectedRows) {
+            return {
+                success: false,
+                error: 'Unable to associate the ticket, do they already have one?',
+            };
+        }
+
+        LogBuilder.for('AssociateTicket')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(data.userId)
+            .record({
+                event: event.shortName,
+            });
+
+        return {
+            success: true,
+            redirect: `/admin/events/${event.slug}/tickets/volunteers/${data.userId}`,
+        };
+    });
+}
 
 /**
  * Data that needs to be available to create a new ticket.

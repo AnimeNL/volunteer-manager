@@ -14,6 +14,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { ActionBar } from '@app/admin/components/ActionBar';
+import { AssociateQuickAction } from './AssociateQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { QrCode } from '@app/components/QrCode';
 import { Section } from '@app/admin/components/Section';
@@ -22,6 +24,9 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
+import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+
+import { associatePurchase } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted to an individual external to our team.
@@ -34,6 +39,7 @@ export default async function EventTicketsExternalPage(
         operation: 'read',
     });
 
+    const dbInstance = db;
     const params = await props.params;
 
     const service = await createTicketService(event.slug);
@@ -49,6 +55,33 @@ export default async function EventTicketsExternalPage(
         forbidden();
 
     const purchaseLink = service.createPurchaseLink(params.id) || '#';
+
+    // ---------------------------------------------------------------------------------------------
+    // Functionality: Associating the ticket with a volunteer
+    // ---------------------------------------------------------------------------------------------
+
+    const associatePurchaseFn = associatePurchase.bind(null, event.slug, purchase.id);
+
+    const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
+
+    const associateVolunteers = await dbInstance.selectFrom(tUsersEvents)
+        .innerJoin(tUsers)
+            .on(tUsers.userId.equals(tUsersEvents.userId))
+        .leftJoin(usersEventsTicketsJoin)
+            .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
+                .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
+        .where(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.registrationStatus.equals('Accepted'))
+        .select({
+            id: tUsers.userId,
+            label: tUsers.name,
+            disabled: usersEventsTicketsJoin.ticketProviderPurchaseId.isNotNull(),
+        })
+        .groupBy(tUsersEvents.userId)
+        .orderBy('label', 'asc')
+        .executeSelectMany();
+
+    // ---------------------------------------------------------------------------------------------
 
     return (
         <>
@@ -72,6 +105,11 @@ export default async function EventTicketsExternalPage(
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
                     </Alert> }
+                <ActionBar>
+                    <AssociateQuickAction action={associatePurchaseFn}
+                                          ticketProvider={service.id}
+                                          volunteers={associateVolunteers} />
+                </ActionBar>
                 <KeyValueList items={[
                     {
                         key: 'Purchase ID',

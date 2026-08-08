@@ -72,6 +72,10 @@ interface LogTypeParameterMap {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    AssociateTicket: {
+        event: string;  // short name
+    };
+
     CreateEventKeyDate: {
         event: string;  // short name
     };
@@ -236,6 +240,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
+    AssociateTicket: 'AssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
     CreateExternalTicket: 'CreateExternalTicket',
     DeleteEventKeyDate: 'DeleteEventKeyDate',

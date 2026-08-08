@@ -2614,6 +2614,28 @@ tables:
       `refund_confirmed` datetime DEFAULT NULL,
       PRIMARY KEY (`user_id`,`event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_events_tickets
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: ticket_provider
+    type: enum('Weeztix','YourTicketProvider')
+    nullable: false
+  - name: ticket_provider_purchase_id
+    type: text
+    nullable: false
+  def: |-
+    CREATE TABLE `users_events_tickets` (
+      `user_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `ticket_provider` enum('Weeztix','YourTicketProvider') NOT NULL,
+      `ticket_provider_purchase_id` text NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: subscriptions
   type: BASE TABLE
   columns:

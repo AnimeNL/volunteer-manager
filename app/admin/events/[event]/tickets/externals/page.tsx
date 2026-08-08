@@ -19,6 +19,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import db, { tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { createExternalTicket } from '../TicketActions';
 
@@ -86,12 +87,26 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
         if (!context.event.tickets?.volunteerTicketId)
             return { rowCount: 0, rows: [] };  // no ticket has been specified
 
+        const validAssociatedTickets = await db.selectFrom(tUsersEventsTickets)
+            .innerJoin(tUsersEvents)
+                .on(tUsersEvents.userId.equals(tUsersEventsTickets.userId))
+                    .and(tUsersEvents.eventId.equals(tUsersEventsTickets.eventId))
+                    .and(tUsersEvents.registrationStatus.equals('Accepted'))
+            .where(tUsersEventsTickets.eventId.equals(context.event.id))
+            .selectOneColumn(tUsersEventsTickets.ticketProviderPurchaseId)
+            .executeSelectMany();
+
+        const validAssociatedTicketsSet = new Set(validAssociatedTickets);
+
         const searchQuery = params.search?.toLocaleLowerCase();
 
         const tickets = await service.listTicketsForType(context.event.tickets.volunteerTicketId);
         const filteredTickets = tickets.filter(ticket => {
+            if (validAssociatedTicketsSet.has(`${ticket.purchaseId}`))
+                return false;  // the |ticket| is associated with a current volunteer
+
             if (!searchQuery)
-                return true;
+                return true;  // the |ticket| does not match the search query
 
             return ticket.barcode?.toLocaleLowerCase().includes(searchQuery) ||
                    ticket.holder?.toLocaleLowerCase().includes(searchQuery) ||
@@ -117,7 +132,8 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
                 id: ticket.id,
                 purchaseId: ticket.purchaseId,
                 holder: ticket.holder ?? '(Unclaimed ticket)',
-                order: `REF${ticket.purchaseId}`,
+                order: service.id === 'YourTicketProvider' ? `REF${ticket.purchaseId}`
+                                                           : ticket.purchaseId.toString(),
                 created: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
             })),

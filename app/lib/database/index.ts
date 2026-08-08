@@ -57,6 +57,7 @@ export { tUsersAuth } from './scheme/UsersAuthTable';
 export { tUsersCommunication } from './scheme/UsersCommunicationTable';
 export { tUsersEvents } from './scheme/UsersEventsTable';
 export { tUsersEventsFavourites } from './scheme/UsersEventsFavouritesTable';
+export { tUsersEventsTickets } from './scheme/UsersEventsTicketsTable';
 export { tUsersPasskeys } from './scheme/UsersPasskeysTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';
 export { tVendorsSchedule } from './scheme/VendorsScheduleTable';
