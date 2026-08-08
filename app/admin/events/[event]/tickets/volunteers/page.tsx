@@ -1,12 +1,98 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { z } from 'zod/v4';
+
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
+import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
+    type ExtractRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { IssuedCell, IssuedHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import db, { tUsers, tUsersEvents } from '@lib/database';
+
+/**
+ * Data source for volunteer tickets granted for an event.
+ */
+const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers', withContext({
+    /**
+     * Event for which the tickets are being obtained.
+     */
+    event: kEventTransformer,
+
+}), withRowModel({
+    /**
+     * Unique ID of the volunteer's account.
+     */
+    id: z.number(),
+
+    /**
+     * The volunteer's display name, or full name.
+     */
+    name: z.string(),
+
+    /**
+     * Order number of the ticket that has been assigned to them, if any.
+     */
+    order: z.string().optional(),
+
+    /**
+     * Date at which the ticket was created, if any.
+     */
+    created: z.iso.datetime().optional(),
+
+}), {
+    async authorize(operation, props, context) {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: context.event.slug,
+            permission: {
+                permission: 'event.tickets',
+                operation: 'read',
+                scope: {
+                    event: context.event.slug,
+                },
+            },
+        });
+    },
+
+    async list(params, props, context) {
+        const service = await createTicketService(context.event.slug);
+        if (!service)
+            return { rowCount: 0, rows: [] };  // no service is available
+
+        if (!context.event.tickets?.volunteerTicketId)
+            return { rowCount: 0, rows: [] };  // no ticket has been specified
+
+        const dbInstance = db;
+        const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .where(tUsersEvents.eventId.equals(context.event.id))
+                .and(tUsersEvents.registrationStatus.equals('Accepted'))
+            .select({
+                id: tUsersEvents.userId,
+                name: tUsers.name,
+                // TODO: order
+                // TODO: created
+            })
+            .groupBy(tUsersEvents.userId)
+            .orderBy('name', 'asc')
+            .limit(params.page.limit)
+                .offset(params.page.offset)
+            .executeSelectPage();
+
+        return {
+            rowCount: volunteers.count,
+            rows: volunteers.data,
+        };
+    },
+});
 
 /**
  * Page that provides an overview of all volunteers confirmed to help out during a particular event,
@@ -20,6 +106,50 @@ export default async function EventTicketsVolunteersPage(
         operation: 'read',
     });
 
+    const columns: Column<ExtractRowModel<typeof eventTicketDataSource>>[] = [
+        {
+            field: 'id',
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                headerComponent: IssuedHeaderCell,
+                component: IssuedCell,
+            },
+        },
+        {
+            field: 'order',
+            headerName: 'Order',
+            sortable: false,
+            width: 150,
+
+            template: 'text',
+            templateProps: {
+                defaultValue: 'No ticket',
+            },
+        },
+        {
+            field: 'name',
+            headerName: 'Volunteer',
+            sortable: true,
+            flex: 1,
+
+            // TODO: Chips for the team(s) they participate in?
+            // TODO: Link to something?
+        },
+        {
+            field: 'created',
+            headerName: 'Created',
+            sortable: true,
+            width: 150,
+
+            template: 'date',
+        },
+    ];
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
@@ -30,11 +160,20 @@ export default async function EventTicketsVolunteersPage(
                         { label: 'Volunteers' },
                      ]}>
                 <SectionIntroduction>
-                    Overview of the tickets granted to the volunteers of {event.shortName}.
+                    Overview of the tickets granted to our {event.shortName} volunteers.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                todo
+                <DataTable columns={columns} source={eventTicketDataSource}
+                           context={{ event: event.slug }}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           subject="ticket"
+                           listViewProps={{
+                               primaryField: 'name',
+                               secondaryTemplate: 'REF{purchaseId}',
+                               startComponent: IssuedCell,
+                               linkTemplate: './volunteers/{purchaseId}',
+                           }} />
             </Section>
         </>
     );

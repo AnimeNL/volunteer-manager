@@ -76,6 +76,15 @@ export const kColumnTemplates = {
         headerName: 'Date',
 
         renderCell: params => {
+            if (!params.value) {
+                return (
+                    <Typography variant="inherit" color="textDisabled" component="span"
+                                sx={{ fontStyle: 'italic' }}>
+                        { column.templateProps?.defaultValue ?? '···' }
+                    </Typography>
+                );
+            }
+
             const format = column.templateProps?.format ?? 'YYYY-MM-DD';
             const href =
                 !!column.templateProps?.href &&

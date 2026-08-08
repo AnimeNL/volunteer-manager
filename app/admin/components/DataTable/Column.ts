@@ -64,6 +64,14 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
         template: 'date';
         templateProps?: {
             /**
+             * Default value when no value could be derived from the field. Will be displayed in a
+             * grey italic text to visually distinguish it from actual values.
+             *
+             * @default "···"
+             */
+            defaultValue?: string;
+
+            /**
              * Format, per the `formatDate()` formatting rules, of the text to be rendered.
              *
              * @default "YYYY-MM-DD"

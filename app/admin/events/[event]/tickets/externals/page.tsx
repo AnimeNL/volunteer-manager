@@ -44,8 +44,9 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
 
     /**
      * Name of the person who holds the ticket, when known.
+     * @default "(Unclaimed ticket)"
      */
-    holder: z.string().nullish(),
+    holder: z.string().optional(),
 
     /**
      * Name of the order that this ticket is part of.
@@ -115,7 +116,7 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
             rows: selectedTickets.map(ticket => ({
                 id: ticket.id,
                 purchaseId: ticket.purchaseId,
-                holder: ticket.holder,
+                holder: ticket.holder ?? '(Unclaimed ticket)',
                 order: `REF${ticket.purchaseId}`,
                 created: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
@@ -161,11 +162,6 @@ export default async function EventTicketsExternalsPage(
             headerName: 'Order',
             sortable: false,
             width: 150,
-
-            template: 'text',
-            templateProps: {
-                href: './externals/{purchaseId}',
-            },
         },
         {
             field: 'holder',
@@ -176,6 +172,7 @@ export default async function EventTicketsExternalsPage(
             template: 'text',
             templateProps: {
                 defaultValue: 'Identity unknown…',
+                href: './externals/{purchaseId}',
             },
         },
         {
@@ -200,7 +197,7 @@ export default async function EventTicketsExternalsPage(
                         { label: 'Externals' },
                      ]}>
                 <SectionIntroduction>
-                    Overview of the tickets granted to people external to the Volunteer Manager.
+                    Volunteering tickets granted to people external to the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
