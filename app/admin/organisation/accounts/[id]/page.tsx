@@ -28,7 +28,6 @@ import { kFileType } from '@lib/database/Types';
 
 import * as actions from './AccountActions';
 
-
 /**
  * The <AccountInformationPage> component displays the basic account information, together with a
  * series of actions that are available to this account, for example to toggle its availability.
