@@ -34,7 +34,7 @@ export async function associatePurchase(
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
                 permission: 'event.tickets',
-                operation: 'create',
+                operation: 'update',
             });
 
         const affectedRows = await db.insertInto(tUsersEventsTickets)
@@ -133,6 +133,37 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
         return {
             success: true,
             redirect: `./externals/${ticket.purchaseId}`,
+        };
+    });
+}
+
+/**
+ * Server Action through which the ticket associated with |userId| will be disassociated.
+ */
+export async function disassociatePurchase(eventSlug: string, userId: number) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'update',
+            });
+
+        const affectedRows = await db.deleteFrom(tUsersEventsTickets)
+            .where(tUsersEventsTickets.userId.equals(userId))
+                .and(tUsersEventsTickets.eventId.equals(event.id))
+            .executeDelete();
+
+        LogBuilder.for('DisassociateTicket')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .record({
+                event: event.shortName,
+            });
+
+        return {
+            success: true,
+            refresh: true,
         };
     });
 }

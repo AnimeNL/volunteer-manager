@@ -83,6 +83,8 @@ export default async function EventTicketsExternalPage(
 
     // ---------------------------------------------------------------------------------------------
 
+    const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> } title="Purchase"
@@ -105,11 +107,12 @@ export default async function EventTicketsExternalPage(
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
                     </Alert> }
-                <ActionBar>
-                    <AssociateQuickAction action={associatePurchaseFn}
-                                          ticketProvider={service.id}
-                                          volunteers={associateVolunteers} />
-                </ActionBar>
+                { canUpdateTickets &&
+                    <ActionBar>
+                        <AssociateQuickAction action={associatePurchaseFn}
+                                              ticketProvider={service.id}
+                                              volunteers={associateVolunteers} />
+                    </ActionBar> }
                 <KeyValueList items={[
                     {
                         key: 'Purchase ID',

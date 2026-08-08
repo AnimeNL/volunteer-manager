@@ -86,6 +86,7 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             .leftJoin(yourTicketProviderPurchasesJoin)
                 .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
                     .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
+                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseDateCancelled.isNull())
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.registrationStatus.equals('Accepted'))
                 .and(tUsers.name.containsInsensitiveIfValue(params.search)
