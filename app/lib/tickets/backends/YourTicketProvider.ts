@@ -26,6 +26,7 @@ export class YourTicketProvider implements TicketBackend {
     // ---------------------------------------------------------------------------------------------
 
     get id(): EventTicketProvider { return 'YourTicketProvider' };
+    get eventId(): number | string { return this.#eventId; }
 
     async initialise(): Promise<void> {
         this.#client = await createYourTicketProviderClient();

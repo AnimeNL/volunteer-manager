@@ -14,6 +14,7 @@ import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEven
 import db, { tEvents, tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
+import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 
 /**
  * Data required to associate a purchase with a volunteer.
@@ -91,36 +92,48 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
         if (!service || !event.tickets?.volunteerTicketId)
             notFound();
 
-        try {
-            const ticket = await service.createTicket({
-                type: event.tickets.volunteerTicketId,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                emailAddress: data.email,
+        const ticket = await service.createTicket({
+            type: event.tickets.volunteerTicketId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            emailAddress: data.email,
+        });
+
+        if (!ticket)
+            return { success: false, error: 'Unable to issue a ticket at this time' };
+
+        LogBuilder.for('CreateExternalTicket')
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+                recipient: `${data.firstName} ${data.lastName}`,
+                purchaseId: ticket.purchaseId,
             });
 
-            if (!ticket)
-                return { success: false, error: 'Unable to issue a ticket at this time' };
-
-            LogBuilder.for('CreateExternalTicket')
-                .withInitiatorUser(props.user)
-                .withSeverity('Error')
-                .build({
-                    event: event.shortName,
-                    recipient: `${data.firstName} ${data.lastName}`,
-                });
-
+        // Import the purchase into our database if required, so that it's immediately visible
+        // across our systems. The import routine will pick it up properly at the next interval.
+        try {
+            switch (service.id) {
+                case 'YourTicketProvider':
+                    await YourTicketProviderImportTask.importPurchase(
+                        Number(service.eventId), Number(ticket.purchaseId));
+                    break;
+            }
+        } catch (error) {
+            console.error('Unable to import a new purchase:', error);
             return {
                 success: true,
-                redirect: `./externals/${ticket.purchaseId}`,
-            };
-
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.message,
+                message:
+                    'The ticket has been created, but it could not be imported into our system. ' +
+                    'Please allow up to 24 hours for it to appear.',
             };
         }
+
+        return {
+            success: true,
+            redirect: `./externals/${ticket.purchaseId}`,
+        };
     });
 }
 

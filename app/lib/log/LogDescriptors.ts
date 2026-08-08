@@ -83,6 +83,7 @@ interface LogTypeParameterMap {
     CreateExternalTicket: {
         event: string;  // short name
         recipient: string;
+        purchaseId: number | string;
     };
 
     DeleteEventKeyDate: {

@@ -98,7 +98,13 @@ export class YourTicketProviderImportTask extends Task {
         const task = new YourTicketProviderImportTask(taskContext);
         await task.initialise();
 
-        return task.importIndividualPurchase(eventId, purchaseId);
+        // When manually importing a purchase, it's important to provide a last updated time well in
+        // the past to avoid interfering with the synchronisation mechanism in this class that is
+        // based on the maximum value of the database column. Use a date far in the past.
+        const lastUpdated = Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 }).toInstant();
+
+        return task.importIndividualPurchase(
+            eventId, purchaseId, /* cancellationDate= */ undefined, lastUpdated);
     }
 
     #client: YourTicketProviderClient = undefined!;
@@ -450,8 +456,8 @@ export class YourTicketProviderImportTask extends Task {
      * `eventId`. This will issue two API calls to the YourTicketProvider API.
      */
     private async importIndividualPurchase(
-        eventId: number, purchaseId: number, cancellationDate?: Temporal.ZonedDateTime,
-        lastUpdated?: Temporal.Instant)
+        eventId: number, purchaseId: number, cancellationDate: Temporal.ZonedDateTime | undefined,
+        lastUpdated: Temporal.Instant)
             : Promise<boolean>
     {
         const purchase = await this.#client.fetchPurchase(purchaseId);
@@ -469,17 +475,8 @@ export class YourTicketProviderImportTask extends Task {
                             .round('seconds').toZonedDateTimeISO('UTC');
                 }
 
-                if (!!purchase.Cancelled && !cancellationDate) {
-                    ytpPurchaseDateCancelled =
-                        lastUpdated?.toZonedDateTimeISO('UTC')
-                            || Temporal.Now.zonedDateTimeISO('UTC');
-                }
-
-                const ytpPurchaseItemUpdated =
-                    lastUpdated?.toZonedDateTimeISO('UTC')
-                        || ytpPurchaseDateCancelled
-                        || ytpPurchaseDatePaid
-                        || Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
+                if (!!purchase.Cancelled && !cancellationDate)
+                    ytpPurchaseDateCancelled = lastUpdated.toZonedDateTimeISO('UTC');
 
                 const ytpPurchaseItemHolder = [
                     item.TicketHolderFirstname,
@@ -498,7 +495,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseItemTicketId: item.TicketId,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
-                        ytpPurchaseItemUpdated,
+                        ytpPurchaseItemUpdated: lastUpdated.toZonedDateTimeISO('UTC'),
                     })
                     .onConflictDoUpdateSet({
                         ytpPurchaseComplimentary: purchase.TotalAmount === 0 ? 1 : 0,
@@ -506,7 +503,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpPurchaseDatePaid,
                         ytpPurchaseItemBarcode: `${item.Barcode}`,
                         ytpPurchaseItemHolder,
-                        ytpPurchaseItemUpdated,
+                        ytpPurchaseItemUpdated: lastUpdated.toZonedDateTimeISO('UTC'),
                     })
                     .executeInsert();
             }

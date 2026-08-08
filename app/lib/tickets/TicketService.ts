@@ -22,6 +22,11 @@ export class TicketService {
     get id() { return this.#backend.id; }
 
     /**
+     * ID of the event for which the service has been created.
+     */
+    get eventId() { return this.#backend.eventId; }
+
+    /**
      * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
      */
     createPurchaseLink(purchaseId: number | string): string | undefined {

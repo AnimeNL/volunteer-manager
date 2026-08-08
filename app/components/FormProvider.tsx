@@ -157,6 +157,8 @@ export function FormProvider(props: React.PropsWithChildren<FormProviderProps>) 
 
     const handleSubmit = form.handleSubmit(async (data: unknown) => {
         await startTransition(async () => {
+            setState(undefined);
+
             if (!!data && typeof data === 'object') {
                 for (const [ key, value ] of Object.entries(data)) {
                     if (dayjs.isDayjs(value))

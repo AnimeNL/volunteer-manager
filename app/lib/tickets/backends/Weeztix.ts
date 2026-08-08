@@ -15,6 +15,9 @@ export class Weeztix implements TicketBackend {
     // ---------------------------------------------------------------------------------------------
 
     get id(): EventTicketProvider { return 'Weeztix' };
+    get eventId(): number | string {
+        throw new Error('Not yet implemented');
+    }
 
     async initialise(): Promise<void> {}
 

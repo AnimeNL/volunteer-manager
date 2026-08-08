@@ -15,6 +15,11 @@ export interface TicketBackend {
     get id(): EventTicketProvider;
 
     /**
+     * ID of the event for which the service has been created.
+     */
+    get eventId(): number | string;
+
+    /**
      * One-time initialisation of the ticket backend. Guaranteed to be called before any other API.
      */
     initialise(): Promise<void>;

@@ -50,7 +50,7 @@ export function FormGrid(props: React.PropsWithChildren<FormGridProps>) {
 
     return (
         <FormProvider {...formProviderProps}>
-            <Grid container spacing={ spacing ?? 2 } sx={{ mb: -2 }}>
+            <Grid container spacing={ spacing ?? 2 } sx={{ marginBottom: -1 * (spacing ?? 2) }}>
                 {children}
                 {submitButtonComponent}
             </Grid>
@@ -66,31 +66,44 @@ function InnerFormGrid(props: { callToAction?: string }) {
     const formContext = useContext(FormProviderContext);
     const formState = useFormState();
 
+    const messageCollapseVisible = !!formContext.result?.success && !!formContext.result.message;
+    const submitCollapseVisible = !!formState.isDirty;
+
+    const collapseVisible = messageCollapseVisible || submitCollapseVisible;
+
     return (
-        <Collapse in={!!formState.isDirty} sx={{ width: '100%' }}>
+        <Collapse in={collapseVisible} sx={{ width: '100%' }}>
             <Grid size={{ xs: 12 }}>
-                <Stack direction="row" spacing={1} sx={{
-                    alignItems: 'center',
-                    borderRadius: 2,
-                    marginTop: '-4px',
-                    marginBottom: '12px',
-                }}>
-                    <Button variant="contained" type="submit" loading={!!formContext.isPending}
-                            startIcon={ <DoneAllIcon /> } size="small" sx={{
-                                marginY: '4px !important',
+                <Collapse in={messageCollapseVisible}>
+                    <Alert severity="success" variant="outlined"
+                           sx={{ marginBottom: 'var(--Grid-rowSpacing)' }}>
+                        { !!formContext.result?.success && formContext.result.message }
+                    </Alert>
+                </Collapse>
+                <Collapse in={submitCollapseVisible}>
+                    <Stack direction="row" spacing={1} sx={{
+                        alignItems: 'center',
+                        borderRadius: 2,
+                        marginTop: '-4px',
+                        marginBottom: 'var(--Grid-rowSpacing)',
+                    }}>
+                        <Button variant="contained" type="submit" loading={!!formContext.isPending}
+                                startIcon={ <DoneAllIcon /> } size="small" sx={{
+                                    marginY: '4px !important',
+                                }}>
+                            { props.callToAction ?? 'Save changes' }
+                        </Button>
+                        { (!!formContext.result && !formContext.result.success) &&
+                            <Alert severity="error" variant="outlined" sx={{
+                                flexGrow: 1,
+                                px: 1,
+                                py: 0,
+                                whiteSpace: 'pre-line'
                             }}>
-                        { props.callToAction ?? 'Save changes' }
-                    </Button>
-                    { (!!formContext.result && !formContext.result.success) &&
-                        <Alert severity="error" variant="outlined" sx={{
-                            flexGrow: 1,
-                            px: 1,
-                            py: 0,
-                            whiteSpace: 'pre-line'
-                        }}>
-                            { formContext.result.error || 'The changes could not be saved' }
-                        </Alert> }
-                </Stack>
+                                { formContext.result.error || 'The changes could not be saved' }
+                            </Alert> }
+                    </Stack>
+                </Collapse>
             </Grid>
         </Collapse>
     );
