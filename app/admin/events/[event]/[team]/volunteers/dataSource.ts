@@ -8,7 +8,8 @@ import { createDataSource, withContext, withRowModel } from '@app/admin/componen
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
 import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts,
-    tShiftsCategories, tEvents } from '@lib/database';
+    tShiftsCategories, tUsersEventsTickets, tYourTicketProviderPurchases, tEvents }
+        from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
@@ -74,8 +75,14 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
      */
     status: z.object({
         hotelEligible: z.number(),
+        ticketEligible: z.boolean(),
         trainingEligible: z.number(),
     }),
+
+    /**
+     * Whether the user has been granted a valid ticket for this event.
+     */
+    ticket: z.boolean(),
 
     /**
      * Most recent time a communication of a given type was sent, in a Temporal ZonedDateTime
@@ -141,7 +148,15 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             .selectOneColumn(dbInstance.sum(shiftSecondsFragment).valueWhenNull(0))
             .forUseAsInlineQueryValue();
 
+        const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
+        const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
+
+        const purchaseIdCast = dbInstance.fragmentWithType('int', 'optional')
+            .sql`CAST(${usersEventsTicketsJoin.ticketProviderPurchaseId} AS INTEGER)`;
+
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tEvents)
+                .on(tEvents.eventId.equals(tUsersEvents.eventId))
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
@@ -150,6 +165,13 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
                     .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
                     .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
+            .leftJoin(usersEventsTicketsJoin)
+                .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
+                    .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
+            .leftJoin(yourTicketProviderPurchasesJoin)
+                .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
+                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
+                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseDateCancelled.isNull())
             .groupBy(tUsersEvents.userId)
             .where(tUsersEvents.eventId.equals(context.eventId))
                 .and(tUsersEvents.teamId.equals(context.teamId))
@@ -169,9 +191,11 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 status: {
                     hotelEligible:
                         tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
+                    ticketEligible: tEvents.ticketsAutoGrantTicketId.isNotNull(),
                     trainingEligible:
                         tUsersEvents.trainingEligible.valueWhenNull(tRoles.roleTrainingEligible),
                 },
+                ticket: yourTicketProviderPurchasesJoin.ytpPurchaseItemId.isNotNull(),
                 communication: dbInstance.aggregateAsArray({
                     promptId: usersCommunicationJoin.communicationPromptId,
                     date: usersCommunicationJoin.communicationDate,

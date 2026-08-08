@@ -6,6 +6,7 @@
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import HotelIcon from '@mui/icons-material/Hotel';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import PaidIcon from '@mui/icons-material/Paid';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -54,6 +55,23 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
         );
     }
 
+    let ticketIcon: React.ReactNode;
+    if (!!status.ticketEligible) {
+        if (!props.row.ticket) {
+            ticketIcon = (
+                <Tooltip title="Has not received a ticket">
+                    <LocalActivityOutlinedIcon color="error" fontSize="small" />
+                </Tooltip>
+            );
+        } else {
+            ticketIcon = (
+                <Tooltip title="Received a ticket">
+                    <LocalActivityOutlinedIcon color="success" fontSize="small" />
+                </Tooltip>
+            );
+        }
+    }
+
     let refundIcon: React.ReactNode;
     if (!props.listView) {
         refundIcon = (
@@ -72,6 +90,7 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
             </Tooltip>
             {hotelIcon}
             {trainingIcon}
+            {ticketIcon}
             {refundIcon}
         </Stack>
     );

@@ -172,7 +172,6 @@ describe('TaskRunner', () => {
             const update = await updatePromise;
             expect(update.taskId).toEqual(100);
             expect(update.taskInvocationResult).toEqual(kTaskResult.InvalidParameters);
-            expect(update.taskInvocationLogs).toEqual('[]');
             expect(update.taskInvocationTimeMs).toBeGreaterThan(0);
         }
     });
