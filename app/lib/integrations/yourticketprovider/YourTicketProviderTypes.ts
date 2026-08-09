@@ -184,7 +184,7 @@ export const kTicketingPurchaseResponse = z.object({
     TotalAmount: z.number(),
     Reference: z.string(),
     BasketId: z.number().nullish(),
-    HasAcceptedTermsAndAgreements: z.literal(true),
+    HasAcceptedTermsAndAgreements: z.boolean(),
     Secret: z.string().nullish(),
     Paid: z.boolean(),
     PaidDate: z.iso.datetime(),
