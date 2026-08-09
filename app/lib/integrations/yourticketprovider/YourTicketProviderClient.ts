@@ -66,7 +66,7 @@ type YourTicketProviderRequest = ({
     /**
      * Request method using which the API should be called.
      */
-    method: 'DELETE' | 'GET' | 'POST' | 'PUT';
+    method: 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT';
 
     /**
      * Request body that should be included with the API call.
@@ -295,6 +295,24 @@ export class YourTicketProviderClient {
         return this.issueRequest(ytp.kTicketingPurchaseItemResponse, {
             api: `/PurchaseItems(${purchaseItemId})`,
             method: 'GET',
+        });
+    }
+
+    /**
+     * Patches the purchase item with the given `purchaseItemId`.
+     *
+     * @api PATCH /PurchaseItems(<Id>)
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Unknown.
+     */
+    async patchPurchaseItem(purchaseItemId: number, request: ytp.TicketingPurchaseItemPatchRequest)
+        : Promise<ytp.TicketingPurchaseItemPatchResponse>
+    {
+        const validatedRequest = ytp.kTicketingPurchaseItemPatchRequest.parse(request);
+        return this.issueRequest(ytp.kTicketingPurchaseItemPatchResponse, {
+            api: `/PurchaseItems(${purchaseItemId})`,
+            method: 'PATCH',
+            body: validatedRequest,
         });
     }
 

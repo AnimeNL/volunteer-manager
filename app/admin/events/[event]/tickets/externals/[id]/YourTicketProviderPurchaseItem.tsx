@@ -21,10 +21,17 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 
+import { updateYourTicketProviderTicket } from '../../TicketActions';
+
 /**
  * Props accepted by the <YourTicketProviderPurchaseItem> component.
  */
 interface YourTicketProviderPurchaseItemProps {
+    /**
+     * URL-safe slug of the event this ticket is in scope of.
+     */
+    event: string;
+
     /**
      * Ticket Service through which changes could be mediated.
      */
@@ -48,11 +55,14 @@ interface YourTicketProviderPurchaseItemProps {
 export async function YourTicketProviderPurchaseItem(props: YourTicketProviderPurchaseItemProps) {
     const client = props.service.client as YourTicketProviderClient;
 
-    const cache = Cache.getInstance('EventTicketCache');
-    const ticket = cache.getOrInsert(props.ticket.id, async ticketId =>
-        client.getPurchaseItem(Number(ticketId)));
+    const ticketId = Number(props.ticket.id);
 
-    const updateTicketFn = undefined;
+    const cache = Cache.getInstance('EventTicketCache');
+    const ticket = cache.getOrInsert(ticketId, async () => client.getPurchaseItem(ticketId));
+
+    const updateTicketFn =
+        props.readOnly ? undefined
+                       : updateYourTicketProviderTicket.bind(null, props.event, ticketId);
 
     return (
         <Section icon={ <ConfirmationNumberOutlinedIcon /> } title={`Ticket ${props.ticket.id}`}

@@ -129,6 +129,12 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    UpdateExternalTicket: {
+        event: string;  // short name
+        recipient: string;
+        purchaseId: number | string;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team
     // ---------------------------------------------------------------------------------------------
@@ -257,6 +263,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateEventTicketSettings: 'UpdateEventTicketSettings',
+    UpdateExternalTicket: 'UpdateExternalTicket',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team

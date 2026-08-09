@@ -238,6 +238,31 @@ export const kTicketingPurchaseItemResponse = z.object({
  */
 export type TicketingPurchaseItemResponse = z.infer<typeof kTicketingPurchaseItemResponse>;
 
+/**
+ * API: PATCH /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseItemPatchRequest = kTicketingPurchaseItemResponse.partial();
+
+/**
+ * API: PATCH /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseItemPatchRequest = z.infer<typeof kTicketingPurchaseItemPatchRequest>;
+
+/**
+ * API: PATCH /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseItemPatchResponse = kTicketingPurchaseItemResponse;
+
+/**
+ * API: PATCH /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseItemPatchResponse =
+    z.infer<typeof kTicketingPurchaseItemPatchResponse>;
+
 // -------------------------------------------------------------------------------------------------
 // Visitor Information API:
 // -------------------------------------------------------------------------------------------------

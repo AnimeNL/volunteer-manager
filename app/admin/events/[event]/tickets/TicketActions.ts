@@ -6,15 +6,16 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
+import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent';
-import db, { tEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
-import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 
 /**
  * Data required to associate a purchase with a volunteer.
@@ -228,5 +229,68 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
             .record({ event: event.shortName });
 
         return { success: true };
+    });
+}
+
+/**
+ * Data necessary to update a ticket issued by YourTicketProvider.
+ */
+const kUpdateYourTicketProviderTicketData = z.object({
+    TicketHolderFirstname: z.string().nonempty(),
+    TicketHolderLastname: z.string().nonempty(),
+    TicketHolderEmail: z.string().nonempty(),
+});
+
+/**
+ * Server Action through which an individual ticket issued by YourTicketProvider can be updated.
+ */
+export async function updateYourTicketProviderTicket(
+    eventSlug: string, purchaseItemId: number, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateYourTicketProviderTicketData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
+
+        const service = await createTicketService(event.id);
+        if (!service || !service.client)
+            notFound();
+
+        const client = service.client as YourTicketProviderClient;
+        const ticket = await client.patchPurchaseItem(purchaseItemId, {
+            TicketHolderFirstname: data.TicketHolderFirstname,
+            TicketHolderLastname: data.TicketHolderLastname,
+            TicketHolderEmail: data.TicketHolderEmail,
+            // TODO: TicketHolderOrganisation
+            // TODO: TicketHolderDepartment
+            // TODO: TicketHolderPosition
+        });
+
+        // Overwrite the cached ticket with the updated representation received from the server:
+        Cache.getInstance('EventTicketCache').set(purchaseItemId, ticket);
+
+        const ytpPurchaseItemHolder = [
+            ticket.TicketHolderFirstname,
+            ticket.TicketHolderInsertion,
+            ticket.TicketHolderLastname,
+        ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
+
+        await db.update(tYourTicketProviderPurchases)
+            .set({ ytpPurchaseItemHolder })
+            .where(tYourTicketProviderPurchases.ytpPurchaseItemId.equals(purchaseItemId))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateExternalTicket')
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+                recipient: ytpPurchaseItemHolder || '(unknown)',
+                purchaseId: ticket.Id,
+            });
+
+        return {
+            success: true,
+            refresh: true,
+        };
     });
 }

@@ -144,7 +144,7 @@ export default async function EventTicketsExternalPage(
                 ]} />
             </Section>
             { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
-                <YourTicketProviderPurchaseItem key={ticket.id} service={service}
+                <YourTicketProviderPurchaseItem key={ticket.id} event={event.slug} service={service}
                                                 ticket={ticket} readOnly={!canUpdateTickets} /> ) }
         </>
     );
