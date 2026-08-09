@@ -3,13 +3,13 @@
 
 import type { EventTicketProvider } from '@lib/database/Types';
 import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
-import type { TicketBackend } from '../TicketBackend';
+import type { TicketService } from '../TicketService';
 
 /**
- * Implementation of the `TicketBackend` specific to Weeztix.
+ * Implementation of the `TicketService` specific to Weeztix.
  * @see https://docs.weeztix.com/api/dashboard/dashboard
  */
-export class Weeztix implements TicketBackend {
+export class Weeztix implements TicketService {
     // ---------------------------------------------------------------------------------------------
     // TicketBackend implementation:
     // ---------------------------------------------------------------------------------------------

@@ -1,8 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { TicketBackend } from './TicketBackend';
-import { TicketService } from './TicketService';
+import type { TicketService } from './TicketService';
 import { Weeztix } from './backends/Weeztix';
 import { YourTicketProvider } from './backends/YourTicketProvider';
 import { getEvent } from '@lib/cache';
@@ -19,25 +18,25 @@ export async function createTicketService(eventIdentifier: number | string)
     if (!event)
         return undefined;
 
-    let backend: TicketBackend | undefined;
+    let service: TicketService | undefined;
     switch (event.tickets?.provider) {
         case 'Weeztix':
             if (!!event?.integrations?.weeztixGuid)
-                backend = new Weeztix();
+                service = new Weeztix();
 
             break;
 
         case 'YourTicketProvider':
             if (!!event?.integrations?.yourTicketProviderEventId)
-                backend = new YourTicketProvider(event.integrations.yourTicketProviderEventId);
+                service = new YourTicketProvider(event.integrations.yourTicketProviderEventId);
 
             break;
     }
 
-    if (!backend)
+    if (!service)
         return undefined;
 
-    await backend.initialise();
+    await service.initialise();
 
-    return new TicketService(backend);
+    return service;
 }

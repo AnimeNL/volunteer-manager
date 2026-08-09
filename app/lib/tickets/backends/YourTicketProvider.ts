@@ -3,17 +3,17 @@
 
 import type { EventTicketProvider } from '@lib/database/Types';
 import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
-import type { TicketBackend } from '../TicketBackend';
+import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 
 import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**
- * Implementation of the `TicketBackend` specific to YourTicketProvider and/or CM.com.
+ * Implementation of the `TicketService` specific to YourTicketProvider and/or CM.com.
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
-export class YourTicketProvider implements TicketBackend {
+export class YourTicketProvider implements TicketService {
     #client: YourTicketProviderClient | undefined;
     #eventId: number;
 
@@ -22,7 +22,7 @@ export class YourTicketProvider implements TicketBackend {
     }
 
     // ---------------------------------------------------------------------------------------------
-    // TicketBackend implementation:
+    // TicketService implementation:
     // ---------------------------------------------------------------------------------------------
 
     get id(): EventTicketProvider { return 'YourTicketProvider' };

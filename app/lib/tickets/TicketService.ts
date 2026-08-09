@@ -1,65 +1,51 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EventTicketProvider } from '@lib/database/Types';
 import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types';
-import type { TicketBackend } from './TicketBackend';
 
 /**
- * The `TicketService` is the primary API through which event tickets can be managed, for example to
- * automatically manage tickets for our volunteers. It's backed by a `TicketBackend` implementation
- * that knows how to integrate with a particular ticket provider.
+ * The `TicketService` is the interface that must be implemented for each ticket service that the
+ * Volunteer Manager integrates with. This abstraction layer exists in case we switch providers.
  */
-export class TicketService {
-    #backend: TicketBackend;
-
-    constructor(backend: TicketBackend) {
-        this.#backend = backend;
-    }
-
+export interface TicketService {
     /**
      * ID of the ticket provider this backend implements.
      */
-    get id() { return this.#backend.id; }
+    get id(): EventTicketProvider;
 
     /**
      * ID of the event for which the service has been created.
      */
-    get eventId() { return this.#backend.eventId; }
+    get eventId(): number | string;
+
+    /**
+     * One-time initialisation of the ticket backend. Guaranteed to be called before any other API.
+     */
+    initialise(): Promise<void>;
 
     /**
      * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
      */
-    createPurchaseLink(purchaseId: number | string): string | undefined {
-        return this.#backend.createPurchaseLink(purchaseId);
-    }
+    createPurchaseLink(purchaseId: number | string): string | undefined;
 
     /**
-     * Creates a new ticket based on the given `request`. This may end up calling multiple APIs
-     * depending on requirements of the chosen ticketing partner. Ticket creation may fail for a
-     * variety of reasons, largely outside of our control.
+     * Creates a new ticket based on the given `request`.
      */
-    async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
-        return this.#backend.createTicket(request);
-    }
+    createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>>;
 
     /**
      * Fetches the purchase identified by the given `purchaseId`.
      */
-    async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
-        return this.#backend.fetchPurchase(purchaseId);
-    }
+    fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined>;
 
     /**
      * Lists the ticket types that exist for the current event.
      */
-    async listTicketTypes(): Promise<TicketType[]> {
-        return this.#backend.listTicketTypes();
-    }
+    listTicketTypes(): Promise<TicketType[]>;
 
     /**
-     * Lists the tickets issued for the type with the given `id`.
+     * Lists the tickets that exist for the type identified by `id`.
      */
-    async listTicketsForType(id: number | string) {
-        return this.#backend.listTicketsForType(id);
-    }
+    listTicketsForType(id: number | string): Promise<Ticket[]>;
 }
