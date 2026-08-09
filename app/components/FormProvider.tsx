@@ -49,7 +49,7 @@ export interface FormProviderProps {
     /**
      * The action that should be invoked when the form has been submitted.
      */
-    action: ServerAction;
+    action: ServerAction<any>;
 
     /**
      * Default values that should be provided to the form. Can be updated while the form is visible,

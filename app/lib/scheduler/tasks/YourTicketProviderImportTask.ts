@@ -460,8 +460,8 @@ export class YourTicketProviderImportTask extends Task {
         lastUpdated: Temporal.Instant)
             : Promise<boolean>
     {
-        const purchase = await this.#client.fetchPurchase(purchaseId);
-        const purchaseItems = await this.#client.fetchPurchaseItems(purchaseId);
+        const purchase = await this.#client.getPurchase(purchaseId);
+        const purchaseItems = await this.#client.getPurchasePurchaseItems(purchaseId);
 
         const dbInstance = db;
         return dbInstance.transaction(async () => {

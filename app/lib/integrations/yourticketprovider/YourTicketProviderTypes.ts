@@ -138,10 +138,10 @@ export type TicketsResponse = z.infer<typeof kTicketsResponse>['value'];
 // -------------------------------------------------------------------------------------------------
 
 /**
- * API: /Purchases(<Id>)/PurchaseItems
+ * API: GET /Purchases(<Id>)/PurchaseItems
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
-export const kTIcketingPurchaseItemsResponse = z.object({
+export const kTicketingPurchasePurchaseItemsResponse = z.object({
     value: z.array(z.object({
         Id: z.number(),
         TicketId: z.number(),
@@ -163,14 +163,14 @@ export const kTIcketingPurchaseItemsResponse = z.object({
 });
 
 /**
- * API: /Purchases(<Id>)/PurchaseItems
+ * API: GET /Purchases(<Id>)/PurchaseItems
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
-export type TicketingPurchaseItemsResponse =
-    z.infer<typeof kTIcketingPurchaseItemsResponse>['value'];
+export type TicketingPurchasePurchaseItemsResponse =
+    z.infer<typeof kTicketingPurchasePurchaseItemsResponse>['value'];
 
 /**
- * API: /Purchases(<Id>)
+ * API: GET /Purchases(<Id>)
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
 export const kTicketingPurchaseResponse = z.object({
@@ -192,10 +192,51 @@ export const kTicketingPurchaseResponse = z.object({
 });
 
 /**
- * API: /Purchases(<Id>)
+ * API: GET /Purchases(<Id>)
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
 export type TicketingPurchaseResponse = z.infer<typeof kTicketingPurchaseResponse>;
+
+/**
+ * API: GET /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseItemResponse = z.object({
+    Id: z.number(),
+    PurchaseId: z.number(),
+    TicketId: z.number(),
+    TimeslotIdsForTicket: z.any(),
+    HasToBeClaimed: z.boolean(),
+    IsClaimed: z.boolean(),
+    IsValid: z.boolean(),
+    ClaimDateTime: z.iso.datetime().nullish(),
+    Barcode: z.number(),
+    TicketHolderEmail: z.string().nullish(),
+    TicketHolderFirstname: z.string().nullish(),
+    TicketHolderInsertion: z.string().nullish(),
+    TicketHolderLastname: z.string().nullish(),
+    TicketHolderOrganisation: z.string().nullish(),
+    TicketHolderDepartment: z.string().nullish(),
+    TicketHolderPosition: z.string().nullish(),
+    TicketHolderAddress: z.string().nullish(),
+    TicketHolderCity: z.string().nullish(),
+    TicketHolderPostalCode: z.string().nullish(),
+    TicketHolderCountry: z.string().nullish(),
+    TicketHolderID: z.string().nullish(),
+    TicketHolderDateOfBirth: z.string().nullish(),
+    TicketHolderMobile: z.string().nullish(),
+    TicketHolderPhone: z.string().nullish(),
+    TicketHolderGender: z.string().nullish(),
+    TicketHolderNewsletterSubscribe: z.boolean(),
+    IsGroupTicket: z.boolean(),
+    NumberOfUsersAllowedEntranceWithTicket: z.number(),
+});
+
+/**
+ * API: GET /PurchaseItems(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseItemResponse = z.infer<typeof kTicketingPurchaseItemResponse>;
 
 // -------------------------------------------------------------------------------------------------
 // Visitor Information API:

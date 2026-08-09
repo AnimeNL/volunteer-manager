@@ -18,6 +18,9 @@ export class Weeztix implements TicketService {
     get eventId(): number | string {
         throw new Error('Not yet implemented');
     }
+    get client(): unknown {
+        throw new Error('Not yet implemented');
+    }
 
     async initialise(): Promise<void> {}
 

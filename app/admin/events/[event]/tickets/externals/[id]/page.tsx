@@ -6,21 +6,16 @@ import { forbidden, notFound } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
-import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { QrCode } from '@app/components/QrCode';
 import { Section } from '@app/admin/components/Section';
-import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { YourTicketProviderPurchaseItem } from './YourTicketProviderPurchaseItem';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
@@ -131,6 +126,10 @@ export default async function EventTicketsExternalPage(
                         ),
                     },
                     {
+                        key: 'Event ID',
+                        value: purchase.eventId,
+                    },
+                    {
                         condition: !!purchase.paid,
                         key: 'Paid',
                         valueTemplate: 'localDateTime',
@@ -144,22 +143,9 @@ export default async function EventTicketsExternalPage(
                     }
                 ]} />
             </Section>
-            <Grid container spacing={1.5}>
-                { purchase.tickets.map(ticket =>
-                    <Grid key={ticket.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                        <Paper component={Stack} sx={{ p: 2 }} spacing={1.5}>
-                            <SectionHeader icon={ <ConfirmationNumberOutlinedIcon /> }
-                                           title={ ticket.holder || 'Unclaimed ticket' } />
-                            { !!ticket.ticketName &&
-                                <Typography variant="subtitle2" noWrap>
-                                    {ticket.ticketName}
-                                </Typography> }
-                            { !!ticket.barcode &&
-                                <QrCode content={ticket.barcode} /> }
-                        </Paper>
-                    </Grid> )}
-
-            </Grid>
+            { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
+                <YourTicketProviderPurchaseItem key={ticket.id} service={service}
+                                                ticket={ticket} readOnly={!canUpdateTickets} /> ) }
         </>
     );
 }

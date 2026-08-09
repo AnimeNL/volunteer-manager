@@ -257,10 +257,11 @@ export class YourTicketProviderClient {
     /**
      * Fetches the purchase with the given `purchaseId`.
      *
+     * @api GET /Purchases(<Id>)
      * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Information about this specific purpose.
+     * @returns Information about this specific purchase.
      */
-    async fetchPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseResponse> {
+    async getPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseResponse> {
         return this.issueRequest(ytp.kTicketingPurchaseResponse, {
             api: `/Purchases(${purchaseId})`,
             method: 'GET',
@@ -270,14 +271,31 @@ export class YourTicketProviderClient {
     /**
      * Fetches the items that were purchased as part of the given `purchaseId`.
      *
+     * @api GET /Purchases(<Id>)/PurchaseItems
      * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Information about this specific purpose.
+     * @returns Information about the items included in this specific purchase.
      */
-    async fetchPurchaseItems(purchaseId: number): Promise<ytp.TicketingPurchaseItemsResponse> {
-        return (await this.issueRequest(ytp.kTIcketingPurchaseItemsResponse, {
+    async getPurchasePurchaseItems(purchaseId: number)
+        : Promise<ytp.TicketingPurchasePurchaseItemsResponse>
+    {
+        return (await this.issueRequest(ytp.kTicketingPurchasePurchaseItemsResponse, {
             api: `/Purchases(${purchaseId})/PurchaseItems`,
             method: 'GET',
         })).value;
+    }
+
+    /**
+     * Fetches the purchase item with the given `purchaseItemId`.
+     *
+     * @api GET /PurchaseItems(<Id>)
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Information about this specific purchase items.
+     */
+    async getPurchaseItem(purchaseItemId: number): Promise<ytp.TicketingPurchaseItemResponse> {
+        return this.issueRequest(ytp.kTicketingPurchaseItemResponse, {
+            api: `/PurchaseItems(${purchaseItemId})`,
+            method: 'GET',
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -394,6 +412,9 @@ export class YourTicketProviderClient {
         }
 
         const endpoint = request.endpoint || composedEndpoint;
+
+        console.log('--', endpoint);
+
         const response = await fetch(endpoint, {
             method: request.method,
             headers,
@@ -401,12 +422,14 @@ export class YourTicketProviderClient {
         });
 
         if (!response.ok) {
+            console.log('--x', await response.json());
             throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
                 cause: await response.json(),
             });
         }
 
         const unverifiedResponseJson = await response.json();
+        console.log('--', unverifiedResponseJson);
 
         // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
         // method. Exceptions are considered fatal, and it's up to the caller to recover.

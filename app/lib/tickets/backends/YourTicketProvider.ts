@@ -27,6 +27,7 @@ export class YourTicketProvider implements TicketService {
 
     get id(): EventTicketProvider { return 'YourTicketProvider' };
     get eventId(): number | string { return this.#eventId; }
+    get client(): unknown { return this.#client; }
 
     async initialise(): Promise<void> {
         this.#client = await createYourTicketProviderClient();

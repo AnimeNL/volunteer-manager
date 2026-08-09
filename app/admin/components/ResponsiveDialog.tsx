@@ -65,7 +65,7 @@ export interface ResponsiveDialogProps<T extends React.JSXElementConstructor<any
     /**
      * Title of the action/dialog.
      */
-    title: string;
+    title: string | undefined;
 }
 
 /**
@@ -131,9 +131,11 @@ function ResponsiveDialogMobile(props: React.PropsWithChildren<ResponsiveDialogP
     return (
         <StyledDrawer anchor="bottom" open={props.open} onClose={props.onClose}>
             <Container {...props.ContainerProps}>
-                <DrawerTitle variant="h6">
-                    {props.title}
-                </DrawerTitle>
+                { !props.title && <DrawerTitle /> }
+                { !!props.title &&
+                    <DrawerTitle variant="h6">
+                        {props.title}
+                    </DrawerTitle> }
                 <Stack direction="column" spacing={2}>
                     { props.description &&
                         <Typography variant="body2" color="text.secondary">
