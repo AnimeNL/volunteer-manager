@@ -24,6 +24,10 @@ export class Weeztix implements TicketService {
 
     async initialise(): Promise<void> {}
 
+    async cancelPurchase(purchaseId: number | string): Promise<void> {
+        throw new Error('Not yet implemented');
+    }
+
     createPurchaseLink(purchaseId: number | string): string | undefined {
         throw new Error('Not yet implemented');
     }

@@ -579,7 +579,10 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.settings',
         // note: event.shift-categories omitted
         'event.shifts',
-        'event.tickets',
+        // note: event.tickets:create omitted
+        'event.tickets:read',
+        'event.tickets:update',
+        // note: event.tickets:delete omitted
         'event.trainings',
         'event.vendors',
         'event.visible',

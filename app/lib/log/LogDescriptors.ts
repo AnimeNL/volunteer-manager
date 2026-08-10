@@ -76,6 +76,17 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    CancelAssociatedTicket: {
+        event: string;  // short name
+        purchaseId: number | string;
+    };
+
+    CancelExternalTicket: {
+        event: string;  // short name
+        recipient: string;
+        purchaseId: number | string;
+    };
+
     CreateEventKeyDate: {
         event: string;  // short name
     };
@@ -252,6 +263,8 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     AssociateTicket: 'AssociateTicket',
+    CancelAssociatedTicket: 'CancelAssociatedTicket',
+    CancelExternalTicket: 'CancelExternalTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
     CreateExternalTicket: 'CreateExternalTicket',
     DeleteEventKeyDate: 'DeleteEventKeyDate',

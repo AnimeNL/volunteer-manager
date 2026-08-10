@@ -30,6 +30,11 @@ export interface TicketService {
     initialise(): Promise<void>;
 
     /**
+     * Cancels the purchase identified by the given `purchaseId`.
+     */
+    cancelPurchase(purchaseId: number | string): Promise<void>;
+
+    /**
      * Creates a link to the ticketing partner's overview page for the given `purchaseId`.
      */
     createPurchaseLink(purchaseId: number | string): string | undefined;

@@ -3,31 +3,51 @@
 
 'use client';
 
+import type { ServerAction } from '@lib/serverAction';
 import { ResponsiveFormDialog, type ResponsiveFormDialogProps } from './ResponsiveFormDialog';
 
 /**
  * Props accepted by the <ResponsiveConfirmationDialog> component.
  */
-interface ResponsiveConfirmationDialogProps
-    extends Pick<ResponsiveFormDialogProps, 'onClose' | 'open' | 'title'>
-{
-    /**
-     * Colour to render the default button for confirming the action in.
-     * @default "error"
-     */
-    confirmColor?: ResponsiveFormDialogProps['submitColor'];
+type ResponsiveConfirmationDialogProps =
+    Pick<ResponsiveFormDialogProps, 'onClose' | 'open' | 'title'> &
+    {
+        /**
+         * Colour to render the default button for confirming the action in.
+         * @default "error"
+         */
+        confirmColor?: ResponsiveFormDialogProps['submitColor'];
 
-    /**
-     * Label to display on the confirm button.
-     * @default "Confirm"
-     */
-    confirmLabel?: string;
+        /**
+         * Label to display on the confirm button.
+         * @default "Confirm"
+         */
+        confirmLabel?: string;
 
-    /**
-     * Callback to invoke when the user has confirmed the operation.
-     */
-    onConfirm: () => Promise<void> | void;
-}
+    } & ({
+        /**
+         * Server Action to invoke when the confirmation has been obtained. The action's response
+         * will be adhered to for server-driven behaviour such as state refreshes and redirects.
+         */
+        action?: never;
+
+        /**
+         * Callback to be invoked when the confirmation has been obtained.
+         */
+        onConfirm: () => Promise<void> | void;
+
+    } | {
+        /**
+         * Server Action to invoke when the confirmation has been obtained. The action's response
+         * will be adhered to for server-driven behaviour such as state refreshes and redirects.
+         */
+        action: ServerAction<any>;
+
+        /**
+         * Callback to be invoked when the confirmation has been obtained.
+         */
+        onConfirm?: never;
+    });
 
 /**
  * The <ResponsiveConfirmationDialog> component is a device-appropriated mechanism for asking for
@@ -37,12 +57,33 @@ interface ResponsiveConfirmationDialogProps
 export function ResponsiveConfirmationDialog(
     props: React.PropsWithChildren<ResponsiveConfirmationDialogProps>)
 {
-    const { children, confirmColor, confirmLabel, onConfirm, ...responsiveFormDialogProps } = props;
-    return (
-        <ResponsiveFormDialog {...responsiveFormDialogProps}
-                              description={children}
-                              onSubmit={onConfirm}
-                              submitColor={ confirmColor ?? 'error' }
-                              submitLabel={ confirmLabel ?? 'Confirm' } />
-    );
+    const {
+        children,
+        confirmColor,
+        confirmLabel,
+        onConfirm,
+        action,
+        ...responsiveFormDialogProps
+    } = props;
+
+    const confirmColorWithDefault = confirmColor ?? 'error';
+    const confirmLabelWithDefault = confirmLabel ?? 'Confirm';
+
+    if (action) {
+        return (
+            <ResponsiveFormDialog {...responsiveFormDialogProps}
+                                   action={action}
+                                   description={children}
+                                   submitColor={confirmColorWithDefault}
+                                   submitLabel={confirmLabelWithDefault} />
+        );
+    } else {
+        return (
+            <ResponsiveFormDialog {...responsiveFormDialogProps}
+                                   onSubmit={onConfirm!}
+                                   description={children}
+                                   submitColor={confirmColorWithDefault}
+                                   submitLabel={confirmLabelWithDefault} />
+        );
+    }
 }

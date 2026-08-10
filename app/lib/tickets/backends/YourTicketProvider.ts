@@ -38,6 +38,25 @@ export class YourTicketProvider implements TicketService {
         return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;
     }
 
+    async cancelPurchase(purchaseId: number | string): Promise<void> {
+        if (!this.#client)
+            throw new Error('Unable to execute cancelPurchase() without a valid client');
+
+        const cancelledPurchase = await this.#client.postCancelPurchase(Number(purchaseId));
+        // TODO: Figure out what to do with |cancelledPurchase|, if anything?
+
+        const dbInstance = db;
+
+        // Update the ticket cache in the database to mark them as cancelled.
+        await dbInstance.update(tYourTicketProviderPurchases)
+            .set({
+                ytpPurchaseDateCancelled: dbInstance.currentZonedDateTime(),
+            })
+            .where(tYourTicketProviderPurchases.ytpPurchaseId.equals(Number(purchaseId)))
+                .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
+            .executeUpdate();
+    }
+
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
         if (!this.#client)
             throw new Error('Unable to execute createTicket() without a valid client');

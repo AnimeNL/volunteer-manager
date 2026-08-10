@@ -255,6 +255,21 @@ export class YourTicketProviderClient {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * Posts to have the purchase with the given `purchaseId` cancelled. This is irrevocable.
+     *
+     * @api GET /Purchases(<Id>)
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns The purchase object that has now been cancelled.
+     */
+    async postCancelPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseCancelResponse> {
+        return this.issueRequest(ytp.kTicketingPurchaseCancelResponse, {
+            api: `/Purchases(${purchaseId})/YTP.CancelPurchase`,
+            method: 'POST',
+            body: { /* no payload */ },
+        });
+    }
+
+    /**
      * Fetches the purchase with the given `purchaseId`.
      *
      * @api GET /Purchases(<Id>)

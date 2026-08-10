@@ -3,7 +3,7 @@
 
 'use server';
 
-import { notFound } from 'next/navigation';
+import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider';
@@ -16,6 +16,12 @@ import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEven
 import db, { tEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
+
+/**
+ * Whether to disable the ability to cancel purchases, which depends on figuring out how to cancel
+ * zero-priced tickets in YourTicketProvider that it insists on refunding.
+ */
+const kCancelPurchaseDisabledPendingIssueResolution = true;
 
 /**
  * Data required to associate a purchase with a volunteer.
@@ -65,6 +71,97 @@ export async function associatePurchase(
         return {
             success: true,
             redirect: `/admin/events/${event.slug}/tickets/volunteers/${data.userId}`,
+        };
+    });
+}
+
+/**
+ * Server Action through which a purchase can be cancelled. This action is irrevocable.
+ */
+export async function cancelPurchase(eventSlug: string, purchaseId: number | string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'delete',
+            });
+
+        // TODO: Enable this API after YourTicketProvider (hopefully) resolves the API issue.
+        if (kCancelPurchaseDisabledPendingIssueResolution) {
+            return {
+                success: false,
+                error:
+                    'The ability to cancel tickets has been disabled pending a fix in ' +
+                    'YourTicketProvider—use YTP directly for now.',
+            };
+        }
+
+        const service = await createTicketService(event.id);
+        if (!service || !event.tickets?.volunteerTicketId)
+            notFound();
+
+        // Confirm that the |purchaseId| corresponds to a ticket that contains a volunteering
+        // ticket. While not technically required, it's a safeguard to avoid cancelling arbitrary
+        // tickets—whoever needs to do so can use YourTicketProvider or Weeztix directly.
+        const purchase = await service.fetchPurchase(purchaseId);
+        if (!purchase)
+            notFound();
+
+        let includesVolunteerTicket: boolean = false;
+        for (const ticket of purchase.tickets) {
+            if (event.tickets.volunteerTicketId === `${ticket.ticketId}`)
+                includesVolunteerTicket = true;
+        }
+
+        if (!includesVolunteerTicket)
+            forbidden();
+
+        // Cancel the ticket with the ticketing partner. Only proceed when this succeeds.
+        await service.cancelPurchase(purchaseId);
+
+        // Clear any cached variants of the issued tickets, as they are no logner valid.
+        for (const ticket of purchase.tickets)
+            Cache.getInstance('EventTicketCache').delete(ticket.id);
+
+        // Write log entries for the affected tickets; associate them with a particular user when
+        // it involves a known volunteer, otherwise assume that this is an external ticket.
+        const affectedUsers = await db.selectFrom(tUsersEventsTickets)
+            .where(tUsersEventsTickets.ticketProviderPurchaseId.equals(purchaseId.toString()))
+            .selectOneColumn(tUsersEventsTickets.userId)
+            .executeSelectMany();
+
+        if (!!affectedUsers.length) {
+            await db.deleteFrom(tUsersEventsTickets)
+                .where(tUsersEventsTickets.ticketProviderPurchaseId.equals(purchaseId.toString()))
+                .executeDelete();
+
+            for (const affectedUserId of affectedUsers) {
+                LogBuilder.for('CancelAssociatedTicket')
+                    .withInitiatorUser(props.user)
+                    .withAffectedUser(affectedUserId)
+                    .withSeverity('Error')
+                    .record({
+                        event: event.shortName,
+                        purchaseId,
+                    });
+            }
+        } else {
+            LogBuilder.for('CancelExternalTicket')
+                .withInitiatorUser(props.user)
+                .withSeverity('Error')
+                .record({
+                    event: event.shortName,
+                    recipient: purchase.tickets.map(ticket => ticket.holder).join(', '),
+                    purchaseId,
+                });
+        }
+
+        return {
+            success: true,
+
+            close: true,
+            redirect: `/admin/events/${event.slug}/tickets/externals/${purchaseId}`,
+            refresh: true,
         };
     });
 }

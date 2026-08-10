@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
+import { CancelPurchaseQuickAction } from '../../externals/[id]/CancelPurchaseQuickAction';
 import { DisassociateQuickAction } from './DisassociateQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -14,7 +15,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
-import { disassociatePurchase } from '../../TicketActions';
+import { cancelPurchase, disassociatePurchase } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted for an individual volunteer. It provides options
@@ -70,11 +71,21 @@ export default async function EventTicketsVolunteerPage(
     if (!participation)
         notFound();
 
+    // ---------------------------------------------------------------------------------------------
+
     const hasAssociatedTicket = !!participation.yourTicketProvider?.purchaseId;
 
-    const disassociateFn = disassociatePurchase.bind(null, event.slug, participation.user.id);
-
+    const canDeleteTickets = access.can('event.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
+
+    const cancelPurchaseFn =
+        canDeleteTickets && !!participation.yourTicketProvider?.purchaseId
+            ? cancelPurchase.bind(null, event.slug, participation.yourTicketProvider.purchaseId)
+            : undefined!;
+
+    const disassociateFn =
+        canUpdateTickets ? disassociatePurchase.bind(null, event.slug, participation.user.id)
+                         : undefined!;
 
     return (
         <>
@@ -105,9 +116,12 @@ export default async function EventTicketsVolunteerPage(
                         inadvertently been cancelled.
                         { canUpdateTickets && ' You need to disassociate their ticket below.' }
                     </Alert> }
-                { (canUpdateTickets && hasAssociatedTicket) &&
+                { ((canDeleteTickets || canUpdateTickets) && hasAssociatedTicket) &&
                     <ActionBar>
-                        <DisassociateQuickAction action={disassociateFn} />
+                        { canUpdateTickets &&
+                            <DisassociateQuickAction action={disassociateFn} /> }
+                        { canDeleteTickets &&
+                            <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }
             </Section>
         </>

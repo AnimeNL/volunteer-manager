@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
+import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -21,7 +22,7 @@ import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
-import { associatePurchase } from '../../TicketActions';
+import { associatePurchase, cancelPurchase } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted to an individual external to our team.
@@ -55,8 +56,6 @@ export default async function EventTicketsExternalPage(
     // Functionality: Associating the ticket with a volunteer
     // ---------------------------------------------------------------------------------------------
 
-    const associatePurchaseFn = associatePurchase.bind(null, event.slug, purchase.id);
-
     const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
 
     const associateVolunteers = await dbInstance.selectFrom(tUsersEvents)
@@ -78,7 +77,16 @@ export default async function EventTicketsExternalPage(
 
     // ---------------------------------------------------------------------------------------------
 
+    const canDeleteTickets = access.can('event.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
+
+    const associatePurchaseFn =
+        canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)
+                         : undefined!;
+
+    const cancelPurchaseFn =
+        canDeleteTickets ? cancelPurchase.bind(null, event.slug, purchase.id)
+                         : undefined!;
 
     return (
         <>
@@ -102,11 +110,14 @@ export default async function EventTicketsExternalPage(
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
                     </Alert> }
-                { canUpdateTickets &&
+                { (canDeleteTickets || canUpdateTickets) &&
                     <ActionBar>
-                        <AssociateQuickAction action={associatePurchaseFn}
-                                              ticketProvider={service.id}
-                                              volunteers={associateVolunteers} />
+                        { canUpdateTickets &&
+                            <AssociateQuickAction action={associatePurchaseFn}
+                                                  ticketProvider={service.id}
+                                                  volunteers={associateVolunteers} /> }
+                        { canDeleteTickets &&
+                            <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }
                 <KeyValueList items={[
                     {
