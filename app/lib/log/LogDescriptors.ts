@@ -146,6 +146,11 @@ interface LogTypeParameterMap {
         purchaseId: number | string;
     };
 
+    UpdateTicketPurchase: {
+        event: string;  // short name
+        purchaseId: string;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team
     // ---------------------------------------------------------------------------------------------
@@ -277,6 +282,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateEventTicketSettings: 'UpdateEventTicketSettings',
     UpdateExternalTicket: 'UpdateExternalTicket',
+    UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team

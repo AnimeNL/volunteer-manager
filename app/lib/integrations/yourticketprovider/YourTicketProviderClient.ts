@@ -270,6 +270,24 @@ export class YourTicketProviderClient {
     }
 
     /**
+     * Posts to have the purchase with the given `purchaseId` updated.
+     *
+     * @api PUT /Purchases(<Id>)
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Unknown.
+     */
+    async postUpdatePurchase(purchaseId: number, request: ytp.TicketingPurchaseUpdateRequest)
+        : Promise<ytp.TicketingPurchaseUpdateResponse>
+    {
+        const validatedRequest = ytp.kTicketingPurchaseUpdateRequest.parse(request);
+        return this.issueRequest(ytp.kTicketingPurchaseUpdateResponse, {
+            api: `/Purchases(${purchaseId})`,
+            method: 'PUT',
+            body: validatedRequest,
+        });
+    }
+
+    /**
      * Fetches the purchase with the given `purchaseId`.
      *
      * @api GET /Purchases(<Id>)

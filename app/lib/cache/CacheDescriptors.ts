@@ -4,7 +4,7 @@
 import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { PaletteMode } from '@mui/material/styles';
-import type { TicketingPurchaseItemResponse }
+import type { TicketingPurchaseItemResponse, TicketingPurchaseResponse }
     from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 
 /**
@@ -106,6 +106,11 @@ interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
     // Administration > Events > Tickets
     // ---------------------------------------------------------------------------------------------
+
+    EventPurchaseCache: {
+        Parameters: number | string;
+        Contents: TicketingPurchaseResponse;
+    };
 
     EventTicketCache: {
         Parameters: number | string;
@@ -292,6 +297,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
     // Administration > Events > Tickets
     // ---------------------------------------------------------------------------------------------
+
+    EventPurchaseCache: {
+        name: 'EventPurchaseCache',
+        description: 'Detailed purchase information requested from our ticketing partners.',
+        type: 'ttl',
+        ttl: 1800,
+    },
 
     EventTicketCache: {
         name: 'EventTicketCache',

@@ -330,9 +330,70 @@ export async function updateTicketSettings(eventSlug: string, formData: unknown)
 }
 
 /**
+ * Data necessary to update a purchase issued by YourTicketProvider.
+ */
+const kUpdateYtpPurchaseData = z.object({
+    Email: z.email(),
+});
+
+/**
+ * Server Action through which an individual purchase issued by YourTicketProvider can be updated.
+ */
+export async function updateYourTicketProviderPurchase(
+    eventSlug: string, purchaseId: number, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateYtpPurchaseData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'update',
+            });
+
+        // TODO: Enable this API after YourTicketProvider (hopefully) resolves the API issue.
+        if (kCancelPurchaseDisabledPendingIssueResolution) {
+            return {
+                success: false,
+                error:
+                    'The ability to update purchases has been disabled pending a fix in ' +
+                    'YourTicketProvider—use YTP directly for now.',
+            };
+        }
+
+        const service = await createTicketService(event.id);
+        if (!service || !service.client)
+            notFound();
+
+        const client = service.client as YourTicketProviderClient;
+        await client.postUpdatePurchase(purchaseId, {
+            Email: data.Email,
+            IncludeTicketGuarantee: false,
+            Language: 'en',
+            BasketId: null,
+            HasAcceptedTermsAndAgreements: true,
+        });
+
+        // Remove the cached information as it's no longer relevant:
+        Cache.getInstance('EventPurchaseCache').delete(purchaseId);
+
+        LogBuilder.for('UpdateTicketPurchase')
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+                purchaseId: `REF${purchaseId}`,
+            });
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}
+
+/**
  * Data necessary to update a ticket issued by YourTicketProvider.
  */
-const kUpdateYourTicketProviderTicketData = z.object({
+const kUpdateYtpTicketData = z.object({
     TicketHolderFirstname: z.string().nonempty(),
     TicketHolderLastname: z.string().nonempty(),
     TicketHolderEmail: z.string().nonempty(),
@@ -344,9 +405,12 @@ const kUpdateYourTicketProviderTicketData = z.object({
 export async function updateYourTicketProviderTicket(
     eventSlug: string, purchaseItemId: number, formData: unknown)
 {
-    return executeServerAction(formData, kUpdateYourTicketProviderTicketData, async (data, props) => {
+    return executeServerAction(formData, kUpdateYtpTicketData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'update',
+            });
 
         const service = await createTicketService(event.id);
         if (!service || !service.client)

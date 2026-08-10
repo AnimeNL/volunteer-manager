@@ -7,15 +7,15 @@ import { useMockConnection } from '@lib/database/Connection';
 
 const mockListTicketsAndProducts = vi.fn();
 const mockQueryVisitorInformation = vi.fn();
-const mockFetchPurchase = vi.fn();
-const mockFetchPurchaseItems = vi.fn();
+const mockGetPurchase = vi.fn();
+const mockGetPurchasePurchaseItems = vi.fn();
 
 vi.mock('@lib/integrations/yourticketprovider', () => ({
     createYourTicketProviderClient: async () => ({
         listTicketsAndProducts: mockListTicketsAndProducts,
         queryVisitorInformation: mockQueryVisitorInformation,
-        fetchPurchase: mockFetchPurchase,
-        fetchPurchaseItems: mockFetchPurchaseItems,
+        getPurchase: mockGetPurchase,
+        getPurchasePurchaseItems: mockGetPurchasePurchaseItems,
     }),
 }));
 
@@ -27,8 +27,8 @@ describe('YourTicketProviderImportTask', () => {
     beforeEach(async () => {
         mockListTicketsAndProducts.mockReset();
         mockQueryVisitorInformation.mockReset();
-        mockFetchPurchase.mockReset();
-        mockFetchPurchaseItems.mockReset();
+        mockGetPurchase.mockReset();
+        mockGetPurchasePurchaseItems.mockReset();
         const context = TaskContext.forEphemeralTask('YourTicketProviderImportTask', {});
         task = new YourTicketProviderImportTask(context);
         await (task as any).initialise();
@@ -305,8 +305,8 @@ describe('YourTicketProviderImportTask', () => {
             const result = await (task as any).importPurchases(123, 'ext-event-id');
             expect(result).toBe(true);
 
-            expect(mockFetchPurchase).not.toHaveBeenCalled();
-            expect(mockFetchPurchaseItems).not.toHaveBeenCalled();
+            expect(mockGetPurchase).not.toHaveBeenCalled();
+            expect(mockGetPurchasePurchaseItems).not.toHaveBeenCalled();
         });
 
         it('updates the purchase when a change is identified', async () => {
@@ -370,8 +370,8 @@ describe('YourTicketProviderImportTask', () => {
                 }
             ];
 
-            mockFetchPurchase.mockResolvedValueOnce(mockPurchase);
-            mockFetchPurchaseItems.mockResolvedValueOnce(mockItems);
+            mockGetPurchase.mockResolvedValueOnce(mockPurchase);
+            mockGetPurchasePurchaseItems.mockResolvedValueOnce(mockItems);
 
             mockConnection.expect('beginTransaction');
             mockConnection.expect('insert', (query, params) => {
@@ -388,8 +388,8 @@ describe('YourTicketProviderImportTask', () => {
             const result = await resultPromise;
 
             expect(result).toBe(true);
-            expect(mockFetchPurchase).toHaveBeenCalledWith(12345);
-            expect(mockFetchPurchaseItems).toHaveBeenCalledWith(12345);
+            expect(mockGetPurchase).toHaveBeenCalledWith(12345);
+            expect(mockGetPurchasePurchaseItems).toHaveBeenCalledWith(12345);
         });
 
         it('inserts a new purchase when it is not in the database', async () => {
@@ -441,8 +441,8 @@ describe('YourTicketProviderImportTask', () => {
                 }
             ];
 
-            mockFetchPurchase.mockResolvedValueOnce(mockPurchase);
-            mockFetchPurchaseItems.mockResolvedValueOnce(mockItems);
+            mockGetPurchase.mockResolvedValueOnce(mockPurchase);
+            mockGetPurchasePurchaseItems.mockResolvedValueOnce(mockItems);
 
             mockConnection.expect('beginTransaction');
             mockConnection.expect('insert', (query, params) => {
@@ -465,8 +465,8 @@ describe('YourTicketProviderImportTask', () => {
             const result = await resultPromise;
 
             expect(result).toBe(true);
-            expect(mockFetchPurchase).toHaveBeenCalledWith(67890);
-            expect(mockFetchPurchaseItems).toHaveBeenCalledWith(67890);
+            expect(mockGetPurchase).toHaveBeenCalledWith(67890);
+            expect(mockGetPurchasePurchaseItems).toHaveBeenCalledWith(67890);
         });
     });
 

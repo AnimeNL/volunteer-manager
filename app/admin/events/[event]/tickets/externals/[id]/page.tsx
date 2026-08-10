@@ -16,6 +16,7 @@ import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { YourTicketProviderPurchase } from './YourTicketProviderPurchase';
 import { YourTicketProviderPurchaseItem } from './YourTicketProviderPurchaseItem';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
@@ -90,7 +91,8 @@ export default async function EventTicketsExternalPage(
 
     return (
         <>
-            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> } title="Purchase"
+            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
+                     title={`REF${params.id}`}
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
@@ -102,7 +104,7 @@ export default async function EventTicketsExternalPage(
                      ]}>
                 <SectionIntroduction>
                     Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
-                    as part of purchase REF{params.id} for {event.shortName}.
+                    as part of this purchase for {event.shortName}.
                 </SectionIntroduction>
             </Section>
             <Section noHeader back tabs>
@@ -154,6 +156,10 @@ export default async function EventTicketsExternalPage(
                     }
                 ]} />
             </Section>
+            { service.id === 'YourTicketProvider' &&
+                <YourTicketProviderPurchase event={event.slug} service={service}
+                                            purchaseId={purchase.id}
+                                            readOnly={!canUpdateTickets} /> }
             { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
                 <YourTicketProviderPurchaseItem key={ticket.id} event={event.slug} service={service}
                                                 ticket={ticket} readOnly={!canUpdateTickets} /> ) }

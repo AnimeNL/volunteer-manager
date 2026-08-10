@@ -198,6 +198,38 @@ export const kTicketingPurchaseResponse = z.object({
 export type TicketingPurchaseResponse = z.infer<typeof kTicketingPurchaseResponse>;
 
 /**
+ * API: PUT /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseUpdateRequest = z.object({
+    Email: z.string().nullish(),
+    IncludeTicketGuarantee: z.boolean(),
+    Language: z.string().nullish(),
+    BasketId: z.number().nullish(),
+    HasAcceptedTermsAndAgreements: z.boolean(),
+});
+
+/**
+ * API: PUT /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseUpdateRequest = z.infer<typeof kTicketingPurchaseUpdateRequest>;
+
+/**
+ * API: PUT /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseUpdateResponse = z.object({
+    // TODO: Unknown response data
+});
+
+/**
+ * API: PUT /Purchases(<Id>)
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseUpdateResponse = z.infer<typeof kTicketingPurchaseUpdateResponse>;
+
+/**
  * API: POST /Purchases(<Id>)/YTP.CancelPurchase
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
