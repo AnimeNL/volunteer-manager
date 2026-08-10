@@ -3,7 +3,7 @@
 
 'use client';
 
-import { Suspense, use, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 import Skeleton from '@mui/material/Skeleton';
 import QrCodeWithLogo from 'qrcode-with-logos';
@@ -33,7 +33,10 @@ interface QrCodeProps {
 export function QrCode(props: QrCodeProps) {
     const theme = useTheme();
 
-    const qrCodeSvgPromise = useMemo(() => {
+    const [ qrCodeSvg, setQrCodeSvg ] = useState<string | null>(null);
+    useEffect(() => {
+        let activeContent: string | undefined = props.content;
+
         const colouredLogo = kQrLogo.replaceAll('{color}', theme.palette.primary.main);
         const colouredEncodedLogo = btoa(colouredLogo);
 
@@ -54,28 +57,25 @@ export function QrCode(props: QrCodeProps) {
             renderer: 'svg',
         });
 
-        return qrCode.getSvgString();
+        qrCode.getSvgString().then(svg => {
+            if (activeContent === props.content)
+                setQrCodeSvg(svg);
+        });
+
+        return () => {
+            activeContent = undefined;
+        };
 
     }, [ props.content, theme ]);
 
     return (
         <QrCodeContainer>
-            <Suspense fallback={ <Skeleton variant="rectangular" width="100%" height="100%" /> }>
-                <QrCodeDisplayElement qrCodeSvgPromise={qrCodeSvgPromise} />
-            </Suspense>
+            { qrCodeSvg
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: required for QR integration
+              ? <div dangerouslySetInnerHTML={{ __html: qrCodeSvg }} />
+              : <Skeleton variant="rectangular" width="100%" height="100%" /> }
         </QrCodeContainer>
     );
-}
-
-/**
- * Element that suspends rendering until the SVG code has been generated, which is an asynchronous
- * process for an unknown reason, and then draws it directly on the screen.
- */
-function QrCodeDisplayElement(props: { qrCodeSvgPromise: Promise<string> }) {
-    const qrCodeSvg = use(props.qrCodeSvgPromise);
-
-    // biome-ignore lint/security/noDangerouslySetInnerHtml: required for QR library integration
-    return <div dangerouslySetInnerHTML={{ __html: qrCodeSvg }} />;
 }
 
 /**
@@ -84,6 +84,7 @@ function QrCodeDisplayElement(props: { qrCodeSvgPromise: Promise<string> }) {
  */
 const QrCodeContainer = styled('div')(({ theme }) => ({
     aspectRatio: 1,
+    width: '360px',
     maxWidth: '100%',
 
     '& > div': { margin: '-10px' },
