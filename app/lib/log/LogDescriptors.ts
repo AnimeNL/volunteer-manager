@@ -106,6 +106,11 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    ResendTicketConfirmation: {
+        event: string;  // short name
+        purchaseId: string | number;
+    };
+
     UpdateEventImage: {
         event: string;  // short name
     };
@@ -274,6 +279,7 @@ export const kLogType: { [k in LogType]: k } = {
     CreateExternalTicket: 'CreateExternalTicket',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     DisassociateTicket: 'DisassociateTicket',
+    ResendTicketConfirmation: 'ResendTicketConfirmation',
     UpdateEventImage: 'UpdateEventImage',
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventPublicationStatus: 'UpdateEventPublicationStatus',

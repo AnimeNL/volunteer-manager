@@ -14,6 +14,7 @@ import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { YourTicketProviderPurchase } from './YourTicketProviderPurchase';
@@ -23,7 +24,7 @@ import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
-import { associatePurchase, cancelPurchase } from '../../TicketActions';
+import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted to an individual external to our team.
@@ -89,6 +90,10 @@ export default async function EventTicketsExternalPage(
         canDeleteTickets ? cancelPurchase.bind(null, event.slug, purchase.id)
                          : undefined!;
 
+    const resendConfirmationFn =
+        canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
+                         : undefined!;
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
@@ -118,6 +123,8 @@ export default async function EventTicketsExternalPage(
                             <AssociateQuickAction action={associatePurchaseFn}
                                                   ticketProvider={service.id}
                                                   volunteers={associateVolunteers} /> }
+                        { canUpdateTickets &&
+                            <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
                         { canDeleteTickets &&
                             <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }

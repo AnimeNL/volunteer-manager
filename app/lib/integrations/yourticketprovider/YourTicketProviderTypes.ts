@@ -242,6 +242,18 @@ export const kTicketingPurchaseCancelResponse = kTicketingPurchaseResponse;
 export type TicketingPurchaseCancelResponse = z.infer<typeof kTicketingPurchaseCancelResponse>;
 
 /**
+ * API: POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export const kTicketingPurchaseEmailResponse = kTicketingPurchaseResponse;
+
+/**
+ * API: POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
+ * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
+ */
+export type TicketingPurchaseEmailResponse = z.infer<typeof kTicketingPurchaseEmailResponse>;
+
+/**
  * API: GET /PurchaseItems(<Id>)
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */

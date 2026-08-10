@@ -58,4 +58,9 @@ export interface TicketService {
      * Lists the tickets that exist for the type identified by `id`.
      */
     listTicketsForType(id: number | string): Promise<Ticket[]>;
+
+    /**
+     * Sends a purchase confirmation for the given `purchaseId` to the associated e-mail address.
+     */
+    sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean>;
 }

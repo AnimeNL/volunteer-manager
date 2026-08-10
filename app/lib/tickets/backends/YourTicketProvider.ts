@@ -141,4 +141,13 @@ export class YourTicketProvider implements TicketService {
             })
             .executeSelectMany();
     }
+
+    async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
+        if (!this.#client)
+            throw new Error('Unable to execute sendPurchaseConfirmation() without a valid client');
+
+        await this.#client.postEmailPurchase(Number(purchaseId));
+
+        return true;
+    }
 }

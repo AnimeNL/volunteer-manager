@@ -41,6 +41,7 @@ export function CancelPurchaseQuickAction(props: CancelPurchaseQuickActionProps)
                 open={dialogOpen}
                 onClose={handleDialogClose}
                 action={props.action}
+                confirmLabel="Cancel purchase"
                 title="Cancel this purchase?">
 
                 Cancelling this purchase is permanent and cannot be undone. Doing so will revoke the

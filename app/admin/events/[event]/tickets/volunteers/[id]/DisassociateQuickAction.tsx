@@ -34,7 +34,7 @@ export function DisassociateQuickAction(props: DisassociateQuickActionProps) {
     return (
         <>
             <Button startIcon={ <PersonRemoveOutlinedIcon /> } size="small" variant="outlined"
-                    color="warning" onClick={handleDialogOpen}>
+                    color="inherit" onClick={handleDialogOpen}>
                 Disassociate
             </Button>
             <ResponsiveFormDialog

@@ -47,4 +47,8 @@ export class Weeztix implements TicketService {
     async listTicketsForType(id: number | string): Promise<Ticket[]> {
         throw new Error('Not yet implemented');
     }
+
+    async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
+        return false;
+    }
 }

@@ -267,6 +267,43 @@ export async function disassociatePurchase(eventSlug: string, userId: number) {
 }
 
 /**
+ * Server Action through which the confirmation e-mail to can be redistributed.
+ */
+export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: number | string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, {
+                permission: 'event.tickets',
+                operation: 'update',
+            });
+
+        const service = await createTicketService(event.id);
+        if (!service || !event.tickets?.volunteerTicketId)
+            notFound();
+
+        const result = await service.sendPurchaseConfirmation(purchaseId);
+        if (!result) {
+            return {
+                success: false,
+                error: 'Unable to resend the confirmation e-mail at this time.',
+            };
+        }
+
+        LogBuilder.for('ResendTicketConfirmation')
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                purchaseId,
+            });
+
+        return {
+            success: true,
+            message: 'They will receive an e-mail shortly.',
+        };
+    });
+}
+
+/**
  * Data that needs to be available to update the ticket settings.
  */
 const kTicketSettingsData = z.object({

@@ -9,13 +9,15 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { CancelPurchaseQuickAction } from '../../externals/[id]/CancelPurchaseQuickAction';
 import { DisassociateQuickAction } from './DisassociateQuickAction';
+import { ResendConfirmationQuickAction } from '../../externals/[id]/ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
-import { cancelPurchase, disassociatePurchase } from '../../TicketActions';
+import { cancelPurchase, disassociatePurchase, resendPurchaseConfirmation }
+    from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted for an individual volunteer. It provides options
@@ -71,6 +73,8 @@ export default async function EventTicketsVolunteerPage(
     if (!participation)
         notFound();
 
+    const purchaseId = participation.yourTicketProvider?.purchaseId;
+
     // ---------------------------------------------------------------------------------------------
 
     const hasAssociatedTicket = !!participation.yourTicketProvider?.purchaseId;
@@ -79,13 +83,18 @@ export default async function EventTicketsVolunteerPage(
     const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
 
     const cancelPurchaseFn =
-        canDeleteTickets && !!participation.yourTicketProvider?.purchaseId
-            ? cancelPurchase.bind(null, event.slug, participation.yourTicketProvider.purchaseId)
+        canDeleteTickets && !!purchaseId
+            ? cancelPurchase.bind(null, event.slug, purchaseId)
             : undefined!;
 
     const disassociateFn =
         canUpdateTickets ? disassociatePurchase.bind(null, event.slug, participation.user.id)
                          : undefined!;
+
+    const resendConfirmationFn =
+        canUpdateTickets && !!purchaseId
+            ? resendPurchaseConfirmation.bind(null, event.slug, purchaseId)
+            : undefined!;
 
     return (
         <>
@@ -120,6 +129,8 @@ export default async function EventTicketsVolunteerPage(
                     <ActionBar>
                         { canUpdateTickets &&
                             <DisassociateQuickAction action={disassociateFn} /> }
+                        { canUpdateTickets &&
+                            <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
                         { canDeleteTickets &&
                             <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }

@@ -270,6 +270,21 @@ export class YourTicketProviderClient {
     }
 
     /**
+     * Posts to have the purchase with the given `purchaseId` send out another confirmation.
+     *
+     * @api POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns No response.
+     */
+    async postEmailPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseEmailResponse> {
+        return this.issueRequest(ytp.kTicketingPurchaseEmailResponse, {
+            api: `/Purchases(${purchaseId})/YTP.ResendPurchaseEmail`,
+            method: 'POST',
+            body: { /* no payload */ },
+        });
+    }
+
+    /**
      * Posts to have the purchase with the given `purchaseId` updated.
      *
      * @api PUT /Purchases(<Id>)
