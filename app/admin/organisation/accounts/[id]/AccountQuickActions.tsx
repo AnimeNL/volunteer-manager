@@ -9,25 +9,21 @@ import { TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
 import AttributionIcon from '@mui/icons-material/Attribution';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import Divider from '@mui/material/Divider';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import PauseIcon from '@mui/icons-material/Pause';
 import PinIcon from '@mui/icons-material/Pin';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import Stack from '@mui/material/Stack';
 import UnpublishedIcon from '@mui/icons-material/Unpublished';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ContrastBox } from '@app/admin/components/ContrastBox';
 import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
 
 /**
- * Props accepted by the <AccountHeaderActions> component.
+ * Props accepted by the <AccountQuickActions> component.
  */
-interface AccountHeaderActionsProps {
+interface AccountQuickActionsProps {
     /**
      * First name of the account holder, to contextualise warning prompts.
      */
@@ -36,7 +32,7 @@ interface AccountHeaderActionsProps {
     /**
      * Reason that the account has been suspended, if any.
      */
-    suspendedReason?: string;
+    restricted?: string;
 
     /**
      * Server action to invoke when the account should be activated.
@@ -44,19 +40,19 @@ interface AccountHeaderActionsProps {
     activateAccountFn?: ServerAction;
 
     /**
-     * Server action to invoke when an access code should be created.
-     */
-    createAccessCodeFn?: ServerAction;
-
-    /**
      * Server action to invoke when the account should be deactivated.
      */
     deactivateAccountFn?: ServerAction;
 
     /**
-     * Server action to invoke when the account should be impersonated.
+     * Server action to invoke when the account should be suspended.
      */
-    impersonateFn?: ServerAction;
+    restrictFn?: ServerAction;
+
+    /**
+     * Server action to invoke when the account should be unsuspended.
+     */
+    unrestrictFn?: ServerAction;
 
     /**
      * Server action to invoke when the account's password should be reset.
@@ -64,22 +60,22 @@ interface AccountHeaderActionsProps {
     resetPasswordFn?: ServerAction;
 
     /**
-     * Server action to invoke when the account should be suspended.
+     * Server action to invoke when an access code should be created.
      */
-    suspendFn?: ServerAction;
+    createAccessCodeFn?: ServerAction;
 
     /**
-     * Server action to invoke when the account should be unsuspended.
+     * Server action to invoke when the account should be impersonated.
      */
-    unsuspendFn?: ServerAction;
+    impersonateFn?: ServerAction;
 }
 
 /**
- * The <AccountHeaderActionsProps> component provides a number of quick actions to alter the state
+ * The <AccountQuickActions> component provides a number of quick actions to alter the state
  * of the account that's being viewed, for example to (de)activate it or change its password. The
  * user interface will be built based on the server actions passed to this component.
  */
-export function AccountHeaderActions(props: AccountHeaderActionsProps) {
+export function AccountQuickActions(props: AccountQuickActionsProps) {
     const [ activateAccountDialogOpen, setActivateAccountDialogOpen ] = useState(false);
     const [ createAccessCodeDialogOpen, setCreateAccessCodeDialogOpen ] = useState(false);
     const [ deactivateAccountDialogOpen, setDeactivateAccountDialogOpen ] = useState(false);
@@ -96,14 +92,10 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
         props.resetPasswordFn;
 
     if (!hasAnyAction)
-        return <Box sx={{ height: '8px', mt: '0px !important' }} />;
+        return null;
 
     return (
         <>
-            <ContrastBox sx={{ mt: 1, px: 2, py: 1 }}>
-                <Stack divider={ <Divider orientation="vertical" flexItem /> }
-                       direction="row" spacing={1}>
-
                     { !!props.deactivateAccountFn &&
                         <Button onClick={ () => setDeactivateAccountDialogOpen(true) }
                                 startIcon={ <UnpublishedIcon /> }>
@@ -116,13 +108,13 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
                             Activate
                         </Button> }
 
-                    { !!props.suspendFn &&
+                    { !!props.restrictFn &&
                         <Button onClick={ () => setSuspendDialogOpen(true) }
                                 startIcon={ <PauseIcon /> }>
                             Restrict
                         </Button> }
 
-                    { !!props.unsuspendFn &&
+                    { !!props.unrestrictFn &&
                         <Button onClick={ () => setUnsuspendDialogOpen(true) }
                                 startIcon={ <PlayArrowIcon /> }>
                             Unrestrict
@@ -145,9 +137,6 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
                                 startIcon={ <AttributionIcon /> }>
                             Impersonate
                         </Button> }
-
-                </Stack>
-            </ContrastBox>
 
             { !!props.activateAccountFn &&
                 <ServerActionDialog
@@ -212,9 +201,9 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
                     open={resetPasswordDialogOpen}
                     submitLabel="Request" title="Request a password reset" /> }
 
-            { !!props.suspendFn &&
+            { !!props.restrictFn &&
                 <ServerActionDialog
-                    action={props.suspendFn}
+                    action={props.restrictFn}
                     description={
                         <>
                             Restricting the account owned by <strong>{props.firstName}</strong> will
@@ -228,9 +217,9 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
                                       required sx={{ mt: 2 }} />
                 </ServerActionDialog> }
 
-            { !!props.unsuspendFn &&
+            { !!props.unrestrictFn &&
                 <ServerActionDialog
-                    action={props.unsuspendFn}
+                    action={props.unrestrictFn}
                     description={
                         <>
                             Removing the restriction from the account owned by
@@ -241,7 +230,7 @@ export function AccountHeaderActions(props: AccountHeaderActionsProps) {
                     open={unsuspendDialogOpen}
                     submitLabel="Unrestrict" title="Unrestrict this account">
                     <Alert severity="warning" sx={{ mt: 2 }}>
-                        <strong>Reason for the restriction</strong>: {props.suspendedReason}
+                        <strong>Reason for the restriction</strong>: {props.restricted}
                     </Alert>
                 </ServerActionDialog> }
         </>

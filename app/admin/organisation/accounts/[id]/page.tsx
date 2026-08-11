@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 
 import type { ServerAction } from '@lib/serverAction';
 import { AccountInformation } from './AccountInformation';
+import { AccountQuickActions } from './AccountQuickActions';
 import { AccountStatusButton } from './AccountStatusButton';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AnonymizationButton } from './AnonymizationButton';
@@ -123,10 +124,49 @@ export default async function AccountInformationPage(
 
     const action = actions.updateAccountInformation.bind(null, account.id);
 
+    const canDeleteAccounts = access.can('organisation.accounts', 'delete');
+    const canUpdateAccounts = access.can('organisation.accounts', 'update');
+
     const anonymizationAction =
-        access.can('organisation.accounts', 'delete')
+        canDeleteAccounts
             ? actions.anonymizeAccount.bind(null, account.id)
             : undefined;
+
+    const activateAccountFn =
+        canUpdateAccounts
+            ? actions.activateAccount.bind(null, account.id)
+            : undefined;
+
+    const deactivateAccountFn =
+        canUpdateAccounts
+            ? actions.deactivateAccount.bind(null, account.id)
+            : undefined;
+
+    const restrictFn =
+        canUpdateAccounts
+            ? actions.updateAccountSuspension.bind(null, account.id, /* suspend= */ true)
+            : undefined;
+
+    const unrestrictFn =
+        canUpdateAccounts
+            ? actions.updateAccountSuspension.bind(null, account.id, /* suspend= */ false)
+            : undefined;
+
+    const resetPasswordFn =
+        canUpdateAccounts
+            ? actions.resetPassword.bind(null, account.id)
+            : undefined;
+
+    const createAccessCodeFn =
+        canUpdateAccounts
+            ? actions.createAccessCode.bind(null, account.id)
+            : undefined;
+
+    const impersonateFn =
+        access.can('organisation.impersonation')
+            ? actions.impersonate.bind(null, account.id)
+            : undefined;
+
 
     const canUpdateAvatars = access.can('organisation.avatars');
     const readOnly = !access.can('organisation.accounts', 'update');
@@ -149,13 +189,15 @@ export default async function AccountInformationPage(
             </Section>
             <Section noHeader tabs>
                 <ActionBar>
-                    { /* TODO: Deactivate */ }
-                    { /* TODO: Activate */ }
-                    { /* TODO: Restrict */ }
-                    { /* TODO: Unrestrict */ }
-                    { /* TODO: Reset password */ }
-                    { /* TODO: Access code */ }
-                    { /* TODO: Impersonate */ }
+                    <AccountQuickActions firstName={account.firstName}
+                                         restricted={account.restricted}
+                                         activateAccountFn={activateAccountFn}
+                                         deactivateAccountFn={deactivateAccountFn}
+                                         restrictFn={restrictFn}
+                                         unrestrictFn={unrestrictFn}
+                                         resetPasswordFn={resetPasswordFn}
+                                         createAccessCodeFn={createAccessCodeFn}
+                                         impersonateFn={impersonateFn} />
                 </ActionBar>
             </Section>
             <FormGridSection action={action} defaultValues={account.defaultValues}
