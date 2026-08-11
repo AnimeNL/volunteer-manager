@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography, { type TypographyProps } from '@mui/material/Typography';
 
 import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
-import { DocumentationButton } from './DocumentationButton';
+import { DocumentationButton } from '@app/admin/components/Documentation';
 
 /**
  * Props accepted by the <SectionHeader> component.
@@ -16,6 +16,11 @@ export interface SectionHeaderProps {
      * Topic for which a documentation action should be shown.
      */
     documentation?: string;
+
+    /**
+     * Title to display in the documentation overhead. Defaults to the section's title.
+     */
+    documentationTitle?: string;
 
     /**
      * Action that should be shown on the end side of the header.
@@ -76,8 +81,9 @@ export function SectionHeader(props: SectionHeaderProps) {
             </Stack>
             {props.headerAction}
             { !!props.documentation &&
-                <Box sx={{ my: -0.5 }}>
-                    <DocumentationButton color="info" size="medium" topic={props.documentation} />
+                <Box sx={{ my: -0.5, mr: -1 }}>
+                    <DocumentationButton topic={props.documentation}
+                                         title={props.documentationTitle || props.title} />
                 </Box> }
         </Stack>
     );

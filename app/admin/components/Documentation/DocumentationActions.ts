@@ -1,0 +1,30 @@
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
+// Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
+'use server';
+
+import { z } from 'zod/v4';
+
+import { executeAccessCheck } from "@lib/auth/AuthenticationContext";
+import { executeServerAction } from "@lib/serverAction";
+import { getStaticContent } from '@lib/Content';
+
+/**
+ * Server action that fetches the Markdown documentation for the given `topic`.
+ */
+export async function fetchDocumentation(topic: string) {
+    'use server';
+    return executeServerAction({ topic }, z.object({ topic: z.string() }), async (data, props) => {
+        executeAccessCheck(props.authenticationContext, { check: 'admin' });
+
+        const content = await getStaticContent([ 'documentation', ...topic.split('/') ], {
+            firstName: props.user.firstName,
+            name: props.user.name,
+        });
+
+        if (!content)
+            return { success: false, error: 'Documentation for this page is not available yet.' };
+
+        return { success: true, content: content.markdown };
+    });
+}

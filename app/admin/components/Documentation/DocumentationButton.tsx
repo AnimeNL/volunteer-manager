@@ -1,0 +1,86 @@
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
+// Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
+'use client';
+
+import { useCallback, useState } from 'react';
+
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+
+import { DocumentationDialog } from './DocumentationDialog';
+import { DocumentationDrawer } from './DocumentationDrawer';
+import { fetchDocumentation } from './DocumentationActions';
+import { useIsMobile } from '@app/admin/lib/useIsMobile';
+
+/**
+ * Props accepted by the <DocumentationButton> component.
+ */
+interface DocumentationButtonProps {
+    /**
+     * Title of the documentation to be presented to the user.
+     */
+    title: string;
+
+    /**
+     * Documentation topic that should be displayed when the button is activated.
+     */
+    topic: string;
+}
+
+/**
+ * The <DocumentationButton> component is a MUI <IconButton> that will load specific documentation
+ * when activated, to be displayed in a manner appropriate for responsive display.
+ */
+export function DocumentationButton(props: DocumentationButtonProps) {
+    const isMobile = useIsMobile();
+
+    const [ open, setOpen ] = useState<boolean>(false);
+
+    const [ content, setContent ] = useState<string | undefined>(undefined);
+    const [ error, setError ] = useState<string | undefined>(undefined);
+    const [ loading, setLoading ] = useState<boolean>(false);
+
+    const handleCloseDocumentation = useCallback(() => setOpen(false), [ ]);
+    const handleOpenDocumentation = useCallback(async () => {
+        setContent(undefined);
+        setError(undefined);
+        setLoading(true);
+
+        try {
+            const response = await fetchDocumentation(props.topic);
+            response.success ? setContent(response.content)
+                             : setError(response.error ?? 'Unable to load the documentation');
+
+        } catch (error: any) {
+            setError(error.message ?? 'Unable to load the documentation');
+        } finally {
+            setLoading(false);
+            setOpen(true);
+        }
+    }, [ props.topic ]);
+
+    return (
+        <>
+            <Tooltip title="Documentation">
+                <IconButton onClick={handleOpenDocumentation} loading={loading}>
+                    <HelpOutlineOutlinedIcon color="action"
+                                             sx={{ visibility: loading ? 'hidden' : 'visible' }} />
+                </IconButton>
+            </Tooltip>
+            { !!isMobile &&
+                <DocumentationDialog open={open}
+                                     onClose={handleCloseDocumentation}
+                                     content={content}
+                                     error={error}
+                                     title={props.title} /> }
+            { !isMobile &&
+                <DocumentationDrawer open={open}
+                                     onClose={handleCloseDocumentation}
+                                     content={content}
+                                     error={error}
+                                     title={props.title} /> }
+        </>
+    );
+}

@@ -161,6 +161,7 @@ export default async function CacheManagementPage() {
     return (
         <>
             <Section icon={ <FolderCopyOutlinedIcon color="primary" /> } title="Cache Management"
+                     documentation="system/cache"
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Cache Management' },

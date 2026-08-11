@@ -28,7 +28,7 @@ import Tooltip from '@mui/material/Tooltip';
 import type { ChangeEventContext, ScheduleEvent } from '@app/admin/components/Schedule';
 import type { GetScheduleResult } from '@app/api/admin/event/schedule/getSchedule';
 import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import { DocumentationButton } from '@app/admin/components/DocumentationButton';
+import { DocumentationButton } from '@app/admin/components/Documentation';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { callApi } from '@lib/callApi';
@@ -328,7 +328,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
                                 {label}
                             </ToggleButton> )}
                     </ToggleButtonGroup>
-                    <DocumentationButton color="info" size="medium" topic="schedule" />
+                    <DocumentationButton title="Schedule" topic="schedule" />
                 </Stack>
             </Stack>
 
