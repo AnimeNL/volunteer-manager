@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
@@ -52,14 +52,10 @@ export async function activateAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to activate their account…' };
 
-        RecordLog({
-            type: kLogType.AdminUpdateActivation,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                activated: true,
-            },
-        });
+        LogBuilder.for('AdminUpdateActivation')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .record({ action: 'Activated' });
 
         return {
             success: true,
@@ -156,12 +152,11 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'The account could not be anonymized…' };
 
-        RecordLog({
-            type: kLogType.AdminAnonymizeAccount,
-            severity: kLogSeverity.Error,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AdminAnonymizeAccount')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Error')
+            .record();
 
         // The account's information should no longer be available, so remove all cached information
         // to avoid confusion by page titles showing otherwise permanently removed information.
@@ -200,12 +195,10 @@ export async function confirmDiscord(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'The verification could not be stored…' };
 
-        RecordLog({
-            type: kLogType.AdminVerifyDiscord,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AdminVerifyDiscord')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .record();
 
         return { success: true };
     });
@@ -224,13 +217,6 @@ export async function createAccessCode(userId: number, formData: unknown) {
                 operation: 'update',
             },
         });
-
-        RecordLog({
-            type: kLogType.AdminResetAccessCode,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        })
 
         let accessCode = await db.selectFrom(tUsersAuth)
             .where(tUsersAuth.userId.equals(userId))
@@ -252,6 +238,12 @@ export async function createAccessCode(userId: number, formData: unknown) {
             if (!insertedAccessCode)
                 return { success: false, message: 'Unable to create a new access code…' };
         }
+
+        LogBuilder.for('AdminResetAccessCode')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Error')
+            .record();
 
         return { success: true, message: `Their access code is: **${accessCode}**`}
     });
@@ -302,11 +294,10 @@ export async function createAccount(formData: unknown) {
         // an override action by an administrator. For similar reasons we don't send them an e-mail
         // that their account has been created either.
 
-        RecordLog({
-            type: kLogType.AccountRegister,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AccountRegister')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .record();
 
         return {
             success: true,
@@ -339,14 +330,10 @@ export async function deactivateAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to deactivate their account…' };
 
-        RecordLog({
-            type: kLogType.AdminUpdateActivation,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                activated: false,
-            },
-        });
+        LogBuilder.for('AdminUpdateActivation')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .record({ action: 'Deactived' });
 
         return {
             success: true,
@@ -400,12 +387,11 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be deleted from the database' };
 
-        RecordLog({
-            type: kLogType.AdminDeleteAvatar,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AdminDeleteAvatar')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record();
 
         return { success: true };
     });
@@ -439,12 +425,11 @@ export async function impersonate(userId: number, formData: unknown) {
             },
         }, await cookies());
 
-        RecordLog({
-            type: kLogType.AdminImpersonateVolunteer,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: impersonatedUser,
-        });
+        LogBuilder.for('AdminImpersonateVolunteer')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(impersonatedUser)
+            .withSeverity('Error')
+            .record();
 
         return {
             success: true,
@@ -481,12 +466,11 @@ export async function resetPassword(userId: number, formData: unknown) {
             token: user.sessionToken
         });
 
-        RecordLog({
-            type: kLogType.AdminResetPasswordLink,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AdminResetPasswordLink')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Error')
+            .record();
 
         const passwordResetLink =
             `https://${props.host}/?password-reset-request=${passwordResetRequest}`;
@@ -516,12 +500,11 @@ export async function setDefaultAvatar(userId: number, fileId: number, formData:
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be updated in the database' };
 
-        RecordLog({
-            type: kLogType.AdminUpdateAvatar,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-        });
+        LogBuilder.for('AdminUpdateAvatar')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record();
 
         return { success: true };
     });
@@ -602,15 +585,34 @@ export async function updateAccountInformation(userId: number, formData: unknown
         if (!affectedRows)
             return { success: false, error: 'Unable to update the existing user information' };
 
-        RecordLog({
-            type: kLogType.AdminUpdateVolunteer,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                user: currentUser
-            }
-        });
+        LogBuilder.for('AdminUpdateVolunteer')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .withDiff({
+                'First Name': { before: currentUser.firstName, after: data.firstName },
+                'Last Name': { before: currentUser.lastName, after: data.lastName },
+                'Display Name': {
+                    before: currentUser.displayName ?? '',
+                    after: data.displayName?.length ? data.displayName : ''
+                },
+                'Language': { before: currentUser.language ?? '', after: language ?? '' },
+                'Birthdate': {
+                    before: currentUser.birthdate ?? '',
+                    after: data.birthdate?.toString() ?? ''
+                },
+                'Gender': { before: currentUser.gender, after: data.gender ?? '' },
+                'Username': { before: currentUser.username ?? '', after: data.username ?? '' },
+                'Phone Number': {
+                    before: currentUser.phoneNumber ?? '',
+                    after: data.phoneNumber ?? ''
+                },
+                'Discord': {
+                    before: currentUser.discordHandle ?? '',
+                    after: data.discordHandle ?? ''
+                },
+            })
+            .record();
 
         // The account's name may have been updated, make sure that this is reflected in any
         // subsequent page loads by clearing the page title cache.
@@ -731,15 +733,13 @@ export async function updateAccountSuspension(userId: number, suspend: boolean, 
         if (!affectedRows)
             return { success: false, error: 'Unable to update the suspension status…' };
 
-        RecordLog({
-            type: kLogType.AdminSuspendVolunteer,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
+        LogBuilder.for('AdminSuspendVolunteer')
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Error')
+            .record({
                 action: suspend ? 'Restricted' : 'Unrestricted',
-            }
-        });
+            });
 
         return { success: true, refresh: true };
     });

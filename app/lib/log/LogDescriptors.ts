@@ -51,6 +51,43 @@ interface LogTypeParameterMap {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Accounts
+    // ---------------------------------------------------------------------------------------------
+
+    AccountRegister: NoParameters;
+
+    AdminAnonymizeAccount: NoParameters;
+
+    AdminDeleteAvatar: NoParameters;
+
+    AdminImpersonateVolunteer: NoParameters;
+
+    AdminResetAccessCode: NoParameters;
+
+    AdminResetPasswordLink: NoParameters;
+
+    AdminSuspendVolunteer: {
+        action: 'Restricted' | 'Unrestricted';
+    };
+
+    AdminUpdateActivation: {
+        action: 'Activated' | 'Deactived';
+    };
+
+    AdminUpdateAvatar: NoParameters;
+
+    AdminUpdatePermission: {
+        grants: string;
+        revokes: string;
+        events: string;
+        teams: string;
+    };
+
+    AdminUpdateVolunteer: NoParameters;
+
+    AdminVerifyDiscord: NoParameters;
+
+    // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams
     // ---------------------------------------------------------------------------------------------
 
@@ -253,6 +290,23 @@ export const kLogType: { [k in LogType]: k } = {
     RepeatSchedulerTask: 'RepeatSchedulerTask',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Accounts
+    // ---------------------------------------------------------------------------------------------
+
+    AccountRegister: 'AccountRegister',
+    AdminAnonymizeAccount: 'AdminAnonymizeAccount',
+    AdminDeleteAvatar: 'AdminDeleteAvatar',
+    AdminImpersonateVolunteer: 'AdminImpersonateVolunteer',
+    AdminResetAccessCode: 'AdminResetAccessCode',
+    AdminResetPasswordLink: 'AdminResetPasswordLink',
+    AdminSuspendVolunteer: 'AdminSuspendVolunteer',
+    AdminUpdateActivation: 'AdminUpdateActivation',
+    AdminUpdateAvatar: 'AdminUpdateAvatar',
+    AdminUpdatePermission: 'AdminUpdatePermission',
+    AdminUpdateVolunteer: 'AdminUpdateVolunteer',
+    AdminVerifyDiscord: 'AdminVerifyDiscord',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > People & teams

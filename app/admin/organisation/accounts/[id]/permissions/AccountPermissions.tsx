@@ -15,7 +15,7 @@ import type { AccessDescriptor, AccessOperation } from '@lib/auth/AccessDescript
 import { AccessControl, kAnyEvent, kAnyTeam, type AccessControlParams, type AccessResult } from '@lib/auth/AccessControl';
 import { AccountPermissionsTable, type AccountPermissionStatus } from './AccountPermissionsTable';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeServerAction } from '@lib/serverAction';
 import { isRestricted, toPermissionList, kSelfSuffix } from './toPermissionList';
@@ -114,16 +114,16 @@ async function updateAccountPermissions(userId: number, formData: unknown) {
             .executeUpdate();
 
         if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminUpdatePermission,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                targetUser: userId,
-                data: {
-                    ip: props.ip,
-                    grants, revokes, events, teams,
-                }
-            });
+            LogBuilder.for('AdminUpdatePermission')
+                .withInitiatorUser(props.user)
+                .withAffectedUser(userId)
+                .withSeverity('Warning')
+                .record({
+                    grants: grants ?? '',
+                    revokes: revokes ?? '',
+                    events: events ?? '',
+                    teams: teams ?? '',
+                });
         } else {
             return { success: false, error: 'Unable to update permissions in the database…' };
         }

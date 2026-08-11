@@ -5,8 +5,8 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
+import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
-import { RecordLog, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { createAccount, isUsernameAvailable } from '@lib/auth/Authentication';
 import { getStaticContent } from '@lib/Content';
@@ -153,11 +153,9 @@ export async function register(request: Request, props: ActionProps): Promise<Re
         },
     });
 
-    RecordLog({
-        type: kLogType.AccountRegister,
-        sourceUser: userId,
-        data: { ip: props.ip },
-    });
+    LogBuilder.for('AccountRegister')
+        .withInitiatorUser(userId)
+        .record();
 
     return { success: true };
 }

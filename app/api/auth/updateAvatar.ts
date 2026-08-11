@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
+import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
 import { executeAccessCheck} from '@lib/auth/AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
@@ -74,11 +75,11 @@ export async function updateAvatar(request: Request, props: ActionProps): Promis
 
         if (!!affectedRows) {
             if (request.overrideUserId) {
-                RecordLog({
-                    type: kLogType.AdminUpdateAvatar,
-                    sourceUser: props.user,
-                    targetUser: request.overrideUserId,
-                });
+                LogBuilder.for('AdminUpdateAvatar')
+                    .withInitiatorUser(props.user)
+                    .withAffectedUser(request.overrideUserId)
+                    .withSeverity('Warning')
+                    .record();
             } else {
                 RecordLog({
                     type: kLogType.AccountUpdateAvatar,
