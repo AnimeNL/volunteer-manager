@@ -5,7 +5,6 @@ import { z } from 'zod/v4';
 
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 
-import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
@@ -14,6 +13,8 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tLogsFormat } from '@lib/database';
+
+import * as cells from './MessageFormatCells';
 
 /**
  * Data source through which the log message formatting configuration can be retrieved.
@@ -169,16 +170,8 @@ export default async function SystemLogsMessageFormattingPage() {
 
             template: 'component',
             templateProps: {
-                component: BooleanCell,
-                componentContext: {
-                    field: 'visible',
-                    tooltips: {
-                        header: 'Display log messages?',
-                        falsyValue: 'Messages will be hidden',
-                        truthyValue: 'Messages will be shown',
-                    },
-                },
-                headerComponent: BooleanHeader,
+                headerComponent: cells.VisibilityHeaderCell,
+                component: cells.VisibilityCell,
             },
         },
         {
@@ -215,16 +208,8 @@ export default async function SystemLogsMessageFormattingPage() {
 
             template: 'component',
             templateProps: {
-                component: BooleanCell,
-                componentContext: {
-                    field: 'active',
-                    tooltips: {
-                        header: 'Is this type still active?',
-                        falsyValue: 'No longer being recorded',
-                        truthyValue: 'Actively being recorded',
-                    },
-                },
-                headerComponent: BooleanHeader,
+                headerComponent: cells.RecordingHeaderCell,
+                component: cells.RecordingCell,
             },
         },
         {
@@ -259,7 +244,7 @@ export default async function SystemLogsMessageFormattingPage() {
                            listViewProps={{
                                primaryField: 'id',
                                secondaryField: 'format',
-                               startComponent: BooleanCell,
+                               startComponent: cells.RecordingCell,
                                startComponentContext: { field: 'visible' },
                            }} />
             </Section>
