@@ -18,7 +18,7 @@ import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls } from '@lib/database';
+import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls, tLogsFormat } from '@lib/database';
 
 /**
  * By default, we display a loading menu as the real one cannot be determined yet. Intentionally
@@ -40,7 +40,10 @@ export default async function DefaultMenu() {
         const exactlyOneDayAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 1 });
 
         const logsValue = dbInstance.selectFrom(tLogs)
+            .innerJoin(tLogsFormat)
+                .on(tLogsFormat.logType.equals(tLogs.logType))
             .where(tLogs.logDate.greaterOrEqual(exactlyOneDayAgo))
+                .and(tLogsFormat.logTypeVisible.equals(/* true= */ 1))
             .selectCountAll()
             .forUseAsInlineQueryValue();
 
