@@ -3,7 +3,9 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { useQueryState } from 'nuqs';
 
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import IconButton from '@mui/material/IconButton';
@@ -32,34 +34,52 @@ interface DocumentationButtonProps {
 /**
  * The <DocumentationButton> component is a MUI <IconButton> that will load specific documentation
  * when activated, to be displayed in a manner appropriate for responsive display.
+ *
+ * State of the documentation view is controlled using Nuqs, so that people are able to share links
+ * with the documentation view opened in their browser.
  */
 export function DocumentationButton(props: DocumentationButtonProps) {
     const isMobile = useIsMobile();
 
-    const [ open, setOpen ] = useState<boolean>(false);
+    const [ activeTopic, setActiveTopic ] = useQueryState('documentation', {
+        history: 'push',  // enable a back navigation to close the documentation
+    });
 
     const [ content, setContent ] = useState<string | undefined>(undefined);
     const [ error, setError ] = useState<string | undefined>(undefined);
     const [ loading, setLoading ] = useState<boolean>(false);
 
-    const handleCloseDocumentation = useCallback(() => setOpen(false), [ ]);
-    const handleOpenDocumentation = useCallback(async () => {
-        setContent(undefined);
-        setError(undefined);
-        setLoading(true);
+    const handleCloseDocumentation = useCallback(() => {
+        setActiveTopic(null);
+    }, [ setActiveTopic ]);
 
-        try {
-            const response = await fetchDocumentation(props.topic);
-            response.success ? setContent(response.content)
-                             : setError(response.error ?? 'Unable to load the documentation');
+    const handleOpenDocumentation = useCallback(() => {
+        setActiveTopic(props.topic);
+    }, [ setActiveTopic, props.topic ]);
 
-        } catch (error: any) {
-            setError(error.message ?? 'Unable to load the documentation');
-        } finally {
-            setLoading(false);
-            setOpen(true);
-        }
-    }, [ props.topic ]);
+    const open = activeTopic === props.topic;
+
+    useEffect(() => {
+        if (!open || content || error || loading)
+            return;
+
+        const fetchDocumentationFromServer = async () => {
+            setLoading(true);
+            try {
+                const response = await fetchDocumentation(props.topic);
+                response.success ? setContent(response.content)
+                                 : setError(response.error ?? 'Unable to load the documentation');
+
+            } catch (error: any) {
+                setError(error.message ?? 'Unable to load the documentation');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDocumentationFromServer();
+
+    }, [ open, content, error, loading, props.topic ]);
 
     return (
         <>
