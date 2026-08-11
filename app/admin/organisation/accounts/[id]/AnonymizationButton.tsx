@@ -5,12 +5,11 @@
 
 import { useCallback, useState } from 'react';
 
-import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
+import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
 
 /**
  * Props accepted by the <AnonymizationButton> components.
@@ -43,23 +42,16 @@ export function AnonymizationButton(props: AnonymizationButtonProps) {
                     onClick={handleDialogOpen}>
                 Anonymize this account…
             </Button>
-            { dialogOpen &&
-                <ServerActionDialog action={props.action} title="Anonymize this account"
-                                    open={dialogOpen} onClose={handleDialogClose}
-                                    description={
-                                        <>
-                                            You're about to anonymize the account owned by
-                                            <strong> {props.name}</strong>. This will
-                                            permanently scramble all stored data, including their
-                                            name and e-mail address. The account will be permanently
-                                            disabled.
-                                        </> }
-                                    submitLabel="Anonymize">
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                        This action really can't be undone—unlike this warning in other places, we
-                        actually mean it this time.
-                    </Alert>
-                </ServerActionDialog> }
+            <ResponsiveConfirmationDialog open={dialogOpen} onClose={handleDialogClose}
+                                          action={props.action}
+                                          title="Anonymize this account"
+                                          confirmLabel="Anonymize">
+
+                Anonymizing this account will permanently and irrevocably remove all personally
+                identifiable information related to <strong>{props.name}</strong> from our system,
+                in compliance with the GDPR.
+
+            </ResponsiveConfirmationDialog>
         </>
     );
 }

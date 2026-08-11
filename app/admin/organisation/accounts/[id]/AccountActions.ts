@@ -95,7 +95,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         });
 
         if (kUnanonymizableUserIds.includes(userId))
-            return { success: false, error: 'This account is not allowed to be anonymized…' };
+            return { success: false, error: 'This account is not allowed to be anonymized.' };
 
         const dbInstance = db;
         const uniqueHash = nanoid(8);

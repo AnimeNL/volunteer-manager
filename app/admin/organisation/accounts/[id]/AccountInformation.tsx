@@ -16,7 +16,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerAction } from '@lib/serverAction';
 import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
-import { DiscordIcon } from './DiscordIcon';
+import { DiscordIcon } from '@app/admin/components/icons/DiscordIcon';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
 
 import { kGenderOptions, kLanguageOptions } from '@app/registration/authentication/RegisterForm';

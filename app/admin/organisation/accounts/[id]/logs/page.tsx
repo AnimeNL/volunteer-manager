@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
+import { AccountStatusButton } from '../AccountStatusButton';
 import { LogsDataTable } from '@app/admin/system/diagnostics/logs/LogsDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -35,6 +36,8 @@ export default async function AccountLogsPage(
         .select({
             id: tUsers.userId,
             name: tUsers.name,
+            activated: tUsers.activated.equals(/* true= */ 1),
+            restricted: tUsers.participationSuspended,
         })
         .executeSelectNoneOrOne();
 
@@ -44,6 +47,10 @@ export default async function AccountLogsPage(
     return (
         <>
             <Section icon={ <InfoOutlinedIcon color="primary" /> } title="Logs"
+                     headerAction={
+                         <AccountStatusButton activated={account.activated}
+                                              restricted={account.restricted} />
+                     }
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },

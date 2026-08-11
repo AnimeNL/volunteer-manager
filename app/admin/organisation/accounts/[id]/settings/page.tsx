@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import { AccountSettingsForm, type AccountSettings } from './AccountSettings';
+import { AccountStatusButton } from '../AccountStatusButton';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -39,6 +40,8 @@ export default async function AccountSettingsPage(
         .select({
             id: tUsers.userId,
             name: tUsers.name,
+            activated: tUsers.activated.equals(/* true= */ 1),
+            restricted: tUsers.participationSuspended,
         })
         .executeSelectNoneOrOne();
 
@@ -62,6 +65,10 @@ export default async function AccountSettingsPage(
     return (
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Settings"
+                     headerAction={
+                         <AccountStatusButton activated={account.activated}
+                                              restricted={account.restricted} />
+                     }
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },

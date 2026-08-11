@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import CategoryIcon from '@mui/icons-material/Category';
 
 import { AccountPermissions } from './AccountPermissions';
+import { AccountStatusButton } from '../AccountStatusButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -35,6 +36,8 @@ export default async function AccountPermissionsPage(
         .select({
             id: tUsers.userId,
             name: tUsers.name,
+            activated: tUsers.activated.equals(/* true= */ 1),
+            restricted: tUsers.participationSuspended,
         })
         .executeSelectNoneOrOne();
 
@@ -46,6 +49,10 @@ export default async function AccountPermissionsPage(
     return (
         <>
             <Section icon={ <CategoryIcon color="primary" /> } title="Permissions"
+                     headerAction={
+                         <AccountStatusButton activated={account.activated}
+                                              restricted={account.restricted} />
+                     }
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },

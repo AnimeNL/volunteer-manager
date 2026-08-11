@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 
 import type { ServerAction } from '@lib/serverAction';
 import { AccountInformation } from './AccountInformation';
+import { AccountStatusButton } from './AccountStatusButton';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AnonymizationButton } from './AnonymizationButton';
 import { AvatarControl } from './AvatarControl';
@@ -65,6 +66,8 @@ export default async function AccountInformationPage(
                 discordHandle: tUsers.discordHandle,
                 discordHandleUpdated: tUsers.discordHandleUpdated.isNotNull(),
             },
+            activated: tUsers.activated.equals(/* true= */ 1),
+            restricted: tUsers.participationSuspended,
         })
         .executeSelectNoneOrOne();
 
@@ -130,21 +133,29 @@ export default async function AccountInformationPage(
 
     return (
         <>
-            <Section icon={ <PersonIcon color="primary" /> } title={account.firstName}
+            <Section icon={ <PersonIcon color="primary" /> } title={account.name}
+                     headerAction={
+                        <AccountStatusButton activated={account.activated}
+                                             restricted={account.restricted} />
+                     }
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },
                          { label: account.name, href: `/admin/organisation/accounts/${account.id}` }
                      ]}>
                 <SectionIntroduction>
-                    All the tea about our amazing volunteer, {account.name}.
+                    All the tea about our amazing volunteer, {account.firstName}.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                { /* TODO: Activation warning */ }
-                { /* TODO: Restriction warning */ }
                 <ActionBar>
-                     { /* TODO: <AccountHeaderActions> */ }
+                    { /* TODO: Deactivate */ }
+                    { /* TODO: Activate */ }
+                    { /* TODO: Restrict */ }
+                    { /* TODO: Unrestrict */ }
+                    { /* TODO: Reset password */ }
+                    { /* TODO: Access code */ }
+                    { /* TODO: Impersonate */ }
                 </ActionBar>
             </Section>
             <FormGridSection action={action} defaultValues={account.defaultValues}
