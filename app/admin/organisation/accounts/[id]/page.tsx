@@ -133,22 +133,22 @@ export default async function AccountInformationPage(
             : undefined;
 
     const activateAccountFn =
-        canUpdateAccounts
+        (canUpdateAccounts && !account.activated)
             ? actions.activateAccount.bind(null, account.id)
             : undefined;
 
     const deactivateAccountFn =
-        canUpdateAccounts
+        (canUpdateAccounts && !!account.activated)
             ? actions.deactivateAccount.bind(null, account.id)
             : undefined;
 
     const restrictFn =
-        canUpdateAccounts
+        (canUpdateAccounts && !account.restricted)
             ? actions.updateAccountSuspension.bind(null, account.id, /* suspend= */ true)
             : undefined;
 
     const unrestrictFn =
-        canUpdateAccounts
+        (canUpdateAccounts && !!account.restricted)
             ? actions.updateAccountSuspension.bind(null, account.id, /* suspend= */ false)
             : undefined;
 
@@ -234,6 +234,9 @@ export default async function AccountInformationPage(
                 </Section> }
             { !!anonymizationAction &&
                 <Section icon={ <ReportOutlinedIcon color="error" /> } title="Danger zone">
+                    <SectionIntroduction>
+                        These actions may permanently affect their account. Use with caution.
+                    </SectionIntroduction>
                     <AnonymizationButton action={anonymizationAction} name={account.name} />
                 </Section> }
         </>
