@@ -7,7 +7,6 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
-import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import NotInterestedOutlinedIcon from '@mui/icons-material/NotInterestedOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import Tooltip from '@mui/material/Tooltip';
@@ -78,7 +77,7 @@ export function IssuedCell(props: { row: { order?: string } }) {
 export function ValidityHeaderCell() {
     return (
         <Tooltip title="Status of the ticket?">
-            <MoreHorizOutlinedIcon color="primary" fontSize="small" />
+            <LocalActivityOutlinedIcon color="primary" fontSize="small" />
         </Tooltip>
     );
 }
