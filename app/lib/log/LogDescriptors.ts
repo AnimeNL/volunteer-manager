@@ -109,16 +109,22 @@ interface LogTypeParameterMap {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
-    AssociateTicket: {
+    AssociateTicketWithVolunteer: {
         event: string;  // short name
     };
 
-    CancelAssociatedTicket: {
+    CancelAssociateTicket: {
+        event: string;  // short name
+        recipient: string;
+        purchaseId: number | string;
+    };
+
+    CancelVolunteerTicket: {
         event: string;  // short name
         purchaseId: number | string;
     };
 
-    CancelExternalTicket: {
+    CreateAssociateTicket: {
         event: string;  // short name
         recipient: string;
         purchaseId: number | string;
@@ -128,24 +134,24 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
-    CreateExternalTicket: {
-        event: string;  // short name
-        recipient: string;
-        purchaseId: number | string;
-    };
-
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
     };
 
-    DisassociateTicket: {
+    DisassociateTicketFromVolunteer: {
         event: string;  // short name
     };
 
     ResendTicketConfirmation: {
         event: string;  // short name
         purchaseId: string | number;
+    };
+
+    UpdateAssociateTicket: {
+        event: string;  // short name
+        recipient: string;
+        purchaseId: number | string;
     };
 
     UpdateEventImage: {
@@ -176,12 +182,6 @@ interface LogTypeParameterMap {
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
-    };
-
-    UpdateExternalTicket: {
-        event: string;  // short name
-        recipient: string;
-        purchaseId: number | string;
     };
 
     UpdateTicketPurchase: {
@@ -322,21 +322,21 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
-    AssociateTicket: 'AssociateTicket',
-    CancelAssociatedTicket: 'CancelAssociatedTicket',
-    CancelExternalTicket: 'CancelExternalTicket',
+    AssociateTicketWithVolunteer: 'AssociateTicketWithVolunteer',
+    CancelAssociateTicket: 'CancelAssociateTicket',
+    CancelVolunteerTicket: 'CancelVolunteerTicket',
+    CreateAssociateTicket: 'CreateAssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
-    CreateExternalTicket: 'CreateExternalTicket',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
-    DisassociateTicket: 'DisassociateTicket',
+    DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
+    UpdateAssociateTicket: 'UpdateAssociateTicket',
     UpdateEventImage: 'UpdateEventImage',
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventPublicationStatus: 'UpdateEventPublicationStatus',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
-    UpdateExternalTicket: 'UpdateExternalTicket',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------

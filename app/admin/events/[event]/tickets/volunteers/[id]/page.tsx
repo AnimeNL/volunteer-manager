@@ -7,9 +7,9 @@ import Alert from '@mui/material/Alert';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
-import { CancelPurchaseQuickAction } from '../../externals/[id]/CancelPurchaseQuickAction';
+import { CancelPurchaseQuickAction } from '../../associates/[id]/CancelPurchaseQuickAction';
 import { DisassociateQuickAction } from './DisassociateQuickAction';
-import { ResendConfirmationQuickAction } from '../../externals/[id]/ResendConfirmationQuickAction';
+import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';

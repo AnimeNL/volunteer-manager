@@ -21,12 +21,12 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
-import { createExternalTicket } from '../TicketActions';
+import { createAssociateTicket } from '../TicketActions';
 
 /**
- * Data source for external tickets granted for an event.
+ * Data source for associate tickets granted for an event.
  */
-const eventExternalTicketDataSource = createDataSource('admin/event/tickets/external', withContext({
+const eventAssociateTicketDataSource = createDataSource('event/tickets/associates', withContext({
     /**
      * Event for which the tickets are being obtained.
      */
@@ -145,8 +145,8 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
  * Page that provides an overview of volunteering tickets granted to people external to our system.
  * They could have been manually added, or these could be orphaned tickets caused by a bug.
  */
-export default async function EventTicketsExternalsPage(
-    props: PageProps<'/admin/events/[event]/tickets/externals'>)
+export default async function EventTicketsAssociatesPage(
+    props: PageProps<'/admin/events/[event]/tickets/associates'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
         permission: 'volunteers.tickets',
@@ -159,7 +159,7 @@ export default async function EventTicketsExternalsPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const columns: Column<ExtractRowModel<typeof eventExternalTicketDataSource>>[] = [
+    const columns: Column<ExtractRowModel<typeof eventAssociateTicketDataSource>>[] = [
         {
             field: 'id',
             headerAlign: 'center',
@@ -188,7 +188,7 @@ export default async function EventTicketsExternalsPage(
             template: 'text',
             templateProps: {
                 defaultValue: 'Identity unknown…',
-                href: './externals/{purchaseId}',
+                href: './associates/{purchaseId}',
             },
         },
         {
@@ -201,23 +201,23 @@ export default async function EventTicketsExternalsPage(
         },
     ];
 
-    const createAction = createExternalTicket.bind(null, event.slug);
+    const createAction = createAssociateTicket.bind(null, event.slug);
 
     return (
         <>
             <Section icon={ <Diversity1Icon color="primary" /> }
-                     title="External tickets"
+                     title="Associate tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
-                        { label: 'Externals' },
+                        { label: 'Associates' },
                      ]}>
                 <SectionIntroduction>
                     Volunteering tickets granted to people external to the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                <DataTable columns={columns} source={eventExternalTicketDataSource}
+                <DataTable columns={columns} source={eventAssociateTicketDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'holder', sort: 'asc' }}
                            subject="ticket"
@@ -225,7 +225,7 @@ export default async function EventTicketsExternalsPage(
                                primaryField: 'holder',
                                secondaryTemplate: 'REF{purchaseId}',
                                startComponent: ValidityCell,
-                               linkTemplate: './externals/{purchaseId}',
+                               linkTemplate: './associates/{purchaseId}',
                            }} />
             </Section>
             { serviceCanCreateTickets &&
@@ -257,4 +257,4 @@ export default async function EventTicketsExternalsPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn('Externals', 'Tickets', { event: 'event' });
+    createGenerateMetadataFn('Associates', 'Tickets', { event: 'event' });

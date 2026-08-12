@@ -23,7 +23,7 @@ interface DisassociateQuickActionProps {
 
 /**
  * The <DisassociateQuickAction> component allows a ticket to be disassociated from the volunteer
- * that currently "owns" it. The ticket will be returned to the externals pool afterwards.
+ * that currently "owns" it. The ticket will be returned to the associate pool afterwards.
  */
 export function DisassociateQuickAction(props: DisassociateQuickActionProps) {
     const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
@@ -45,7 +45,7 @@ export function DisassociateQuickAction(props: DisassociateQuickActionProps) {
                 submitLabel="Disassociate"
                 description={
                     <>
-                        This action will return the ticket to the <em>externals</em> pool—it may
+                        This action will return the ticket to the <em>associate</em> pool—it may
                         continue to be valid for entry, but won't be associated with this volunteer
                         anymore.
                     </>

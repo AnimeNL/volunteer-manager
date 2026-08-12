@@ -27,10 +27,10 @@ import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';
 
 /**
- * Page that provides insight in the ticket granted to an individual external to our team.
+ * Page that provides insight in the ticket granted to an individual associate to our team.
  */
-export default async function EventTicketsExternalPage(
-    props: PageProps<'/admin/events/[event]/tickets/externals/[id]'>)
+export default async function EventTicketsAssociatesPage(
+    props: PageProps<'/admin/events/[event]/tickets/associates/[id]'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
         permission: 'volunteers.tickets',
@@ -102,8 +102,8 @@ export default async function EventTicketsExternalPage(
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
                         {
-                            label: 'Externals',
-                            href: `/admin/events/${event.slug}/tickets/externals`,
+                            label: 'Associates',
+                            href: `/admin/events/${event.slug}/tickets/associates`,
                         },
                         { label: `REF${params.id}` },
                      ]}>
@@ -175,5 +175,5 @@ export default async function EventTicketsExternalPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id', prefix: 'REF' }, 'Externals', 'Tickets',
+    createGenerateMetadataFn({ param: 'id', prefix: 'REF' }, 'Associates', 'Tickets',
                              { event: 'event' });

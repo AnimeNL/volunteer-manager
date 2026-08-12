@@ -61,7 +61,7 @@ export async function associatePurchase(
             };
         }
 
-        LogBuilder.for('AssociateTicket')
+        LogBuilder.for('AssociateTicketWithVolunteer')
             .withInitiatorUser(props.user)
             .withAffectedUser(data.userId)
             .record({
@@ -124,7 +124,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             Cache.getInstance('EventTicketCache').delete(ticket.id);
 
         // Write log entries for the affected tickets; associate them with a particular user when
-        // it involves a known volunteer, otherwise assume that this is an external ticket.
+        // it involves a known volunteer, otherwise assume that this is an associate ticket.
         const affectedUsers = await db.selectFrom(tUsersEventsTickets)
             .where(tUsersEventsTickets.ticketProviderPurchaseId.equals(purchaseId.toString()))
             .selectOneColumn(tUsersEventsTickets.userId)
@@ -136,7 +136,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
                 .executeDelete();
 
             for (const affectedUserId of affectedUsers) {
-                LogBuilder.for('CancelAssociatedTicket')
+                LogBuilder.for('CancelVolunteerTicket')
                     .withInitiatorUser(props.user)
                     .withAffectedUser(affectedUserId)
                     .withSeverity('Error')
@@ -146,7 +146,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
                     });
             }
         } else {
-            LogBuilder.for('CancelExternalTicket')
+            LogBuilder.for('CancelAssociateTicket')
                 .withInitiatorUser(props.user)
                 .withSeverity('Error')
                 .record({
@@ -160,7 +160,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             success: true,
 
             close: true,
-            redirect: `/admin/events/${event.slug}/tickets/externals/${purchaseId}`,
+            redirect: `/admin/events/${event.slug}/tickets/associates/${purchaseId}`,
             refresh: true,
         };
     });
@@ -169,17 +169,17 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
 /**
  * Data that needs to be available to create a new ticket.
  */
-const kCreateExternalTicketData = z.object({
+const kCreateAssociateTicketData = z.object({
     firstName: z.string().nonempty(),
     lastName: z.string().nonempty(),
     email: z.email().nonempty(),
 });
 
 /**
- * Server Action through which a ticket for an external volunteer can be created.
+ * Server Action through which a ticket for an associate volunteer can be created.
  */
-export async function createExternalTicket(eventSlug: string, formData: unknown) {
-    return executeServerAction(formData, kCreateExternalTicketData, async (data, props) => {
+export async function createAssociateTicket(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kCreateAssociateTicketData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
                 permission: 'volunteers.tickets',
@@ -200,7 +200,7 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
         if (!ticket)
             return { success: false, error: 'Unable to issue a ticket at this time' };
 
-        LogBuilder.for('CreateExternalTicket')
+        LogBuilder.for('CreateAssociateTicket')
             .withInitiatorUser(props.user)
             .withSeverity('Error')
             .record({
@@ -230,7 +230,7 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
 
         return {
             success: true,
-            redirect: `./externals/${ticket.purchaseId}`,
+            redirect: `./associates/${ticket.purchaseId}`,
         };
     });
 }
@@ -251,7 +251,7 @@ export async function disassociatePurchase(eventSlug: string, userId: number) {
                 .and(tUsersEventsTickets.eventId.equals(event.id))
             .executeDelete();
 
-        LogBuilder.for('DisassociateTicket')
+        LogBuilder.for('DisassociateTicketFromVolunteer')
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .withAffectedUser(userId)
@@ -414,7 +414,7 @@ export async function updateYourTicketProviderTicket(
             .where(tYourTicketProviderPurchases.ytpPurchaseItemId.equals(purchaseItemId))
             .executeUpdate();
 
-        LogBuilder.for('UpdateExternalTicket')
+        LogBuilder.for('UpdateAssociateTicket')
             .withInitiatorUser(props.user)
             .withSeverity('Error')
             .record({
