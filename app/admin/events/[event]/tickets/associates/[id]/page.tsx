@@ -17,7 +17,6 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { YourTicketProviderPurchase } from './YourTicketProviderPurchase';
 import { YourTicketProviderPurchaseItem } from './YourTicketProviderPurchaseItem';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
@@ -163,10 +162,6 @@ export default async function EventTicketsAssociatesPage(
                     }
                 ]} />
             </Section>
-            { service.id === 'YourTicketProvider' &&
-                <YourTicketProviderPurchase event={event.slug} service={service}
-                                            purchaseId={purchase.id}
-                                            readOnly={!canUpdateTickets} /> }
             { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
                 <YourTicketProviderPurchaseItem key={ticket.id} event={event.slug} service={service}
                                                 ticket={ticket} readOnly={!canUpdateTickets} /> ) }
