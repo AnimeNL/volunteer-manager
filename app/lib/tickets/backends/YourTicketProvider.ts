@@ -198,6 +198,7 @@ export class YourTicketProvider implements TicketService {
                 ticketId: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
                 barcode: tYourTicketProviderPurchases.ytpPurchaseItemBarcode,
                 holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
+                complimentary: tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(1),
                 cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled,
                 paid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
             })

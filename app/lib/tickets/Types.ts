@@ -87,6 +87,11 @@ export interface Ticket {
     holder?: string;
 
     /**
+     * Whether the ticket was complimentary, i.e. issued without requiring payment.
+     */
+    complimentary?: boolean;
+
+    /**
      * Date on which the ticket has been cancelled, if any.
      */
     cancelled?: Temporal.ZonedDateTime;

@@ -8,9 +8,9 @@ import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumb
 
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel,
     type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
+import { HolderCell, ValidityCell, ValidityHeaderCell } from '../../TicketCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { ValidityCell, ValidityHeaderCell } from '../../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -60,6 +60,11 @@ const eventVisitorTicketsDataSource = createDataSource('event/tickets/visitors/t
      * Whether the ticket has been cancelled.
      */
     cancelled: z.boolean(),
+
+    /**
+     * Whether the ticket was complimentary.
+     */
+    complimentary: z.boolean().optional(),
 
 }), {
     async authorize(operation, props, context) {
@@ -132,6 +137,7 @@ const eventVisitorTicketsDataSource = createDataSource('event/tickets/visitors/t
                 holder: ticket.holder,
                 purchased: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
+                complimentary: !!ticket.complimentary,
             })),
         };
     },
@@ -190,9 +196,9 @@ export default async function EventTicketsVisitorTicketTypePage(
             sortable: true,
             flex: 1,
 
-            template: 'text',
+            template: 'component',
             templateProps: {
-                defaultValue: 'Unclaimed ticket',
+                component: HolderCell,
             },
         },
         {

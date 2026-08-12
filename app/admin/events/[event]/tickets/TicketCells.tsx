@@ -4,12 +4,14 @@
 'use client';
 
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import NotInterestedOutlinedIcon from '@mui/icons-material/NotInterestedOutlined';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 
 /**
  * Header cell of the column to indicate whether the ticket type is active.
@@ -99,4 +101,30 @@ export function ValidityCell(props: { row: { cancelled: boolean } }) {
             </Tooltip>
         );
     }
+}
+
+/**
+ * Cell renderer for the ticket holder column. Displays the holder name, or a default value,
+ * and a gift icon if the ticket was complimentary.
+ */
+export function HolderCell(props: { row: { holder?: string; complimentary?: boolean } }) {
+    const hasHolder = !!props.row.holder;
+
+    const label = props.row.holder || 'Unclaimed ticket';
+
+    return (
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            { !!hasHolder && label }
+            { !hasHolder &&
+                <Typography variant="inherit" color="textDisabled" component="span"
+                            sx={{ fontStyle: 'italic' }}>
+                    {label}
+                </Typography> }
+            {!!props.row.complimentary && (
+                <Tooltip title="Complimentary ticket">
+                    <CardGiftcardOutlinedIcon color="primary" fontSize="inherit" sx={{ ml: 1 }} />
+                </Tooltip>
+            )}
+        </span>
+    );
 }
