@@ -42,8 +42,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.shifts:delete',
         'event.shifts:read',
         'event.shifts:update',
-        // note: event.tickets:create omitted
-        // note: event.tickets:delete omitted
         'event.tickets:read',
         'event.trainings',
         'event.vendors:read',
@@ -114,8 +112,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         'event.shifts:delete',
         'event.shifts:read',
         'event.shifts:update',
-        // note: event.tickets:create omitted
-        // note: event.tickets:delete omitted
         // note: event.tickets:read omitted
         'event.trainings',
         'event.vendors:read',
@@ -186,8 +182,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: event.shifts:delete omitted
         'event.shifts:read',
         'event.shifts:update',
-        // note: event.tickets:create omitted
-        // note: event.tickets:delete omitted
         // note: event.tickets:read omitted
         // note: event.trainings omitted
         'event.vendors:read',

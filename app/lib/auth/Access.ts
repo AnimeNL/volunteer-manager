@@ -178,7 +178,7 @@ export const kPermissions = {
         description:
             'This permission grants access to the ticket management tools for a particular ' +
             'event, where volunteer tickets can be granted and revoked.',
-        hide: [ 'update' ],
+        hide: [ 'create', 'update', 'delete' ],
         requireEvent: true,
         type: 'crud',
     },

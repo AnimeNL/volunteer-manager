@@ -3,11 +3,44 @@
 
 'use client';
 
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import NotInterestedOutlinedIcon from '@mui/icons-material/NotInterestedOutlined';
+import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import Tooltip from '@mui/material/Tooltip';
+
+/**
+ * Header cell of the column to indicate whether the ticket type is active.
+ */
+export function LiveHeaderCell() {
+    return (
+        <Tooltip title="Is the ticket type live?">
+            <ToggleOnOutlinedIcon color="primary" fontSize="small" />
+        </Tooltip>
+    );
+}
+
+/**
+ * Cell that indicates whether the ticket type is live.
+ */
+export function LiveCell(props: { row: { live: boolean } }) {
+    if (props.row.live) {
+        return (
+            <Tooltip title="Ticket type is live">
+                <CheckCircleOutlinedIcon color="success" fontSize="small" />
+            </Tooltip>
+        );
+    } else {
+        return (
+            <Tooltip title="Ticket type is not live">
+                <CancelOutlinedIcon color="error" fontSize="small" />
+            </Tooltip>
+        );
+    }
+}
 
 /**
  * Header cell of the column to indicate whether a ticket has been issued.

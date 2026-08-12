@@ -145,4 +145,15 @@ export interface TicketType {
      * Whether the ticket type is currently active
      */
     active: boolean;
+
+    /**
+     * Number of sold (non-cancelled, issued) tickets of this type, when known.
+     */
+    sold?: number;
+
+    /**
+     * Number of tickets of this type that can be issued.
+     */
+    amount?: number;
 }
+

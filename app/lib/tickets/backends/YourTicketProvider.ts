@@ -116,15 +116,23 @@ export class YourTicketProvider implements TicketService {
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
+        const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
+
         return db.selectFrom(tYourTicketProviderTickets)
+            .leftJoin(purchasesJoin)
+                .on(purchasesJoin.ytpPurchaseItemTicketId.equals(tYourTicketProviderTickets.ytpTicketId))
+                    .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
             .where(tYourTicketProviderTickets.ytpTicketEventId.equals(this.#eventId))
                 .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
             .select({
                 id: tYourTicketProviderTickets.ytpTicketId,
-                name: tYourTicketProviderTickets.ytpTicketName,
+                name: tYourTicketProviderTickets.ytpTicketName.trim(),
                 price: tYourTicketProviderTickets.ytpTicketPrice,
                 active: tYourTicketProviderTickets.ytpTicketLive.equals(/* true= */ 1),
+                sold: db.count(purchasesJoin.ytpPurchaseItemId),
+                amount: tYourTicketProviderTickets.ytpTicketAmount,
             })
+            .groupBy(tYourTicketProviderTickets.ytpTicketId)
             .executeSelectMany();
     }
 
