@@ -6,11 +6,9 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
-import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
-
 import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import { PaperHeader } from '@app/admin/components/PaperHeader';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
  * Props accepted by the <RefundsHeader> component.
@@ -38,15 +36,15 @@ export function RefundsHeader(props: RefundsHeaderProps) {
         router.push('/admin/organisation/exports/create');
     }, [ router ])
 
+    // TODO: onExport={!!props.enableExport ? handleExportButton : undefined}
+
     return (
-        <Paper sx={{ p: 2 }}>
-            <PaperHeader title="Refund requests" subtitle={event.shortName}
-                         onExport={!!props.enableExport ? handleExportButton : undefined} />
-            <Alert severity="warning" sx={{ mt: 1 }}>
+        <Section title="Refund requests">
+            <SectionIntroduction>
                 Volunteers can request their ticket to be refunded, which involves sharing financial
                 information. Access to these requests and settings is
                 <strong> need to know</strong>.
-            </Alert>
-        </Paper>
+            </SectionIntroduction>
+        </Section>
     );
 }
