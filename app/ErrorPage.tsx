@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import { ErrorPageClientReporter } from './ErrorPageClientReporter';
-import { ExportLayout } from '@app/exports/[slug]/ExportLayout';
+import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
 import { Markdown } from '@components/Markdown';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from './registration/RegistrationLayout';

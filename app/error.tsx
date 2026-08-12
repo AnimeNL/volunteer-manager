@@ -10,7 +10,7 @@ import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
-import { ExportLayout } from '@app/exports/[slug]/ExportLayout';
+import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
 import { callApi } from '@lib/callApi';
 
 /**

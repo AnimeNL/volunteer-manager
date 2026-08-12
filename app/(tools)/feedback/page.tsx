@@ -3,7 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
-import { ExportLayout } from '@app/exports/[slug]/ExportLayout';
+import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
 import { FeedbackForm } from './FeedbackForm';
 import { getStaticContent } from '@lib/Content';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
