@@ -78,6 +78,8 @@ export default async function EventTicketsAssociatesPage(
 
     // ---------------------------------------------------------------------------------------------
 
+    const hasBeenCancelled = !!purchase.cancelled;
+
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
 
@@ -116,7 +118,7 @@ export default async function EventTicketsAssociatesPage(
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
                     </Alert> }
-                { (canDeleteTickets || canUpdateTickets) &&
+                { ((canDeleteTickets || canUpdateTickets) && !hasBeenCancelled) &&
                     <ActionBar>
                         { canUpdateTickets &&
                             <AssociateQuickAction action={associatePurchaseFn}
@@ -127,6 +129,10 @@ export default async function EventTicketsAssociatesPage(
                         { canDeleteTickets &&
                             <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }
+                { !!hasBeenCancelled &&
+                    <Alert severity="error" variant="outlined">
+                        This ticket has been cancelled and is no longer valid for entry.
+                    </Alert> }
                 <KeyValueList items={[
                     {
                         key: 'Purchase ID',
@@ -164,7 +170,8 @@ export default async function EventTicketsAssociatesPage(
             </Section>
             { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
                 <YourTicketProviderPurchaseItem key={ticket.id} event={event.slug} service={service}
-                                                ticket={ticket} readOnly={!canUpdateTickets} /> ) }
+                                                readOnly={!canUpdateTickets || hasBeenCancelled}
+                                                ticket={ticket} /> ) }
         </>
     );
 }

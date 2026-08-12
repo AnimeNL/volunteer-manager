@@ -35,8 +35,8 @@ import Typography from '@mui/material/Typography';
 
 import type { CommunicationLanguage } from '@lib/database/Types';
 import type { ServerAction, ServerActionResult } from '@lib/serverAction';
-import { AccountRestrictedChip } from '@app/admin/organisation/accounts/[id]/AccountRestrictedChip';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
+import { ApplicationRestrictedChip } from './ApplicationRestrictedChip';
 import { Avatar } from '@components/Avatar';
 import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
@@ -326,9 +326,8 @@ export function Application(props: ApplicationProps) {
                                           size="small" sx={{ ml: 1, mr: 'auto' }} /> }
 
                                 { !!application.suspended &&
-                                    <AccountRestrictedChip name={application.firstName}
-                                                           reason={application.suspended}
-                                                           sx={{ ml: 1, mr: 'auto' }} /> }
+                                    <ApplicationRestrictedChip name={application.firstName}
+                                                               reason={application.suspended} /> }
 
                                 { !!props.rejectFn &&
                                     <Button size="small" color="error"
