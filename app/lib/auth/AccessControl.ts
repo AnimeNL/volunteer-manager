@@ -8,7 +8,8 @@ import type { AccessScope, Grant, Result } from './AccessList';
 import type { BooleanPermission, CRUDPermission } from './Access';
 import { AccessList, kAnyEvent, kAnyTeam } from './AccessList';
 
-import { kPermissionGroups, kPermissions } from './Access';
+import { kPermissionGroups } from './AccessGroups';
+import { kPermissions } from './Access';
 
 /**
  * Re-export types from the underlying `AccessList` mechanism that are useful elsewhere.

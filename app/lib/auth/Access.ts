@@ -471,6 +471,17 @@ export const kPermissions = {
     },
 
     // ---------------------------------------------------------------------------------------------
+    // Volunteer-associated permissions
+    // ---------------------------------------------------------------------------------------------
+
+    'volunteers.tickets': {
+        name: 'Volunteering tickets',
+        description: 'Management of tickets assigned to our volunteers',
+        requireEvent: true,
+        type: 'crud',
+    },
+
+    // ---------------------------------------------------------------------------------------------
     // Permissions that exist for testing purposes
     // ---------------------------------------------------------------------------------------------
 
@@ -514,160 +525,6 @@ export const kPermissions = {
     },
 
 } satisfies Record<string, AccessDescriptor>;
-
-// -------------------------------------------------------------------------------------------------
-
-/**
- * Permission groups that will be expanded prior to being applied. For example, when a user has been
- * granted the "admin" permission, permissions included in the associated list will also be granted.
- */
-export const kPermissionGroups: Record<string, string[]> = {
-    root: [
-        'root',  // reflection (restricted)
-        'admin',  // reflection
-
-        'event',
-        'organisation',
-        'statistics',
-        'system',
-        'volunteer',
-    ],
-    admin: [
-        'admin',  // reflection
-
-        'event',
-
-        // note: organisation.accounts:create omitted
-        'organisation.accounts:read',
-        'organisation.accounts:update',
-        // note: organisation.accounts:delete omitted
-        'organisation.avatars',
-        'organisation.displays',
-        // note: organisation.environments omitted
-        'organisation.exports',
-        'organisation.feedback',
-        // note: organisation.impersonation omitted
-        'organisation.nardo',
-        'organisation.permissions',
-        'organisation.roles',
-        'organisation.silent',
-        'organisation.teams',
-
-        'statistics.basic',
-        // note: statistics.finances omitted
-
-        'system.content',
-        'system.internals.ai',
-        'system.internals.outbox',
-        'system.internals.scheduler',
-        // note: system.internals.settings omitted
-        // note: system.logs:delete omitted (restricted)
-        'system.logs:read',
-        'system.subscriptions',
-    ],
-
-    staff: [
-        'event.applications',
-        'event.duty-book',
-        'event.help-requests',
-        'event.hotels',
-        'event.knowledge',
-        // note: event.refunds omitted
-        'event.requests',
-        'event.retention',
-        'event.schedule',
-        'event.settings',
-        // note: event.shift-categories omitted
-        'event.shifts',
-        // note: event.tickets:create omitted
-        'event.tickets:read',
-        'event.tickets:update',
-        // note: event.tickets:delete omitted
-        'event.trainings',
-        'event.vendors',
-        'event.visible',
-        'event.volunteers.information',
-        'event.volunteers.overrides',
-        'event.volunteers.participation',
-
-        // note: organisation.accounts:create omitted
-        'organisation.accounts:read',
-        // note: organisation.accounts:update omitted
-        // note: organisation.accounts:delete omitted
-        'organisation.avatars',
-        // note: organisation.displays omitted
-        // note: organisation.environments omitted
-        'organisation.exports',
-        'organisation.feedback',
-        // note: organisation.impersonation omitted (restricted)
-        'organisation.nardo',
-        // note: organisation.permissions omitted
-        // note: organisation.roles omitted
-        // note: organisation.silent omitted
-        // note: organisation.teams omitted
-
-        'statistics.basic',
-        // note: statistics.finances omitted
-
-        'system.subscriptions.eligible',
-    ],
-
-    senior: [
-        // note: event.applications:create omitted
-        'event.applications:read',
-        // note: event.applications:update omitted
-        'event.duty-book:read',
-        'event.duty-book:update',
-        // note: event.duty-book:delete omitted
-        // note: event.help-requests omitted
-        // note: event.hotels omitted
-        'event.knowledge',
-        // note: event.refunds omitted
-        // note: event.requests omitted
-        'event.retention',
-        'event.schedule.access',
-        'event.schedule.planning:read',
-        // note: event.schedule.planning:update omitted
-        // note: event.settings omitted
-        // note: event.shift-categories omitted
-        // note: event.shifts:create omitted
-        // note: event.shifts:delete omitted
-        'event.shifts:read',
-        // note: event.shifts:update omitted
-        // note: event.tickets:create omitted
-        // note: event.tickets:delete omitted
-        'event.tickets:read',
-        // note: event.trainings omitted
-        // note: event.vendors:create omitted
-        // note: event.vendors:delete omitted
-        'event.vendors:read',
-        // note: event.vendors:update omitted
-        'event.visible',
-        'event.volunteers.information',
-        // note: event.volunteers.overrides omitted
-        // note: event.volunteers.participation omitted
-
-        // note: organisation.accounts omitted
-        'organisation.avatars',
-        // note: organisation.displays omitted
-        // note: organisation.environments omitted
-        // note: organisation.exports omitted
-        // note: organisation.feedback omitted
-        // note: organisation.impersonation omitted (restricted)
-        // note: organisation.nardo omitted
-        // note: organisation.permissions omitted
-        // note: organisation.roles omitted
-        // note: organisation.silent omitted
-        // note: organisation.teams omitted
-
-        'statistics.basic',
-        // note: statistics.finances omitted
-
-        'system.subscriptions.eligible',
-    ],
-
-    testgroup: [ 'test' ],  // for testing purposes only
-};
 
 // -------------------------------------------------------------------------------------------------
 

@@ -46,7 +46,7 @@ export default async function EventTicketsSettingsPage(
     props: PageProps<'/admin/events/[event]/tickets/settings'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 

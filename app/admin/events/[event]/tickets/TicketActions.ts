@@ -40,7 +40,7 @@ export async function associatePurchase(
     return executeServerAction(formData, kAssociatePurchaseData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'update',
             });
 
@@ -82,7 +82,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'delete',
             });
 
@@ -182,7 +182,7 @@ export async function createExternalTicket(eventSlug: string, formData: unknown)
     return executeServerAction(formData, kCreateExternalTicketData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'create',
             });
 
@@ -242,7 +242,7 @@ export async function disassociatePurchase(eventSlug: string, userId: number) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'update',
             });
 
@@ -273,7 +273,7 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'update',
             });
 
@@ -382,7 +382,7 @@ export async function updateYourTicketProviderPurchase(
     return executeServerAction(formData, kUpdateYtpPurchaseData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'update',
             });
 
@@ -445,7 +445,7 @@ export async function updateYourTicketProviderTicket(
     return executeServerAction(formData, kUpdateYtpTicketData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             eventSlug, props.authenticationContext, {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'update',
             });
 

@@ -52,7 +52,7 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             check: 'admin-event',
             event: context.event.slug,
             permission: {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'read',
                 scope: {
                     event: context.event.slug,
@@ -137,7 +137,7 @@ export default async function EventTicketsVolunteersPage(
     props: PageProps<'/admin/events/[event]/tickets/volunteers'>)
 {
     const { event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 

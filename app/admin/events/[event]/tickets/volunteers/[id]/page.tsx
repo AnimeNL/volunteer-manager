@@ -28,7 +28,7 @@ export default async function EventTicketsVolunteerPage(
 {
     const params = await props.params;
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 
@@ -79,8 +79,8 @@ export default async function EventTicketsVolunteerPage(
 
     const hasAssociatedTicket = !!participation.yourTicketProvider?.purchaseId;
 
-    const canDeleteTickets = access.can('event.tickets', 'delete', { event: event.slug });
-    const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
+    const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
+    const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
 
     const cancelPurchaseFn =
         canDeleteTickets && !!purchaseId

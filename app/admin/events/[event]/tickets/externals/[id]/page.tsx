@@ -33,7 +33,7 @@ export default async function EventTicketsExternalPage(
     props: PageProps<'/admin/events/[event]/tickets/externals/[id]'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 
@@ -79,8 +79,8 @@ export default async function EventTicketsExternalPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const canDeleteTickets = access.can('event.tickets', 'delete', { event: event.slug });
-    const canUpdateTickets = access.can('event.tickets', 'update', { event: event.slug });
+    const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
+    const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
 
     const associatePurchaseFn =
         canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)

@@ -15,7 +15,7 @@ export default async function EventTicketsLayout(
     props: LayoutProps<'/admin/events/[event]/tickets'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 

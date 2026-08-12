@@ -133,7 +133,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                      !!event.integrations?.yourTicketProviderExternalEventId),
             label: 'Tickets',
             permission: {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'read',
                 scope: eventScope,
             },

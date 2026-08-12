@@ -70,7 +70,7 @@ const eventExternalTicketDataSource = createDataSource('admin/event/tickets/exte
             check: 'admin-event',
             event: context.event.slug,
             permission: {
-                permission: 'event.tickets',
+                permission: 'volunteers.tickets',
                 operation: 'read',
                 scope: {
                     event: context.event.slug,
@@ -149,13 +149,13 @@ export default async function EventTicketsExternalsPage(
     props: PageProps<'/admin/events/[event]/tickets/externals'>)
 {
     const { access, event } = await requireAuthenticationContextWithEvent(props, {
-        permission: 'event.tickets',
+        permission: 'volunteers.tickets',
         operation: 'read',
     });
 
     const service = await createTicketService(event.slug);
     const serviceCanCreateTickets =
-        service && access.can('event.tickets', 'create', { event: event.slug });
+        service && access.can('volunteers.tickets', 'create', { event: event.slug });
 
     // ---------------------------------------------------------------------------------------------
 
