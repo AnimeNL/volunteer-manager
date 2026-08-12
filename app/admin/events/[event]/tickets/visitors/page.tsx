@@ -16,6 +16,7 @@ import { MetricGridItem } from './MetricGridItem';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
+import { TicketSearchBar } from './TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -212,6 +213,7 @@ export default async function EventTicketsVisitorsPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
+                <TicketSearchBar eventSlug={event.slug} />
                 <DataTable columns={columns} source={eventTicketTypesDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'name', sort: 'asc' }}
