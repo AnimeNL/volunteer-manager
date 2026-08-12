@@ -134,7 +134,7 @@ export default async function EventTicketsAssociatesPage(
                         valueTemplate: 'component',
                         value: (
                             <Typography variant="body2">
-                                {purchase.id}
+                                { service.formatPurchaseId(purchase.id) }
                                 <MuiLink component={Link} href={purchaseLink} target="_blank">
                                     <OpenInNewIcon fontSize="inherit" sx={{
                                         position: 'relative',
