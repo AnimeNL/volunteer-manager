@@ -50,6 +50,11 @@ export interface TicketService {
     fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined>;
 
     /**
+     * Formats the given |purchaseId| in a manner that it can be presented to visitors.
+     */
+    formatPurchaseId(purchaseId: number | string): string;
+
+    /**
      * Lists the ticket types that exist for the current event.
      */
     listTicketTypes(): Promise<TicketType[]>;

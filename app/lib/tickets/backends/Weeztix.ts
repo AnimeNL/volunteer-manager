@@ -40,6 +40,10 @@ export class Weeztix implements TicketService {
         throw new Error('Not yet implemented');
     }
 
+    formatPurchaseId(purchaseId: number | string): string {
+        throw new Error('Not yet implemented');
+    }
+
     async listTicketTypes(): Promise<TicketType[]> {
         throw new Error('Not yet implemented');
     }

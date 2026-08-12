@@ -111,6 +111,10 @@ export class YourTicketProvider implements TicketService {
             .executeSelectNoneOrOne() ?? undefined;
     }
 
+    formatPurchaseId(purchaseId: number | string): string {
+        return `REF${purchaseId}`;
+    }
+
     async listTicketTypes(): Promise<TicketType[]> {
         return db.selectFrom(tYourTicketProviderTickets)
             .where(tYourTicketProviderTickets.ytpTicketEventId.equals(this.#eventId))
