@@ -112,18 +112,16 @@ export class YourTicketProvider implements TicketService {
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
-        if (!this.#client)
-            throw new Error('Unable to execute listTicketTypes() without a valid client');
-
-        const types = await this.#client.listTicketsAndProducts(this.#eventId);
-        const tickets = types.filter(type => !type.IsSubproduct);
-
-        return tickets.map(type => ({
-            id: type.Id,
-            name: type.Name,
-            price: type.Price,
-            active: type.Live,
-        }));
+        return db.selectFrom(tYourTicketProviderTickets)
+            .where(tYourTicketProviderTickets.ytpTicketEventId.equals(this.#eventId))
+                .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
+            .select({
+                id: tYourTicketProviderTickets.ytpTicketId,
+                name: tYourTicketProviderTickets.ytpTicketName,
+                price: tYourTicketProviderTickets.ytpTicketPrice,
+                active: tYourTicketProviderTickets.ytpTicketLive.equals(/* true= */ 1),
+            })
+            .executeSelectMany();
     }
 
     async listTicketsForType(ticketId: number | string): Promise<Ticket[]> {

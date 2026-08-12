@@ -127,10 +127,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         {
             Icon: LocalActivityOutlinedIcon,
             badge: { severity: 'success', value: true },  // migration completed
-            condition:
-                !!event.integrations?.weeztixGuid ||
-                    (!!event.integrations?.yourTicketProviderEventId &&
-                     !!event.integrations?.yourTicketProviderExternalEventId),
+            condition: !!event.tickets?.volunteerTicketId,
             label: 'Tickets',
             permission: {
                 permission: 'volunteers.tickets',

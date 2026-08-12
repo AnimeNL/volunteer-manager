@@ -164,7 +164,7 @@ interface LogTypeParameterMap {
 
     UpdateEventSettings: {
         event: string;  // short name
-        type: 'basic' | 'feature' | 'integration';
+        type: 'basic' | 'feature' | 'integration' | 'ticketing';
     };
 
     UpdateEventSlug: {
@@ -176,10 +176,6 @@ interface LogTypeParameterMap {
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
-    };
-
-    UpdateEventTicketSettings: {
-        event: string;  // short name
     };
 
     UpdateExternalTicket: {
@@ -340,7 +336,6 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
-    UpdateEventTicketSettings: 'UpdateEventTicketSettings',
     UpdateExternalTicket: 'UpdateExternalTicket',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 

@@ -13,7 +13,7 @@ import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEven
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents } from '@lib/database';
 
-import { kFileType, kEventAvailabilityStatus } from '@lib/database/Types';
+import { kFileType, kEventAvailabilityStatus, kEventTicketProvider } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
@@ -291,6 +291,56 @@ export async function updateEventIntegrations(eventSlug: string, formData: unkno
         return {
             success: true,
             refresh: true,  // menu items might change
+        };
+    });
+}
+
+/**
+ * Data that needs to be available to update an event's ticketing settings.
+ */
+const kEventTicketingData = z.object({
+    provider: z.enum(kEventTicketProvider).or(z.literal('')),
+    volunteerTicketId: z.string().optional(),
+    autoGrant: z.literal([ 0, 1 ]).optional(),
+    autoRevoke: z.literal([ 0, 1 ]).optional(),
+});
+
+/**
+ * Server Action through which an event's ticketing settings can be updated.
+ */
+export async function updateEventTicketing(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kEventTicketingData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            eventSlug, props.authenticationContext, 'event.settings');
+
+        const ticketsProvider = data.provider || null;
+        const ticketsAutoGrantTicketId = ticketsProvider ? (data.volunteerTicketId || null) : null;
+        const ticketsAutoGrantEnabled = (ticketsAutoGrantTicketId && data.autoGrant) ? 1 : 0;
+        const ticketsAutoRevokeEnabled = (ticketsAutoGrantTicketId && data.autoRevoke) ? 1 : 0;
+
+        const affectedRows = await db.update(tEvents)
+            .set({
+                ticketsAutoGrantEnabled,
+                ticketsAutoGrantTicketId,
+                ticketsAutoRevokeEnabled,
+                ticketsProvider,
+            })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                type: 'ticketing',
+            });
+
+        return {
+            success: true,
+            refresh: true,  // menu items and form options might change
         };
     });
 }

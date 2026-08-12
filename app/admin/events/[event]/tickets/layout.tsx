@@ -3,7 +3,6 @@
 
 import Diversity1Icon from '@mui/icons-material/Diversity1';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthenticationContextWithEvent } from '../requireAuthenticationContextWithEvent';
@@ -32,11 +31,6 @@ export default async function EventTicketsLayout(
                 label: 'Externals',
                 url: `/admin/events/${event.slug}/tickets/externals`,
                 urlMatchMode: 'prefix',
-            },
-            {
-                Icon: SettingsOutlinedIcon,
-                label: 'Settings',
-                url: `/admin/events/${event.slug}/tickets/settings`,
             },
         ]}>
             {props.children}

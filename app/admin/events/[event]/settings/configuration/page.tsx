@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Suspense } from 'react';
+
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
@@ -8,6 +10,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import Grid from '@mui/material/Grid';
+import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Typography from '@mui/material/Typography';
 
@@ -16,16 +19,20 @@ import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
 import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { GridCollapse } from '@components/GridCollapse';
 import { PublishQuickAction } from './PublishQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tEvents, tStorage } from '@lib/database';
 
-import { kEventAvailabilityStatus, type EventAvailabilityStatus } from '@lib/database/Types';
+import { kEventAvailabilityStatus, kEventTicketProvider, type EventAvailabilityStatus } from '@lib/database/Types';
 
 import * as actions from '../SettingsActions';
+import type { TicketService } from '@lib/tickets/TicketService';
 
 /**
  * Options that can be presented to the senior in regards to the event availability status.
@@ -46,6 +53,14 @@ const kAvailabilityStatusOptions = [
 ] satisfies { id: EventAvailabilityStatus; label: string }[];
 
 /**
+ * Options available for the user to select whether the automation should be enabled.
+ */
+const kEnableAutomationOptions = [
+    { id: 0, label: 'Disabled' },
+    { id: 1, label: 'Enabled' },
+];
+
+/**
  * Options that can be presented regarding publishing event timing information.
  */
 const kEventTimingPublishedOptions = [
@@ -64,6 +79,14 @@ const kServiceStatusOptions = [
 ] satisfies { id: number; label: string }[];
 
 /**
+ * Ticket provider options that are integrated with the portal.
+ */
+const kTicketingProviderOptions = [
+    { id: '', label: 'None' },
+    ...Object.values(kEventTicketProvider).map(provider => ({ id: provider, label: provider })),
+];
+
+/**
  * Page through which the primary configuration associated with a particular event can be adjusted.
  */
 export default async function EventSettingsTeamsPage(
@@ -74,6 +97,7 @@ export default async function EventSettingsTeamsPage(
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);
     const integrationsFn = actions.updateEventIntegrations.bind(null, event.slug);
+    const ticketingFn = actions.updateEventTicketing.bind(null, event.slug);
 
     const storageJoin = tStorage.forUseInLeftJoin();
 
@@ -108,9 +132,17 @@ export default async function EventSettingsTeamsPage(
                 yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
                 weeztixEventGuid: tEvents.eventWeeztixGuid,
             },
+            tickets: {
+                provider: tEvents.ticketsProvider,
+                autoGrant: tEvents.ticketsAutoGrantEnabled,
+                autoRevoke: tEvents.ticketsAutoRevokeEnabled,
+                volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
+            },
             identityHash: storageJoin.fileHash,
         })
         .executeSelectOne();
+
+    const service = await createTicketService(event.slug);
 
     const changeImageAction = actions.changeEventImage.bind(null, event.slug);
     const changeSlugAction = actions.changeEventSlug.bind(null, event.slug);
@@ -229,7 +261,61 @@ export default async function EventSettingsTeamsPage(
                                        size="small" />
                 </Grid>
             </FormGridSection>
+            { (!!defaultValues.integrations?.yourTicketProviderEventId ||
+                   !!defaultValues.integrations?.weeztixEventGuid) &&
+                <FormGridSection icon={ <LocalActivityOutlinedIcon />} title="Ticketing"
+                                 action={ticketingFn} defaultValues={defaultValues.tickets}>
+                    <Grid size={{ xs: 12 }}>
+                        <Typography variant="body2">
+                            Automation available based on integration with our ticketing partners.
+                        </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="provider" label="Ticketing partner"
+                                       options={kTicketingProviderOptions} fullWidth size="small" />
+                    </Grid>
+                    <GridCollapse in={!!service} size={{ xs: 12 }}>
+                        <Suspense fallback={ <SectionLoading /> }>
+                            { !!service && <TicketSettings service={service} /> }
+                        </Suspense>
+                    </GridCollapse>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <SelectElement name="autoGrant" label="Automatically grant tickets"
+                                       required options={kEnableAutomationOptions} fullWidth
+                                       size="small" disabled={!service} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <SelectElement name="autoRevoke" label="Automatically revoke tickets"
+                                       required options={kEnableAutomationOptions} fullWidth
+                                       size="small" disabled={!service} />
+                    </Grid>
+                </FormGridSection> }
         </>
+    );
+}
+
+/**
+ * Component that fetches ticket settings from the `service` and then displays a form grid through
+ * which settings can be amended. Loading is deferred until the service responds.
+ */
+async function TicketSettings(props: { service: TicketService }) {
+    const types = await props.service.listTicketTypes();
+    if (!types.length) {
+        return (
+            <Alert severity="warning" variant="outlined">
+                Unable to obtain available ticket types from the ticketing partner.
+            </Alert>
+        );
+    }
+
+    const typeOptions = [
+        { id: '', label: 'None' },
+        ...types.map(type => ({ id: `${type.id}`, label: type.name })),
+    ];
+
+    return (
+        <SelectElement name="volunteerTicketId" label="Volunteer ticket type"
+                       options={typeOptions} fullWidth size="small" />
     );
 }
 
