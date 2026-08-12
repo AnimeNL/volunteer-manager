@@ -123,6 +123,43 @@ export interface TicketCreateRequest {
 }
 
 /**
+ * Interface that describes high level statistics that should be available for tickets.
+ */
+export interface TicketStatistics {
+    /**
+     * Number of tickets that have been issued.
+     */
+    tickets: {
+        purchases: number;
+        guestList: number;
+    };
+
+    /**
+     * Number of subproducts that have been issued.
+     */
+    subproducts: {
+        purchases: number;
+        guestList: number;
+    };
+
+    /**
+     * Number of products (both tickets and subproducts) issued in the past week.
+     */
+    lastWeek: {
+        purchases: number;
+        guestList: number;
+    };
+
+    /**
+     * Number of products (both tickets and subproducts) issued in total.
+     */
+    total: {
+        purchases: number;
+        guestList: number;
+    };
+}
+
+/**
  * Interface that describes the information that will be obtained for each ticket type.
  */
 export interface TicketType {

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 
 /**
@@ -41,6 +41,10 @@ export class Weeztix implements TicketService {
     }
 
     formatPurchaseId(purchaseId: number | string): string {
+        throw new Error('Not yet implemented');
+    }
+
+    async getStatistics(): Promise<TicketStatistics | undefined> {
         throw new Error('Not yet implemented');
     }
 

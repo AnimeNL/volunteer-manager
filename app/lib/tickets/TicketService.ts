@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketType } from './Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketStatistics, TicketType } from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -53,6 +53,11 @@ export interface TicketService {
      * Formats the given |purchaseId| in a manner that it can be presented to visitors.
      */
     formatPurchaseId(purchaseId: number | string): string;
+
+    /**
+     * Returns statistics on tickets sales in the current event.
+     */
+    getStatistics(): Promise<TicketStatistics | undefined>;
 
     /**
      * Lists the ticket types that exist for the current event.

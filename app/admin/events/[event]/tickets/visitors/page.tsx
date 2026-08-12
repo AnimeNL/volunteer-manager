@@ -1,16 +1,21 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import Grid from '@mui/material/Grid';
 import PublicIcon from '@mui/icons-material/Public';
 
+import type { TicketService } from '@lib/tickets/TicketService';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
     type ExtractRowModel } from '@app/admin/components/DataTable';
+import { LiveCell, LiveHeaderCell } from '../TicketCells';
+import { MetricGridItem } from './MetricGridItem';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { LiveCell, LiveHeaderCell } from '../TicketCells';
+import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -218,7 +223,45 @@ export default async function EventTicketsVisitorsPage(
                                linkTemplate: './visitors/{id}',
                            }} />
             </Section>
+            <Suspense fallback={ <SectionLoading /> }>
+                <TicketSaleStatistics service={service} />
+            </Suspense>
         </>
+    );
+}
+
+/**
+ * Fetching ticket statistics could take a little bit of time, so move it to a suspended block to
+ * avoid the metrics affecting page load performance.
+ */
+async function TicketSaleStatistics(props: { service: TicketService }) {
+    const stats = await props.service.getStatistics();
+    if (!stats)
+        return null;
+
+    return (
+        <Grid container spacing={1.5}>
+            <MetricGridItem title="Tickets"
+                            data={[
+                                { label: 'Purchases', value: stats.tickets.purchases },
+                                { label: 'Guest list', value: stats.tickets.guestList },
+                            ]} />
+            <MetricGridItem title="Subproducts"
+                            data={[
+                                { label: 'Purchases', value: stats.subproducts.purchases },
+                                { label: 'Guest list', value: stats.subproducts.guestList },
+                            ]} />
+            <MetricGridItem title="Last week"
+                            data={[
+                                { label: 'Purchases', value: stats.lastWeek.purchases },
+                                { label: 'Guest list', value: stats.lastWeek.guestList },
+                            ]} />
+            <MetricGridItem title="Total"
+                            data={[
+                                { label: 'Purchases', value: stats.total.purchases },
+                                { label: 'Guest list', value: stats.total.guestList },
+                            ]} />
+        </Grid>
     );
 }
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
@@ -113,6 +113,58 @@ export class YourTicketProvider implements TicketService {
 
     formatPurchaseId(purchaseId: number | string): string {
         return `REF${purchaseId}`;
+    }
+
+    async getStatistics(): Promise<TicketStatistics | undefined> {
+        const ticketsJoin = tYourTicketProviderTickets.forUseInLeftJoin();
+
+        const results = await db.selectFrom(tYourTicketProviderPurchases)
+            .leftJoin(ticketsJoin)
+                .on(ticketsJoin.ytpTicketId.equals(tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
+            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+                .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
+            .select({
+                complimentary: tYourTicketProviderPurchases.ytpPurchaseComplimentary,
+                datePaid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
+                isSubproduct: ticketsJoin.ytpTicketIsSubproduct,
+            })
+            .executeSelectMany();
+
+        const statistics: TicketStatistics = {
+            tickets: { purchases: 0, guestList: 0 },
+            subproducts: { purchases: 0, guestList: 0 },
+            lastWeek: { purchases: 0, guestList: 0 },
+            total: { purchases: 0, guestList: 0 },
+        };
+
+        const cutoffDate = Temporal.Now.zonedDateTimeISO('UTC').subtract({ days: 7 });
+
+        for (const row of results) {
+            const isPaidInLastWeek = row.datePaid
+                ? Temporal.ZonedDateTime.compare(row.datePaid, cutoffDate) >= 0
+                : false;
+
+            if (row.isSubproduct) {
+                row.complimentary ? statistics.subproducts.guestList++
+                                  : statistics.subproducts.purchases++;
+            } else {
+                row.complimentary ? statistics.tickets.guestList++
+                                  : statistics.tickets.purchases++;
+            }
+
+            if (row.complimentary) {
+                statistics.total.guestList++;
+                if (isPaidInLastWeek)
+                    statistics.lastWeek.guestList++;
+
+            } else {
+                statistics.total.purchases++;
+                if (isPaidInLastWeek)
+                    statistics.lastWeek.purchases++;
+            }
+        }
+
+        return statistics;
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
