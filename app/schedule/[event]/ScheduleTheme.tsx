@@ -161,6 +161,7 @@ function createScheduleTheme(mode: PaletteMode, palette: { dark: string; light: 
                 pastBackgroundHover: mode === 'dark' ? '#292929' : '#d8d8d8',
                 pastForeground: mode === 'dark' ? 'rgba(255, 255, 255, .7)' : 'rgba(0, 0, 0, .25)',
             } satisfies PublicPalette as any,
+            backgroundHighlight: mode === 'dark' ? '#212121' : '#ffffff',
             background: {
                 default: mode === 'dark' ? '#181818' : lighten(baseColour, 0.94),
                 paper: mode === 'dark' ? '#212121' : '#ffffff',

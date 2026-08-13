@@ -58,6 +58,7 @@ const kThemePaletteModeMixins: { [key in PaletteMode]: ThemeOptions } = {
     dark: {
         palette: {
             animecon: { /* empty */ } as any,  // not applicable for the welcome layout
+            backgroundHighlight: lighten(grey[900], .01),
             background: {
                 default: '#000000',
                 paper: lighten(grey[900], .01),

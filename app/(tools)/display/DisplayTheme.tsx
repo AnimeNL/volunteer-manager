@@ -60,6 +60,7 @@ function createDisplayTheme() {
         palette: {
             mode: 'dark',
             animecon: { /* empty */ } as any,  // not applicable for the display layout
+            backgroundHighlight: '#2c3339',
             background: {
                 default: '#0b0b0b',
                 paper: '#2c3339',

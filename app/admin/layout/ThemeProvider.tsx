@@ -29,12 +29,12 @@ declare module '@mui/material/styles' {
     }
 
     interface Palette {
-        backgroundHighlight: Color;
+        backgroundHighlight: Color | string;
         primaryPalette: Color;
     }
 
     interface PaletteOptions {
-        backgroundHighlight: Color;
+        backgroundHighlight: Color | string;
         primaryPalette: Color;
     }
 }
