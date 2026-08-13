@@ -4,7 +4,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { useColorScheme } from '@mui/material/styles';
 
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
@@ -39,7 +39,8 @@ export type TimelineProps =
  */
 export function Timeline(props: TimelineProps) {
     const subject = props.subject ?? 'event';
-    const theme = useTheme();
+
+    const colorScheme = useColorScheme();
 
     const [ errorOpen, setErrorOpen ] = useState<boolean>(false);
     const [ errorMessage, setErrorMessage ] = useState<string | undefined>();
@@ -73,10 +74,12 @@ export function Timeline(props: TimelineProps) {
     if (!mounted)
         return null;
 
+    const theme = colorScheme.mode === 'system' ? colorScheme.systemMode : colorScheme.mode;
+
     return (
         <>
             <TimelineInternal {...props} dataTimezone="utc" temporal={Temporal}
-                              theme={theme.palette.mode} onError={handleError} />
+                              theme={theme} onError={handleError} />
             <Snackbar autoHideDuration={3000} onClose={handleErrorClose} open={errorOpen}>
                 <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
                     {errorMessage}
