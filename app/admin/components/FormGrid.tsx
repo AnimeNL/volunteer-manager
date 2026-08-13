@@ -80,30 +80,28 @@ function InnerFormGrid(props: { callToAction?: string }) {
                         { !!formContext.result?.success && formContext.result.message }
                     </Alert>
                 </Collapse>
-                <Collapse in={submitCollapseVisible}>
-                    <Stack direction="row" spacing={1} sx={{
-                        alignItems: 'center',
-                        borderRadius: 2,
-                        marginTop: '-4px',
-                        marginBottom: 'var(--Grid-rowSpacing)',
-                    }}>
-                        <Button variant="contained" type="submit" loading={!!formContext.isPending}
-                                startIcon={ <DoneAllIcon /> } size="small" sx={{
-                                    marginY: '4px !important',
-                                }}>
-                            { props.callToAction ?? 'Save changes' }
-                        </Button>
-                        { (!!formContext.result && !formContext.result.success) &&
-                            <Alert severity="error" variant="outlined" sx={{
-                                flexGrow: 1,
-                                px: 1,
-                                py: 0,
-                                whiteSpace: 'pre-line'
+                <Stack direction="row" spacing={1} sx={{
+                    alignItems: 'center',
+                    borderRadius: 2,
+                    marginTop: '-4px',
+                    marginBottom: 'var(--Grid-rowSpacing)',
+                }}>
+                    <Button variant="contained" type="submit" loading={!!formContext.isPending}
+                            startIcon={ <DoneAllIcon /> } size="small" sx={{
+                                marginY: '4px !important',
                             }}>
-                                { formContext.result.error || 'The changes could not be saved' }
-                            </Alert> }
-                    </Stack>
-                </Collapse>
+                        { props.callToAction ?? 'Save changes' }
+                    </Button>
+                    { (!!formContext.result && !formContext.result.success) &&
+                        <Alert severity="error" variant="outlined" sx={{
+                            flexGrow: 1,
+                            px: 1,
+                            py: 0,
+                            whiteSpace: 'pre-line'
+                        }}>
+                            { formContext.result.error || 'The changes could not be saved' }
+                        </Alert> }
+                </Stack>
             </Grid>
         </Collapse>
     );
