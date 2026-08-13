@@ -9,7 +9,9 @@ import { BirthdayCard } from './dashboard/BirthdayCard';
 import { DashboardGrid } from './dashboard/DashboardGrid';
 import { DatabaseCard } from './dashboard/DatabaseCard';
 import { EventCard } from './dashboard/EventCard';
+import { ProfilePromotionCard } from './dashboard/ProfilePromotionCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
+import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -17,7 +19,10 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * give an overview of what's going on. Exact cards depend on the user's access level.
  */
 export default async function AdminPage() {
-    const { access } = await requireAuthenticationContext({ check: 'admin' });
+    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+
+    const userSettings = await readUserSettings(
+        user.id, [ 'ai-example-messages' ], /* disableFallback= */ true);
 
     const cards: React.ReactNode[] = [
         <EventCard key="event-card" />,
@@ -26,6 +31,9 @@ export default async function AdminPage() {
 
     if (access.can('system.logs', 'read'))
         cards.push(<ActivityCard key="activity-card" />);
+
+    if (!userSettings['ai-example-messages']?.length)
+        cards.push(<ProfilePromotionCard key="profile-promotion-card" />);
 
     if (access.can('system.internals'))
         cards.push(<DatabaseCard key="database-card" />);
