@@ -634,7 +634,7 @@ const kAccountSettingsData = z.object({
     /**
      * Whether experimental support for the v2 layout should be enabled.
      */
-    experimentalLayout: z.boolean(),
+    experimentalLayout: z.boolean().optional(),
 });
 
 /**
@@ -656,9 +656,11 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
         }
 
         // Write the user settings to the database.
-        await writeUserSettings(userId, {
-            'user-admin-experimental-layout': !!data.experimentalLayout,
-        });
+        if (data.experimentalLayout !== undefined) {
+            await writeUserSettings(userId, {
+                'user-admin-experimental-layout': !!data.experimentalLayout,
+            });
+        }
 
         // Write the example messages to the database.
         const storedExampleMessages =

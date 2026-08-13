@@ -153,7 +153,7 @@ export function SidebarSettingsButton(props: SidebarSettingsButtonProps) {
                     <ListItemIcon>
                         <SettingsSuggestIcon />
                     </ListItemIcon>
-                    <ListItemText primary="All settings" />
+                    <ListItemText primary="Your settings" />
                 </MenuItem>
             </Menu>
             { !!aboutDialogEverOpen &&
