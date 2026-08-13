@@ -262,6 +262,11 @@ interface LogTypeParameterMap {
         shift: string;  // name
     };
 
+    UpdateVendorSchedule: {
+        event: string;  // short name
+        vendor: string;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
     // ---------------------------------------------------------------------------------------------
@@ -380,6 +385,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
     UpdateShift: 'UpdateShift',
     UpdateShiftDemand: 'UpdateShiftDemand',
+    UpdateVendorSchedule: 'UpdateVendorSchedule',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:

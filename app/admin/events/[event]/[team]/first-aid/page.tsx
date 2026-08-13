@@ -3,16 +3,20 @@
 
 import { notFound } from 'next/navigation';
 
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VendorSchedule } from './VendorSchedule';
 import { VendorTable } from './VendorTable';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { readSetting } from '@lib/Settings';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';
+
+import { updateVendorSchedule } from './VendorActions';
 
 /**
  * The first aid team (normally supporting the Stewards) is responsible for making sure that all our
@@ -21,24 +25,13 @@ import { kVendorTeam } from '@lib/database/Types';
 export default async function EventTeamFirstAidPage(
     props: PageProps<'/admin/events/[event]/[team]/first-aid'>)
 {
-    const params = await props.params;
-
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
         permission: 'event.vendors',
         operation: 'read',
-        scope: {
-            event: params.event,
-            team: params.team,
-        },
     });
 
-    if (!team.flagManagesFirstAid)
+    if (!team.flags.managesFirstAid)
         notFound();
-
-    const canUpdateVendors = access.can('event.vendors', 'update', {
-        event: params.event,
-        team: params.team,
-    });
 
     const roleSetting = await readSetting('vendor-first-aid-roles') ?? 'First Aid';
     const roles = roleSetting.split(',').map(role => role.trim());
@@ -67,22 +60,41 @@ export default async function EventTeamFirstAidPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
+    const canUpdateVendors = access.can('event.vendors', 'update', {
+        event: event.slug,
+        team: team.slug,
+    });
+
+    const action =
+        canUpdateVendors ? updateVendorSchedule.bind(null, event.slug, team.slug, 'first-aid')
+                         : undefined!;
+
     return (
         <>
-            <Section title="First aid" subtitle={event.shortName}>
+            <Section icon={ <LocalHospitalIcon color="primary" /> } title="First aid"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'First aid' },
+                     ]}>
                 <SectionIntroduction>
-                    This page allows you to manage the <strong>first aid vendor team</strong>, who
-                    are responsible for keeping our visitors and volunteers alive and well. We need
-                    to know their full name in order to issue a valid ticket, and optionally their
-                    t-shirt preferences when it is appropriate to grant one.
+                    Team management for the professional first aiders helping us out with{' '}
+                    {event.shortName}.
                 </SectionIntroduction>
+            </Section>
+            <Section noHeader>
                 <VendorTable event={event.slug} team={kVendorTeam.FirstAid}
                              readOnly={!canUpdateVendors} roles={roles} />
             </Section>
             { !!schedule.length &&
                 <Section noHeader>
-                    <VendorSchedule event={event} team={kVendorTeam.FirstAid} roles={roles}
-                                    readOnly={!canUpdateVendors} schedule={schedule} />
+                    <VendorSchedule action={action} roles={roles} schedule={schedule}
+                                    readOnly={!canUpdateVendors}
+                                    event={{
+                                        startTime: event.startTime.toString(),
+                                        endTime: event.endTime.toString(),
+                                        timezone: event.timeZone,
+                                    }} />
                 </Section> }
         </>
     );

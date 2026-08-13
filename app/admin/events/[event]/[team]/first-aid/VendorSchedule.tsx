@@ -5,17 +5,14 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { FormContainer } from '@proxy/react-hook-form-mui';
+import { useForm } from '@app/components/proxy/react-hook-form-mui';
 
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
 
-import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import type { VendorScheduleEntry } from '@app/api/admin/vendors/updateVendorSchedule';
-import type { VendorTeam } from '@lib/database/Types';
-import { Schedule, type ScheduleEvent, type ScheduleMarker, type ScheduleResource } from '@app/admin/components/Schedule';
-import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
-import { callApi } from '@lib/callApi';
+import type { ServerAction } from '@lib/serverAction';
+import { FormGrid } from '@app/admin/components/FormGrid';
+import { Schedule, type ScheduleEvent, type ScheduleMarker, type ScheduleResource }
+    from '@app/admin/components/Schedule';
 
 /**
  * Colour assigned to each entry on the vendor schedule.
@@ -31,7 +28,7 @@ const kScheduleTitle = 'Work period';
  * Interface that describes the information that the vendor's schedule should be populated with.
  * Contains information about both timing and appearance.
  */
-export interface VendorScheduleDisplayEntry {
+interface VendorScheduleDisplayEntry {
     /**
      * Unique ID of the vendor for whom this entry exists.
      */
@@ -50,7 +47,23 @@ export interface VendorScheduleDisplayEntry {
     /**
      * Scheduled shifts that exist for this vendor.
      */
-    schedule: Omit<VendorScheduleEntry, 'vendorId'>[];
+    schedule: {
+        /**
+         * Unique ID of this scheduled entry.
+         */
+        id: number;
+
+        /**
+         * Time at which the shift begins.
+         */
+        start: string;
+
+        /**
+         * Time at which the shift ends.
+         */
+        end: string;
+
+    }[];
 }
 
 /**
@@ -58,14 +71,29 @@ export interface VendorScheduleDisplayEntry {
  */
 interface VendorScheduleProps {
     /**
-     * The event for which the schedule is being displayed.
+     * Server Action through which the updated vendor scheme can be stored.
      */
-    event: PageInfo['event'];
+    action: ServerAction;
 
     /**
-     * Name of the vendor team for which data is being shown.
+     * The event for which the schedule is being displayed.
      */
-    team: VendorTeam;
+    event: {
+        /**
+         * Date and time at which the event will commence, in a ZonedDateTime serialisation.
+         */
+        startTime: string;
+
+        /**
+         * Date and time at which the event will conclude, in a ZonedDateTime serialisation.
+         */
+        endTime: string;
+
+        /**
+         * Name of the timezone in which the shifts are being scheduled.
+         */
+        timezone: string;
+    };
 
     /**
      * Whether the vendor schedule should be in read only mode.
@@ -88,10 +116,10 @@ interface VendorScheduleProps {
  * team during the selected event. The vendors are grouped by role.
  */
 export function VendorSchedule(props: VendorScheduleProps) {
-    const { event, team, readOnly, roles, schedule } = props;
+    const { event, readOnly, roles, schedule } = props;
 
     // ---------------------------------------------------------------------------------------------
-    // Prepare the events
+    // Prepare the events and markers
     // ---------------------------------------------------------------------------------------------
 
     const [ events, setEvents ] = useState<ScheduleEvent[]>(
@@ -103,10 +131,6 @@ export function VendorSchedule(props: VendorScheduleProps) {
             color: kScheduleColor,
             resource: vendor.id,
         }))).flat());
-
-    // ---------------------------------------------------------------------------------------------
-    // Prepare the presentation
-    // ---------------------------------------------------------------------------------------------
 
     const [ markers, resources ] = useMemo(() => {
         const markers: ScheduleMarker[] = [];
@@ -157,43 +181,29 @@ export function VendorSchedule(props: VendorScheduleProps) {
     // Update when mutations are made
     // ---------------------------------------------------------------------------------------------
 
-    const [ error, setError ] = useState<string | undefined>();
-    const [ invalidated, setInvalidated ] = useState<boolean>(false);
-    const [ loading, setLoading ] = useState<boolean>(false);
+    const formContext = useForm();
 
     const handleChange = useCallback((events: ScheduleEvent[]) => {
-        setInvalidated(true);
         setEvents(events);
-    }, [ /* no dependencies */ ]);
+
+        // Trigger an invalidation in the form:
+        formContext.setValue('_internal', 'none', { shouldDirty: true });
+
+     }, [ formContext ]);
 
     const handleSubmit = useCallback(async () => {
-        setError(undefined);
-        setLoading(true);
-        try {
-            const response = await callApi('put', '/api/admin/vendors/schedule', {
-                event: event.slug,
-                team: team,
-                resources: resources.map(
-                    group => group.children!.map(resource => resource.id as number)).flat(),
-                schedule: events.map(event => ({
-                    id: typeof event.id === 'number' ? event.id : 0,
-                    vendorId: event.resource as number,
-                    start: event.start,
-                    end: event.end,
-                })),
-            });
+        return props.action({
+            resources: resources.map(
+                group => group.children!.map(resource => resource.id as number)).flat(),
+            schedule: events.map(event => ({
+                id: typeof event.id === 'number' ? event.id : 0,
+                vendorId: event.resource as number,
+                start: event.start,
+                end: event.end,
+            })),
+        });
 
-            if (!!response.success)
-                setInvalidated(false);
-            else
-                throw new Error(response.error);
-
-        } catch (error: any) {
-            setError(error?.message ?? 'The changes could not be stored in the database');
-        } finally {
-            setLoading(false);
-        }
-    }, [ events, event.slug, resources, team ]);
+    }, [ events, props.action, resources ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -212,16 +222,13 @@ export function VendorSchedule(props: VendorScheduleProps) {
             .toString({ timeZoneName: 'never' });
 
     return (
-        <FormContainer onSuccess={handleSubmit}>
-            <Stack direction="column" sx={{ m: -2 }}>
-                <Box>
-                    <Schedule min={min} max={max} displayTimezone={event.timezone}
-                              resources={resources} eventDefaults={eventDefaults}
-                              eventOverlap={false} events={events} markers={markers}
-                              readOnly={readOnly} onChange={handleChange} subject="shift" />
-                </Box>
-                <SubmitCollapse error={error} loading={loading} open={invalidated} sx={{ m: 2 }} />
-            </Stack>
-        </FormContainer>
+        <FormGrid action={handleSubmit} form={formContext}>
+            <Grid size={{ xs: 12 }}>
+                <Schedule min={min} max={max} displayTimezone={event.timezone}
+                          resources={resources} eventDefaults={eventDefaults}
+                          eventOverlap={false} events={events} markers={markers}
+                          readOnly={readOnly} onChange={handleChange} subject="shift" />
+            </Grid>
+        </FormGrid>
     );
 }

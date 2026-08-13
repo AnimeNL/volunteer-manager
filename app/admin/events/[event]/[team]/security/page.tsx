@@ -3,16 +3,20 @@
 
 import { notFound } from 'next/navigation';
 
+import SecurityIcon from '@mui/icons-material/Security';
+
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VendorSchedule } from '../first-aid/VendorSchedule';
 import { VendorTable } from '../first-aid/VendorTable';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { readSetting } from '@lib/Settings';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';
+
+import { updateVendorSchedule } from '../first-aid/VendorActions';
 
 /**
  * The security team (normally supporting the Stewards) is responsible for the physical security of
@@ -21,24 +25,13 @@ import { kVendorTeam } from '@lib/database/Types';
 export default async function EventTeamSecurityPage(
     props: PageProps<'/admin/events/[event]/[team]/security'>)
 {
-    const params = await props.params;
-
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
         permission: 'event.vendors',
         operation: 'read',
-        scope: {
-            event: params.event,
-            team: params.team,
-        },
     });
 
-    if (!team.flagManagesSecurity)
+    if (!team.flags.managesFirstAid)
         notFound();
-
-    const canUpdateVendors = access.can('event.vendors', 'update', {
-        event: params.event,
-        team: params.team,
-    });
 
     const roleSetting = await readSetting('vendor-security-roles') ?? 'Security';
     const roles = roleSetting.split(',').map(role => role.trim());
@@ -67,20 +60,41 @@ export default async function EventTeamSecurityPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
+    const canUpdateVendors = access.can('event.vendors', 'update', {
+        event: event.slug,
+        team: team.slug,
+    });
+
+    const action =
+        canUpdateVendors ? updateVendorSchedule.bind(null, event.slug, team.slug, 'security')
+                         : undefined!;
+
     return (
         <>
-            <Section title="Security" subtitle={event.shortName}>
+            <Section icon={ <SecurityIcon color="primary" /> } title="Security"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Security' },
+                     ]}>
                 <SectionIntroduction>
-                    This page allows you to manage the <strong>security vendor team</strong>. The
-                    information shared on this page is exclusively used in the scheduling app.
+                    Team management for the professional security team helping us out with{' '}
+                    {event.shortName}.
                 </SectionIntroduction>
+            </Section>
+            <Section noHeader>
                 <VendorTable event={event.slug} team={kVendorTeam.Security}
                              readOnly={!canUpdateVendors} roles={roles} />
             </Section>
             { !!schedule.length &&
                 <Section noHeader>
-                    <VendorSchedule event={event} team={kVendorTeam.Security} roles={roles}
-                                    readOnly={!canUpdateVendors} schedule={schedule} />
+                    <VendorSchedule action={action} roles={roles} schedule={schedule}
+                                    readOnly={!canUpdateVendors}
+                                    event={{
+                                        startTime: event.startTime.toString(),
+                                        endTime: event.endTime.toString(),
+                                        timezone: event.timeZone,
+                                    }} />
                 </Section> }
         </>
     );

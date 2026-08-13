@@ -4,7 +4,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { useColorScheme } from '@mui/material/styles';
 
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
@@ -37,7 +37,8 @@ export type ScheduleProps =
  */
 export function Schedule(props: ScheduleProps) {
     const subject = props.subject ?? 'event';
-    const theme = useTheme();
+
+    const colorScheme = useColorScheme();
 
     const [ snackbarMessage, setSnackbarMessage ] = useState<string>('Unknown error');
     const [ snackbarSeverity, setSnackbarSeverity ] = useState<'error' | 'info'>('info');
@@ -102,10 +103,12 @@ export function Schedule(props: ScheduleProps) {
     if (!mounted)
         return null;
 
+    const theme = colorScheme.mode === 'system' ? colorScheme.systemMode : colorScheme.mode;
+
     return (
         <>
             <ScheduleInternal {...props} dataTimezone="utc" temporal={Temporal}
-                              theme={theme.palette.mode} onError={handleError}
+                              theme={theme} onError={handleError}
                               onCopy={didCopy} onPaste={didPaste} onPasteFail={didPasteFail} />
             <Snackbar autoHideDuration={3000} onClose={handleErrorClose} open={snackbarOpen}>
                 <Alert severity={snackbarSeverity} variant="filled" sx={{ width: '100%' }}>
