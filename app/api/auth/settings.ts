@@ -62,7 +62,6 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         'user-admin-schedule-highlight-shifts': 'string',
         'user-admin-schedule-inclusive-shifts': 'boolean',
         'user-admin-shifts-display-other-teams': 'boolean',
-        'user-admin-shifts-expand-shifts': 'boolean',
         'user-admin-volunteers-expand-notes': 'boolean',
         'user-admin-volunteers-expand-shifts': 'boolean',
         'user-ai-example-messages': 'string',

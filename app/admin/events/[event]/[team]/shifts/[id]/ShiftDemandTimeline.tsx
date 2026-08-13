@@ -3,10 +3,10 @@
 
 'use client';
 
-import { SelectElement } from '@proxy/react-hook-form-mui';
 import { useCallback, useContext, useEffect, useState } from 'react';
 
-import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
+
 import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { Timeline, type TimelineEvent, type TimelineEventMutation } from '@app/admin/components/Timeline';
 import { VisibilityContext } from './ShiftTeamVisibilityContext';
@@ -43,7 +43,7 @@ interface ShiftDemandTimelineProps {
     /**
      * Called when any mutation has been made to the demand.
      */
-    onChange?: (events: TimelineEvent[]) => void;
+    onChange: (events: TimelineEvent[]) => void;
 
     /**
      * Entries that should be shown on the timeline. Uncontrolled.
@@ -53,7 +53,22 @@ interface ShiftDemandTimelineProps {
     /**
      * Information about the event for which the demand section is being shown.
      */
-    event: PageInfo['event'];
+    event: {
+        /**
+         * Date and time at which the event will commence, in a ZonedDateTime serialisation.
+         */
+        startTime: string;
+
+        /**
+         * Date and time at which the event will conclude, in a ZonedDateTime serialisation.
+         */
+        endTime: string;
+
+        /**
+         * Name of the timezone in which the shifts are being scheduled.
+         */
+        timezone: string;
+    };
 
     /**
      * Whether the timeline should be shown in read-only mode, i.e. everything is immutable.
@@ -76,9 +91,11 @@ interface ShiftDemandTimelineProps {
  * library, with additional user interface expected by the Volunteer Manager.
  */
 export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
-    const { onChange, event, readOnly, step, team } = props;
+    const { event, readOnly, step, team } = props;
 
     const includeAllTeams = useContext(VisibilityContext);
+
+    const { setValue } = useFormContext();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -127,6 +144,16 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
         return { close: true } as const;
 
     }, [ selectedResolver, selectedShiftEntry ]);
+
+    // ---------------------------------------------------------------------------------------------
+
+    const handleChange = useCallback((events: TimelineEvent[]) => {
+        props.onChange(events);
+
+        // Trigger an invalidation in the form:
+        setValue('_internal', 'none', { shouldDirty: true });
+
+    }, [ props.onChange, setValue ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -182,7 +209,7 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
     return (
         <>
             <Timeline min={min} max={max} displayTimezone={event.timezone} events={entries}
-                      eventDefaults={eventDefaults} onChange={onChange}
+                      eventDefaults={eventDefaults} onChange={handleChange}
                       onDoubleClick={handleSettings} dense readOnly={readOnly} step={step} />
             <SettingDialog title="Number of volunteers" delete open={!!selectedShiftEntry}
                            onClose={handleSettingsClose} onDelete={handleSettingsDelete}

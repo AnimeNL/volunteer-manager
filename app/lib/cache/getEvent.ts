@@ -29,6 +29,8 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 name: tEvents.eventName,
                 shortName: tEvents.eventShortName,
                 published: tEvents.eventHidden.equals(/* false= */ 0),
+                startTime: tEvents.eventStartTime,
+                endTime: tEvents.eventEndTime,
                 timeZone: tEvents.eventTimezone,
 
                 integrations: {

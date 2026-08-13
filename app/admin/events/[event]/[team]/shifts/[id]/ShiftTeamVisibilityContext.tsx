@@ -11,7 +11,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
-import { callApi } from '@lib/callApi';
+import type { ServerAction } from '@lib/serverAction';
 
 /**
  * The `VisibilityContext` defines whether other teams' shifts should be visible.
@@ -22,6 +22,11 @@ export const VisibilityContext = createContext<boolean>(false);
  * Props accepted by the <ShiftTeamVisibilityContext> component.
  */
 interface ShiftTeamVisibilityContextProps {
+    /**
+     * Server Action through which visibility preferences can be updated.
+     */
+    action: ServerAction<{ visible: boolean }>;
+
     /**
      * Whether displayed context should be restricted to the current team.
      */
@@ -39,17 +44,15 @@ export function ShiftTeamVisibilityContext(
     const [ loading, setLoading ] = useState<boolean>(false);
     const [ includeAllTeams, setIncludeAllTeams ] = useState<boolean>(!!props.includeAllTeams);
 
-    const handleChange = useCallback(async (event: unknown, checked: boolean) => {
+    const handleChange = useCallback(async (event: unknown, visible: boolean) => {
         setLoading(true);
-        setIncludeAllTeams(checked);
+        setIncludeAllTeams(visible);
         try {
-            await callApi('post', '/api/auth/settings', {
-                'user-admin-shifts-display-other-teams': checked,
-            });
+            await props.action({ visible });
         } finally {
             setLoading(false);
         }
-    }, [ /* no dependencies */ ]);
+    }, [ props.action ]);
 
     return (
         <>

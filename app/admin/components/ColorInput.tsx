@@ -3,8 +3,22 @@
 
 'use client';
 
+import { useMemo } from 'react';
+
 import { Controller, useFormContext } from 'react-hook-form-mui';
-import { MuiColorInput, matchIsValidColor , type MuiColorInputProps } from 'mui-color-input';
+import { MuiColorInput, matchIsValidColor, type MuiColorInputProps, type MuiColorInputValue }
+    from 'mui-color-input';
+
+/**
+ * Colour validator that works with fields that are not required, which the mui-color-input library
+ * doesn't deal well with when used in conjunction with RHF.
+ */
+function optionalColourValidator(required: boolean, color: MuiColorInputValue): boolean {
+    if (!required && !color)
+        return true;
+
+    return matchIsValidColor(color);
+}
 
 /**
  * Props accepted by the <ColorInput> component.
@@ -25,11 +39,13 @@ export function ColorInput(props: ColorInputProps) {
     const { control } = useFormContext();
     const { name, ...inputProps } = props;
 
+    const validate = useMemo(() => optionalColourValidator.bind(null, !!props.required), [ props.required ]);
+
     return (
         <Controller name={name} control={control}
                     rules={{
                         required: props.required,
-                        validate: matchIsValidColor
+                        validate: validate,
                     }}
                     render={ ({ field, fieldState }) =>
                         <MuiColorInput

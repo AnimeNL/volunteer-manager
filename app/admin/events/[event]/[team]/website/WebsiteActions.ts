@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEvent } from '../../requireAuthenticationWithEvent';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -52,6 +53,8 @@ const kWebsiteSettingsData = z.object({
 export async function updateSettings(eventId: number, environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kWebsiteSettingsData, async (data, props) => {
+        await requireAuthenticationWithEvent(eventId, props.authenticationContext);
+
         const dbInstance = db;
 
         const metadata = await dbInstance.selectFrom(tEvents)

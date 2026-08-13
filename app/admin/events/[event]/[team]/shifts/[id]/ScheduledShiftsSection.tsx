@@ -3,16 +3,9 @@
 
 'use client';
 
-import Link from '@app/LinkProxy';
 import { useContext, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-
-import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Timeline, type TimelineEvent } from '@app/admin/components/Timeline';
 import { VisibilityContext } from './ShiftTeamVisibilityContext';
 
@@ -21,14 +14,24 @@ import { VisibilityContext } from './ShiftTeamVisibilityContext';
  */
 interface ScheduledShiftsSectionProps {
     /**
-     * Whether this section should be expanded by default.
-     */
-    defaultExpanded?: boolean;
-
-    /**
      * Information about the event for which the demand section is being shown.
      */
-    event: PageInfo['event'];
+    event: {
+        /**
+         * Date and time at which the event will commence, in a ZonedDateTime serialisation.
+         */
+        startTime: string;
+
+        /**
+         * Date and time at which the event will conclude, in a ZonedDateTime serialisation.
+         */
+        endTime: string;
+
+        /**
+         * Name of the timezone in which the shifts are being scheduled.
+         */
+        timezone: string;
+    };
 
     /**
      * The individual shifts that have been scheduled so far.
@@ -46,7 +49,7 @@ interface ScheduledShiftsSectionProps {
  * are assigned to particular volunteers. The view combines shifts from all different teams.
  */
 export function ScheduledShiftsSection(props: ScheduledShiftsSectionProps) {
-    const { defaultExpanded, event } = props;
+    const { event } = props;
 
     const includeAllTeams = useContext(VisibilityContext);
     const shifts = useMemo(() => props.shifts.filter(shift => {
@@ -72,22 +75,8 @@ export function ScheduledShiftsSection(props: ScheduledShiftsSectionProps) {
         return undefined;
     }
 
-    const subtitle = shifts.length === 1 ? '1 shift' : `${shifts.length} shifts`;
-
     return (
-        <ExpandableSection icon={ <ScheduleIcon color="info" /> } defaultExpanded={defaultExpanded}
-                           setting="user-admin-shifts-expand-shifts"
-                           title="Volunteering schedule" subtitle={subtitle}>
-            <SectionIntroduction>
-                The following volunteers have been scheduled for this shift. This is for
-                your information—use the{' '}
-                <MuiLink component={Link} href="../schedule">
-                    Scheduling Tool
-                </MuiLink>
-                {' '}to make changes.
-            </SectionIntroduction>
-            <Timeline min={min} max={max} displayTimezone={event.timezone} events={shifts}
-                      onDoubleClick={handleDoubleClick} dense disableGutters readOnly />
-        </ExpandableSection>
+        <Timeline min={min} max={max} displayTimezone={event.timezone} events={shifts}
+                  onDoubleClick={handleDoubleClick} dense disableGutters readOnly />
     );
 }

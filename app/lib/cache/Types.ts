@@ -33,6 +33,16 @@ export interface CachedEvent {
     published: boolean;
 
     /**
+     * Date and time at which the event will commence.
+     */
+    startTime: Temporal.ZonedDateTime;
+
+    /**
+     * Date and time at which the event will conclude.
+     */
+    endTime: Temporal.ZonedDateTime;
+
+    /**
      * Timezone in which the event will be taking place.
      */
     timeZone: string;
@@ -123,6 +133,16 @@ export interface CachedTeam {
      * @example "Crew"
      */
     title: string;
+
+    /**
+     * Plural form of the team's identity.
+     */
+    plural: string;
+
+    /**
+     * Colour that represents the team's identity.
+     */
+    color: string;
 
     /**
      * Private invite key used to generate targetted invite links for this team.

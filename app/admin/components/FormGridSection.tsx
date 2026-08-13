@@ -6,7 +6,6 @@ import type { SectionHeaderProps } from './SectionHeader';
 import { FormGrid, type FormGridProps } from './FormGrid';
 import { Section } from './Section';
 
-
 /**
  * Props accepted by the <FormGridSection> component.
  */

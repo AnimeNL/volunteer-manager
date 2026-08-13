@@ -1,26 +1,48 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden, notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+
+import { SelectElement, TextareaAutosizeElement } from '@proxy/react-hook-form-mui';
+
+import Grid from '@mui/material/Grid';
+import MoreTimeOutlinedIcon from '@mui/icons-material/MoreTimeOutlined';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import type { ShiftDemandTeamInfo } from './ShiftDemandTimeline';
 import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
-import { CollapsableSection } from '@app/admin/components/CollapsableSection';
+import { ColorInput } from '@app/admin/components/ColorInput';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { ScheduledShiftsSection } from './ScheduledShiftsSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftDemandSection } from './ShiftDemandSection';
-import { ShiftSettingsSection } from './ShiftSettingsSection';
+import { ShiftSettingsForm } from '../ShiftSettingsForm';
 import { ShiftTeamVisibilityContext } from './ShiftTeamVisibilityContext';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getShiftMetadata } from '../getShiftMetadata';
 import { readSetting } from '@lib/Settings';
-import { readUserSettings } from '@lib/UserSettings';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tActivitiesTimeslots, tSchedule, tShifts, tShiftsCategories, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import { readUserSetting } from '@lib/UserSettings';
+import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
+import db, { tActivitiesTimeslots, tSchedule, tShifts, tShiftsCategories, tTeams, tUsers, tUsersEvents }
+    from '@lib/database';
 
+import { kExcitementOptions } from '@app/admin/components/ExcitementIcon';
 import { kRegistrationStatus } from '@lib/database/Types';
-import { kShiftDemand } from '@app/api/admin/event/shifts/[[...id]]/demand';
+import { kShiftDemand } from '../ShiftDemandSchema';
+
+import { updateShift, updateShiftDemand, updateTeamVisibility } from '../ShiftActions';
+
+/**
+ * Options available for expected shift overlap. Warnings will be based on this option.
+ */
+const kOverlapOptions = [
+    { id: 'None', label: 'No overlap with timeslots is required' },
+    { id: 'Partial', label: 'All timeslots need partial coverage' },
+    { id: 'Cover', label: 'All timeslots need full coverage' },
+];
 
 /**
  * Converts the given `demandStr`, assuming that it is valid, to a series of `TimelineEvent` entries
@@ -64,33 +86,22 @@ function demandToTimelineEvents(
  * This page displays an individual shift, its configuration, time allocation and warnings. The
  * actual volunteers cannot be adjusted; this is something that has to be done on the schedule page.
  */
-export default async function EventTeamShiftPage(
+export default async function EventTeamShiftInformationPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts/[id]'>)
 {
-    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
+    const { access, event, team, user } = await requireAuthenticationContextWithEventAndTeam(props, {
+        permission: 'event.shifts',
+        operation: 'read',
+    });
 
-    if (!access.can('event.shifts', 'read', { event: event.slug, team: team.slug }))
-        forbidden();
-
-    if (!team.flagEnableScheduling)
+    if (!team.flags.enableScheduling)
         notFound();
 
-    const readOnly = !access.can('event.shifts', 'update', { event: event.slug, team: team.slug });
-    const warnings: any[] = [ ];
-
-    const step = await readSetting('schedule-time-step-minutes');
-    const userSettings = await readUserSettings(user.id, [
-        'user-admin-shifts-display-other-teams',
-        'user-admin-shifts-expand-shifts',
-    ]);
-
-    const expandSchedule = userSettings['user-admin-shifts-expand-shifts'] ?? false;
-    const includeAllTeams = userSettings['user-admin-shifts-display-other-teams'] ?? false;
+    const dbInstance = db;
     const params = await props.params;
 
     // ---------------------------------------------------------------------------------------------
 
-    const dbInstance = db;
     const shift = await dbInstance.selectFrom(tShifts)
         .innerJoin(tShiftsCategories)
             .on(tShiftsCategories.shiftCategoryId.equals(tShifts.shiftCategoryId))
@@ -122,14 +133,24 @@ export default async function EventTeamShiftPage(
     if (shift.team !== team.slug)
         redirect(`../../${shift.team}/shifts/${shift.id}`);
 
+    const teamDemandInfo = {
+        colour: team.color,
+        plural: team.plural,
+        slug: team.slug,
+    };
+
+    const step = await readSetting('schedule-time-step-minutes');
+    const includeAllTeams =
+        !!await readUserSetting(user.id, 'user-admin-shifts-display-other-teams');
+
     // ---------------------------------------------------------------------------------------------
     // Compose the information required for the Volunteering Demand section. This combines timeslots
     // sourced from the festival program, shifts from the `team`, and shifts from other teams.
     // ---------------------------------------------------------------------------------------------
 
-    const demand: TimelineEvent[] = demandToTimelineEvents(shift.demand, team, /*editable=*/ true);
-    const shiftsForActivity = new Set([ shift.id ]);
+    const demand: TimelineEvent[] = demandToTimelineEvents(shift.demand, teamDemandInfo, true);
 
+    const shiftsForActivity = new Set([ shift.id ]);
     if (!!shift.activityId) {
         const timeslots = await dbInstance.selectFrom(tActivitiesTimeslots)
             .where(tActivitiesTimeslots.activityId.equals(shift.activityId))
@@ -217,35 +238,99 @@ export default async function EventTeamShiftPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const { activities, categories, locations } = await getShiftMetadata(event.festivalId);
+    const readOnly = !access.can('event.shifts', 'update', { event: event.slug, team: team.slug });
+
+    const updateShiftFn =
+        readOnly ? undefined!
+                 : updateShift.bind(null, event.slug, team.slug, shift.id);
+
+    const updateShiftDemandFn =
+        readOnly ? undefined!
+                 : updateShiftDemand.bind(null, event.slug, team.slug, shift.id);
+
+    const updateShiftDefaultValues = {
+        ...shift,
+        type: !!shift.activityId ? 'program' : 'initiative',
+    };
+
+    const { activities, categories, locations } = await getShiftMetadata(
+        event.integrations?.anPlanFestivalId);
 
     return (
         <>
-            <Section title={`${shift.name} shift`} subtitle={team.name}>
-                <ShiftSettingsSection activities={activities} categories={categories}
-                                      context={{ event: event.slug, team: team.slug }}
-                                      locations={locations} readOnly={readOnly} shift={shift} />
+            <Section icon={ <PendingActionsIcon color="primary" /> }
+                     title={`${shift.name} shift`}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         {
+                             label: 'Shifts',
+                             href: `/admin/events/${event.slug}/${team.slug}/shifts`
+                         },
+                         { label: shift.name },
+                     ]}>
+                <SectionIntroduction>
+                    Manage and analyse this shift part of {event.shortName} planning.
+                </SectionIntroduction>
             </Section>
-            <ShiftTeamVisibilityContext includeAllTeams={includeAllTeams}>
-                <Section title="Volunteering demand">
-                    <SectionIntroduction important={!demand.length}>
-                        Indicate what the agreed volunteering demand for this shift is: how many
-                        people are expected to be scheduled on this shift, and when.
+            <FormGridSection icon={ <SettingsOutlinedIcon /> } title="Settings"
+                             action={updateShiftFn} defaultValues={updateShiftDefaultValues}>
+                <Grid size={{ xs: 12 }}>
+                    <SectionIntroduction>
+                        Identity and association of the shift. These details will be shared with
+                        volunteers.
                     </SectionIntroduction>
-                    <ShiftDemandSection event={event} readOnly={readOnly} demand={demand}
-                                        shiftId={shift.id} step={step} team={team} />
+                </Grid>
+                <ShiftSettingsForm activities={activities} categories={categories}
+                                   locations={locations} includeName readOnly={readOnly} />
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="excitement" label="Excitement level" fullWidth required
+                                   options={kExcitementOptions} size="small" type="number"
+                                   disabled={readOnly} />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                    <ColorInput name="colour" label="Override colour" fullWidth size="small"
+                                disabled={readOnly} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <SelectElement name="overlap" label="Timeslot overlap" fullWidth required
+                                   options={kOverlapOptions} size="small" disabled={readOnly} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextareaAutosizeElement name="description" label="Description" multiline
+                                             size="small" fullWidth disabled={readOnly} />
+                </Grid>
+            </FormGridSection>
+            <ShiftTeamVisibilityContext action={updateTeamVisibility}
+                                        includeAllTeams={includeAllTeams}>
+                <Section icon={ <MoreTimeOutlinedIcon /> } title="Volunteering demand">
+                    <SectionIntroduction>
+                        What are the expectations, assuming ideal conditions, on the presence of
+                        volunteers during {event.shortName}?
+                    </SectionIntroduction>
+                    <ShiftDemandSection demand={demand} shiftId={shift.id} step={step}
+                                        readOnly={readOnly} team={teamDemandInfo}
+                                        action={updateShiftDemandFn} event={{
+                                            startTime: event.startTime.toString(),
+                                            endTime: event.endTime.toString(),
+                                            timezone: event.timeZone,
+                                        }} />
                 </Section>
-                <CollapsableSection in={!!warnings.length} title="Shift warnings">
-                    <SectionIntroduction important>
-                        The shifts tool has not been implemented yet.
+                <Section icon={ <ScheduleIcon /> } title="Schedule">
+                    <SectionIntroduction>
+                        Overview of when volunteers have been scheduled on this shift.
                     </SectionIntroduction>
-                </CollapsableSection>
-                { !!scheduled.length &&
-                    <ScheduledShiftsSection defaultExpanded={expandSchedule}
-                                            event={event} shifts={scheduled} teamId={team.id} /> }
+                    <ScheduledShiftsSection shifts={scheduled} teamId={team.id}
+                                            event={{
+                                                startTime: event.startTime.toString(),
+                                                endTime: event.endTime.toString(),
+                                                timezone: event.timeZone,
+                                            }} />
+                </Section>
             </ShiftTeamVisibilityContext>
         </>
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Shifts');
+export const generateMetadata = createGenerateMetadataFn(
+    'Shift details', 'Shifts', { team: 'team' }, { event: 'event' });

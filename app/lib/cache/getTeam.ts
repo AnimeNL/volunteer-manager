@@ -32,6 +32,8 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
                 environmentId: tEnvironments.environmentId,
                 name: tTeams.teamTitle,
                 title: tTeams.teamName,
+                plural: tTeams.teamPlural,
+                color: tTeams.teamColourLightTheme,
                 inviteKey: tTeams.teamInviteKey,
                 flags: {
                     enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),

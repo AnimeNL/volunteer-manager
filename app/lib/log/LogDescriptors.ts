@@ -250,6 +250,18 @@ interface LogTypeParameterMap {
         incidentId: number;
     };
 
+    UpdateShift: {
+        event: string;  // short name
+        team: string;  // title
+        shift: string;  // name
+    };
+
+    UpdateShiftDemand: {
+        event: string;  // short name
+        team: string;  // title
+        shift: string;  // name
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
     // ---------------------------------------------------------------------------------------------
@@ -366,6 +378,8 @@ export const kLogType: { [k in LogType]: k } = {
     ReleaseApplication: 'ReleaseApplication',
     UpdateDutyBookIncident: 'UpdateDutyBookIncident',
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
+    UpdateShift: 'UpdateShift',
+    UpdateShiftDemand: 'UpdateShiftDemand',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
