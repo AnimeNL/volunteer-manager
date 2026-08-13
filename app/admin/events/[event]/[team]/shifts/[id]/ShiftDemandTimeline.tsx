@@ -7,7 +7,9 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 
 import { SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
 
-import { SettingDialog } from '@app/admin/components/SettingDialog';
+import Button from '@mui/material/Button';
+
+import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 import { Timeline, type TimelineEvent, type TimelineEventMutation } from '@app/admin/components/Timeline';
 import { VisibilityContext } from './ShiftTeamVisibilityContext';
 
@@ -126,10 +128,10 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
 
     const handleSettingsUpdate = useCallback(async (data: any) => {
         if (!selectedShiftEntry || !selectedResolver)
-            return { error: <>I forgot which shift was selected, sorry!</> };
+            throw new Error('Context is lost, please refresh the page.');
 
         if (typeof data.volunteers !== 'number' || data.volunteers < 1 || data.volunteers > 10)
-            return { error: <>I don't know which state to update to, sorry!</> };
+            throw new Error('Expected between 1 and 10 volunteers.');
 
         selectedResolver({
             update: {
@@ -141,7 +143,7 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
             },
         });
 
-        return { close: true } as const;
+        return { success: true, close: true };
 
     }, [ selectedResolver, selectedShiftEntry ]);
 
@@ -211,13 +213,27 @@ export function ShiftDemandTimeline(props: ShiftDemandTimelineProps) {
             <Timeline min={min} max={max} displayTimezone={event.timezone} events={entries}
                       eventDefaults={eventDefaults} onChange={handleChange}
                       onDoubleClick={handleSettings} dense readOnly={readOnly} step={step} />
-            <SettingDialog title="Number of volunteers" delete open={!!selectedShiftEntry}
-                           onClose={handleSettingsClose} onDelete={handleSettingsDelete}
-                           onSubmit={handleSettingsUpdate}
-                           defaultValues={ selectedShiftEntry ?? {} }>
+            <ResponsiveFormDialog
+                open={!!selectedShiftEntry} onClose={handleSettingsClose}
+                onSubmit={handleSettingsUpdate} defaultValues={ selectedShiftEntry ?? {} }
+                title="How many volunteers?"
+                description={
+                    <>
+                        How many volunteers are expected to participate in this shift?
+                    </>
+                }
+                submitLabel="Update"
+                additionalButtons={
+                    <Button size="small" variant="contained" color="error"
+                            onClick={handleSettingsDelete}>
+                        Delete
+                    </Button>
+                }>
+
                 <SelectElement name="volunteers" size="small" fullWidth sx={{ mt: '1px' }}
                                options={numberOfVolunteerOptions} />
-            </SettingDialog>
+
+            </ResponsiveFormDialog>
         </>
     );
 }

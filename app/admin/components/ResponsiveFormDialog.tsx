@@ -13,15 +13,14 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 
-import type { ServerAction } from '@lib/serverAction';
+import type { ServerAction, ServerActionResult } from '@lib/serverAction';
 import { ResponsiveDialog, type ResponsiveDialogProps } from './ResponsiveDialog';
 
 /**
  * Props accepted by the <ResponsiveFormDialog> component.
  */
 export type ResponsiveFormDialogProps<T extends FieldValues = FieldValues> =
-    Omit<ResponsiveDialogProps, 'Container' | 'ContainerProps' | 'additionalButtons' |
-                                'additionalContent'> &
+    Omit<ResponsiveDialogProps, 'Container' | 'ContainerProps' | 'additionalContent'> &
 {
     /**
      * Default values that should be set to the form. Invalidations will propagate to the form.
@@ -50,7 +49,7 @@ export type ResponsiveFormDialogProps<T extends FieldValues = FieldValues> =
         /**
          * Callback to be invoked when the form is ready to be submitted.
          */
-        onSubmit: (data: T) => Promise<void> | void;
+        onSubmit: (data: T) => Promise<ServerActionResult> | void;
 
     } |
     {
@@ -84,8 +83,8 @@ export type ResponsiveFormDialogProps<T extends FieldValues = FieldValues> =
 export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
     props: React.PropsWithChildren<ResponsiveFormDialogProps<T>>)
 {
-    const { action, defaultValues, onSubmit, submitColor, submitLabel, ...responsiveDialogProps }
-        = props;
+    const { action, additionalButtons, defaultValues, onSubmit, submitColor, submitLabel,
+        ...responsiveDialogProps } = props;
 
     const [ error, setError ] = useState<string | undefined>();
     const [ confirmation, setConfirmation ] = useState<string | undefined>();
@@ -115,8 +114,10 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
         setLoading(true);
         try {
             const typedData = data as T;
-            if (!!action) {
-                const response = await action(typedData);
+            const response = !!action ? await action(typedData)
+                                      : await onSubmit?.(typedData);
+
+            if (!!response) {
                 if (!response.success)
                     throw new Error(response.error);
 
@@ -131,9 +132,6 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
 
                 if (!!response.refresh)
                     router.refresh();
-
-            } else {
-                await onSubmit?.(typedData);
             }
         } catch (error: any) {
             setError(error.message || 'An internal error has occurred');
@@ -166,12 +164,15 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
                                       </Alert> }
                               </Collapse> }
                           additionalButtons={
-                              <Button loading={loading} disabled={!!confirmation}
-                                      variant="contained"
-                                      color={submitColor || 'primary'} size="small"
-                                      type="submit" autoFocus>
-                                  { submitLabel || 'Submit' }
-                              </Button>
+                              <>
+                                  <Button loading={loading} disabled={!!confirmation}
+                                          variant="contained"
+                                          color={submitColor || 'primary'} size="small"
+                                          type="submit" autoFocus>
+                                      { submitLabel || 'Submit' }
+                                  </Button>
+                                  {props.additionalButtons}
+                              </>
                           } />
     );
 }
