@@ -90,6 +90,11 @@ interface CacheDescriptorMap {
         Contents: string;
     };
 
+    UserSettings: {
+        Parameters: number;  // user ID
+        Contents: Record<string, any>;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Dashboard
     // ---------------------------------------------------------------------------------------------
@@ -280,6 +285,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     UrlSlugs: {
         name: 'UrlSlugs',
         description: 'URL-safe slugs to both event and team unique IDs.',
+        type: 'permanent',
+    },
+
+    UserSettings: {
+        name: 'UserSettings',
+        description: 'User-specific server-side configuration settings.',
         type: 'permanent',
     },
 

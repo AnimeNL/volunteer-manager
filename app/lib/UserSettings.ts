@@ -1,7 +1,9 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import db, { tSettings, tUsersSettings } from '@lib/database';
+import { Cache } from '@lib/cache';
+import { readSettings, type Setting } from './Settings';
+import db, { tUsersSettings } from '@lib/database';
 
 /**
  * Represents the settings that can be stored and retrieved in the Volunteer Manager that are keyed
@@ -65,22 +67,38 @@ export async function readUserSettings<T extends keyof UserSettingsMap>(
     userId: number, settings: T[], disableFallback?: boolean)
         : Promise<{ [k in T]: UserSettingsMap[k] | undefined }>
 {
-    const usersSettingsJoin = tUsersSettings.forUseInLeftJoin();
-    const storedValues = await db.selectFrom(tSettings)
-        .leftJoin(usersSettingsJoin)
-            .on(usersSettingsJoin.settingName.equals(tSettings.settingName))
-            .and(usersSettingsJoin.userId.equals(userId))
-        .where(tSettings.settingName.in(settings))
-        .select({
-            name: tSettings.settingName,
-            value: usersSettingsJoin.settingValue.valueWhenNull(
-                tSettings.settingValue.onlyWhenOrNull(disableFallback !== true)),
-        })
-        .executeSelectMany();
+    const userSettingsCache = Cache.getInstance('UserSettings');
+    const userSettings = await userSettingsCache.getOrInsert(userId, async userId => {
+        const userSettings = await db.selectFrom(tUsersSettings)
+            .where(tUsersSettings.userId.equals(userId))
+            .select({
+                key: tUsersSettings.settingName,
+                value: tUsersSettings.settingValue,
+            })
+            .executeSelectMany();
+
+        return Object.fromEntries(userSettings.map(({ key, value }) => [
+            key, value ? JSON.parse(value) : undefined ]));
+    });
+
+    const missingSettingsForFallback: Setting[] = [ /* none yet */ ];
 
     const result: { [k in T]: UserSettingsMap[k] | undefined } = { /* empty */ } as any;
-    for (const { name, value } of storedValues)
-        result[name as keyof typeof result] = value ? JSON.parse(value) : undefined;
+    for (const setting of settings) {
+        if (userSettings && Object.hasOwn(userSettings, setting)) {
+            result[setting] = userSettings[setting];
+        } else if (!disableFallback) {
+            missingSettingsForFallback.push(setting as Setting);
+        } else {
+            result[setting] = undefined;
+        }
+    }
+
+    if (!!missingSettingsForFallback.length) {
+        const values = await readSettings(missingSettingsForFallback);
+        for (const [ key, value ] of Object.entries(values))
+            result[key as T] = value as any;
+    }
 
     return result;
 }
@@ -104,16 +122,25 @@ export async function writeUserSetting<T extends keyof UserSettingsMap>(
 export async function writeUserSettings<T extends keyof UserSettingsMap>(
     userId: number, settings: { [k in T]: UserSettingsMap[k] | undefined }) : Promise<void>
 {
+    const userSettingsCache = Cache.getInstance('UserSettings');
+    const userSettings = userSettingsCache.get(userId);
+
     const dbInstance = db;
     await dbInstance.transaction(async () => {
         for (const [ setting, value ] of Object.entries(settings)) {
             if (value === undefined || value === null) {
+                if (!!userSettings)
+                    delete userSettings[setting];
+
                 await dbInstance.deleteFrom(tUsersSettings)
                     .where(tUsersSettings.userId.equals(userId))
                         .and(tUsersSettings.settingName.equals(setting))
                     .executeDelete();
 
             } else {
+                if (!!userSettings)
+                    userSettings[setting] = value;
+
                 const settingValue = JSON.stringify(value);
 
                 await dbInstance.insertInto(tUsersSettings)
