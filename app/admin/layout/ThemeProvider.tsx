@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 
 import { ThemeProvider as MuiThemeProvider, createTheme, type Color } from '@mui/material/styles';
 
-import { type ColorPalette } from './ThemeUtilities';
+import type { ColorPalette } from './ThemeUtilities';
 
 /**
  * The Inter font, loaded through NextJS' font stack, with default settings for Material UI.
@@ -29,10 +29,12 @@ declare module '@mui/material/styles' {
     }
 
     interface Palette {
+        backgroundHighlight: Color;
         primaryPalette: Color;
     }
 
     interface PaletteOptions {
+        backgroundHighlight: Color;
         primaryPalette: Color;
     }
 }
@@ -58,6 +60,7 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
                 palette: {
                     primary: { main: props.palette[500] },
                     primaryPalette: props.palette,
+                    backgroundHighlight: props.palette[900],
                     background: {
                         default: '#1e1e1e',
                         paper: '#272727',
@@ -69,6 +72,7 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
                 palette: {
                     primary: { main: props.palette[500] },
                     primaryPalette: props.palette,
+                    backgroundHighlight: props.palette[50],
                     background: {
                         default: '#eff3f4',
                         paper: '#ffffff',

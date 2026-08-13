@@ -10,17 +10,28 @@ import Paper, { type PaperProps } from '@mui/material/Paper';
 import { AdminClientContext } from '../AdminClientContext';
 
 /**
+ * Props accepted by the <ResponsivePaper> component.
+ */
+interface ResponsivePaperProps extends PaperProps {
+    /**
+     * Whether this section should be highlighted with a slightly different background color.
+     */
+    highlight?: boolean;
+}
+
+/**
  * Variant of the MUI <Paper> component that becomes square and margin-less when displayed on a
  * mobile device, to ensure proper utilisation of the already restricted screen estate.
  */
-export function ResponsivePaper(props: React.PropsWithChildren<PaperProps>) {
-    const { children, sx, ...otherProps } = props;
+export function ResponsivePaper(props: ResponsivePaperProps) {
+    const { children, highlight, sx, ...otherProps } = props;
 
     const { isMobile, isLayoutV2 } = useContext(AdminClientContext);
 
     const mobilePadding = isLayoutV2 ? '-8px !important' : '-16px !important';
     return (
         <Paper square={isMobile} {...otherProps} sx={{
+            backgroundColor: highlight ? 'var(--mui-palette-backgroundHighlight)' : undefined,
             marginLeft: isMobile ? mobilePadding : undefined,
             marginRight: isMobile ? mobilePadding : undefined,
             ...sx,

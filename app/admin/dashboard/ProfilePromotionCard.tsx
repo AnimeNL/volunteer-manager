@@ -18,7 +18,7 @@ import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
  */
 export async function ProfilePromotionCard() {
     return (
-        <DashboardCard>
+        <DashboardCard highlight>
             <Stack direction="row" spacing={1.5}
                    divider={ <Divider flexItem orientation="vertical" /> }
                    sx={{
@@ -37,7 +37,7 @@ export async function ProfilePromotionCard() {
                    </Typography>
                 </Stack>
                 <IconButton component={Link} href="/admin/settings">
-                    <NavigateNextIcon color="primary" />
+                    <NavigateNextIcon color="action" />
                 </IconButton>
             </Stack>
         </DashboardCard>

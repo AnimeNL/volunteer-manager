@@ -64,7 +64,7 @@ export default async function AccountSettingsPage() {
                     you.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section highlight noHeader>
                 <LayoutToggle action={updateExperimentalLayoutOptIn} />
             </Section>
             <FormGridSection icon={ <GeminiIcon /> } title="Personalised AI"

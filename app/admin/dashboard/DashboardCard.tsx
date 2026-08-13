@@ -7,9 +7,22 @@ import Card from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 
 /**
+ * Props accepted by the <DashboardCard> component.
+ */
+interface DashboardCardProps {
+    /**
+     * Whether this card should be highlighted with a slightly different background color.
+     */
+    highlight?: boolean;
+}
+
+/**
  * Responsive variant of the <Card> component that removes outer margins in mobile display.
  */
-export const DashboardCard = styled(Card)(({ theme }) => ({
+export const DashboardCard = styled(Card, {
+    shouldForwardProp: (prop) => prop !== 'highlight',
+})<DashboardCardProps>(({ theme, highlight }) => ({
+    backgroundColor: !!highlight ? theme.vars?.palette.backgroundHighlight as any : undefined,
     display: 'flex',
     flexDirection: 'column',
 
