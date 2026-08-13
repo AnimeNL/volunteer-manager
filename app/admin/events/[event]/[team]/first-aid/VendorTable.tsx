@@ -341,7 +341,7 @@ export function VendorTable(props: VendorTableProps) {
         <DataTable columns={columns} source={vendorDataSource}
                    context={{ event: props.event, team: props.team }}
                    defaultSort={{ field: 'firstName', sort: 'asc' }}
-                   disableFooter
+                   disableFooter refreshOnMutation
                    subject="vendor"
                    listViewProps={{
                        primaryTemplate: '{firstName} {lastName}',

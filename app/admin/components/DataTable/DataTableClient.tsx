@@ -4,6 +4,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
     type GridPaginationModel, type GridRowModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
@@ -105,6 +106,11 @@ interface DataTableClientCommonProps<
     protectedColumn?: keyof RowModel & string;
 
     /**
+     * Whether to refresh the router when a data mutation has happened.
+     */
+    refreshOnMutation?: boolean;
+
+    /**
      * User interface for the search functionality. Prominent search will be an always visible
      * toolbar above the data that captures the <ctrl>+<f> keyboard shortcut. Subtle search will be
      * an icon in the footer, collapsed by default on desktop.
@@ -161,6 +167,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 {
     const isMobile = useIsMobile();
 
+    const router = useRouter();
     const subject = props.subject ?? 'item';
 
     // ---------------------------------------------------------------------------------------------
@@ -269,7 +276,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         setRefreshTrigger(prev => prev + 1);
         setDeleteCandidate(undefined);
 
-    }, [ context, deleteCandidate, props.source, subject ]);
+        if (props.refreshOnMutation)
+            router.refresh();
+
+    }, [ context, deleteCandidate, props.refreshOnMutation, props.source, router, subject ]);
 
     // ---------------------------------------------------------------------------------------------
     // Ability to create rows in the data table, when exposed by the source.
@@ -286,7 +296,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         setRefreshTrigger(prev => prev + 1);
         setCreateOpen(false);
 
-    }, [ context, props.source, subject ]);
+        if (props.refreshOnMutation)
+            router.refresh();
+
+    }, [ context, props.refreshOnMutation, props.source, router, subject ]);
 
     // ---------------------------------------------------------------------------------------------
     // Ability to edit rows from the data table on a mobile device, when exposed by the source.
@@ -306,7 +319,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         setRefreshTrigger(prev => prev + 1);
         setEditCandidate(undefined);
 
-    }, [ context, editCandidate, props.source, subject ]);
+        if (props.refreshOnMutation)
+            router.refresh();
+
+    }, [ context, editCandidate, props.refreshOnMutation, props.source, router, subject ]);
 
     // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
@@ -401,6 +417,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                       if (result === false)
                           throw new Error('Failed to update the row');
 
+                      if (props.refreshOnMutation)
+                          router.refresh();
+
                       return typeof result === 'object' && result !== null
                           ? result
                           : params.updatedRow;
@@ -408,7 +427,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 : undefined,
         };
 
-    }, [ props.source.id, props.source.update, refreshTrigger ]);
+    }, [ props.refreshOnMutation, props.source.id, props.source.update, refreshTrigger, router ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mess:
