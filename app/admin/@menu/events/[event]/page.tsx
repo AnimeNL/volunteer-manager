@@ -190,7 +190,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: LocalHospitalIcon,
-                    badge: { severity: 'warning', value: true },  // migration in progress
+                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'First aid',
                     permission: {
                         permission: 'event.vendors',
@@ -232,7 +232,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: SecurityIcon,
-                    badge: { severity: 'warning', value: true },  // migration in progress
+                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Security',
                     permission: {
                         permission: 'event.vendors',

@@ -29,7 +29,14 @@ export interface DataTableListViewProps<RowModel extends object> {
     /**
      * Primary text on the list item. Will be displayed in bold and is guaranteed to not wrap.
      */
-    primaryField: RowModelFields<RowModel>;
+    primaryField?: RowModelFields<RowModel>;
+
+    /**
+     * Template from which the primary field will be derived. Can contain any of the fields as
+     * a curly brace-contained string, for example: "Player #{id}". Nested references are allowed as
+     * well, for example: "Issued by {user.name}".
+     */
+    primaryTemplate?: string;
 
     /**
      * Secondary text on the list item. Guaranteed to not wrap.
@@ -134,8 +141,6 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
  * date display. Note that individual components are able to provide their own row display.
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
-    const primaryFieldValue = resolveRowModelField(props.row, props.listViewProps.primaryField);
-
     const isProtected = useMemo(() => isProtectedRow(props.row, props.protectedColumn), [
         props.row, props.protectedColumn,
     ]);
@@ -200,9 +205,14 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                     listView row={props.row} /> }
 
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-                <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
-                    {primaryFieldValue}
-                </Typography>
+                {!!props.listViewProps.primaryField &&
+                    <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
+                        {resolveRowModelField(props.row, props.listViewProps.primaryField)}
+                    </Typography> }
+                { !!props.listViewProps.primaryTemplate &&
+                    <Typography noWrap variant="body2" color="textSecondary">
+                        {resolveTemplate(props.row, props.listViewProps.primaryTemplate)}
+                    </Typography> }
                 { !!props.listViewProps.secondaryField &&
                     <Typography noWrap variant="body2" color="textSecondary">
                         {resolveRowModelField(props.row, props.listViewProps.secondaryField)}

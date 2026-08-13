@@ -11,16 +11,9 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
+import type { VendorTeam } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
-import { kVendorTeam, type VendorTeam } from '@lib/database/Types';
-
-/**
- * Names of the known vendor teams, for presentation in user interfaces.
- */
-const kVendorTeamName: { [k in VendorTeam]: string } = {
-    [kVendorTeam.FirstAid]: 'First Aid',
-    [kVendorTeam.Security]: 'Security',
-};
+import { kVendorTeamName } from './VendorTable';
 
 /**
  * Zod schema describing the parameters required to create a new shift.

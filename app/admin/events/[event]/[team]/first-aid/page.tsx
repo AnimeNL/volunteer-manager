@@ -9,7 +9,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VendorSchedule } from './VendorSchedule';
 import { VendorTable } from './VendorTable';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
@@ -100,4 +100,5 @@ export default async function EventTeamFirstAidPage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('First aid');
+export const generateMetadata = createGenerateMetadataFn(
+    'First aid', { team: 'team' }, { event: 'event' });

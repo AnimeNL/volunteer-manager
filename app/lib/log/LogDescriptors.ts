@@ -209,6 +209,12 @@ interface LogTypeParameterMap {
         shift: string;  // name
     };
 
+    CreateVendor: {
+        event: string;  // short name
+        vendor: string;
+        name: string;
+    };
+
     DecideApplication: {
         event: string;  // short name
         team: string;  // title ("Volunteering Crew")
@@ -224,6 +230,12 @@ interface LogTypeParameterMap {
         event: string;  // short name
         team: string;  // title
         shift: string;  // name
+    };
+
+    DeleteVendor: {
+        event: string;  // short name
+        vendor: string;
+        name: string;
     };
 
     MoveApplication: {
@@ -260,6 +272,12 @@ interface LogTypeParameterMap {
         event: string;  // short name
         team: string;  // title
         shift: string;  // name
+    };
+
+    UpdateVendor: {
+        event: string;  // short name
+        vendor: string;
+        name: string;
     };
 
     UpdateVendorSchedule: {
@@ -375,9 +393,11 @@ export const kLogType: { [k in LogType]: k } = {
     ClaimApplication: 'ClaimApplication',
     CreateApplication: 'CreateApplication',
     CreateShift: 'CreateShift',
+    CreateVendor: 'CreateVendor',
     DecideApplication: 'DecideApplication',
     DeleteDutyBookIncident: 'DeleteDutyBookIncident',
     DeleteShift: 'DeleteShift',
+    DeleteVendor: 'DeleteVendor',
     MoveApplication: 'MoveApplication',
     ReconsiderApplication: 'ReconsiderApplication',
     ReleaseApplication: 'ReleaseApplication',
@@ -385,6 +405,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
     UpdateShift: 'UpdateShift',
     UpdateShiftDemand: 'UpdateShiftDemand',
+    UpdateVendor: 'UpdateVendor',
     UpdateVendorSchedule: 'UpdateVendorSchedule',
 
     // ---------------------------------------------------------------------------------------------

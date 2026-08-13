@@ -59,7 +59,6 @@ import type { RolesEndpoints } from '@app/api/admin/organisation/roles/[[...id]]
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
 import type { TrainingsExtraEndpoints } from '@app/api/admin/trainings/extra/[[...id]]/route';
-import type { VendorEndpoints } from '@app/api/admin/vendors/[[...id]]/route';
 
 /**
  * Type helpers for deciding on the request and response types for API definitions. Because they are
@@ -92,7 +91,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
-        '/api/admin/vendors': VendorEndpoints['list'],
         '/api/auth/passkeys/list': ListPasskeysDefinition,
         '/api/event/hotels/:event': HotelsDefinition,
         '/api/event/trainings/:event': TrainingsDefinition,
@@ -111,7 +109,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/admin/update-settings': UpdateSettingsDefinition,
-        '/api/admin/vendors': VendorEndpoints['create'],
         '/api/admin/volunteer-contact-info': VolunteerContactInfoDefinition,
         '/api/admin/volunteer-roles': VolunteerRolesDefinition,
         '/api/admin/volunteer-teams': VolunteerTeamsDefinition,
@@ -151,7 +148,6 @@ export type ApiEndpoints = {
         '/api/admin/program/locations/:id': ProgramLocationsEndpoints['delete'],
         '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
-        '/api/admin/vendors/:id': VendorEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
@@ -172,7 +168,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],
-        '/api/admin/vendors/:id': VendorEndpoints['update'],
         '/api/application/:event/:team/:userId': UpdateApplicationDefinition,
         '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
