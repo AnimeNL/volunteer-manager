@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { DefaultValues, FieldValues } from '@proxy/react-hook-form-mui';
@@ -90,6 +90,8 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
     const [ confirmation, setConfirmation ] = useState<string | undefined>();
     const [ loading, setLoading ] = useState<boolean>(false);
 
+    const submitButtonRef = useRef<HTMLButtonElement>(null);
+
     const formContext = useForm<T>({ defaultValues: defaultValues ?? {} as DefaultValues<T> });
     const formContextReset = formContext.reset;
 
@@ -104,6 +106,9 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
         setConfirmation(undefined);
         setError(undefined);
         setLoading(false);
+
+        // Attempt to force focus on the submit button after a slight delay:
+        setTimeout(() => submitButtonRef.current?.focus(), 150);
 
     }, [ defaultValues, formContextReset, props.open ]);
 
@@ -165,8 +170,8 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
                               </Collapse> }
                           additionalButtons={
                               <>
-                                  <Button loading={loading} disabled={!!confirmation}
-                                          variant="contained"
+                                  <Button ref={submitButtonRef} loading={loading}
+                                          disabled={!!confirmation} variant="contained"
                                           color={submitColor || 'primary'} size="small"
                                           type="submit" autoFocus>
                                       { submitLabel || 'Submit' }
