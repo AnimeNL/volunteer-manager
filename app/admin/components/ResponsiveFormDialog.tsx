@@ -49,7 +49,7 @@ export type ResponsiveFormDialogProps<T extends FieldValues = FieldValues> =
         /**
          * Callback to be invoked when the form is ready to be submitted.
          */
-        onSubmit: (data: T) => Promise<ServerActionResult> | void;
+        onSubmit: (data: T) => Promise<ServerActionResult | void> | ServerActionResult | void;
 
     } |
     {
