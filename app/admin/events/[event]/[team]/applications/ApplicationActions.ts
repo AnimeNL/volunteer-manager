@@ -7,8 +7,8 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { getEvent, getTeam } from '@lib/cache';
+import { getTeam } from '@lib/cache';
+import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
 
@@ -29,20 +29,11 @@ export async function claimApplication(
 {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
                 permission: 'event.applications',
                 operation: 'update',
-                scope: { event: eventSlug, team: teamSlug },
-            },
-        });
-
-        const event = await getEvent(eventSlug);
-        const team = await getTeam(teamSlug);
-
-        if (!event || !team)
-            notFound();
+            });
 
         const existingClaim = await db.selectFrom(tUsersEvents)
             .where(tUsersEvents.userId.equals(userId))
@@ -93,20 +84,11 @@ export async function decideApplication(
 {
     'use server';
     return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
                 permission: 'event.applications',
                 operation: 'update',
-                scope: { event: eventSlug, team: teamSlug },
-            },
-        });
-
-        const event = await getEvent(eventSlug);
-        const team = await getTeam(teamSlug);
-
-        if (!event || !team)
-            notFound();
+            });
 
         const isSilent = !subject || !message;
         if (isSilent) {
@@ -179,20 +161,11 @@ const kCreateApplicationData = z.object({
 export async function createApplication(eventSlug: string, teamSlug: string, formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateApplicationData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
                 permission: 'event.applications',
                 operation: 'create',
-                scope: { event: eventSlug, team: teamSlug },
-            },
-        });
-
-        const event = await getEvent(eventSlug);
-        const team = await getTeam(teamSlug);
-
-        if (!event || !team)
-            return { success: false, error: 'Unable to identify the appropriate event or team…' };
+            });
 
         const dbInstance = db;
         const teamInfo = await dbInstance.selectFrom(tTeams)
@@ -275,20 +248,14 @@ export async function moveApplication(
 {
     'use server';
     return executeServerAction(formData, kMoveApplicationData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
+        const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
                 permission: 'event.applications',
                 operation: 'update',
-                scope: { event: eventSlug, team: teamSlug },
-            },
-        });
+            });
 
-        const event = await getEvent(eventSlug);
-        const currentTeam = await getTeam(teamSlug);
         const targetTeam = await getTeam(data.team);
-
-        if (!event || !currentTeam || !targetTeam)
+        if (!targetTeam)
             notFound();
 
         const existingApplication = await db.selectFrom(tUsersEvents)
@@ -357,20 +324,11 @@ export async function reconsiderApplication(
 {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
                 permission: 'event.applications',
                 operation: 'create',
-                scope: { event: eventSlug, team: teamSlug },
-            },
-        });
-
-        const event = await getEvent(eventSlug);
-        const team = await getTeam(teamSlug);
-
-        if (!event || !team)
-            notFound();
+            });
 
         const affectedRows = await db.update(tUsersEvents)
             .set({
