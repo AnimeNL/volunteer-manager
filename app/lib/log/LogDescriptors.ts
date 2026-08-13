@@ -203,6 +203,12 @@ interface LogTypeParameterMap {
         team: string;  // title ("Volunteering Crew")
     };
 
+    CreateShift: {
+        event: string;  // short name
+        team: string;  // title
+        shift: string;  // name
+    };
+
     DecideApplication: {
         event: string;  // short name
         team: string;  // title ("Volunteering Crew")
@@ -212,6 +218,12 @@ interface LogTypeParameterMap {
     DeleteDutyBookIncident: {
         event: string;  // short name
         incidentId: number;
+    };
+
+    DeleteShift: {
+        event: string;  // short name
+        team: string;  // title
+        shift: string;  // name
     };
 
     MoveApplication: {
@@ -345,8 +357,10 @@ export const kLogType: { [k in LogType]: k } = {
 
     ClaimApplication: 'ClaimApplication',
     CreateApplication: 'CreateApplication',
+    CreateShift: 'CreateShift',
     DecideApplication: 'DecideApplication',
     DeleteDutyBookIncident: 'DeleteDutyBookIncident',
+    DeleteShift: 'DeleteShift',
     MoveApplication: 'MoveApplication',
     ReconsiderApplication: 'ReconsiderApplication',
     ReleaseApplication: 'ReleaseApplication',

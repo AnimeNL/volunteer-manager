@@ -47,7 +47,6 @@ import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[.
 import type { EventFinanceEndpoints } from '@app/api/admin/event/finance/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
-import type { EventShiftEndpoints } from '@app/api/admin/event/shifts/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
@@ -81,7 +80,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
-        '/api/admin/event/shifts': EventShiftEndpoints['list'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
@@ -105,7 +103,6 @@ export type ApiEndpoints = {
         '/api/admin/content/categories': ContentCategoriesEndpoints['create'],
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
-        '/api/admin/event/shifts': EventShiftEndpoints['create'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
         '/api/admin/hotels': HotelsEndpoints['create'],
         '/api/admin/organisation/roles': RolesEndpoints['create'],
@@ -147,7 +144,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['delete'],
-        '/api/admin/event/shifts/:id': EventShiftEndpoints['delete'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/hotels/:id': HotelsEndpoints['delete'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['delete'],
@@ -164,7 +160,6 @@ export type ApiEndpoints = {
         '/api/admin/event/finance/:id': EventFinanceEndpoints['update'],
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],
-        '/api/admin/event/shifts/:id': EventShiftEndpoints['update'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],

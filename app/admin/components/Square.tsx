@@ -27,6 +27,7 @@ export function Square(props: SquareProps) {
     return (
         <Tooltip title={props.title}>
             <Box sx={{
+                aspectRatio: 1,
                 backgroundColor: props.colour,
                 border: '1px solid transparent',
                 borderColor: 'divider',

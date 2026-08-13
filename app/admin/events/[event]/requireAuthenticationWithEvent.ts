@@ -11,7 +11,7 @@ import { type CachedEvent, getEvent } from '@lib/cache';
 /**
  * Data returned by the `requireAuthenticationWithEvent` method.
  */
-interface RequireAuthenticationWithEventResult {
+export interface RequireAuthenticationWithEventResult {
     /**
      * Information about the event that's contextual to the current request.
      */
@@ -25,7 +25,8 @@ interface RequireAuthenticationWithEventResult {
 export async function requireAuthenticationWithEvent(
     eventIdentifier: number | string,
     authenticationContext: AuthenticationContext,
-    permission?: PermissionAccessCheck | PermissionSet)
+    permission?: PermissionAccessCheck | PermissionSet,
+    team?: string)
         : Promise<RequireAuthenticationWithEventResult>
 {
     const event = await getEvent(eventIdentifier);
@@ -37,7 +38,8 @@ export async function requireAuthenticationWithEvent(
         event: event.slug,
         permission,
     }, {
-        event: event.slug
+        event: event.slug,
+        team,
     });
 
     return { event };

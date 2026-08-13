@@ -6,7 +6,7 @@ import db, { tActivities, tSchedule, tShifts, tShiftsCategories, tTeams, tUsersE
     from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
-import { kShiftDemand } from '@app/api/admin/event/shifts/[[...id]]/demand';
+import { kShiftDemand } from '@app/admin/events/[event]/[team]/shifts/ShiftDemandSchema';
 
 /**
  * Information representing a shift.

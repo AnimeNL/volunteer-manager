@@ -244,7 +244,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: PendingActionsIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    badge: { severity: 'warning', value: true },  // migration in progress
                     label: 'Shifts',
                     permission: {
                         permission: 'event.shifts',
