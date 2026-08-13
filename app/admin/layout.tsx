@@ -107,7 +107,7 @@ export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
                             scrollbarGutter: 'stable',
                         }}>
 
-                            <AdminHeader access={access} user={user} settings={settings} />
+                            <AdminHeader access={access} user={user} />
 
                             {props.children}
 

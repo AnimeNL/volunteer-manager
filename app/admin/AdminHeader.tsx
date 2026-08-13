@@ -9,23 +9,14 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { AccountSettings } from './organisation/accounts/[id]/settings/AccountSettings';
 import type { User } from '@lib/auth/User';
 import { AdminHeaderEventsMenu } from './AdminHeaderEventsMenu';
 import { AdminHeaderSettingsButton } from './AdminHeaderSettingsButton';
-import { AdminHeaderPromoDialog } from './AdminHeaderPromoDialog';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
-import { updateAccountSettings } from './organisation/accounts/[id]/AccountActions';
-import { writeUserSetting } from '@lib/UserSettings';
 import db, { tEvents } from '@lib/database';
 
 import { kAnyTeam, type AccessControl } from '@lib/auth/AccessControl';
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
-
-/**
- * Number of seconds between reminders to fill in their example AI messages.
- */
-const kPromoReminderIntervalMs = 30.25 * 24 * 60 * 60 * 1000;  // ~one month
 
 /**
  * Props accepted by the <AdminHeader> component.
@@ -35,15 +26,6 @@ interface AdminHeaderProps {
      * Access management control, for deciding which header options are available.
      */
     access: AccessControl;
-
-    /**
-     * User settings that should be provided to the header.
-     */
-    settings: {
-        'ai-example-messages'?: string[];
-        'user-admin-experimental-layout'?: boolean;
-        'user-ai-example-messages-promo-time'?: number;
-    };
 
     /**
      * The user who is signed in to their account.
@@ -80,34 +62,6 @@ export async function AdminHeader(props: AdminHeaderProps) {
         access.can('event.visible', { event: event.slug, team: kAnyTeam }));
 
     // ---------------------------------------------------------------------------------------------
-    // Determine the user's settings and the action through which their settings can be updated. The
-    // settings page is shared with the account system, to ensure that both pages stay in sync.
-    // ---------------------------------------------------------------------------------------------
-
-    const accountSettings: AccountSettings = {
-        exampleMessages: props.settings['ai-example-messages'] ?? [ /* no example messages */ ],
-        experimentalLayout: !!props.settings['user-admin-experimental-layout'],
-    };
-
-    const saveSettingsFn = updateAccountSettings.bind(null, user.id);
-
-    // ---------------------------------------------------------------------------------------------
-    // Determine whether the promotion should be shown. These will be shown at a particular interval
-    // until the user has filled in their AI example messages.
-    // ---------------------------------------------------------------------------------------------
-
-    const currentTimeEpochMs = Temporal.Now.instant().epochMilliseconds;
-    const previousPromotionEpochMs = props.settings['user-ai-example-messages-promo-time'] ?? 0;
-
-    const showPromo: boolean =
-        (currentTimeEpochMs - previousPromotionEpochMs) > kPromoReminderIntervalMs &&
-        !accountSettings.exampleMessages.length &&
-        /* hard disabled= */ false;
-
-    if (showPromo)
-        await writeUserSetting(user.id, 'user-ai-example-messages-promo-time', currentTimeEpochMs);
-
-    // ---------------------------------------------------------------------------------------------
 
     const canAccessOrganisationSection = checkPermission(access, kDashboardPermissions);
 
@@ -136,8 +90,7 @@ export async function AdminHeader(props: AdminHeaderProps) {
                         { user.displayName ?? user.firstName }
                     </Typography>
 
-                    <AdminHeaderSettingsButton saveSettingsFn={saveSettingsFn}
-                                               settings={accountSettings}>
+                    <AdminHeaderSettingsButton>
                         <Avatar src={user.avatarUrl}>
                             { user.name[0] }
                         </Avatar>
@@ -164,8 +117,6 @@ export async function AdminHeader(props: AdminHeaderProps) {
                     </Button>}
 
             </Stack>
-
-            { !!showPromo && <AdminHeaderPromoDialog name={user.displayName ?? user.firstName} /> }
 
         </Paper>
     );
