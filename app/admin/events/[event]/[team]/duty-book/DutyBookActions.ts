@@ -1,12 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { getEvent } from '@lib/cache';
+import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
 import db, { tDutyBook } from '@lib/database';
 
 /**
@@ -22,12 +21,11 @@ export async function deleteIncident(
 {
     'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
-        const event = await getEvent(eventSlug);
-        if (!event)
-            notFound();
-
-        if (!props.access.can('event.duty-book', 'delete', { event: event.slug, team: teamSlug }))
-            forbidden();
+        const { event } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
+                permission: 'event.duty-book',
+                operation: 'delete',
+            });
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
@@ -70,12 +68,11 @@ export async function updateDetails(
 {
     'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
-        const event = await getEvent(eventSlug);
-        if (!event)
-            notFound();
-
-        if (!props.access.can('event.duty-book', 'update', { event: event.slug, team: teamSlug }))
-            forbidden();
+        const { event } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
+                permission: 'event.duty-book',
+                operation: 'update',
+            });
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
@@ -116,14 +113,14 @@ export async function updateVisibility(
 {
     'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
-        const event = await getEvent(eventSlug);
-        if (!event)
-            notFound();
+        const { event } = await requireAuthenticationWithEventAndTeam(
+            eventSlug, teamSlug, props.authenticationContext, {
+                permission: 'event.duty-book',
 
-        // Note: All (senior) volunteers with read access to Duty Book entries can hide them,
-        // although the ability to delete and/or edit them is separately restricted.
-        if (!props.access.can('event.duty-book', 'read', { event: event.slug, team: teamSlug }))
-            forbidden();
+                // Note: All (senior) volunteers with read access to Duty Book entries can hide them
+                // even though the ability to delete and/or edit them is separately restricted.
+                operation: 'read',
+            });
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
