@@ -187,7 +187,7 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
         {
             field: 'delivered',
             display: 'flex',
-            headerName: 'Delivered',
+            headerName: props.type === 'Email' ? 'Accepted' : 'Delivered',
             headerAlign: 'center',
             align: 'center',
             description: 'Whether the message was successfully delivered',
