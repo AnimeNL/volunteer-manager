@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 import EmailIcon from '@mui/icons-material/Email';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 
+import { ConnectionCheck } from './ConnectionCheck';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
@@ -13,8 +14,40 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
 import db, { tEmailAccounts } from '@lib/database';
+import { createEmailClient } from '@lib/integrations/email';
+
+/**
+ * Server Action through which an e-mail connection check for the given `accountId` can be run.
+ */
+async function executeConnectionCheck(input: unknown) {
+    'use server';
+    return executeServerAction(input, z.object({ accountId: z.number() }), async (data, props) => {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'system.integrations'
+        });
+
+        console.warn(`[Health check] Verifying configuration for e-mail account ${data.accountId}`);
+
+        try {
+            const client = await createEmailClient(data.accountId);
+            await client.verifyConfiguration();
+
+            return {
+                success: true,
+            };
+
+        } catch (error: any) {
+            return {
+                success: false,
+                error: `Exception: ${error.message}`,
+            };
+        }
+    });
+}
 
 /**
  * Data source through which the configured e-mail accounts can be retrieved and managed.
@@ -120,8 +153,7 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
     async list(params) {
         const defaultAccountId = await readSetting('integration-email-default-account-id') ?? 1;
 
-        const dbInstance = db;
-        const accounts = await dbInstance.selectFrom(tEmailAccounts)
+        const accounts = await db.selectFrom(tEmailAccounts)
             .where(tEmailAccounts.emailAccountDeleted.isNull())
             .select({
                 id: tEmailAccounts.emailAccountId,
@@ -179,6 +211,15 @@ export default async function EmailIntegrationPage() {
         check: 'admin',
         permission: 'system.integrations',
     });
+
+    const accounts = await db.selectFrom(tEmailAccounts)
+        .where(tEmailAccounts.emailAccountDeleted.isNull())
+        .select({
+            id: tEmailAccounts.emailAccountId,
+            address: tEmailAccounts.emailAccountAddress,
+        })
+        .orderBy('address', 'asc')
+        .executeSelectMany();
 
     const columns: Column<ExtractRowModel<typeof emailAccountsDataSource>>[] = [
         {
@@ -263,7 +304,7 @@ export default async function EmailIntegrationPage() {
                     columns={columns} defaultSort={{ field: 'address', sort: 'asc' }}
                     source={emailAccountsDataSource}
                     subject="e-mail account" protectedColumn="protected"
-                    pageSize={25} disableFooter
+                    pageSize={25} disableFooter refreshOnMutation
                     listViewProps={{
                         primaryField: 'address',
                         secondaryTemplate: '{smtpHostname}:{smtpPort}',
@@ -273,7 +314,8 @@ export default async function EmailIntegrationPage() {
                 <SectionIntroduction>
                     A connection check will help validate that all account details are still valid.
                 </SectionIntroduction>
-                { /* TODO */ }
+                <ConnectionCheck accounts={accounts}
+                                 action={executeConnectionCheck} />
             </Section>
         </>
     );
