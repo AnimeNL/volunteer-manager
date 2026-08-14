@@ -28,6 +28,10 @@ interface LogTypeParameterMap {
     // Administration > Dashboard > System
     // ---------------------------------------------------------------------------------------------
 
+    CreateEmailAddress: {
+        address: string;
+    };
+
     CreateLogMessageFormat: {
         type: string;
     };
@@ -36,10 +40,18 @@ interface LogTypeParameterMap {
         taskName: string;
     };
 
+    DeleteEmailAddress: {
+        address: string;
+    };
+
     RepeatSchedulerTask: {
         taskId: number;
         taskName: string;
         repeatedTaskId: number;
+    };
+
+    UpdateEmailAddress: {
+        address: string;
     };
 
     UpdateIntegrationSettings: {
@@ -328,9 +340,12 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Dashboard > System
     // ---------------------------------------------------------------------------------------------
 
+    CreateEmailAddress: 'CreateEmailAddress',
     CreateLogMessageFormat: 'CreateLogMessageFormat',
     CreateSchedulerTask: 'CreateSchedulerTask',
+    DeleteEmailAddress: 'DeleteEmailAddress',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
+    UpdateEmailAddress: 'UpdateEmailAddress',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
 
