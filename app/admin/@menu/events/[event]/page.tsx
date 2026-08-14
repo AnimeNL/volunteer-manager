@@ -16,7 +16,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import PersonIcon from '@mui/icons-material/Person';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -255,7 +255,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                     condition: team.flagEnableScheduling,
                 },
                 {
-                    Icon: PersonIcon,
+                    Icon: PeopleAltOutlinedIcon,
                     badge: { severity: 'warning', value: true },  // migration in progress
                     label: 'Volunteers',
                     permission: {

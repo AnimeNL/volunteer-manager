@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
-import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import Divider from '@mui/material/Divider';
@@ -12,7 +11,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
-import PersonIcon from '@mui/icons-material/Person';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
 import ShareIcon from '@mui/icons-material/Share';
 import Tooltip from '@mui/material/Tooltip';
@@ -32,7 +31,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { getContextForVolunteerAction } from './VolunteerActions';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
@@ -94,11 +93,10 @@ async function sendCommunicationToVolunteer(
 export default async function EventVolunteersPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
 {
-    const { access, event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!access.can('event.volunteers.information', 'read', { event: event.slug, team: team.slug }))
-        forbidden();
-
-
+    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+        permission: 'event.volunteers.information',
+        operation: 'read',
+    });
 
     const columns: Column<VolunteerRowModel>[] = [
         {
@@ -222,16 +220,15 @@ export default async function EventVolunteersPage(
 
     return (
         <>
-            <Section icon={ <PersonIcon color="primary" /> } title="Volunteers"
+            <Section icon={ <PeopleAltOutlinedIcon color="primary" /> } title="Volunteers"
                      subtitle={`${totalVolunteerCount}`} headerAction={headerAction}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
-                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
                          { label: 'Volunteers' },
                      ]}>
                 <SectionIntroduction>
-                    List of individuals who together serve as {event.shortName}'s{' '}
-                    <strong>{team.name}</strong>.
+                    List of individuals who together serve as {event.shortName}'s {team.name}.
                 </SectionIntroduction>
             </Section>
             <Section noHeader>

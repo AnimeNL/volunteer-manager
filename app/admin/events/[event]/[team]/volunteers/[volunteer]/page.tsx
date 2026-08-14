@@ -8,6 +8,7 @@ import { DateTimePickerElement, SelectElement, TextFieldElement, TextareaAutosiz
 
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import Grid from '@mui/material/Grid';
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import type { ServerAction } from '@lib/serverAction';
@@ -18,7 +19,9 @@ import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { RefundRequestForm } from '@app/registration/[slug]/application/[team]/refund/RefundRequestForm';
+import { Section } from '@app/admin/components/Section';
 import { SectionClearAction } from '@app/admin/components/SectionClearAction';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingPreferencesForm } from '@app/registration/[slug]/application/[team]/training/TrainingPreferencesForm';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
@@ -374,6 +377,23 @@ export default async function EventVolunteerPage(
 
     return (
         <>
+            <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         {
+                             label: 'Volunteers',
+                             href: `/admin/events/${event.slug}/${team.slug}/volunteers`,
+                         },
+                         { label: volunteer.name },
+                     ]}>
+                <SectionIntroduction>
+                    Overview of {volunteer.name}'s participation in {event.shortName}.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                TODO
+            </Section>
 
             <VolunteerHeader
                 canUpdateApplications={canUpdateApplications}
