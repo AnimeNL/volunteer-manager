@@ -11,7 +11,6 @@ import Collapse from '@mui/material/Collapse';
 import DoNotDisturbOnTotalSilenceIcon from '@mui/icons-material/DoNotDisturbOnTotalSilence';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { darken, lighten } from '@mui/system/colorManipulator';
 import { styled } from '@mui/material/styles';
 
 import type { Language } from '@lib/ai/Language';
@@ -136,23 +135,29 @@ export function CommunicationLanguageView(props: CommunicationLanguageViewProps)
  * The <LanguageButton> component is a complex variation on a button through which the user can
  * select the language they would like to communicate in.
  */
-const LanguageButton = styled(Stack)(({ theme }) => ({
-    alignItems: 'center',
-    backgroundColor:
-        theme.palette.mode === 'light' ? lighten(theme.palette.action.active, 0.9)
-                                       : darken(theme.palette.action.active, 0.9),
-    borderRadius: theme.shape.borderRadius,
-    cursor: 'pointer',
-    flexBasis: '100%',
-    gap: theme.spacing(0.5),
-    justifyContent: 'center',
-    padding: theme.spacing(2),
-    transition: theme.transitions.create([ 'background-color' ]),
-    userSelect: 'none',
-    '&:hover': {
-        backgroundColor: theme.palette.action.focus,
-    }
-}));
+const LanguageButton = styled(Stack)(({ theme }) => ([
+    {
+        alignItems: 'center',
+        borderRadius: theme.shape.borderRadius,
+        cursor: 'pointer',
+        flexBasis: '100%',
+        gap: theme.spacing(0.5),
+        justifyContent: 'center',
+        padding: theme.spacing(2),
+        transition: theme.transitions.create([ 'background-color' ]),
+        userSelect: 'none',
+        '&:hover': {
+            backgroundColor: theme.palette.action.focus,
+        }
+    },
+    theme.applyStyles('dark', {
+        backgroundColor: theme.vars?.palette.background.paper,
+    }),
+    theme.applyStyles('light', {
+        backgroundColor: theme.vars?.palette.primaryPalette[200],
+
+    }),
+]));
 
 /**
  * The <PreferredLanguage> component displays a small banner at the bottom of a language option that

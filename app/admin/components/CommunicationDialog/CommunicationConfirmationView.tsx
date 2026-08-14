@@ -16,11 +16,11 @@ interface CommunicationConfirmationViewProps {
 }
 
 /**
- * The <CommunicationConfirmationView> component
+ * The <CommunicationConfirmationView> component displays a confirmation message.
  */
 export function CommunicationConfirmationView(props: CommunicationConfirmationViewProps) {
     return (
-        <Alert severity="success">
+        <Alert severity="success" variant="outlined">
             {props.message}
         </Alert>
     );

@@ -18,6 +18,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import SendIcon from '@mui/icons-material/Send';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import type { Language } from '@lib/ai/Language';
@@ -331,7 +332,9 @@ export function CommunicationDialog<T extends CommunicationPromptId = Communicat
             { !!props.children &&
                 <>
                     <DialogContent sx={{ marginY: -1 }}>
-                        {props.children}
+                        <Typography variant="body2">
+                            {props.children}
+                        </Typography>
                     </DialogContent>
                     <Divider />
                 </> }
@@ -370,31 +373,31 @@ export function CommunicationDialog<T extends CommunicationPromptId = Communicat
                 <Stack direction="row" sx={{ flexGrow: 1 }}>
                     <Collapse in={ dialogState === 'language' && prompts.length > 1 }
                               orientation="horizontal">
-                        <Button onClick={handleBackToPromptSelection} variant="text"
+                        <Button onClick={handleBackToPromptSelection} variant="text" size="small"
                                 startIcon={<ArrowBackIcon />}>
                             Back
                         </Button>
                     </Collapse>
                     <Collapse in={ dialogState === 'message' || dialogState === 'confirmSilent' }
                               orientation="horizontal">
-                        <Button onClick={handleBackToLanguageSelection} variant="text"
+                        <Button onClick={handleBackToLanguageSelection} variant="text" size="small"
                                 startIcon={<ArrowBackIcon />}>
                             Back
                         </Button>
                     </Collapse>
                 </Stack>
-                <Button onClick={props.onClose} variant="text">
+                <Button onClick={props.onClose} variant="text" size="small">
                     { dialogState === 'confirmation' ? 'Close' : 'Cancel' }
                 </Button>
                 <Collapse in={ dialogState === 'message' } orientation="horizontal">
                     <Button variant="contained" color="primary" onClick={handleCommitAction}
-                            endIcon={ <SendIcon /> } loading={commitLoading}>
+                            endIcon={ <SendIcon /> } loading={commitLoading} size="small">
                         Send
                     </Button>
                 </Collapse>
                 <Collapse in={ dialogState === 'confirmSilent' } orientation="horizontal">
                     <Button variant="contained" color="primary" onClick={handleCommitAction}
-                            endIcon={ <CheckIcon /> } loading={commitLoading}>
+                            endIcon={ <CheckIcon /> } loading={commitLoading} size="small">
                         Continue
                     </Button>
                 </Collapse>
