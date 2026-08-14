@@ -15,7 +15,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function EmailIntegrationPage() {
     await requireAuthenticationContext({
         check: 'admin',
-        permission: 'system.internals.settings',
+        permission: 'system.integrations',
     });
 
     return (

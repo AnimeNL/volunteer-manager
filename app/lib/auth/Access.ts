@@ -392,6 +392,15 @@ export const kPermissions = {
         type: 'boolean',
     },
 
+    'system.integrations': {
+        name: 'System integrations',
+        description:
+            'Provides visibility and management capabilities for external service integrations ' +
+            'supported by the Volunteer Manager, including credentials and authentication data.',
+        type: 'boolean',
+        warning: true,
+    },
+
     'system.internals': {
         name: 'Internal system capabilities',
         description:

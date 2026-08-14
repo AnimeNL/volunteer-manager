@@ -10,12 +10,18 @@ import { AnimeConStreamingApiPlaceholder } from './AnimeConStreamingApiPlacehold
 import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
  * The AnimeCon integration page is able to issue various API calls for illustrative debugging
  * purposes. The API call responses are displayed in text areas for manual consumption.
  */
 export default async function AnimeConIntegrationPage() {
+    await requireAuthenticationContext({
+        check: 'admin',
+        permission: 'system.integrations',
+    });
+
     return (
         <>
             <Section icon={ <AttractionsIcon color="primary" /> } title="AnimeCon API"

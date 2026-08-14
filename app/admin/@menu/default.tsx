@@ -168,7 +168,7 @@ export default async function DefaultMenu() {
                         Icon: ApiIcon,
                         badge: { severity: 'warning', value: !!badges.integrations },
                         label: 'Integrations',
-                        permission: 'root',
+                        permission: 'system.integrations',
                         url: '/admin/system/integrations',
                     },
                     {

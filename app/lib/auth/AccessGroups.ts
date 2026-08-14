@@ -73,6 +73,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: statistics.finances omitted
 
         'system.content',
+        // note: system.integrations omitted
         // note: system.internals omitted
         // note: system.internals.ai omitted
         'system.internals.outbox',
@@ -143,6 +144,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: statistics.finances omitted
 
         'system.content',
+        // note: system.integrations omitted
         // note: system.internals omitted
         // note; system.internals.ai omitted
         // note: system.internals.outbox omitted
@@ -212,6 +214,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         'statistics.basic',
         // note: statistics.finances omitted
 
+        // note: system.integrations omitted
         // note: system.content omitted
         // note: system.internals omitted
         // note; system.internals.ai omitted

@@ -59,7 +59,7 @@ const kGoogleLocationOptions = [
 export default async function IntegrationsPage() {
     const { user } = await requireAuthenticationContext({
         check: 'admin',
-        permission: 'system.internals.settings',
+        permission: 'system.integrations',
     });
 
     const emailAccounts = await db.selectFrom(tEmailAccounts)

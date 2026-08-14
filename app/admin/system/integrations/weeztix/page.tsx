@@ -25,7 +25,7 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 export default async function WeeztixIntegrationPage() {
     await requireAuthenticationContext({
         check: 'admin',
-        permission: 'system.internals.settings',
+        permission: 'system.integrations',
     });
 
     const client = await createWeeztixClient();
