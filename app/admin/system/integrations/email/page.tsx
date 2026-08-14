@@ -4,14 +4,22 @@
 import { z } from 'zod/v4';
 
 import EmailIcon from '@mui/icons-material/Email';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import SendIcon from '@mui/icons-material/Send';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 
 import { ConnectionCheck } from './ConnectionCheck';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
+import { EmailMessage } from '@lib/integrations/email/EmailMessage';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TestMessageButton } from './TestMessageButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
@@ -46,6 +54,40 @@ async function executeConnectionCheck(input: unknown) {
                 error: `Exception: ${error.message}`,
             };
         }
+    });
+}
+
+/**
+ * Server Action through which a test message can be send to an e-mail account.
+ */
+async function sendTestMessage(accountId: number, input: unknown) {
+    'use server';
+    return executeServerAction(input, z.object({ /* no parameters */ }), async (data, props) => {
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin',
+            permission: 'system.integrations'
+        });
+
+        if (!props.user.username)
+            return { success: false, error: 'Your e-mail address it not known.' };
+
+        // Wait for a second to at least give this a dramatic effect.
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const message = new EmailMessage()
+            .setTo(props.user.username)
+            .setSubject('Test message from the AnimeCon Volunteer Manager')
+            .setText(`This is a test message initiated by ${props.user.name}.`);
+
+        const client = await createEmailClient(accountId);
+        await client.sendMessage({
+            sender: 'AnimeCon Volunteer Manager',
+            sourceUser: props.user.id,
+            targetUser: props.user.id,
+            message,
+        });
+
+        return { success: true };
     });
 }
 
@@ -316,6 +358,22 @@ export default async function EmailIntegrationPage() {
                 </SectionIntroduction>
                 <ConnectionCheck accounts={accounts}
                                  action={executeConnectionCheck} />
+            </Section>
+            <Section icon={ <SendIcon /> } title="Test messages">
+                <SectionIntroduction>
+                    Sending yourself a test message is another way to validate functionality.
+                </SectionIntroduction>
+                <List dense disablePadding>
+                    { accounts.map((account, index) =>
+                        <ListItem key={account.id} disableGutters
+                                  divider={ index < (accounts.length - 1) }>
+                            <ListItemIcon>
+                                <EmailOutlinedIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={account.address} />
+                            <TestMessageButton action={ sendTestMessage.bind(null, account.id) } />
+                        </ListItem> )}
+                </List>
             </Section>
         </>
     );
