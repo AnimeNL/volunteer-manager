@@ -21,6 +21,10 @@ type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
+    'gemini-3.7-flash': {  // EOL: Not announced
+        name: 'Gemini 3.7 Flash',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-7-flash',
+    },
     'gemini-3.6-flash': {  // EOL: May 19, 2027 or later
         name: 'Gemini 3.6 Flash',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-6-flash',
