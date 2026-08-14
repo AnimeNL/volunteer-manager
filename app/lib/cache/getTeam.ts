@@ -43,6 +43,9 @@ export async function getTeam(team: number | string): Promise<CachedTeam | undef
                     managesKnowledgeBase: tTeams.teamFlagManagesFaq.equals(/* true= */ 1),
                     managesSecurity: tTeams.teamFlagManagesSecurity.equals(/* true= */ 1),
                 },
+                integrations: {
+                    emailAccountId: tTeams.teamEmailAccountId,
+                },
             })
             .executeSelectNoneOrOne();
 

@@ -10,6 +10,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { invalidateTeamCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
 
@@ -127,6 +128,9 @@ export async function createTeam(formData: unknown) {
         if (!!existingTeam)
             return { success: false, error: 'A team with that slug already exists…' };
 
+        const defaultEmailAccountId =
+            await readSetting('integration-email-default-account-id') ?? 1;
+
         const teamId = await db.insertInto(tTeams)
             .set({
                 teamSlug: data.slug,
@@ -137,6 +141,7 @@ export async function createTeam(formData: unknown) {
                 teamEnvironment: existingEnvironment,
                 teamEnvironmentId: data.environment,
                 teamInviteKey: generateTeamKey(),
+                teamEmailAccountId: defaultEmailAccountId,
                 teamColourDarkTheme: '#ff0000',
                 teamColourLightTheme: '#ff0000',
             })

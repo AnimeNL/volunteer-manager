@@ -33,6 +33,7 @@ export class TestDriver extends Driver<TestMessage> {
             return false;  // not enough information to publish this message
 
         await SendEmailTask.Schedule({
+            // note: uses the default e-mail account
             sender: 'AnimeCon Volunteering Teams',
             message: {
                 to: recipient.emailAddress,

@@ -41,12 +41,14 @@ export interface EmailClientSettings {
  * configuration interface in the administrative area.
  */
 export class EmailClient {
+    #accountId: number;
     #configuration: SMTPTransport.Options;
     #connectionLogger: EmailConnectionLogger;
     #settings: EmailClientSettings;
     #transport?: Transporter<SMTPTransport.SentMessageInfo>;
 
-    constructor(settings: EmailClientSettings) {
+    constructor(accountId: number, settings: EmailClientSettings) {
+        this.#accountId = accountId;
         this.#connectionLogger = new EmailConnectionLogger();
         this.#configuration = {
             host: settings.hostname,
@@ -84,7 +86,7 @@ export class EmailClient {
             this.#transport = this.createTransport(this.#configuration);
 
         const logger = this.createLogger(request);
-        await logger.initialise(request);
+        await logger.initialise(this.#accountId, request);
 
         this.#connectionLogger.setMessageLogger(logger);
 

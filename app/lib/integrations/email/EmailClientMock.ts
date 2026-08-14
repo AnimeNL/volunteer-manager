@@ -18,7 +18,7 @@ export class EmailClientMock extends EmailClient {
     #loggedLogMessages: any[] = [];
 
     constructor() {
-        super({
+        super(/* accountId= */ 123, {
             hostname: '127.0.0.1',
             port: 587,
             username: 'user@example.com',
@@ -46,7 +46,7 @@ export class EmailClientMock extends EmailClient {
         const parent = this;
 
         return new class implements EmailLogger {
-            async initialise(request: SendMessageRequest): Promise<void> {
+            async initialise(accountId: number, request: SendMessageRequest): Promise<void> {
                 parent.#loggedInitialisations.push(request);
             }
             async finalise(info?: SMTPTransport.SentMessageInfo): Promise<void> {

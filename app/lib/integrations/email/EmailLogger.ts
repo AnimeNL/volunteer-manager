@@ -21,7 +21,7 @@ export interface EmailLogger {
     /**
      * Initialises the e-mail logger. Loggers may only be initialized once.
      */
-    initialise(request: SendMessageRequest): Promise<void>;
+    initialise(accountId: number, request: SendMessageRequest): Promise<void>;
 
     /**
      * Finalises the logger with the `info`, obtained from the sending operation.
@@ -60,7 +60,7 @@ export class EmailLoggerImpl implements EmailLogger {
      * Initialises the logger. This is called before the message will be send over SMTP, and will
      * store the message in the database, sort of as an "outbox".
      */
-    async initialise(request: SendMessageRequest): Promise<void> {
+    async initialise(accountId: number, request: SendMessageRequest): Promise<void> {
         if (!!this.#insertId)
             throw new Error('E-mail loggers may only be initialised once.');
 
@@ -69,6 +69,7 @@ export class EmailLoggerImpl implements EmailLogger {
         this.#startTime = process.hrtime.bigint();
         this.#insertId = await db.insertInto(tOutboxEmail)
             .set({
+                outboxAccountId: accountId,
                 outboxSender: request.sender,
                 outboxSenderUserId: this.normalizeUser(request.sourceUser),
                 outboxCommunicationId: request.communicationId,

@@ -63,6 +63,7 @@ export class ApplicationDriver extends Driver<ApplicationMessage> {
             return false;  // not enough information to publish this message
 
         await SendEmailTask.Schedule({
+            // note: uses the default e-mail account
             sender: `AnimeCon ${message.teamTitle}`,
             message: {
                 to: recipient.emailAddress,

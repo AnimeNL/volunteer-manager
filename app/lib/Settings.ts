@@ -122,10 +122,7 @@ export type Settings = {
     'integration-animecon-scopes': string;
 
     // E-mail:
-    'integration-email-smtp-hostname': string;
-    'integration-email-smtp-port': number;
-    'integration-email-smtp-username': string;
-    'integration-email-smtp-password': string;
+    'integration-email-default-account-id': number;
 
     // Google:
     'integration-google-apikey': string;

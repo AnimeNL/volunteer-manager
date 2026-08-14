@@ -97,6 +97,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
                 name: tTeams.teamName,
                 slug: tTeams.teamSlug,
                 title: tTeams.teamTitle,
+                emailAccountId: tTeams.teamEmailAccountId,
 
                 acceptApplicationsWindow: {
                     start: environmentsEventsJoin.environmentAcceptApplicationsStart,
@@ -203,6 +204,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
 
         if (applicationConfirmation) {
             await SendEmailTask.Schedule({
+                accountId: teamInfo.emailAccountId,
                 sender: `AnimeCon ${teamInfo.title}`,
                 message: {
                     to: props.user.username!,

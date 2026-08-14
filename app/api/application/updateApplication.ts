@@ -90,6 +90,7 @@ export async function updateApplication(request: Request, props: ActionProps): P
             event: tEvents.eventShortName,
             eventId: tEvents.eventId,
             teamId: tTeams.teamId,
+            teamEmailAccount: tTeams.teamEmailAccountId,
             username: tUsers.username,
         })
         .executeSelectNoneOrOne();
@@ -97,7 +98,7 @@ export async function updateApplication(request: Request, props: ActionProps): P
     if (!requestContext || !requestContext.username)
         notFound();
 
-    const { eventId, teamId, username } = requestContext;
+    const { eventId, teamId, teamEmailAccount, username } = requestContext;
 
     let affectedRows: number = 0;
 
@@ -152,6 +153,7 @@ export async function updateApplication(request: Request, props: ActionProps): P
 
             } else {
                 await SendEmailTask.Schedule({
+                    accountId: teamEmailAccount,
                     sender: `${props.user.firstName} ${props.user.lastName} (AnimeCon)`,
                     message: {
                         to: username,

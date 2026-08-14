@@ -5,6 +5,7 @@ import type { User } from '@lib/auth/User';
 import { PromptFactory, type CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
+import { getTeam } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
 import db, { tUsers, tUsersCommunication } from '@lib/database';
 
@@ -88,7 +89,11 @@ export async function sendCommunication(params: SendCommunicationParams): Promis
         .executeSelectOne();
 
     if (!recipient?.email)
-        return;  // silently fail, this would be... strange
+        throw new Error(`The recipient (${recipientUserId}) does not have a known e-mail address.`);
+
+    const team = await getTeam(params.metadata.teamId);
+    if (!team)
+        throw new Error(`The team (${params.metadata.teamId}) does not exist.`);
 
     const senderNameSuffix = await readSetting('communication-name-suffix');
 
@@ -105,6 +110,7 @@ export async function sendCommunication(params: SendCommunicationParams): Promis
         .executeInsert();
 
     const taskId = await SendEmailTask.Schedule({
+        accountId: team.integrations.emailAccountId,
         sender: `${sender.name}${senderNameSuffix || ''}`,
 
         message: {

@@ -129,6 +129,7 @@ export async function register(request: Request, props: ActionProps): Promise<Re
 
     if (messageContent) {
         await SendEmailTask.Schedule({
+            // note: uses the default e-mail account
             sender,
             message: {
                 to: request.username,

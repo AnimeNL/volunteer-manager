@@ -10,6 +10,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
+import { getTeam } from '@lib/cache';
 import db, { tEventsTeams, tEvents, tTeamsRoles, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -198,15 +199,17 @@ export async function volunteerTeams(request: Request, props: ActionProps): Prom
             forbidden();
 
     } else {
+        const team = await getTeam(verifiedUpdatedTeam.teamId);
         const username = await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(request.userId))
             .selectOneColumn(tUsers.username)
             .executeSelectOne();
 
-        if (!username)
+        if (!team || !username)
             return { success: false, error: 'Unable to inform the user' };
 
         await SendEmailTask.Schedule({
+            accountId: team.integrations.emailAccountId,
             sender: `${props.user.firstName} ${props.user.lastName} (AnimeCon)`,
             message: {
                 to: username,

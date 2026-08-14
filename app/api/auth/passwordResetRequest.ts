@@ -68,6 +68,7 @@ export async function passwordResetRequest(request: Request, props: ActionProps)
 
         if (messageContent) {
             await SendEmailTask.Schedule({
+                // note: uses the default e-mail account
                 sender,
                 message: {
                     to: request.username,

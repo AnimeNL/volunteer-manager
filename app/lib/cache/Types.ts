@@ -150,6 +150,16 @@ export interface CachedTeam {
     inviteKey: string;
 
     /**
+     * External services that this team integrates with.
+     */
+    integrations: {
+        /**
+         * Account ID of the e-mail address this team uses for outbound communication.
+         */
+        emailAccountId: number;
+    };
+
+    /**
      * Flags that have been set for this team.
      */
     flags: {

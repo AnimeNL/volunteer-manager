@@ -27,10 +27,7 @@ const kIntegrationSettingsData = z.object({
         scopes: z.string().nonempty(),
     }).optional(),
     Email: z.object({
-        hostname: z.string().nonempty(),
-        port: z.coerce.number(),
-        username: z.string().nonempty(),
-        password: z.string().nonempty(),
+        defaultAccountId: z.coerce.number(),
     }).optional(),
     Google: z.object({
         apiKey: z.string().nonempty(),
@@ -88,10 +85,7 @@ export async function updateIntegration(integration: Integration, formData: unkn
 
             case 'Email':
                 await writeSettings({
-                    'integration-email-smtp-hostname': data.Email!.hostname,
-                    'integration-email-smtp-port': data.Email!.port,
-                    'integration-email-smtp-username': data.Email!.username,
-                    'integration-email-smtp-password': data.Email!.password,
+                    'integration-email-default-account-id': data.Email!.defaultAccountId,
                 });
 
                 break;

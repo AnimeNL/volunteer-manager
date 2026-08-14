@@ -6,13 +6,20 @@ import { z } from 'zod/v4';
 import { TaskWithParams } from '../Task';
 import { createEmailClient } from '@lib/integrations/email';
 import { scheduleTask } from '@lib/scheduler';
+import { readSetting } from '@lib/Settings';
 
 /**
  * Parameter scheme applying to the `SendEmailTask`.
  */
 const kSendEmailTaskParamScheme = z.object({
     /**
-     * Sender of the message.
+     * Unique e-mail account ID that should be used for sending this message.
+     * @default The Volunteer Manager's default e-mail address
+     */
+    accountId: z.number().optional(),
+
+    /**
+     * Name of the message's sender.
      */
     sender: z.string(),
 
@@ -83,7 +90,10 @@ export class SendEmailTask extends TaskWithParams<TaskParams> {
     }
 
     override async execute(params: TaskParams): Promise<boolean> {
-        const client = await createEmailClient();
+        if (!params.accountId)
+            params.accountId = await readSetting('integration-email-default-account-id') ?? 1;
+
+        const client = await createEmailClient(params.accountId);
         const message = client.createMessage()
             .setTo(params.message.to)
             .setSubject(params.message.subject)

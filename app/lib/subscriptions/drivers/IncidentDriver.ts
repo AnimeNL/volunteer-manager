@@ -38,6 +38,7 @@ export class IncidentDriver extends Driver<IncidentMessage> {
             return false;  // not enough information to publish this message
 
         await SendEmailTask.Schedule({
+            // note: uses the default e-mail account
             sender: 'AnimeCon Volunteering Leads',
             message: {
                 to: recipient.emailAddress,

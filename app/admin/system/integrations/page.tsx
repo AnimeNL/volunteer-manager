@@ -9,6 +9,7 @@ import Link from '@app/LinkProxy';
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import { default as MuiLink } from '@mui/material/Link';
+import AllInboxIcon from '@mui/icons-material/AllInbox';
 import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import Chip from '@mui/material/Chip';
@@ -31,6 +32,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tEmailAccounts } from '@lib/database';
 
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
@@ -60,6 +62,15 @@ export default async function IntegrationsPage() {
         permission: 'system.internals.settings',
     });
 
+    const emailAccounts = await db.selectFrom(tEmailAccounts)
+        .where(tEmailAccounts.emailAccountDeleted.isNull())
+        .select({
+            id: tEmailAccounts.emailAccountId,
+            label: tEmailAccounts.emailAccountAddress,
+        })
+        .orderBy('label', 'asc')
+        .executeSelectMany();
+
     const settings = await readSettings([
         // AnimeCon:
         'integration-animecon-api-endpoint',
@@ -71,10 +82,7 @@ export default async function IntegrationsPage() {
         'integration-animecon-scopes',
 
         // E-mail:
-        'integration-email-smtp-hostname',
-        'integration-email-smtp-port',
-        'integration-email-smtp-username',
-        'integration-email-smtp-password',
+        'integration-email-default-account-id',
 
         // Google:
         'integration-google-apikey',
@@ -115,10 +123,7 @@ export default async function IntegrationsPage() {
             scopes: settings['integration-animecon-scopes'],
         },
         Email: {
-            hostname: settings['integration-email-smtp-hostname'] ?? '',
-            port: settings['integration-email-smtp-port'] ?? 587,
-            username: settings['integration-email-smtp-username'] ?? '',
-            password: settings['integration-email-smtp-password'] ?? '',
+            defaultAccountId: settings['integration-email-default-account-id'] ?? 1,
         },
         Google: {
             apiKey: settings['integration-google-apikey'] ?? '',
@@ -255,27 +260,25 @@ export default async function IntegrationsPage() {
 
             <FormGridSection action={ updateIntegration.bind(null, 'Email') }
                              defaultValues={{ Email: defaultValues['Email'] }}
-                             title="E-mail" icon={ <EmailIcon /> }>
+                             title="E-mail" icon={ <EmailIcon /> }
+                             headerAction={
+                                 <IconButton LinkComponent={Link} size="small"
+                                             href="/admin/system/integrations/email">
+                                     <Tooltip title="E-mail accounts...">
+                                         <TooltipIconWrapper>
+                                             <AllInboxIcon color="primary" fontSize="small" />
+                                         </TooltipIconWrapper>
+                                     </Tooltip>
+                                 </IconButton>
+                             }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
                         The SMTP server and authentication details used to send e-mails from the manager.
                     </Typography>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Email[hostname]" label="Hostname" fullWidth required
-                                      size="small" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Email[port]" label="Port" fullWidth required
-                                      size="small" type="number" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Email[username]" label="Username" fullWidth required
-                                      size="small" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Email[password]" label="Password" type="password"
-                                      size="small" required fullWidth />
+                <Grid size={{ xs: 12 }}>
+                    <SelectElement name="Email[defaultAccountId]" label="Default account"
+                                   size="small" required fullWidth options={emailAccounts} />
                 </Grid>
             </FormGridSection>
 

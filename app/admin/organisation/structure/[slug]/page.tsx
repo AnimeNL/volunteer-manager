@@ -22,7 +22,7 @@ import { Flag, type FlagProps } from './Flag';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
+import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 import * as actions from '../TeamsActions';
 
@@ -42,8 +42,10 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
     const teamsRolesDefaultJoin = tTeamsRoles.forUseInLeftJoinAs('trdj');
     const teamsRolesJoin = tTeamsRoles.forUseInLeftJoinAs('trj');
 
+    const dbInstance = db;
+
     const params = await props.params;
-    const team = await db.selectFrom(tTeams)
+    const team = await dbInstance.selectFrom(tTeams)
         .leftJoin(teamsRolesJoin)
             .on(teamsRolesJoin.teamId.equals(tTeams.teamId))
         .leftJoin(teamsRolesDefaultJoin)
@@ -61,9 +63,10 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
             plural: tTeams.teamPlural,
             slug: tTeams.teamSlug,
             title: tTeams.teamTitle,
+            emailAccountId: tTeams.teamEmailAccountId,
 
             defaultRoleId: teamsRolesDefaultJoin.roleId,
-            availableRoleIds: db.aggregateAsArrayOfOneColumn(teamsRolesJoin.roleId),
+            availableRoleIds: dbInstance.aggregateAsArrayOfOneColumn(teamsRolesJoin.roleId),
 
             flagEnableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
             flagEnableScheduling: tTeams.teamFlagEnableScheduling.equals(/* true= */ 1),
@@ -84,7 +87,16 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
     // ---------------------------------------------------------------------------------------------
 
-    const roles = await db.selectFrom(tRoles)
+    const emailAccounts = await dbInstance.selectFrom(tEmailAccounts)
+        .where(tEmailAccounts.emailAccountDeleted.isNull())
+        .select({
+            id: tEmailAccounts.emailAccountId,
+            label: tEmailAccounts.emailAccountAddress,
+        })
+        .orderBy('label', 'asc')
+        .executeSelectMany();
+
+    const roles = await dbInstance.selectFrom(tRoles)
         .select({
             id: tRoles.roleId,
             label: tRoles.roleName,
@@ -93,7 +105,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
         .orderBy('label', 'asc')
         .executeSelectMany();
 
-    const environments = await db.selectFrom(tEnvironments)
+    const environments = await dbInstance.selectFrom(tEnvironments)
         .where(tEnvironments.environmentDeleted.isNull())
             .and(tEnvironments.environmentDeleted.isNull())
         .select({
@@ -246,6 +258,12 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                 <TextareaAutosizeElement name="description" label="Description" fullWidth
                                          size="small" required
                                          slotProps={{ input: { readOnly: !!readOnly } }} />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+                <SelectElement name="emailAccountId" label="E-mail account" fullWidth size="small"
+                               required options={emailAccounts}
+                               slotProps={{ select: { readOnly: !!readOnly } }} />
             </Grid>
 
             <Grid size={{ xs: 12 }}>

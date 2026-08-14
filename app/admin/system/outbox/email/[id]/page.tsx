@@ -2,8 +2,10 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Metadata } from 'next';
+import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
+import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
@@ -15,14 +17,14 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tOutboxEmail, tUsers } from '@lib/database';
+import db, { tEmailAccounts, tOutboxEmail, tUsers } from '@lib/database';
 
 /**
  * The message outbox page displays an individual message that was sent through the Volunteer
  * Manager. It includes all metainformation, including logs regarding the result.
  */
 export default async function OutboxEmailPage(props: PageProps<'/admin/system/outbox/email/[id]'>) {
-    await requireAuthenticationContext({
+    const { access } = await requireAuthenticationContext({
         check: 'admin',
         permission: 'system.internals.outbox',
     });
@@ -37,6 +39,8 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
 
     const dbInstance = db;
     const message = await dbInstance.selectFrom(tOutboxEmail)
+        .innerJoin(tEmailAccounts)
+            .on(tEmailAccounts.emailAccountId.equals(tOutboxEmail.outboxAccountId))
         .leftJoin(fromUserJoin)
             .on(fromUserJoin.userId.equals(tOutboxEmail.outboxSenderUserId))
         .leftJoin(toUserJoin)
@@ -45,6 +49,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
             // Basic fields:
             id: tOutboxEmail.outboxEmailId,
             date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
+            account: tEmailAccounts.emailAccountAddress,
             from: tOutboxEmail.outboxSender,
             fromUser: {
                 id: fromUserJoin.userId,
@@ -91,6 +96,8 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
     if (!message)
         notFound();
 
+    const canManageEmailAccounts = access.can('system.internals.settings');
+
     const logs = !!message.logs ? JSON.parse(message.logs) : [];
 
     return (
@@ -113,6 +120,19 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                         key: 'Date',
                         value: message.date,
                         valueTemplate: 'localDateTime',
+                    },
+                    {
+                        condition: !canManageEmailAccounts,
+                        key: 'Account',
+                        value: message.account,
+                    },
+                    {
+                        condition: !!canManageEmailAccounts,
+                        key: 'Account',
+                        value:
+                            <MuiLink component={Link} href="/admin/system/integrations/email">
+                                {message.account}
+                            </MuiLink>,
                     },
                     {
                         condition: !message.fromUser,

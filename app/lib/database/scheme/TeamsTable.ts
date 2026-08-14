@@ -23,6 +23,7 @@ export class TeamsTable extends Table<DBConnection, 'TeamsTable'> {
     teamEnvironment = this.column('team_environment', 'string');
     teamEnvironmentId = this.optionalColumnWithDefaultValue('team_environment_id', 'int');
     teamInviteKey = this.column('team_invite_key', 'string');
+    teamEmailAccountId = this.column('team_email_account_id', 'int');
     teamFlagEnableDutyBook = this.columnWithDefaultValue('team_flag_enable_duty_book', 'int');
     teamFlagEnableScheduling = this.columnWithDefaultValue('team_flag_enable_scheduling', 'int');
     teamFlagGrowthCharts = this.columnWithDefaultValue('team_flag_growth_charts', 'int');

@@ -100,6 +100,64 @@ tables:
       `log_format_updated` datetime NOT NULL,
       UNIQUE KEY `log_type` (`log_type`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+- name: email_accounts
+  type: BASE TABLE
+  columns:
+  - name: email_account_id
+    type: int(4) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: email_account_address
+    type: text
+    nullable: false
+  - name: email_account_smtp_hostname
+    type: text
+    nullable: false
+  - name: email_account_smtp_port
+    type: int(4) unsigned
+    nullable: false
+  - name: email_account_smtp_username
+    type: text
+    nullable: false
+  - name: email_account_smtp_password
+    type: text
+    nullable: false
+  - name: email_account_created
+    type: datetime
+    nullable: false
+  - name: email_account_updated
+    type: datetime
+    nullable: false
+  - name: email_account_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (email_account_id) USING BTREE
+    table: email_accounts
+    columns:
+    - email_account_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (email_account_id)
+    table: email_accounts
+    columns:
+    - email_account_id
+  def: |-
+    CREATE TABLE `email_accounts` (
+      `email_account_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
+      `email_account_address` text NOT NULL,
+      `email_account_smtp_hostname` text NOT NULL,
+      `email_account_smtp_port` int(4) unsigned NOT NULL,
+      `email_account_smtp_username` text NOT NULL,
+      `email_account_smtp_password` text NOT NULL,
+      `email_account_created` datetime NOT NULL,
+      `email_account_updated` datetime NOT NULL,
+      `email_account_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`email_account_id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: hotels_assignments
   type: BASE TABLE
   columns:
@@ -390,10 +448,6 @@ tables:
     type: int(8) unsigned
     nullable: true
     default: "NULL"
-  - name: event_ytp_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
   - name: event_ytp_event_id
     type: int(4)
     nullable: true
@@ -453,7 +507,6 @@ tables:
       `event_hotel_room_form` text DEFAULT NULL,
       `event_festival_id` int(8) unsigned DEFAULT NULL,
       `event_identity_id` int(8) unsigned DEFAULT NULL,
-      `event_ytp_id` int(8) unsigned DEFAULT NULL,
       `event_ytp_event_id` int(4) DEFAULT NULL,
       `event_ytp_external_event_id` text DEFAULT NULL,
       `event_weeztix_guid` text DEFAULT NULL,
@@ -2422,6 +2475,9 @@ tables:
     type: timestamp
     nullable: false
     default: current_timestamp()
+  - name: outbox_account_id
+    type: int(4) unsigned
+    nullable: false
   - name: outbox_sender
     type: varchar(128)
     nullable: false
@@ -2535,6 +2591,7 @@ tables:
     CREATE TABLE `outbox_email` (
       `outbox_email_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `outbox_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+      `outbox_account_id` int(4) unsigned NOT NULL,
       `outbox_sender` varchar(128) NOT NULL,
       `outbox_sender_user_id` int(8) unsigned DEFAULT NULL,
       `outbox_communication_id` int(4) unsigned DEFAULT NULL,
@@ -2629,12 +2686,40 @@ tables:
   - name: ticket_provider_purchase_id
     type: text
     nullable: false
+  indexes:
+  - name: ticket_provider_purchase_id
+    def: UNIQUE KEY ticket_provider_purchase_id (ticket_provider_purchase_id) USING HASH
+    table: users_events_tickets
+    columns:
+    - ticket_provider_purchase_id
+  - name: user_id
+    def: UNIQUE KEY user_id (user_id, event_id) USING BTREE
+    table: users_events_tickets
+    columns:
+    - user_id
+    - event_id
+  constraints:
+  - name: ticket_provider_purchase_id
+    type: UNIQUE
+    def: UNIQUE KEY ticket_provider_purchase_id (ticket_provider_purchase_id)
+    table: users_events_tickets
+    columns:
+    - ticket_provider_purchase_id
+  - name: user_id
+    type: UNIQUE
+    def: UNIQUE KEY user_id (user_id, event_id)
+    table: users_events_tickets
+    columns:
+    - user_id
+    - event_id
   def: |-
     CREATE TABLE `users_events_tickets` (
       `user_id` int(4) unsigned NOT NULL,
       `event_id` int(4) unsigned NOT NULL,
       `ticket_provider` enum('Weeztix','YourTicketProvider') NOT NULL,
-      `ticket_provider_purchase_id` text NOT NULL
+      `ticket_provider_purchase_id` text NOT NULL,
+      UNIQUE KEY `user_id` (`user_id`,`event_id`),
+      UNIQUE KEY `ticket_provider_purchase_id` (`ticket_provider_purchase_id`) USING HASH
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: subscriptions
   type: BASE TABLE
@@ -2924,6 +3009,9 @@ tables:
   - name: team_invite_key
     type: varchar(32)
     nullable: false
+  - name: team_email_account_id
+    type: int(4) unsigned
+    nullable: false
   - name: team_flag_enable_duty_book
     type: tinyint(1)
     nullable: false
@@ -3000,6 +3088,7 @@ tables:
       `team_environment` varchar(32) NOT NULL,
       `team_environment_id` int(8) unsigned DEFAULT NULL,
       `team_invite_key` varchar(32) NOT NULL,
+      `team_email_account_id` int(4) unsigned NOT NULL,
       `team_flag_enable_duty_book` tinyint(1) NOT NULL DEFAULT 0,
       `team_flag_enable_scheduling` tinyint(1) unsigned NOT NULL DEFAULT 0,
       `team_flag_growth_charts` tinyint(1) unsigned NOT NULL DEFAULT 0,
