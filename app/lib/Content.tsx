@@ -45,9 +45,7 @@ interface ContentOptions<DisableJsx extends boolean = false> {
 }
 
 /**
- * Fetches content from the database for the given `path`, `event` and `environmentName` tuple. Will
- * run a database query to do so. Only the latest revision of a page will be included, all else will
- * be ignored as they are no longer deemed relevant.
+ * Retrieves the content for the given `path`.
  *
  * @param environmentName The environment for which to fetch the content.
  * @param eventId Unique ID of the event for which content should be obtained.
@@ -105,19 +103,28 @@ export async function getContent<T extends boolean = false>(
         }
     }
 
-    // TODO: Should we support a compiled Markdown cache at this point?
+    let markdown: Content<T>['markdown'];
+    if (options?.disableJsx) {
+        markdown = copiedContent.content;
+    } else {
+        const contentVariant = options?.variant ?? 'body1';
+        const contentHash = cyrb53(copiedContent.content, contentVariant === 'body1' ? 0 : 42);
+
+        markdown = await Cache.getInstance('ContentMarkdown').getOrInsert(contentHash, async () =>
+            Markdown({
+                content: copiedContent.content,
+                variant: options?.variant,
+            })) as any;
+    }
 
     return {
         title: copiedContent.title,
-        markdown: options?.disableJsx
-            ? copiedContent.content
-            : <Markdown content={copiedContent.content} variant={options?.variant} /> as any,
+        markdown,
     };
 }
 
 /**
- * Fetches the content for the given `path` from the database, which lives there orthogonal to any
- * particular environment or event.
+ * Retrieves the content for the given `path`.
  *
  * @param path The path towards the content, relative from the domain root.
  * @param options Options to apply when processing this content.
@@ -127,4 +134,29 @@ export async function getStaticContent<T extends boolean = false>(
     path: string[], options?: ContentOptions<T>): Promise<Content<T> | undefined>
 {
     return getContent(/* environment= */ 'stewards.team', /* eventId= */ 0, path, options);
+}
+
+/**
+ * cyrb53 (c) 2018 bryc (Public Domain)
+ * Fast, 53-bit string hash with high collision resistance.
+ */
+export function cyrb53(str: string, seed: number = 0): string {
+    let h1 = 0xdeadbeef ^ seed;
+    let h2 = 0x41c6ce57 ^ seed;
+
+    for (let i = 0; i < str.length; i++) {
+        const ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+    // Return as a 14-character hex string
+    const hash = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+
+    return hash.toString(16).padStart(14, '0');
 }

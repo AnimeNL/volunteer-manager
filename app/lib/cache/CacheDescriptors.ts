@@ -1,9 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { ReactNode } from 'react';
+
+import type { PaletteMode } from '@mui/material/styles';
+
 import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
-import type { PaletteMode } from '@mui/material/styles';
 import type { TicketingPurchaseItemResponse, TicketingPurchaseResponse }
     from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 
@@ -33,6 +36,11 @@ interface CacheDescriptorMap {
             title: string;
             content: string;
         };
+    };
+
+    ContentMarkdown: {
+        Parameters: string;
+        Contents: ReactNode;
     };
 
     Environments: {
@@ -243,6 +251,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'Content',
         description: 'Content and knowledge base articles published across the system.',
         type: 'permanent',
+    },
+
+    ContentMarkdown: {
+        name: 'ContentMarkdown',
+        description: 'Compiled React element representation of Markdown content.',
+        type: 'ttl',  // there is a lot of dynamic content
+        ttl: 3600,
     },
 
     Environments: {
