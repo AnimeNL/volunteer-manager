@@ -12,7 +12,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { DocumentationContainerProps } from './DocumentationContainerProps';
-import { Markdown } from '@app/components/Markdown';
 
 /**
  * The <DocumentationDrawer> component displays the documentation in a MUI drawer that slides in
@@ -41,8 +40,7 @@ export function DocumentationDrawer(props: DocumentationContainerProps) {
                     <Alert severity="error" variant="outlined">
                         {props.error}
                     </Alert> }
-                { props.content &&
-                    <Markdown defaultVariant="body2">{props.content}</Markdown> }
+                {props.content}
             </Stack>
         </Drawer>
     );

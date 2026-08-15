@@ -13,8 +13,9 @@ import Tooltip from '@mui/material/Tooltip';
 
 import { DocumentationDialog } from './DocumentationDialog';
 import { DocumentationDrawer } from './DocumentationDrawer';
-import { fetchDocumentation } from './DocumentationActions';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
+
+import { fetchDocumentation } from './DocumentationActions';
 
 /**
  * Props accepted by the <DocumentationButton> component.

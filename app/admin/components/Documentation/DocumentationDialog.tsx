@@ -15,7 +15,6 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
 import type { DocumentationContainerProps } from './DocumentationContainerProps';
-import { Markdown } from '@app/components/Markdown';
 
 /**
  * The <DocumentationDialog> component displays the documentation in a full-screen dialog
@@ -39,8 +38,7 @@ export function DocumentationDialog(props: DocumentationContainerProps) {
                     <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
                         {props.error}
                     </Alert> }
-                { props.content &&
-                    <Markdown defaultVariant="body2">{props.content}</Markdown> }
+                {props.content}
             </DialogContent>
             <DialogActions sx={{
                 borderTop: 1,

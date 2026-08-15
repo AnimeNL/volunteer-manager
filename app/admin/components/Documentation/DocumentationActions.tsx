@@ -5,12 +5,14 @@
 
 import { z } from 'zod/v4';
 
+import { Markdown } from '@components/Markdown/index';
 import { executeAccessCheck } from "@lib/auth/AuthenticationContext";
 import { executeServerAction } from "@lib/serverAction";
 import { getStaticContent } from '@lib/Content';
 
 /**
- * Server action that fetches the Markdown documentation for the given `topic`.
+ * Server action that fetches the documentation for the given `topic`. It's rendered using Markdown
+ * on the server, with the JSX thereafter shared to the client.
  */
 export async function fetchDocumentation(topic: string) {
     'use server';
@@ -25,6 +27,9 @@ export async function fetchDocumentation(topic: string) {
         if (!content)
             return { success: false, error: 'Documentation for this page is not available yet.' };
 
-        return { success: true, content: content.markdown };
+        return {
+            success: true,
+            content: <Markdown content={content.markdown} />,
+        };
     });
 }
