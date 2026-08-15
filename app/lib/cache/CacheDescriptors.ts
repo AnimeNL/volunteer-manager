@@ -1,8 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ReactNode } from 'react';
-
 import type { PaletteMode } from '@mui/material/styles';
 
 import type { CachedEvent, CachedTeam } from './Types';
@@ -40,7 +38,7 @@ interface CacheDescriptorMap {
 
     ContentMarkdown: {
         Parameters: string;
-        Contents: ReactNode;
+        Contents: any;  // unified / remark / rehype output
     };
 
     Environments: {

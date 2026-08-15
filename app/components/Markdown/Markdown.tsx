@@ -14,6 +14,9 @@ import { unified } from 'unified';
 import Stack from '@mui/material/Stack';
 
 import type { TypographyVariant } from '@mui/material/styles';
+import { Cache } from '@lib/cache';
+import { cyrb53 } from './cyrb53';
+
 import { kMuiComponents } from './MuiComponents';
 
 /**
@@ -51,19 +54,21 @@ export interface MarkdownProps {
  */
 export async function Markdown(props: MarkdownProps) {
     const variant = props.variant ?? 'body1';
-    const file = await unified()
-        .use(remarkParse)
-        .use(remarkGfm)
-        .use(remarkRehype)
-        .use(rehypeReact, {
-            Fragment: prod.Fragment,
-            components: kMuiComponents,
-            jsx: prod.jsx,
-            jsxs: prod.jsxs,
-        })
-        .process(props.content);
-    
-    console.log('--- [checkpoint] New Markdown pipeline used');
+
+    const hash = `jsx-${cyrb53(props.content)}`;
+    const file = await Cache.getInstance('ContentMarkdown').getOrInsert(hash, async () =>
+        await unified()
+            .use(remarkParse)
+            .use(remarkGfm)
+            .use(remarkRehype)
+            .use(rehypeReact, {
+                Fragment: prod.Fragment,
+                components: kMuiComponents,
+                jsx: prod.jsx,
+                jsxs: prod.jsxs,
+            })
+            .process(props.content));
+
     return (
         <Stack direction="column" spacing={2} sx={{ fontSize: kFontSizeMapping[variant] }}>
             {file.result}
