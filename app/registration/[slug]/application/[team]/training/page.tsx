@@ -13,7 +13,6 @@ import Typography from '@mui/material/Typography';
 import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
-import { Markdown } from '@components/Markdown';
 import { TrainingConfirmation } from './TrainingConfirmation';
 import { TrainingPreferencesForm } from './TrainingPreferencesForm';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
@@ -139,7 +138,7 @@ export default async function EventApplicationTrainingPage(
             { !assignment?.confirmed &&
                 <AvailabilityWarning currentTime={currentTime} window={settings.availability} /> }
 
-            { !!content && <Markdown>{content.content}</Markdown> }
+            {content?.markdown}
 
             { !!assignment?.confirmed &&
                 <TrainingConfirmation timezone={settings.timezone}

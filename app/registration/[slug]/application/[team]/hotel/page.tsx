@@ -12,7 +12,6 @@ import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { HotelConfirmation } from './HotelConfirmation';
 import { HotelPreferences } from './HotelPreferences';
-import { Markdown } from '@components/Markdown';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getHotelRoomOptions } from './getHotelRoomOptions';
@@ -136,7 +135,7 @@ export default async function EventApplicationHotelsPage(
             { !bookings &&
                 <AvailabilityWarning currentTime={currentTime} window={settings.availability} /> }
 
-            { !!content && <Markdown>{content.content}</Markdown> }
+            {content?.markdown}
 
             { !!bookings && <HotelConfirmation eventId={event.id} userId={user.id} /> }
 

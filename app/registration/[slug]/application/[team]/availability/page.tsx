@@ -12,7 +12,6 @@ import { AvailabilityExpectations } from './AvailabilityExpectations';
 import { AvailabilityPreferencesForm } from './AvailabilityPreferencesForm';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
-import { Markdown } from '@components/Markdown';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getPublicEventsForFestival, type EventTimeslotEntry } from './getPublicEventsForFestival';
@@ -143,7 +142,7 @@ export default async function EventApplicationAvailabilityPage(
 
     return (
         <Box sx={{ p: 2 }}>
-            { content && <Markdown>{content.content}</Markdown> }
+            {content?.markdown}
 
             { !!availabilityEvents &&
                 <AvailabilityExpectations

@@ -7,40 +7,38 @@ import { Markdown, type MarkdownVariants } from '@components/Markdown/index';
 import db, { tContent, tTeams } from './database';
 
 /**
- * Interface defining the information that will be made available for a particular piece of content
- * that can be shown on the volunteer manager.
+ * Dynamic content retrieved from the database.
  */
-export interface Content {
+interface Content<DisableJsx> {
     /**
-     * Title of the page as it should be displayed. No length limits.
+     * Title given to the content.
      */
     title: string;
 
     /**
-     * Content of the page, formatted in Markdown. No length limits, but should be displayed using
-     * the <Markdown> element to ensure proper display.
-     *
-     * @deprecated Use the `markdown` property instead.
+     * Markdown content of the page.
      */
-    content: string;
-
-    /**
-     * Content of the page, formatted in Markdown, compiled down to JSX.
-     */
-    markdown: React.ReactNode;
+    markdown: DisableJsx extends true ? string : React.ReactNode;
 }
 
 /**
- * Options that can be provided to the `getContent` functions.
+ * Options that can be provided when retrieving content from the database.
  */
-interface ContentOptions {
+interface ContentOptions<DisableJsx extends boolean = false> {
     /**
-     * Content substitutions that can be provided to the `getContent` functions.
+     * Disable transforming the Markdown into JSX?
      */
-    substitutions: Record<string, string>;
+    disableJsx?: DisableJsx;
+
+    /**
+     * Substitutions to apply to the content. When used, all instances of "{key}" will be replaced
+     * with the given values
+     */
+    substitutions?: Record<string, number | string>;
 
     /**
      * Base typography variant to apply.
+     *
      * @default "body1"
      */
     variant?: MarkdownVariants;
@@ -57,9 +55,9 @@ interface ContentOptions {
  * @param options Options to apply when processing this content.
  * @return Content object with the content when found, or undefined in all other cases.
  */
-export async function getContent(
-    environment: EnvironmentDomain, eventId: number, path: string[], options?: ContentOptions)
-        : Promise<Content | undefined>
+export async function getContent<T extends boolean = false>(
+    environment: EnvironmentDomain, eventId: number, path: string[], options?: ContentOptions<T>)
+        : Promise<Content<T> | undefined>
 {
     const cache = Cache.getInstance('Content');
     const cacheKey = {
@@ -68,7 +66,7 @@ export async function getContent(
         path: path.join('/'),
     };
 
-    let content = cache.get<Omit<Content, 'markdown'>>(cacheKey);
+    let content = cache.get(cacheKey);
     if (!content) {
         content = await db.selectFrom(tContent)
             .innerJoin(tTeams)
@@ -102,8 +100,8 @@ export async function getContent(
         copiedContent.content = copiedContent.content.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
 
         for (const [ key, value ] of Object.entries(options.substitutions)) {
-            copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, value);
-            copiedContent.content = copiedContent.content.replaceAll(`{${key}}`, value);
+            copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, `${value}`);
+            copiedContent.content = copiedContent.content.replaceAll(`{${key}}`, `${value}`);
         }
     }
 
@@ -111,8 +109,9 @@ export async function getContent(
 
     return {
         title: copiedContent.title,
-        content: copiedContent.content,
-        markdown: <Markdown content={copiedContent.content} variant={options?.variant} />,
+        markdown: options?.disableJsx
+            ? copiedContent.content
+            : <Markdown content={copiedContent.content} variant={options?.variant} /> as any,
     };
 }
 
@@ -124,8 +123,8 @@ export async function getContent(
  * @param options Options to apply when processing this content.
  * @returns Content object with the content when found, or undefined in all other cases.
  */
-export async function getStaticContent(path: string[], options?: ContentOptions)
-    : Promise<Content | undefined>
+export async function getStaticContent<T extends boolean = false>(
+    path: string[], options?: ContentOptions<T>): Promise<Content<T> | undefined>
 {
     return getContent(/* environment= */ 'stewards.team', /* eventId= */ 0, path, options);
 }

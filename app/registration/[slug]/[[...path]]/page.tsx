@@ -8,7 +8,6 @@ import { default as MuiLink } from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
-import { Markdown } from '@components/Markdown';
 import { determineEnvironment } from '@lib/Environment';
 import { generatePortalMetadataFn } from '../../generatePortalMetadataFn';
 import { getContent } from '@lib/Content';
@@ -44,7 +43,7 @@ export default async function EventContentPage(
     if (!!params.path?.length) {
         return (
             <Stack spacing={2} sx={{ p: 2 }}>
-                <Markdown>{content.content}</Markdown>
+                {content.markdown}
                 <MuiLink component={Link} href={`/registration/${event.slug}`}>
                     « Previous page
                 </MuiLink>
@@ -65,7 +64,7 @@ export default async function EventContentPage(
     return (
         <Stack spacing={2} sx={{ p: 2 }}>
 
-            <Markdown>{content.content}</Markdown>
+            {content.markdown}
 
             { (!event.applications.length && !!acceptsApplications) &&
                 <Button component={Link} href={`/registration/${event.slug}/application`}

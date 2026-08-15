@@ -61,6 +61,7 @@ export async function passwordResetRequest(request: Request, props: ActionProps)
 
         const sender = 'AnimeCon Volunteering Teams';
         const messageContent = await getStaticContent([ 'message', 'lost-password' ], {
+            disableJsx: true,
             substitutions: {
                 link: `https://${props.origin}/?password-reset-request=${passwordResetRequest}`,
                 name: passwordResetData.firstName,
@@ -75,7 +76,7 @@ export async function passwordResetRequest(request: Request, props: ActionProps)
                 message: {
                     to: request.username,
                     subject: messageContent.title,
-                    markdown: messageContent.content,
+                    markdown: messageContent.markdown,
                 },
                 attribution: {
                     sourceUserId: passwordResetData.userId,

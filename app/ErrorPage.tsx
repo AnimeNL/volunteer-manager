@@ -1,12 +1,12 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import { ErrorPageClientReporter } from './ErrorPageClientReporter';
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
-import { Markdown } from '@components/Markdown/index';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from './registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
@@ -68,13 +68,15 @@ export async function ErrorPage(props: ErrorPageProps) {
 
     const content = await getStaticContent([ `errors/${props.statusCode}` ]) || {
         title: kFatalErrorTitle,
-        content: kFatalErrorContent,
+        markdown: kFatalErrorContent,
     };
 
     return (
         <RegistrationLayout environment={environment}>
             <RegistrationContentContainer title={content.title} user={user}>
-                <Markdown content={content.content} />
+                <Box sx={{ p: 2 }}>
+                    {content.markdown}
+                </Box>
                 <ErrorPageClientReporter statusCode={props.statusCode} />
             </RegistrationContentContainer>
         </RegistrationLayout>

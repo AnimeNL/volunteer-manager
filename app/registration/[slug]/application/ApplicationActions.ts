@@ -195,6 +195,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
 
         const applicationConfirmation =
             await getStaticContent([ 'message', 'application-confirmation' ], {
+                disableJsx: true,
                 substitutions: {
                     event: eventInfo.shortName,
                     eventSlug: eventInfo.slug,
@@ -211,7 +212,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
                 message: {
                     to: props.user.username!,
                     subject: applicationConfirmation.title,
-                    markdown: applicationConfirmation.content,
+                    markdown: applicationConfirmation.markdown,
                 },
                 attribution: {
                     sourceUserId: props.user.id,

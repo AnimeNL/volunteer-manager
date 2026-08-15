@@ -8,15 +8,14 @@ import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
-import { type Content, getStaticContent } from '@lib/Content';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
-import { Markdown } from '@components/Markdown';
 import { RefundConfirmation } from './RefundConfirmation';
 import { RefundRequest } from './RefundRequest';
 import { formatDate } from '@lib/Temporal';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
+import { getStaticContent } from '@lib/Content';
 import db, { tEvents, tRefunds } from '@lib/database';
 
 import * as actions from '../../ApplicationActions';
@@ -54,7 +53,10 @@ export default async function EventApplicationRefundPage(
     // ---------------------------------------------------------------------------------------------
 
     let state: 'available' | 'requested' | 'too-early' | 'too-late' | 'unavailable';
-    let content: Content | undefined;
+    let content: undefined | {
+        title: string;
+        markdown: React.ReactNode;
+    };
 
     const refundAvailability = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
@@ -109,7 +111,7 @@ export default async function EventApplicationRefundPage(
 
     return (
         <Box sx={{ p: 2 }}>
-            { content && <Markdown>{content.content}</Markdown> }
+            {content?.markdown}
 
             <Collapse in={!!refund} unmountOnExit>
                 <RefundConfirmation refund={refund} />

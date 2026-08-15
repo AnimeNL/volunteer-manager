@@ -4,7 +4,8 @@
 import type { Metadata } from 'next';
 import { forbidden, notFound } from 'next/navigation'
 
-import { Markdown } from '@components/Markdown';
+import Box from '@mui/material/Box';
+
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from '../../registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
@@ -53,8 +54,12 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
             <RegistrationContentContainer title="Volunteering Guide"
                                           user={authenticationContext.user}>
                 { !!envContent &&
-                    <Markdown sx={{ p: 2, pb: 0 }}>{envContent.content}</Markdown> }
-                <Markdown sx={{ p: 2 }}>{globalContent.content}</Markdown>
+                    <Box sx={{ p: 2, pb: 0 }}>
+                        {envContent.markdown}
+                    </Box> }
+                <Box sx={{ p: 2 }}>
+                    {globalContent.markdown}
+                </Box>
             </RegistrationContentContainer>
         </RegistrationLayout>
     );
