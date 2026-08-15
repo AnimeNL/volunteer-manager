@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { redirect } from 'next/navigation';
-
 import Grid from '@mui/material/Grid';
 
 import type { Environment } from '@lib/Environment';
@@ -51,16 +49,8 @@ export async function LandingPage(props: LandingPageProps) {
 
     if (context.user !== undefined) {
         const searchParams = await props.searchParams;
-        if (searchParams.hasOwnProperty('app')) {
-            // Option (A): The Volunteering Leads account, used for the Feedback iPad, should be
-            // automatically forwarded to the Feedback tool.
-            if (context.user.id === /* Volunteering Leads */ 18)
-                redirect('/feedback');
-
-            // Option (B): Request the <EventsContent> component to redirect them to the schedule
-            // for an active event when there is an applicable one, and this is unambigious.
+        if (searchParams.hasOwnProperty('app'))
             redirectToActiveSchedule = true;
-        }
     }
 
     const enableAdminAccess = context.access.can('event.visible', {
