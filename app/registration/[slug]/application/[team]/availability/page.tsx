@@ -136,7 +136,9 @@ export default async function EventApplicationAvailabilityPage(
     const action = actions.updateAvailability.bind(null, event.id, team.id);
 
     const content = await getStaticContent([ 'registration', 'application', 'availability' ], {
-        firstName: user.nameOrFirstName,
+        substitutions: {
+            firstName: user.nameOrFirstName,
+        },
     });
 
     return (

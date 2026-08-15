@@ -195,11 +195,13 @@ export async function createApplication(eventId: number, teamId: number, formDat
 
         const applicationConfirmation =
             await getStaticContent([ 'message', 'application-confirmation' ], {
-                event: eventInfo.shortName,
-                eventSlug: eventInfo.slug,
-                hostname: teamInfo.domain,
-                name: props.user.nameOrFirstName,
-                team: teamInfo.name,
+                substitutions: {
+                    event: eventInfo.shortName,
+                    eventSlug: eventInfo.slug,
+                    hostname: teamInfo.domain,
+                    name: props.user.nameOrFirstName,
+                    team: teamInfo.name,
+                },
             });
 
         if (applicationConfirmation) {

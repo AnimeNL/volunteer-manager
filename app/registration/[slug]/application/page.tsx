@@ -308,7 +308,9 @@ async function EventApplicationStatusPage(props: EventApplicationSpecialisedProp
     // ---------------------------------------------------------------------------------------------
 
     const content = await getStaticContent([ 'registration', 'application', 'multiple' ], {
-        event: event.shortName,
+        substitutions: {
+            event: event.shortName,
+        },
     });
 
     return (

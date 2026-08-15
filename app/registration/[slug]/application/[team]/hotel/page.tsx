@@ -111,7 +111,9 @@ export default async function EventApplicationHotelsPage(
     // ---------------------------------------------------------------------------------------------
 
     const content = await getStaticContent([ 'registration', 'application', 'hotel' ], {
-        firstName: user.nameOrFirstName,
+        substitutions: {
+            firstName: user.nameOrFirstName,
+        },
     });
 
     const defaultValues = {

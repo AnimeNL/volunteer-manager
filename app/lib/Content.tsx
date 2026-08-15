@@ -3,7 +3,7 @@
 
 import type { EnvironmentDomain } from './Environment';
 import { Cache } from '@lib/cache';
-import { Markdown } from '@components/Markdown/index';
+import { Markdown, type MarkdownVariants } from '@components/Markdown/index';
 import db, { tContent, tTeams } from './database';
 
 /**
@@ -31,9 +31,20 @@ export interface Content {
 }
 
 /**
- * Content substitutions that can be provided to the `getContent` functions.
+ * Options that can be provided to the `getContent` functions.
  */
-type ContentSubstitutions = Record<string, string>;
+interface ContentOptions {
+    /**
+     * Content substitutions that can be provided to the `getContent` functions.
+     */
+    substitutions: Record<string, string>;
+
+    /**
+     * Base typography variant to apply.
+     * @default "body1"
+     */
+    variant?: MarkdownVariants;
+}
 
 /**
  * Fetches content from the database for the given `path`, `event` and `environmentName` tuple. Will
@@ -43,12 +54,11 @@ type ContentSubstitutions = Record<string, string>;
  * @param environmentName The environment for which to fetch the content.
  * @param eventId Unique ID of the event for which content should be obtained.
  * @param path The path towards the content, relative from the /registration/slug/ root.
- * @param substitutions Content substitutions that should be applied, if any.
+ * @param options Options to apply when processing this content.
  * @return Content object with the content when found, or undefined in all other cases.
  */
 export async function getContent(
-    environment: EnvironmentDomain, eventId: number, path: string[],
-    substitutions?: ContentSubstitutions)
+    environment: EnvironmentDomain, eventId: number, path: string[], options?: ContentOptions)
         : Promise<Content | undefined>
 {
     const cache = Cache.getInstance('Content');
@@ -87,11 +97,11 @@ export async function getContent(
     // representation and would thus carry forward to any future calls to `getContent()`.
     const copiedContent = structuredClone(content);
 
-    if (!!substitutions) {
+    if (!!options?.substitutions) {
         copiedContent.title = copiedContent.title.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
         copiedContent.content = copiedContent.content.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
 
-        for (const [ key, value ] of Object.entries(substitutions)) {
+        for (const [ key, value ] of Object.entries(options.substitutions)) {
             copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, value);
             copiedContent.content = copiedContent.content.replaceAll(`{${key}}`, value);
         }
@@ -102,7 +112,7 @@ export async function getContent(
     return {
         title: copiedContent.title,
         content: copiedContent.content,
-        markdown: <Markdown content={copiedContent.content} />,
+        markdown: <Markdown content={copiedContent.content} variant={options?.variant} />,
     };
 }
 
@@ -111,11 +121,11 @@ export async function getContent(
  * particular environment or event.
  *
  * @param path The path towards the content, relative from the domain root.
- * @param substitutions Content substitutions that should be applied, if any.
+ * @param options Options to apply when processing this content.
  * @returns Content object with the content when found, or undefined in all other cases.
  */
-export async function getStaticContent(path: string[], substitutions?: ContentSubstitutions)
+export async function getStaticContent(path: string[], options?: ContentOptions)
     : Promise<Content | undefined>
 {
-    return getContent(/* environment= */ 'stewards.team', /* eventId= */ 0, path, substitutions);
+    return getContent(/* environment= */ 'stewards.team', /* eventId= */ 0, path, options);
 }

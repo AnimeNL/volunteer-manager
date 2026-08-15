@@ -83,7 +83,7 @@ async function generateSummary(event: string, team: string) {
 
         return {
             success: true,
-            markdown: <Markdown content={summary.text} />,
+            markdown: <Markdown content={summary.text} variant="body2" />,
         };
     });
 }

@@ -76,7 +76,7 @@ export default async function NardoPersonalisedAdvicePage(
                         valueTemplate: 'localDateTime',
                     },
                 ]} />
-                <Markdown content={advice.output} />
+                <Markdown content={advice.output} variant="body2" />
             </Section>
             <Section icon={ <NotesIcon /> } title="Input prompt">
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>

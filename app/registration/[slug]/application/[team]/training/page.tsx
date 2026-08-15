@@ -112,7 +112,9 @@ export default async function EventApplicationTrainingPage(
     // ---------------------------------------------------------------------------------------------
 
     const content = await getStaticContent([ 'registration', 'application', 'training' ], {
-        firstName: user.nameOrFirstName,
+        substitutions: {
+            firstName: user.nameOrFirstName,
+        },
     });
 
     const defaultValues = {

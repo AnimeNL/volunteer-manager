@@ -73,7 +73,7 @@ export default async function CommunicationAiPage() {
     let defaultPersonalityAction: React.ReactNode;
     if (!!settings['ai-communication-personality-prompt']) {
         const personalityMarkdown =
-            <Markdown content={settings['ai-communication-personality-prompt']} />
+            <Markdown content={settings['ai-communication-personality-prompt']} variant="body2" />
 
         defaultPersonalityAction =
             <PersonalityDialogAction personality={personalityMarkdown} />;

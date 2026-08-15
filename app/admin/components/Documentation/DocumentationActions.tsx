@@ -5,7 +5,6 @@
 
 import { z } from 'zod/v4';
 
-import { Markdown } from '@components/Markdown/index';
 import { executeAccessCheck } from "@lib/auth/AuthenticationContext";
 import { executeServerAction } from "@lib/serverAction";
 import { getStaticContent } from '@lib/Content';
@@ -20,8 +19,11 @@ export async function fetchDocumentation(topic: string) {
         executeAccessCheck(props.authenticationContext, { check: 'admin' });
 
         const content = await getStaticContent([ 'documentation', ...topic.split('/') ], {
-            firstName: props.user.firstName,
-            name: props.user.name,
+            substitutions: {
+                firstName: props.user.firstName,
+                name: props.user.name,
+            },
+            variant: 'body2',
         });
 
         if (!content)
@@ -29,7 +31,7 @@ export async function fetchDocumentation(topic: string) {
 
         return {
             success: true,
-            markdown: <Markdown content={content.content} />,
+            markdown: content.markdown,
         };
     });
 }

@@ -45,12 +45,12 @@ export const kMuiComponents: Partial<Components> = {
         </MuiLink>,
 
     p: ({ children, ...props }) =>
-        <Typography variant="body2" component="p" {...props}>
+        <Typography variant="inherit" component="p" {...props}>
             {children}
         </Typography>,
 
     code: ({ children, ...props }) =>
-        <Typography variant="body2" component="code" sx={{
+        <Typography variant="inherit" component="code" sx={{
             fontFamily: 'monospace',
             whiteSpace: 'pre-line'
         }} {...props}>
@@ -72,7 +72,7 @@ export const kMuiComponents: Partial<Components> = {
         </Box>,
 
     li: ({ children, ...props }) =>
-        <Typography component="li" variant="body2" {...props}>
+        <Typography component="li" variant="inherit" {...props}>
             {children}
         </Typography>,
 

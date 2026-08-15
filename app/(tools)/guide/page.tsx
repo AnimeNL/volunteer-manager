@@ -36,12 +36,14 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
         guideTeamSlug = authenticationContext.events.get(mostRecentEventSlug)!;
     }
 
-    const substitutions = {
-        name: authenticationContext.user.displayName || authenticationContext.user.firstName,
+    const contentOptions = {
+        substitutions: {
+            name: authenticationContext.user.displayName || authenticationContext.user.firstName,
+        },
     };
 
-    const globalContent = await getStaticContent([ 'guide/common' ], substitutions);
-    const envContent = await getStaticContent([ `guide/${guideTeamSlug}` ], substitutions);
+    const globalContent = await getStaticContent([ 'guide/common' ], contentOptions);
+    const envContent = await getStaticContent([ `guide/${guideTeamSlug}` ], contentOptions);
 
     if (!globalContent)
         notFound();

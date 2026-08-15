@@ -69,33 +69,37 @@ export default async function EventApplicationRefundPage(
     if (!refundAvailability.refundRequestsStart || !refundAvailability.refundRequestsEnd) {
         state = 'unavailable';
         content = await getStaticContent([ ...contentPath, 'refund-unavailable' ], {
-            event: event.shortName,
-            firstName: user.nameOrFirstName,
+            substitutions: {
+                event: event.shortName,
+                firstName: user.nameOrFirstName,
+            },
         });
     } else {
         const { refundRequestsStart, refundRequestsEnd } = refundAvailability;
 
-        const substitutions = {
-            event: event.shortName,
-            firstName: user.nameOrFirstName,
-            refundRequestsStart: formatDate(refundRequestsStart, 'dddd, MMMM D'),
-            refundRequestsEnd: formatDate(refundRequestsEnd, 'dddd, MMMM D'),
+        const contentOptions = {
+            substitutions: {
+                event: event.shortName,
+                firstName: user.nameOrFirstName,
+                refundRequestsStart: formatDate(refundRequestsStart, 'dddd, MMMM D'),
+                refundRequestsEnd: formatDate(refundRequestsEnd, 'dddd, MMMM D'),
+            },
         };
 
         const now = Temporal.Now.zonedDateTimeISO('UTC');
 
         if (!!refund) {
             state = 'requested';
-            content = await getStaticContent([ ...contentPath, 'refund' ], substitutions);
+            content = await getStaticContent([ ...contentPath, 'refund' ], contentOptions);
         } else if (Temporal.ZonedDateTime.compare(now, refundRequestsStart) < 0) {
             state = 'too-early';
-            content = await getStaticContent([ ...contentPath, 'refund-early' ], substitutions);
+            content = await getStaticContent([ ...contentPath, 'refund-early' ], contentOptions);
         } else if (Temporal.ZonedDateTime.compare(now, refundRequestsEnd) > 0) {
             state = 'too-late';
-            content = await getStaticContent([ ...contentPath, 'refund-late' ], substitutions);
+            content = await getStaticContent([ ...contentPath, 'refund-late' ], contentOptions);
         } else {
             state = 'available';
-            content = await getStaticContent([ ...contentPath, 'refund' ], substitutions);
+            content = await getStaticContent([ ...contentPath, 'refund' ], contentOptions);
         }
     }
 

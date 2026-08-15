@@ -3,4 +3,5 @@
 
 import 'server-only';
 
+export type { MarkdownProps, MarkdownVariants } from './Markdown';
 export { Markdown } from './Markdown';

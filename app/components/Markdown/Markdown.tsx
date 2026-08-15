@@ -13,16 +13,36 @@ import { unified } from 'unified';
 
 import Stack from '@mui/material/Stack';
 
+import type { TypographyVariant } from '@mui/material/styles';
 import { kMuiComponents } from './MuiComponents';
+
+/**
+ * Base typography variants supported by the <Markdown> renderer.
+ */
+export type MarkdownVariants = Extract<TypographyVariant, 'body1' | 'body2'>;
+
+/**
+ * Font size mappings for the supported typography variants.
+ */
+const kFontSizeMapping: { [k in MarkdownVariants]: string } = {
+    body1: '1rem',
+    body2: '0.875rem',
+};
 
 /**
  * Props accepted by the <Markdown> component.
  */
-interface MarkdownProps {
+export interface MarkdownProps {
     /**
      * The Markdown content that should be rendered in the component.
      */
     content: string;
+
+    /**
+     * Base typography variant to apply.
+     * @default "body1"
+     */
+    variant?: MarkdownVariants;
 }
 
 /**
@@ -30,6 +50,7 @@ interface MarkdownProps {
  * operation (~120 KiB uncompressed JavaScript) we exclusively want to do this on the server,
  */
 export async function Markdown(props: MarkdownProps) {
+    const variant = props.variant ?? 'body1';
     const file = await unified()
         .use(remarkParse)
         .use(remarkGfm)
@@ -43,9 +64,8 @@ export async function Markdown(props: MarkdownProps) {
         .process(props.content);
     
     console.log('--- [checkpoint] New Markdown pipeline used');
-
     return (
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={2} sx={{ fontSize: kFontSizeMapping[variant] }}>
             {file.result}
         </Stack>
     );

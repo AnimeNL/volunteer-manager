@@ -122,9 +122,11 @@ export async function register(request: Request, props: ActionProps): Promise<Re
 
     // Send an e-mail to the user containing their registration verification link.
     const messageContent = await getStaticContent([ 'message', 'registration' ], {
-        link: `https://${props.origin}/?registration-request=${registrationRequest}`,
-        name: request.firstName,
-        sender,
+        substitutions: {
+            link: `https://${props.origin}/?registration-request=${registrationRequest}`,
+            name: request.firstName,
+            sender,
+        },
     });
 
     if (messageContent) {

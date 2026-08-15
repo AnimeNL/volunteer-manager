@@ -233,7 +233,7 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
 
         return {
             success: true,
-            markdown: <Markdown content={response.text} />,
+            markdown: <Markdown content={response.text} variant="body2" />,
         };
     });
 }
@@ -294,7 +294,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
 
         return {
             success: true,
-            markdown: <Markdown content={response.text} />,
+            markdown: <Markdown content={response.text} variant="body2" />,
         };
     });
 }
