@@ -11,6 +11,7 @@ import { DataTable, createDataSource, withContext, withRowModel, type Column, ty
     from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from '../formatBytes';
 
@@ -222,3 +223,7 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
         </>
     );
 }
+
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'cache' }, 'Cache Management', 'System');
+

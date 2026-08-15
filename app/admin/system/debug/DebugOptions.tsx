@@ -5,6 +5,7 @@
 
 import { useRouter } from 'next/navigation';
 
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
@@ -31,7 +32,7 @@ export function DebugOptions() {
     };
 
     return (
-        <Section title="Debugging options">
+        <Section icon={ <BuildOutlinedIcon /> } title="Debugging options">
             <Stack direction="row" spacing={2}>
                 <Button onClick={triggerJavaScriptError} variant="contained">
                     JavaScript error

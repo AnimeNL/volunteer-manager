@@ -1,14 +1,12 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { OutboxDataTable } from '../OutboxDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { SectionTabs } from '@app/admin/components/SectionTabs';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -35,14 +33,11 @@ export default async function OutboxWhatsAppPage() {
                     These are WhatsApp messages that were sent through the portal.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
-                <SectionTabs />
+            <Section tabs noHeader>
                 <OutboxDataTable type={kTwilioOutboxType.WhatsApp} />
             </Section>
         </>
     );
 }
 
-export const metadata: Metadata = {
-    title: 'WhatsApp | Outbox | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('WhatsApp', 'Outbox', 'Communication');

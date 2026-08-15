@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import TocIcon from '@mui/icons-material/Toc';
@@ -9,6 +8,7 @@ import TocIcon from '@mui/icons-material/Toc';
 import { ContentEditor } from '@app/admin/system/content/ContentEditor';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from '@app/admin/system/content/ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tContent } from '@lib/database';
@@ -59,6 +59,5 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Content | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'Content', 'System');

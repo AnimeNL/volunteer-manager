@@ -1,16 +1,12 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
 
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { Example } from './Example';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
@@ -18,6 +14,7 @@ import { PromptIcon } from '../../PromptIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TokenOverviewAlert } from '../../TokenOverviewAlert';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -67,18 +64,9 @@ export default async function CommunicationPromptAiPage(
                     {prompt.metadata.description}
                 </SectionIntroduction>
             </Section>
-            <Section tabs noHeader>
+            <Section tabs back="Back to prompts" noHeader>
                 <FormGrid action={updatePrompt} defaultValues={defaultValues}>
-                    <BackButtonGrid href="/admin/system/ai/communication">
-                        Back to overview
-                    </BackButtonGrid>
-                    <Grid size={{ xs: 12 }} sx={{ mt: -1 }}>
-                        <Divider />
-                    </Grid>
-                    <Grid size={{ xs: 12 }} sx={{ mt: -2 }}>
-                        <Typography variant="h6" sx={{ pb: 1 }}>
-                            {prompt.metadata.label}
-                        </Typography>
+                    <Grid size={{ xs: 12 }}>
                         <TokenOverviewAlert prompt={prompt} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
@@ -95,6 +83,5 @@ export default async function CommunicationPromptAiPage(
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Communication | Artificial Intelligence | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'Communication', 'AI', 'System');

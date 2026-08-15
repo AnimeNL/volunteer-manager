@@ -4,7 +4,11 @@
 import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
+import MarkChatReadOutlinedIcon from '@mui/icons-material/MarkChatReadOutlined';
+import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import Typography from '@mui/material/Typography';
+import WebhookIcon from '@mui/icons-material/Webhook';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
@@ -81,9 +85,13 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
     if (!message)
         notFound();
 
+    const messageIcon = props.type === kTwilioOutboxType.SMS
+        ? <TextsmsOutlinedIcon />
+        : <WhatsAppIcon />;
+
     return (
         <>
-            <Section title="Message">
+            <Section noHeader back="Back to messages" tabs>
                 <KeyValueList items={[
                     {
                         key: 'Date',
@@ -176,7 +184,7 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                     ]} />
                 </Section> }
             { !!message.result &&
-                <Section title="Delivery">
+                <Section icon={ <MarkChatReadOutlinedIcon /> } title="Delivery">
                     <KeyValueList items={[
                         {
                             key: 'Status',
@@ -194,7 +202,7 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                     ]} />
                 </Section> }
             { !!message.result && !!message.result.sid &&
-                <Section title="Associated webhooks">
+                <Section icon={ <WebhookIcon /> } title="Associated webhooks">
                     <WebhookDataTable twilioMessageSid={message.result.sid} />
                 </Section> }
         </>

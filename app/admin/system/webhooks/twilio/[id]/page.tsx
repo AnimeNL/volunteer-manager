@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
@@ -9,11 +8,17 @@ import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 
+import CodeIcon from '@mui/icons-material/Code';
+import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import WebhookIcon from '@mui/icons-material/Webhook';
+
 import type { TwilioOutboxType } from '@lib/database/Types';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
 
@@ -104,7 +109,7 @@ export default async function TwilioWebhooksPage(
                     </MuiLink>.
                 </SectionIntroduction>
             </Section>
-            <Section title="Webhook">
+            <Section icon={ <WebhookIcon /> } title="Webhook">
                 <KeyValueList items={[
                     {
                         key: 'Date',
@@ -165,14 +170,14 @@ export default async function TwilioWebhooksPage(
                     }
                 ]} />
             </Section>
-            <Section title="Headers">
+            <Section icon={ <CodeIcon /> } title="Headers">
                 <KeyValueList items={ headers.map(([ name, value ]) => ({
                     key: name,
                     value,
                     valueTemplate: 'monospace',
                 })) } />
             </Section>
-            <Section title="Parameters">
+            <Section icon={ <FormatListBulletedIcon /> } title="Parameters">
                 <KeyValueList items={ [ ...body.entries() ].map(([ name, value ]) => ({
                     key: name,
                     value,
@@ -180,7 +185,7 @@ export default async function TwilioWebhooksPage(
                 })) } />
             </Section>
             { !!webhook.errorName &&
-                <Section title="Error">
+                <Section icon={ <ErrorOutlinedIcon /> } title="Error">
                     <Alert severity="error">
                         An exception occurred when handling this webhook.
                     </Alert>
@@ -210,6 +215,5 @@ export default async function TwilioWebhooksPage(
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Twilio | Webhooks | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'Twilio', 'Webhooks', 'Communication');

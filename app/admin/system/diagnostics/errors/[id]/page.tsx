@@ -18,6 +18,7 @@ import ListItemText from '@mui/material/ListItemText';
 import PublicIcon from '@mui/icons-material/Public';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import Stack from '@mui/material/Stack';
+import TerminalIcon from '@mui/icons-material/Terminal';
 import Typography from '@mui/material/Typography';
 
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
@@ -110,7 +111,7 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
                     Detailed information about an observed error on the portal.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs back="Back to errors" noHeader>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                      <Typography variant="h6" noWrap>
                         <LocalDateTime dateTime={date} format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />
@@ -181,7 +182,7 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
                 </List>
             </Section>
             { !!error.stack &&
-                <Section title="Stack trace">
+                <Section icon={ <TerminalIcon /> } title="Stack trace">
                     <Typography variant="body2" sx={{
                         fontFamily: 'monospace',
                         whiteSpace: 'pre-wrap',

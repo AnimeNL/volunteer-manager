@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
@@ -16,6 +14,7 @@ import { PersonalisedAdviceExample } from './PersonalisedAdviceExample';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeNardoPersonalisedAdvicePrompt } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -123,6 +122,4 @@ export default async function NardoAiPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Del a Rie Advies | Artificial Intelligence | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Del a Rie Advies', 'AI', 'System');

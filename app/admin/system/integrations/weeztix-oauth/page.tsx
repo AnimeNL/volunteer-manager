@@ -15,6 +15,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './generateWeeztixState';
 import { readSettings, writeSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -210,3 +211,6 @@ async function Authorization(props: { code: string }) {
         </>
     );
 }
+
+export const generateMetadata =
+    createGenerateMetadataFn('Weeztix authorization', 'Integrations', 'System');

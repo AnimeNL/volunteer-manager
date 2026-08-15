@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 
 import Link from '@app/LinkProxy';
@@ -29,6 +28,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
 import { WeeztixAuthorizeButton } from './WeeztixAuthorizeButton';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -442,6 +442,4 @@ export default async function IntegrationsPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Integrations | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Integrations', 'System');

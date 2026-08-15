@@ -1,7 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 
 import List from '@mui/material/List';
@@ -13,6 +12,7 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { PromptIcon } from '../PromptIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import * as prompts from '@lib/ai/prompts';
@@ -66,6 +66,4 @@ export default async function AiFeaturesPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Features | Artificial Intelligence | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Features', 'AI', 'System');

@@ -3,6 +3,7 @@
 
 import { Suspense } from 'react';
 
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -14,6 +15,7 @@ import StreamIcon from '@mui/icons-material/Stream';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createAiClient } from '@lib/integrations/genai';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 
 /**
  * The <SystemDebugAiPage> contains a collection of AI-related test cases.
@@ -21,18 +23,23 @@ import { createAiClient } from '@lib/integrations/genai';
 export default function SystemDebugAiPage() {
     return (
         <>
-            <Section title="Artificial Intelligence" subtitle="Debug">
+            <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Debug', href: '/admin/system/debug' },
+                         { label: 'AI' },
+                     ]}>
                 <SectionIntroduction>
                     Page to test some of the deeper integrations in the Google Generative AI APIs,
                     before rolling them out to a proper library.
                 </SectionIntroduction>
             </Section>
-            <Section title="Text generation" subtitle="Streaming">
+            <Section icon={ <StreamIcon /> } title="Text generation" subtitle="Streaming">
                 <Suspense fallback={ <Skeleton height={8} /> }>
                     <StreamTextResponse />
                 </Suspense>
             </Section>
-            <Section title="Models">
+            <Section icon={ <ModelTrainingIcon /> } title="Models">
                 <Suspense fallback={ <Skeleton height={8} /> }>
                     <ListAvailableModels />
                 </Suspense>
@@ -93,3 +100,5 @@ async function StreamTextResponse() {
         </List>
     );
 }
+
+export const generateMetadata = createGenerateMetadataFn('AI', 'Debug', 'System');

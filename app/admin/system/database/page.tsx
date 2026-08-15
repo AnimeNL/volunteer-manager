@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import { LocalDateDuration } from '@app/admin/components/LocalDateDuration';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getQueryLog } from '@lib/database/Connection';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -63,3 +64,5 @@ export default async function DatabasePage() {
         </>
     );
 }
+
+export const generateMetadata = createGenerateMetadataFn('Database', 'System');

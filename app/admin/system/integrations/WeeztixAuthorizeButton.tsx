@@ -11,7 +11,8 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
+import { ResponsiveConfirmationDialog }
+    from '@app/admin/components/ResponsiveConfirmationDialog';
 
 /**
  * Props accepted by the <WeeztixAuthorizeButton> component.
@@ -61,9 +62,6 @@ export function WeeztixAuthorizeButton(props: WeeztixAuthorizeButtonProps) {
         const url = `${urlBase}?${urlParams.toString()}`;
 
         router.push(url);
-
-        return true as const;
-
     }, [ props.settings.clientId, props.settings.redirectUrl, props.state, router ]);
 
     return (
@@ -73,14 +71,12 @@ export function WeeztixAuthorizeButton(props: WeeztixAuthorizeButtonProps) {
                     <LockOpenIcon color="primary" fontSize="small" />
                 </Tooltip>
             </IconButton>
-            <ConfirmationDialog open={dialogOpen} onClose={handleCloseDialog} confirmLabel="Proceed"
-                                onConfirm={handleAuthorizationFlow}
-                                title="Authorize with Weeztix?">
-                <Typography variant="body2">
-                    You are about to start the OAuth authentication flow with Weeztix which will
-                    override current credentials. Are you sure that you want to proceed?
-                </Typography>
-            </ConfirmationDialog>
+            <ResponsiveConfirmationDialog open={dialogOpen} onClose={handleCloseDialog}
+                                          confirmLabel="Proceed" onConfirm={handleAuthorizationFlow}
+                                          title="Authorize with Weeztix?">
+                You are about to start the OAuth authentication flow with Weeztix which will
+                override current credentials. Are you sure that you want to proceed?
+            </ResponsiveConfirmationDialog>
         </>
     );
 }

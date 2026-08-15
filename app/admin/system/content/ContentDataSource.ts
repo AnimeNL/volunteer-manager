@@ -7,7 +7,7 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import type { User } from '@lib/auth/User';
 import { Cache } from '@lib/cache/Cache';
 import { type ContentType, kContentType } from '@lib/database/Types';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -45,16 +45,14 @@ export async function writeContentLog(id: number, mutation: string, user: User) 
         .executeSelectNoneOrOne();
 
     if (contentContext?.contentType === kContentType.FAQ) {
-        RecordLog({
-            type: kLogType.AdminKnowledgeBaseMutation,
-            severity: kLogSeverity.Warning,
-            sourceUser: user,
-            data: {
+        LogBuilder.for('UpdateKnowledgeBase')
+            .withInitiatorUser(user)
+            .withSeverity('Warning')
+            .record({
                 mutation,
-                event: contentContext.eventName,
+                event: contentContext.eventName ?? 'Global',
                 question: contentContext.contentTitle,
-            },
-        });
+            });
 
         return;
     }
@@ -70,15 +68,13 @@ export async function writeContentLog(id: number, mutation: string, user: User) 
         }
     }
 
-    RecordLog({
-        type: kLogType.AdminContentMutation,
-        severity: kLogSeverity.Warning,
-        sourceUser: user,
-        data: {
+    LogBuilder.for('UpdateContent')
+        .withInitiatorUser(user)
+        .withSeverity('Warning')
+        .record({
             context: resolvedContext,
             mutation,
-        },
-    });
+        });
 }
 
 /**
@@ -190,7 +186,7 @@ export const contentDataSource = createDataSource('admin/system/content', withCo
             .executeUpdate(/* min= */ 0, /* max= */ 1);
 
         if (affectedRows) {
-            await writeContentLog(params.id, 'deleted', props.authenticationContext.user!);
+            await writeContentLog(params.id, 'Deleted', props.authenticationContext.user!);
             clearContentCacheForEventAndType(context.eventId, context.type);
         }
 

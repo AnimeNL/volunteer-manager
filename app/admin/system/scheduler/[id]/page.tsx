@@ -1,5 +1,3 @@
-import type { Metadata } from 'next';
-
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
@@ -8,12 +6,15 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import LoopIcon from '@mui/icons-material/Loop';
+import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
+import TaskOutlinedIcon from '@mui/icons-material/TaskOutlined';
 
 import { DetailedLogs } from '../../outbox/email/[id]/DetailedLogs';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { RerunTaskButton } from './RerunTaskButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tTasks } from '@lib/database';
@@ -85,7 +86,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                     Detailed information about the execution of an individually scheduled task.
                 </SectionIntroduction>
             </Section>
-            <Section title="Task">
+            <Section icon={ <TaskOutlinedIcon /> } title="Task">
                 <KeyValueList items={[
                     {
                         key: 'Task name',
@@ -126,7 +127,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                 ]} />
             </Section>
             { !!task.result &&
-                <Section title="Execution">
+                <Section icon={ <PlayCircleOutlinedIcon /> } title="Execution">
                     <KeyValueList items={[
                         {
                             key: 'Result',
@@ -152,6 +153,5 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Task | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id', prefix: 'Task #' }, 'Scheduler', 'System');

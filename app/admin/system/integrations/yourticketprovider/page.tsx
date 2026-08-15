@@ -19,6 +19,7 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createYourTicketProviderClient, type YourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -148,3 +149,6 @@ async function YourTicketProviderEventList(
         </List>
     );
 }
+
+export const generateMetadata =
+    createGenerateMetadataFn('YourTicketProvider', 'Integrations', 'System');

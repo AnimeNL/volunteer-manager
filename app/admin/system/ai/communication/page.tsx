@@ -1,7 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 
 import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
@@ -12,7 +11,9 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HiddenInput } from '@components/HiddenInput';
@@ -22,6 +23,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -103,7 +105,7 @@ export default async function CommunicationAiPage() {
             </Section>
             <FormGridSection action={actions.updatePrompt}
                              defaultValues={{ id: 'system-prompt', prompt: systemPromptTemplate }}
-                             title="System prompt">
+                             icon={ <HistoryEduIcon /> } title="System prompt">
                 <Grid size={{ xs: 12 }}>
                     <TokenOverviewAlert prompt={systemPrompt} />
                 </Grid>
@@ -115,7 +117,7 @@ export default async function CommunicationAiPage() {
             </FormGridSection>
             <FormGridSection action={actions.updateExampleMessages}
                              defaultValues={{ exampleMessages }}
-                             title="Example messages">
+                             icon={ <TextsmsOutlinedIcon /> } title="Example messages">
                 <Grid size={{ xs: 12 }}>
                     <Alert severity="warning" action={defaultPersonalityAction}>
                         These messages will be superseded by those provided in account settings. No
@@ -133,6 +135,4 @@ export default async function CommunicationAiPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Communication | Artificial Intelligence | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Communication', 'AI', 'System');

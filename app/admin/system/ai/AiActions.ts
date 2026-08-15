@@ -4,10 +4,10 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptValidator } from '@lib/ai/PromptValidator';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
 import { readExampleMessages, writeExampleMessages } from '@lib/ai/ExampleMessages';
@@ -162,14 +162,12 @@ export async function updateModelSettings(formData: unknown) {
             'ai-setting-top-p': data.topP,
         });
 
-        RecordLog({
-            type: kLogType.AdminUpdateIntegration,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('UpdateIntegrationSettings')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
                 integration: 'Generative AI',
-            }
-        });
+            });
 
         return { success: true };
     });
@@ -205,14 +203,12 @@ export async function updatePrompt(formData: unknown) {
         if (!verdict.ok)
             return { success: false, error: verdict.errors.join('\n') };
 
-        RecordLog({
-            type: kLogType.AdminUpdateAiSetting,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                setting: `${prompt.metadata.label} prompt`,
-            },
-        });
+        LogBuilder.for('UpdateAiPrompt')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                prompt: prompt.metadata.label,
+            });
 
         await writeSetting(prompt.metadata.settings.prompt, data.prompt);
         if (!!data.complexity && !!prompt.metadata.settings.complexity)

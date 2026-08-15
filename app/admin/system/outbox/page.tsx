@@ -1,13 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 
 /**
  * Overview page for the Outbox, providing an alternative to the tab switcher on each page. Primary
@@ -30,6 +29,4 @@ export default async function OutboxPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Outbox | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Outbox', 'Communication');

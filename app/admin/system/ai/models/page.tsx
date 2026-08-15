@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import { SelectElement, SliderElement, TextFieldElement }
     from '@components/proxy/react-hook-form-mui';
 
@@ -18,6 +16,7 @@ import { GeminiModelSelect } from './GeminiModelSelect';
 import { ModelPlayground } from './ModelPlayground';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -167,6 +166,4 @@ export default async function ModelsAiPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Models | Artificial Intelligence | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Models', 'AI', 'System');

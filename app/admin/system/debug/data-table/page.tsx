@@ -4,12 +4,15 @@
 import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import TableChartIcon from '@mui/icons-material/TableChart';
+
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel, kEventTransformer }
     from '@app/admin/components/DataTable';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import db, { tEvents } from '@lib/database';
 
 /**
@@ -65,7 +68,12 @@ export default function DataTablePage() {
     ];
 
     return (
-        <Section title="DataTable">
+        <Section icon={ <TableChartIcon color="primary" /> } title="DataTable"
+                 breadcrumbs={[
+                     { label: 'System', href: '/admin/system' },
+                     { label: 'Debug', href: '/admin/system/debug' },
+                     { label: 'DataTable' },
+                 ]}>
             <SectionIntroduction>
                 This is an example page for the new generic {'<'}DataTable{'>'} component.
             </SectionIntroduction>
@@ -76,3 +84,5 @@ export default function DataTablePage() {
         </Section>
     );
 }
+
+export const generateMetadata = createGenerateMetadataFn('DataTable', 'Debug', 'System');

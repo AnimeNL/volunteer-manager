@@ -3,22 +3,23 @@
 
 import { z } from 'zod/v4';
 
-import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 
 import { DateTimePickerElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import Grid from '@mui/material/Grid';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
-import Table from '@mui/material/Table';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import { DebugOptions } from './DebugOptions';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
 
@@ -81,8 +82,19 @@ export default async function DebugPage() {
 
     return (
         <>
+            <Section icon={ <BugReportIcon color="primary" /> } title="Debug"
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Debug' },
+                     ]}>
+                <SectionIntroduction>
+                    The debug page displays debugging information regarding NextJS and AnimeCon
+                    Volunteer Manager internals.
+                </SectionIntroduction>
+            </Section>
             <DebugOptions />
-            <FormGridSection action={debugAction} defaultValues={values} title="Form section demo"
+            <FormGridSection action={debugAction} defaultValues={values}
+                             icon={ <AssignmentOutlinedIcon /> } title="Form section demo"
                              timezone="Europe/Amsterdam">
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="username" label="Username" size="small" fullWidth
@@ -96,26 +108,15 @@ export default async function DebugPage() {
                                            inputProps={{ size: 'small', fullWidth: true }} />
                 </Grid>
             </FormGridSection>
-            <Section title="Debugging information">
-                <Table size="small">
-                    <TableBody>
-                        { Object.entries(debugValues).map(([ key, value ], index) =>
-                            <TableRow key={index}>
-                                <TableCell width="15%">
-                                    <strong>{key}</strong>
-                                </TableCell>
-                                <TableCell sx={{ whiteSpace: 'pre-wrap',
-                                                 overflowWrap: 'anywhere' }}>
-                                    { JSON.stringify(value, undefined, /* space= */ 4) }
-                                </TableCell>
-                            </TableRow> )}
-                    </TableBody>
-                </Table>
+            <Section icon={ <InfoOutlinedIcon /> } title="Debugging information">
+                <KeyValueList items={ Object.entries(debugValues).map(([ key, value ]) => ({
+                    key,
+                    value: JSON.stringify(value, undefined, /* space= */ 4),
+                    valueTemplate: 'monospace',
+                })) } />
             </Section>
         </>
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Debug | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Debug', 'System');

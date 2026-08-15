@@ -80,7 +80,7 @@ export async function createContent(scope: ContentScope, linkPrefix: string, row
             .returningLastInsertedId()
             .executeInsert();
 
-        await writeContentLog(insertId, 'created', props.user!);
+        await writeContentLog(insertId, 'Created', props.user!);
         clearContentCacheForEventAndType(scope.eventId, scope.type);
 
         return {
@@ -225,7 +225,7 @@ export async function updateContent(scope: ContentScope, id: number, row: unknow
             .executeUpdate();
 
         if (affectedRows) {
-            await writeContentLog(id, 'updated', props.user!);
+            await writeContentLog(id, 'Updated', props.user!);
             clearContentCacheForEventAndType(scope.eventId, scope.type);
         }
 

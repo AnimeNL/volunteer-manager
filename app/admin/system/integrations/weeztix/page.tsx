@@ -15,6 +15,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weeztix';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -85,3 +86,5 @@ async function WeeztixEventList(props: { clientFn: () => Promise<WeeztixClient> 
         </>
     );
 }
+
+export const generateMetadata = createGenerateMetadataFn('Weeztix', 'Integrations', 'System');

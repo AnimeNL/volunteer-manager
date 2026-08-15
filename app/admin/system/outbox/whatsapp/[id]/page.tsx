@@ -1,13 +1,12 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { Section } from '@app/admin/components/Section';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
@@ -45,6 +44,5 @@ export default async function OutboxWhatsAppDetailsPage(
     );
 }
 
-export const metadata: Metadata = {
-    title: 'WhatsApp | Outbox | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'WhatsApp', 'Outbox', 'Communication');

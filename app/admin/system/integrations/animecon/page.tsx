@@ -1,15 +1,16 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 
 import { AnimeConStreamingApiPlaceholder } from './AnimeConStreamingApiPlaceholder';
 import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -35,22 +36,22 @@ export default async function AnimeConIntegrationPage() {
                     shown as they become available.
                 </SectionIntroduction>
             </Section>
-            <Section title="API" subtitle="activities.json">
+            <Section icon={ <ApiIcon /> } title="API" subtitle="activities.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="activities.json" />
                 </Suspense>
             </Section>
-            <Section title="API" subtitle="activity-types.json">
+            <Section icon={ <ApiIcon /> } title="API" subtitle="activity-types.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="activity-types.json" />
                 </Suspense>
             </Section>
-            <Section title="API" subtitle="floors.json">
+            <Section icon={ <ApiIcon /> } title="API" subtitle="floors.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="floors.json" />
                 </Suspense>
             </Section>
-            <Section title="API" subtitle="timeslots.json">
+            <Section icon={ <ApiIcon /> } title="API" subtitle="timeslots.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
                     <AnimeConStreamingApiResult endpoint="timeslots.json" />
                 </Suspense>
@@ -61,6 +62,4 @@ export default async function AnimeConIntegrationPage() {
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-    title: 'AnimeCon integration | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('AnimeCon API', 'Integrations', 'System');

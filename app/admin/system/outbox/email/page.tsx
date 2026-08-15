@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
@@ -9,8 +8,8 @@ import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import { OutboxDataTable } from '../OutboxDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { createDataSource, withRowModel } from '@app/admin/components/DataTable';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext, executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxEmail, tUsers } from '@lib/database';
 
@@ -148,14 +147,12 @@ export default async function OutboxEmailPage() {
                     These are e-mail messages that were sent through the portal.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
-                <SectionTabs />
+            <Section tabs noHeader>
                 <OutboxDataTable type="Email" source={emailDataSource} />
             </Section>
         </>
     );
 }
 
-export const metadata: Metadata = {
-    title: 'E-mail | Outbox | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn('E-mail', 'Outbox', 'Communication');

@@ -1,14 +1,16 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import Box from '@mui/material/Box';
+import ColorLensIcon from '@mui/icons-material/ColorLens';
+import ImageIcon from '@mui/icons-material/Image';
+import PaletteIcon from '@mui/icons-material/Palette';
 import Stack from '@mui/material/Stack';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { computePalette } from '@app/admin/layout/ThemeUtilities';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kThemeImageVersion } from '@app/config';
@@ -115,14 +117,20 @@ export default async function ThemeDebugPage() {
 
     return (
         <>
-            <Section title="Volunteer Manager Theme" subtitle={`version: ${kThemeImageVersion}`}>
+            <Section icon={ <PaletteIcon color="primary" /> } title="Volunteer Manager Theme"
+                     subtitle={`version: ${kThemeImageVersion}`}
+                     breadcrumbs={[
+                         { label: 'System', href: '/admin/system' },
+                         { label: 'Debug', href: '/admin/system/debug' },
+                         { label: 'Theme' },
+                     ]}>
                 <SectionIntroduction>
                     This page shows the festival-specific theme images used throughout the AnimeCon
                     Volunteer Manager. They're updated for each event to keep everything looking
                     fresh!
                 </SectionIntroduction>
             </Section>
-            <Section title="Colours">
+            <Section icon={ <ColorLensIcon /> } title="Colours">
                 { colors.map(baseColor => {
                     const palette = computePalette(baseColor);
                     return (
@@ -142,7 +150,8 @@ export default async function ThemeDebugPage() {
                 }) }
             </Section>
             { kImages.map(image =>
-                <Section key={image.src} title={image.label} subtitle={image.area}>
+                <Section key={image.src} icon={ <ImageIcon /> } title={image.label}
+                         subtitle={image.area}>
                     <Box sx={{
                         background: 'url(/images/schedule/background-light.png)',
                         padding: 2,
@@ -176,6 +185,4 @@ export default async function ThemeDebugPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Theme | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Theme', 'Debug', 'System');

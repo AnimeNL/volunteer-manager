@@ -1,13 +1,12 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
 import WebhookIcon from '@mui/icons-material/Webhook';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WebhookDataTable } from './WebhookDataTable';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 /**
@@ -27,8 +26,8 @@ export default async function WebhooksPage() {
                 { label: 'Webhooks' },
             ]}>
                 <SectionIntroduction>
-                    Webhooks are signals that the Volunteer Manager has received from external services,
-                    which it may have to act upon.
+                    Webhooks are signals that the Volunteer Manager has received from external
+                    services, which it may have to act upon.
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
@@ -38,6 +37,4 @@ export default async function WebhooksPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Webhooks | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Webhooks', 'Communication');

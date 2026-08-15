@@ -88,7 +88,6 @@ Use of <NavigationTabs> is deprecated and must be superseded. Instead:
 The following components are no longer supported and should be substituted:
 
 * <CollapsableSection> should become a regular <Section>
-* <ExpandableSection> should become a regular <Section>
 * react-hook-form <FormContainer> should be updated to use <FormGridSection>, <FormGrid> or
   <FormProvider>, as most applicable
 * MUI <Paper> at a layout or page's top level almost never is appropriate, and should be updated

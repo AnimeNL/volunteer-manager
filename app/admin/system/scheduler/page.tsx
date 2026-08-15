@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
 import Alert from '@mui/material/Alert';
@@ -13,6 +12,7 @@ import { DateCell, IntervalCell, IntervalHeader, StateCell, StateHeader } from '
 import { SchedulerCreateTaskPanel } from './SchedulerCreateTaskPanel';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import db, { tTasks } from '@lib/database';
@@ -248,6 +248,4 @@ export default async function SchedulerPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Scheduler | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Scheduler', 'System');

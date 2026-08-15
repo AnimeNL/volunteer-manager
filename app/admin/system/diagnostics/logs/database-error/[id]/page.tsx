@@ -66,7 +66,7 @@ export default async function DatabaseErrorLogPage(
                     Detailed information about an observed database error.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs back="Back to system logs" noHeader>
                 <Typography variant="h6">
                     <LocalDateTime dateTime={entry.date}
                                    format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />

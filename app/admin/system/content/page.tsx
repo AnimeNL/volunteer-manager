@@ -1,8 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
-
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import TocIcon from '@mui/icons-material/Toc';
 
 import { ContentCreate } from './ContentCreate';
@@ -10,6 +9,7 @@ import { ContentList } from './ContentList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createContent } from './ContentActions';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from './ContentScope';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
@@ -30,7 +30,9 @@ export default async function ContentPage() {
     return (
         <>
             <Section icon={ <TocIcon color="primary" /> } title="Pages"
-                     breadcrumbs={[ { label: 'Content' } ]}>
+                     breadcrumbs={[
+                         { label: 'Content' },
+                     ]}>
                 <SectionIntroduction>
                     This page lists the global content of the Volunteer Portal such as the privacy
                     policy and various guides and e-mail templates.
@@ -39,7 +41,7 @@ export default async function ContentPage() {
             <Section noHeader>
                 <ContentList scope={scope} />
             </Section>
-            <Section title="Create a new page">
+            <Section icon={ <AddBoxOutlinedIcon /> } title="Create a new page">
                 <SectionIntroduction>
                     You can create new <strong>global content</strong>. These pages will however not
                     automatically be published, and rely on code changes.
@@ -50,6 +52,4 @@ export default async function ContentPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Content | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Content', 'System');

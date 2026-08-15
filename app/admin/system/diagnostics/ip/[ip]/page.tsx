@@ -44,7 +44,7 @@ export default async function IpPage(props: PageProps<'/admin/system/diagnostics
                     Information and analytics about their activity on the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs back="Back to recent IP addresses" noHeader>
                 <Suspense fallback={ <SectionLoading /> }>
                     <IpLocationSection ipAddress={ip} />
                 </Suspense>

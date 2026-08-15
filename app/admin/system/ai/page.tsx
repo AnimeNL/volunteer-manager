@@ -6,6 +6,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 
 /**
  * Overview page for Artificial Intelligence, providing links to each section contained therein.
@@ -27,3 +28,5 @@ export default async function ArtificialIntelligencePage() {
         </>
     );
 }
+
+export const generateMetadata = createGenerateMetadataFn('AI', 'System');

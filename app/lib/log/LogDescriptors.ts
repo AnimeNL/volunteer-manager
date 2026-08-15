@@ -50,12 +50,23 @@ interface LogTypeParameterMap {
         repeatedTaskId: number;
     };
 
+    UpdateAiPrompt: {
+        prompt: string;
+    };
+
+    UpdateContent: {
+        context: string;
+        mutation: string;
+    };
+
     UpdateEmailAddress: {
         address: string;
     };
 
     UpdateIntegrationSettings: {
-        integration: 'AnimeCon' | 'Email' | 'Google' | 'Twilio' | 'Weeztix' | 'YourTicketProvider';
+        integration:
+            'AnimeCon' | 'Email' | 'Generative AI' | 'Google' | 'Twilio' | 'Weeztix' |
+            'YourTicketProvider';
     };
 
     UpdateLogMessageFormat: {
@@ -198,6 +209,12 @@ interface LogTypeParameterMap {
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
+    };
+
+    UpdateKnowledgeBase: {
+        event: string;  // short name
+        question: string;
+        mutation: string;
     };
 
     UpdateTicketPurchase: {
@@ -349,6 +366,8 @@ export const kLogType: { [k in LogType]: k } = {
     CreateSchedulerTask: 'CreateSchedulerTask',
     DeleteEmailAddress: 'DeleteEmailAddress',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
+    UpdateAiPrompt: 'UpdateAiPrompt',
+    UpdateContent: 'UpdateContent',
     UpdateEmailAddress: 'UpdateEmailAddress',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
@@ -404,6 +423,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
+    UpdateKnowledgeBase: 'UpdateKnowledgeBase',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
@@ -9,6 +8,7 @@ import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
@@ -16,6 +16,7 @@ import { DetailedLogs } from './DetailedLogs';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEmailAccounts, tOutboxEmail, tUsers } from '@lib/database';
 
@@ -114,7 +115,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                     Detailed information about a message we sent by e-mail.
                 </SectionIntroduction>
             </Section>
-            <Section title="Message">
+            <Section noHeader back="Back to messages" tabs>
                 <KeyValueList items={[
                     {
                         key: 'Date',
@@ -188,7 +189,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                     },
                 ]} />
             </Section>
-            <Grid container spacing={1.5} sx={{  }}>
+            <Grid container spacing={1.5}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Paper variant="outlined" sx={{ minHeight: '100%', padding: 2 }}>
                         <Typography variant="body2" sx={{
@@ -237,7 +238,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                     ]} />
                 </Section> }
             { !!message.messageId &&
-                <Section title="Delivery">
+                <Section icon={ <MarkEmailReadOutlinedIcon /> } title="Delivery">
                     <KeyValueList items={[
                         {
                             key: 'Message ID',
@@ -271,6 +272,5 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
     );
 }
 
-export const metadata: Metadata = {
-    title: 'E-mail message | Outbox | AnimeCon Volunteer Manager',
-};
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id' }, 'E-mail', 'Outbox', 'Communication');
