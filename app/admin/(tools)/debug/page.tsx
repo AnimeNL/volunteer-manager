@@ -4,6 +4,7 @@
 import BugReportOutlinedIcon from '@mui/icons-material/BugReportOutlined';
 import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import PodcastsIcon from '@mui/icons-material/Podcasts';
+import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -31,6 +32,21 @@ export default async function DebugPage() {
                     Icon: PodcastsIcon,
                     label: 'Communication',
                     href: '/admin/debug/communication',
+                },
+                {
+                    Icon: ReportOutlinedIcon,
+                    label: 'HTTP 401 Unauthorized',
+                    href: '/admin/debug/unauthorized',
+                },
+                {
+                    Icon: ReportOutlinedIcon,
+                    label: 'HTTP 403 Forbidden',
+                    href: '/admin/debug/forbidden',
+                },
+                {
+                    Icon: ReportOutlinedIcon,
+                    label: 'HTTP 404 Not Found',
+                    href: '/admin/debug/not-found',
                 },
                 {
                     Icon: BuildOutlinedIcon,

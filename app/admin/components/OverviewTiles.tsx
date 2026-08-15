@@ -109,7 +109,10 @@ export function OverviewTile(props: OverviewTileProps) {
         <Grid size={{ xs: 6, md: 4, lg: 3 }}>
             <Paper sx={{ p: 1 }}>
                 <Button LinkComponent={Link} href={props.href} fullWidth
-                        startIcon={ props.Icon ? <props.Icon /> : undefined } color="inherit">
+                        startIcon={ props.Icon ? <props.Icon /> : undefined } color="inherit" sx={{
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                        }}>
                     {props.label}
                 </Button>
             </Paper>
