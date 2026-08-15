@@ -77,6 +77,11 @@ export type ServerActionResult = {
     close?: boolean;
 
     /**
+     * Optional Markdown (now JSX) payload included in the response.
+     */
+    markdown?: React.ReactNode;
+
+    /**
      * Optional message that can be presented to the user.
      */
     message?: string;

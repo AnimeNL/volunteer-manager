@@ -8,6 +8,7 @@ import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from './PromptFactory';
 import type { Language } from './Language';
+import { Markdown } from '@components/Markdown/index';
 import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -232,7 +233,7 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
 
         return {
             success: true,
-            message: response.text,
+            markdown: <Markdown content={response.text} />,
         };
     });
 }
@@ -293,7 +294,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
 
         return {
             success: true,
-            message: response.text,
+            markdown: <Markdown content={response.text} />,
         };
     });
 }

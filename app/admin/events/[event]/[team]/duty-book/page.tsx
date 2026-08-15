@@ -10,6 +10,7 @@ import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withC
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 
 import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
+import { Markdown } from '@app/components/Markdown/index';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { SummaryAction } from './SummaryAction';
@@ -82,7 +83,7 @@ async function generateSummary(event: string, team: string) {
 
         return {
             success: true,
-            summary: summary.text,
+            markdown: <Markdown content={summary.text} />,
         };
     });
 }

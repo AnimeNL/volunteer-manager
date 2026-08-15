@@ -11,6 +11,10 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 
+import Stack from '@mui/material/Stack';
+
+import { kMuiComponents } from './MuiComponents';
+
 /**
  * Props accepted by the <Markdown> component.
  */
@@ -32,10 +36,17 @@ export async function Markdown(props: MarkdownProps) {
         .use(remarkRehype)
         .use(rehypeReact, {
             Fragment: prod.Fragment,
+            components: kMuiComponents,
             jsx: prod.jsx,
             jsxs: prod.jsxs,
         })
         .process(props.content);
     
-    return <>{file.result}</>;
+    console.log('--- [checkpoint] New Markdown pipeline used');
+
+    return (
+        <Stack direction="column" spacing={2}>
+            {file.result}
+        </Stack>
+    );
 }

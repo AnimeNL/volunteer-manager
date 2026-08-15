@@ -21,9 +21,9 @@ export interface DocumentationContainerProps {
     title: string;
 
     /**
-     * The Markdown content of the documentation, if successfully loaded.
+     * The Markdown content of the documentation in JSX, if successfully loaded.
      */
-    content: string | undefined;
+    content: React.ReactNode | undefined;
 
     /**
      * The error message if loading the documentation failed.

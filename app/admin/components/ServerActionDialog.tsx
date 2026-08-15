@@ -19,7 +19,6 @@ import Typography from '@mui/material/Typography';
 
 import type { ServerAction } from '@lib/serverAction';
 import { FormProvider, FormProviderContext } from '@components/FormProvider';
-import { Markdown } from '@components/Markdown';
 
 /**
  * Types of content that can be rendered in the <SettingDialog> slots.
@@ -133,19 +132,12 @@ function InnerServerActionDialog(props: React.PropsWithChildren<InnerServerActio
     const submitLabel = props.submitLabel ?? 'Update';
 
     let errorMessage: React.ReactNode;
-    if (formContext.result?.success === false) {
-        errorMessage = (
-            <Markdown defaultVariant="body2">{
-                formContext.result.error || 'Something went wrong committing this action'
-            }</Markdown>
-        );
-    }
+    if (formContext.result?.success === false)
+        errorMessage = formContext.result.error || 'Something went wrong committing this action';
 
     let successMessage: React.ReactNode;
     if (formContext.result?.success && 'message' in formContext.result) {
-        successMessage = (
-            <Markdown defaultVariant="body2">{formContext.result.message}</Markdown>
-        );
+        successMessage = formContext.result.message;
     }
 
     return (

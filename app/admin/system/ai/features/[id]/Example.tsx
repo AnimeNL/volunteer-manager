@@ -16,7 +16,6 @@ import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../../GenerateButton';
 import { HiddenInput } from '@components/HiddenInput';
-import { Markdown } from '@components/Markdown';
 
 /**
  * Props accepted by the <Example> component.
@@ -38,13 +37,13 @@ interface ExampleProps {
  * by executing it on a model. It provides some basic interaction as the response becomes available.
  */
 export function Example(props: ExampleProps) {
-    const [ generatedText, setGeneratedText ] = useState<string | undefined>();
+    const [ generatedText, setGeneratedText ] = useState<React.ReactNode | undefined>();
 
     const handleClose = useCallback(() => setGeneratedText(undefined), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (formData: unknown) => {
         const response = await props.action(formData);
-        if (response.success && 'message' in response)
-            setGeneratedText(response.message);
+        if (response.success && 'markdown' in response)
+            setGeneratedText(response.markdown);
 
         return response;
 
@@ -68,8 +67,8 @@ export function Example(props: ExampleProps) {
                     <DialogTitle>
                         Generated text
                     </DialogTitle>
-                    <DialogContent sx={{ whiteSpace: 'pre-line' }}>
-                        <Markdown defaultVariant="body2">{generatedText}</Markdown>
+                    <DialogContent>
+                        {generatedText}
                     </DialogContent>
                     <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
                         <Button onClick={handleClose} variant="text">Close</Button>

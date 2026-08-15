@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { Markdown } from '@components/Markdown';
+import { Markdown } from '@components/Markdown/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
@@ -76,7 +76,7 @@ export default async function NardoPersonalisedAdvicePage(
                         valueTemplate: 'localDateTime',
                     },
                 ]} />
-                <Markdown defaultVariant="body2">{advice.output}</Markdown>
+                <Markdown content={advice.output} />
             </Section>
             <Section icon={ <NotesIcon /> } title="Input prompt">
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>

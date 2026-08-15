@@ -17,6 +17,7 @@ import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HiddenInput } from '@components/HiddenInput';
+import { Markdown } from '@components/Markdown/index';
 import { PersonalityDialogAction } from './PersonalityDialogAction';
 import { PromptIcon } from '../PromptIcon';
 import { Section } from '@app/admin/components/Section';
@@ -71,10 +72,11 @@ export default async function CommunicationAiPage() {
     // Action to enable visualising the default personality prompt, which in itself is AI generated.
     let defaultPersonalityAction: React.ReactNode;
     if (!!settings['ai-communication-personality-prompt']) {
-        defaultPersonalityAction = (
-            <PersonalityDialogAction
-                personality={settings['ai-communication-personality-prompt']} />
-        );
+        const personalityMarkdown =
+            <Markdown content={settings['ai-communication-personality-prompt']} />
+
+        defaultPersonalityAction =
+            <PersonalityDialogAction personality={personalityMarkdown} />;
     }
 
     return (

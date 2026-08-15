@@ -46,7 +46,7 @@ export function DocumentationButton(props: DocumentationButtonProps) {
         history: 'push',  // enable a back navigation to close the documentation
     });
 
-    const [ content, setContent ] = useState<string | undefined>(undefined);
+    const [ content, setContent ] = useState<React.ReactNode | undefined>(undefined);
     const [ error, setError ] = useState<string | undefined>(undefined);
     const [ loading, setLoading ] = useState<boolean>(false);
 
@@ -68,7 +68,7 @@ export function DocumentationButton(props: DocumentationButtonProps) {
             setLoading(true);
             try {
                 const response = await fetchDocumentation(props.topic);
-                response.success ? setContent(response.content)
+                response.success ? setContent(response.markdown)
                                  : setError(response.error ?? 'Unable to load the documentation');
 
             } catch (error: any) {

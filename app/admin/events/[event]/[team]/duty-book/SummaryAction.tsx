@@ -18,7 +18,6 @@ import Skeleton from '@mui/material/Skeleton';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerActionResult } from '@lib/serverAction';
-import { Markdown } from '@app/components/Markdown';
 
 /**
  * Props accepted by the <SummaryAction> component.
@@ -39,20 +38,20 @@ export function SummaryAction(props: SummaryActionProps) {
     const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
 
     const [ error, setError ] = useState<string | undefined>(undefined);
-    const [ summary, setSummary ] = useState<string | undefined>(undefined);
+    const [ summary, setSummary ] = useState<React.ReactNode | undefined>(undefined);
 
     useEffect(() => {
         if (!dialogOpen)
             return;  // only consider generating a summary when the dialog's being opened
 
-        if (!!error || !!summary)
+        if (!!error || summary !== undefined)
             return;  // a summary has already been (tried to be) generated
 
         props.generateSummaryFn().then(result => {
             if (!result.success) {
                 setError(result.error ?? 'A server error occurred while generating a summary.');
             } else {
-                setSummary(result.summary);
+                setSummary(result.markdown);
             }
         }, error => {
             setError(error?.message ?? 'A client error occurred while generating a summary.');
@@ -74,11 +73,8 @@ export function SummaryAction(props: SummaryActionProps) {
                         <Collapse in={!!error}>
                             <Alert severity="error">{error}</Alert>
                         </Collapse>
-                        { !!summary &&
-                            <Markdown sx={{
-                                '& h5:first-child': { pb: 0.5, fontSize: 24 }
-                            }}>{summary}</Markdown> }
-                        { !summary &&
+                        { summary !== undefined && summary }
+                        { summary === undefined &&
                             <>
                                 <Skeleton variant="text" animation="wave" width="85%" height={8} />
                                 <Skeleton variant="text" animation="wave" width="65%" height={8} />

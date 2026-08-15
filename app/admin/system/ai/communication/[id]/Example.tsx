@@ -18,7 +18,6 @@ import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../../GenerateButton';
 import { HiddenInput } from '@components/HiddenInput';
-import { Markdown } from '@components/Markdown';
 
 /**
  * Array of the supported languages. Gemini supports many more, but these ones are exposed.
@@ -57,13 +56,13 @@ interface ExampleProps {
  * by executing it on a model. It provides some basic interaction as the response becomes available.
  */
 export function Example(props: ExampleProps) {
-    const [ generatedMessage, setGeneratedMessage ] = useState<string | undefined>();
+    const [ generatedMessage, setGeneratedMessage ] = useState<React.ReactNode | undefined>();
 
     const handleClose = useCallback(() => setGeneratedMessage(undefined), [ /* no deps */ ]);
     const handleSubmit = useCallback(async (formData: unknown) => {
         const response = await props.action(formData);
-        if (response.success && 'message' in response)
-            setGeneratedMessage(response.message);
+        if (response.success && 'markdown' in response)
+            setGeneratedMessage(response.markdown);
 
         return response;
 
@@ -102,8 +101,8 @@ export function Example(props: ExampleProps) {
                     <DialogTitle>
                         Generated message
                     </DialogTitle>
-                    <DialogContent sx={{ whiteSpace: 'pre-line' }}>
-                        <Markdown defaultVariant="body2">{generatedMessage}</Markdown>
+                    <DialogContent>
+                        {generatedMessage}
                     </DialogContent>
                     <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
                         <Button onClick={handleClose} variant="text">Close</Button>
