@@ -3,9 +3,13 @@
 
 'use client';
 
+import { useCallback } from 'react';
+
 import ExtensionIcon from '@mui/icons-material/Extension';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+
+import type { ServerActionResult } from '@lib/serverAction';
 
 /**
  * Props accepted by the <SubscriptionTestAction> component.
@@ -14,7 +18,7 @@ interface SubscriptionTestActionProps {
     /**
      * Server Action to execute when running the test.
      */
-    testFn: () => Promise<void>;
+    testFn: () => Promise<ServerActionResult>;
 }
 
 /**
@@ -23,13 +27,15 @@ interface SubscriptionTestActionProps {
  * to test messages, regardless of messaging channel.
  */
 export function SubscriptionTestAction(props: SubscriptionTestActionProps) {
+    const handlePublish = useCallback(async () => {
+        await props.testFn();
+    }, [ props.testFn ]);
+
     return (
-        <form action={props.testFn}>
-            <IconButton size="small" type="submit">
-                <Tooltip title="Publish a test message">
-                    <ExtensionIcon fontSize="small" color="warning" />
-                </Tooltip>
-            </IconButton>
-        </form>
+        <IconButton size="small" onClick={handlePublish}>
+            <Tooltip title="Publish a test message">
+                <ExtensionIcon fontSize="small" color="warning" />
+            </Tooltip>
+        </IconButton>
     );
 }

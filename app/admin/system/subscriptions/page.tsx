@@ -1,7 +1,6 @@
-// Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
 import StreamIcon from '@mui/icons-material/Stream';
@@ -9,13 +8,12 @@ import StreamIcon from '@mui/icons-material/Stream';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { EligibilityCell, EligibilityHeader } from './SubscriptionCells';
-import { LogBuilder } from '@lib/log/index';
-import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTestAction } from './SubscriptionTestAction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { executeServerAction } from '@lib/serverAction';
+import { publishSubscriptionTest } from './SubscriptionActions';
 import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
@@ -85,7 +83,13 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
                             ? `${user.subscriptionCount} active subscriptions`
                             : `${user.subscriptionCount} active subscription`,
             }))
-            .filter(row => row.subscriptionCount || row.eligible);
+            .filter(row => row.subscriptionCount || row.eligible)
+            .filter(row => {
+                if (!params.search)
+                    return true;
+
+                return row.name.toLowerCase().includes(params.search.toLowerCase());
+            });
 
         const sortField = params.sort.field;
         const sortDirection = params.sort.direction;
@@ -110,34 +114,6 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
 });
 
 /**
- * Server action that will publish a test notification to all users who have subscribed to test
- * messages.
- */
-async function publishTestMessage() {
-    'use server';
-    await executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals',
-        });
-
-        await Publish({
-            type: kSubscriptionType.Test,
-            sourceUserId: props.user.id,
-            message: {
-                userId: props.user.id,
-                name: props.user.nameOrFirstName,
-            },
-        });
-
-        LogBuilder.for('PublishSubscriptionTest')
-            .withInitiatorUser(props.user)
-            .withSeverity('Debug')
-            .record();
-    });
-}
-
-/**
  * The <SubscriptionPage> is the main page of the subscription functionality, which allows us to
  * selectively sign up certain people to automated and/or privileged messaging.
  */
@@ -149,7 +125,7 @@ export default async function SubscriptionPage() {
 
     let action: React.ReactNode;
     if (access.can('system.internals'))
-        action = <SubscriptionTestAction testFn={publishTestMessage} />;
+        action = <SubscriptionTestAction testFn={publishSubscriptionTest} />;
 
     const columns: Column<ExtractRowModel<typeof subscriptionsDataSource>>[] = [
         {
@@ -208,7 +184,6 @@ export default async function SubscriptionPage() {
                     columns={columns}
                     source={subscriptionsDataSource}
                     defaultSort={{ field: 'name', sort: 'asc' }}
-                    disableFooter
                     pageSize={100}
                     listViewProps={{
                         primaryField: 'name',
@@ -222,6 +197,4 @@ export default async function SubscriptionPage() {
     );
 }
 
-export const metadata: Metadata = {
-    title: 'Subscriptions | AnimeCon Volunteer Manager',
-};
+export const generateMetadata = createGenerateMetadataFn('Subscriptions', 'Communication');

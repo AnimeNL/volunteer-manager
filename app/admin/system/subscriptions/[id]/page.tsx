@@ -2,148 +2,31 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
-import { z } from 'zod/v4';
 
 import { ToggleButtonGroupElement } from '@app/components/proxy/react-hook-form-mui';
 
-import type SvgIcon from '@mui/material/SvgIcon';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import BookIcon from '@mui/icons-material/Book';
 import Grid from '@mui/material/Grid';
-import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
-import MultipleStopIcon from '@mui/icons-material/MultipleStop';
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import StreamIcon from '@mui/icons-material/Stream';
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
-import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { executeServerAction } from '@lib/serverAction';
-import db, { tSubscriptions, tTeams, tUsers } from '@lib/database';
-
-import { kSubscriptionType, type SubscriptionType } from '@lib/database/Types';
-import { kTargetToTypeId } from '@lib/subscriptions/drivers/HelpDriver';
-
-/**
- * Subscription data is a key/value mapping of active subscriptions.
- */
-const kUpdateSubscriptionsData = z.looseObject({ /* freeform */ });
-
-/**
- * Server Action through which subscriptions can be updated. This action executes a diffing
- * operation to align the database with the submitted configuration. Subscriptions that are no
- * longer recognised (because they e.g. have been removed) will be silently removed.
- */
-async function updateSubscriptions(userId: number, formData: unknown) {
-    'use server';
-    return executeServerAction(formData, kUpdateSubscriptionsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.subscriptions.management',
-        });
-
-        const subscriptionTypes = await getSubscriptionTypes();
-
-        const activeSubscriptions = await db.selectFrom(tSubscriptions)
-            .where(tSubscriptions.subscriptionUserId.equals(userId))
-            .select({
-                id: tSubscriptions.subscriptionId,
-                type: tSubscriptions.subscriptionType,
-                typeId: tSubscriptions.subscriptionTypeId,
-                channelEmail: tSubscriptions.subscriptionChannelEmail,
-                channelSms: tSubscriptions.subscriptionChannelSms,
-                channelWhatsapp: tSubscriptions.subscriptionChannelWhatsapp,
-            })
-            .executeSelectMany();
-
-        await db.transaction(async () => {
-            const consultedActiveSubscriptions: Set<number> = new Set();
-
-            for (const subscriptionType of subscriptionTypes) {
-                let channels: string[] = [ /* none */ ];
-                if (Object.hasOwn(data, subscriptionType.id))
-                    channels = data[subscriptionType.id] as string[];
-
-                const email = channels.includes('email') ? 1 : 0;
-                const sms = channels.includes('sms') ? 1 : 0;
-                const whatsapp = channels.includes('whatsapp') ? 1 : 0;
-
-                const existing = activeSubscriptions.find(subscription => {
-                    return subscription.type === subscriptionType.type &&
-                           subscription.typeId === (subscriptionType.typeId ?? undefined);
-                });
-
-                if (existing)
-                    consultedActiveSubscriptions.add(existing.id);
-
-                if (email === 0 && sms === 0 && whatsapp === 0) {
-                    if (existing) {
-                        await db.deleteFrom(tSubscriptions)
-                            .where(tSubscriptions.subscriptionId.equals(existing.id))
-                            .executeDelete();
-                    }
-                } else {
-                    if (existing) {
-                        if (existing.channelEmail !== email || existing.channelSms !== sms ||
-                                existing.channelWhatsapp !== whatsapp)
-                        {
-                            await db.update(tSubscriptions)
-                                .set({
-                                    subscriptionChannelEmail: email,
-                                    subscriptionChannelSms: sms,
-                                    subscriptionChannelWhatsapp: whatsapp,
-                                })
-                                .where(tSubscriptions.subscriptionId.equals(existing.id))
-                                .executeUpdate();
-                        }
-                    } else {
-                        await db.insertInto(tSubscriptions)
-                            .set({
-                                subscriptionUserId: userId,
-                                subscriptionType: subscriptionType.type,
-                                subscriptionTypeId: subscriptionType.typeId,
-                                subscriptionChannelEmail: email,
-                                subscriptionChannelNotification: 0,
-                                subscriptionChannelSms: sms,
-                                subscriptionChannelWhatsapp: whatsapp,
-                            })
-                            .executeInsert();
-                    }
-                }
-            }
-
-            for (const subscription of activeSubscriptions) {
-                if (consultedActiveSubscriptions.has(subscription.id))
-                    continue;
-
-                await db.deleteFrom(tSubscriptions)
-                    .where(tSubscriptions.subscriptionId.equals(subscription.id))
-                    .executeDelete();
-            }
-        });
-
-        LogBuilder.for('UpdateAccountSubscriptions')
-            .withInitiatorUser(props.user)
-            .withAffectedUser(userId)
-            .withSeverity('Warning')
-            .record();
-
-        return { success: true };
-    });
-}
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { getSubscriptionTypes, updateSubscriptions } from '../SubscriptionActions';
+import { kSubscriptionType } from '@lib/database/Types';
+import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tSubscriptions, tUsers } from '@lib/database';
 
 /**
  * Available channels for subscriptions to be delivered through.
@@ -259,12 +142,12 @@ export default async function AccountSubscriptionPage(
     return (
         <>
             <Section icon={ <StreamIcon color="primary" /> }
-                        title={`Subscriptions for ${user.firstName}`}
-                        breadcrumbs={[
-                            { label: 'Communication', href: '/admin/system/communication' },
-                            { label: 'Subscriptions', href: '/admin/system/subscriptions' },
-                            { label: user.firstName },
-                        ]}>
+                     title={`Subscriptions for ${user.firstName}`}
+                     breadcrumbs={[
+                         { label: 'Communication', href: '/admin/system/communication' },
+                         { label: 'Subscriptions', href: '/admin/system/subscriptions' },
+                         { label: user.firstName },
+                     ]}>
                 <SectionIntroduction>
                     Subscriptions available for <InlineAccountLink user={user} /> over e-mail, SMS
                     or WhatsApp.
@@ -315,93 +198,5 @@ export default async function AccountSubscriptionPage(
     );
 }
 
-/**
- * Information that should be compiled for each subscription available in the system.
- */
-interface SubscriptionTypeInfo {
-    /**
-     * Unique ID of the subscription type.
-     */
-    id: string;
-
-    /**
-     * Type of subscription.
-     */
-    type: SubscriptionType;
-
-    /**
-     * ID within the type, to signal e.g. the team the application was for.
-     */
-    typeId: number | null;
-
-    /**
-     * Constructor for the icon used to identify this type.
-     */
-    Icon: typeof SvgIcon;
-
-    /**
-     * Label to display in a human readable way.
-     */
-    label: string;
-
-    /**
-     * Description with a slightly more elaborate explanation of what it's about.
-     */
-    description: string;
-}
-
-/**
- * Returns a comprehensive list of the subscription types that are available within the portal.
- */
-async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
-    const teams = await db.selectFrom(tTeams)
-        .select({
-            id: tTeams.teamId,
-            name: tTeams.teamName,
-        })
-        .orderBy('name', 'asc')
-        .executeSelectMany();
-
-    return [
-        ...teams.map(team => ({
-            id: `${kSubscriptionType.Application}/${team.id}`,
-            type: kSubscriptionType.Application,
-            typeId: team.id,
-            Icon: NewReleasesIcon,
-            label: `Application for ${team.name}`,
-            description: 'When a volunteer applies to help out',
-        })),
-        ...Object.entries(kTargetToTypeId).map(([ type, typeId ]) => ({
-            id: `${kSubscriptionType.Help}/${typeId}`,
-            type: kSubscriptionType.Help,
-            typeId: typeId,
-            Icon: HelpOutlineOutlinedIcon,
-            label: `Help request for ${type}`,
-            description: 'Request for help issued through our displays',
-        })),
-        {
-            id: kSubscriptionType.Incident,
-            type: kSubscriptionType.Incident,
-            typeId: null,
-            Icon: BookIcon,
-            label: 'Duty Book incidents',
-            description: 'Report of an incident through the portal',
-        },
-        {
-            id: kSubscriptionType.Registration,
-            type: kSubscriptionType.Registration,
-            typeId: null,
-            Icon: PersonAddIcon,
-            label: 'New user registrations',
-            description: 'Creation of a new user account on the portal',
-        },
-        {
-            id: kSubscriptionType.Test,
-            type: kSubscriptionType.Test,
-            typeId: null,
-            Icon: MultipleStopIcon,
-            label: 'Internal test messages',
-            description: /* none= */ '',
-        },
-    ];
-}
+export const generateMetadata =
+    createGenerateMetadataFn({ user: 'id' }, 'Subscriptions', 'Communication');
