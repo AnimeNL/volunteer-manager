@@ -29,7 +29,7 @@ export async function fetchDocumentation(topic: string) {
 
         return {
             success: true,
-            markdown: <Markdown content={content.markdown} />,
+            markdown: <Markdown content={content.content} />,
         };
     });
 }

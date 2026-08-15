@@ -30,7 +30,7 @@ export default async function PrivacyPage() {
     return (
         <RegistrationLayout environment={environment}>
             <RegistrationContentContainer title="GDPR & Data Sharing Policies" user={user}>
-                <Markdown sx={{ p: 2 }}>{content.markdown}</Markdown>
+                <Markdown sx={{ p: 2 }}>{content.content}</Markdown>
             </RegistrationContentContainer>
         </RegistrationLayout>
     );

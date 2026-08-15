@@ -137,7 +137,7 @@ export default async function EventApplicationTrainingPage(
             { !assignment?.confirmed &&
                 <AvailabilityWarning currentTime={currentTime} window={settings.availability} /> }
 
-            { !!content && <Markdown>{content.markdown}</Markdown> }
+            { !!content && <Markdown>{content.content}</Markdown> }
 
             { !!assignment?.confirmed &&
                 <TrainingConfirmation timezone={settings.timezone}

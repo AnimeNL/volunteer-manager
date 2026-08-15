@@ -134,7 +134,7 @@ export default async function EventApplicationHotelsPage(
             { !bookings &&
                 <AvailabilityWarning currentTime={currentTime} window={settings.availability} /> }
 
-            { !!content && <Markdown>{content.markdown}</Markdown> }
+            { !!content && <Markdown>{content.content}</Markdown> }
 
             { !!bookings && <HotelConfirmation eventId={event.id} userId={user.id} /> }
 

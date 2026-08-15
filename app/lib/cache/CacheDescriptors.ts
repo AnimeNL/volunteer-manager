@@ -31,7 +31,7 @@ interface CacheDescriptorMap {
         };
         Contents: {
             title: string;
-            markdown: string;
+            content: string;
         };
     };
 

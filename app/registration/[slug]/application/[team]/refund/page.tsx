@@ -105,7 +105,7 @@ export default async function EventApplicationRefundPage(
 
     return (
         <Box sx={{ p: 2 }}>
-            { content && <Markdown>{content.markdown}</Markdown> }
+            { content && <Markdown>{content.content}</Markdown> }
 
             <Collapse in={!!refund} unmountOnExit>
                 <RefundConfirmation refund={refund} />

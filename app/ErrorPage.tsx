@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 
 import { ErrorPageClientReporter } from './ErrorPageClientReporter';
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
-import { Markdown } from '@components/Markdown';
+import { Markdown } from '@components/Markdown/index';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from './registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
@@ -68,13 +68,13 @@ export async function ErrorPage(props: ErrorPageProps) {
 
     const content = await getStaticContent([ `errors/${props.statusCode}` ]) || {
         title: kFatalErrorTitle,
-        markdown: kFatalErrorContent,
+        content: kFatalErrorContent,
     };
 
     return (
         <RegistrationLayout environment={environment}>
             <RegistrationContentContainer title={content.title} user={user}>
-                <Markdown sx={{ p: 2 }}>{content.markdown}</Markdown>
+                <Markdown content={content.content} />
                 <ErrorPageClientReporter statusCode={props.statusCode} />
             </RegistrationContentContainer>
         </RegistrationLayout>

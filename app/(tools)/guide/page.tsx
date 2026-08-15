@@ -51,8 +51,8 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
             <RegistrationContentContainer title="Volunteering Guide"
                                           user={authenticationContext.user}>
                 { !!envContent &&
-                    <Markdown sx={{ p: 2, pb: 0 }}>{envContent.markdown}</Markdown> }
-                <Markdown sx={{ p: 2 }}>{globalContent.markdown}</Markdown>
+                    <Markdown sx={{ p: 2, pb: 0 }}>{envContent.content}</Markdown> }
+                <Markdown sx={{ p: 2 }}>{globalContent.content}</Markdown>
             </RegistrationContentContainer>
         </RegistrationLayout>
     );

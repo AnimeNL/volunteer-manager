@@ -141,7 +141,7 @@ export default async function EventApplicationAvailabilityPage(
 
     return (
         <Box sx={{ p: 2 }}>
-            { content && <Markdown>{content.markdown}</Markdown> }
+            { content && <Markdown>{content.content}</Markdown> }
 
             { !!availabilityEvents &&
                 <AvailabilityExpectations

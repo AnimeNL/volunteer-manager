@@ -73,7 +73,7 @@ export async function passwordResetRequest(request: Request, props: ActionProps)
                 message: {
                     to: request.username,
                     subject: messageContent.title,
-                    markdown: messageContent.markdown,
+                    markdown: messageContent.content,
                 },
                 attribution: {
                     sourceUserId: passwordResetData.userId,

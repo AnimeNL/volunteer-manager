@@ -60,7 +60,7 @@ export default async function FeedbackPage() {
 
     return (
         <ExportLayout eventName={event.name}>
-            <FeedbackForm content={content?.markdown} volunteers={volunteers} />
+            <FeedbackForm content={content?.content} volunteers={volunteers} />
         </ExportLayout>
     );
 }

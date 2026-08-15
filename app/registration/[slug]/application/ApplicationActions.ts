@@ -209,7 +209,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
                 message: {
                     to: props.user.username!,
                     subject: applicationConfirmation.title,
-                    markdown: applicationConfirmation.markdown,
+                    markdown: applicationConfirmation.content,
                 },
                 attribution: {
                     sourceUserId: props.user.id,

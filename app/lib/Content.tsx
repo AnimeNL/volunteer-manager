@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EnvironmentDomain } from './Environment';
-import { Cache } from './cache/Cache';
+import { Cache } from '@lib/cache';
+import { Markdown } from '@components/Markdown/index';
 import db, { tContent, tTeams } from './database';
 
 /**
@@ -18,8 +19,15 @@ export interface Content {
     /**
      * Content of the page, formatted in Markdown. No length limits, but should be displayed using
      * the <Markdown> element to ensure proper display.
+     *
+     * @deprecated Use the `markdown` property instead.
      */
-    markdown: string;
+    content: string;
+
+    /**
+     * Content of the page, formatted in Markdown, compiled down to JSX.
+     */
+    markdown: React.ReactNode;
 }
 
 /**
@@ -50,7 +58,7 @@ export async function getContent(
         path: path.join('/'),
     };
 
-    let content = cache.get<Content>(cacheKey);
+    let content = cache.get<Omit<Content, 'markdown'>>(cacheKey);
     if (!content) {
         content = await db.selectFrom(tContent)
             .innerJoin(tTeams)
@@ -62,7 +70,7 @@ export async function getContent(
                 .and(tContent.revisionVisible.equals(/* true= */ 1))
             .select({
                 title: tContent.contentTitle,
-                markdown: tContent.content,
+                content: tContent.content,
             })
             .orderBy(tContent.revisionDate, 'desc')
             .limit(1)
@@ -79,18 +87,23 @@ export async function getContent(
     // representation and would thus carry forward to any future calls to `getContent()`.
     const copiedContent = structuredClone(content);
 
-    if (!substitutions)
-        return copiedContent;
+    if (!!substitutions) {
+        copiedContent.title = copiedContent.title.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
+        copiedContent.content = copiedContent.content.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
 
-    copiedContent.title = copiedContent.title.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
-    copiedContent.markdown = copiedContent.markdown.replace(/\\\{([a-z0-9_]+)\}/gi, '{$1}');
-
-    for (const [ key, value ] of Object.entries(substitutions)) {
-        copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, value);
-        copiedContent.markdown = copiedContent.markdown.replaceAll(`{${key}}`, value);
+        for (const [ key, value ] of Object.entries(substitutions)) {
+            copiedContent.title = copiedContent.title.replaceAll(`{${key}}`, value);
+            copiedContent.content = copiedContent.content.replaceAll(`{${key}}`, value);
+        }
     }
 
-    return copiedContent;
+    // TODO: Should we support a compiled Markdown cache at this point?
+
+    return {
+        title: copiedContent.title,
+        content: copiedContent.content,
+        markdown: <Markdown content={copiedContent.content} />,
+    };
 }
 
 /**

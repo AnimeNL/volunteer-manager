@@ -115,7 +115,7 @@ interface EventApplicationSpecialisedProps {
 async function EventApplicationNotAvailablePage() {
     const content = await getStaticContent([ 'registration', 'application', 'unavailable' ]);
     return (
-        <Markdown sx={{ p: 2 }}>{content?.markdown}</Markdown>
+        <Markdown sx={{ p: 2 }}>{content?.content}</Markdown>
     );
 }
 
@@ -232,7 +232,7 @@ async function EventApplicationFormPage(props: EventApplicationFormPageProps) {
     return (
         <FormProvider action={action} defaultValues={defaultValues}>
             <Box sx={{ p: 2 }}>
-                { !!content && <Markdown sx={{ pb: 2 }}>{content.markdown}</Markdown> }
+                { !!content && <Markdown sx={{ pb: 2 }}>{content.content}</Markdown> }
 
                 { !!team &&
                     <Alert severity="info" sx={{ mb: 2 }}>
@@ -315,7 +315,7 @@ async function EventApplicationStatusPage(props: EventApplicationSpecialisedProp
         <Box sx={{ p: 2 }}>
             { !!content &&
                 <>
-                    <Markdown sx={{ pb: 2 }}>{content.markdown}</Markdown>
+                    <Markdown sx={{ pb: 2 }}>{content.content}</Markdown>
                     <Divider />
                 </> }
             <List sx={{ pb: 0 }}>

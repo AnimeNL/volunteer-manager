@@ -134,7 +134,7 @@ export async function register(request: Request, props: ActionProps): Promise<Re
             message: {
                 to: request.username,
                 subject: messageContent.title,
-                markdown: messageContent.markdown,
+                markdown: messageContent.content,
             },
             attribution: {
                 sourceUserId: userId,

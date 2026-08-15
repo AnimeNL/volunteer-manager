@@ -44,7 +44,7 @@ export default async function EventContentPage(
     if (!!params.path?.length) {
         return (
             <Stack spacing={2} sx={{ p: 2 }}>
-                <Markdown>{content.markdown}</Markdown>
+                <Markdown>{content.content}</Markdown>
                 <MuiLink component={Link} href={`/registration/${event.slug}`}>
                     « Previous page
                 </MuiLink>
@@ -65,7 +65,7 @@ export default async function EventContentPage(
     return (
         <Stack spacing={2} sx={{ p: 2 }}>
 
-            <Markdown>{content.markdown}</Markdown>
+            <Markdown>{content.content}</Markdown>
 
             { (!event.applications.length && !!acceptsApplications) &&
                 <Button component={Link} href={`/registration/${event.slug}/application`}
