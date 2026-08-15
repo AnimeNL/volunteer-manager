@@ -1,19 +1,17 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
 import type React from 'react';
-import { useCallback, useState } from 'react';
 
-import { type FieldValues, FormContainer, CheckboxElement, TextFieldElement }
-    from '@proxy/react-hook-form-mui';
+import { CheckboxElement, TextFieldElement } from '@proxy/react-hook-form-mui';
+
+import Grid from '@mui/material/Grid';
 
 import type { Setting } from '@lib/Settings';
-import { Section } from '@app/admin/components/Section';
-import { SubmitCollapse } from '../../components/SubmitCollapse';
-import { callApi } from '@lib/callApi';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { updateSettings } from './SettingActions';
 
 /**
  * Configuration for an individual setting. The values don't have to be provided in the definition,
@@ -35,6 +33,16 @@ export type ConfigurableSetting = {
  */
 interface SettingSectionProps {
     /**
+     * Icon to display in the section header.
+     */
+    icon?: React.ReactNode;
+
+    /**
+     * Description of the section.
+     */
+    description: string;
+
+    /**
      * Settings that should be displayed in this section.
      */
     settings: ConfigurableSetting[];
@@ -49,67 +57,40 @@ interface SettingSectionProps {
  * The <SettingSection> component lists a number of settings that can be dynamically changed.
  */
 export function SettingSection(props: SettingSectionProps) {
-    const [ error, setError ] = useState<string>();
-    const [ invalidated, setInvalidated ] = useState<boolean>(false);
-    const [ loading, setLoading ] = useState<boolean>(false);
-
-    const handleChange = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
-    const handleSubmit = useCallback(async (data: FieldValues) => {
-        setLoading(true);
-        setError(undefined);
-        try {
-            const settings: { setting: string, value: number | string }[] = [];
-            for (const { setting } of Object.values(props.settings)) {
-                if (typeof data[setting] === 'undefined')
-                    throw new Error(`The "${setting}" setting does not have a value.`);
-
-                settings.push({
-                    setting,
-                    value: data[setting],
-                });
-            }
-
-            const response = await callApi('post', '/api/admin/update-settings', { settings });
-            if (response.success)
-                setInvalidated(false);
-            else
-                setError('Unable to save the settings to the database.');
-
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [ props.settings ]);
-
     const defaultValues: Record<string, boolean | number | string | string[] | undefined> = {};
-    for (const { setting, defaultValue, value } of Object.values(props.settings))
+    for (const { setting, defaultValue, value } of props.settings)
         defaultValues[setting] = value ?? defaultValue;
 
     return (
-        <FormContainer defaultValues={defaultValues} onSuccess={handleSubmit}>
-            <Section title={props.title}>
-                <KeyValueList items={ props.settings.map((setting, index) => {
+        <FormGridSection action={updateSettings} defaultValues={defaultValues}
+                         icon={props.icon} title={props.title}>
+            <Grid size={{ xs: 12 }}>
+                <SectionIntroduction>
+                    {props.description}
+                </SectionIntroduction>
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+                <KeyValueList items={ props.settings.map((setting) => {
+                    const key = setting.setting;
                     let value: React.ReactNode;
                     switch (setting.type) {
                         case 'boolean':
                             value = (
-                                <CheckboxElement name={setting.setting} size="small"
-                                                 onChange={handleChange} />
+                                <CheckboxElement key={key} name={setting.setting} size="small" />
                             );
                             break;
 
                         case 'number':
                             value = (
-                                <TextFieldElement name={setting.setting} type="number" size="small"
-                                                  fullWidth onChange={handleChange} />
+                                <TextFieldElement key={key} name={setting.setting} type="number"
+                                                  size="small" fullWidth />
                             );
                             break;
 
                         case 'string':
                             value = (
-                                <TextFieldElement name={setting.setting} size="small" fullWidth
-                                                  onChange={handleChange} />
+                                <TextFieldElement key={key} name={setting.setting} size="small"
+                                                  fullWidth />
                             );
                             break;
 
@@ -127,8 +108,7 @@ export function SettingSection(props: SettingSectionProps) {
                     };
 
                 }) } />
-                <SubmitCollapse error={error} loading={loading} open={invalidated} />
-            </Section>
-        </FormContainer>
+            </Grid>
+        </FormGridSection>
     );
 }

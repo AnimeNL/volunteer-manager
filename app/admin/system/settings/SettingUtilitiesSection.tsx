@@ -7,10 +7,10 @@ import { useCallback, useState } from 'react';
 
 import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { dayjs } from '@lib/DateTime';
@@ -34,28 +34,31 @@ export function SettingUtilitiesSection() {
     }, [ /* no dependencies */ ]);
 
     return (
-        <Section icon={ <BuildCircleOutlinedIcon color="primary" /> } title="Utilities">
+        <Section icon={ <BuildCircleOutlinedIcon /> } title="Utilities">
             <SectionIntroduction>
                 This section contains utilities that can help determine the value of aforementioned
                 settings.
             </SectionIntroduction>
-            <Paper variant="outlined" sx={{ px: 2, py: 1 }}>
-                <Typography variant="h6">
-                    Time offset calculator (UTC)
-                </Typography>
-                <Stack direction="row" spacing={2} sx={{
-                    alignItems: 'center',
-                    paddingTop: 1,
-                    paddingBottom: .5
-                }}>
-                    <DateTimePicker slotProps={{ textField: { size: 'small' } }}
-                                    onChange={handleDateTimePicked} />
-                    { !!dateTimeOffset &&
-                        <Typography variant="subtitle1">
-                            <strong>Offset</strong>: {dateTimeOffset}
-                        </Typography> }
-                </Stack>
-            </Paper>
+            <KeyValueList items={[
+                {
+                    key: 'Time offset calculator (UTC)',
+                    description:
+                        'Calculates the difference between the selected time and current time in ' +
+                        'seconds, useful for time offset settings.',
+                    keyAlign: 'center',
+                    value: (
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                            <DateTimePicker slotProps={{ textField: { size: 'small' } }}
+                                            onChange={handleDateTimePicked} />
+                            { typeof dateTimeOffset === 'number' &&
+                                <Typography variant="body2">
+                                    <strong>Offset:</strong> {dateTimeOffset}
+                                </Typography> }
+                        </Stack>
+                    ),
+                    valueTemplate: 'component',
+                },
+            ]} />
         </Section>
-    )
+    );
 }

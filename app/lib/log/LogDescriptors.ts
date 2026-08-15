@@ -56,11 +56,15 @@ interface LogTypeParameterMap {
 
     UpdateIntegrationSettings: {
         integration: 'AnimeCon' | 'Email' | 'Google' | 'Twilio' | 'Weeztix' | 'YourTicketProvider';
-    }
+    };
 
     UpdateLogMessageFormat: {
         type: string;
-    }
+    };
+
+    UpdateSystemSettings: {
+        updated: string[];
+    };
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
@@ -348,6 +352,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEmailAddress: 'UpdateEmailAddress',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
+    UpdateSystemSettings: 'UpdateSystemSettings',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts

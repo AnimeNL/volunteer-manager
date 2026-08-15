@@ -88,7 +88,6 @@ export const kLogType = {
     AdminUpdateIntegration: 'admin-update-integration',
     AdminUpdateRefundRequest: 'admin-update-refund-request',
     AdminUpdateRole: 'admin-update-role',
-    AdminUpdateSettings: 'admin-update-settings',
     AdminUpdateTeam: 'admin-update-team',
     AdminUpdateTeamVolunteer: 'admin-update-team-volunteer',
     AdminUpdateTeamVolunteerStatus: 'admin-update-team-volunteer-status',
