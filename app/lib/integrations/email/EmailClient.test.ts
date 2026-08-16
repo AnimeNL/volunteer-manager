@@ -67,7 +67,7 @@ describe('EmailClient', () => {
             headers: [],
 
             // Configuration:
-            html: '<p><strong>Hello</strong> world!</p>\n',
+            html: '<p><strong>Hello</strong> world!</p>',
             text: '**Hello** world!',
         });
     });
