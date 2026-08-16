@@ -11,10 +11,12 @@ import Box from '@mui/material/Box';
 
 import type { JsxComponentDescriptor, MDXEditorMethods } from '@mdxeditor/editor';
 import {
-    BlockTypeSelect, BoldItalicUnderlineToggles, CreateLink, DiffSourceToggleWrapper,
-    GenericJsxEditor, ListsToggle, MDXEditor, Separator, UndoRedo, diffSourcePlugin, headingsPlugin,
-    jsxPlugin, linkPlugin, linkDialogPlugin, listsPlugin, markdownShortcutPlugin, quotePlugin,
-    tablePlugin, thematicBreakPlugin, toolbarPlugin } from '@mdxeditor/editor';
+    AdmonitionDirectiveDescriptor, BlockTypeSelect, BoldItalicUnderlineToggles, CreateLink,
+    DiffSourceToggleWrapper, GenericJsxEditor, ListsToggle, MDXEditor, Separator, UndoRedo,
+    diffSourcePlugin, headingsPlugin, jsxPlugin, linkPlugin, linkDialogPlugin, listsPlugin,
+    markdownShortcutPlugin, quotePlugin, tablePlugin, thematicBreakPlugin, toolbarPlugin,
+    directivesPlugin}
+        from '@mdxeditor/editor';
 
 import { unrecognisedNodePlugin } from './mdxEditorPlugins';
 
@@ -59,6 +61,11 @@ export default function ContentEditorMdx(props: ContentEditorMdxProps) {
                        markdown={props.markdown ?? ''}
                        plugins={[
                            diffSourcePlugin({ diffMarkdown: props.markdown }),
+                           directivesPlugin({
+                               directiveDescriptors: [
+                                   AdmonitionDirectiveDescriptor
+                               ]
+                           }),
                            headingsPlugin(),
                            //imagePlugin(),
                            jsxPlugin({ jsxComponentDescriptors }),

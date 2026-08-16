@@ -256,7 +256,7 @@ const MdxEditorContainer = styled(Box)(({ theme }) => ([
             '--baseTextContrast': theme.vars?.palette.text.primary,
             fontSize: theme.typography.body2.fontSize,
         },
-        '& ._selectTrigger_f3hmk_308': {
+        '& button[aria-label="Block type"]': {
             backgroundColor: 'transparent',
         },
     },

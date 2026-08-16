@@ -6,6 +6,7 @@ import 'server-only';
 import * as prod from 'react/jsx-runtime';
 
 import rehypeReact from 'rehype-react';
+import remarkDirective from 'remark-directive';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
@@ -13,6 +14,7 @@ import { unified } from 'unified';
 
 import { Cache } from '@lib/cache';
 import { cyrb53 } from './cyrb53';
+import { remarkAdmonitionsPlugin } from './remarkAdmonitionsPlugin';
 
 import { kMuiComponents } from './MuiComponents';
 
@@ -25,6 +27,8 @@ export function markdownToJsx(content: string): React.ReactNode {
     return Cache.getInstance('ContentMarkdown').getOrInsert(hash, async () => {
         const file = await unified()
             .use(remarkParse)
+            .use(remarkDirective)
+                .use(remarkAdmonitionsPlugin)
             .use(remarkGfm)
             .use(remarkRehype)
             .use(rehypeReact, {

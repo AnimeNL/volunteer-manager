@@ -8,6 +8,7 @@ import Link from '@app/LinkProxy';
 import type { Components } from 'rehype-react';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Alert, { type AlertProps } from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
@@ -76,4 +77,37 @@ export const kMuiComponents: Partial<Components> = {
             {children}
         </Typography>,
 
+    // ---------------------------------------------------------------------------------------------
+    // Admonition (via the plugin)
+    // ---------------------------------------------------------------------------------------------
+
+    admonition: ({ children, type, ...props }) => {
+        let severity: AlertProps['severity'];
+        switch (type) {
+            case 'caution':
+                severity = 'warning';
+                break;
+
+            case 'danger':
+                severity = 'error';
+                break;
+
+            case 'tip':
+                severity = 'success';
+                break;
+
+            case 'info':
+            case 'note':
+            case 'tip':
+            default:
+                severity = 'info';
+                break;
+        }
+
+        return (
+            <Alert severity={severity} variant="outlined" {...props}>
+                {children}
+            </Alert>
+        );
+    }
 };
