@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { TeamsDataTable } from './TeamsDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 import * as actions from './TeamsActions';
@@ -23,7 +23,7 @@ import * as actions from './TeamsActions';
  * or jointly together with one or more other teams.
  */
 export default async function TeamsPage() {
-    const { access } = await requireAuthenticationContext({ check: 'admin' });
+    const { access } = await requireAuthentication();
     if (!access.can('organisation.teams')) {
         if (access.can('organisation.environments'))
             redirect('/admin/organisation/structure/environments');

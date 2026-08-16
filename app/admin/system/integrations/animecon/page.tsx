@@ -11,17 +11,14 @@ import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The AnimeCon integration page is able to issue various API calls for illustrative debugging
  * purposes. The API call responses are displayed in text areas for manual consumption.
  */
 export default async function AnimeConIntegrationPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.integrations',
-    });
+    await requireAuthentication('system.integrations');
 
     return (
         <>

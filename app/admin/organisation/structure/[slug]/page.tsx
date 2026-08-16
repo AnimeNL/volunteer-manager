@@ -21,7 +21,7 @@ import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
 import { Flag, type FlagProps } from './Flag';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 import * as actions from '../TeamsActions';
@@ -31,10 +31,7 @@ import * as actions from '../TeamsActions';
  * been indicated in the URL's parameters. The team's settings can be updated from here too.
  */
 export default async function TeamPage(props: PageProps<'/admin/organisation/structure/[slug]'>) {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.teams',
-    });
+    const { access } = await requireAuthentication('organisation.teams');
 
     const canDisableTeam = access.can('root');  // only root can disable teams
     const canResetInviteKey = access.can('admin');  // only admin (& root) can reset invite keys

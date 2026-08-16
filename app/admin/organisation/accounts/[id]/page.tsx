@@ -23,7 +23,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kFileType } from '@lib/database/Types';
@@ -37,12 +37,9 @@ import * as actions from './AccountActions';
 export default async function AccountInformationPage(
     props: PageProps<'/admin/organisation/accounts/[id]'>)
 {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'organisation.accounts',
-            operation: 'read',
-        },
+    const { access } = await requireAuthentication({
+        permission: 'organisation.accounts',
+        operation: 'read',
     });
 
     const { id } = await props.params;

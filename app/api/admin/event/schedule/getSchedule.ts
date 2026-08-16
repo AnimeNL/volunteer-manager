@@ -384,8 +384,11 @@ type Response = ApiResponse<typeof kGetScheduleDefinition>;
  */
 export async function getSchedule(request: Request, props: ActionProps): Promise<Response> {
     executeAccessCheck(props.authenticationContext, {
-        check: 'admin-event',
-        event: request.event,
+        permission: 'event.visible',
+        scope: {
+            event: request.event,
+            team: request.team,
+        },
     });
 
     const { event, team } = await validateContext(request);

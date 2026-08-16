@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import { EnvironmentsDataTable } from './EnvironmentsDataTable';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 import * as actions from '../TeamsActions';
@@ -24,10 +24,7 @@ import * as actions from '../TeamsActions';
  * reached, each having its own lightweight personalisation.
  */
 export default async function EnvironmentsPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.environments',
-    });
+    const { access } = await requireAuthentication('organisation.environments');
 
     const canCreateEnvironments = access.can('root');  // only root can create new environments
 

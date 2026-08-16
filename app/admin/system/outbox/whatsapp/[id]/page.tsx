@@ -7,7 +7,7 @@ import { Section } from '@app/admin/components/Section';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
 
@@ -18,10 +18,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
 export default async function OutboxWhatsAppDetailsPage(
     props: PageProps<'/admin/system/outbox/whatsapp/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    await requireAuthentication('system.internals.outbox');
 
     const params = await props.params;
 

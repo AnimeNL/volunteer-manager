@@ -13,6 +13,7 @@ import { Cache } from '@lib/cache';
 import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { ThemeProvider } from './layout/ThemeProvider';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { computePalette, type ColorPalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
@@ -33,7 +34,7 @@ const kVersionLink = 'https://github.com/beverloo/volunteer-manager';
  * (signed in) user, although the available options will depend on the user's access level.
  */
 export default async function RootAdminLayout(props: LayoutProps<'/admin'>) {
-    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+    const { access, user } = await requireAuthentication();
 
     const environment = await determineEnvironment();
     if (!environment)

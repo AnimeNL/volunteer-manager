@@ -11,14 +11,14 @@ import TabletIcon from '@mui/icons-material/Tablet';
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
 
 import { NavigationMenu } from '../../layout/NavigationMenu';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * This variant of the parallel route composes the menu for the Organisation section of our app. It
  * will be independently updated from the rest of the content.
  */
 export default async function OrganisationMenu() {
-    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+    const { access, user } = await requireAuthentication();
     return (
         <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {

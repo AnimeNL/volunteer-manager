@@ -17,7 +17,7 @@ import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { FormGridSection } from '../../components/FormGridSection';
 import { executeServerAction } from '@lib/serverAction';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { writeUserSetting } from '@lib/UserSettings';
 
 import { updateAccountSettings } from '../../organisation/accounts/[id]/AccountActions';
@@ -43,7 +43,7 @@ async function updateExperimentalLayoutOptIn(formData: unknown) {
  * account. These settings are global across AnimeCon Volunteer Manager sessions and instances.
  */
 export default async function AccountSettingsPage() {
-    const { user } = await requireAuthenticationContext({ check: 'admin' });
+    const { user } = await requireAuthentication();
 
     const settings = await readUserSettings(user.id, [
         'ai-example-messages',

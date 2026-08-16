@@ -11,7 +11,8 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tLogsFormat } from '@lib/database';
 
 import * as cells from './MessageFormatCells';
@@ -47,10 +48,7 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.settings',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.settings');
     },
 
     async create(row, props, context) {
@@ -152,10 +150,7 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
  * easy to mess up.
  */
 export default async function SystemLogsMessageFormattingPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.settings',
-    });
+    await requireAuthentication('system.internals.settings');
 
     const columns: Column<ExtractRowModel<typeof logsFormatDataSource>>[] = [
         {

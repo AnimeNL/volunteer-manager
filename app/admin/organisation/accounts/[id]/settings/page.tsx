@@ -12,7 +12,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
 import { updateAccountSettings } from '../AccountActions';
@@ -24,12 +24,9 @@ import { updateAccountSettings } from '../AccountActions';
 export default async function AccountSettingsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/settings'>)
 {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'organisation.accounts',
-            operation: 'read',
-        },
+    const { access } = await requireAuthentication({
+        permission: 'organisation.accounts',
+        operation: 'read',
     });
 
     const { id } = await props.params;

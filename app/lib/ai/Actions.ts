@@ -19,6 +19,7 @@ import { queryRecipientContext } from './prompts/context/RecipientContextParamet
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
 import { readSetting } from '@lib/Settings';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -83,7 +84,7 @@ export async function executeCommunicationPrompt(
         notFound();
 
     return executeServerAction(params, kCommunicationPromptData[id], async (inputData, props) => {
-        executeAccessCheck(props.authenticationContext, { check: 'admin' });
+        await requireAuthentication(props.authenticationContext);
 
         const dbInstance = db;
 
@@ -178,10 +179,7 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
     'use server';
 
     return executeServerAction(formData, kNardoPersonalisedAdviceData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.ai');
 
         // TODO: All this manual work doesn't scale for an example tool. This action either has to
         // move elsewhere, or we should find a scalable machanism to approach this.
@@ -258,10 +256,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
     'use server';
 
     return executeServerAction(formData, kCommunicationExamplePromptData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.ai');
 
         const promptInstance = PromptFactory.createById(data.id);
         if (!promptInstance)

@@ -10,7 +10,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext, executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tOutboxEmail, tUsers } from '@lib/database';
 
 /**
@@ -55,10 +55,7 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.outbox',
-        });
+        await requireAuthentication(props.authenticationContext, 'system.internals.outbox');
     },
 
     async list(params, props) {
@@ -130,10 +127,7 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
  * with specific permissions, as messages may contain e.g. password reset links.
  */
 export default async function OutboxEmailPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    await requireAuthentication('system.internals.outbox');
 
     return (
         <>

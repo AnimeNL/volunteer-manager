@@ -11,7 +11,7 @@ import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { invalidateTeamCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
 
 import { kEnvironmentPurpose } from '@lib/database/Types';
@@ -42,10 +42,7 @@ const kCreateEnvironmentData = z.object({
 export async function createEnvironment(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateEnvironmentData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'root',
-        });
+        await requireAuthentication('root');
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentDomain.equals(data.domain))
@@ -106,10 +103,7 @@ const kCreateTeamData = z.object({
 export async function createTeam(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateTeamData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'root',
-        });
+        await requireAuthentication('root');
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentId.equals(data.environment))
@@ -191,10 +185,7 @@ export async function createTeam(formData: unknown) {
 export async function deleteEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'root',  // only root can delete environments
-        });
+        await requireAuthentication('root');
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentId.equals(environmentId))
@@ -253,10 +244,7 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
 export async function resetTeamKey(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'root',  // only admin (& root) can reset keys
-        });
+        await requireAuthentication('root');
 
         const dbInstance = db;
         const teamName = await dbInstance.selectFrom(tTeams)
@@ -297,10 +285,7 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
 export async function toggleTeamEnabled(teamId: number, enabled: boolean, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'root',  // only root can disable environments
-        });
+        await requireAuthentication('root');
 
         const dbInstance = db;
         const existingTeam = await dbInstance.selectFrom(tTeams)
@@ -363,10 +348,7 @@ const kUpdateEnvironmentData = z.object({
 export async function updateEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateEnvironmentData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.environments',
-        });
+        await requireAuthentication('organisation.environments');
 
         const affectedRows = await db.update(tEnvironments)
             .set({
@@ -432,10 +414,7 @@ const kUpdateTeamData = z.object({
 export async function updateTeam(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateTeamData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.teams',
-        });
+        await requireAuthentication('organisation.teams');
 
         if (!data.availableRoleIds.length)
             return { success: false, error: 'The team must have at least one available role…' };

@@ -44,131 +44,83 @@ describe('AuthenticationContext', () => {
         expect(user?.lastName).toEqual('Example');
     });
 
-    it('is able to execute dedicated access checks: "admin"', () => {
-        // Case (1): Visitors are never administrators
+    it('is able to execute permission access checks', () => {
+        // Case (1): Unauthenticated visitors receive 401 Unauthorized
         const visitorAuthenticationContext = { access: new AccessControl({}), user: undefined };
         try {
-            executeAccessCheck(visitorAuthenticationContext, { check: 'admin' });
+            executeAccessCheck(visitorAuthenticationContext, 'test.boolean');
             expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
             expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(401);
         }
 
-        // Case (2): Implicit administrators through a role assignment
-        const implicitAdminAuthenticationContext = buildAuthenticationContext({
+        // Case (2): Authenticated user without the permission receives 403 Forbidden
+        const userWithoutPermContext = buildAuthenticationContext();
+        try {
+            executeAccessCheck(userWithoutPermContext, 'test.boolean');
+            expect.unreachable('executeAccessCheck was expected to throw');
+        } catch (error: any) {
+            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
+            expect(getAccessFallbackHTTPStatus(error)).toBe(403);
+        }
+
+        // Case (3): Authenticated user with the granted permission passes
+        const userWithPermContext = buildAuthenticationContext({
             access: {
-                grants: 'event.visible',
+                grants: 'test.boolean',
             },
         });
+        executeAccessCheck(userWithPermContext, 'test.boolean');
 
-        executeAccessCheck(implicitAdminAuthenticationContext, { check: 'admin' });
-
-        // Case (3): Users without either are not administrators
-        const userAuthenticationContext = buildAuthenticationContext();
-        try {
-            executeAccessCheck(userAuthenticationContext, { check: 'admin' });
-            expect.unreachable('executeAccessCheck was expected to throw');
-        } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
-            expect(getAccessFallbackHTTPStatus(error)).toBe(403);
-        }
-    });
-
-    it('is able to execute dedicated access checks: "admin-event"', () => {
-        // Case (1): Visitors are never administrators
-        const visitorAuthenticationContext = { access: new AccessControl({}), user: undefined };
-        try {
-            executeAccessCheck(visitorAuthenticationContext, { check: 'admin-event', event: 'XX' });
-            expect.unreachable('executeAccessCheck was expected to throw');
-        } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
-            expect(getAccessFallbackHTTPStatus(error)).toBe(401);
-        }
-
-        // Case (2): Explicit administrators through a permission
-        const explicitAdminAuthenticationContext = buildAuthenticationContext({
+        // Case (4): Scoped permission check (event match passes, event mismatch fails)
+        const userWithScopedPermContext = buildAuthenticationContext({
             access: {
-                grants: 'event.visible',
-                events: '2024',
+                grants: [
+                    { permission: 'event.settings', event: '2026' },
+                ],
             },
         });
-
-        executeAccessCheck(
-            explicitAdminAuthenticationContext, { check: 'admin-event', event: '2024' });
-
-        // Case (3): Participation in an event does not equate being granted access.
-        const participationAuthenticationContext = buildAuthenticationContext({
-            events: new Map([
-                [ '2024', 'stewards' ],
-            ]),
+        executeAccessCheck(userWithScopedPermContext, {
+            permission: 'event.settings',
+            scope: { event: '2026' },
         });
 
         try {
-            executeAccessCheck(
-                participationAuthenticationContext, { check: 'admin-event', event: '2024' });
-
+            executeAccessCheck(userWithScopedPermContext, {
+                permission: 'event.settings',
+                scope: { event: '2024' },
+            });
             expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
             expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
 
-        // Case (4): No administrator access when there is no assignment for the applicable event
-        const wrongEventAuthenticationContext = buildAuthenticationContext({
-            events: new Map([
-                [ '2017', 'hosts' ],
-            ]),
+        // Case (5): CRUD permission check
+        const userWithCrudPermContext = buildAuthenticationContext({
+            access: {
+                grants: [
+                    { permission: 'event.applications:read', event: '2026', team: 'stewards' },
+                ],
+            },
+        });
+        executeAccessCheck(userWithCrudPermContext, {
+            permission: 'event.applications',
+            operation: 'read',
+            scope: { event: '2026', team: 'stewards' },
         });
 
         try {
-            executeAccessCheck(
-                wrongEventAuthenticationContext, { check: 'admin-event', event: '2024' });
-
+            executeAccessCheck(userWithCrudPermContext, {
+                permission: 'event.applications',
+                operation: 'update',
+                scope: { event: '2026', team: 'stewards' },
+            });
             expect.unreachable('executeAccessCheck was expected to throw');
         } catch (error: any) {
             expect(isHTTPAccessFallbackError(error)).toBeTruthy();
             expect(getAccessFallbackHTTPStatus(error)).toBe(403);
         }
-
-        // Case (5): Users without either are not administrators
-        const userAuthenticationContext = buildAuthenticationContext();
-        try {
-            executeAccessCheck(userAuthenticationContext, { check: 'admin-event', event: '2024' });
-            expect.unreachable('executeAccessCheck was expected to throw');
-        } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
-            expect(getAccessFallbackHTTPStatus(error)).toBe(403);
-        }
-    });
-
-    it('is able to execute dedicated access checks: "event"', () => {
-        // Case (1): Visitors are never granted access
-        const visitorAuthenticationContext = buildAuthenticationContext();
-        try {
-            executeAccessCheck(visitorAuthenticationContext, { check: 'event', event: '2025' });
-            expect.unreachable('executeAccessCheck was expected to throw');
-        } catch (error: any) {
-            expect(isHTTPAccessFallbackError(error)).toBeTruthy();
-            expect(getAccessFallbackHTTPStatus(error)).toBe(403);
-        }
-
-        // Case (2): Participants are granted access (w/o administrator access):
-        const participantAuthenticationContext = buildAuthenticationContext({
-            events: new Map([
-                [ '2025', 'hosts.team' ],
-            ]),
-        });
-
-        executeAccessCheck(participantAuthenticationContext, { check: 'event', event: '2025' });
-
-        // Case (3): Participants are granted access (w/ administrator access):
-        const administratorAuthenticationContext = buildAuthenticationContext({
-            events: new Map([
-                [ '2025', 'hosts.team' ],
-            ]),
-        });
-
-        executeAccessCheck(administratorAuthenticationContext, { check: 'event', event: '2025' });
     });
 });

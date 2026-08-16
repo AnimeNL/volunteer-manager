@@ -11,7 +11,8 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tNardo, tUsers } from '@lib/database';
 
 /**
@@ -43,10 +44,7 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.nardo',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.nardo');
     },
 
     async create(partialRow, props) {
@@ -165,10 +163,7 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
  * issue to volunteers. Pieces can be updated and deleted.
  */
 export default async function NardoPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.nardo',
-    });
+    await requireAuthentication('organisation.nardo');
 
     const columns: Column<ExtractRowModel<typeof nardoDataSource>>[] = [
         {

@@ -17,7 +17,7 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEmailAccounts, tOutboxEmail, tUsers } from '@lib/database';
 
 /**
@@ -25,10 +25,7 @@ import db, { tEmailAccounts, tOutboxEmail, tUsers } from '@lib/database';
  * Manager. It includes all metainformation, including logs regarding the result.
  */
 export default async function OutboxEmailPage(props: PageProps<'/admin/system/outbox/email/[id]'>) {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    const { access } = await requireAuthentication('system.internals.outbox');
 
     const params = await props.params;
     const id = parseInt(params.id, 10);

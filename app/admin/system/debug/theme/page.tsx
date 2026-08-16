@@ -11,7 +11,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { computePalette } from '@app/admin/layout/ThemeUtilities';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kThemeImageVersion } from '@app/config';
 
@@ -20,10 +20,7 @@ import { kThemeImageVersion } from '@app/config';
  * theme, in the size at which they'll be displayed in reality.
  */
 export default async function ThemeDebugPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals',
-    });
+    await requireAuthentication('system.internals');
 
     type ThemeImage = {
         src: string;

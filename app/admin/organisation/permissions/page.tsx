@@ -10,7 +10,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';
@@ -142,12 +142,9 @@ function populatePermission(target: PermissionRecord[], info: PermissionInfo): v
  * Manager, with the ability to immediately see to whom they are available, and why.
  */
 export default async function PermissionsPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'organisation.permissions',
-            operation: 'read',
-        },
+    await requireAuthentication({
+        permission: 'organisation.permissions',
+        operation: 'read',
     });
 
     // ---------------------------------------------------------------------------------------------

@@ -7,7 +7,8 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
     from '@app/admin/components/DataTable';
 import { HelpRequestStatusCell, HelpRequestTargetCell } from './HelpRequestRowComponents';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestTarget } from '@lib/database/Types';
@@ -58,10 +59,7 @@ const helpRequestsDataSource = createDataSource('admin/organisation/displayReque
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.displays',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.displays');
     },
 
     async list(params, props) {
@@ -127,10 +125,7 @@ const helpRequestsDataSource = createDataSource('admin/organisation/displayReque
  * recently checked in, and allows them to be provisioned and configured.
  */
 export default async function HelpRequestsPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.displays',
-    });
+    await requireAuthentication('organisation.displays');
 
     const columns: Column<ExtractRowModel<typeof helpRequestsDataSource>>[] = [
         {

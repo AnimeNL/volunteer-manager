@@ -14,6 +14,8 @@ import { getEvent } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import db, { tContent, tContentCategories, tUsers } from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
+
 /**
  * Server action schema for creating a new content item.
  */
@@ -29,18 +31,18 @@ const kCreateContentData = z.object({
 export async function createContent(scope: ContentScope, linkPrefix: string, row: unknown) {
     return executeServerAction(row, kCreateContentData, async (data, props) => {
         if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: 'system.content',
-            });
+            executeAccessCheck(props.authenticationContext, 'system.content');
         } else {
             const event = await getEvent(scope.eventId);
             if (!event)
                 notFound();
 
             executeAccessCheck(props.authenticationContext, {
-                check: 'admin-event',
-                event: event.slug,
+                permission: 'event.visible',
+                scope: {
+                    event: event.slug,
+                    team: kAnyTeam,
+                },
             });
         }
 
@@ -96,18 +98,18 @@ export async function createContent(scope: ContentScope, linkPrefix: string, row
 export async function fetchContent(scope: ContentScope, id: number) {
     return executeServerAction({ /* no data */ }, z.object(), async (data, props) => {
         if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: 'system.content',
-            });
+            executeAccessCheck(props.authenticationContext, 'system.content');
         } else {
             const event = await getEvent(scope.eventId);
             if (!event)
                 notFound();
 
             executeAccessCheck(props.authenticationContext, {
-                check: 'admin-event',
-                event: event.slug,
+                permission: 'event.visible',
+                scope: {
+                    event: event.slug,
+                    team: kAnyTeam,
+                },
             });
         }
 
@@ -164,18 +166,18 @@ const kUpdateContentData = z.object({
 export async function updateContent(scope: ContentScope, id: number, row: unknown) {
     return executeServerAction(row, kUpdateContentData, async (data, props) => {
         if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: 'system.content',
-            });
+            executeAccessCheck(props.authenticationContext, 'system.content');
         } else {
             const event = await getEvent(scope.eventId);
             if (!event)
                 notFound();
 
             executeAccessCheck(props.authenticationContext, {
-                check: 'admin-event',
-                event: event.slug,
+                permission: 'event.visible',
+                scope: {
+                    event: event.slug,
+                    team: kAnyTeam,
+                },
             });
         }
 

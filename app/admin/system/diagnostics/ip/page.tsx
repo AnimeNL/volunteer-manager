@@ -12,19 +12,16 @@ import Link from '@app/LinkProxy';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tLogs } from '@lib/database';
 
 /**
  * Overview page for IP address diagnostics, providing the ability to look up addresses.
  */
 export default async function IpOverviewPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'system.logs',
-            operation: 'read',
-        },
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
     });
 
     const oneMonthAgo = Temporal.Now.zonedDateTimeISO().subtract({ months: 1 });

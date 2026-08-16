@@ -23,7 +23,8 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
@@ -68,10 +69,7 @@ const exportAccessLogsDataSource = createDataSource('organisation/exports/access
     }).optional(),
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.exports',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.exports');
     },
 
     async list(params, props, context) {
@@ -118,10 +116,7 @@ const exportAccessLogsDataSource = createDataSource('organisation/exports/access
 export default async function OrganisationExportsLogPage(
     props: PageProps<'/admin/organisation/exports/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.exports'
-    });
+    await requireAuthentication('organisation.exports');
 
     const environment = await determineEnvironment();
     if (!environment)

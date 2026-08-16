@@ -82,13 +82,9 @@ export const { DELETE, POST, PUT, GET } =
 createDataTableApi(kHotelRowModel, kHotelContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.hotels',
-                scope: {
-                    event: context.event,
-                },
+            permission: 'event.hotels',
+            scope: {
+                event: context.event,
             },
         });
     },

@@ -7,10 +7,11 @@ import { z } from 'zod/v4';
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tContentCategories, tContent } from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
 import { kContentType } from '@lib/database/Types';
 
 /**
@@ -92,10 +93,13 @@ export type ContentCategoriesRowModel = z.infer<typeof kContentCategoryRowModel>
 export const { GET, DELETE, POST, PUT } =
 createDataTableApi(kContentCategoryRowModel, kContentCategoryContext, {
     async accessCheck({ context }, action, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-        });
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'event.visible',
+            scope: {
+                event: context.event,
+                team: kAnyTeam,
+            },
+        })
     },
 
     async create({ context }, props) {

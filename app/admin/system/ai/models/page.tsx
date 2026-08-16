@@ -18,7 +18,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
 
@@ -48,10 +48,7 @@ const kThinkingLevelOptions: { id: TextGenerationThinkingLevel, label: string }[
  * time, verify whether the integrations are working as expected.
  */
 export default async function ModelsAiPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    await requireAuthentication('system.internals.ai');
 
     const settings = await readSettings([
         'ai-setting-gemini-api-key',

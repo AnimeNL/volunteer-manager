@@ -5,9 +5,9 @@
 
 import { z } from 'zod/v4';
 
-import { executeAccessCheck } from "@lib/auth/AuthenticationContext";
 import { executeServerAction } from "@lib/serverAction";
 import { getStaticContent } from '@lib/Content';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Server action that fetches the documentation for the given `topic`. It's rendered using Markdown
@@ -16,7 +16,7 @@ import { getStaticContent } from '@lib/Content';
 export async function fetchDocumentation(topic: string) {
     'use server';
     return executeServerAction({ topic }, z.object({ topic: z.string() }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, { check: 'admin' });
+        await requireAuthentication(props.authenticationContext);
 
         const content = await getStaticContent([ 'documentation', ...data.topic.split('/') ], {
             substitutions: {

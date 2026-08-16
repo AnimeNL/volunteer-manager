@@ -76,13 +76,9 @@ export type TrainingsRowModel = z.infer<typeof kTrainingRowModel>;
 export const { DELETE, POST, PUT, GET } = createDataTableApi(kTrainingRowModel, kTrainingContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.trainings',
-                scope: {
-                    event: context.event,
-                },
+            permission: 'event.trainings',
+            scope: {
+                event: context.event,
             },
         });
     },

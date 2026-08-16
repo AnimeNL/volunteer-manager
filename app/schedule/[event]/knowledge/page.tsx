@@ -17,7 +17,7 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleKnowledgePage(
     props: PageProps<'/schedule/[event]/knowledge'>)
 {
-    await requireAuthenticationContext({ check: 'event', event: (await props.params).event });
+    await requireAuthenticationContext();  // TODO: Verify
     return (
         <>
             <HeaderSectionCard>

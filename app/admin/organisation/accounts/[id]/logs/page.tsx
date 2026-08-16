@@ -10,7 +10,7 @@ import { LogsDataTable } from '@app/admin/system/diagnostics/logs/LogsDataTable'
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
 /**
@@ -20,12 +20,9 @@ import db, { tUsers } from '@lib/database';
 export default async function AccountLogsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/logs'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'system.logs',
-            operation: 'read',
-        },
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
     });
 
     const { id } = await props.params;

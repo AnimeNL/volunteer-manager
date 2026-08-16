@@ -10,7 +10,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from '@app/admin/system/content/ContentScope';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tContent } from '@lib/database';
 
 import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
@@ -20,10 +20,7 @@ import { fetchContent, updateContent } from '@app/admin/system/content/ContentAc
  * the volunteer. The <ContentEditor> component takes care of the actual behaviour.
  */
 export default async function ContentEntryPage(props: PageProps<'/admin/system/content/[id]'>) {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.content',
-    });
+    await requireAuthentication('system.content');
 
     const params = await props.params;
 

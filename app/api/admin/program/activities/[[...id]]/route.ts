@@ -7,9 +7,9 @@ import { z } from 'zod/v4';
 import { type DataTableEndpoints, createDataTableApi } from '../../../../createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { getEventBySlug } from '@lib/EventLoader';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots, tShifts } from '@lib/database';
 
 import { kActivityType, kMutation, kMutationSeverity } from '@lib/database/Types';
@@ -112,10 +112,7 @@ const kInternalActivityIdOffset = 10_000_000;
 export const { DELETE, GET, POST, PUT } =
 createDataTableApi(kProgramActivityRowModel, kProgramActivityContext, {
     async accessCheck({ context }, action, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-        });
+        await requireAuthentication(props.authenticationContext);
     },
 
     async create({ context }, props) {

@@ -21,7 +21,7 @@ import { ColorInput } from '@app/admin/components/ColorInput';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 import * as actions from '../../TeamsActions';
@@ -41,10 +41,7 @@ const kEnvironmentPurposeOptions: { [key in EnvironmentPurpose]: string } = {
 export default async function EnvironmentPage(
     props: PageProps<'/admin/organisation/structure/environments/[domain]'>)
 {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.environments',
-    });
+    const { access } = await requireAuthentication('organisation.environments');
 
     const canDeleteEnvironment = access.can('root');  // only root can delete environments
 

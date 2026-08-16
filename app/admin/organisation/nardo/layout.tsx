@@ -6,17 +6,14 @@ import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlin
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext'
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <NardoLayout> is the layout wrapper that provides navigation for the Del a Rie Advies section
  * of the Volunteer Manager. A couple of tabs are included.
  */
 export default async function NardoLayout(props: LayoutProps<'/admin/organisation/nardo'>) {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.nardo',
-    });
+    const { access } = await requireAuthentication('organisation.nardo');
 
     return (
         <SectionTabContext access={access} tabs={[

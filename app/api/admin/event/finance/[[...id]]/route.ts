@@ -86,13 +86,9 @@ export const { GET, DELETE, PUT } =
 createDataTableApi(kEventFinanceRowModel, kEventFinanceContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.settings',
-                scope: {
-                    event: context.event,
-                },
+            permission: 'event.settings',
+            scope: {
+                event: context.event,
             },
         });
     },

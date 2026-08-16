@@ -158,16 +158,11 @@ export const { GET, PUT } = createDataTableApi(kRetentionRowModel, kRetentionCon
             case 'list':
             case 'update':
                 executeAccessCheck(props.authenticationContext, {
-                    check: 'admin-event',
-                    event: context.event,
-
-                    permission: {
-                        permission: 'event.retention',
-                        operation: action === 'list' ? 'read' : 'update',
-                        scope: {
-                            event: context.event,
-                            team: context.team,
-                        },
+                    permission: 'event.retention',
+                    operation: action === 'list' ? 'read' : 'update',
+                    scope: {
+                        event: context.event,
+                        team: context.team,
                     },
                 });
 

@@ -8,17 +8,14 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <ArtificialIntelligenceLayout> is the core layout through which different parts of our AI
  * settings are exposed in the administration area.
  */
 export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/admin/system/ai'>) {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    const { access } = await requireAuthentication('system.internals.ai');
 
     return (
         <SectionTabContext access={access} tabs={[

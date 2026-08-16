@@ -13,17 +13,14 @@ import { SettingSection, type ConfigurableSetting } from './SettingSection';
 import { SettingUtilitiesSection } from './SettingUtilitiesSection';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings, type Setting } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The Settings page lists configurable settings part of the AnimeCon Volunteer Manager that are not
  * exposed through other parts of the system.
  */
 export default async function SettingsPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.settings',
-    });
+    await requireAuthentication('system.internals.settings');
 
     // The configuration for settings contains the individual settings, the data types, and the
     // default values in case none could be retrieved from the database. The page's content will be

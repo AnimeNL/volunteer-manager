@@ -11,7 +11,8 @@ import { ResponseCell, ResponseHeader } from './ResponseCell';
 import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse } from '@lib/database/Types';
@@ -50,10 +51,7 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.feedback',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.feedback');
     },
 
     async list(params, props) {
@@ -107,10 +105,7 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
  * cannot be actioned or acknowledged directly from the portal.
  */
 export default async function FeedbackPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.feedback',
-    });
+    await requireAuthentication('organisation.feedback');
 
     const columns: Column<ExtractRowModel<typeof feedbackDataSource>>[] = [
         {

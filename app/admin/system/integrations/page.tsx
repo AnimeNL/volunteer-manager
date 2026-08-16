@@ -31,7 +31,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
 
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
@@ -57,10 +57,7 @@ const kGoogleLocationOptions = [
  * Volunteer Manager integrates with.
  */
 export default async function IntegrationsPage() {
-    const { user } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.integrations',
-    });
+    const { user } = await requireAuthentication('system.integrations');
 
     const emailAccounts = await db.selectFrom(tEmailAccounts)
         .where(tEmailAccounts.emailAccountDeleted.isNull())

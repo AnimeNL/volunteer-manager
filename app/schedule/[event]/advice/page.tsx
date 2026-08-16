@@ -17,7 +17,7 @@ import { kThemeImageVersion } from '@app/config';
  */
 export default async function AdvicePage(props: PageProps<'/schedule/[event]/advice'>) {
     const params = await props.params;
-    await requireAuthenticationContext({ check: 'event', event: params.event });
+    await requireAuthenticationContext();  // TODO: Verify
 
     return (
         <>

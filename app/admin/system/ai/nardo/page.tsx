@@ -17,7 +17,7 @@ import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeNardoPersonalisedAdvicePrompt } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -29,10 +29,7 @@ import * as actions from '../AiActions';
  * volunteer portal. The page is protected behind a special permission.
  */
 export default async function NardoAiPage() {
-    const { user } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    const { user } = await requireAuthentication('system.internals.ai');
 
     const personalisedAdvicePrompt = new NardoPersonalisedAdvicePrompt();
     const settings = await readSettings([

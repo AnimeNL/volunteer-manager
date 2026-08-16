@@ -12,6 +12,6 @@ export default async function ScheduleEventPage(
     props: PageProps<'/schedule/[event]/events/[eventId]'>)
 {
     const params = await props.params;
-    await requireAuthenticationContext({ check: 'event', event: params.event });
+    await requireAuthenticationContext();  // TODO: Verify
     return <EventPage activityId={params.eventId} />;
 }

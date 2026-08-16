@@ -3,17 +3,14 @@
 
 import { RolesDataTable } from './RolesDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <RolesPage> component enables the volunteer to adjust the roles that are available on the
  * Volunteer Manager. Roles define what function people exercise within our organisation.
  */
 export default async function RolesPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.roles',
-    });
+    const { access } = await requireAuthentication('organisation.roles');
 
     // Note that only root can create new roles:
     return <RolesDataTable enableCreate={ access.can('root') } />;

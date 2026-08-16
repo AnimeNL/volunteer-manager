@@ -12,7 +12,7 @@ import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createEvent } from './createEvent';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
@@ -33,14 +33,11 @@ const eventDataSource = createDataSource('admin/events', withRowModel({
     })),
 }), {
     async authorize(operation, props) {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'event.visible',
-                scope: {
-                    event: kAnyEvent,
-                    team: kAnyTeam,
-                },
+        await requireAuthentication({
+            permission: 'event.visible',
+            scope: {
+                event: kAnyEvent,
+                team: kAnyTeam,
             },
         });
     },
@@ -115,14 +112,11 @@ type EventRowModel = ExtractRowModel<typeof eventDataSource>;
  * events. Events cannot be removed through the portal, although they can be hidden.
  */
 export default async function EventsPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'event.visible',
-            scope: {
-                event: kAnyEvent,
-                team: kAnyTeam,
-            },
+    const { access } = await requireAuthentication({
+        permission: 'event.visible',
+        scope: {
+            event: kAnyEvent,
+            team: kAnyTeam,
         },
     });
 

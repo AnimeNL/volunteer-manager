@@ -26,7 +26,7 @@ import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import * as actions from '../AiActions';
 import * as prompts from '@lib/ai/prompts';
@@ -41,10 +41,7 @@ const kMaximumExampleMessages = 5;
  * the Volunteer Manager. Each individual setting has its own sub page.
  */
 export default async function CommunicationAiPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    await requireAuthentication('system.internals.ai');
 
     const settings = await readSettings([
         'ai-communication-personality-prompt',

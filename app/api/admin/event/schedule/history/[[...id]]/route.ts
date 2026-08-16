@@ -86,24 +86,18 @@ export const { DELETE, GET } =
 createDataTableApi(kEventScheduleHistoryRowModel, kEventScheduleHistoryContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.schedule.planning',
-                operation: 'read',
-                scope: {
-                    event: context.event,
-                    team: context.team,
-                },
+            permission: 'event.schedule.planning',
+            operation: 'read',
+            scope: {
+                event: context.event,
+                team: context.team,
             },
         });
 
         if (action === 'delete') {
             executeAccessCheck(props.authenticationContext, {
-                permission: {
-                    permission: 'system.logs',
-                    operation: 'delete',
-                },
+                permission: 'system.logs',
+                operation: 'delete',
             });
         }
     },

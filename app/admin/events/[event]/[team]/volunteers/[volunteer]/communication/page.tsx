@@ -68,14 +68,11 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
     }), {
         async authorize(operation, props, context) {
             executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: {
-                    permission: 'event.volunteers.information',
-                    operation: 'read',
-                    scope: {
-                        event: context.event.slug,
-                        team: context.team.slug,
-                    },
+                permission: 'event.volunteers.information',
+                operation: 'read',
+                scope: {
+                    event: context.event.slug,
+                    team: context.team.slug,
                 },
             });
         },

@@ -80,13 +80,9 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event.slug,
-            permission: {
-                permission: 'event.settings',
-                scope: {
-                    event: context.event.slug,
-                },
+            permission: 'event.settings',
+            scope: {
+                event: context.event.slug,
             },
         });
     },

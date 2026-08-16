@@ -95,13 +95,9 @@ export type RefundRequestScope = z.infer<typeof kRefundRequestContext>['context'
 export const { PUT, GET } = createDataTableApi(kRefundRequestRowModel, kRefundRequestContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.refunds',
-                scope: {
-                    event: context.event,
-                },
+            permission: 'event.refunds',
+            scope: {
+                event: context.event,
             },
         });
     },

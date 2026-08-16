@@ -13,7 +13,8 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from './formatBytes';
 
 /**
@@ -52,10 +53,7 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals');
     },
 
     async delete(params) {
@@ -109,10 +107,7 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
  * use a centralised caching mechanism for management, recovery, and adaptability.
  */
 export default async function CacheManagementPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals',
-    });
+    await requireAuthentication('system.internals');
 
     const columns: Column<ExtractRowModel<typeof cacheDataSource>>[] = [
         {

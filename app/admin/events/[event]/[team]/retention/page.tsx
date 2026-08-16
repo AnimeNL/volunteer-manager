@@ -55,15 +55,11 @@ async function verifyAccessAndGetContext(
         notFound();
 
     executeAccessCheck(authenticationContext, {
-        check: 'admin-event',
-        event: event.slug,
-        permission: {
-            permission: 'event.retention',
-            operation: 'update',
-            scope: {
-                event: event.slug,
-                team: teamSlug,
-            },
+        permission: 'event.retention',
+        operation: 'update',
+        scope: {
+            event: event.slug,
+            team: teamSlug,
         },
     });
 

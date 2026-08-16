@@ -13,7 +13,7 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tLogs } from '@lib/database';
 
 import { kLogType } from '@lib/Log';
@@ -25,12 +25,9 @@ import { kLogType } from '@lib/Log';
 export default async function DatabaseErrorLogPage(
     props: PageProps<'/admin/system/diagnostics/logs/database-error/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'system.logs',
-            operation: 'read',
-        },
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
     });
 
     const { id } = await props.params;

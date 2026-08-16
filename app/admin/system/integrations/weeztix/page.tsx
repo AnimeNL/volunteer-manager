@@ -17,17 +17,14 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weeztix';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Page that demonstrates some of Weeztix' APIs, primarily to test the implementation and provide
  * quick insight in values (such as event GUIDs) that may be repeatedly needed.
  */
 export default async function WeeztixIntegrationPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.integrations',
-    });
+    await requireAuthentication('system.integrations');
 
     const client = await createWeeztixClient();
 

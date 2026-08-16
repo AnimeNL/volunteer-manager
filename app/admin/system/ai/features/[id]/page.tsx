@@ -18,7 +18,7 @@ import { TokenOverviewAlert } from '../../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings, type Setting } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { updatePrompt } from '../../AiActions';
 
 import { kAiSupportedModels, type AiSupportedModel } from '@lib/integrations/genai/Models';
@@ -42,10 +42,7 @@ function getModelLabelForComplexity(complexity: string, model: AiSupportedModel)
 export default async function AiFeaturesPromptPage(
     props: PageProps<'/admin/system/ai/features/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    await requireAuthentication('system.internals.ai');
 
     const promptId = (await props.params).id;
 

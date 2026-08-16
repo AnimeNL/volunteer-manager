@@ -19,7 +19,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
 
 /**
@@ -39,10 +39,7 @@ function createOutboxLink(info?: { id?: number; type?: TwilioOutboxType }): stri
 export default async function TwilioWebhooksPage(
     props: PageProps<'/admin/system/webhooks/twilio/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    await requireAuthentication('system.internals.outbox');
 
     const params = await props.params;
 

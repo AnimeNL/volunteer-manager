@@ -71,10 +71,7 @@ export type EventShiftCategoriesRowModel = z.infer<typeof kEventShiftCategoryRow
 export const { GET, DELETE, POST, PUT } =
 createDataTableApi(kEventShiftCategoryRowModel, kEventShiftCategoryContext, {
     async accessCheck(request, action, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'event.shift-categories',
-        });
+        executeAccessCheck(props.authenticationContext, 'event.shift-categories');
     },
 
     async create() {

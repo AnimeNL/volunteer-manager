@@ -13,7 +13,7 @@ import { PromptIcon } from '../PromptIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import * as prompts from '@lib/ai/prompts';
 
@@ -22,10 +22,7 @@ import * as prompts from '@lib/ai/prompts';
  * ability to inspect, run and change their associated prompts.
  */
 export default async function AiFeaturesPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    await requireAuthentication('system.internals.ai');
 
     // Infer the available prompts from the ones exported from the //lib/ai/ library,
     // which is the source of truth. Icons are complemented by this component.

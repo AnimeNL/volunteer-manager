@@ -12,11 +12,10 @@ import { type Column, type DataSourceListParams, type ExtractContext, type Extra
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs, tUsers }
     from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
 import { kMutation, kMutationSeverity } from '@lib/database/Types';
 
 /**
@@ -390,11 +389,7 @@ const historyDataSource = createDataSource('admin/events/program/history', withC
     ]),
 }), historyDataSourceRowModel, {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event.slug,
-            team: kAnyTeam,
-        });
+        await requireAuthentication(props.authenticationContext);
     },
 
     async list(params, props, context) {

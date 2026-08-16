@@ -12,7 +12,8 @@ import { DataTable, createDataSource, withContext, withRowModel, type Column, ty
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from '../formatBytes';
 
 /**
@@ -85,10 +86,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals');
     },
 
     async delete(params, props, context) {
@@ -149,10 +147,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
  * Page that provides insight in an individual cache as specified in the URL.
  */
 export default async function CacheInspectionPage(props: PageProps<'/admin/system/cache/[cache]'>) {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals',
-    });
+    await requireAuthentication('system.internals');
 
     let cache: Cache<any>;
     try {

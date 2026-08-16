@@ -12,14 +12,14 @@ import { EventCard } from './dashboard/EventCard';
 import { ProfilePromotionCard } from './dashboard/ProfilePromotionCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Main dashboard of the AnimeCon Volunteer Manager. Includes various cards in a masonry layout that
  * give an overview of what's going on. Exact cards depend on the user's access level.
  */
 export default async function AdminPage() {
-    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+    const { access, user } = await requireAuthentication();
 
     const userSettings = await readUserSettings(
         user.id, [ 'ai-example-messages' ], /* disableFallback= */ true);

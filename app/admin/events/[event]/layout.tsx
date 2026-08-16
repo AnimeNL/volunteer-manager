@@ -27,7 +27,7 @@ import type { User } from '@lib/auth/User';
 import { AdminContent } from '../../AdminContent';
 import { AdminPageContainer } from '../../AdminPageContainer';
 import { type AdminSidebarMenuEntry, AdminSidebar } from '../../AdminSidebar';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import db, { tActivities, tEvents, tEventsSalesConfiguration, tEventsTeams, tHotelsAssignments,
     tHotelsBookings, tHotelsPreferences, tRefunds, tShifts, tTeams, tTrainingsAssignments,
@@ -126,7 +126,7 @@ export default async function EventLayout(props: LayoutProps<'/admin/events/[eve
     if (typeof params.event !== 'string' || !params.event.length)
         notFound();
 
-    const { access, user } = await requireAuthenticationContext();
+    const { access, user } = await requireAuthentication();
     const { event } = params;
 
     const dbInstance = db;

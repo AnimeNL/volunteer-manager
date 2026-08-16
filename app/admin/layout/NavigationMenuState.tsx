@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import type { NavigationMenuId } from './NavigationMenuId';
 import { executeServerAction } from '@lib/serverAction';
 import { readUserSetting, writeUserSetting } from '@lib/UserSettings';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../lib/requireAuthentication';
 
 /**
  * The menu state is stored as a record type, where the key is the path to a particular menu item
@@ -51,7 +51,7 @@ export async function updateMenuState(
 {
     'use server';
     await executeServerAction({ /* no data */ }, z.object(), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, { check: 'admin' });
+        await requireAuthentication(props.authenticationContext);
 
         const existingState = await fetchMenuStateFromDatabase(userId);
         existingState[`${menuId}/${sectionId}`] = !!expanded;

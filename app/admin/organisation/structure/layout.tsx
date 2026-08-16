@@ -14,7 +14,8 @@ import WorkOutlinedIcon from '@mui/icons-material/WorkOutlined';
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthenticationContext, or } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { or } from '@lib/auth/AuthenticationContext';
 
 /**
  * The <OrganisationEntitiesLayout> is the core page that gives the user access to the environments,
@@ -24,14 +25,10 @@ import { requireAuthenticationContext, or } from '@lib/auth/AuthenticationContex
 export default async function OrganisationEntitiesLayout(
     props: LayoutProps<'/admin/organisation/structure'>)
 {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: or(
-            'organisation.environments',
-            'organisation.roles',
-            'organisation.teams',
-        ),
-    });
+    const { access } = await requireAuthentication(or(
+        'organisation.environments',
+        'organisation.roles',
+        'organisation.teams'));
 
     // ---------------------------------------------------------------------------------------------
     // Determine the tabs that the signed in user has access to

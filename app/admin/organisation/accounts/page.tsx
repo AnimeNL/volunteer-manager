@@ -14,7 +14,8 @@ import { type Column, type ExtractRowModel,DataTable, createDataSource, withRowM
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tUsers } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';
@@ -53,11 +54,8 @@ const accountsDataSource = createDataSource('admin/organisation/accounts', withR
 }), {
     async authorize(operation, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'read',
-            },
+            permission: 'organisation.accounts',
+            operation: 'read',
         });
     },
 
@@ -94,12 +92,9 @@ const accountsDataSource = createDataSource('admin/organisation/accounts', withR
  * be viewed and adjusted providing the right permissions are available to the signed in user.
  */
 export default async function AccountsPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'organisation.accounts',
-            operation: 'read',
-        },
+    const { access } = await requireAuthentication({
+        permission: 'organisation.accounts',
+        operation: 'read',
     });
 
     const canCreateAccounts = access.can('organisation.accounts', 'create');

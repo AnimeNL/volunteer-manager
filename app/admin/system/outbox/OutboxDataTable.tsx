@@ -61,10 +61,7 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.outbox',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.outbox');
     },
 
     async list(params, props, context) {

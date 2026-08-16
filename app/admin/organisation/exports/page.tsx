@@ -7,7 +7,8 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
     from '@app/admin/components/DataTable';
 import { ExportAvailabilityCell } from './ExportsRowComponents';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
 /**
@@ -59,10 +60,7 @@ const exportsDataSource = createDataSource('admin/organisation/exports', withRow
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.exports',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.exports');
     },
 
     async list(params, props) {
@@ -127,10 +125,7 @@ const exportsDataSource = createDataSource('admin/organisation/exports', withRow
  * on what was exported by who, and when it was accessed.
  */
 export default async function OrganisationExportsPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.exports'
-    });
+    await requireAuthentication('organisation.exports');
 
     const columns: Column<ExtractRowModel<typeof exportsDataSource>>[] = [
         {

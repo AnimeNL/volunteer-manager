@@ -9,14 +9,14 @@ import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 
 /**
  * Page that lists the debugging tools available in the Volunteer Manager.
  */
 export default async function DebugPage() {
-    await requireAuthenticationContext({ check: 'admin', permission: 'admin' });
+    await requireAuthentication('admin');
     return (
         <>
             <Section icon={ <BugReportOutlinedIcon color="primary" /> } title="Debugging tools"

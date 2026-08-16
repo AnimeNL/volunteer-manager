@@ -9,7 +9,8 @@ import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tNardoPersonalised, tUsers } from '@lib/database';
 
 /**
@@ -42,10 +43,7 @@ const nardoPersonalisedDataSource =
 
     }), {
         async authorize(operation, props) {
-            executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: 'organisation.nardo',
-            });
+            executeAccessCheck(props.authenticationContext, 'organisation.nardo');
         },
 
         async list(params) {
@@ -94,10 +92,7 @@ const nardoPersonalisedDataSource =
  * generated responses, for which it's important that we have the ability to inspect them.
  */
 export default async function NardoPersonalisedPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.nardo',
-    });
+    await requireAuthentication('organisation.nardo');
 
     const columns: Column<ExtractRowModel<typeof nardoPersonalisedDataSource>>[] = [
         {

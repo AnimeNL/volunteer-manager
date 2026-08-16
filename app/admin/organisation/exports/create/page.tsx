@@ -16,7 +16,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { DiscordIcon } from '../../dashboard/DiscordIcon';
 import { ExportTile } from './ExportTile';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tTeams } from '@lib/database';
 
 import { kExportType } from '@lib/database/Types';
@@ -50,10 +50,7 @@ const kViewsOptions = [
  * data export. It provides easy access to a series of targetted export pages.
  */
 export default async function OrganisationExportsCreatePage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.exports'
-    });
+    await requireAuthentication('organisation.exports');
 
     const events = await db.selectFrom(tEvents)
         .where(tEvents.eventHidden.equals(/* false= */ 0))

@@ -86,15 +86,12 @@ export type RoleContext = z.infer<typeof kRoleContext>;
  */
 export const { GET, POST, PUT } = createDataTableApi(kRoleRowModel, kRoleContext, {
     async accessCheck(request, action, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'organisation.roles',
-        });
+        executeAccessCheck(props.authenticationContext, 'organisation.roles');
 
         switch (action) {
             case 'create':
             case 'delete':
-                executeAccessCheck(props.authenticationContext, { permission: 'root' });
+                executeAccessCheck(props.authenticationContext, 'root');
                 break;
 
             case 'list':

@@ -8,7 +8,7 @@ import type { ExportType } from '@lib/database/Types';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tExports } from '@lib/database';
 
 /**
@@ -28,10 +28,7 @@ const kCreateSimpleExportData = z.object({
 export async function createSimpleExport(type: ExportType, formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateSimpleExportData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.exports',
-        });
+        await requireAuthentication('organisation.exports');
 
         const dbInstance = db;
         const event = await dbInstance.selectFrom(tEvents)
@@ -99,10 +96,7 @@ const kNoDataRequired = z.object({ /* no parameters */ });
 export async function expireExport(exportId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.exports',
-        });
+        await requireAuthentication('organisation.exports');
 
         const info = await db.selectFrom(tExports)
             .innerJoin(tEvents)

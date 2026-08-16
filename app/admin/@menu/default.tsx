@@ -17,7 +17,7 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls, tLogsFormat } from '@lib/database';
 
 /**
@@ -25,7 +25,7 @@ import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls, tLogsForma
  * a lightweight component as it should rarely be displayed, if at all.
  */
 export default async function DefaultMenu() {
-    const { access, user } = await requireAuthenticationContext({ check: 'admin' });
+    const { access, user } = await requireAuthentication();
 
     let badges: Record<string, number> = {
         integrations: 0,

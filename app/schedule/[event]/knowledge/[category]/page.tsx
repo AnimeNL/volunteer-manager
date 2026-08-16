@@ -31,7 +31,7 @@ export default async function ScheduleKnowledgeCategoryPage(
 {
     const params = await props.params;
 
-    await requireAuthenticationContext({ check: 'event', event: params.event });
+    await requireAuthenticationContext();  // TODO: Verify
 
     const searchParams = await props.searchParams;
 

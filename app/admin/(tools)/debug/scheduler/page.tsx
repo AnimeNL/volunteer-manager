@@ -13,7 +13,8 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TaskContext } from '@lib/scheduler/TaskContext';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 
 /**
@@ -22,7 +23,7 @@ import { executeServerAction } from '@lib/serverAction';
 async function executeSchedulerTask(taskName: string) {
     'use server';
     await executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, { check: 'admin', permission: 'root' });
+        executeAccessCheck(props.authenticationContext, 'root');
 
         switch (taskName) {
             case 'YourTicketProviderImportTask': {
@@ -49,7 +50,7 @@ async function executeSchedulerTask(taskName: string) {
  * Page that allows individual tasks to be executed directly without depending on the scheduler.
  */
 export default async function SchedulerDebugPage() {
-    await requireAuthenticationContext({ check: 'admin', permission: 'root' });
+    await requireAuthentication('root');
 
     const yourTicketProviderImportTaskFn =
         executeSchedulerTask.bind(null, 'YourTicketProviderImportTask');

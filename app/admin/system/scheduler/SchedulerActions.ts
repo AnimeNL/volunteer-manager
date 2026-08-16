@@ -30,10 +30,7 @@ const kCreateSchedulerTaskData = z.object({
 export async function createSchedulerTask(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateSchedulerTaskData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.scheduler',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
 
         if (!Object.hasOwn(kTaskRegistry, data.task)) {
             return {
@@ -87,10 +84,7 @@ export async function createSchedulerTask(formData: unknown) {
 export async function rerunSchedulerTask(taskId: number, taskName: string) {
     'use server';
     return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.scheduler',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
 
         const repeatedTaskId = await rerunTask(taskId);
         if (!repeatedTaskId) {

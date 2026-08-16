@@ -25,7 +25,7 @@ import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getSubscriptionTypes, updateSubscriptions } from '../SubscriptionActions';
 import { kSubscriptionType } from '@lib/database/Types';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 /**
@@ -52,10 +52,7 @@ const kChannelOptions = [
 export default async function AccountSubscriptionPage(
     props: PageProps<'/admin/system/subscriptions/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.subscriptions.management',
-    });
+    await requireAuthentication('system.subscriptions.management');
 
     const params = await props.params;
 

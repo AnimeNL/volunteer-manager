@@ -13,7 +13,7 @@ import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import { type AdminSidebarMenuEntry, AdminSidebar } from '../AdminSidebar';
 import { AdminContent } from '../AdminContent';
 import { AdminPageContainer } from '../AdminPageContainer';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kDashboardPermissions } from './dashboard/DashboardPermissions';
 
@@ -23,10 +23,7 @@ import { kDashboardPermissions } from './dashboard/DashboardPermissions';
  * with them. This area follows our canonical structure of a sidebar with page content.
  */
 export default async function OrganisationLayout(props: LayoutProps<'/admin/organisation'>) {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: kDashboardPermissions,
-    });
+    const { access } = await requireAuthentication(kDashboardPermissions);
 
     const organisationMenu: AdminSidebarMenuEntry[] = [
         {

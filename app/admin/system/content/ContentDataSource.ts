@@ -13,6 +13,8 @@ import { createDataSource, withContext, withRowModel } from '@app/admin/componen
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
+
 /**
  * Clears all content caches for the given `eventId` and `type`.
  */
@@ -158,10 +160,7 @@ export const contentDataSource = createDataSource('admin/system/content', withCo
 }), {
     async authorize(operation, props, context) {
         if (context.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, {
-                check: 'admin',
-                permission: 'system.content',
-            });
+            executeAccessCheck(props.authenticationContext, 'system.content');
         } else {
             const eventSlug = await db.selectFrom(tEvents)
                 .where(tEvents.eventId.equals(context.eventId))
@@ -169,8 +168,11 @@ export const contentDataSource = createDataSource('admin/system/content', withCo
                 .executeSelectOne();
 
             executeAccessCheck(props.authenticationContext, {
-                check: 'admin-event',
-                event: eventSlug,
+                permission: 'event.visible',
+                scope: {
+                    event: eventSlug,
+                    team: kAnyTeam,
+                },
             });
         }
     },

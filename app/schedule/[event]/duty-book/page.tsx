@@ -18,10 +18,7 @@ import { kAnyTeam } from '@lib/auth/AccessList';
 export default async function DutyBookServerPage(props: PageProps<'/schedule/[event]/duty-book'>) {
     const params = await props.params;
 
-    const { access, user } = await requireAuthenticationContext({
-        check: 'event',
-        event: params.event
-    });
+    const { access, user } = await requireAuthenticationContext();  // TODO: Verify
 
     const event = await getEventBySlug(params.event);
     if (!event)

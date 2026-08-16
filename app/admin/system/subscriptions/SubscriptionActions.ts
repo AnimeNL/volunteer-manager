@@ -24,10 +24,7 @@ import db, { tSubscriptions, tTeams } from '@lib/database';
 export async function publishSubscriptionTest() {
     'use server';
     return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals');
 
         await Publish({
             type: kSubscriptionType.Test,
@@ -58,10 +55,7 @@ const kUpdateSubscriptionsData = z.looseObject({ /* freeform */ });
 export async function updateSubscriptions(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateSubscriptionsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.subscriptions.management',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.subscriptions.management');
 
         const subscriptionTypes = await getSubscriptionTypes();
 

@@ -67,13 +67,9 @@ export async function clearHotelPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.hotels',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.hotels',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -109,13 +105,9 @@ export async function clearRefundPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.refunds',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.refunds',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -151,13 +143,9 @@ export async function clearTrainingPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.trainings',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.trainings',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -196,15 +184,11 @@ export async function sendCommunicationToVolunteer(
         const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.volunteers.information',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.volunteers.information',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 
@@ -251,15 +235,11 @@ export async function updateApplication(
         const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.volunteers.information',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.volunteers.information',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 
@@ -317,15 +297,11 @@ export async function updateAvailability(
         const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.volunteers.information',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.volunteers.information',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 
@@ -437,13 +413,9 @@ export async function updateHotelPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.hotels',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.hotels',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -536,14 +508,10 @@ export async function updateMetadata(
         const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.volunteers.overrides',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.volunteers.overrides',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 
@@ -609,10 +577,6 @@ export async function updateNotes(
     return executeServerAction(formData, kUpdateNotesData, async (data, props) => {
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-        });
 
         const affectedRows = await db.update(tUsersEvents)
             .set({
@@ -661,13 +625,9 @@ export async function updateRefundPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.refunds',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.refunds',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -724,13 +684,9 @@ export async function updateTrainingPreferences(
         const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.trainings',
-                scope: {
-                    event: event.slug,
-                },
+            permission: 'event.trainings',
+            scope: {
+                event: event.slug,
             },
         });
 
@@ -784,15 +740,11 @@ export async function cancelParticipation(
         const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.applications',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.applications',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 
@@ -863,15 +815,11 @@ export async function reinstateParticipation(
         const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.applications',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
+            permission: 'event.applications',
+            operation: 'update',
+            scope: {
+                event: event.slug,
+                team: team.slug,
             },
         });
 

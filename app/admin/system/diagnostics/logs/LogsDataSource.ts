@@ -63,11 +63,8 @@ export const logsDataSource = createDataSource('system/diagnostics/logs', withCo
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
-                permission: 'system.logs',
-                operation: operation,
-            },
+            permission: 'system.logs',
+            operation: operation,
         });
     },
 

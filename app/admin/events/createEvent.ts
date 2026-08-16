@@ -31,10 +31,7 @@ const kCreateEventData = z.object({
 export async function createEvent(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateEventData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'admin',
-        });
+        executeAccessCheck(props.authenticationContext, 'admin');
 
         if (data.slug.length < 4 || data.slug.length > 12)
             return { success: false, error: 'The slug must be between 4 and 12 characters long.' };

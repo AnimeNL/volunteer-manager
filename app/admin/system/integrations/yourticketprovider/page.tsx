@@ -22,17 +22,14 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createYourTicketProviderClient, type YourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Page that demonstrates some of YourTicketProvider' APIs, primarily to test the implementation and
  * provide quick insight in values (such as event IDs) that may be repeatedly needed.
  */
 export default async function YourTicketProviderIntegrationPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.integrations',
-    });
+    await requireAuthentication('system.integrations');
 
     const client = await createYourTicketProviderClient();
 

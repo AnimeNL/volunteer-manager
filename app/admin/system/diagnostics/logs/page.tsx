@@ -14,7 +14,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The logs page provides access to the most recent log entries created by the Volunteer Manager,
@@ -22,12 +22,9 @@ import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
  * however they will be streamed by the server to deal with ~infinitely large data sets.
  */
 export default async function SystemLogsPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'system.logs',
-            operation: 'read',
-        },
+    const { access } = await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
     });
 
     let headerAction: React.ReactNode;

@@ -11,17 +11,14 @@ import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createContent } from './ContentActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from './ContentScope';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <ContentPage> component lists the global content, which then, in turn, may be edited and
  * deleted as applicable. This includes the privacy policy, e-mail messages, and so on.
  */
 export default async function ContentPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.content',
-    });
+    await requireAuthentication('system.content');
 
     const scope = createGlobalScope();
 

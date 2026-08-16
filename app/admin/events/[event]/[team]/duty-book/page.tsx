@@ -134,14 +134,11 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
-                permission: 'event.duty-book',
-                operation: 'read',
-                scope: {
-                    event: context.event.slug,
-                    team: context.team.slug,
-                },
+            permission: 'event.duty-book',
+            operation: 'read',
+            scope: {
+                event: context.event.slug,
+                team: context.team.slug,
             },
         });
     },

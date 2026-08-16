@@ -10,7 +10,7 @@ import { DisplaysCard } from './dashboard/DisplaysCard';
 import { FeedbackCard } from './dashboard/FeedbackCard';
 import { NardoCard } from './dashboard/NardoCard';
 import { createGenerateMetadataFn } from '../lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kDashboardPermissions } from './dashboard/DashboardPermissions';
 
@@ -20,10 +20,7 @@ import { kDashboardPermissions } from './dashboard/DashboardPermissions';
  * could require the attention of one of our administrators.
  */
 export default async function OrganisationPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: kDashboardPermissions,
-    });
+    const { access } = await requireAuthentication(kDashboardPermissions);
 
     const canAccessAccounts = access.can('organisation.accounts', 'read');
     const canAccessDisplays = access.can('organisation.displays');

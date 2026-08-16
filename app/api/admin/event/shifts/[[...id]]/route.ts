@@ -169,11 +169,7 @@ createDataTableApi(kEventShiftRowModel, kEventShiftContext, {
                 throw new Error(`Unrecognised action: ${action}`);
         }
 
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission,
-        });
+        executeAccessCheck(props.authenticationContext, permission);
     },
 
     async create({ context, row }) {

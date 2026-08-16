@@ -22,7 +22,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import { markdownToHtml } from '@components/Markdown';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
 
@@ -68,10 +68,7 @@ async function debugAction(formData: unknown) {
  * internals that we'd like to see in production, but don't really know how to.
  */
 export default async function DebugPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals',
-    });
+    await requireAuthentication('system.internals');
 
     const debugValues: Record<string, any> = {};
     debugValues['Cookies'] = [ ...await cookies() ];

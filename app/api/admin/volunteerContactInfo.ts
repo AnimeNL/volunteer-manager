@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -55,10 +55,7 @@ type Response = ApiResponse<typeof kVolunteerContactInfoDefinition>;
 export async function volunteerContactInfo(request: Request, props: ActionProps)
     : Promise<Response>
 {
-    executeAccessCheck(props.authenticationContext, {
-        check: 'admin-event',
-        event: request.event,
-    });
+    await requireAuthentication(props.authenticationContext);
 
     const contactInformation = await db.selectFrom(tUsers)
         .innerJoin(tUsersEvents)

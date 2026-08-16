@@ -10,17 +10,14 @@ import TabletIcon from '@mui/icons-material/Tablet';
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <DisplaysLayout> is the layout wrapper that provides navigation for the Display management,
  * which also includes visualising the received help requests.
  */
 export default async function DisplaysLayout(props: LayoutProps<'/admin/organisation/displays'>) {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.displays',
-    });
+    await requireAuthentication('organisation.displays');
 
     // ---------------------------------------------------------------------------------------------
     // Determine the tabs that the signed in user has access to

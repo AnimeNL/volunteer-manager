@@ -7,17 +7,14 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WebhookDataTable } from './WebhookDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The webhooks page lists all received webhooks from inbound services. These will be dealt with by
  * our system in a variety of ways, but all are (pre-authentication) stored for logging purposes.
  */
 export default async function WebhooksPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    await requireAuthentication('system.internals.outbox');
 
     return (
         <>

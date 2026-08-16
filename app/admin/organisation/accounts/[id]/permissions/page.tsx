@@ -10,7 +10,7 @@ import { AccountStatusButton } from '../AccountStatusButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
 /**
@@ -20,12 +20,9 @@ import db, { tUsers } from '@lib/database';
 export default async function AccountPermissionsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/permissions'>)
 {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'organisation.permissions',
-            operation: 'read',
-        },
+    const { access } = await requireAuthentication({
+        permission: 'organisation.permissions',
+        operation: 'read',
     });
 
     const { id } = await props.params;

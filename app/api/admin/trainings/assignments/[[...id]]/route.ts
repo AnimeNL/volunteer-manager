@@ -101,13 +101,9 @@ export const { GET, PUT } =
 createDataTableApi(kTrainingAssignmentRowModel, kTrainingAssignmentContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event,
-            permission: {
-                permission: 'event.trainings',
-                scope: {
-                    event: context.event,
-                },
+            permission: 'event.trainings',
+            scope: {
+                event: context.event,
             },
         });
     },

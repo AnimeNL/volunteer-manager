@@ -148,13 +148,9 @@ export default async function ScheduleHelpRequestsPage(
     const params = await props.params;
 
     await requireAuthenticationContext({
-        check: 'event',
-        event: params.event,
-        permission: {
-            permission: 'event.help-requests',
-            scope: {
-                event: params.event,
-            },
+        permission: 'event.help-requests',
+        scope: {
+            event: params.event,
         },
     });
 

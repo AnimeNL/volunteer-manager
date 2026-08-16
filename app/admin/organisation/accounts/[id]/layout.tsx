@@ -12,7 +12,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
 /**
@@ -21,7 +21,7 @@ import db, { tUsers } from '@lib/database';
 export default async function AccountInformationLayout(
     props: LayoutProps<'/admin/organisation/accounts/[id]'>)
 {
-    const { access } = await requireAuthenticationContext();
+    const { access } = await requireAuthentication();
     const { id } = await props.params;
 
     const anonimized = await db.selectFrom(tUsers)

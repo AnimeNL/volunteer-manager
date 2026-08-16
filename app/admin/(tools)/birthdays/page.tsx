@@ -7,13 +7,13 @@ import { BirthdayCalendar } from './BirthdayCalendar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { queryBirthdays } from './queryBirthdays';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Overview page that shows a calendar listing all birthdays that the signed in user has access to.
  */
 export default async function BirthdayOverviewPage() {
-    const { access } = await requireAuthenticationContext({ check: 'admin' });
+    const { access } = await requireAuthentication();
 
     const birthdays = await queryBirthdays(access);
     const filteredBirthdays = birthdays.map(({ id, name, birthday }) => ({

@@ -15,19 +15,16 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { ip2location } from '@lib/ip2location';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Overview page for IP address diagnostics, providing the ability to look up addresses.
  */
 export default async function IpPage(props: PageProps<'/admin/system/diagnostics/ip/[ip]'>) {
-    await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'system.logs',
-                operation: 'read',
-            },
-        });
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
+    });
 
     const ip = (await props.params).ip;
 

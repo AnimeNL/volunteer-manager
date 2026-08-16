@@ -98,7 +98,7 @@ describe('requireAuthentication', () => {
             }
         });
 
-        it('rejects users without administrative access', async () => {
+        it('rejects authenticated users without admin access', async () => {
             const context = buildAuthenticationContext({
                 access: {
                     grants: 'volunteer.application',
@@ -178,13 +178,13 @@ describe('requireAuthentication', () => {
             const context = buildAuthenticationContext({
                 access: {
                     grants: [
-                        { permission: 'event.visible', event: 'other-event' },
+                        { permission: 'event.settings', event: 'other-event' },
                     ],
                 },
             });
 
             try {
-                await requireAuthenticationWithEvent(context, 'event-2026');
+                await requireAuthenticationWithEvent(context, 'event-2026', 'event.settings');
                 expect.unreachable('Expected requireAuthenticationWithEvent to throw 403');
             } catch (error: any) {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
@@ -273,14 +273,21 @@ describe('requireAuthentication', () => {
             const context = buildAuthenticationContext({
                 access: {
                     grants: [
-                        { permission: 'event.visible', event: 'event-2026', team: 'other-team' },
+                        {
+                            permission: 'event.applications:read',
+                            event: 'event-2026',
+                            team: 'other-team',
+                        },
                     ],
                 },
             });
 
             try {
                 await requireAuthenticationWithEventAndTeam(
-                    context, 'event-2026', 'stewards');
+                    context, 'event-2026', 'stewards', {
+                        permission: 'event.applications',
+                        operation: 'read',
+                    });
                 expect.unreachable('Expected 403 for unauthorised team access');
             } catch (error: any) {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();

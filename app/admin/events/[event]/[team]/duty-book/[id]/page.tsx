@@ -68,14 +68,11 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
-                permission: 'event.duty-book',
-                operation: 'read',
-                scope: {
-                    event: context.event.slug,
-                    team: context.event.slug,
-                },
+            permission: 'event.duty-book',
+            operation: 'read',
+            scope: {
+                event: context.event.slug,
+                team: context.event.slug,
             },
         });
     },

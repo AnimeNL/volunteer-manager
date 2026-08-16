@@ -16,10 +16,7 @@ import db, { tFeedback, tUsers } from '@lib/database';
 export default async function FeedbackServerPage(props: PageProps<'/schedule/[event]/feedback'>) {
     const params = await props.params;
 
-    const { user } = await requireAuthenticationContext({
-        check: 'event',
-        event: params.event
-    });
+    const { user } = await requireAuthenticationContext();  // TODO: Verify
 
     const event = await getEventBySlug(params.event);
     if (!event)

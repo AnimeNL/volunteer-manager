@@ -13,7 +13,8 @@ import { SchedulerCreateTaskPanel } from './SchedulerCreateTaskPanel';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import db, { tTasks } from '@lib/database';
 
@@ -61,10 +62,7 @@ const schedulerDataSource = createDataSource('admin/system/scheduler', withRowMo
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.scheduler',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
     },
 
     async list(params, props) {
@@ -149,10 +147,7 @@ const schedulerDataSource = createDataSource('admin/system/scheduler', withRowMo
  * the ability to schedule a new task when so desired.
  */
 export default async function SchedulerPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.scheduler',
-    });
+    await requireAuthentication('system.internals.scheduler');
 
     const columns: Column<ExtractRowModel<typeof schedulerDataSource>>[] = [
         {

@@ -15,14 +15,14 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getQueryLog } from '@lib/database/Connection';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Internal page that displays information about the database. This page is only available on local
  * builds, as tracking all executing database queries is deemed too invasive on production.
  */
 export default async function DatabasePage() {
-    await requireAuthenticationContext({ check: 'admin', permission: 'root' });
+    await requireAuthentication('root');
     return (
         <>
             <Section icon={ <StorageIcon color="primary" /> } title="Database"

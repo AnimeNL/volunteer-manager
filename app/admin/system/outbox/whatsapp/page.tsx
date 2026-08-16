@@ -7,7 +7,7 @@ import { OutboxDataTable } from '../OutboxDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
 
@@ -16,10 +16,7 @@ import { kTwilioOutboxType } from '@lib/database/Types';
  * messages, as well as reactions such as an emoji response.
  */
 export default async function OutboxWhatsAppPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.outbox',
-    });
+    await requireAuthentication('system.internals.outbox');
 
     return (
         <>

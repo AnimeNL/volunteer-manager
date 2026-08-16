@@ -12,7 +12,7 @@ import { Markdown } from '@components/Markdown';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tNardoPersonalised, tUsers } from '@lib/database';
 
 /**
@@ -24,10 +24,7 @@ export default async function NardoPersonalisedAdvicePage(
 {
     const { id } = await props.params;
 
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.nardo',
-    });
+    await requireAuthentication('organisation.nardo');
 
     const dbInstance = db;
     const advice = await dbInstance.selectFrom(tNardoPersonalised)

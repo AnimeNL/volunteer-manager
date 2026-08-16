@@ -21,7 +21,8 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TestMessageButton } from './TestMessageButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
 import db, { tEmailAccounts } from '@lib/database';
@@ -33,10 +34,7 @@ import { createEmailClient } from '@lib/integrations/email';
 async function executeConnectionCheck(input: unknown) {
     'use server';
     return executeServerAction(input, z.object({ accountId: z.number() }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.integrations'
-        });
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
 
         console.warn(`[Health check] Verifying configuration for e-mail account ${data.accountId}`);
 
@@ -63,10 +61,7 @@ async function executeConnectionCheck(input: unknown) {
 async function sendTestMessage(accountId: number, input: unknown) {
     'use server';
     return executeServerAction(input, z.object({ /* no parameters */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.integrations'
-        });
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
 
         if (!props.user.username)
             return { success: false, error: 'Your e-mail address it not known.' };
@@ -132,10 +127,7 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.integrations',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
     },
 
     async create(partialRow, props) {
@@ -249,10 +241,7 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
  * Volunteer Manager for sending outbound messages.
  */
 export default async function EmailIntegrationPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.integrations',
-    });
+    await requireAuthentication('system.integrations');
 
     const accounts = await db.selectFrom(tEmailAccounts)
         .where(tEmailAccounts.emailAccountDeleted.isNull())

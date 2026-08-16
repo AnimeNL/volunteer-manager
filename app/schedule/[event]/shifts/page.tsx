@@ -13,7 +13,7 @@ import { VolunteerPage } from '../volunteers/[volunteer]/VolunteerPage';
  */
 export default async function ScheduleShiftsPage(props: PageProps<'/schedule/[event]/shifts'>) {
     const params = await props.params;
-    const { user } = await requireAuthenticationContext({ check: 'event', event: params.event });
+    const { user } = await requireAuthenticationContext();  // TODO: Verify
 
     return <VolunteerPage userId={`${user.id}`} />;
 }

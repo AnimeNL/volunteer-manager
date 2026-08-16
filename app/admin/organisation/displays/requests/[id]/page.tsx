@@ -18,7 +18,7 @@ import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
 
 /**
@@ -28,10 +28,7 @@ import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database
 export default async function DisplayRequestPage(
     props: PageProps<'/admin/organisation/displays/requests/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.displays',
-    });
+    await requireAuthentication('organisation.displays');
 
     const acknowledgedUserJoin = tUsers.forUseInLeftJoinAs('auj');
     const closedUserJoin = tUsers.forUseInLeftJoinAs('cuj');

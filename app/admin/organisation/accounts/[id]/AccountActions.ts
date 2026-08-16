@@ -10,7 +10,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { nanoid } from '@lib/nanoid';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { writeSealedSessionCookieToStore } from '@lib/auth/Session';
@@ -34,12 +34,9 @@ const kNoDataRequired = z.object({ /* no parameters */ });
 export async function activateAccount(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         const affectedRows = await db.update(tUsers)
@@ -82,12 +79,9 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
     ];
 
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'delete',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'delete',
         });
 
         if (kUnanonymizableUserIds.includes(userId))
@@ -176,12 +170,9 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
 export async function confirmDiscord(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         const affectedRows = await db.update(tUsers)
@@ -210,12 +201,9 @@ export async function confirmDiscord(userId: number, formData: unknown) {
 export async function createAccessCode(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         let accessCode = await db.selectFrom(tUsersAuth)
@@ -265,12 +253,9 @@ const kCreateAccountData = z.object({
 export async function createAccount(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateAccountData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'create',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'create',
         });
 
         if (!isUsernameAvailable(data.username))
@@ -312,12 +297,9 @@ export async function createAccount(formData: unknown) {
 export async function deactivateAccount(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         const affectedRows = await db.update(tUsers)
@@ -349,10 +331,7 @@ export async function deactivateAccount(userId: number, formData: unknown) {
 export async function deleteAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.avatars',
-        });
+        await requireAuthentication(props.authenticationContext);
 
         const dbInstance = db;
 
@@ -403,10 +382,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
 export async function impersonate(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.impersonation',
-        });
+        await requireAuthentication(props.authenticationContext);
 
         const { user: impersonatedUser } = await authenticateUser({ type: 'userId', userId });
 
@@ -445,12 +421,9 @@ export async function impersonate(userId: number, formData: unknown) {
 export async function resetPassword(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         const user = await db.selectFrom(tUsers)
@@ -485,10 +458,7 @@ export async function resetPassword(userId: number, formData: unknown) {
 export async function setDefaultAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.avatars',
-        });
+        await requireAuthentication(props.authenticationContext);
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -531,12 +501,9 @@ const kAccountPermissionData = z.object({
 export async function updateAccountInformation(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kAccountPermissionData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         const currentUser = await db.selectFrom(tUsers)
@@ -646,12 +613,9 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
         if (props.user.id !== userId) {
             // Users are always welcome to update their own settings - no further checks will be
             // done in that case. Such changes will not be logged either.
-            await requireAuthenticationContext({
-                check: 'admin',
-                permission: {
-                    permission: 'organisation.accounts',
-                    operation: 'update',
-                },
+            await requireAuthentication(props.authenticationContext, {
+                permission: 'organisation.accounts',
+                operation: 'update',
             });
         }
 
@@ -714,12 +678,9 @@ const kUpdateAccountSuspensionData = z.object({
 export async function updateAccountSuspension(userId: number, suspend: boolean, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateAccountSuspensionData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            },
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
         });
 
         if (!!suspend && !data.reason?.length)

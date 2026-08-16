@@ -65,10 +65,7 @@ type Integration = keyof z.infer<typeof kIntegrationSettingsData>;
  */
 export async function updateIntegration(integration: Integration, formData: unknown) {
     return executeServerAction(formData, kIntegrationSettingsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.integrations'
-        });
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
 
         if (typeof data[integration] === 'undefined')
             notFound();

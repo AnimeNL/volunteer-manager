@@ -80,13 +80,9 @@ type Response = ApiResponse<typeof kVolunteerRolesDefinition>;
  */
 export async function volunteerRoles(request: Request, props: ActionProps): Promise<Response> {
     executeAccessCheck(props.authenticationContext, {
-        check: 'admin-event',
-        event: request.event,
-        permission: {
-            permission: 'event.volunteers.participation',
-            scope: {
-                event: request.event,
-            },
+        permission: 'event.volunteers.participation',
+        scope: {
+            event: request.event,
         },
     });
 

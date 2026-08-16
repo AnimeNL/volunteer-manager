@@ -113,15 +113,11 @@ export async function updateApplication(request: Request, props: ActionProps): P
             case kRegistrationStatus.Cancelled:
             case kRegistrationStatus.Rejected:
                 executeAccessCheck(props.authenticationContext, {
-                    check: 'admin-event',
-                    event: request.event,
-                    permission: {
-                        permission: 'event.applications',
-                        operation: 'update',
-                        scope: {
-                            event: request.event,
-                            team: request.team,
-                        },
+                    permission: 'event.applications',
+                    operation: 'update',
+                    scope: {
+                        event: request.event,
+                        team: request.team,
                     },
                 });
 
@@ -130,15 +126,11 @@ export async function updateApplication(request: Request, props: ActionProps): P
             // Reconsider previously rejected applications:
             case kRegistrationStatus.Registered:
                 executeAccessCheck(props.authenticationContext, {
-                    check: 'admin-event',
-                    event: request.event,
-                    permission: {
-                        permission: 'event.applications',
-                        operation: 'create',
-                        scope: {
-                            event: request.event,
-                            team: request.team,
-                        },
+                    permission: 'event.applications',
+                    operation: 'create',
+                    scope: {
+                        event: request.event,
+                        team: request.team,
                     },
                 });
 

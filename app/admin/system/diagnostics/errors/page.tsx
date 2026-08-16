@@ -12,7 +12,8 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
 import { kErrorSource } from '@lib/database/Types';
@@ -69,11 +70,8 @@ const errorLogsDataSource = createDataSource('admin/system/diagnostics/errors', 
 }), {
     async authorize(operation, props) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: {
-                permission: 'system.logs',
-                operation: 'read',
-            },
+            permission: 'system.logs',
+            operation: 'read',
         });
     },
 
@@ -132,12 +130,9 @@ const errorLogsDataSource = createDataSource('admin/system/diagnostics/errors', 
  * resiliency purposes.
  */
 export default async function ErrorLogsPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: {
-            permission: 'system.logs',
-            operation: 'read',
-        },
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
     });
 
     const columns: Column<ExtractRowModel<typeof errorLogsDataSource>>[] = [

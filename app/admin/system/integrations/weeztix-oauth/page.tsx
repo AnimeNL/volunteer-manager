@@ -18,7 +18,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './generateWeeztixState';
 import { readSettings, writeSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Endpoint through which access tokens can be obtained.
@@ -53,10 +53,7 @@ export default async function WeeztixOAuthCallback(
     if (!code || typeof code !== 'string' || !state)
         notFound();
 
-    const { user } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.settings',
-    });
+    const { user } = await requireAuthentication('system.internals.settings');
 
     const expectedState = await generateWeeztixState(user.id);
     if (expectedState !== state)

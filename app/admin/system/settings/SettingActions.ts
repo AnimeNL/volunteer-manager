@@ -44,10 +44,7 @@ const kUpdateSettingsData = z.looseObject({ /* freeform key-value mapping */ });
  */
 export async function updateSettings(formData: unknown) {
     return executeServerAction(formData, kUpdateSettingsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.internals.settings',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.internals.settings');
 
         const settings: { [k: string]: boolean | number | string } = {};
         for (const [ setting, rawValue ] of Object.entries(data)) {

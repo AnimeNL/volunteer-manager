@@ -11,7 +11,7 @@ import { PromptValidator } from '@lib/ai/PromptValidator';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
 import { readExampleMessages, writeExampleMessages } from '@lib/ai/ExampleMessages';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
@@ -32,10 +32,7 @@ export async function executeModelPlayground(formData: unknown) {
     'use server';
 
     return executeServerAction(formData, kExecuteModelPlaygroundData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        await requireAuthentication('system.internals.ai');
 
         const client = await createAiClient();
 
@@ -95,10 +92,7 @@ const kUpdateExampleMessagesData = z.object({
 export async function updateExampleMessages(formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateExampleMessagesData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        await requireAuthentication('system.internals.ai');
 
         await writeExampleMessages(data.exampleMessages as string[]);
 
@@ -145,10 +139,7 @@ const kUpdateModelSettingsData = z.object({
 export async function updateModelSettings(formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateModelSettingsData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        await requireAuthentication('system.internals.ai');
 
         await writeSettings({
             'ai-setting-gemini-api-key': data.geminiApiKey,
@@ -188,10 +179,7 @@ const kUpdatePromptData = z.object({
 export async function updatePrompt(formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdatePromptData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'system.internals.ai',
-        });
+        await requireAuthentication('system.internals.ai');
 
         const prompt = PromptFactory.createById(data.id, data.prompt);
         if (!prompt)

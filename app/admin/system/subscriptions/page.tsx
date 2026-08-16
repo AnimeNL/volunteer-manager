@@ -12,7 +12,8 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTestAction } from './SubscriptionTestAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { publishSubscriptionTest } from './SubscriptionActions';
 import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import db, { tSubscriptions, tUsers } from '@lib/database';
@@ -48,10 +49,7 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin',
-            permission: 'system.subscriptions.management',
-        });
+        executeAccessCheck(props.authenticationContext, 'system.subscriptions.management');
     },
 
     async list(params) {
@@ -118,10 +116,7 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
  * selectively sign up certain people to automated and/or privileged messaging.
  */
 export default async function SubscriptionPage() {
-    const { access } = await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.subscriptions.management',
-    });
+    const { access } = await requireAuthentication('system.subscriptions.management');
 
     let action: React.ReactNode;
     if (access.can('system.internals'))

@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse, type FeedbackResponse } from '@lib/database/Types';
@@ -36,10 +36,7 @@ const kRecordResponseData = z.object({
 async function recordResponse(feedbackId: number, feedbackUserId?: number, formData?: unknown) {
     'use server';
     return executeServerAction(formData, kRecordResponseData, async (data, props) => {
-        await requireAuthenticationContext({
-            check: 'admin',
-            permission: 'organisation.feedback',
-        });
+        await requireAuthentication('organisation.feedback');
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tFeedback)
@@ -83,10 +80,7 @@ export default async function FeedbackDetailPage(
 {
     const { id } = await props.params;
 
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.feedback',
-    });
+    await requireAuthentication('organisation.feedback');
 
     const usersJoin = tUsers.forUseInLeftJoinAs('uj');
     const usersResponseJoin = tUsers.forUseInLeftJoinAs('urj');

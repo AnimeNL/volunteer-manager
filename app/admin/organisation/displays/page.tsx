@@ -4,7 +4,7 @@
 import type { DisplayTableEventOption, DisplayTableLocationOption } from './DisplaysTable';
 import { DisplaysTable } from './DisplaysTable';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tActivitiesLocations } from '@lib/database';
 
 /**
@@ -12,10 +12,7 @@ import db, { tEvents, tActivitiesLocations } from '@lib/database';
  * recently checked in, and allows them to be provisioned and configured.
  */
 export default async function DisplaysPage() {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'organisation.displays',
-    });
+    await requireAuthentication('organisation.displays');
 
     const events: DisplayTableEventOption[] = await db.selectFrom(tEvents)
         .where(tEvents.eventFestivalId.isNotNull())

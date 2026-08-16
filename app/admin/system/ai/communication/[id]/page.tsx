@@ -17,7 +17,7 @@ import { TokenOverviewAlert } from '../../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { updatePrompt } from '../../AiActions';
 
 import * as prompts from '@lib/ai/prompts';
@@ -29,10 +29,7 @@ import * as prompts from '@lib/ai/prompts';
 export default async function CommunicationPromptAiPage(
     props: PageProps<'/admin/system/ai/communication/[id]'>)
 {
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.ai',
-    });
+    await requireAuthentication('system.internals.ai');
 
     const promptId = (await props.params).id;
 

@@ -11,7 +11,7 @@ import PodcastsIcon from '@mui/icons-material/Podcasts';
 import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Server Action that can be used with <CommunicationIconButton> to indicate a successful response.
@@ -54,7 +54,7 @@ async function commit(
  * Page that displays utilities towards trying out the communication features in the system.
  */
 export default async function CommunicationPage() {
-    await requireAuthenticationContext({ check: 'admin', permission: 'admin' });
+    await requireAuthentication('admin');
 
     const commitClose = commit.bind(null, 'close');
     const commitFailure = commit.bind(null, 'failure');

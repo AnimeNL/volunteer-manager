@@ -4,16 +4,16 @@
 import { cache } from 'react';
 import { forbidden, unauthorized } from 'next/navigation';
 
+// https://github.com/vercel/next.js/discussions/44270
+const headers = import('next/headers');
+
 import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { SessionData } from './Session';
 
-import { AccessControl, kAnyEvent, kAnyTeam, type AccessScope } from './AccessControl';
+import { AccessControl, type AccessScope } from './AccessControl';
 import { authenticateUser } from './Authentication';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
-
-// https://github.com/vercel/next.js/discussions/44270
-const headers = import('next/headers');
 
 import type {
     AuthenticationContext,
@@ -28,39 +28,8 @@ export type {
 };
 
 /**
- * Determines the authentication context from the cookies included with the current request. May
- * only be used by server-side components, as authentication requires a database query.
- */
-export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> => {
-    const sessionData = await getSessionFromCookieStore((await headers).cookies());
-    if (sessionData)
-        return getAuthenticationContextFromSessionData(sessionData);
-
-    return {
-        access: new AccessControl({ /* no grants */ }),
-        user: /* guest= */ undefined,
-    };
-});
-
-/**
- * Determines the authentication context based on the given `headers`. May only be used by server-
- * side components, as authentication requires a fdatabase query.
- */
-export async function getAuthenticationContextFromHeaders(headers: Headers)
-    : Promise<AuthenticationContext>
-{
-    const sessionData = await getSessionFromHeaders(headers);
-    if (sessionData)
-        return getAuthenticationContextFromSessionData(sessionData);
-
-    return {
-        access: new AccessControl({ /* no grants */ }),
-        user: /* guest= */ undefined,
-    }
-}
-
-/**
- * Definition for a permission-based access check.
+ * Access check for a specific permission. May be a simple boolean permission, or a CRUD permission
+ * which requires a specific operation to be allowed.
  */
 export type PermissionAccessCheck =
     BooleanPermission |
@@ -75,9 +44,12 @@ export type PermissionAccessCheck =
     };
 
 /**
- * A set of permissions that should be checked in a particular manner.
+ * A set of permission checks, either where all ("and") or any ("or") of the checks must pass.
  */
-export type PermissionSet = { type: 'and' | 'or', checks: PermissionAccessCheck[] };
+export type PermissionSet = {
+    type: 'and' | 'or';
+    checks: PermissionAccessCheck[];
+};
 
 export function and(...permissions: PermissionAccessCheck[]): PermissionSet {
     return { type: 'and', checks: permissions };
@@ -86,45 +58,6 @@ export function and(...permissions: PermissionAccessCheck[]): PermissionSet {
 export function or(...permissions: PermissionAccessCheck[]): PermissionSet {
     return { type: 'or', checks: permissions };
 }
-
-/**
- * Types of access check that can be executed. Each check should be individually documented.
- */
-type AuthenticationAccessCheckTypes =
-    /**
-     * Access to the administrative area. This is the case when either:
-     *   (1) The user has permission to any event,
-     *   (2) The user has admin access because of an active event.
-     */
-    { check: 'admin' } |
-
-    /**
-     * Access to the administrative area for a particular event. This is the case when either:
-     *   (1) The user has permission to access any event,
-     *   (2) The user has admin access to the given `event`, which must be a slug.
-     *   (3) Optionally, the user has admin access to the given `team`, which must be a slug.
-     */
-    { check: 'admin-event', event: string, team?: string } |
-
-    /**
-     * Access to the schedule for a particular event. This is the case when either:
-     *   (1) The user has permission to access any event,
-     *   (2) The user has admin access to the given `event`, which must be active,
-     *   (3) The event's schedule has been published by an event administrator.
-     */
-    { check: 'event', event: string } |
-
-    /**
-     * Access checks may be omitted in favour of only checking for permissions.
-     */
-    { };
-
-/**
- * The access check always allows for permissions to be checked inline.
- */
-type AuthenticationAccessCheck = AuthenticationAccessCheckTypes & {
-    permission?: PermissionAccessCheck | PermissionSet;
-};
 
 /**
  * Executes a permission `check` on the given `access` object.
@@ -170,66 +103,37 @@ export function checkPermission(
 }
 
 /**
- * Executes the given `access` check. The `type` determines what should be checked for, optionally
- * with additional parameters, and permissions can always be checked for. A HTTP 401 Unauthorized or
- * HTTP 403 Forbidden error will be thrown when the access check fails.
+ * Executes the given `permission` check. A HTTP 401 Unauthorized or HTTP 403 Forbidden error will
+ * be thrown when the access check fails.
  *
  * @note Access checks can be done inline when requiring an authentication context to exist.
  */
 export function executeAccessCheck(
-    context: AuthenticationContext, access: AuthenticationAccessCheck, scope?: AccessScope)
-        : void | never
+    context: AuthenticationContext,
+    permission: PermissionAccessCheck | PermissionSet,
+    scope?: AccessScope): void | never
 {
-    if (access.permission && !checkPermission(context.access, access.permission, scope)) {
+    if (!checkPermission(context.access, permission, scope)) {
         !!context.user ? forbidden()
                        : unauthorized();
-    }
-
-    if ('check' in access) {
-        if (!context.user)
-            unauthorized();
-
-        switch (access.check) {
-            case 'admin':
-                context.access.require('event.visible', {
-                    event: kAnyEvent,
-                    team: kAnyTeam,
-                });
-
-                break;
-
-            case 'admin-event':
-                context.access.require('event.visible', {
-                    event: access.event,
-                    team: access.team ?? kAnyTeam
-                });
-
-                break;
-
-            case 'event':
-                if (!context.access.can('event.schedule.access', { event: access.event })) {
-                    if (!context.events.has(access.event))
-                        forbidden();
-                }
-                break;
-        }
     }
 }
 
 /**
  * Determines the authentication context from the cookies included with the current request, and
- * will issue a HTTP 404 Not Found error when none could be loaded. May only be used by server-side
- * components, as authentication requires a database query.
+ * will issue a HTTP 401 Unauthorized error when none could be loaded. May only be used by
+ * server-side components, as authentication requires a database query.
  */
 export async function requireAuthenticationContext(
-    access?: AuthenticationAccessCheck, scope?: AccessScope): Promise<UserAuthenticationContext>
+    permission?: PermissionAccessCheck | PermissionSet,
+    scope?: AccessScope): Promise<UserAuthenticationContext>
 {
     const authenticationContext = await getAuthenticationContext();
     if (!authenticationContext.user)
         unauthorized();
 
-    if (access)
-        executeAccessCheck(authenticationContext, access, scope);
+    if (permission)
+        executeAccessCheck(authenticationContext, permission, scope);
 
     return authenticationContext;
 }
@@ -242,3 +146,33 @@ async function getAuthenticationContextFromSessionData(sessionData: SessionData)
 {
     return authenticateUser({ type: 'session', ...sessionData });
 }
+
+/**
+ * Determines the authentication context based on the request headers. Only for use in tests.
+ *
+ * @param headers The Headers object from the request.
+ */
+export async function getAuthenticationContextFromHeaders(
+    headers: Headers): Promise<AuthenticationContext>
+{
+    const sessionData = await getSessionFromHeaders(headers);
+    if (!sessionData)
+        return { access: new AccessControl({}), user: undefined };
+
+    return getAuthenticationContextFromSessionData(sessionData);
+}
+
+/**
+ * Returns the `AuthenticationContext` for the current user. May return a context for a visitor, who
+ * does not have any privileges assigned to them.
+ */
+export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> => {
+    const sessionData = await getSessionFromCookieStore((await headers).cookies());
+    if (sessionData)
+        return getAuthenticationContextFromSessionData(sessionData);
+
+    return {
+        access: new AccessControl({ /* no grants */ }),
+        user: /* guest= */ undefined,
+    };
+});

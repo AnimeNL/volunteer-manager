@@ -1,12 +1,14 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound, unauthorized } from 'next/navigation';
+import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { AuthenticationContext, PermissionAccessCheck, PermissionSet,
     UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { type CachedEvent, type CachedTeam, getEvent, getTeam } from '@lib/cache';
+
+import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 
 /**
  * Type representing an event identifier (either numeric database ID or string slug).
@@ -79,12 +81,13 @@ export async function requireAuthentication(
     }
 
     if (!context.user)
-        unauthorized();
+        unauthorized();  // not signed in
 
-    executeAccessCheck(context, {
-        check: 'admin',
-        permission: actualPermission,
-    });
+    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
+        forbidden();  // no admin access
+
+    if (actualPermission)
+        executeAccessCheck(context, actualPermission);
 
     return context as UserAuthenticationContext;
 }
@@ -138,18 +141,19 @@ export async function requireAuthenticationWithEvent(
     if (!context.user)
         unauthorized();
 
+    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
+        forbidden();  // no admin access
+
     const event = await getEvent(eventIdentifier);
     if (!event)
         notFound();
 
-    executeAccessCheck(context, {
-        check: 'admin-event',
-        event: event.slug,
-        permission: actualPermission,
-    }, {
-        event: event.slug,
-        team: teamSlug,
-    });
+    if (actualPermission) {
+        executeAccessCheck(context, actualPermission, {
+            event: event.slug,
+            team: teamSlug,
+        });
+    }
 
     return { ...context, user: context.user, event };
 }
@@ -216,6 +220,9 @@ export async function requireAuthenticationWithEventAndTeam(
     if (!context.user)
         unauthorized();
 
+    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
+        forbidden();  // no admin access
+
     const team = await getTeam(teamIdentifier);
     if (!team)
         notFound();
@@ -224,15 +231,12 @@ export async function requireAuthenticationWithEventAndTeam(
     if (!event)
         notFound();
 
-    executeAccessCheck(context, {
-        check: 'admin-event',
-        event: event.slug,
-        team: team.slug,
-        permission: actualPermission,
-    }, {
-        event: event.slug,
-        team: team.slug,
-    });
+    if (actualPermission) {
+        executeAccessCheck(context, actualPermission, {
+            event: event.slug,
+            team: team.slug,
+        });
+    }
 
     return { ...context, user: context.user, event, team };
 }

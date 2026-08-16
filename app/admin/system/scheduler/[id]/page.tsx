@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tTasks } from '@lib/database';
 
 import { rerunSchedulerTask } from '../SchedulerActions';
@@ -31,10 +31,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
     if (!params.id)
         notFound();
 
-    await requireAuthenticationContext({
-        check: 'admin',
-        permission: 'system.internals.scheduler',
-    });
+    await requireAuthentication('system.internals.scheduler');
 
     const dbInstance = db;
     const task = await db.selectFrom(tTasks)

@@ -67,14 +67,10 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: context.event.slug,
-            permission: {
-                permission: 'volunteers.tickets',
-                operation: 'read',
-                scope: {
-                    event: context.event.slug,
-                },
+            permission: 'volunteers.tickets',
+            operation: 'read',
+            scope: {
+                event: context.event.slug,
             },
         });
     },

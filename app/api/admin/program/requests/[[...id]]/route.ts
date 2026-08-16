@@ -6,8 +6,8 @@ import { z } from 'zod/v4';
 
 import { type DataTableEndpoints, createDataTableApi } from '@app/api/createDataTableApi';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
+import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tActivities, tEventsTeams, tShifts, tUsers } from '@lib/database';
 
 /**
@@ -91,7 +91,7 @@ const kProgramRequestSortOrder = {
  * The program request API is implemented as a regular, editable DataTable API.
  */
 export const { GET, PUT } = createDataTableApi(kProgramRequestRowModel, kProgramRequestContext, {
-    accessCheck({ context }, action, props) {
+    async accessCheck({ context }, action, props) {
         switch (action) {
             case 'create':
             case 'delete':
@@ -99,24 +99,15 @@ export const { GET, PUT } = createDataTableApi(kProgramRequestRowModel, kProgram
                 forbidden();
 
             case 'list':
-                executeAccessCheck(props.authenticationContext, {
-                    check: 'admin-event',
-                    event: context.event,
-                });
-
+                await requireAuthentication(props.authenticationContext);
                 break;
 
             case 'update':
-                executeAccessCheck(props.authenticationContext, {
-                    check: 'admin-event',
-                    event: context.event,
-
-                    permission: {
-                        permission: 'event.requests',
-                        scope: {
-                            event: context.event,
-                        },
-                    }
+                await requireAuthentication(props.authenticationContext, {
+                    permission: 'event.requests',
+                    scope: {
+                        event: context.event,
+                    },
                 });
 
                 break;
