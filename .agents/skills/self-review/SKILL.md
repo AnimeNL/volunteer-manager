@@ -35,8 +35,8 @@ You must match the coding and style conventions of the existing project. Some sp
 * Prefer clear function, method and variable naming over comments.
 * Match comment use of existing code, but suggest to the user when it seems superfluous.
 
-Imports are always listed at the top of the file. They're strictly alphabetised, and organised in
-up to six separate blocks separated by an extra blank line:
+Imports are always listed at the top of the file. They're organised in up to six separate blocks
+separated by an extra blank line:
 
 1. All other imports
 2. Imports from @app/components/proxy (such as `react-hook-form-mui`)
@@ -44,3 +44,7 @@ up to six separate blocks separated by an extra blank line:
 4. Imports from our own code
 5. Imports that exclusively pull in constants that start with a "k"
 6. Imports that exclusively pull in Server Actions
+
+All entries within a block are strictly alphabetised, with two exceptions: first, type-only imports
+in a block come before all others, and second, the import from "@lib/database", when it includes the
+`db` symbol, comes last in the block.

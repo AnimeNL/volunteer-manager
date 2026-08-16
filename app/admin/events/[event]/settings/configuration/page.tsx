@@ -14,6 +14,8 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Typography from '@mui/material/Typography';
 
+import type { EventAvailabilityStatus } from '@lib/database/Types';
+import type { TicketService } from '@lib/tickets/TicketService';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
@@ -29,10 +31,9 @@ import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tEvents, tStorage } from '@lib/database';
 
-import { kEventAvailabilityStatus, kEventTicketProvider, type EventAvailabilityStatus } from '@lib/database/Types';
+import { kEventAvailabilityStatus, kEventTicketProvider } from '@lib/database/Types';
 
 import * as actions from '../SettingsActions';
-import type { TicketService } from '@lib/tickets/TicketService';
 
 /**
  * Options that can be presented to the senior in regards to the event availability status.
@@ -89,7 +90,7 @@ const kTicketingProviderOptions = [
 /**
  * Page through which the primary configuration associated with a particular event can be adjusted.
  */
-export default async function EventSettingsTeamsPage(
+export default async function EventSettingsConfigurationPage(
     props: PageProps<'/admin/events/[event]/settings/configuration'>)
 {
     const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
@@ -168,7 +169,7 @@ export default async function EventSettingsTeamsPage(
                     </Alert> }
                 { !!event.published &&
                     <Alert variant="outlined" severity="success">
-                        {event.shortName} is live. Senior provileges have been granted and public
+                        {event.shortName} is live. Senior privileges have been granted and public
                         references to the event remain available.
                     </Alert> }
                 <ActionBar>

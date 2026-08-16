@@ -6,21 +6,22 @@ import { z } from 'zod/v4';
 
 import GroupsIcon from '@mui/icons-material/Groups';
 
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
-import { Cache } from '@lib/cache/Cache';
-import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
-    type ExtractRowModel } from '@app/admin/components/DataTable';
+import { Cache, getTeam } from '@lib/cache';
+import { DataTable, createDataSource, withContext, withRowModel }
+    from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { getTeam } from '@lib/cache';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
+import { kEventTransformer } from '@app/admin/components/DataTable';
 
 /**
  * Data source for the team settings of an event.

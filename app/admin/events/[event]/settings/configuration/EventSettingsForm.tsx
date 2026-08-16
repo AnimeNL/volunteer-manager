@@ -1,8 +1,7 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { DateTimePickerElement } from 'react-hook-form-mui/date-pickers';
-import { TextFieldElement } from '@proxy/react-hook-form-mui';
+import { DateTimePickerElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
 

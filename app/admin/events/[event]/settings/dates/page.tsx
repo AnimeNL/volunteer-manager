@@ -5,9 +5,11 @@ import { z } from 'zod/v4';
 
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 
-import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
-    type ExtractRowModel } from '@app/admin/components/DataTable';
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import type { DateType } from '@lib/database/Types';
 import { CompletedCell, CompletedHeader, OwnerCell } from './DatesCells';
+import { DataTable, createDataSource, withContext, withRowModel }
+    from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -17,7 +19,8 @@ import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
 import db, { tEventsDates, tUsers } from '@lib/database';
 
-import { kDateType, type DateType } from '@lib/database/Types';
+import { kDateType } from '@lib/database/Types';
+import { kEventTransformer } from '@app/admin/components/DataTable';
 
 /**
  * Labels to use when allowing configuration of deadline / highlight dates.
@@ -314,7 +317,7 @@ export default async function EventSettingsDatesPage(
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Settings', href: `/admin/events/${event.slug}/settings` },
-                        { label: 'Important dates' },
+                        { label: 'Key dates' },
                      ]}>
                 <SectionIntroduction>
                     Important deadlines and highlights during {event.shortName} organisation.
