@@ -94,10 +94,10 @@ export class SendEmailTask extends TaskWithParams<TaskParams> {
             params.accountId = await readSetting('integration-email-default-account-id') ?? 1;
 
         const client = await createEmailClient(params.accountId);
-        const message = client.createMessage()
+        const message = await client.createMessage()
             .setTo(params.message.to)
             .setSubject(params.message.subject)
-            .setMarkdown(params.message.markdown);
+            .asyncSetMarkdown(params.message.markdown);
 
         const result = await client.sendMessage({
             sender: params.sender,

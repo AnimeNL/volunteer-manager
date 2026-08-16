@@ -54,7 +54,6 @@
     "d3-interpolate": "^3.0.1",
     "dayjs": "^1.11.21",
     "mariadb": "^3.5.3",
-    "marked": "^18.0.9",
     "mui-color-input": "^9.0.0",
     "mui-markdown": "^3.0.1",
     "next": "16.3.1",

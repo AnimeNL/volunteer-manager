@@ -58,8 +58,8 @@ describe('EmailClient', () => {
         });
     });
 
-    it('is able to build messages using markdown', () => {
-        const message = new EmailMessage().setMarkdown('**Hello** world!');
+    it('is able to build messages using markdown', async () => {
+        const message = await new EmailMessage().asyncSetMarkdown('**Hello** world!');
         expect(message.options).toEqual({
             // Defaults:
             disableFileAccess: true,

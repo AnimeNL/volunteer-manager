@@ -11,6 +11,8 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import Grid from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
+import Typography from '@mui/material/Typography';
 
 import { DebugOptions } from './DebugOptions';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
@@ -19,6 +21,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
+import { markdownToHtml } from '@components/Markdown';
 import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -80,6 +83,8 @@ export default async function DebugPage() {
         date: '2024-06-22T10:55:32Z[UTC]',
     };
 
+    const output = await markdownToHtml('## Hello, world!\nThis is a **test**.');
+
     return (
         <>
             <Section icon={ <BugReportIcon color="primary" /> } title="Debug"
@@ -91,6 +96,11 @@ export default async function DebugPage() {
                     The debug page displays debugging information regarding NextJS and AnimeCon
                     Volunteer Manager internals.
                 </SectionIntroduction>
+            </Section>
+            <Section icon={ <TextSnippetOutlinedIcon /> } title="Markdown-to-HTML test">
+                <Typography sx={{ fontFamily: 'monospace' }}>
+                    {output}
+                </Typography>
             </Section>
             <DebugOptions />
             <FormGridSection action={debugAction} defaultValues={values}

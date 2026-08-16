@@ -5,4 +5,5 @@ import 'server-only';
 
 export * from './Markdown';
 export * from './MarkdownContainer';
+export { markdownToHtml } from './markdownToHtml';
 export { markdownToJsx } from './markdownToJsx';

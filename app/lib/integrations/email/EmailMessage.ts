@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SendMailOptions } from 'nodemailer';
-import { marked } from 'marked';
+import { markdownToHtml } from '@components/Markdown';
 
 /**
  * Class that encapsulates an e-mail that should be send to a specific address. The constructor
@@ -93,24 +93,26 @@ export class EmailMessage {
     }
 
     /**
-     * Sets the Markdown content of this message to the given `markdown` string. Since Markdown is
-     * human readable, it will also be the text version. Returns this instance of MailMessage.
-     */
-    setMarkdown(markdown: string): EmailMessage {
-        this.#options.html = marked.parse(markdown) as string;
-
-        if (!Object.hasOwn(this.#options, 'text'))
-            this.#options.text = markdown;
-
-        return this;
-    }
-
-    /**
      * Sets the plaintext content of this message to the given `text` string. It is recommended to
      * also include an HTML version of the message. Returns this instance of MailMessage.
      */
     setText(text: string): EmailMessage {
         this.#options.text = text;
+        return this;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Sets the Markdown content of this message to the given `markdown` string. Since Markdown is
+     * human readable, it will also be the text version. Returns this instance of MailMessage.
+     */
+    async asyncSetMarkdown(markdown: string): Promise<EmailMessage> {
+        this.#options.html = await markdownToHtml(markdown);
+
+        if (!Object.hasOwn(this.#options, 'text'))
+            this.#options.text = markdown;
+
         return this;
     }
 }
