@@ -115,6 +115,21 @@ function calculateByteSize(contents: any): number {
     if (Buffer.isBuffer(contents))
         return contents.length;
 
+    // Special-case React elements and thenables, as they may contain circular references and other
+    // exceptional data such as non-awaited Next.js props.
+    if (contents.$$typeof || typeof contents.then === 'function') {
+        const jsonString = JSON.stringify(contents, (key, value) => {
+            if (key === '_owner' || key === '_store' || key === 'ref') return undefined;
+            if (typeof value === 'symbol') return value.toString();
+            if (typeof value === 'function') return '[Function]';
+            return value;
+        });
+
+        return kTextEncoder.encode(jsonString).length;
+    }
+
+    // Fall back to a regular stringification. This is inaccurate because of JSON serialisation
+    // overhead, as well as considerations regarding V8 storing strings in UTF-16.
     try {
         const serialized = typeof contents === 'string' ? contents : JSON.stringify(contents);
         return kTextEncoder.encode(serialized).length;
