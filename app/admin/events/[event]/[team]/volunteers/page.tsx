@@ -18,7 +18,6 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { Column } from '@app/admin/components/DataTable';
 import type { CommunicationCellContext } from './CommunicationCell';
-import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { CommunicationCell, CommunicationHeaderCell } from './CommunicationCell';
 import { DataTable } from '@app/admin/components/DataTable';
 import { ExperienceCell, ExperienceHeaderCell } from './ExperienceCell';
@@ -27,64 +26,13 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
 import { type VolunteerRowModel, volunteerDataSource } from './dataSource';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { executeServerAction } from '@lib/serverAction';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { getContextForVolunteerAction } from './VolunteerActions';
 import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
-import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
-
 import { kRegistrationStatus } from '@lib/database/Types';
 
-/**
- * Server Action that will be invoked by the <CommunicationIconButton> component when a message
- * should be send on the user's behalf. All input should be treated as untrusted until verified.
- */
-async function sendCommunicationToVolunteer(
-    eventId: number, teamId: number, recipientId: number, promptId: CommunicationPromptId,
-    subject?: string, message?: string)
-{
-    'use server';
-
-    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            check: 'admin-event',
-            event: event.slug,
-            permission: {
-                permission: 'event.volunteers.information',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
-            },
-        });
-
-        if (!subject || !message)
-            return { success: false, error: 'Subject and/or message are missing from the request' };
-
-        await sendCommunication({
-            sender: props.user,
-            recipient: recipientId,
-            subject,
-            message,
-            metadata: {
-                eventId,
-                teamId,
-                promptId,
-            },
-        });
-
-        return {
-            success: true,
-            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
-        };
-    });
-}
+import { sendCommunicationToVolunteer } from './VolunteerActions';
 
 /**
  * The <EventVolunteersPage> page lists the volunteers who signed up to participate in the |event|

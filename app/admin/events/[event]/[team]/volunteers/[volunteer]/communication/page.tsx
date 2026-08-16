@@ -4,16 +4,22 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
+import Stack from '@mui/material/Stack';
 
+import { CommunicationCell } from '../../CommunicationCell';
 import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { isBefore } from '@lib/Temporal';
 import { requireAuthenticationContextWithEventAndTeam } from '../../../../requireAuthenticationContextWithEventAndTeam';
 import db, { tOutboxEmail, tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
+
+import { sendCommunicationToVolunteer } from './../../VolunteerActions';
 
 /**
  * Data source through which communication sent to a volunteer can be retrieved.
@@ -135,9 +141,16 @@ export default async function EventTeamVolunteerCommunicationPage(
 
     const id = (await props.params).volunteer;
 
-    const volunteer = await db.selectFrom(tUsersEvents)
+    const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
+    const dbInstance = db;
+    const volunteer = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
+        .leftJoin(usersCommunicationJoin)
+            .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
+                .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
             .and(tUsersEvents.userId.equals(parseInt(id, /* radix= */ 10)))
@@ -145,13 +158,40 @@ export default async function EventTeamVolunteerCommunicationPage(
         .select({
             id: tUsers.userId,
             name: tUsers.name,
+            firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+            language: tUsers.language,
+
+            communication: dbInstance.aggregateAsArray({
+                promptId: usersCommunicationJoin.communicationPromptId,
+                date: usersCommunicationJoin.communicationDate,
+            }),
         })
         .executeSelectNoneOrOne();
 
     if (!volunteer)
         notFound();
 
+    // ---------------------------------------------------------------------------------------------
+    // Process the communication sent to this user, with a focus on deciding the most recent time
+    // a message of a particular type was sent to them.
+    // ---------------------------------------------------------------------------------------------
+
+    const communication: Record<string, string> = {};
+    const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
+    for (const item of volunteer.communication) {
+        const latestCommunication = communicationPrompts.get(item.promptId);
+        if (!latestCommunication || isBefore(latestCommunication, item.date))
+            communicationPrompts.set(item.promptId, item.date);
+    }
+
+    for (const [ promptId, date ] of communicationPrompts.entries())
+        communication[promptId] = date.toString();
+
+    // ---------------------------------------------------------------------------------------------
+
     const canAccessOutbox = access.can('system.internals.outbox');
+
+    const communicationAction = sendCommunicationToVolunteer.bind(null, event.id, team.id);
 
     const columns: Column<ExtractRowModel<typeof volunteerCommunicationDataSource>>[] = [
         {
@@ -219,6 +259,23 @@ export default async function EventTeamVolunteerCommunicationPage(
                         linkTemplate:
                             canAccessOutbox ? '/admin/system/outbox/email/{id}' : undefined,
                     }} />
+            </Section>
+            <Section icon={ <EmailOutlinedIcon /> } title="Send an e-mail">
+                <SectionIntroduction>
+                    You're most welcome to send {volunteer.firstName} an e-mail. The following
+                    button will help you get started.
+                </SectionIntroduction>
+                <Stack direction="column" sx={{ alignItems: 'center' }}>
+                    <CommunicationCell
+                        row={{ ...volunteer, communication }}
+                        context={{
+                            action: sendCommunicationToVolunteer.bind(null, event.id, team.id),
+                            eventId: event.id,
+                            eventName: event.shortName,
+                            size: 'large',
+                            teamId: team.id,
+                        }} />
+                </Stack>
             </Section>
         </>
     );

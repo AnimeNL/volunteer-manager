@@ -42,17 +42,28 @@ export interface CommunicationCellContext {
     eventName: string;
 
     /**
+     * Optional size to pass to the communication icon button.
+     */
+    size?: 'small' | 'medium' | 'large';
+
+    /**
      * Unique ID of the team for which a communication can be crafted.
      */
     teamId: number;
 }
 
 /**
+ * The minimum set of data necessary from a volunteer row model to power this cell.
+ */
+type CommunicationCellRow =
+    Pick<VolunteerRowModel, 'id' | 'firstName' | 'language' | 'communication'>;
+
+/**
  * Cell that contains a communication button through which the user can be contacted on a variety of
  * topics. Each topic is included as a prompt in the component.
  */
 export function CommunicationCell(
-    props: { context?: CommunicationCellContext, row: VolunteerRowModel })
+    props: { context?: CommunicationCellContext, row: CommunicationCellRow })
 {
     const { action, eventId, eventName, teamId } = props.context!;
 
@@ -60,7 +71,7 @@ export function CommunicationCell(
         <CommunicationIconButton
             title={`Update ${props.row.firstName} about ${eventName}?`}
             action={action.bind(null, props.row.id)}
-            disableSilent
+            disableSilent size={props.context?.size}
             language={props.row.language}
             recipientId={props.row.id}
             prompts={[

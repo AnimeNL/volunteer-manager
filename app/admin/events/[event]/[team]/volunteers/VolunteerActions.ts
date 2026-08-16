@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
@@ -178,6 +179,54 @@ export async function clearTrainingPreferences(
         }
 
         return { success: true, clear: true };
+    });
+}
+
+/**
+ * Server Action that will be invoked by the <CommunicationIconButton> component when a message
+ * should be send on the user's behalf. All input should be treated as untrusted until verified.
+ */
+export async function sendCommunicationToVolunteer(
+    eventId: number, teamId: number, recipientId: number, promptId: CommunicationPromptId,
+    subject?: string, message?: string)
+{
+    'use server';
+
+    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+        const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
+
+        executeAccessCheck(props.authenticationContext, {
+            check: 'admin-event',
+            event: event.slug,
+            permission: {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
+            },
+        });
+
+        if (!subject || !message)
+            return { success: false, error: 'Subject and/or message are missing from the request' };
+
+        await sendCommunication({
+            sender: props.user,
+            recipient: recipientId,
+            subject,
+            message,
+            metadata: {
+                eventId,
+                teamId,
+                promptId,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
+        };
     });
 }
 
