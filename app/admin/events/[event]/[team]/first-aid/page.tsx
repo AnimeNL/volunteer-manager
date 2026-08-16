@@ -72,6 +72,7 @@ export default async function EventTeamFirstAidPage(
     return (
         <>
             <Section icon={ <LocalHospitalIcon color="primary" /> } title="First aid"
+                     documentation="event/vendor-team"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

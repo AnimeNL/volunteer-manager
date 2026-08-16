@@ -199,6 +199,7 @@ export default async function ApplicationsPage(
     return (
         <>
             <Section icon={ <NewReleasesOutlinedIcon color="primary" /> } title="Applications"
+                     documentation="event/applications"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

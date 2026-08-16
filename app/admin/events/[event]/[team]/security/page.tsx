@@ -72,6 +72,7 @@ export default async function EventTeamSecurityPage(
     return (
         <>
             <Section icon={ <SecurityIcon color="primary" /> } title="Security"
+                     documentation="event/vendor-team"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
