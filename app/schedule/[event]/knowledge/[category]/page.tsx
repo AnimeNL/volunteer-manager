@@ -16,7 +16,7 @@ import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { Markdown } from '@components/Markdown';
 import { SetTitle } from '../../components/SetTitle';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../../requireAuthentication';
 import db, { tContent, tContentCategories } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
@@ -29,10 +29,9 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleKnowledgeCategoryPage(
     props: PageProps<'/schedule/[event]/knowledge/[category]'>)
 {
+    await requireAuthentication(props);
+
     const params = await props.params;
-
-    await requireAuthenticationContext();  // TODO: Verify
-
     const searchParams = await props.searchParams;
 
     const dbInstance = db;

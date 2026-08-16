@@ -1,12 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
-
 import { DutyBookPage } from './DutyBookPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';
@@ -16,13 +13,7 @@ import { kAnyTeam } from '@lib/auth/AccessList';
  * to log a new entry in the Duty Book for others to be aware of.
  */
 export default async function DutyBookServerPage(props: PageProps<'/schedule/[event]/duty-book'>) {
-    const params = await props.params;
-
-    const { access, user } = await requireAuthenticationContext();  // TODO: Verify
-
-    const event = await getEventBySlug(params.event);
-    if (!event)
-        notFound();
+    const { access, event, user } = await requireAuthentication(props);
 
     const hasUnrestrictedAccess = access.can('event.duty-book', 'read', {
         event: event.slug,
@@ -66,7 +57,7 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         };
     });
 
-    return <DutyBookPage incidents={processedIncidents} timezone={event.timezone} />;
+    return <DutyBookPage incidents={processedIncidents} timezone={event.timeZone} />;
 }
 
 export const generateMetadata = generateScheduleMetadataFn([ 'Duty book' ]);

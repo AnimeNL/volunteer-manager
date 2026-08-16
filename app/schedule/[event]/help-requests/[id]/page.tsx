@@ -19,8 +19,7 @@ import { HelpRequestTarget } from '../../components/HelpRequestTarget';
 import { SetTitle } from '../../components/SetTitle';
 import { formatDate, formatDuration } from '@lib/Temporal';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
-import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../../requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestTarget } from '@lib/database/Types';
@@ -35,18 +34,8 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleHelpRequestPage(
     props: PageProps<'/schedule/[event]/help-requests/[id]'>)
 {
+    const { event } = await requireAuthentication(props, 'event.help-requests');
     const params = await props.params;
-
-    await requireAuthenticationContext({
-        permission: 'event.help-requests',
-        scope: {
-            event: params.event,
-        },
-    });
-
-    const event = await getEventBySlug(params.event);
-    if (!event)
-        notFound();
 
     const acknowledgedUserJoin = tUsers.forUseInLeftJoinAs('auj');
     const closedUserJoin = tUsers.forUseInLeftJoinAs('cuj');
@@ -80,7 +69,7 @@ export default async function ScheduleHelpRequestPage(
 
     const [ foreground, background ] = kHelpRequestColours[request.target];
 
-    const received = formatDate(request.date.withTimeZone(event.timezone), 'dddd[, at ]HH:mm');
+    const received = formatDate(request.date.withTimeZone(event.timeZone), 'dddd[, at ]HH:mm');
 
     let activeStep: number = 0;
 
@@ -89,7 +78,7 @@ export default async function ScheduleHelpRequestPage(
     if (!!request.acknowledgedBy && !!request.acknowledgedDate) {
         activeStep++;
         acknowledged = formatDate(
-            request.acknowledgedDate.withTimeZone(event.timezone), 'dddd[, at ]HH:mm');
+            request.acknowledgedDate.withTimeZone(event.timeZone), 'dddd[, at ]HH:mm');
         acknowledgedDiff =
             formatDuration(request.date.until(request.acknowledgedDate), /* noPrefix= */ true);
     }
@@ -98,7 +87,7 @@ export default async function ScheduleHelpRequestPage(
     let closedDiff: string | undefined;
     if (!!request.closedBy && !!request.closedDate) {
         activeStep += 2;
-        closed = formatDate(request.closedDate.withTimeZone(event.timezone), 'dddd[, at ]HH:mm');
+        closed = formatDate(request.closedDate.withTimeZone(event.timeZone), 'dddd[, at ]HH:mm');
         closedDiff = formatDuration(request.date.until(request.closedDate), /* noPrefix= */ true);
     }
 

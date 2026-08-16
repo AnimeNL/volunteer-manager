@@ -1,8 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { VolunteerPage } from '../volunteers/[volunteer]/VolunteerPage';
+import { requireAuthentication } from '../requireAuthentication';
 
 /**
  * The <ScheduleShiftsPage> component displays the regular volunteer page for the signed in user,
@@ -12,8 +12,7 @@ import { VolunteerPage } from '../volunteers/[volunteer]/VolunteerPage';
  * discover the user ID of the person signed in to the Volunteer Manager.
  */
 export default async function ScheduleShiftsPage(props: PageProps<'/schedule/[event]/shifts'>) {
-    const params = await props.params;
-    const { user } = await requireAuthenticationContext();  // TODO: Verify
+    const { user } = await requireAuthentication(props);
 
     return <VolunteerPage userId={`${user.id}`} />;
 }

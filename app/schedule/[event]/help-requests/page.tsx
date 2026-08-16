@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
-import { notFound } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
@@ -23,16 +22,15 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { Alert } from '../components/Alert';
-import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/database/Types';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { HelpRequestTarget } from '../components/HelpRequestTarget';
 import { SetTitle } from '../components/SetTitle';
 import { formatDate } from '@lib/Temporal';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
+import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/database/Types';
 import { kThemeImageVersion } from '@app/config';
 
 /**
@@ -145,18 +143,7 @@ function HelpRequestSummary(props: HelpRequestSummaryProps) {
 export default async function ScheduleHelpRequestsPage(
     props: PageProps<'/schedule/[event]/help-requests'>)
 {
-    const params = await props.params;
-
-    await requireAuthenticationContext({
-        permission: 'event.help-requests',
-        scope: {
-            event: params.event,
-        },
-    });
-
-    const event = await getEventBySlug(params.event);
-    if (!event)
-        notFound();
+    const { event } = await requireAuthentication(props, 'event.help-requests');
 
     const acknowledgedUserJoin = tUsers.forUseInLeftJoinAs('auj');
     const closedUserJoin = tUsers.forUseInLeftJoinAs('cuj');
@@ -221,7 +208,7 @@ export default async function ScheduleHelpRequestsPage(
                                 <CardActionArea key={request.id} component={Link}
                                                 href={`./help-requests/${request.id}`}>
                                     <HelpRequestSummary request={request}
-                                                        timezone={event.timezone} />
+                                                        timezone={event.timeZone} />
                                 </CardActionArea> )}
                         </Stack>
                     </Card>
@@ -235,7 +222,7 @@ export default async function ScheduleHelpRequestsPage(
                         { closedRequests.map(request =>
                             <Accordion key={request.id}>
                                 <HelpRequestSummary expandable request={request}
-                                                    timezone={event.timezone} />
+                                                    timezone={event.timeZone} />
                                 <AccordionDetails sx={{ pt: 0 }}>
                                     <Typography variant="body2">
                                         Closed by {request.closedBy}:

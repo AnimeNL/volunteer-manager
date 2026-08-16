@@ -1,8 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { EventPage } from './EventPage';
+import { requireAuthentication } from '../../requireAuthentication';
 
 /**
  * The <ScheduleEventPage> component display a page for a particular event. It lists information
@@ -11,7 +11,8 @@ import { EventPage } from './EventPage';
 export default async function ScheduleEventPage(
     props: PageProps<'/schedule/[event]/events/[eventId]'>)
 {
+    await requireAuthentication(props);
+
     const params = await props.params;
-    await requireAuthenticationContext();  // TODO: Verify
     return <EventPage activityId={params.eventId} />;
 }

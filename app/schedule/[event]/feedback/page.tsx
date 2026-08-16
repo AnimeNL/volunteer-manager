@@ -1,12 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
-
 import { FeedbackPage } from './FeedbackPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '../requireAuthentication';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 /**
@@ -14,13 +11,7 @@ import db, { tFeedback, tUsers } from '@lib/database';
  * responses when they are available.
  */
 export default async function FeedbackServerPage(props: PageProps<'/schedule/[event]/feedback'>) {
-    const params = await props.params;
-
-    const { user } = await requireAuthenticationContext();  // TODO: Verify
-
-    const event = await getEventBySlug(params.event);
-    if (!event)
-        notFound();
+    const { event, user } = await requireAuthentication(props);
 
     const usersJoin = tUsers.forUseInLeftJoin();
 
@@ -44,7 +35,7 @@ export default async function FeedbackServerPage(props: PageProps<'/schedule/[ev
         .orderBy('feedback.date', 'desc')
         .executeSelectMany();
 
-    return <FeedbackPage feedback={feedback} timezone={event.timezone} />;
+    return <FeedbackPage feedback={feedback} timezone={event.timeZone} />;
 }
 
 export const generateMetadata = generateScheduleMetadataFn([ 'Feedback' ]);
