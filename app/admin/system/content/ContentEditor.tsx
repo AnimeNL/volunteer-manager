@@ -259,6 +259,8 @@ const MdxEditorContainer = styled(Box)(({ theme }) => ([
         '& button[aria-label="Block type"]': {
             backgroundColor: 'transparent',
         },
+        '& div[class^="_admonition"]': { color: 'var(--baseText)' },
+        '& div[class^="_blockEditor"]': { color: 'var(--baseText)' },
     },
     theme.applyStyles('dark', {
         '& .cm-activeLineGutter': {

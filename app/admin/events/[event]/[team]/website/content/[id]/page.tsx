@@ -61,6 +61,7 @@ export default async function EventWebsiteContentPage(
     return (
         <>
             <Section icon={ <FeedOutlinedIcon color="primary" /> } title={content.title}
+                     documentation="system/content"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

@@ -12,6 +12,8 @@ import Alert, { type AlertProps } from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
+import { MarkdownRemoteContent } from './MarkdownRemoteContent';
+
 /**
  * Component variants to integrate the Markdown renderer with our use of Material UI.
  */
@@ -57,6 +59,15 @@ export const kMuiComponents: Partial<Components> = {
         }} {...props}>
             {children}
         </Typography>,
+
+    pre: ({ children, ...props }) =>
+        <Box component="pre" {...props} sx={{
+            backgroundColor: 'var(--mui-palette-background-default)',
+            borderRadius: '4px',
+            padding: '4px 8px',
+        }}>
+            {children}
+        </Box>,
 
     // ---------------------------------------------------------------------------------------------
     // List-related components
@@ -109,5 +120,17 @@ export const kMuiComponents: Partial<Components> = {
                 {children}
             </Alert>
         );
-    }
+    },
+
+    remote: ({ children, type, ...props }) => {
+        if (typeof children !== 'string' || !children.length) {
+            return (
+                <Alert severity="error" variant="outlined">
+                    Unable to inject remote content, identifier must be plain text.
+                </Alert>
+            );
+        }
+
+        return <MarkdownRemoteContent id={children} />;
+    },
 };

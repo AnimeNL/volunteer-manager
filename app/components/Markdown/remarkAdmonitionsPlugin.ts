@@ -17,7 +17,7 @@ export function remarkAdmonitionsPlugin() {
                 node.type === 'textDirective')
             {
                 const data = node.data || (node.data = {});
-                const tagName = 'admonition';
+                const tagName = node.name === 'remote' ? 'remote' : 'admonition';
 
                 data.hName = tagName;
                 data.hProperties = {

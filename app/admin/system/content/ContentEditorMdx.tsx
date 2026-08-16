@@ -9,13 +9,13 @@
 
 import Box from '@mui/material/Box';
 
-import type { JsxComponentDescriptor, MDXEditorMethods } from '@mdxeditor/editor';
+import type { DirectiveDescriptor, JsxComponentDescriptor, MDXEditorMethods } from '@mdxeditor/editor';
 import {
     AdmonitionDirectiveDescriptor, BlockTypeSelect, BoldItalicUnderlineToggles, CreateLink,
     DiffSourceToggleWrapper, GenericJsxEditor, ListsToggle, MDXEditor, Separator, UndoRedo,
     diffSourcePlugin, headingsPlugin, jsxPlugin, linkPlugin, linkDialogPlugin, listsPlugin,
     markdownShortcutPlugin, quotePlugin, tablePlugin, thematicBreakPlugin, toolbarPlugin,
-    directivesPlugin}
+    directivesPlugin, GenericDirectiveEditor }
         from '@mdxeditor/editor';
 
 import { unrecognisedNodePlugin } from './mdxEditorPlugins';
@@ -63,7 +63,8 @@ export default function ContentEditorMdx(props: ContentEditorMdxProps) {
                            diffSourcePlugin({ diffMarkdown: props.markdown }),
                            directivesPlugin({
                                directiveDescriptors: [
-                                   AdmonitionDirectiveDescriptor
+                                   AdmonitionDirectiveDescriptor,
+                                   RemoteDirectiveDescriptor,
                                ]
                            }),
                            headingsPlugin(),
@@ -93,4 +94,19 @@ export default function ContentEditorMdx(props: ContentEditorMdxProps) {
                        ]} />
         </Box>
     );
+}
+
+/**
+ * Descriptor for the "remote" directive, through which remote content can be fetched.
+ */
+const RemoteDirectiveDescriptor: DirectiveDescriptor = {
+    Editor: GenericDirectiveEditor,
+
+    attributes: [ /* none */ ],
+    hasChildren: true,
+    name: 'remote',
+
+    testNode(node) {
+        return node.name === 'remote'
+    },
 }

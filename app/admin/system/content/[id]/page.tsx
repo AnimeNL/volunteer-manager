@@ -45,6 +45,7 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     return (
         <>
             <Section icon={ <TocIcon color="primary" /> } title={contentTitle}
+                     documentation="system/content"
                      breadcrumbs={[
                          { label: 'Content', href: '/admin/system/content' },
                          { label: contentTitle },
