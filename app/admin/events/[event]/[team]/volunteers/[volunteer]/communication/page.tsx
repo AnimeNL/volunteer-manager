@@ -2,30 +2,140 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
+import { z } from 'zod/v4';
 
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
+    withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationContextWithEventAndTeam } from '../../../../requireAuthenticationContextWithEventAndTeam';
-import db, { tUsersEvents, tUsers } from '@lib/database';
+import db, { tOutboxEmail, tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 
 /**
- * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
- * for the current event. Each kind of preference maintains a "changelog".
+ * Data source through which communication sent to a volunteer can be retrieved.
  */
-export default async function EventTeamVolunteerPreferencesPage(
-    props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
+const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/communication',
+    withContext({
+        /**
+         * Event that the volunteer is participating in.
+         */
+        event: kEventTransformer,
+
+        /**
+         * Team that the volunteer is participating in.
+         */
+        team: kTeamTransformer,
+
+        /**
+         * Unique ID of the volunteer to retrieve communication for.
+         */
+        volunteer: z.number(),
+
+    }), withRowModel({
+        /**
+         * Unique ID of this communication entry.
+         */
+        id: z.number(),
+
+        /**
+         * Date and time at which the communication was sent, in UTC.
+         */
+        date: z.string(),
+
+        /**
+         * The person who sent the communication.
+         */
+        sender: z.object({
+            id: z.number().optional(),
+            name: z.string(),
+        }),
+
+        /**
+         * The message or subject of the communication.
+         */
+        message: z.string(),
+
+    }), {
+        async authorize(operation, props, context) {
+            executeAccessCheck(props.authenticationContext, {
+                check: 'admin',
+                permission: {
+                    permission: 'event.volunteers.information',
+                    operation: 'read',
+                    scope: {
+                        event: context.event.slug,
+                        team: context.team.slug,
+                    },
+                },
+            });
+        },
+
+        async list(params, props, context) {
+            let sortField: 'date' | 'sender.name' | 'message' = 'date';
+            switch (params.sort.field) {
+                case 'date':
+                case 'message':
+                    sortField = params.sort.field as 'date' | 'message';
+                    break;
+
+                case 'sender':
+                    sortField = 'sender.name';
+                    break;
+            }
+
+            const dbInstance = db;
+            const messages = await dbInstance.selectFrom(tUsersCommunication)
+                .innerJoin(tOutboxEmail)
+                    .on(tOutboxEmail.outboxCommunicationId.equals(
+                        tUsersCommunication.userCommunicationId))
+                .innerJoin(tUsers)
+                    .on(tUsers.userId.equals(tUsersCommunication.communicationSenderId))
+                .where(tUsersCommunication.userId.equals(context.volunteer))
+                    .and(tUsersCommunication.communicationEventId.equals(context.event.id))
+                    .and(tUsersCommunication.communicationTeamId.equals(context.team.id))
+                    .and(
+                        tOutboxEmail.outboxSubject.containsInsensitiveIfValue(params.search).or(
+                        tUsers.name.containsInsensitiveIfValue(params.search)))
+                .select({
+                    id: tOutboxEmail.outboxEmailId,
+                    date: dbInstance.dateTimeAsString(tUsersCommunication.communicationDate),
+                    sender: {
+                        id: tUsers.userId,
+                        name: tUsers.name,
+                    },
+                    message: tOutboxEmail.outboxSubject,
+                })
+                .orderBy(sortField, params.sort.direction)
+                .limit(params.page.limit)
+                    .offset(params.page.offset)
+                .executeSelectPage();
+
+            return {
+                rowCount: messages.count,
+                rows: messages.data,
+            };
+        },
+    });
+
+/**
+ * Page that displays communication that has been sent to an individual volunteer in scope of a
+ * particular event and team.
+ */
+export default async function EventTeamVolunteerCommunicationPage(
+    props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/communication'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
-        permission: 'event.vendors',
+    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+        permission: 'event.volunteers.information',
         operation: 'read',
     });
 
     const id = (await props.params).volunteer;
 
-    const context = await db.selectFrom(tUsersEvents)
+    const volunteer = await db.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
@@ -33,17 +143,41 @@ export default async function EventTeamVolunteerPreferencesPage(
             .and(tUsersEvents.userId.equals(parseInt(id, /* radix= */ 10)))
             .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
         .select({
-            volunteer: {
-                id: tUsers.userId,
-                name: tUsers.name,
-            },
+            id: tUsers.userId,
+            name: tUsers.name,
         })
         .executeSelectNoneOrOne();
-    
-    if (!context)
+
+    if (!volunteer)
         notFound();
 
-    const { volunteer } = context;
+    const canAccessOutbox = access.can('system.internals.outbox');
+
+    const columns: Column<ExtractRowModel<typeof volunteerCommunicationDataSource>>[] = [
+        {
+            field: 'date',
+            headerName: 'Date',
+            width: 185,
+
+            template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+                href: canAccessOutbox ? '/admin/system/outbox/email/{id}' : undefined,
+            },
+        },
+        {
+            field: 'sender',
+            headerName: 'Sender',
+            flex: 1,
+
+            template: 'account',
+        },
+        {
+            field: 'message',
+            headerName: 'Subject',
+            flex: 2,
+        },
+    ];
 
     return (
         <>
@@ -67,7 +201,24 @@ export default async function EventTeamVolunteerPreferencesPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                TODO
+                <DataTable
+                    columns={columns}
+                    context={{
+                        event: event.slug,
+                        team: team.slug,
+                        volunteer: volunteer.id,
+                    }}
+                    defaultSort={{ field: 'date', sort: 'desc' }}
+                    pageSize={50}
+                    source={volunteerCommunicationDataSource}
+                    subject="communication"
+                    listViewProps={{
+                        primaryField: 'message',
+                        secondaryTemplate: 'from {sender.name}',
+                        dateField: 'date',
+                        linkTemplate:
+                            canAccessOutbox ? '/admin/system/outbox/email/{id}' : undefined,
+                    }} />
             </Section>
         </>
     );
