@@ -17,9 +17,9 @@ page and layout must begin with an access check, unless it's a public page (for 
 ## Administration area (`app/admin/`)
 
 ### Authentication
-Never use `verifyAccessAndFetchPageInfo()`; `requireAuthentication(Context?)WithEvent(AndTeam?)`
-is the modern way of doing authentication for code in `app/admin/events/`, whereas other code
-should use `requireAuthenticationContext` directly.
+Never use `verifyAccessAndFetchPageInfo()`; `requireAuthentication(WithEvent(AndTeam?)?)` from
+`@app/admin/lib/requireAuthentication` is the modern way of doing authentication for code in
+`app/admin/events/`, whereas other code should use `requireAuthenticationContext` directly.
 
 ### Header and metadata
 Each page in `app/admin/` must start with <Section> component that includes breadcrumbs. It also
@@ -28,8 +28,8 @@ same breadcrumbs in the reverse order. OK to use numeric parameters where substi
 available.
 
 ### Obtaining event and/or team data
-When accessing event and/or team data, the `requireAuthentication(Context?)WithEvent(AndTeam?)`
-function will give you access to the cached versions. Strongly prefer this over alternatives.
+When accessing event and/or team data, the `requireAuthenticationWithEvent(AndTeam?)` function will
+give you access to the cached versions. Strongly prefer this over alternatives.
 
 * When data is missing from `CachedEvent` or `CachedTeam`, ask the user whether it should be added.
 * When the event or team cannot be derived from the authentication check, use the `getEvent()` or

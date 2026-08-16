@@ -27,7 +27,7 @@ import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
 import { type VolunteerRowModel, volunteerDataSource } from './dataSource';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -41,7 +41,7 @@ import { sendCommunicationToVolunteer } from './VolunteerActions';
 export default async function EventVolunteersPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });

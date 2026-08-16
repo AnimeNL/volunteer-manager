@@ -7,7 +7,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEvent } from '../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Overview page for managing an event's settings.
@@ -15,7 +15,7 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventSettingsPage(
     props: PageProps<'/admin/events/[event]/settings'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
+    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
     return (
         <>
             <Section icon={ <SettingsOutlinedIcon color="primary" /> } title="Settings"

@@ -11,7 +11,7 @@ import { VendorSchedule } from '../first-aid/VendorSchedule';
 import { VendorTable } from '../first-aid/VendorTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';
@@ -25,7 +25,7 @@ import { updateVendorSchedule } from '../first-aid/VendorActions';
 export default async function EventTeamSecurityPage(
     props: PageProps<'/admin/events/[event]/[team]/security'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.vendors',
         operation: 'read',
     });

@@ -12,8 +12,7 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEventAndTeam }
-    from '../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tEnvironmentsEvents } from '@lib/database';
 
 import * as actions from '../WebsiteActions';
@@ -24,7 +23,7 @@ import * as actions from '../WebsiteActions';
 export default async function EventTeamWebsiteSettingsPage(
     props: PageProps<'/admin/events/[event]/[team]/website/settings'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props);
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props);
     if (!team.flags.managesContent)
         notFound();
 

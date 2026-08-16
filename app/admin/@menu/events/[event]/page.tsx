@@ -24,8 +24,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
-import { requireAuthenticationContextWithEvent }
-    from '@app/admin/events/[event]/requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
 /**
@@ -33,7 +32,7 @@ import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
  * that are participating in that event. Rich, real-time information is conveyed.
  */
 export default async function EventMenu(props: LayoutProps<'/admin/events/[event]'>) {
-    const { access, event, user } = await requireAuthenticationContextWithEvent(props);
+    const { access, event, user } = await requireAuthenticationWithEvent(props);
 
     const eventsTeamsJoin = tEventsTeams.forUseInLeftJoin();
     const teamsJoin = tTeams.forUseInLeftJoin();

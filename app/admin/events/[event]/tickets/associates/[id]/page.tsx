@@ -20,7 +20,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { YourTicketProviderPurchaseItem } from './YourTicketProviderPurchaseItem';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';
@@ -31,7 +31,7 @@ import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '.
 export default async function EventTicketsAssociatesPage(
     props: PageProps<'/admin/events/[event]/tickets/associates/[id]'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

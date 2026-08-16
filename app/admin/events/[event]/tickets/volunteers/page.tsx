@@ -13,7 +13,7 @@ import { IssuedCell, IssuedHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 /**
@@ -136,7 +136,7 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
 export default async function EventTicketsVolunteersPage(
     props: PageProps<'/admin/events/[event]/tickets/volunteers'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

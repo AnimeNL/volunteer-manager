@@ -6,7 +6,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContextWithEvent } from '../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <EventSettingsLayout> is used to configure the accessible tabs within event settings.
@@ -14,7 +14,7 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventSettingsLayout(
     props: LayoutProps<'/admin/events/[event]/settings'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
+    const { access, event } = await requireAuthenticationWithEvent(props, 'event.settings');
     return (
         <SectionTabContext access={access} tabs={[
             {

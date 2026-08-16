@@ -16,7 +16,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tEventsDates, tUsers } from '@lib/database';
 
 import { kDateType } from '@lib/database/Types';
@@ -223,7 +223,7 @@ const eventDatesDataSource = createDataSource('admin/event/settings/dates', with
 export default async function EventSettingsDatesPage(
     props: PageProps<'/admin/events/[event]/settings/dates'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
+    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const leaders = await getLeadersForEvent(event.id);
 

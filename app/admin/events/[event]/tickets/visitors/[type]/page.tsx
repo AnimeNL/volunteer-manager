@@ -14,7 +14,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Data source for visitor tickets obtained from the ticketing provider for a specific type.
@@ -150,7 +150,7 @@ const eventVisitorTicketsDataSource = createDataSource('event/tickets/visitors/t
 export default async function EventTicketsVisitorTicketTypePage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/[type]'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });

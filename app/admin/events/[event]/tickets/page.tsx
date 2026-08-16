@@ -7,7 +7,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEvent } from '../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Overview page for the event ticket management tooling.
@@ -15,7 +15,7 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventTicketsPage(
     props: PageProps<'/admin/events/[event]/tickets'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

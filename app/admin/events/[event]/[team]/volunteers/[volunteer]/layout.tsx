@@ -6,7 +6,7 @@ import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <EventTeamVolunteerLayout> is used to configure the accessible tabs for a volunteer.
@@ -14,7 +14,7 @@ import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAu
 export default async function EventTeamVolunteerLayout(
     props: LayoutProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });

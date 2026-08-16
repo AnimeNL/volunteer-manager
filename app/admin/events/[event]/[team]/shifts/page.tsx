@@ -27,7 +27,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tSchedule, tShifts } from '@lib/database';
 
 import { createShift } from './ShiftActions';
@@ -184,7 +184,7 @@ const shiftsDataSource = createDataSource('event/team/shifts', withContext({
 export default async function EventTeamShiftsPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.shifts',
         operation: 'read',
     });

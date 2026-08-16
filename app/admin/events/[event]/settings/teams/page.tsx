@@ -17,7 +17,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
@@ -176,7 +176,7 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
 export default async function EventSettingsTeamsPage(
     props: PageProps<'/admin/events/[event]/settings/teams'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
+    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const columns: Column<ExtractRowModel<typeof eventTeamsDataSource>>[] = [
         {

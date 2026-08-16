@@ -25,8 +25,7 @@ import { ReconsiderApplicationButton } from './ReconsiderApplicationButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateInviteKey } from '@lib/EnvironmentContext';
-import { requireAuthenticationContextWithEventAndTeam }
-    from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -41,7 +40,7 @@ import * as actions from './ApplicationActions';
 export default async function ApplicationsPage(
     props: PageProps<'/admin/events/[event]/[team]/applications'>)
 {
-    const { access, event, team, user } = await requireAuthenticationContextWithEventAndTeam(props,
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props,
     {
         permission: 'event.applications',
         operation: 'read',

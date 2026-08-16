@@ -7,7 +7,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftCategoriesTable } from './ShiftCategoriesTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The shift categories page allows administrators to modify the categories in which shifts can be
@@ -16,7 +16,7 @@ import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAu
 export default async function EventTeamShiftCategoriesPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts/categories'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.shift-categories',
     });
 

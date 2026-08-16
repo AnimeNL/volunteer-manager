@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import type { VendorTeam } from '@lib/database/Types';
@@ -36,7 +36,7 @@ export async function updateVendorSchedule(
 {
     return executeServerAction(formData, kUpdateVendorSchedule, async (data, props) => {
         const { event } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.vendors',
                 operation: 'update',
             });

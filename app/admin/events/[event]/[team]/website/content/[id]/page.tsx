@@ -12,8 +12,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createEventScope } from '@app/admin/system/content/ContentScope';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEventAndTeam }
-    from '@app/admin/events/[event]/requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tContent } from '@lib/database';
 
 import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
@@ -25,7 +24,7 @@ import { fetchContent, updateContent } from '@app/admin/system/content/ContentAc
 export default async function EventWebsiteContentPage(
     props: PageProps<'/admin/events/[event]/[team]/website/content/[id]'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props);
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props);
     if (!team.flags.managesContent)
         notFound();
 

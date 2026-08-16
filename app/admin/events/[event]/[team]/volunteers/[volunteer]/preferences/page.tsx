@@ -13,7 +13,7 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
 import * as actions from './PreferenceActions';
@@ -26,7 +26,7 @@ import * as options from '@components/SelectElementOptions';
 export default async function EventTeamVolunteerPreferencesPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });

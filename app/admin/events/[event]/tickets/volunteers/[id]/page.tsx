@@ -13,7 +13,7 @@ import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfi
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 import { cancelPurchase, disassociatePurchase, resendPurchaseConfirmation }
@@ -27,7 +27,7 @@ export default async function EventTicketsVolunteerPage(
     props: PageProps<'/admin/events/[event]/tickets/volunteers/[id]'>)
 {
     const params = await props.params;
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

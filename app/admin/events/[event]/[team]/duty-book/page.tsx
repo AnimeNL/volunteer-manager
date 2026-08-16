@@ -20,7 +20,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationContextWithEventAndTeam } from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tDutyBook, tEvents, tTeams, tUsers } from '@lib/database';
 
 /**
@@ -191,7 +191,7 @@ export type DutyBookRowModel = ExtractRowModel<typeof dutyBookDataSource>;
 export default async function EventTeamDutyBookPage(
     props: PageProps<'/admin/events/[event]/[team]/duty-book'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.duty-book',
         operation: 'read',
     });

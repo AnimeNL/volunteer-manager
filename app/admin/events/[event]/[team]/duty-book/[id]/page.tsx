@@ -21,7 +21,7 @@ import { VisibilityToggle } from './VisibilityToggle';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 
 import * as actions from '../DutyBookActions';
@@ -116,7 +116,7 @@ export default async function EventTeamDutyBookIncidentPage(
 {
     const params = await props.params;
 
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.duty-book',
         operation: 'read',
     });

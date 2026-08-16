@@ -16,7 +16,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tOutboxEmail, tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 
 import { sendCommunicationToVolunteer } from './../../VolunteerActions';
@@ -134,7 +134,7 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
 export default async function EventTeamVolunteerCommunicationPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/communication'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });

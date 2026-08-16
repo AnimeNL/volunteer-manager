@@ -20,7 +20,7 @@ import { TicketSearchBar } from './TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Formatter to display a price in euros.
@@ -142,7 +142,7 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
 export default async function EventTicketsVisitorsPage(
     props: PageProps<'/admin/events/[event]/tickets/visitors'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });

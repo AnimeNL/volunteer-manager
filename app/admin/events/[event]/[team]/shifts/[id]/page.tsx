@@ -25,7 +25,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getShiftMetadata } from '../getShiftMetadata';
 import { readSetting } from '@lib/Settings';
 import { readUserSetting } from '@lib/UserSettings';
-import { requireAuthenticationContextWithEventAndTeam } from '../../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tActivitiesTimeslots, tSchedule, tShifts, tShiftsCategories, tTeams, tUsers, tUsersEvents }
     from '@lib/database';
 
@@ -89,7 +89,7 @@ function demandToTimelineEvents(
 export default async function EventTeamShiftInformationPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts/[id]'>)
 {
-    const { access, event, team, user } = await requireAuthenticationContextWithEventAndTeam(props, {
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.shifts',
         operation: 'read',
     });

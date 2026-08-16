@@ -5,11 +5,11 @@
 
 import { z } from 'zod/v4';
 
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
+import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '../requireAuthenticationWithEvent'
-import { storeBlobData } from '@lib/database/BlobStore';;
 import db, { tEvents } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
@@ -28,7 +28,7 @@ const kChangeEventImageData = z.object({
 export async function changeEventImage(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kChangeEventImageData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const eventIdentityId = await storeBlobData({
             bytes: Buffer.from(data.imageData, 'base64'),
@@ -73,7 +73,7 @@ const kChangeEventSlugData = z.object({
 export async function changeEventSlug(existingEventSlug: string, formData: unknown) {
     return executeServerAction(formData, kChangeEventSlugData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            existingEventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, existingEventSlug, 'event.settings');
 
         const possibleDuplicatedSlugEvent = await getEvent(data.slug);
         if (!!possibleDuplicatedSlugEvent) {
@@ -118,7 +118,7 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
 export async function publishEvent(eventSlug: string) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const affectedRows = await db.update(tEvents)
             .set({
@@ -165,7 +165,7 @@ const kEventFeaturesData = z.object({
 export async function updateEventFeatures(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventFeaturesData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const affectedRows = await db.update(tEvents)
             .set({
@@ -215,7 +215,7 @@ const kEventIdentityData = z.object({
 export async function updateEventIdentity(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIdentityData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const affectedRows = await db.update(tEvents)
             .set({
@@ -264,7 +264,7 @@ const kEventIntegrationsData = z.object({
 export async function updateEventIntegrations(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIntegrationsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const affectedRows = await db.update(tEvents)
             .set({
@@ -310,7 +310,7 @@ const kEventTicketingData = z.object({
 export async function updateEventTicketing(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventTicketingData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            eventSlug, props.authenticationContext, 'event.settings');
+            props.authenticationContext, eventSlug, 'event.settings');
 
         const ticketsProvider = data.provider || null;
         const ticketsAutoGrantTicketId = ticketsProvider ? (data.volunteerTicketId || null) : null;

@@ -7,8 +7,7 @@ import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContextWithEventAndTeam }
-    from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <EventTeamWebsiteLayout> is used to configure the accessible tabs.
@@ -16,7 +15,7 @@ import { requireAuthenticationContextWithEventAndTeam }
 export default async function EventTeamWebsiteLayout(
     props: LayoutProps<'/admin/events/[event]/[team]/website'>)
 {
-    const { access, event, team } = await requireAuthenticationContextWithEventAndTeam(props);
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props);
     if (!team.flags.managesContent)
         notFound();
 

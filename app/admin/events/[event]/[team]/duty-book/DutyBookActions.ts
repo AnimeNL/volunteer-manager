@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tDutyBook } from '@lib/database';
 
 /**
@@ -22,7 +22,7 @@ export async function deleteIncident(
     'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
         const { event } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
                 operation: 'delete',
             });
@@ -69,7 +69,7 @@ export async function updateDetails(
     'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
                 operation: 'update',
             });
@@ -114,7 +114,7 @@ export async function updateVisibility(
     'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
         const { event } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
 
                 // Note: All (senior) volunteers with read access to Duty Book entries can hide them

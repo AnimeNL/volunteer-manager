@@ -18,7 +18,7 @@ import { ValidityCell, ValidityHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { createAssociateTicket } from '../TicketActions';
@@ -148,7 +148,7 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
 export default async function EventTicketsAssociatesPage(
     props: PageProps<'/admin/events/[event]/tickets/associates'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

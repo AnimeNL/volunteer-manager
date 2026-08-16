@@ -8,7 +8,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
 
@@ -30,7 +30,7 @@ export async function claimApplication(
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.applications',
                 operation: 'update',
             });
@@ -85,7 +85,7 @@ export async function decideApplication(
     'use server';
     return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.applications',
                 operation: 'update',
             });
@@ -162,7 +162,7 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
     'use server';
     return executeServerAction(formData, kCreateApplicationData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.applications',
                 operation: 'create',
             });
@@ -249,7 +249,7 @@ export async function moveApplication(
     'use server';
     return executeServerAction(formData, kMoveApplicationData, async (data, props) => {
         const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.applications',
                 operation: 'update',
             });
@@ -325,7 +325,7 @@ export async function reconsiderApplication(
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.applications',
                 operation: 'create',
             });

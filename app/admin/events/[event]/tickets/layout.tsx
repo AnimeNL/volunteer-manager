@@ -6,7 +6,7 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import PublicIcon from '@mui/icons-material/Public';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationContextWithEvent } from '../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * The <EventTicketsLayout> provides the necessary context for tabs to work across these pages.
@@ -14,7 +14,7 @@ import { requireAuthenticationContextWithEvent } from '../requireAuthenticationC
 export default async function EventTicketsLayout(
     props: LayoutProps<'/admin/events/[event]/tickets'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });

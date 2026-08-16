@@ -21,7 +21,7 @@ import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationContextWithEvent } from '../../../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Page that displays an individual purchase for a particular event and ticket type. While there is
@@ -30,7 +30,7 @@ import { requireAuthenticationContextWithEvent } from '../../../../requireAuthen
 export default async function EventTicketsVisitorPurchasePage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/[type]/[id]'>)
 {
-    const { access, event } = await requireAuthenticationContextWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });

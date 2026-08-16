@@ -16,7 +16,7 @@ import { TicketSearchBar } from '../TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationContextWithEvent } from '../../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**
@@ -145,7 +145,7 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
 export default async function EventTicketsVisitorSearchPage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/search'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });

@@ -28,7 +28,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationContextWithEvent } from '../../requireAuthenticationContextWithEvent';
+import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tStorage } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider } from '@lib/database/Types';
@@ -93,7 +93,7 @@ const kTicketingProviderOptions = [
 export default async function EventSettingsConfigurationPage(
     props: PageProps<'/admin/events/[event]/settings/configuration'>)
 {
-    const { event } = await requireAuthenticationContextWithEvent(props, 'event.settings');
+    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);

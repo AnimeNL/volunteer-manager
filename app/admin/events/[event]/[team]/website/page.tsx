@@ -7,8 +7,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationContextWithEventAndTeam }
-    from '../../requireAuthenticationContextWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 
 /**
  * Overview page for managing an event's settings.
@@ -16,7 +15,7 @@ import { requireAuthenticationContextWithEventAndTeam }
 export default async function EventTeamWebsitePage(
     props: PageProps<'/admin/events/[event]/[team]/website'>)
 {
-    const { event, team } = await requireAuthenticationContextWithEventAndTeam(props);
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props);
     return (
         <>
             <Section icon={ <LanguageIcon color="primary" /> } title="Website"

@@ -6,7 +6,7 @@
 import { z } from 'zod/v4';
 
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '../../../../requireAuthenticationWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsersEvents } from '@lib/database';
 
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
@@ -32,7 +32,7 @@ export async function updateParticipationPreferences(
 {
     return executeServerAction(formData, kParticipationPreferencesSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
             });

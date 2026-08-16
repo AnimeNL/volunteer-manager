@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '../../requireAuthenticationWithEventAndTeam';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import { writeUserSetting } from '@lib/UserSettings';
 import db, { tActivities, tShifts, tShiftsCategories } from '@lib/database';
 
@@ -31,7 +31,7 @@ const kCreateShiftData = z.object({
 export async function createShift(eventSlug: string, teamSlug: string, formData: unknown) {
     return executeServerAction(formData, kCreateShiftData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.shifts',
                 operation: 'create',
             });
@@ -121,7 +121,7 @@ export async function updateShift(
 {
     return executeServerAction(formData, kUpdateShiftData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.shifts',
                 operation: 'create',
             });
@@ -181,7 +181,7 @@ export async function updateShiftDemand(
 {
     return executeServerAction(formData, kUpdateShiftDemandData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            eventSlug, teamSlug, props.authenticationContext, {
+            props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.shifts',
                 operation: 'create',
             });
