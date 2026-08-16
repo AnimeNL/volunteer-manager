@@ -202,7 +202,7 @@ export default async function EventTicketsVisitorsPage(
     return (
         <>
             <Section icon={ <PublicIcon color="primary" /> }
-                     title="Visitor tickets"
+                     title="Visitor tickets" documentation="event/tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },

@@ -55,7 +55,7 @@ export default async function EventTicketsVisitorPurchasePage(
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                     title={service.formatPurchaseId(purchase.id)}
+                     title={service.formatPurchaseId(purchase.id)} documentation="event/tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },

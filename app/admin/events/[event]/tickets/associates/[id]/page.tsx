@@ -98,7 +98,7 @@ export default async function EventTicketsAssociatesPage(
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                     title={`REF${params.id}`}
+                     title={`REF${params.id}`} documentation="event/tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },

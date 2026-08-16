@@ -214,7 +214,7 @@ export default async function EventTicketsVisitorTicketTypePage(
     return (
         <>
             <Section icon={ <ConfirmationNumberOutlinedIcon color="primary" /> }
-                     title={ticket.name}
+                     title={ticket.name} documentation="event/tickets"
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
