@@ -13,7 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { Markdown } from '@components/Markdown';
+import { Markdown } from '@app/schedule/Markdown';
 import { ScheduleContext } from '../ScheduleContext';
 import { callApi } from '@lib/callApi';
 import { currentTimestamp, toZonedDateTime } from '../CurrentTime';

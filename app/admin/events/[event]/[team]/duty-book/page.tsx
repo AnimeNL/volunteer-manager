@@ -10,7 +10,7 @@ import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withC
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 
 import { DutyBookSummaryPrompt } from '@lib/ai/prompts/DutyBookSummaryPrompt';
-import { Markdown } from '@app/components/Markdown/index';
+import { Markdown } from '@app/components/Markdown';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { SummaryAction } from './SummaryAction';

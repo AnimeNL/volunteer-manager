@@ -17,7 +17,7 @@ import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HiddenInput } from '@components/HiddenInput';
-import { Markdown } from '@components/Markdown/index';
+import { Markdown } from '@components/Markdown';
 import { PersonalityDialogAction } from './PersonalityDialogAction';
 import { PromptIcon } from '../PromptIcon';
 import { Section } from '@app/admin/components/Section';

@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -116,9 +117,9 @@ export function EventsContent(props: EventsContentProps) {
     return (
         <Grid container spacing={2} sx={kStyles.landingPage}>
             <Grid size={{ xs: 12, md: 5 }}>
-                <Markdown sx={{ pt: 1, px: 2 }}>
-                    {props.environment.description}
-                </Markdown>
+                <Box sx={{ pt: 1, px: 2 }}>
+                    <Markdown content={props.environment.description} />
+                </Box>
                 <Stack direction="column" spacing={2} sx={{ p: 2, mt: 1 }}>
                     {buttons}
                 </Stack>

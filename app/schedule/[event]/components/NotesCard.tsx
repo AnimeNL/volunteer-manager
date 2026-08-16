@@ -8,7 +8,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { Markdown } from '@components/Markdown';
+import { Markdown } from '@app/schedule/Markdown';
 
 /**
  * Props accepted by the <NotesCard> component.

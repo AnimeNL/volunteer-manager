@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 
 import type { Environment } from '@lib/Environment';
 import { Markdown } from '@components/Markdown';
@@ -27,9 +28,9 @@ export function NoEventsContent(props: NoEventsContentProps) {
                 Looks like there's nothing happening right now—but exciting things may be on the
                 way! Check back soon!
             </Alert>
-            <Markdown defaultVariant="body1" sx={{ p: 2 }}>
-                {props.environment.description}
-            </Markdown>
+            <Box sx={{ p: 2 }}>
+                <Markdown content={props.environment.description} />
+            </Box>
         </>
     );
 }

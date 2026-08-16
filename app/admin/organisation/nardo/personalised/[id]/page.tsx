@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { Markdown } from '@components/Markdown/index';
+import { Markdown } from '@components/Markdown';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';

@@ -12,7 +12,7 @@ import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { markdownToJsx } from '@components/Markdown/index';
+import { markdownToJsx } from '@components/Markdown';
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
 import { queryRecipientContext } from './prompts/context/RecipientContextParameters';

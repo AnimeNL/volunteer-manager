@@ -3,7 +3,7 @@
 
 import type { EnvironmentDomain } from './Environment';
 import { Cache } from '@lib/cache';
-import { Markdown, type MarkdownVariants } from '@components/Markdown/index';
+import { Markdown, type MarkdownVariants } from '@components/Markdown';
 import db, { tContent, tTeams } from './database';
 
 /**

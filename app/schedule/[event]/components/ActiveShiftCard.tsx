@@ -13,7 +13,7 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
 import type { VolunteerShiftInfo } from '../Types';
-import { Markdown } from '@components/Markdown';
+import { Markdown } from '@app/schedule/Markdown';
 import { formatDate } from '@lib/Temporal';
 import { toZonedDateTime } from '../CurrentTime';
 

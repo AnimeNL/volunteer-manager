@@ -87,7 +87,7 @@ export default async function ScheduleKnowledgeCategoryPage(
                             {question}
                         </AccordionSummary>
                         <AccordionDetails>
-                            <Markdown defaultVariant="body2">{answer}</Markdown>
+                            <Markdown content={answer} variant="body2" />
                         </AccordionDetails>
                     </Accordion> )}
             </Box>
