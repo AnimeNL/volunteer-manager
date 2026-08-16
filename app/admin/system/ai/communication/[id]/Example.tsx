@@ -18,6 +18,7 @@ import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../../GenerateButton';
 import { HiddenInput } from '@components/HiddenInput';
+import { MarkdownContainer } from '@components/Markdown/MarkdownContainer';
 
 /**
  * Array of the supported languages. Gemini supports many more, but these ones are exposed.
@@ -102,7 +103,9 @@ export function Example(props: ExampleProps) {
                         Generated message
                     </DialogTitle>
                     <DialogContent>
-                        {generatedMessage}
+                        <MarkdownContainer variant="body2">
+                            {generatedMessage}
+                        </MarkdownContainer>
                     </DialogContent>
                     <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
                         <Button onClick={handleClose} variant="text">Close</Button>

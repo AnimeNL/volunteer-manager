@@ -17,6 +17,7 @@ import Grid from '@mui/material/Grid';
 import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../GenerateButton';
+import { MarkdownContainer } from '@app/components/Markdown/MarkdownContainer';
 
 /**
  * Props accepted by the <PersonalisedAdviceExample> component.
@@ -104,7 +105,9 @@ export function PersonalisedAdviceExample(props: PersonalisedAdviceExampleProps)
                         Del a Rie Advies says…
                     </DialogTitle>
                     <DialogContent sx={{ whiteSpace: 'pre-line' }}>
-                        {generatedMessage}
+                        <MarkdownContainer variant="body2">
+                            {generatedMessage}
+                        </MarkdownContainer>
                     </DialogContent>
                     <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
                         <Button onClick={handleClose} variant="text">Close</Button>

@@ -3,5 +3,6 @@
 
 import 'server-only';
 
-export type { MarkdownProps, MarkdownVariants } from './Markdown';
-export { Markdown } from './Markdown';
+export * from './Markdown';
+export * from './MarkdownContainer';
+export { markdownToJsx } from './markdownToJsx';

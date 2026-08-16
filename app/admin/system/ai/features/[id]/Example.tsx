@@ -16,6 +16,7 @@ import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../../GenerateButton';
 import { HiddenInput } from '@components/HiddenInput';
+import { MarkdownContainer } from '@components/Markdown/MarkdownContainer';
 
 /**
  * Props accepted by the <Example> component.
@@ -68,7 +69,9 @@ export function Example(props: ExampleProps) {
                         Generated text
                     </DialogTitle>
                     <DialogContent>
-                        {generatedText}
+                        <MarkdownContainer variant="body2">
+                            {generatedText}
+                        </MarkdownContainer>
                     </DialogContent>
                     <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
                         <Button onClick={handleClose} variant="text">Close</Button>

@@ -18,7 +18,7 @@ export async function fetchDocumentation(topic: string) {
     return executeServerAction({ topic }, z.object({ topic: z.string() }), async (data, props) => {
         executeAccessCheck(props.authenticationContext, { check: 'admin' });
 
-        const content = await getStaticContent([ 'documentation', ...topic.split('/') ], {
+        const content = await getStaticContent([ 'documentation', ...data.topic.split('/') ], {
             substitutions: {
                 firstName: props.user.firstName,
                 name: props.user.name,

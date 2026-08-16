@@ -3,49 +3,17 @@
 
 import 'server-only';
 
-import * as prod from 'react/jsx-runtime';
-
-import rehypeReact from 'rehype-react';
-import remarkGfm from 'remark-gfm';
-import remarkParse from 'remark-parse';
-import remarkRehype from 'remark-rehype';
-import { unified } from 'unified';
-
-import Stack from '@mui/material/Stack';
-
-import type { TypographyVariant } from '@mui/material/styles';
-import { Cache } from '@lib/cache';
-import { cyrb53 } from './cyrb53';
-
-import { kMuiComponents } from './MuiComponents';
-
-/**
- * Base typography variants supported by the <Markdown> renderer.
- */
-export type MarkdownVariants = Extract<TypographyVariant, 'body1' | 'body2'>;
-
-/**
- * Font size mappings for the supported typography variants.
- */
-const kFontSizeMapping: { [k in MarkdownVariants]: string } = {
-    body1: '1rem',
-    body2: '0.875rem',
-};
+import { MarkdownContainer, type MarkdownContainerProps } from './MarkdownContainer';
+import { markdownToJsx } from './markdownToJsx';
 
 /**
  * Props accepted by the <Markdown> component.
  */
-export interface MarkdownProps {
+export interface MarkdownProps extends MarkdownContainerProps {
     /**
      * The Markdown content that should be rendered in the component.
      */
     content: string;
-
-    /**
-     * Base typography variant to apply.
-     * @default "body1"
-     */
-    variant?: MarkdownVariants;
 }
 
 /**
@@ -53,25 +21,12 @@ export interface MarkdownProps {
  * operation (~120 KiB uncompressed JavaScript) we exclusively want to do this on the server,
  */
 export async function Markdown(props: MarkdownProps) {
-    const variant = props.variant ?? 'body1';
+    const { content, ...markdownContainerProps } = props;
 
-    const hash = `jsx-${cyrb53(props.content)}`;
-    const file = await Cache.getInstance('ContentMarkdown').getOrInsert(hash, async () =>
-        await unified()
-            .use(remarkParse)
-            .use(remarkGfm)
-            .use(remarkRehype)
-            .use(rehypeReact, {
-                Fragment: prod.Fragment,
-                components: kMuiComponents,
-                jsx: prod.jsx,
-                jsxs: prod.jsxs,
-            })
-            .process(props.content));
-
+    const contentJsx = await markdownToJsx(content);
     return (
-        <Stack direction="column" spacing={2} sx={{ fontSize: kFontSizeMapping[variant] }}>
-            {file.result}
-        </Stack>
+        <MarkdownContainer {...markdownContainerProps}>
+            {contentJsx}
+        </MarkdownContainer>
     );
 }

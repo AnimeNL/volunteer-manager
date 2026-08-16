@@ -8,11 +8,11 @@ import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from './PromptFactory';
 import type { Language } from './Language';
-import { Markdown } from '@components/Markdown/index';
 import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
+import { markdownToJsx } from '@components/Markdown/index';
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
 import { queryRecipientContext } from './prompts/context/RecipientContextParameters';
@@ -233,7 +233,7 @@ export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
 
         return {
             success: true,
-            markdown: <Markdown content={response.text} variant="body2" />,
+            markdown: markdownToJsx(response.text),
         };
     });
 }
@@ -294,7 +294,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
 
         return {
             success: true,
-            markdown: <Markdown content={response.text} variant="body2" />,
+            markdown: markdownToJsx(response.text),
         };
     });
 }
