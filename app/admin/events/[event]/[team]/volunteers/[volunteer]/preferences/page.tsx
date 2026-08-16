@@ -3,13 +3,21 @@
 
 import { notFound } from 'next/navigation';
 
-import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
+import Grid from '@mui/material/Grid';
+import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationContextWithEventAndTeam } from '../../../../requireAuthenticationContextWithEventAndTeam';
 import db, { tUsersEvents, tUsers } from '@lib/database';
+
+import * as actions from './PreferenceActions';
+import * as options from '@components/SelectElementOptions';
 
 /**
  * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
@@ -19,7 +27,7 @@ export default async function EventTeamVolunteerPreferencesPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
 {
     const { event, team } = await requireAuthenticationContextWithEventAndTeam(props, {
-        permission: 'event.vendors',
+        permission: 'event.volunteers.information',
         operation: 'read',
     });
 
@@ -37,6 +45,12 @@ export default async function EventTeamVolunteerPreferencesPage(
                 id: tUsers.userId,
                 name: tUsers.name,
             },
+            participation: {
+                tshirtFit: tUsersEvents.shirtFit,
+                tshirtSize: tUsersEvents.shirtSize,
+                includeCreditReel: tUsersEvents.includeCredits,
+                includeSocialMedia: tUsersEvents.includeSocials,
+            },
         })
         .executeSelectNoneOrOne();
     
@@ -44,6 +58,9 @@ export default async function EventTeamVolunteerPreferencesPage(
         notFound();
 
     const { volunteer } = context;
+
+    const participationFn =
+        actions.updateParticipationPreferences.bind(null, volunteer.id, event.slug, team.slug);
 
     return (
         <>
@@ -67,7 +84,42 @@ export default async function EventTeamVolunteerPreferencesPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                TODO
+                TODO?
+            </Section>
+            <Section noHeader>
+                Availability
+            </Section>
+            <Section noHeader>
+                Hotel
+            </Section>
+            <FormGridSection icon={ <SmartToyOutlinedIcon /> } title="Participation"
+                             action={participationFn} defaultValues={context.participation}>
+                <SectionIntroduction grid>
+                     General preferences regarding their participation in {event.shortName}.
+                </SectionIntroduction>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="tshirtSize" label="T-shirt size" required size="small"
+                                   options={options.kTShirtSizeOptions} fullWidth />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="tshirtFit" label="T-shirt fit" required size="small"
+                                   options={options.kTShirtFitOptions} fullWidth />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="includeCreditReel" label="Include on credit reel?" required
+                                   options={options.kBooleanOptions} size="small" fullWidth />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="includeSocialMedia" label="Include on social media?"
+                                   options={options.kBooleanOptions} size="small" fullWidth
+                                   required />
+                </Grid>
+            </FormGridSection>
+            <Section noHeader>
+                Refund
+            </Section>
+            <Section noHeader>
+                Training
             </Section>
         </>
     );
