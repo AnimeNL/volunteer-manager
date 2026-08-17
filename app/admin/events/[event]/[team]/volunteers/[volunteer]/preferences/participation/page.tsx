@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
@@ -18,8 +18,7 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
 
 /**
- * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
- * for the current event. Each kind of preference maintains a "changelog".
+ * Overview of changes made to the volunteer's participation preferences.
  */
 export default async function EventTeamVolunteerPreferencesParticipationPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/participation'>)

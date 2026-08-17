@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
+import HotelIcon from '@mui/icons-material/Hotel';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import Stack from '@mui/material/Stack';
@@ -15,9 +16,10 @@ import { Section } from '@app/admin/components/Section';
 import { SharedDataIconButton } from './SharedDataIconButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
+import db, { tHotels, tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import * as actions from './PreferenceActions';
+import { HotelForm } from './HotelForm';
 
 /**
  * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
@@ -26,18 +28,25 @@ import * as actions from './PreferenceActions';
 export default async function EventTeamVolunteerPreferencesPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
 {
-    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });
 
     const id = (await props.params).volunteer;
 
-    const context = await db.selectFrom(tUsersEvents)
+    const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
+
+    const dbInstance = db;
+    const context = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsersEventsPreferencesParticipation)
             .on(tUsersEventsPreferencesParticipation.userId.equals(tUsersEvents.userId))
                 .and(tUsersEventsPreferencesParticipation.eventId.equals(tUsersEvents.eventId))
                 .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
+        .leftJoin(preferencesHotelJoin)
+            .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(1))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
@@ -48,6 +57,14 @@ export default async function EventTeamVolunteerPreferencesPage(
             volunteer: {
                 id: tUsers.userId,
                 name: tUsers.name,
+            },
+            hotel: {
+                interested: preferencesHotelJoin.hotelInterested,
+                roomId: preferencesHotelJoin.hotelRoomId,
+                occupants: preferencesHotelJoin.hotelRoomOccupants,
+                preferences: preferencesHotelJoin.hotelRoomPreferences,
+                checkIn: dbInstance.dateAsString(preferencesHotelJoin.hotelCheckIn),
+                checkOut: dbInstance.dateAsString(preferencesHotelJoin.hotelCheckOut),
             },
             participation: {
                 includeCreditReel:
@@ -65,8 +82,30 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const { volunteer } = context;
 
-    const participationFn =
-        actions.updateParticipationPreferences.bind(null, volunteer.id, event.slug, team.slug);
+    // ---------------------------------------------------------------------------------------------
+
+    const hotelRooms = await dbInstance.selectFrom(tHotels)
+        .where(tHotels.eventId.equals(event.id))
+            .and(tHotels.hotelRoomVisible.equals(1))
+            .and(tHotels.hotelRoomDeleted.isNull())
+        .select({
+            id: tHotels.hotelId,
+            label: tHotels.hotelName.concat(' - ').concat(tHotels.hotelRoomName),
+        })
+        .orderBy('label', 'asc')
+        .executeSelectMany();
+
+    // ---------------------------------------------------------------------------------------------
+
+    const permissionScope = { event: event.slug, team: team.slug };
+
+    const hotelFn = access.can('event.hotels', permissionScope)
+        ? actions.updateHotelPreferences.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const participationFn = access.can('event.volunteers.information', 'update', permissionScope)
+        ? actions.updateParticipationPreferences.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
 
     return (
         <>
@@ -95,9 +134,21 @@ export default async function EventTeamVolunteerPreferencesPage(
             <Section noHeader>
                 Availability
             </Section>
-            <Section noHeader>
-                Hotel
-            </Section>
+
+            <FormGridSection icon={ <HotelIcon /> } title="Hotel"
+                             action={hotelFn} defaultValues={context.hotel}
+                             headerAction={
+                                 <Stack direction="row" spacing={1}>
+                                     <SharedDataIconButton />
+                                     <HistoryIconButton href="./preferences/hotel" />
+                                 </Stack>
+                             }>
+                <SectionIntroduction grid>
+                    Their interest in an hotel room organised by us.
+                </SectionIntroduction>
+                <HotelForm rooms={hotelRooms} />
+            </FormGridSection>
+
             <FormGridSection icon={ <SmartToyOutlinedIcon /> } title="Participation"
                              action={participationFn} defaultValues={context.participation}
                              headerAction={
@@ -107,10 +158,11 @@ export default async function EventTeamVolunteerPreferencesPage(
                                 </Stack>
                              }>
                 <SectionIntroduction grid>
-                     General preferences regarding their participation in {event.shortName}.
+                    General preferences regarding participating in {event.shortName}.
                 </SectionIntroduction>
                 <ParticipationForm />
             </FormGridSection>
+
             <Section noHeader>
                 Refund
             </Section>

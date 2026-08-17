@@ -24,14 +24,12 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingPreferencesForm } from '@app/registration/[slug]/application/[team]/training/TrainingPreferencesForm';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tHotelsPreferences, tRefunds, tRoles, tSchedule, tShifts, tStorage, tTeams,
+import db, { tRefunds, tRoles, tSchedule, tShifts, tStorage, tTeams,
     tTrainingsAssignments, tUsers, tUsersEvents } from '@lib/database';
 
-import { HotelPreferencesForm } from '@app/registration/[slug]/application/[team]/hotel/HotelPreferencesForm';
 import { VolunteerHeader } from './VolunteerHeader';
 import { VolunteerIdentity } from './VolunteerIdentity';
 import { VolunteerSchedule } from './VolunteerSchedule';
-import { getHotelRoomOptions } from '@app/registration/[slug]/application/[team]/hotel/getHotelRoomOptions';
 import { getTrainingOptions } from '@app/registration/[slug]/application/[team]/training/getTrainingOptions';
 import { getPublicEventsForFestival, type EventTimeslotEntry }
     from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
@@ -241,40 +239,6 @@ export default async function EventVolunteerPage(
     // TODO: Exceptions
 
     // ---------------------------------------------------------------------------------------------
-    // Section: Hotel preferences
-    // ---------------------------------------------------------------------------------------------
-
-    let hotelAction: ServerAction | undefined;
-    let hotelClearAction: ServerAction | undefined;
-    let hotelDefaultValues: Record<string, any> | undefined;
-    let hotelRooms: undefined | { id: number; label: string }[];
-
-    if (access.can('event.hotels', { event: event.slug }) && !!volunteer.isHotelEligible) {
-        hotelAction =
-            actions.updateHotelPreferences.bind(null, volunteer.userId, event.id, team.id);
-        hotelClearAction =
-            actions.clearHotelPreferences.bind(null, volunteer.userId, event.id, team.id);
-
-        hotelDefaultValues = await dbInstance.selectFrom(tHotelsPreferences)
-            .where(tHotelsPreferences.userId.equals(volunteer.userId))
-                .and(tHotelsPreferences.eventId.equals(event.id))
-                .and(tHotelsPreferences.teamId.equals(team.id))
-            .select({
-                hotelId: tHotelsPreferences.hotelId,
-                sharingPeople: tHotelsPreferences.hotelSharingPeople,
-                sharingPreferences: tHotelsPreferences.hotelSharingPreferences,
-                checkIn: dbInstance.dateAsString(tHotelsPreferences.hotelDateCheckIn),
-                checkOut: dbInstance.dateAsString(tHotelsPreferences.hotelDateCheckOut),
-            })
-            .executeSelectNoneOrOne() ?? { /* no default values */ };
-
-        if (typeof hotelDefaultValues.hotelId !== 'undefined')
-            hotelDefaultValues.interested = !!hotelDefaultValues.hotelId ? 1 : 0;
-
-        hotelRooms = await getHotelRoomOptions(event.id)
-    }
-
-    // ---------------------------------------------------------------------------------------------
     // Section: Refund request
     // ---------------------------------------------------------------------------------------------
 
@@ -414,23 +378,6 @@ export default async function EventVolunteerPage(
                                          readOnly={readOnly}
                                          step={availabilityStep} />
             </FormGridSection>
-
-            { /* ------------------------------------------------------------------------------ */ }
-
-            { !!hotelAction &&
-                <FormGridSection action={hotelAction} defaultValues={hotelDefaultValues}
-                                 title="Hotel preferences" permission="event.hotels"
-                                 headerAction={
-                                     !!hotelClearAction
-                                         ? <SectionClearAction action={hotelClearAction}
-                                                               subject="hotel preferences"
-                                                               title="Clear hotel preferences" />
-                                         : undefined
-                                 }>
-                    <HotelPreferencesForm eventDate={event.startTime}
-                                          readOnly={readOnly}
-                                          rooms={hotelRooms!} />
-                </FormGridSection> }
 
             { /* ------------------------------------------------------------------------------ */ }
 

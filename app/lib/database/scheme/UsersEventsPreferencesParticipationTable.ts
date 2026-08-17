@@ -20,8 +20,8 @@ export class UsersEventsPreferencesParticipationTable extends Table<DBConnection
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');
     preferenceVersion = this.column<Temporal.ZonedDateTime>('preference_version', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
-    preferenceVersionUserId = this.column('preference_version_user_id', 'int');
     preferenceVersionIsLatest = this.column('preference_version_is_latest', 'int');
+    preferenceVersionUserId = this.column('preference_version_user_id', 'int');
     participationIncludeCreditReel = this.column('participation_include_credit_reel', 'int');
     participationIncludeSocialMedia = this.column('participation_include_social_media', 'int');
     participationTshirtFit = this.column<ShirtFit>('participation_tshirt_fit', 'enum', 'ShirtFit');

@@ -26,8 +26,8 @@ export class UsersEventsTable extends Table<DBConnection, 'UsersEventsTable'> {
     registrationStatus = this.columnWithDefaultValue<RegistrationStatus>('registration_status', 'enum', 'RegistrationStatus');
     registrationOwnerId = this.optionalColumnWithDefaultValue('registration_owner_id', 'int');
     registrationNotes = this.optionalColumnWithDefaultValue('registration_notes', 'string');
-    //shirtFit = this.columnWithDefaultValue<ShirtFit>('shirt_fit', 'enum', 'ShirtFit');
-    //shirtSize = this.optionalColumnWithDefaultValue<ShirtSize>('shirt_size', 'enum', 'ShirtSize');
+    shirtFit = this.columnWithDefaultValue<ShirtFit>('shirt_fit', 'enum', 'ShirtFit');
+    shirtSize = this.optionalColumnWithDefaultValue<ShirtSize>('shirt_size', 'enum', 'ShirtSize');
     hotelEligible = this.optionalColumnWithDefaultValue('hotel_eligible', 'int');
     trainingEligible = this.optionalColumnWithDefaultValue('training_eligible', 'int');
     availabilityBuildUpTearDown = this.optionalColumnWithDefaultValue('availability_build_up_tear_down', 'string');
@@ -41,8 +41,8 @@ export class UsersEventsTable extends Table<DBConnection, 'UsersEventsTable'> {
     preferencesDietary = this.optionalColumnWithDefaultValue('preferences_dietary', 'string');
     preferencesUpdated = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('preferences_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     fullyAvailable = this.columnWithDefaultValue('fully_available', 'int');
-    //includeCredits = this.columnWithDefaultValue('include_credits', 'int');
-    //includeSocials = this.columnWithDefaultValue('include_socials', 'int');
+    includeCredits = this.columnWithDefaultValue('include_credits', 'int');
+    includeSocials = this.columnWithDefaultValue('include_socials', 'int');
 
     constructor() {
         super('users_events');

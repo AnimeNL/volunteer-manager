@@ -58,6 +58,7 @@ export { tUsersAuth } from './scheme/UsersAuthTable';
 export { tUsersCommunication } from './scheme/UsersCommunicationTable';
 export { tUsersEvents } from './scheme/UsersEventsTable';
 export { tUsersEventsFavourites } from './scheme/UsersEventsFavouritesTable';
+export { tUsersEventsPreferencesHotel } from './scheme/UsersEventsPreferencesHotelTable';
 export { tUsersEventsPreferencesParticipation } from './scheme/UsersEventsPreferencesParticipationTable';
 export { tUsersEventsTickets } from './scheme/UsersEventsTicketsTable';
 export { tUsersPasskeys } from './scheme/UsersPasskeysTable';

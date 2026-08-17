@@ -9,11 +9,11 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
-import db, { tEvents, tHotelsPreferences, tRefunds, tTeams, tTrainingsAssignments, tUsersEvents } from '@lib/database';
+import db, { tEvents, tRefunds, tTeams, tTrainingsAssignments, tUsersEvents } from '@lib/database';
 
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kRegistrationStatus } from '@lib/database/Types';
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/api/Types';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
 /**
@@ -55,44 +55,6 @@ export async function getContextForVolunteerAction(userId: number, eventId: numb
  * Zod type that describes that no data is expected.
  */
 const kNoDataRequired = z.object({ /* no parameters */ });
-
-/**
- * Server action that clears the hotel preferences associated with a volunteer.
- */
-export async function clearHotelPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.hotels',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        const affectedRows = await db.deleteFrom(tHotelsPreferences)
-            .where(tHotelsPreferences.userId.equals(userId))
-                .and(tHotelsPreferences.eventId.equals(eventId))
-            .executeDelete();
-
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminClearHotelPreferences,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                targetUser: userId,
-                data: {
-                    event: event.shortName,
-                },
-            });
-        }
-
-        return { success: true, clear: true };
-    });
-}
 
 /**
  * Server action that clears the refund request associated with a volunteer.
@@ -322,105 +284,6 @@ export async function updateAvailability(
                 serviceHours: data.serviceHours,
                 serviceTiming: data.serviceTiming,
                 timeslots: exceptionEvents,
-            },
-        });
-
-        return { success: true, refresh: true };
-    });
-}
-
-/**
- * Zod type that describes the data required to update a volunteer's hotel preferences.
- */
-const kUpdateHotelPreferencesData = z.object({
-    interested: z.number(),
-
-    // When interested:
-    hotelId: z.number().optional(),
-    checkIn: kTemporalPlainDate.optional(),
-    checkOut: kTemporalPlainDate.optional(),
-    sharingPeople: z.number().optional(),
-    sharingPreferences: z.string().optional(),
-});
-
-/**
- * Server action that updates the hotel preferences of a volunteer.
- */
-export async function updateHotelPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kUpdateHotelPreferencesData, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.hotels',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        let update: {
-            hotelId: number | null,
-            hotelDateCheckIn: Temporal.PlainDate | null,
-            hotelDateCheckOut: Temporal.PlainDate | null,
-            hotelSharingPeople: number | null,
-            hotelSharingPreferences: string | null
-        };
-
-        if (!data.interested) {
-            update = {
-                hotelId: null,
-                hotelDateCheckIn: null,
-                hotelDateCheckOut: null,
-                hotelSharingPeople: null,
-                hotelSharingPreferences: null,
-            };
-        } else {
-            if (!data.hotelId)
-                return { success: false, error: 'You must select a hotel room…' };
-
-            if (!data.checkIn || !data.checkOut)
-                return { success: false, error: 'You must select the dates for your booking…' };
-
-            if (!data.sharingPeople || !data.sharingPreferences)
-                return { success: false, error: 'You must select who you want to share with…' };
-
-            update = {
-                hotelId: data.hotelId,
-                hotelDateCheckIn: data.checkIn,
-                hotelDateCheckOut: data.checkOut,
-                hotelSharingPeople: data.sharingPeople,
-                hotelSharingPreferences: data.sharingPreferences,
-            };
-        }
-
-        const dbInstance = db;
-        const affectedRows = await dbInstance.insertInto(tHotelsPreferences)
-            .set({
-                userId,
-                eventId,
-                teamId,  // TODO: remove the team association
-                ...update,
-                hotelPreferencesUpdated: dbInstance.currentZonedDateTime()
-            })
-            .onConflictDoUpdateSet({
-                ...update,
-                hotelPreferencesUpdated: dbInstance.currentZonedDateTime()
-            })
-            .executeInsert();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to update your preferences in the database…' };
-
-        RecordLog({
-            type: kLogType.ApplicationHotelPreferences,
-            severity: kLogSeverity.Info,
-            sourceUser: props.user,
-            data: {
-                event: event.shortName,
-                interested: !!data.interested,
-                hotelId: data.hotelId,
             },
         });
 
