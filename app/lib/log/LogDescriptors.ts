@@ -330,6 +330,10 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    UpdateTrainingPreferences: {
+        event: string;  // short name
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
     // ---------------------------------------------------------------------------------------------
@@ -466,6 +470,7 @@ export const kLogType: { [k in LogType]: k } = {
 
     UpdateHotelPreferences: 'UpdateHotelPreferences',
     UpdateParticipationPreferences: 'UpdateParticipationPreferences',
+    UpdateTrainingPreferences: 'UpdateTrainingPreferences',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:

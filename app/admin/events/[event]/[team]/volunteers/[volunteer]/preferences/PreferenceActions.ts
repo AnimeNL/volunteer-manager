@@ -8,10 +8,14 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation } from '@lib/database';
+import db, { tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
+
+// -------------------------------------------------------------------------------------------------
+// Availability preferences
+// -------------------------------------------------------------------------------------------------
 
 // TODO: Availability preferences
 
@@ -222,5 +226,88 @@ export async function updateParticipationPreferences(
     });
 }
 
+// -------------------------------------------------------------------------------------------------
+// Refund preferences
+// -------------------------------------------------------------------------------------------------
+
 // TODO: Refund preferences
-// TODO: Training preferences
+
+// -------------------------------------------------------------------------------------------------
+// Training preferences
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Schema defining the information required to training participation preferences.
+ */
+const kTrainingPreferencesSchema = z.object({
+    trainingId: z.number(),
+});
+
+/**
+ * Server Action through which training preferences can be updated. Used for updates from the
+ * administration area, as well as through the registration portal.
+ */
+export async function updateTrainingPreferences(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kTrainingPreferencesSchema, async (data, props) => {
+        // TODO: Amend the authentication check for updates from the registration portal
+
+        const { event } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+            });
+
+        const dbInstance = db;
+        const updated = await dbInstance.transaction(async () => {
+            const existing = await dbInstance.selectFrom(tUsersEventsPreferencesTraining)
+                .where(tUsersEventsPreferencesTraining.userId.equals(userId))
+                    .and(tUsersEventsPreferencesTraining.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesTraining.preferenceVersionIsLatest.equals(1))
+                .select({
+                    trainingId: tUsersEventsPreferencesTraining.trainingId,
+                })
+                .executeSelectNoneOrOne();
+
+            if (existing && existing.trainingId === data.trainingId)
+                return false;  // no updates
+
+            await dbInstance.update(tUsersEventsPreferencesTraining)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesTraining.userId.equals(userId))
+                    .and(tUsersEventsPreferencesTraining.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesTraining.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesTraining)
+                .set({
+                    userId,
+                    eventId: event.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: /* true= */ 1,
+                    preferenceVersionUserId: props.user.id,
+                    trainingId: data.trainingId,
+                })
+                .executeInsert();
+
+            return true;
+        });
+
+        LogBuilder.for('UpdateTrainingPreferences')
+            .withCondition(updated)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+            });
+
+        return {
+            success: true,
+            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+        };
+    });
+}

@@ -95,44 +95,6 @@ export async function clearRefundPreferences(
 }
 
 /**
- * Server action that clears the training preferences associated with a volunteer.
- */
-export async function clearTrainingPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        const affectedRows = await db.deleteFrom(tTrainingsAssignments)
-            .where(tTrainingsAssignments.assignmentUserId.equals(userId))
-                .and(tTrainingsAssignments.eventId.equals(eventId))
-            .executeDelete();
-
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminClearTrainingPreferences,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                targetUser: userId,
-                data: {
-                    event: event.shortName,
-                },
-            });
-        }
-
-        return { success: true, clear: true };
-    });
-}
-
-/**
  * Server Action that will be invoked by the <CommunicationIconButton> component when a message
  * should be send on the user's behalf. All input should be treated as untrusted until verified.
  */
@@ -463,68 +425,6 @@ export async function updateRefundPreferences(
             sourceUser: props.user,
             data: {
                 event: event.shortName,
-            },
-        });
-
-        return { success: true };
-    });
-}
-
-/**
- * Zod type that describes the data required to update a volunteer's training preferences.
- */
-const kUpdateTrainingPreferencesData = z.object({
-    training: z.number(),
-});
-
-/**
- * Server action that updates the training preferences of a volunteer.
- */
-export async function updateTrainingPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kUpdateTrainingPreferencesData, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        let preferenceTrainingId: number | null = null;
-        if (data.training >= 1)
-            preferenceTrainingId = data.training;
-
-        const dbInstance = db;
-        const affectedRows = await dbInstance.insertInto(tTrainingsAssignments)
-            .set({
-                eventId,
-                assignmentUserId: userId,
-                assignmentExtraId: null,
-
-                preferenceTrainingId,
-                preferenceUpdated: dbInstance.currentZonedDateTime()
-            })
-            .onConflictDoUpdateSet({
-                preferenceTrainingId,
-                preferenceUpdated: dbInstance.currentZonedDateTime()
-            })
-            .executeInsert();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to update the preferences in the database…' };
-
-        RecordLog({
-            type: kLogType.AdminUpdateTrainingPreferences,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                event: event.shortName,
-                training: data.training,
             },
         });
 

@@ -14,8 +14,9 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { getHotelRooms } from '../getHotelRooms';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tHotels, tUsers, tUsersEvents, tUsersEventsPreferencesHotel } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsPreferencesHotel } from '@lib/database';
 
 /**
  * Overview of changes made to the volunteer's hotel preferences.
@@ -71,16 +72,7 @@ export default async function EventTeamVolunteerPreferencesHotelPage(
     volunteer.versions.sort((lhs, rhs) =>
         Temporal.ZonedDateTime.compare(lhs.version!, rhs.version!) * -1);
 
-    const hotelRooms = await dbInstance.selectFrom(tHotels)
-        .where(tHotels.eventId.equals(event.id))
-            .and(tHotels.hotelRoomVisible.equals(1))
-            .and(tHotels.hotelRoomDeleted.isNull())
-        .select({
-            id: tHotels.hotelId,
-            label: tHotels.hotelName.concat(' - ').concat(tHotels.hotelRoomName),
-        })
-        .orderBy('label', 'asc')
-        .executeSelectMany();
+    const hotelRooms = await getHotelRooms(event.id);
 
     const baseUrl = `/admin/events/${event.slug}/${team.slug}/volunteers`;
     return (

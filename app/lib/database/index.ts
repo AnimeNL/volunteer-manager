@@ -60,6 +60,7 @@ export { tUsersEvents } from './scheme/UsersEventsTable';
 export { tUsersEventsFavourites } from './scheme/UsersEventsFavouritesTable';
 export { tUsersEventsPreferencesHotel } from './scheme/UsersEventsPreferencesHotelTable';
 export { tUsersEventsPreferencesParticipation } from './scheme/UsersEventsPreferencesParticipationTable';
+export { tUsersEventsPreferencesTraining } from './scheme/UsersEventsPreferencesTrainingTable';
 export { tUsersEventsTickets } from './scheme/UsersEventsTicketsTable';
 export { tUsersPasskeys } from './scheme/UsersPasskeysTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';

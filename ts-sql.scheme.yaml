@@ -3776,6 +3776,58 @@ tables:
       KEY `ytp_ticket_id_2` (`ytp_ticket_id`),
       KEY `ytp_ticket_event_id` (`ytp_ticket_event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+- name: users_events_preferences_training
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: preference_version
+    type: datetime
+    nullable: false
+  - name: preference_version_is_latest
+    type: tinyint(1)
+    nullable: false
+  - name: preference_version_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: training_id
+    type: int(4)
+    nullable: false
+  indexes:
+  - name: event_id
+    def: KEY event_id (event_id) USING BTREE
+    table: users_events_preferences_training
+    columns:
+    - event_id
+  - name: user_id
+    def: KEY user_id (user_id, event_id) USING BTREE
+    table: users_events_preferences_training
+    columns:
+    - user_id
+    - event_id
+  - name: user_id_2
+    def: KEY user_id_2 (user_id, event_id, preference_version_is_latest) USING BTREE
+    table: users_events_preferences_training
+    columns:
+    - user_id
+    - event_id
+    - preference_version_is_latest
+  def: |-
+    CREATE TABLE `users_events_preferences_training` (
+      `user_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `preference_version` datetime NOT NULL,
+      `preference_version_is_latest` tinyint(1) NOT NULL,
+      `preference_version_user_id` int(4) unsigned NOT NULL,
+      `training_id` int(4) NOT NULL,
+      KEY `user_id` (`user_id`,`event_id`),
+      KEY `user_id_2` (`user_id`,`event_id`,`preference_version_is_latest`),
+      KEY `event_id` (`event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: environments
   type: BASE TABLE
   columns:

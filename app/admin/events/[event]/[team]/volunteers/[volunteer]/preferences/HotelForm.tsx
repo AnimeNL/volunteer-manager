@@ -11,8 +11,8 @@ import Grid from '@mui/material/Grid';
 
 import { CollapsableGrid } from '@components/CollapsableGrid';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
-import { formatDate } from '@lib/Temporal';
 import { dayjs } from '@lib/DateTime';
+import { formatDate } from '@lib/Temporal';
 
 /**
  * Options users can choose from when indicating whether they would like a hotel room.
@@ -50,7 +50,7 @@ interface HotelFormProps {
 }
 
 /**
- * Form through which a volunteer's participation preferences can be managed.
+ * Form through which a volunteer's hotel room preferences can be managed.
  */
 export function HotelForm(props: HotelFormProps) {
     const { readOnly, rooms } = props;

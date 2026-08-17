@@ -21,16 +21,14 @@ import { RefundRequestForm } from '@app/registration/[slug]/application/[team]/r
 import { Section } from '@app/admin/components/Section';
 import { SectionClearAction } from '@app/admin/components/SectionClearAction';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TrainingPreferencesForm } from '@app/registration/[slug]/application/[team]/training/TrainingPreferencesForm';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRefunds, tRoles, tSchedule, tShifts, tStorage, tTeams,
-    tTrainingsAssignments, tUsers, tUsersEvents } from '@lib/database';
+import db, { tRefunds, tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents }
+    from '@lib/database';
 
 import { VolunteerHeader } from './VolunteerHeader';
 import { VolunteerIdentity } from './VolunteerIdentity';
 import { VolunteerSchedule } from './VolunteerSchedule';
-import { getTrainingOptions } from '@app/registration/[slug]/application/[team]/training/getTrainingOptions';
 import { getPublicEventsForFestival, type EventTimeslotEntry }
     from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
@@ -264,36 +262,6 @@ export default async function EventVolunteerPage(
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Section: Training preferences
-    // ---------------------------------------------------------------------------------------------
-
-    let trainingAction: ServerAction | undefined;
-    let trainingClearAction: ServerAction | undefined;
-    let trainingDefaultValues: Record<string, any> | undefined;
-    let trainingSessions: undefined | { id: number; label: string }[];
-
-    if (access.can('event.trainings', { event: event.slug }) && !!volunteer.isTrainingEligible) {
-        const detailedInfo = await db.selectFrom(tTrainingsAssignments)
-            .where(tTrainingsAssignments.eventId.equals(event.id))
-                .and(tTrainingsAssignments.assignmentUserId.equals(volunteer.userId))
-            .select({
-                training: tTrainingsAssignments.preferenceTrainingId,
-            })
-            .executeSelectNoneOrOne() ?? undefined;
-
-        trainingAction =
-            actions.updateTrainingPreferences.bind(null, volunteer.userId, event.id, team.id);
-        trainingClearAction =
-            actions.clearTrainingPreferences.bind(null, volunteer.userId, event.id, team.id);
-
-        trainingDefaultValues = { training: null };
-        if (!!detailedInfo)
-            trainingDefaultValues.training = detailedInfo.training ?? /* none= */ 0;
-
-        trainingSessions = await getTrainingOptions(event.id);
-    }
-
-    // ---------------------------------------------------------------------------------------------
     // Section: Metadata
     // ---------------------------------------------------------------------------------------------
 
@@ -392,21 +360,6 @@ export default async function EventVolunteerPage(
                                          : undefined
                                  }>
                     <RefundRequestForm />
-                </FormGridSection> }
-
-            { /* ------------------------------------------------------------------------------ */ }
-
-            { !!trainingAction &&
-                <FormGridSection action={trainingAction} defaultValues={trainingDefaultValues}
-                                 title="Training preferences" permission="event.trainings"
-                                 headerAction={
-                                     !!trainingClearAction
-                                         ? <SectionClearAction action={trainingClearAction}
-                                                               subject="training preferences"
-                                                               title="Clear training preferences" />
-                                         : undefined
-                                 }>
-                    <TrainingPreferencesForm sessions={trainingSessions!} />
                 </FormGridSection> }
 
             { /* ------------------------------------------------------------------------------ */ }
