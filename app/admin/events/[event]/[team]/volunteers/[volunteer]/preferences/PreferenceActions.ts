@@ -5,9 +5,10 @@
 
 import { z } from 'zod/v4';
 
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsersEvents } from '@lib/database';
+import db, { tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 
@@ -37,28 +38,73 @@ export async function updateParticipationPreferences(
 {
     return executeServerAction(formData, kParticipationPreferencesSchema, async (data, props) => {
         // TODO: Amend the authentication check for updates from the registration portal
-        // TODO: Versioning of the data?
 
-        const { event, team } = await requireAuthenticationWithEventAndTeam(
+        const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
             });
 
-        const affectedRows = await db.update(tUsersEvents)
-            .set({
-                includeCredits: data.includeCreditReel,
-                includeSocials: data.includeSocialMedia,
-                shirtFit: data.tshirtFit,
-                shirtSize: data.tshirtSize,
-            })
-            .where(tUsersEvents.userId.equals(userId))
-                .and(tUsersEvents.eventId.equals(event.id))
-                .and(tUsersEvents.teamId.equals(team.id))
-                .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
-            .executeUpdate();
+        const dbInstance = db;
+        const updated = await dbInstance.transaction(async () => {
+            const existing = await dbInstance.selectFrom(tUsersEventsPreferencesParticipation)
+                .where(tUsersEventsPreferencesParticipation.userId.equals(userId))
+                    .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
+                .select({
+                    includeCreditReel:
+                        tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
+                    includeSocialMedia:
+                        tUsersEventsPreferencesParticipation.participationIncludeSocialMedia,
+                    tshirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
+                    tshirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
+                })
+                .executeSelectNoneOrOne();
 
-        // TODO: Write a log entry
+            if (existing) {
+                if (existing.includeCreditReel !== data.includeCreditReel ||
+                    existing.includeSocialMedia !== data.includeSocialMedia ||
+                    existing.tshirtFit !== data.tshirtFit ||
+                    existing.tshirtSize !== data.tshirtSize)
+                {
+                    return false;  // no updates
+                }
+            }
+
+            await dbInstance.update(tUsersEventsPreferencesParticipation)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesParticipation.userId.equals(userId))
+                    .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesParticipation)
+                .set({
+                    userId,
+                    eventId: event.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: /* true= */ 1,
+                    preferenceVersionUserId: props.user.id,
+                    participationIncludeCreditReel: data.includeCreditReel,
+                    participationIncludeSocialMedia: data.includeSocialMedia,
+                    participationTshirtFit: data.tshirtFit,
+                    participationTshirtSize: data.tshirtSize,
+                })
+                .executeInsert();
+
+            return true;
+        });
+
+        LogBuilder.for('UpdateParticipationPreferences')
+            .withCondition(updated)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+            });
 
         return {
             success: true,

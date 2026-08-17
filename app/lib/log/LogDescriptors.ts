@@ -319,6 +319,14 @@ interface LogTypeParameterMap {
     };
 
     // ---------------------------------------------------------------------------------------------
+    // Registration portal:
+    // ---------------------------------------------------------------------------------------------
+
+    UpdateParticipationPreferences: {
+        event: string;  // short name
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:
     // ---------------------------------------------------------------------------------------------
 
@@ -447,6 +455,12 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateShiftDemand: 'UpdateShiftDemand',
     UpdateVendor: 'UpdateVendor',
     UpdateVendorSchedule: 'UpdateVendorSchedule',
+
+    // ---------------------------------------------------------------------------------------------
+    // Registration portal:
+    // ---------------------------------------------------------------------------------------------
+
+    UpdateParticipationPreferences: 'UpdateParticipationPreferences',
 
     // ---------------------------------------------------------------------------------------------
     // Log types that should only be used for internal purposes:

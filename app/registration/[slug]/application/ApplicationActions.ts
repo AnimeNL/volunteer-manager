@@ -13,7 +13,8 @@ import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from './[team]/availability/getPublicEventsForFestival';
 import { getStaticContent } from '@lib/Content';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents, tEventsTeams, tHotelsPreferences,
-    tRefunds, tRoles, tTeams, tTeamsRoles, tTrainingsAssignments, tUsersEvents }
+    tRefunds, tRoles, tTeams, tTeamsRoles, tTrainingsAssignments, tUsersEvents,
+    tUsersEventsPreferencesParticipation}
     from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
@@ -42,8 +43,8 @@ const kCreateApplicationData = z.object({
     preferences: z.string().optional(),
 
     availability: z.boolean(),
-    credits: z.boolean(),
-    socials: z.boolean(),
+    includeCreditReel: z.boolean(),
+    includeSocialMedia: z.boolean(),
 });
 
 /**
@@ -156,28 +157,37 @@ export async function createApplication(eventId: number, teamId: number, formDat
         const [ preferenceTimingStart, preferenceTimingEnd ] =
             data.serviceTiming.split('-').map(v => parseInt(v, 10));
 
-        const affectedRows = await dbInstance.insertInto(tUsersEvents)
-            .set({
-                userId: props.user.id,
-                eventId,
-                teamId,
-                roleId: teamInfo.defaultRoleId,
-                registrationDate: dbInstance.currentZonedDateTime(),
-                registrationStatus: kRegistrationStatus.Registered,
-                shirtFit: data.tshirtFit,
-                shirtSize: data.tshirtSize,
-                preferenceHours: parseInt(data.serviceHours, 10),
-                preferenceTimingStart, preferenceTimingEnd,
-                preferences: data.preferences,
-                preferencesUpdated: dbInstance.currentZonedDateTime(),
-                fullyAvailable: data.availability ? 1 : 0,
-                includeCredits: data.credits ? 1 : 0,
-                includeSocials: data.socials ? 1 : 0,
-            })
-            .executeInsert();
+        await dbInstance.transaction(async () => {
+            await dbInstance.insertInto(tUsersEvents)
+                .set({
+                    userId: props.user!.id,
+                    eventId,
+                    teamId,
+                    roleId: teamInfo.defaultRoleId,
+                    registrationDate: dbInstance.currentZonedDateTime(),
+                    registrationStatus: kRegistrationStatus.Registered,
+                    preferenceHours: parseInt(data.serviceHours, 10),
+                    preferenceTimingStart, preferenceTimingEnd,
+                    preferences: data.preferences,
+                    preferencesUpdated: dbInstance.currentZonedDateTime(),
+                    fullyAvailable: data.availability ? 1 : 0,
+                })
+                .executeInsert();
 
-        if (!affectedRows)
-            return { success: false, error: 'Unable to store the application in the database…' };
+            await dbInstance.insertInto(tUsersEventsPreferencesParticipation)
+                .set({
+                    userId: props.user!.id,
+                    eventId,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: 1,
+                    preferenceVersionUserId: props.user!.id,
+                    participationIncludeCreditReel: data.includeCreditReel ? 1 : 0,
+                    participationIncludeSocialMedia: data.includeSocialMedia ? 1 : 0,
+                    participationTshirtFit: data.tshirtFit,
+                    participationTshirtSize: data.tshirtSize,
+                })
+                .executeInsert();
+        });
 
         // -----------------------------------------------------------------------------------------
         // Tell the world about this application. This starts by writing a log entry, after which

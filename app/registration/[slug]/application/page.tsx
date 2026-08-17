@@ -28,7 +28,8 @@ import { formatDate } from '@lib/Temporal';
 import { generatePortalMetadataFn } from '../../generatePortalMetadataFn';
 import { getContent, getStaticContent } from '@lib/Content';
 import { getEnvironmentContext } from '@lib/EnvironmentContext';
-import db, { tEnvironments, tEvents, tRoles, tTeams, tUsersEvents } from '@lib/database';
+import db, { tEnvironments, tEvents, tRoles, tTeams, tUsersEvents,
+    tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -176,13 +177,14 @@ async function EventApplicationFormPage(props: EventApplicationFormPageProps) {
     let partnerApplications: EventApplicationFormProps['partnerApplications'] = [ /* none yet */ ];
 
     if (!!context.user) {
-        historicPreferences = await dbInstance.selectFrom(tUsersEvents)
+        historicPreferences = await dbInstance.selectFrom(tUsersEventsPreferencesParticipation)
             .innerJoin(tEvents)
-                .on(tEvents.eventId.equals(tUsersEvents.eventId))
-            .where(tUsersEvents.userId.equals(context.user.id))
+                .on(tEvents.eventId.equals(tUsersEventsPreferencesParticipation.eventId))
+            .where(tUsersEventsPreferencesParticipation.userId.equals(context.user.id))
+                .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
             .select({
-                tshirtFit: tUsersEvents.shirtFit,
-                tshirtSize: tUsersEvents.shirtSize,
+                tshirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
+                tshirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
             })
             .orderBy(tEvents.eventStartTime, 'desc')
             .limit(1)
@@ -221,10 +223,10 @@ async function EventApplicationFormPage(props: EventApplicationFormPageProps) {
     // volunteer's historic preferences if they've applied before, for e.g. their t-shirt size.
     const defaultValues = {
         availability: true,
-        credits: true,
+        includeCreditReel: true,
         serviceHours: '16',
         serviceTiming: '10-0',
-        socials: true,
+        includeSocialMedia: true,
         ...historicPreferences,
     };
 

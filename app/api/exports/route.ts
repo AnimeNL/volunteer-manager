@@ -13,7 +13,8 @@ import { formatDate } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';
 
 import db, { tEvents, tExports, tExportsLogs, tRefunds, tRoles, tTeams, tTrainings,
-    tTrainingsAssignments, tTrainingsExtra, tUsers, tUsersEvents, tVendors } from '@lib/database';
+    tTrainingsAssignments, tTrainingsExtra, tUsers, tUsersEvents,
+    tUsersEventsPreferencesParticipation, tVendors } from '@lib/database';
 
 import { kAvailabilityBuildUpTearDownScheme }
     from '@app/registration/[slug]/application/AvailabilityBuildUpTearDownScheme';
@@ -561,18 +562,24 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
     if (metadata.type === kExportType.Credits) {
         credits = { declined: [], included: [] };
 
+        const preferencesJoin = tUsersEventsPreferencesParticipation.forUseInLeftJoin();
+
         const volunteers = await db.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .leftJoin(preferencesJoin)
+                .on(preferencesJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesJoin.preferenceVersionIsLatest.equals(1))
             .where(tUsersEvents.eventId.equals(metadata.eventId))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
             .select({
                 name: tUsers.name,
                 role: tRoles.roleName,
-                included: tUsersEvents.includeCredits.valueWhenNull(/* true= */ 1),
+                included: preferencesJoin.participationIncludeCreditReel.valueWhenNull(1),
             })
             .orderBy(tRoles.roleOrder, 'asc')
             .orderBy(tRoles.roleName, 'asc')
@@ -774,6 +781,10 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
         }
 
         const volunteerList = await db.selectFrom(tUsersEvents)
+            .innerJoin(tUsersEventsPreferencesParticipation)
+                .on(tUsersEventsPreferencesParticipation.userId.equals(tUsersEvents.userId))
+                    .and(tUsersEventsPreferencesParticipation.eventId.equals(tUsersEvents.eventId))
+                    .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
@@ -791,8 +802,8 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
                 lastName: tUsers.lastName,
                 gender: tUsers.gender,
                 birthdate: tUsers.birthdate,
-                shirtSize: tUsersEvents.shirtSize,
-                shirtFit: tUsersEvents.shirtFit,
+                shirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
+                shirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
             })
             .orderBy(tRoles.roleOrder, 'asc')
             .orderBy(tUsers.lastName, 'asc')
@@ -873,15 +884,21 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
 
     let whatsapp: WhatsAppDataExport | undefined = undefined;
     if (metadata.type === kExportType.WhatsApp) {
+        const preferencesJoin = tUsersEventsPreferencesParticipation.forUseInLeftJoin();
+
         whatsapp = await db.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .leftJoin(preferencesJoin)
+                .on(preferencesJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesJoin.preferenceVersionIsLatest.equals(1))
             .where(tUsersEvents.eventId.equals(metadata.eventId))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
-                .and(tUsersEvents.includeSocials.equals(/* true= */ 1))
+                .and(preferencesJoin.participationIncludeSocialMedia.equals(/* true= */ 1))
             .select({
                 role: tRoles.roleName,
                 name: tUsers.name,

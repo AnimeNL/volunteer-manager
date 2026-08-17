@@ -3,9 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
-
-import Grid from '@mui/material/Grid';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 
@@ -15,7 +12,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsersEvents, tUsers } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import * as actions from './PreferenceActions';
 
@@ -34,6 +31,10 @@ export default async function EventTeamVolunteerPreferencesPage(
     const id = (await props.params).volunteer;
 
     const context = await db.selectFrom(tUsersEvents)
+        .innerJoin(tUsersEventsPreferencesParticipation)
+            .on(tUsersEventsPreferencesParticipation.userId.equals(tUsersEvents.userId))
+                .and(tUsersEventsPreferencesParticipation.eventId.equals(tUsersEvents.eventId))
+                .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
@@ -46,10 +47,12 @@ export default async function EventTeamVolunteerPreferencesPage(
                 name: tUsers.name,
             },
             participation: {
-                tshirtFit: tUsersEvents.shirtFit,
-                tshirtSize: tUsersEvents.shirtSize,
-                includeCreditReel: tUsersEvents.includeCredits,
-                includeSocialMedia: tUsersEvents.includeSocials,
+                includeCreditReel:
+                    tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
+                includeSocialMedia:
+                    tUsersEventsPreferencesParticipation.participationIncludeSocialMedia,
+                tshirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
+                tshirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
             },
         })
         .executeSelectNoneOrOne();

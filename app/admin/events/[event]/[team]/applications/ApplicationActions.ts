@@ -10,7 +10,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
-import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
+import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
@@ -148,6 +148,8 @@ export async function decideApplication(
  */
 const kCreateApplicationData = z.object({
     userId: z.number(),
+    includeCreditReel: z.literal([ 0, 1 ]),
+    includeSocialMedia: z.literal([ 0, 1 ]),
     tshirtSize: z.enum(kShirtSize),
     tshirtFit: z.enum(kShirtFit),
     serviceHours: kServiceHoursProperty,
@@ -194,28 +196,37 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
         const [ preferenceTimingStart, preferenceTimingEnd ] =
             data.serviceTiming.split('-').map(v => parseInt(v, 10));
 
-        const affectedRows = await dbInstance.insertInto(tUsersEvents)
-            .set({
-                userId: data.userId,
-                eventId: event.id,
-                teamId: team.id,
-                roleId: teamInfo.roleId,
-                registrationDate: dbInstance.currentZonedDateTime(),
-                registrationStatus: kRegistrationStatus.Registered,
-                shirtFit: data.tshirtFit,
-                shirtSize: data.tshirtSize,
-                preferenceHours: parseInt(data.serviceHours, 10),
-                preferenceTimingStart, preferenceTimingEnd,
-                preferences: data.preferences,
-                preferencesUpdated: dbInstance.currentZonedDateTime(),
-                fullyAvailable: 1,
-                includeCredits: 1,
-                includeSocials: 1,
-            })
-            .executeInsert();
+        await dbInstance.transaction(async () => {
+            await dbInstance.insertInto(tUsersEvents)
+                .set({
+                    userId: data.userId,
+                    eventId: event.id,
+                    teamId: team.id,
+                    roleId: teamInfo.roleId,
+                    registrationDate: dbInstance.currentZonedDateTime(),
+                    registrationStatus: kRegistrationStatus.Registered,
+                    preferenceHours: parseInt(data.serviceHours, 10),
+                    preferenceTimingStart, preferenceTimingEnd,
+                    preferences: data.preferences,
+                    preferencesUpdated: dbInstance.currentZonedDateTime(),
+                    fullyAvailable: 1,
+                })
+                .executeInsert();
 
-        if (!affectedRows)
-            return { success: false, error: 'Unable to store the application in the database…' };
+            await dbInstance.insertInto(tUsersEventsPreferencesParticipation)
+                .set({
+                    userId: data.userId,
+                    eventId: event.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: 1,
+                    preferenceVersionUserId: props.user.id,
+                    participationIncludeCreditReel: data.includeCreditReel,
+                    participationIncludeSocialMedia: data.includeSocialMedia,
+                    participationTshirtFit: data.tshirtFit,
+                    participationTshirtSize: data.tshirtSize,
+                })
+                .executeInsert();
+        });
 
         LogBuilder.for('CreateApplication')
             .withSeverity('Warning')

@@ -105,7 +105,6 @@ export default async function EventVolunteerPage(
             availabilityTimeslots: tUsersEvents.availabilityTimeslots,
             hotelEligible: tUsersEvents.hotelEligible,
             trainingEligible: tUsersEvents.trainingEligible,
-            credits: tUsersEvents.includeCredits,
             preferences: tUsersEvents.preferences,
             preferencesDietary: tUsersEvents.preferencesDietary,
             serviceHours: tUsersEvents.preferenceHours,
@@ -113,9 +112,6 @@ export default async function EventVolunteerPage(
                 start: tUsersEvents.preferenceTimingStart,
                 end: tUsersEvents.preferenceTimingEnd,
             },
-            socials: tUsersEvents.includeSocials,
-            tshirtFit: tUsersEvents.shirtFit,
-            tshirtSize: tUsersEvents.shirtSize,
 
             actualAvailableEventLimit: tUsersEvents.availabilityEventLimit.valueWhenNull(
                 tRoles.roleAvailabilityEventLimit),

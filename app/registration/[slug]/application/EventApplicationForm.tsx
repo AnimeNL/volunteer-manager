@@ -214,8 +214,8 @@ export function EventApplicationForm(props: EventApplicationFormProps) {
                     </Typography>
                 </Collapse>
 
-                <CheckboxElement name="credits" size="small" label={creditsLabel} />
-                <CheckboxElement name="socials" size="small" label={socialsLabel} />
+                <CheckboxElement name="includeCreditReel" size="small" label={creditsLabel} />
+                <CheckboxElement name="includeSocialMedia" size="small" label={socialsLabel} />
             </Stack>
         </>
     );

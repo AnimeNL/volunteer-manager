@@ -4385,6 +4385,64 @@ tables:
       CONSTRAINT `shifts_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `shifts_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_events_preferences_participation
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: preference_version
+    type: datetime
+    nullable: false
+  - name: preference_version_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: preference_version_is_latest
+    type: tinyint(1)
+    nullable: false
+  - name: participation_include_credit_reel
+    type: tinyint(1)
+    nullable: false
+  - name: participation_include_social_media
+    type: tinyint(1)
+    nullable: false
+  - name: participation_tshirt_fit
+    type: enum('Regular','Girly')
+    nullable: false
+  - name: participation_tshirt_size
+    type: enum('XS','S','M','L','XL','XXL','3XL','4XL')
+    nullable: false
+  indexes:
+  - name: user_id
+    def: KEY user_id (user_id, event_id) USING BTREE
+    table: users_events_preferences_participation
+    columns:
+    - user_id
+    - event_id
+  - name: user_id_2
+    def: KEY user_id_2 (user_id, event_id, preference_version_is_latest) USING BTREE
+    table: users_events_preferences_participation
+    columns:
+    - user_id
+    - event_id
+    - preference_version_is_latest
+  def: |-
+    CREATE TABLE `users_events_preferences_participation` (
+      `user_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `preference_version` datetime NOT NULL,
+      `preference_version_user_id` int(4) unsigned NOT NULL,
+      `preference_version_is_latest` tinyint(1) NOT NULL,
+      `participation_include_credit_reel` tinyint(1) NOT NULL,
+      `participation_include_social_media` tinyint(1) NOT NULL,
+      `participation_tshirt_fit` enum('Regular','Girly') NOT NULL,
+      `participation_tshirt_size` enum('XS','S','M','L','XL','XXL','3XL','4XL') NOT NULL,
+      KEY `user_id` (`user_id`,`event_id`),
+      KEY `user_id_2` (`user_id`,`event_id`,`preference_version_is_latest`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: duty_book
   type: BASE TABLE
   columns:

@@ -258,6 +258,14 @@ do {
                 { field: [ 'users_events', 'shirt_fit' ], type: 'ShirtFit' },
                 { field: [ 'users_events', 'shirt_size' ], type: 'ShirtSize' },
                 {
+                    field: [ 'users_events_preferences_participation', 'participation_tshirt_fit' ],
+                    type: 'ShirtFit'
+                },
+                {
+                    field: [ 'users_events_preferences_participation', 'participation_tshirt_size' ],
+                    type: 'ShirtSize'
+                },
+                {
                     field: [ 'users_events_tickets', 'ticket_provider' ],
                     type: 'EventTicketProvider'
                 },

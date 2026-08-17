@@ -13,7 +13,7 @@ import { ParticipationForm } from '@app/admin/events/[event]/[team]/volunteers/[
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getStaticContent } from '@lib/Content';
-import db, { tUsersEvents } from '@lib/database';
+import db, { tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { updateParticipationPreferences }
     from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
@@ -26,15 +26,16 @@ export default async function EventApplicationParticipationPage(
 {
     const { event, team, user } = await getApplicationContext(props);
 
-    const defaultValues = await db.selectFrom(tUsersEvents)
-        .where(tUsersEvents.userId.equals(user.id))
-            .and(tUsersEvents.eventId.equals(event.id))
-            .and(tUsersEvents.teamId.equals(team.id))
+    const defaultValues = await db.selectFrom(tUsersEventsPreferencesParticipation)
+        .where(tUsersEventsPreferencesParticipation.userId.equals(user.id))
+            .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
+            .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
         .select({
-            includeCreditReel: tUsersEvents.includeCredits,
-            includeSocialMedia: tUsersEvents.includeSocials,
-            tshirtFit: tUsersEvents.shirtFit,
-            tshirtSize: tUsersEvents.shirtSize,
+            includeCreditReel:
+                tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
+            includeSocialMedia: tUsersEventsPreferencesParticipation.participationIncludeSocialMedia,
+            tshirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
+            tshirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
         })
         .executeSelectNoneOrOne();
 
