@@ -190,7 +190,6 @@ export function AvailabilityPreferences(props: AvailabilityPreferencesProps) {
             <ApplicationAvailabilityForm eventStartDate={props.event.startTime}
                                          eventEndDate={props.event.endTime}
                                          includeBuildUp={props.includeBuildUp}
-                                         includeDietaryRestrictions
                                          includeTearDown={props.includeTearDown}
                                          readOnly={props.readOnly} />
 

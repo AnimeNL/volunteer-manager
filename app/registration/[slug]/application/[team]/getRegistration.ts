@@ -59,7 +59,6 @@ export async function getRegistration(eventId: number, teamId: number, userId: n
                 tRoles.roleAvailabilityEventLimit),
             availability: {
                 preferences: tUsersEvents.preferences,
-                preferencesDietary: tUsersEvents.preferencesDietary,
                 timeslots: tUsersEvents.availabilityTimeslots,
                 serviceHours: tUsersEvents.preferenceHours,
                 serviceTimingStart: tUsersEvents.preferenceTimingStart,

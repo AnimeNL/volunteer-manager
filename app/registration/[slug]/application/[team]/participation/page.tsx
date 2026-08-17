@@ -31,6 +31,7 @@ export default async function EventApplicationParticipationPage(
             .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
             .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
         .select({
+            dietary: tUsersEventsPreferencesParticipation.participationDietary,
             includeCreditReel:
                 tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
             includeSocialMedia: tUsersEventsPreferencesParticipation.participationIncludeSocialMedia,

@@ -102,7 +102,6 @@ export default async function EventVolunteerPage(
             hotelEligible: tUsersEvents.hotelEligible,
             trainingEligible: tUsersEvents.trainingEligible,
             preferences: tUsersEvents.preferences,
-            preferencesDietary: tUsersEvents.preferencesDietary,
             serviceHours: tUsersEvents.preferenceHours,
             serviceTiming: {
                 start: tUsersEvents.preferenceTimingStart,
@@ -207,7 +206,6 @@ export default async function EventVolunteerPage(
     const availabilityDefaultValues: Record<string, any> = {
         exceptions: volunteer.availabilityExceptions,
         preferences: volunteer.preferences,
-        preferencesDietary: volunteer.preferencesDietary,
         serviceHours: `${volunteer.serviceHours}`,
         availabilityBuildUpTearDown: volunteer.availabilityBuildUpTearDown,
     };

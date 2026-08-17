@@ -147,7 +147,6 @@ const kUpdateAvailabilityPreferenceData = z.object({
     serviceHours: kServiceHoursProperty,
     serviceTiming: kServiceTimingProperty,
     preferences: z.string().optional(),
-    preferencesDietary: z.string().optional(),
     availabilityBuildUpTearDown: z.string().optional(),
 });
 
@@ -221,7 +220,6 @@ export async function updateAvailability(
                 availabilityExceptions: exceptions,
                 availabilityTimeslots: exceptionEvents.join(','),
                 preferences: data.preferences,
-                preferencesDietary: data.preferencesDietary,
                 preferenceHours: parseInt(data.serviceHours, /* radix= */ 10),
                 preferenceTimingStart: parseInt(serviceTimingStart, /* radix= */ 10),
                 preferenceTimingEnd: parseInt(serviceTimingEnd, /* radix= */ 10),

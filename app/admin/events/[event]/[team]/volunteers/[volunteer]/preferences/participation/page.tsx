@@ -53,6 +53,7 @@ export default async function EventTeamVolunteerPreferencesParticipationPage(
                 version: preferencesParticipationJoin.preferenceVersion,
                 author: usersJoin.name,
                 data: {
+                    dietary: preferencesParticipationJoin.participationDietary,
                     includeCreditReel: preferencesParticipationJoin.participationIncludeCreditReel,
                     includeSocialMedia:
                         preferencesParticipationJoin.participationIncludeSocialMedia,

@@ -33,7 +33,7 @@ export function ApplicationFormClient<TValue extends AutocompleteOption>(
             <Grid size={{ xs: 12 }} sx={{ display: formOpen ? 'initial' : 'none' }}>
                 <Collapse in={formOpen}>
                     <Grid container spacing={2}>
-                        <ParticipationForm />
+                        <ParticipationForm disableDietary />
                         <ApplicationAvailabilityForm />
                     </Grid>
                 </Collapse>

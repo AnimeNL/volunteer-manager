@@ -80,7 +80,6 @@ export default async function EventApplicationAvailabilityPage(
                 availabilityBuildUpTearDown: tUsersEvents.availabilityBuildUpTearDown,
                 exceptions: tUsersEvents.availabilityExceptions,
                 preferences: tUsersEvents.preferences,
-                preferencesDietary: tUsersEvents.preferencesDietary,
                 serviceHours: tUsersEvents.preferenceHours,
                 serviceTiming: {
                     start: tUsersEvents.preferenceTimingStart,
@@ -99,7 +98,6 @@ export default async function EventApplicationAvailabilityPage(
         availabilityBuildUpTearDown:
             detailedApplicationInfo.preferences?.availabilityBuildUpTearDown,
         preferences: detailedApplicationInfo.preferences?.preferences,
-        preferencesDietary: detailedApplicationInfo.preferences?.preferencesDietary,
         serviceHours: `${detailedApplicationInfo.preferences?.serviceHours}`,
     };
 

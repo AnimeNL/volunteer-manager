@@ -81,12 +81,6 @@ interface ApplicationAvailabilityFormProps {
     includeBuildUp?: boolean;
 
     /**
-     * Whether the dietary restrictions field should be included. Omitted from the registration form
-     * as we want to minimsie the number of fields there.
-     */
-    includeDietaryRestrictions?: boolean;
-
-    /**
      * Whether the option should be available where a volunteer can indicate that they're helping
      * out during the festival's tear-down.
      */
@@ -164,12 +158,6 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
                                options={kServiceTimingOption} fullWidth size="small"
                                disabled={readOnly}  />
             </Grid>
-            { !!props.includeDietaryRestrictions &&
-                <Grid size={{ xs: 12 }}>
-                    <TextareaAutosizeElement name="preferencesDietary" fullWidth size="small"
-                                             label="Any dietary restrictions?"
-                                             disabled={readOnly} />
-                </Grid> }
             <Grid size={{ xs: 12 }}>
                 <TextareaAutosizeElement name="preferences" fullWidth size="small"
                                          label="Anything we should know about?"

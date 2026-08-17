@@ -76,6 +76,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 checkOut: dbInstance.dateAsString(preferencesHotelJoin.hotelCheckOut),
             },
             participation: {
+                dietary: tUsersEventsPreferencesParticipation.participationDietary,
                 includeCreditReel:
                     tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
                 includeSocialMedia:
