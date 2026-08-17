@@ -4,7 +4,7 @@
 import { headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
 
-import type { ZodError, ZodObject, ZodRawShape, z } from 'zod/v4';
+import type { ZodError, ZodType, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
 
 import type { User } from './auth/User';
@@ -130,7 +130,7 @@ export type PartialServerAction<T> = (param: T, formData: unknown) => Promise<Se
  * Type definition that represents a React server action. When the action does not return any value
  * success will be assumed, whereas exceptions will be represented as a failure.
  */
-export type ServerActionImplementation<T extends ZodObject<ZodRawShape>,
+export type ServerActionImplementation<T extends ZodType,
                                        AllowVisitors extends boolean> =
     (data: z.output<T>, props: ServerActionProps<AllowVisitors>) =>
         Promise<ServerActionResult | undefined | void>;
@@ -213,13 +213,13 @@ function coerceZodType(def: $ZodTypeDef, values: FormDataEntryValue[]): ServerAc
  * invoking processing and transformation functions. This allows certain types such as arrays,
  * booleans and numbers to work as expected.
  */
-function coerceFormData<T extends ZodObject<ZodRawShape>>(scheme: T, formData: FormData) {
+function coerceFormData(scheme: ZodType, formData: FormData) {
     const unvalidatedData: Record<string, ServerActionCoercedTypes> = { /* empty */ };
     for (const key of formData.keys()) {
         const values = formData.getAll(key);
-        if (Object.hasOwn(scheme.shape, key)) {
+        if ('shape' in scheme && Object.hasOwn(scheme.shape as object, key)) {
             if (values.length > 0)
-                unvalidatedData[key] = coerceZodType(scheme.shape[key]._zod.def, values);
+                unvalidatedData[key] = coerceZodType((scheme.shape as any)[key]._zod.def, values);
             else
                 unvalidatedData[key] = undefined;
 
@@ -255,7 +255,7 @@ export function formatZodError(error: ZodError): string {
  * as the first statement in their body, per the rules of React's Server Actions. Furthermore, React
  * takes care of version skew and common attack types, which we build upon with further validation.
  */
-export async function executeServerAction<T extends ZodObject<ZodRawShape>,
+export async function executeServerAction<T extends ZodType,
                                           AllowVisitors extends boolean = false>(
     formData: unknown, scheme: T, action: ServerActionImplementation<T, AllowVisitors>,
     allowVisitors?: AllowVisitors, userForTesting?: User | null)

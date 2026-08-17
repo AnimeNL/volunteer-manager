@@ -1,7 +1,7 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z, type ZodObject, type ZodRawShape } from 'zod/v4';
+import { z, type ZodType } from 'zod/v4';
 
 import type { User } from './auth/User';
 import { SetRecordErrorLogDeferDelegate } from './Log';
@@ -24,7 +24,7 @@ describe('serverAction', () => {
 
     // Wrapper function around `executeServerAction` that encapsulates the necessary information in
     // an asynchronous closure, that can be invoked multiple times for testing purposes.
-    function serverAction<T extends ZodObject<ZodRawShape>>(
+    function serverAction<T extends ZodType>(
         scheme: T, action: ServerActionImplementation<T, false>)
     {
         const user: User = {
@@ -893,5 +893,56 @@ describe('serverAction', () => {
 
         // Step 2: Validate that a database query was issued by the Server Action runner
         expect(errorLogDelegateInvoked).toBeTruthy();
+    });
+
+    it('should support Zod unions and array schemas', async () => {
+        let invocations = 0;
+        let receivedValue: any;
+
+        const unionScheme = z.union([
+            z.object({ type: z.literal('first'), a: z.string() }),
+            z.object({ type: z.literal('second'), b: z.number() }),
+        ]);
+
+        const unionAction = serverAction(unionScheme, async (data) => {
+            receivedValue = data;
+            ++invocations;
+        });
+
+        {
+            const result = await unionAction({ type: 'first', a: 'hello' });
+            expect(result.success).toBeTruthy();
+            expect(invocations).toBe(1);
+            expect(receivedValue).toEqual({ type: 'first', a: 'hello' });
+        }
+        {
+            const result = await unionAction({ type: 'second', b: 42 });
+            expect(result.success).toBeTruthy();
+            expect(invocations).toBe(2);
+            expect(receivedValue).toEqual({ type: 'second', b: 42 });
+        }
+        {
+            const result = await unionAction({ type: 'invalid' });
+            expect(result.success).toBeFalsy();
+            expect(invocations).toBe(2);
+        }
+
+        const arrayScheme = z.array(z.object({ id: z.number() }));
+        const arrayAction = serverAction(arrayScheme, async (data) => {
+            receivedValue = data;
+            ++invocations;
+        });
+
+        {
+            const result = await arrayAction([ { id: 1 }, { id: 2 } ]);
+            expect(result.success).toBeTruthy();
+            expect(invocations).toBe(3);
+            expect(receivedValue).toEqual([ { id: 1 }, { id: 2 } ]);
+        }
+        {
+            const result = await arrayAction([ { id: 'invalid' } ]);
+            expect(result.success).toBeFalsy();
+            expect(invocations).toBe(3);
+        }
     });
 });
