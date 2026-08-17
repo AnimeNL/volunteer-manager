@@ -40,7 +40,7 @@ export interface SectionHeaderProps {
     /**
      * Title of this section. Required.
      */
-    title: string;
+    title: React.ReactNode;
 
     /**
      * Subtitle to contextualize the header, displayed immediately adjacent to the title. Optional.
@@ -83,7 +83,7 @@ export function SectionHeader(props: SectionHeaderProps) {
             { !!props.documentation &&
                 <Box sx={{ my: -0.5, mr: -1 }}>
                     <DocumentationButton topic={props.documentation}
-                                         title={props.documentationTitle || props.title} />
+                                         title={props.documentationTitle || String(props.title)} />
                 </Box> }
         </Stack>
     );

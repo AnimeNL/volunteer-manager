@@ -10,24 +10,29 @@ import * as options from '@components/SelectElementOptions';
 /**
  * Form through which a volunteer's participation preferences can be managed.
  */
-export function ParticipationForm() {
+export function ParticipationForm(props: { readOnly?: boolean }) {
+    const { readOnly } = props;
     return (
         <>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="tshirtSize" label="T-shirt size" required size="small"
-                               options={options.kTShirtSizeOptions} fullWidth />
+                               options={options.kTShirtSizeOptions} fullWidth
+                               slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="tshirtFit" label="T-shirt fit" required size="small"
-                               options={options.kTShirtFitOptions} fullWidth />
+                               options={options.kTShirtFitOptions} fullWidth
+                               slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="includeCreditReel" label="Include in credit reel?" required
-                               options={options.kBooleanOptions} size="small" fullWidth />
+                               options={options.kBooleanOptions} size="small" fullWidth
+                               slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="includeSocialMedia" label="Include on social media?"
-                               options={options.kBooleanOptions} size="small" fullWidth required />
+                               options={options.kBooleanOptions} size="small" fullWidth required
+                               slotProps={{ input: { readOnly } }} />
             </Grid>
         </>
     );

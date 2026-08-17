@@ -61,14 +61,13 @@ export async function updateParticipationPreferences(
                 })
                 .executeSelectNoneOrOne();
 
-            if (existing) {
-                if (existing.includeCreditReel !== data.includeCreditReel ||
-                    existing.includeSocialMedia !== data.includeSocialMedia ||
-                    existing.tshirtFit !== data.tshirtFit ||
-                    existing.tshirtSize !== data.tshirtSize)
-                {
-                    return false;  // no updates
-                }
+            if (existing &&
+                existing.includeCreditReel === data.includeCreditReel &&
+                existing.includeSocialMedia === data.includeSocialMedia &&
+                existing.tshirtFit === data.tshirtFit &&
+                existing.tshirtSize === data.tshirtSize)
+            {
+                return false;  // no updates
             }
 
             await dbInstance.update(tUsersEventsPreferencesParticipation)

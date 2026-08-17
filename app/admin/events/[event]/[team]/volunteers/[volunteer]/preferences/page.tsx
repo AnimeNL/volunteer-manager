@@ -5,11 +5,14 @@ import { notFound } from 'next/navigation';
 
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import Stack from '@mui/material/Stack';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { HistoryIconButton } from './HistoryIconButton';
 import { ParticipationForm } from './ParticipationForm';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
+import { SharedDataIconButton } from './SharedDataIconButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
@@ -96,7 +99,13 @@ export default async function EventTeamVolunteerPreferencesPage(
                 Hotel
             </Section>
             <FormGridSection icon={ <SmartToyOutlinedIcon /> } title="Participation"
-                             action={participationFn} defaultValues={context.participation}>
+                             action={participationFn} defaultValues={context.participation}
+                             headerAction={
+                                <Stack direction="row" spacing={1}>
+                                    <SharedDataIconButton />
+                                    <HistoryIconButton href="./preferences/participation" />
+                                </Stack>
+                             }>
                 <SectionIntroduction grid>
                      General preferences regarding their participation in {event.shortName}.
                 </SectionIntroduction>

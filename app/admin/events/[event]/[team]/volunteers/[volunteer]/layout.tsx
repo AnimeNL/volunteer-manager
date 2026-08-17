@@ -31,6 +31,7 @@ export default async function EventTeamVolunteerLayout(
                 Icon: ManageAccountsOutlinedIcon,
                 label: 'Preferences',
                 url: `/admin/events/${event.slug}/${team.slug}/volunteers/${id}/preferences`,
+                urlMatchMode: 'prefix',
             },
             {
                 Icon: OutboxOutlinedIcon,
