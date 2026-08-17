@@ -14,6 +14,10 @@ import { kShirtFit, kShirtSize } from '@lib/database/Types';
 // TODO: Availability preferences
 // TODO: Hotel preferences
 
+// -------------------------------------------------------------------------------------------------
+// Participation preferences
+// -------------------------------------------------------------------------------------------------
+
 /**
  * Schema defining the information required to update participation preferences.
  */
@@ -25,12 +29,16 @@ const kParticipationPreferencesSchema = z.object({
 });
 
 /**
- * Server Action through which participation preferences can be updated.
+ * Server Action through which participation preferences can be updated. Used for updates from the
+ * administration area, as well as through the registration portal.
  */
 export async function updateParticipationPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kParticipationPreferencesSchema, async (data, props) => {
+        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Versioning of the data?
+
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.volunteers.information',
@@ -52,7 +60,10 @@ export async function updateParticipationPreferences(
 
         // TODO: Write a log entry
 
-        return { success: true };
+        return {
+            success: true,
+            message: 'Your preferences have been updated.',
+        };
     });
 }
 

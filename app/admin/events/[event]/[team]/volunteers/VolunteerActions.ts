@@ -12,7 +12,7 @@ import { getPublicEventsForFestival } from '@app/registration/[slug]/application
 import db, { tEvents, tHotelsPreferences, tRefunds, tTeams, tTrainingsAssignments, tUsersEvents } from '@lib/database';
 
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
-import { kRegistrationStatus, kShirtFit, kShirtSize } from '@lib/database/Types';
+import { kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
@@ -211,65 +211,6 @@ export async function sendCommunicationToVolunteer(
             success: true,
             message: 'The e-mail has been sent, thank you for keeping them in the loop!',
         };
-    });
-}
-
-/**
- * Zod type that describes the data required for updating an application.
- */
-const kUpdateApplicationData = z.object({
-    credits: z.number().optional(),
-    socials: z.number().optional(),
-    tshirtFit: z.enum(kShirtFit),
-    tshirtSize: z.enum(kShirtSize),
-});
-
-/**
- * Server action that updates the information associated with an application.
- */
-export async function updateApplication(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kUpdateApplicationData, async (data, props) => {
-        const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.volunteers.information',
-            operation: 'update',
-            scope: {
-                event: event.slug,
-                team: team.slug,
-            },
-        });
-
-        const affectedRows = await db.update(tUsersEvents)
-            .set({
-                shirtFit: data.tshirtFit,
-                shirtSize: data.tshirtSize,
-                includeCredits: data.credits ? 1 : 0,
-                includeSocials: data.socials ? 1 : 0,
-            })
-            .where(tUsersEvents.userId.equals(userId))
-                .and(tUsersEvents.eventId.equals(eventId))
-                .and(tUsersEvents.teamId.equals(teamId))
-            .executeUpdate();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to store the information in the database…' };
-
-        RecordLog({
-            type: kLogType.AdminUpdateTeamVolunteer,
-            severity: kLogSeverity.Info,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                event: event.shortName,
-                eventId, teamId,
-            },
-        });
-
-        return { success: true };
     });
 }
 

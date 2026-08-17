@@ -5,7 +5,7 @@
 
 import { useCallback, useContext, useState } from 'react';
 
-import { CheckboxElement } from '@proxy/react-hook-form-mui';
+import { CheckboxElement, SelectElement } from '@proxy/react-hook-form-mui';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
@@ -21,9 +21,11 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import type { RegistrationStatus } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
-import { ApplicationParticipationForm, ApplicationAvailabilityForm } from './ApplicationParticipation';
+import { ApplicationAvailabilityForm } from './ApplicationParticipation';
 import { AuthenticationContext } from '../../AuthenticationContext';
 import { Avatar } from '@components/Avatar';
+
+import * as options from '@components/SelectElementOptions';
 
 /**
  * Manual styles that apply to the <EventApplicationForm> client component.
@@ -188,7 +190,14 @@ export function EventApplicationForm(props: EventApplicationFormProps) {
                 Your participation
             </Typography>
             <Grid container spacing={2} sx={{ pt: 1 }}>
-                <ApplicationParticipationForm />
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="tshirtSize" label="T-shirt size" required
+                                   options={options.kTShirtSizeOptions} fullWidth size="small" />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                    <SelectElement name="tshirtFit" label="T-shirt fit" required
+                                   options={options.kTShirtFitOptions} fullWidth size="small" />
+                </Grid>
                 <ApplicationAvailabilityForm />
             </Grid>
 

@@ -55,7 +55,7 @@ export interface FormProviderProps {
      * Default values that should be provided to the form. Can be updated while the form is visible,
      * in which case all non-dirty fields will have their values updated.
      */
-    defaultValues?: Record<string, any>;
+    defaultValues?: Record<string, any> | undefined | null;
 
     /**
      * The form that should be used. Will create a new form when omitted.

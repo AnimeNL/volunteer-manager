@@ -40,12 +40,19 @@ export function FormSubmitButton(props: FormSubmitButtonProps) {
 
     const formContext = useContext(FormProviderContext);
     const formError = !!formContext.result && !formContext.result.success;
+    const formMessage =
+        !!formContext.result && !!formContext.result.success && !!formContext.result.message;
 
     return (
         <Box sx={sx}>
             <Collapse in={formError}>
                 <Alert severity="error" sx={{ mb: 2 }}>
                     { formContext.result?.error || 'The changes could not be saved' }
+                </Alert>
+            </Collapse>
+            <Collapse in={formMessage}>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                    { !!formContext.result?.success && formContext.result.message }
                 </Alert>
             </Collapse>
             <Button variant="contained" type="submit" {...buttonProps}

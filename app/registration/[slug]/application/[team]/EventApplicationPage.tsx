@@ -710,12 +710,13 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
                         The follow options are available regarding your registration:
                     </Typography>
                     <List>
-                        <ListItem sx={{ pl: 4 }}>
+                        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
+                                        href={`${baseUrl}/participation`}>
                             <ListItemIcon>
                                 <TaskAltIcon color="success" />
                             </ListItemIcon>
                             <ListItemText primary="Your application has been accepted!" />
-                        </ListItem>
+                        </ListItemButton>
 
                         <AvailabilityButton status={registration.availabilityStatus}
                                             override={canAccessAvailability} baseUrl={baseUrl} />

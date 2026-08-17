@@ -13,7 +13,6 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import type { ServerAction } from '@lib/serverAction';
 import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
-import { ApplicationParticipationForm } from '@app/registration/[slug]/application/ApplicationParticipation';
 import { AvailabilityPreferences } from './AvailabilityPreferences';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { FormGrid } from '@app/admin/components/FormGrid';
@@ -43,14 +42,6 @@ import { readUserSettings } from '@lib/UserSettings';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 import * as actions from '../VolunteerActions';
-
-/**
- * Options for a binary select box. They look better on the page than checkboxes.
- */
-const kBooleanSelectOptions = [
-    { id: 1, label: 'Yes' },
-    { id: 0, label: 'No' },
-];
 
 /**
  * Options for a tri-state binary select box. They look better on the page than checkboxes.
@@ -213,20 +204,6 @@ export default async function EventVolunteerPage(
 
     const scheduleExpanded = !!settings['user-admin-volunteers-expand-shifts'];
     const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
-
-    // ---------------------------------------------------------------------------------------------
-    // Section: Preferences
-    // ---------------------------------------------------------------------------------------------
-
-    const preferencesAction =
-        actions.updateApplication.bind(null, volunteer.userId, event.id, team.id);
-
-    const preferencesDefaultValues = {
-        credits: volunteer.credits,
-        socials: volunteer.socials,
-        tshirtFit: volunteer.tshirtFit,
-        tshirtSize: volunteer.tshirtSize,
-    };
 
     // ---------------------------------------------------------------------------------------------
     // Section: Availability
@@ -427,23 +404,6 @@ export default async function EventVolunteerPage(
                                    setting="user-admin-volunteers-expand-shifts">
                     <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
                 </ExpandableSection> }
-
-            { /* -- Preferences: -------------------------------------------------------------- */ }
-
-            <FormGridSection action={preferencesAction} defaultValues={preferencesDefaultValues}
-                             title="Preferences">
-                <ApplicationParticipationForm readOnly={readOnly} />
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="credits" label="Include on the credit reel?"
-                                   options={kBooleanSelectOptions} size="small" fullWidth
-                                   slotProps={{ input: { readOnly } }} />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="socials" label="Include on WhatsApp/social channels?"
-                                   options={kBooleanSelectOptions} size="small" fullWidth
-                                   slotProps={{ input: { readOnly } }} />
-                </Grid>
-            </FormGridSection>
 
             { /* -- Availability: ------------------------------------------------------------- */ }
 

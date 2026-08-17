@@ -10,8 +10,9 @@ import Grid from '@mui/material/Grid';
 
 import { AutocompleteElementWithDisabledOptions, type AutocompleteElementWithDisabledOptionsProps, type AutocompleteOption }
     from '@app/admin/components/AutocompleteElementWithDisabledOptions';
-import { ApplicationAvailabilityForm, ApplicationParticipationForm }
+import { ApplicationAvailabilityForm }
     from '@app/registration/[slug]/application/ApplicationParticipation';
+import { ParticipationForm } from '../volunteers/[volunteer]/preferences/ParticipationForm';
 
 /**
  * The <ApplicationFormClient> component wraps the application form on the client side.
@@ -32,7 +33,7 @@ export function ApplicationFormClient<TValue extends AutocompleteOption>(
             <Grid size={{ xs: 12 }} sx={{ display: formOpen ? 'initial' : 'none' }}>
                 <Collapse in={formOpen}>
                     <Grid container spacing={2}>
-                        <ApplicationParticipationForm />
+                        <ParticipationForm />
                         <ApplicationAvailabilityForm />
                     </Grid>
                 </Collapse>

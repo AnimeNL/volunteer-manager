@@ -10,6 +10,7 @@ import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlin
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { ParticipationForm } from './ParticipationForm';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -17,7 +18,6 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
 import * as actions from './PreferenceActions';
-import * as options from '@components/SelectElementOptions';
 
 /**
  * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
@@ -97,23 +97,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <SectionIntroduction grid>
                      General preferences regarding their participation in {event.shortName}.
                 </SectionIntroduction>
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="tshirtSize" label="T-shirt size" required size="small"
-                                   options={options.kTShirtSizeOptions} fullWidth />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="tshirtFit" label="T-shirt fit" required size="small"
-                                   options={options.kTShirtFitOptions} fullWidth />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="includeCreditReel" label="Include on credit reel?" required
-                                   options={options.kBooleanOptions} size="small" fullWidth />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                    <SelectElement name="includeSocialMedia" label="Include on social media?"
-                                   options={options.kBooleanOptions} size="small" fullWidth
-                                   required />
-                </Grid>
+                <ParticipationForm />
             </FormGridSection>
             <Section noHeader>
                 Refund

@@ -191,6 +191,8 @@ export default async function ApplicationsPage(
 
     // Values that should be prepopulated in the "Create an Application" form.
     const createValues = {
+        includeCreditReel: 1,
+        includeSocialMedia: 1,
         serviceHours: '20',
         serviceTiming: '10-0',
     };
