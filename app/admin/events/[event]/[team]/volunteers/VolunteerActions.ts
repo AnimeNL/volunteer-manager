@@ -9,7 +9,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
-import db, { tEvents, tRefunds, tTeams, tTrainingsAssignments, tUsersEvents } from '@lib/database';
+import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
 
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -55,44 +55,6 @@ export async function getContextForVolunteerAction(userId: number, eventId: numb
  * Zod type that describes that no data is expected.
  */
 const kNoDataRequired = z.object({ /* no parameters */ });
-
-/**
- * Server action that clears the refund request associated with a volunteer.
- */
-export async function clearRefundPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.refunds',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        const affectedRows = await db.deleteFrom(tRefunds)
-            .where(tRefunds.userId.equals(userId))
-                .and(tRefunds.eventId.equals(eventId))
-            .executeDelete();
-
-        if (!!affectedRows) {
-            RecordLog({
-                type: kLogType.AdminClearRefundRequest,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                targetUser: userId,
-                data: {
-                    event: event.shortName,
-                },
-            });
-        }
-
-        return { success: true, clear: true };
-    });
-}
 
 /**
  * Server Action that will be invoked by the <CommunicationIconButton> component when a message
@@ -362,67 +324,6 @@ export async function updateNotes(
             data: {
                 event: event.shortName,
                 notes: data.notes,
-            },
-        });
-
-        return { success: true };
-    });
-}
-
-/**
- * Zod type that describes the data required to update a volunteer's refund request.
- */
-const kUpdateRefundPreferencesData = z.object({
-    ticketNumber: z.string().optional(),
-    accountIban: z.string().min(1),
-    accountName: z.string().min(1),
-});
-
-/**
- * Server action that updates the refund preferences of a volunteer.
- */
-export async function updateRefundPreferences(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kUpdateRefundPreferencesData, async (data, props) => {
-        const { event } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.refunds',
-            scope: {
-                event: event.slug,
-            },
-        });
-
-        const dbInstance = db;
-        const affectedRows = await dbInstance.insertInto(tRefunds)
-            .set({
-                userId,
-                eventId,
-
-                refundTicketNumber: data.ticketNumber,
-                refundAccountIban: data.accountIban,
-                refundAccountName: data.accountName,
-                refundRequested: dbInstance.currentZonedDateTime(),
-            })
-            .onConflictDoUpdateSet({
-                refundTicketNumber: data.ticketNumber,
-                refundAccountIban: data.accountIban,
-                refundAccountName: data.accountName,
-                refundRequested: dbInstance.currentZonedDateTime(),
-            })
-            .executeInsert();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to store the request in the database…' };
-
-        RecordLog({
-            type: kLogType.ApplicationRefundRequest,
-            severity: kLogSeverity.Info,
-            sourceUser: props.user,
-            data: {
-                event: event.shortName,
             },
         });
 

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import Stack from '@mui/material/Stack';
 
@@ -13,6 +14,8 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HistoryIconButton } from './HistoryIconButton';
 import { HotelForm } from './HotelForm';
 import { ParticipationForm } from './ParticipationForm';
+import { PrivacyIconButton } from './PrivacyIconButton';
+import { RefundForm } from './RefundForm';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { SharedDataIconButton } from './SharedDataIconButton';
@@ -21,7 +24,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import * as actions from './PreferenceActions';
 
@@ -37,12 +40,20 @@ export default async function EventTeamVolunteerPreferencesPage(
         operation: 'read',
     });
 
-    const id = (await props.params).volunteer;
-
-    const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
-    const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+    const id = parseInt((await props.params).volunteer, /* radix= */ 10);
 
     const dbInstance = db;
+    const volunteerTeamCount = await dbInstance.selectFrom(tUsersEvents)
+        .where(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.userId.equals(id))
+            .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
+        .selectCountAll()
+        .executeSelectOne();
+
+    const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
+    const preferencesRefundsJoin = tUsersEventsPreferencesRefunds.forUseInLeftJoin();
+    const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+
     const context = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsersEventsPreferencesParticipation)
             .on(tUsersEventsPreferencesParticipation.userId.equals(tUsersEvents.userId))
@@ -52,6 +63,10 @@ export default async function EventTeamVolunteerPreferencesPage(
             .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
                 .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
                 .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(1))
+        .leftJoin(preferencesRefundsJoin)
+            .on(preferencesRefundsJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesRefundsJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesRefundsJoin.preferenceVersionIsLatest.equals(1))
         .leftJoin(preferencesTrainingJoin)
             .on(preferencesTrainingJoin.userId.equals(tUsersEvents.userId))
                 .and(preferencesTrainingJoin.eventId.equals(tUsersEvents.eventId))
@@ -60,7 +75,7 @@ export default async function EventTeamVolunteerPreferencesPage(
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.userId.equals(parseInt(id, /* radix= */ 10)))
+            .and(tUsersEvents.userId.equals(id))
             .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
         .select({
             volunteer: {
@@ -84,6 +99,11 @@ export default async function EventTeamVolunteerPreferencesPage(
                 tshirtFit: tUsersEventsPreferencesParticipation.participationTshirtFit,
                 tshirtSize: tUsersEventsPreferencesParticipation.participationTshirtSize,
             },
+            refunds: {
+                accountName: preferencesRefundsJoin.refundAccountName,
+                accountIban: preferencesRefundsJoin.refundAccountIban,
+                ticketNumber: preferencesRefundsJoin.refundTicketNumber,
+            },
             training: {
                 trainingId: preferencesTrainingJoin.trainingId,
             },
@@ -98,6 +118,7 @@ export default async function EventTeamVolunteerPreferencesPage(
     const hotelRooms = await getHotelRooms(event.id);
     const trainings = await getTrainings(event.id);
 
+    const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
     const canUpdatePreferences =
         access.can('event.volunteers.information', 'update', { event: event.slug, team: team.slug })
 
@@ -107,6 +128,10 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const participationFn = canUpdatePreferences
         ? actions.updateParticipationPreferences.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const refundsFn = canUpdateRefunds
+        ? actions.updateRefundPreferences.bind(null, volunteer.id, event.slug, team.slug)
         : undefined!;
 
     const trainingFn = canUpdatePreferences
@@ -146,7 +171,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                                  action={hotelFn} defaultValues={context.hotel}
                                  headerAction={
                                      <Stack direction="row" spacing={1}>
-                                         <SharedDataIconButton />
+                                         { volunteerTeamCount > 1 && <SharedDataIconButton /> }
                                          <HistoryIconButton href="./preferences/hotel" />
                                      </Stack>
                                  }>
@@ -160,7 +185,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                              action={participationFn} defaultValues={context.participation}
                              headerAction={
                                 <Stack direction="row" spacing={1}>
-                                    <SharedDataIconButton />
+                                    { volunteerTeamCount > 1 && <SharedDataIconButton /> }
                                     <HistoryIconButton href="./preferences/participation" />
                                 </Stack>
                              }>
@@ -170,17 +195,28 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <ParticipationForm />
             </FormGridSection>
 
-            { event.flags.enableRefunds &&
-                <Section noHeader>
-                    Refund
-                </Section> }
+            { (event.flags.enableRefunds && canUpdateRefunds) &&
+                <FormGridSection icon={ <MonetizationOnIcon /> } title="Refunds"
+                                 action={refundsFn} defaultValues={context.refunds}
+                                 headerAction={
+                                     <Stack direction="row" spacing={1}>
+                                         <PrivacyIconButton />
+                                         { volunteerTeamCount > 1 && <SharedDataIconButton /> }
+                                         <HistoryIconButton href="./preferences/refunds" />
+                                     </Stack>
+                                 }>
+                    <SectionIntroduction grid>
+                        {volunteer.name}'s refund request for a {event.shortName} ticket.
+                    </SectionIntroduction>
+                    <RefundForm />
+                </FormGridSection> }
 
             { event.flags.enableTraining &&
                 <FormGridSection icon={ <HistoryEduIcon /> } title="Training"
                                  action={trainingFn} defaultValues={context.training}
                                  headerAction={
                                      <Stack direction="row" spacing={1}>
-                                         <SharedDataIconButton />
+                                         { volunteerTeamCount > 1 && <SharedDataIconButton /> }
                                          <HistoryIconButton href="./preferences/training" />
                                      </Stack>
                                  }>

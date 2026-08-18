@@ -1172,6 +1172,67 @@ tables:
       `location_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`location_id`,`location_festival_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_events_preferences_refunds
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: preference_version
+    type: datetime
+    nullable: false
+  - name: preference_version_is_latest
+    type: tinyint(1)
+    nullable: false
+  - name: preference_version_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: refund_ticket_number
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: refund_account_iban
+    type: text
+    nullable: false
+  - name: refund_account_name
+    type: text
+    nullable: false
+  indexes:
+  - name: event_id
+    def: KEY event_id (event_id) USING BTREE
+    table: users_events_preferences_refunds
+    columns:
+    - event_id
+  - name: user_id
+    def: KEY user_id (user_id, event_id) USING BTREE
+    table: users_events_preferences_refunds
+    columns:
+    - user_id
+    - event_id
+  - name: user_id_2
+    def: KEY user_id_2 (user_id, event_id, preference_version_is_latest) USING BTREE
+    table: users_events_preferences_refunds
+    columns:
+    - user_id
+    - event_id
+    - preference_version_is_latest
+  def: |-
+    CREATE TABLE `users_events_preferences_refunds` (
+      `user_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `preference_version` datetime NOT NULL,
+      `preference_version_is_latest` tinyint(1) NOT NULL,
+      `preference_version_user_id` int(4) unsigned NOT NULL,
+      `refund_ticket_number` text DEFAULT NULL,
+      `refund_account_iban` text NOT NULL,
+      `refund_account_name` text NOT NULL,
+      KEY `user_id` (`user_id`,`event_id`),
+      KEY `user_id_2` (`user_id`,`event_id`,`preference_version_is_latest`),
+      KEY `event_id` (`event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: exports
   type: BASE TABLE
   columns:
@@ -2326,6 +2387,86 @@ tables:
       CONSTRAINT `events_teams_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `events_teams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_events_preferences_availability
+  type: BASE TABLE
+  columns:
+  - name: user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: preference_version
+    type: datetime
+    nullable: false
+  - name: preference_version_is_latest
+    type: tinyint(1)
+    nullable: false
+  - name: preference_version_user_id
+    type: int(4) unsigned
+    nullable: false
+  - name: availability_build_up_tear_down
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: availability_exceptions
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: availability_hours
+    type: int(4) unsigned
+    nullable: false
+  - name: availability_timeslots
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: availability_timing_start
+    type: int(4)
+    nullable: false
+  - name: availability_timing_end
+    type: int(4)
+    nullable: false
+  - name: availability_remarks
+    type: text
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: event_id
+    def: KEY event_id (event_id) USING BTREE
+    table: users_events_preferences_availability
+    columns:
+    - event_id
+  - name: user_id
+    def: KEY user_id (user_id, event_id) USING BTREE
+    table: users_events_preferences_availability
+    columns:
+    - user_id
+    - event_id
+  - name: user_id_2
+    def: KEY user_id_2 (user_id, event_id, preference_version_is_latest) USING BTREE
+    table: users_events_preferences_availability
+    columns:
+    - user_id
+    - event_id
+    - preference_version_is_latest
+  def: |-
+    CREATE TABLE `users_events_preferences_availability` (
+      `user_id` int(4) unsigned NOT NULL,
+      `event_id` int(4) unsigned NOT NULL,
+      `preference_version` datetime NOT NULL,
+      `preference_version_is_latest` tinyint(1) NOT NULL,
+      `preference_version_user_id` int(4) unsigned NOT NULL,
+      `availability_build_up_tear_down` text DEFAULT NULL,
+      `availability_exceptions` text DEFAULT NULL,
+      `availability_hours` int(4) unsigned NOT NULL,
+      `availability_timeslots` text DEFAULT NULL,
+      `availability_timing_start` int(4) NOT NULL,
+      `availability_timing_end` int(4) NOT NULL,
+      `availability_remarks` text DEFAULT NULL,
+      KEY `user_id` (`user_id`,`event_id`),
+      KEY `user_id_2` (`user_id`,`event_id`,`preference_version_is_latest`),
+      KEY `event_id` (`event_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: schedule
   type: BASE TABLE
   columns:

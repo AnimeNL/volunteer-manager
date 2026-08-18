@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
@@ -230,7 +230,89 @@ export async function updateParticipationPreferences(
 // Refund preferences
 // -------------------------------------------------------------------------------------------------
 
-// TODO: Refund preferences
+/**
+ * Schema defining the information required to update a refund request.
+ */
+const kRefundPreferencesSchema = z.object({
+    accountName: z.string().nonempty(),
+    accountIban: z.string().nonempty(),
+    ticketNumber: z.string().optional(),
+});
+
+/**
+ * Server Action through which a refund request can be updated. Used for updates from the
+ * administration area, as well as through the registration portal.
+ */
+export async function updateRefundPreferences(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kRefundPreferencesSchema, async (data, props) => {
+        // TODO: Amend the authentication check for updates from the registration portal
+
+        const { event } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug, 'event.refunds');
+
+        const dbInstance = db;
+        const updated = await dbInstance.transaction(async () => {
+            const existing = await dbInstance.selectFrom(tUsersEventsPreferencesRefunds)
+                .where(tUsersEventsPreferencesRefunds.userId.equals(userId))
+                    .and(tUsersEventsPreferencesRefunds.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesRefunds.preferenceVersionIsLatest.equals(1))
+                .select({
+                    accountName: tUsersEventsPreferencesRefunds.refundAccountName,
+                    accountIban: tUsersEventsPreferencesRefunds.refundAccountIban,
+                    ticketNumber: tUsersEventsPreferencesRefunds.refundTicketNumber,
+                })
+                .executeSelectNoneOrOne();
+
+            if (existing &&
+                existing.accountName === data.accountName &&
+                existing.accountIban === data.accountIban &&
+                existing.ticketNumber === data.ticketNumber)
+            {
+                return false;  // no updates
+            }
+
+            await dbInstance.update(tUsersEventsPreferencesRefunds)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesRefunds.userId.equals(userId))
+                    .and(tUsersEventsPreferencesRefunds.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesRefunds.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesRefunds)
+                .set({
+                    userId,
+                    eventId: event.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: /* true= */ 1,
+                    preferenceVersionUserId: props.user.id,
+                    refundAccountName: data.accountName,
+                    refundAccountIban: data.accountIban,
+                    refundTicketNumber: data.ticketNumber,
+                })
+                .executeInsert();
+
+            return true;
+        });
+
+        LogBuilder.for('UpdateRefundPreferences')
+            .withCondition(updated)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+            });
+
+        return {
+            success: true,
+            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+        };
+    });
+}
 
 // -------------------------------------------------------------------------------------------------
 // Training preferences

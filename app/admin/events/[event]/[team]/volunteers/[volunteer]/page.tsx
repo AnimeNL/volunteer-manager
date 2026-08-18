@@ -17,13 +17,11 @@ import { AvailabilityPreferences } from './AvailabilityPreferences';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { RefundRequestForm } from '@app/registration/[slug]/application/[team]/refund/RefundRequestForm';
 import { Section } from '@app/admin/components/Section';
-import { SectionClearAction } from '@app/admin/components/SectionClearAction';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRefunds, tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents }
+import db, { tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents }
     from '@lib/database';
 
 import { VolunteerHeader } from './VolunteerHeader';
@@ -235,31 +233,6 @@ export default async function EventVolunteerPage(
     // TODO: Exceptions
 
     // ---------------------------------------------------------------------------------------------
-    // Section: Refund request
-    // ---------------------------------------------------------------------------------------------
-
-    let refundAction: ServerAction | undefined;
-    let refundClearAction: ServerAction | undefined;
-    let refundDefaultValues: Record<string, any> | undefined;
-
-    if (access.can('event.refunds', { event: event.slug })) {
-        refundAction =
-            actions.updateRefundPreferences.bind(null, volunteer.userId, event.id, team.id);
-        refundClearAction =
-            actions.clearRefundPreferences.bind(null, volunteer.userId, event.id, team.id);
-
-        refundDefaultValues = await db.selectFrom(tRefunds)
-            .where(tRefunds.userId.equals(volunteer.userId))
-                .and(tRefunds.eventId.equals(event.id))
-            .select({
-                ticketNumber: tRefunds.refundTicketNumber,
-                accountIban: tRefunds.refundAccountIban,
-                accountName: tRefunds.refundAccountName,
-            })
-            .executeSelectNoneOrOne() ?? { /* no default values */ };
-    }
-
-    // ---------------------------------------------------------------------------------------------
     // Section: Metadata
     // ---------------------------------------------------------------------------------------------
 
@@ -344,21 +317,6 @@ export default async function EventVolunteerPage(
                                          readOnly={readOnly}
                                          step={availabilityStep} />
             </FormGridSection>
-
-            { /* ------------------------------------------------------------------------------ */ }
-
-            { !!refundAction &&
-                <FormGridSection action={refundAction} defaultValues={refundDefaultValues}
-                                 title="Refund request" permission="event.refunds"
-                                 headerAction={
-                                     !!refundClearAction
-                                         ? <SectionClearAction action={refundClearAction}
-                                                               subject="refund request"
-                                                               title="Clear refund request" />
-                                         : undefined
-                                 }>
-                    <RefundRequestForm />
-                </FormGridSection> }
 
             { /* ------------------------------------------------------------------------------ */ }
 
