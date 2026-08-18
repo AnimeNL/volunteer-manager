@@ -8,8 +8,11 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
+    tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds,
+    tUsersEventsPreferencesTraining } from '@lib/database';
 
+import { kServiceHoursProperty, kServiceTimingProperty } from './AvailabilitySettings';
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
 
@@ -17,7 +20,108 @@ import { kTemporalPlainDate } from '@app/api/Types';
 // Availability preferences
 // -------------------------------------------------------------------------------------------------
 
-// TODO: Availability preferences
+/**
+ * Schema defining the information required to update availability.
+ */
+const kAvailabilityPreferencesSchema = z.object({
+    hours: kServiceHoursProperty,
+    timing: kServiceTimingProperty,
+    remarks: z.string().nullish(),
+});
+
+/**
+ * Server Action through which one's availability can be updated. Used for updates from the
+ * administration area, as well as through the registration portal.
+ */
+export async function updateAvailabilityPreferences(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kAvailabilityPreferencesSchema, async (data, props) => {
+        // TODO: Amend the authentication check for updates from the registration portal
+
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+            });
+
+        if (!data.remarks?.length)
+            data.remarks = null;
+
+        const [ availabilityTimingStart, availabilityTimingEnd ] =
+            data.timing.split('-').map(timingValue => parseInt(timingValue, 10));
+
+        const dbInstance = db;
+        const updated = await dbInstance.transaction(async () => {
+            const existing = await dbInstance.selectFrom(tUsersEventsPreferencesAvailability)
+                .where(tUsersEventsPreferencesAvailability.userId.equals(userId))
+                    .and(tUsersEventsPreferencesAvailability.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesAvailability.teamId.equals(team.id))
+                    .and(tUsersEventsPreferencesAvailability.preferenceVersionIsLatest.equals(1))
+                .select({
+                    hours: tUsersEventsPreferencesAvailability.availabilityHours,
+                    timingStart: tUsersEventsPreferencesAvailability.availabilityTimingStart,
+                    timingEnd: tUsersEventsPreferencesAvailability.availabilityTimingEnd,
+                    remarks: tUsersEventsPreferencesAvailability.availabilityRemarks,
+                })
+                .executeSelectNoneOrOne();
+
+            if (existing &&
+                existing.hours === data.hours &&
+                existing.timingStart === availabilityTimingStart &&
+                existing.timingEnd === availabilityTimingEnd &&
+                existing.remarks === data.remarks)
+            {
+                return false;  // no updates
+            }
+
+            await dbInstance.update(tUsersEventsPreferencesAvailability)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesAvailability.userId.equals(userId))
+                    .and(tUsersEventsPreferencesAvailability.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesAvailability.teamId.equals(team.id))
+                    .and(tUsersEventsPreferencesAvailability.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesAvailability)
+                .set({
+                    userId,
+                    eventId: event.id,
+                    teamId: team.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: /* true= */ 1,
+                    preferenceVersionUserId: props.user.id,
+                    availabilityBuildUpTearDown: null,  // todo: support this
+                    availabilityExceptions: null,  // todo: support this
+                    availabilityHours: data.hours,
+                    availabilityTimeslots: null,  // todo: support this
+                    availabilityTimingStart,
+                    availabilityTimingEnd,
+                    availabilityRemarks: data.remarks,
+                })
+                .executeInsert();
+
+            return true;
+        });
+
+        LogBuilder.for('UpdateAvailabilityPreferences')
+            .withCondition(updated)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+                team: team.title,
+            });
+
+        return {
+            success: true,
+            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+        };
+    });
+}
 
 // -------------------------------------------------------------------------------------------------
 // Hotel preferences
@@ -49,10 +153,9 @@ export async function updateHotelPreferences(
 
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.hotels',
-                scope: { event: eventSlug }
+                permission: 'event.volunteers.information',
+                operation: 'update',
             });
-
 
         const dbInstance = db;
         const updated = await dbInstance.transaction(async () => {

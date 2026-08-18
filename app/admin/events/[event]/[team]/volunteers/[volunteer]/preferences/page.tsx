@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
+import FreeCancellationIcon from '@mui/icons-material/FreeCancellation';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
@@ -24,9 +25,10 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import * as actions from './PreferenceActions';
+import { AvailabilityForm } from './AvailabilityForm';
 
 /**
  * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
@@ -50,15 +52,25 @@ export default async function EventTeamVolunteerPreferencesPage(
         .selectCountAll()
         .executeSelectOne();
 
+    const preferencesAvailabilityJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
     const preferencesRefundsJoin = tUsersEventsPreferencesRefunds.forUseInLeftJoin();
     const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+
+    const combinedTimingFragment = dbInstance.fragmentWithType('string', 'required').sql`
+        CONCAT_WS('-', ${preferencesAvailabilityJoin.availabilityTimingStart},
+                       ${preferencesAvailabilityJoin.availabilityTimingEnd})`;
 
     const context = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsersEventsPreferencesParticipation)
             .on(tUsersEventsPreferencesParticipation.userId.equals(tUsersEvents.userId))
                 .and(tUsersEventsPreferencesParticipation.eventId.equals(tUsersEvents.eventId))
                 .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
+        .leftJoin(preferencesAvailabilityJoin)
+            .on(preferencesAvailabilityJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesAvailabilityJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesAvailabilityJoin.teamId.equals(tUsersEvents.teamId))
+                .and(preferencesAvailabilityJoin.preferenceVersionIsLatest.equals(1))
         .leftJoin(preferencesHotelJoin)
             .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
                 .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
@@ -81,6 +93,11 @@ export default async function EventTeamVolunteerPreferencesPage(
             volunteer: {
                 id: tUsers.userId,
                 name: tUsers.name,
+            },
+            availability: {
+                hours: preferencesAvailabilityJoin.availabilityHours,
+                timing: combinedTimingFragment,
+                remarks: preferencesAvailabilityJoin.availabilityRemarks,
             },
             hotel: {
                 interested: preferencesHotelJoin.hotelInterested,
@@ -118,9 +135,15 @@ export default async function EventTeamVolunteerPreferencesPage(
     const hotelRooms = await getHotelRooms(event.id);
     const trainings = await getTrainings(event.id);
 
+    // ---------------------------------------------------------------------------------------------
+
     const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
     const canUpdatePreferences =
         access.can('event.volunteers.information', 'update', { event: event.slug, team: team.slug })
+
+    const availabilityFn = canUpdatePreferences
+        ? actions.updateAvailabilityPreferences.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
 
     const hotelFn = canUpdatePreferences
         ? actions.updateHotelPreferences.bind(null, volunteer.id, event.slug, team.slug)
@@ -160,11 +183,21 @@ export default async function EventTeamVolunteerPreferencesPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                TODO?
+                What goes here?!
             </Section>
-            <Section noHeader>
-                Availability
-            </Section>
+
+            <FormGridSection icon={ <FreeCancellationIcon /> } title="Availability"
+                             action={availabilityFn} defaultValues={context.availability}
+                             headerAction={
+                                <Stack direction="row" spacing={1}>
+                                    <HistoryIconButton href="./preferences/availability" />
+                                </Stack>
+                             }>
+                <SectionIntroduction grid>
+                    Information regarding their availability during {event.shortName}.
+                </SectionIntroduction>
+                <AvailabilityForm />
+            </FormGridSection>
 
             { event.flags.enableHotel &&
                 <FormGridSection icon={ <HotelIcon /> } title="Hotel"

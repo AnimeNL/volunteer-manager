@@ -326,6 +326,11 @@ interface LogTypeParameterMap {
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
 
+    UpdateAvailabilityPreferences: {
+        event: string;  // short name
+        team: string;  // title
+    };
+
     UpdateHotelPreferences: {
         event: string;  // short name
     };
@@ -477,6 +482,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
 
+    UpdateAvailabilityPreferences: 'UpdateAvailabilityPreferences',
     UpdateHotelPreferences: 'UpdateHotelPreferences',
     UpdateParticipationPreferences: 'UpdateParticipationPreferences',
     UpdateRefundPreferences: 'UpdateRefundPreferences',
