@@ -48,6 +48,26 @@ export interface CachedEvent {
     timeZone: string;
 
     /**
+     * Flags that have been set for this event.
+     */
+    flags: {
+        /**
+         * Whether to enable functionality related to hotel management.
+         */
+        enableHotel: boolean;
+
+        /**
+         * Whether to enable functionality related to managing refund requests.
+         */
+        enableRefunds: boolean;
+
+        /**
+         * Whether to enable functionality related to training management.
+         */
+        enableTraining: boolean;
+    };
+
+    /**
      * External services that this event integrates with.
      */
     integrations?: {

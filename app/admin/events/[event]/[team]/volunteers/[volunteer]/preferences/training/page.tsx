@@ -29,6 +29,9 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
         operation: 'read',
     });
 
+    if (!event.flags.enableTraining)
+        notFound();
+
     const id = (await props.params).volunteer;
 
     const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();

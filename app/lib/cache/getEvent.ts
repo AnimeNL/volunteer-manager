@@ -33,6 +33,12 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 endTime: tEvents.eventEndTime,
                 timeZone: tEvents.eventTimezone,
 
+                flags: {
+                    enableHotel: tEvents.hotelEnabled.equals(/* true= */ 1),
+                    enableRefunds: tEvents.refundEnabled.equals(/* true= */ 1),
+                    enableTraining: tEvents.trainingEnabled.equals(/* true= */ 1),
+                },
+
                 integrations: {
                     anPlanFestivalId: tEvents.eventFestivalId,
                     weeztixGuid: tEvents.eventWeeztixGuid,

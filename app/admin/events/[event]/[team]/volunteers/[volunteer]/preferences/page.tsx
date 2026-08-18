@@ -141,19 +141,20 @@ export default async function EventTeamVolunteerPreferencesPage(
                 Availability
             </Section>
 
-            <FormGridSection icon={ <HotelIcon /> } title="Hotel"
-                             action={hotelFn} defaultValues={context.hotel}
-                             headerAction={
-                                 <Stack direction="row" spacing={1}>
-                                     <SharedDataIconButton />
-                                     <HistoryIconButton href="./preferences/hotel" />
-                                 </Stack>
-                             }>
-                <SectionIntroduction grid>
-                    Their interest in an hotel room organised by us.
-                </SectionIntroduction>
-                <HotelForm rooms={hotelRooms} />
-            </FormGridSection>
+            { event.flags.enableHotel &&
+                <FormGridSection icon={ <HotelIcon /> } title="Hotel"
+                                 action={hotelFn} defaultValues={context.hotel}
+                                 headerAction={
+                                     <Stack direction="row" spacing={1}>
+                                         <SharedDataIconButton />
+                                         <HistoryIconButton href="./preferences/hotel" />
+                                     </Stack>
+                                 }>
+                    <SectionIntroduction grid>
+                        Their interest in an hotel room organised by us.
+                    </SectionIntroduction>
+                    <HotelForm rooms={hotelRooms} />
+                </FormGridSection> }
 
             <FormGridSection icon={ <SmartToyOutlinedIcon /> } title="Participation"
                              action={participationFn} defaultValues={context.participation}
@@ -169,23 +170,25 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <ParticipationForm />
             </FormGridSection>
 
-            <Section noHeader>
-                Refund
-            </Section>
+            { event.flags.enableRefunds &&
+                <Section noHeader>
+                    Refund
+                </Section> }
 
-            <FormGridSection icon={ <HistoryEduIcon /> } title="Training"
-                             action={trainingFn} defaultValues={context.training}
-                             headerAction={
-                                <Stack direction="row" spacing={1}>
-                                    <SharedDataIconButton />
-                                    <HistoryIconButton href="./preferences/training" />
-                                </Stack>
-                             }>
-                <SectionIntroduction grid>
-                    Will they participate in our professional training?
-                </SectionIntroduction>
-                <TrainingForm trainings={trainings} />
-            </FormGridSection>
+            { event.flags.enableTraining &&
+                <FormGridSection icon={ <HistoryEduIcon /> } title="Training"
+                                 action={trainingFn} defaultValues={context.training}
+                                 headerAction={
+                                     <Stack direction="row" spacing={1}>
+                                         <SharedDataIconButton />
+                                         <HistoryIconButton href="./preferences/training" />
+                                     </Stack>
+                                 }>
+                    <SectionIntroduction grid>
+                        Will they participate in our professional training?
+                    </SectionIntroduction>
+                    <TrainingForm trainings={trainings} />
+                </FormGridSection> }
         </>
     );
 }

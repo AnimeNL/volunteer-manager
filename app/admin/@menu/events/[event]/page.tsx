@@ -49,11 +49,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             .on(teamsJoin.teamId.equals(eventsTeamsJoin.teamId))
         .where(tEvents.eventSlug.equals(event.slug))
         .select({
-            event: {
-                hotelEnabled: tEvents.hotelEnabled.equals(/* true= */ 1),
-                refundEnabled: tEvents.refundEnabled.equals(/* true= */ 1),
-                trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
-            },
             teams: dbInstance.aggregateAsArray({
                 id: teamsJoin.teamId,
                 name: teamsJoin.teamName,
@@ -97,7 +92,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         {
             Icon: HotelIcon,
             badge: { severity: 'error', value: true },  // migration not started
-            condition: context.event.hotelEnabled,
+            condition: event.flags.enableHotel,
             label: 'Hotels',
             permission: {
                 permission: 'event.hotels',
@@ -115,7 +110,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         {
             Icon: MonetizationOnIcon,
             badge: { severity: 'error', value: true },  // migration not started
-            condition: context.event.refundEnabled,
+            condition: event.flags.enableRefunds,
             label: 'Refunds',
             permission: {
                 permission: 'event.refunds',
@@ -139,7 +134,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         {
             Icon: HistoryEduIcon,
             badge: { severity: 'error', value: true },  // migration not started
-            condition: context.event.trainingEnabled,
+            condition: event.flags.enableTraining,
             label: 'Trainings',
             permission: {
                 permission: 'event.trainings',
