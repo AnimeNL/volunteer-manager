@@ -23,14 +23,13 @@ export default async function OrganisationMenu() {
         <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {
                 Icon: DashboardOutlinedIcon,
-                badge: { severity: 'success', value: true },  // migration completed
                 label: 'Dashboard',
                 url: '/admin/organisation',
                 urlMatchMode: 'strict',
             },
             {
                 Icon: ShareIcon,
-                badge: { severity: 'error', value: true },  // migration not started
+                badge: { migration: true, value: true },  // migration not started
                 label: 'Data exports',
                 permission: 'organisation.exports',
                 url: '/admin/organisation/exports/create',
@@ -43,7 +42,7 @@ export default async function OrganisationMenu() {
                 items: [
                     {
                         Icon: PersonIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { migration: true, value: true },  // migration in progress
                         label: 'Accounts',
                         permission: {
                             permission: 'organisation.accounts',
@@ -53,14 +52,13 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: FeedbackOutlinedIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Feedback',
                         permission: 'organisation.feedback',
                         url: '/admin/organisation/feedback',
                     },
                     {
                         Icon: CategoryIcon,
-                       badge: { severity: 'error', value: true },  // migration not started
+                        badge: { migration: true, value: true },  // migration not started
                         label: 'Permissions',
                         permission: {
                             permission: 'organisation.permissions',
@@ -70,7 +68,7 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: AccountBalanceIcon,
-                        badge: { severity: 'error', value: true },  // migration not started
+                        badge: { migration: true, value: true },  // migration not started
                         label: 'Structure',
                         permission: [
                             'organisation.environments',
@@ -88,14 +86,13 @@ export default async function OrganisationMenu() {
                 items: [
                     {
                         Icon: TipsAndUpdatesOutlinedIcon,
-                        badge: { severity: 'success', value: true },  // migration completed
                         label: 'Del a Rie Advies',
                         permission: 'organisation.nardo',
                         url: '/admin/organisation/nardo',
                     },
                     {
                         Icon: TabletIcon,
-                        badge: { severity: 'warning', value: true },  // migration in progress
+                        badge: { migration: true, value: true },  // migration in progress
                         label: 'Displays',
                         permission: 'organisation.displays',
                         url: '/admin/organisation/displays',

@@ -74,14 +74,14 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
     const items: NavigationTopLevelItem[] = [
         {
             Icon: DashboardOutlinedIcon,
-            badge: { severity: 'warning', value: true },  // migration in progress
+            badge: { migration: true, value: true },  // migration in progress
             label: 'Dashboard',
             url: `/admin/events/${event.slug}`,
             urlMatchMode: 'strict',
         },
         {
             Icon: AnalyticsOutlinedIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { migration: true, value: true },  // migration not started
             // TODO: Condition on availability
             label: 'Finances',
             permission: {
@@ -91,7 +91,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: HotelIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableHotel,
             label: 'Hotels',
             permission: {
@@ -102,14 +102,14 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: EventNoteIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { migration: true, value: true },  // migration not started
             condition: !!event.integrations?.anPlanFestivalId,
             label: 'Program',
             url: `/admin/events/${event.slug}/program`,
         },
         {
             Icon: MonetizationOnIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableRefunds,
             label: 'Refunds',
             permission: {
@@ -120,7 +120,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: LocalActivityOutlinedIcon,
-            badge: { severity: 'success', value: true },  // migration completed
             condition: !!event.tickets?.volunteerTicketId,
             label: 'Tickets',
             permission: {
@@ -133,7 +132,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: HistoryEduIcon,
-            badge: { severity: 'error', value: true },  // migration not started
+            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableTraining,
             label: 'Trainings',
             permission: {
@@ -144,7 +143,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: SettingsOutlinedIcon,
-            badge: { severity: 'success', value: true },  // migration completed
             label: 'Settings',
             permission: {
                 permission: 'event.settings',
@@ -166,7 +164,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
             items: [
                 {
                     Icon: NewReleasesOutlinedIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Applications',
                     permission: {
                         permission: 'event.applications',
@@ -177,14 +174,12 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: OutlinedFlagIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Duty book',
                     url: `/admin/events/${event.slug}/${team.slug}/duty-book`,
                     condition: team.flagEnableDutyBook,
                 },
                 {
                     Icon: LocalHospitalIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'First aid',
                     permission: {
                         permission: 'event.vendors',
@@ -196,14 +191,14 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: InfoOutlinedIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    badge: { migration: true, value: true },  // migration in progress
                     label: 'Knowledge base',
                     url: `/admin/events/${event.slug}/${team.slug}/knowledge`,
                     condition: team.flagManagesFaq,
                 },
                 {
                     Icon: RepeatIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    badge: { migration: true, value: true },  // migration not started
                     label: 'Retention',
                     permission: {
                         permission: 'event.retention',
@@ -214,7 +209,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: ScheduleIcon,
-                    badge: { severity: 'error', value: true },  // migration not started
+                    badge: { migration: true, value: true },  // migration not started
                     label: 'Schedule',
                     permission: {
                         permission: 'event.schedule.planning',
@@ -226,7 +221,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: SecurityIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Security',
                     permission: {
                         permission: 'event.vendors',
@@ -238,7 +232,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: PendingActionsIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Shifts',
                     permission: {
                         permission: 'event.shifts',
@@ -250,7 +243,7 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: PeopleAltOutlinedIcon,
-                    badge: { severity: 'warning', value: true },  // migration in progress
+                    badge: { migration: true, value: true },  // migration not started
                     label: 'Volunteers',
                     permission: {
                         permission: 'event.volunteers.information',
@@ -261,7 +254,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: LanguageIcon,
-                    badge: { severity: 'success', value: true },  // migration completed
                     label: 'Website',
                     url: `/admin/events/${event.slug}/${team.slug}/website/content`,
                     condition: team.flagManagesContent,

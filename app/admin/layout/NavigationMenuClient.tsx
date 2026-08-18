@@ -17,7 +17,9 @@ import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { styled } from '@mui/material/styles';
 
 import type { NavigationItem, NavigationSection, NavigationTopLevelItem } from './NavigationItem';
@@ -175,9 +177,14 @@ function NavigationItemClient(props: { item: NavigationItem, path: string }) {
             </ListItemText>
             { (!!props.item.badge && typeof props.item.badge.value === 'number') &&
                 <Badge badgeContent={props.item.badge.value} color={props.item.badge.severity} /> }
+            { (!!props.item.badge && !!props.item.badge.migration) &&
+                <Tooltip title="Migration in progress">
+                    <NavigationMenuWarningIcon />
+                </Tooltip> }
             { (!!props.item.badge
                    && typeof props.item.badge.value !== 'number'
-                   && !!props.item.badge.value) &&
+                   && !!props.item.badge.value
+                   && !props.item.badge.migration) &&
                 <Badge variant="dot" color={ props.item.badge.severity ?? 'primary' } /> }
         </NavigationMenuListItem>
     );
@@ -219,6 +226,15 @@ const NavigationMenuListItem = styled(ListItemButton)(({ theme }) => ([
 const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
     minWidth: '36px',
     transition: theme.transitions.create('color', { duration: kTransitionDuration }),
+}));
+
+/**
+ * The "migration in progress" icon indicating that works are still taking place.
+ */
+const NavigationMenuWarningIcon = styled(WarningAmberIcon)(({ theme }) => ({
+    marginRight: '-10px',
+    color: theme.vars?.palette.warning.main,
+    fontSize: '1.25rem',
 }));
 
 /**

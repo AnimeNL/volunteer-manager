@@ -19,6 +19,11 @@ export interface NavigationItem {
      */
     badge?: {
         /**
+         * Temporary indication that this navigation item is still being migrated.
+         */
+        migration?: boolean;
+
+        /**
          * Severity of the badge. Will be considered in the presentation.
          */
         severity?: 'error' | 'success' | 'warning';
