@@ -11,12 +11,14 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
+import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Typography from '@mui/material/Typography';
 
 import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { TicketService } from '@lib/tickets/TicketService';
 import { ActionBar } from '@app/admin/components/ActionBar';
+import { AnonymizeRefundsButton } from './AnonymizeRefundsButton';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
 import { EventSettingsForm } from './EventSettingsForm';
@@ -93,7 +95,7 @@ const kTicketingProviderOptions = [
 export default async function EventSettingsConfigurationPage(
     props: PageProps<'/admin/events/[event]/settings/configuration'>)
 {
-    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
+    const { access, event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);
@@ -144,6 +146,10 @@ export default async function EventSettingsConfigurationPage(
         .executeSelectOne();
 
     const service = await createTicketService(event.slug);
+
+    const anonymizeRefundsFn = access.can('admin')
+        ? actions.anonymizeRefundRequests.bind(null, event.slug)
+        : undefined!;
 
     const changeImageAction = actions.changeEventImage.bind(null, event.slug);
     const changeSlugAction = actions.changeEventSlug.bind(null, event.slug);
@@ -291,6 +297,13 @@ export default async function EventSettingsConfigurationPage(
                                        size="small" disabled={!service} />
                     </Grid>
                 </FormGridSection> }
+            { !!anonymizeRefundsFn &&
+                <Section icon={ <ReportOutlinedIcon color="error" /> } title="Danger zone">
+                    <SectionIntroduction>
+                        These actions may permanently affect this event. Use with caution.
+                    </SectionIntroduction>
+                    <AnonymizeRefundsButton action={anonymizeRefundsFn} />
+                </Section> }
         </>
     );
 }

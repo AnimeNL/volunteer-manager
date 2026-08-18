@@ -10,10 +10,43 @@ import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tEvents } from '@lib/database';
+import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+
+/**
+ * Server Action through which refund requests can be anonymized. This permanently deletes data.
+ */
+export async function anonymizeRefundRequests(eventSlug: string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'admin');
+
+        // This intentionally affects all versions, to avoid older variants of the data sticking
+        // around in our database. The intention of this functionality is for the data to be gone.
+        const affectedRows = await db.update(tUsersEventsPreferencesRefunds)
+            .set({
+                refundAccountName: '(anonymized)',
+                refundAccountIban: '(anonymized)',
+            })
+            .where(tUsersEventsPreferencesRefunds.eventId.equals(event.id))
+            .executeUpdate();
+
+        LogBuilder.for('AnonymizeRefundRequests')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName
+            });
+
+        return {
+            success: true,
+            message: 'All bank account data has been anonymized.',
+        };
+    });
+}
 
 /**
  * Data that needs to be available to update an event's cover image.
