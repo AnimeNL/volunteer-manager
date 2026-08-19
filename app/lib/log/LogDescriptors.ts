@@ -140,6 +140,10 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    AnonymizeVisitorTickets: {
+        event: string;  // short name
+    };
+
     AssociateTicketWithVolunteer: {
         event: string;  // short name
     };
@@ -438,6 +442,7 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     AnonymizeRefundRequests: 'AnonymizeRefundRequests',
+    AnonymizeVisitorTickets: 'AnonymizeVisitorTickets',
     AssociateTicketWithVolunteer: 'AssociateTicketWithVolunteer',
     CancelAssociateTicket: 'CancelAssociateTicket',
     CancelVolunteerTicket: 'CancelVolunteerTicket',

@@ -19,6 +19,7 @@ import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { TicketService } from '@lib/tickets/TicketService';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AnonymizeRefundsButton } from './AnonymizeRefundsButton';
+import { AnonymizeTicketsButton } from './AnonymizeTicketsButton';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
 import { EventSettingsForm } from './EventSettingsForm';
@@ -149,6 +150,10 @@ export default async function EventSettingsConfigurationPage(
 
     const anonymizeRefundsFn = access.can('admin')
         ? actions.anonymizeRefundRequests.bind(null, event.slug)
+        : undefined!;
+
+    const anonymizeTicketsFn = access.can('admin')
+        ? actions.anonymizeVisitorTickets.bind(null, event.slug)
         : undefined!;
 
     const changeImageAction = actions.changeEventImage.bind(null, event.slug);
@@ -297,12 +302,13 @@ export default async function EventSettingsConfigurationPage(
                                        size="small" disabled={!service} />
                     </Grid>
                 </FormGridSection> }
-            { !!anonymizeRefundsFn &&
+            { (!!anonymizeRefundsFn || !!anonymizeTicketsFn) &&
                 <Section icon={ <ReportOutlinedIcon color="error" /> } title="Danger zone">
                     <SectionIntroduction>
                         These actions may permanently affect this event. Use with caution.
                     </SectionIntroduction>
-                    <AnonymizeRefundsButton action={anonymizeRefundsFn} />
+                    { anonymizeRefundsFn && <AnonymizeRefundsButton action={anonymizeRefundsFn} /> }
+                    { anonymizeTicketsFn && <AnonymizeTicketsButton action={anonymizeTicketsFn} /> }
                 </Section> }
         </>
     );

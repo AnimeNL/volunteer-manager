@@ -10,7 +10,7 @@ import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
+import db, { tEvents, tUsersEventsPreferencesRefunds, tYourTicketProviderPurchases } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
@@ -44,6 +44,44 @@ export async function anonymizeRefundRequests(eventSlug: string) {
         return {
             success: true,
             message: 'All bank account data has been anonymized.',
+        };
+    });
+}
+
+/**
+ * Server Action through which visitor tickets can be anonymized. This permanently deletes data.
+ */
+export async function anonymizeVisitorTickets(eventSlug: string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'admin');
+
+        if (!event.integrations?.yourTicketProviderEventId)
+            return { success: false, error: 'No ticketing partner has been set up for this event' };
+
+        // TODO: Support Weeztix once we start importing data?
+
+        const affectedRows = await db.update(tYourTicketProviderPurchases)
+            .set({
+                ytpPurchaseItemHolder: '(anonymized)',
+            })
+            .where(tYourTicketProviderPurchases.ytpPurchaseItemHolder.isNotNull())
+                .and(tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(/* false= */ 0))
+                .and(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(
+                    event.integrations.yourTicketProviderEventId))
+            .executeUpdate();
+
+        LogBuilder.for('AnonymizeVisitorTickets')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName
+            });
+
+        return {
+            success: true,
+            message: 'All visitor tickets have been anonymized.',
         };
     });
 }
