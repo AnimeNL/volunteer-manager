@@ -54,7 +54,7 @@ interface AvailabilityFormTimelineProps {
  * The <AvailabilityFormTimeline> component is the implementation of the <AvailabilityTimeline>
  * specific to the AnimeCon Volunteer Manager, integrated with MUI.
  */
-export function AvailabilityFormTimeline(props: AvailabilityFormTimelineProps) {
+export default function AvailabilityFormTimeline(props: AvailabilityFormTimelineProps) {
     const { onChange, event, readOnly, step, timeslots } = props;
 
     // ---------------------------------------------------------------------------------------------

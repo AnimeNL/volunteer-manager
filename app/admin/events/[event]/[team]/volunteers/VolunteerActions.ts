@@ -8,10 +8,8 @@ import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { getPublicEventsForFestival } from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
 import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
 
-import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/api/Types';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
@@ -97,119 +95,6 @@ export async function sendCommunicationToVolunteer(
             success: true,
             message: 'The e-mail has been sent, thank you for keeping them in the loop!',
         };
-    });
-}
-
-/**
- * Zod type that describes the data required to update a volunteer's hotel preferences.
- */
-const kUpdateAvailabilityPreferenceData = z.object({
-    exceptionEvents: z.array(z.number().nullish()).optional(),
-    exceptions: z.string().optional(),
-    serviceHours: kServiceHoursProperty,
-    serviceTiming: kServiceTimingProperty,
-    preferences: z.string().optional(),
-    availabilityBuildUpTearDown: z.string().optional(),
-});
-
-/**
- * Server action that updates the availability preferences of a volunteer.
- */
-export async function updateAvailability(
-    userId: number, eventId: number, teamId: number, formData: unknown)
-{
-    'use server';
-    return executeServerAction(formData, kUpdateAvailabilityPreferenceData, async (data, props) => {
-        const { event, team } = await getContextForVolunteerAction(userId, eventId, teamId);
-
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.volunteers.information',
-            operation: 'update',
-            scope: {
-                event: event.slug,
-                team: team.slug,
-            },
-        });
-
-        const [ serviceTimingStart, serviceTimingEnd ] = data.serviceTiming.split('-');
-
-        const exceptionEvents: number[] = [ /* no exception events */ ];
-        if (!!event.festivalId && !!data.exceptionEvents?.length) {
-            const validEvents =
-                await getPublicEventsForFestival(
-                    event.festivalId, event.timezone, /* withTimingInfo= */ false);
-
-            const validEventIds = new Set(validEvents.map(v => v.id));
-            for (const exceptionEvent of data.exceptionEvents) {
-                if (!exceptionEvent)
-                    continue;  // this is a nullsy value, i.e. not a real timeslot
-
-                if (!validEventIds.has(exceptionEvent))
-                    continue;  // the validity of this event cannot be confirmed
-
-                exceptionEvents.push(exceptionEvent);
-            }
-        }
-
-        let exceptions: string | undefined;
-        if (!!data.exceptions && data.exceptions.length > 2) {
-            try {
-                const kExceptionType = z.array(z.object({
-                    start: kTemporalZonedDateTime,
-                    end: kTemporalZonedDateTime,
-                    state: z.enum([ 'available', 'avoid', 'unavailable' ]),
-                }));
-
-                const parsedExceptions = JSON.parse(data.exceptions);
-                const validatedExceptions = kExceptionType.parse(parsedExceptions);
-
-                exceptions = JSON.stringify(validatedExceptions.map(exception => ({
-                    ...exception,
-                    start: exception.start.toString(),
-                    end: exception.end.toString(),
-                })));
-
-            } catch (error) {
-                console.warn('Unable to parse availability exceptions:', error);
-                return { success: false, error: 'Unable to validate the availability exceptions…' };
-            }
-        }
-
-        const dbInstance = db;
-        const affectedRows = await dbInstance.update(tUsersEvents)
-            .set({
-                availabilityBuildUpTearDown: data.availabilityBuildUpTearDown,
-                availabilityExceptions: exceptions,
-                availabilityTimeslots: exceptionEvents.join(','),
-                preferences: data.preferences,
-                preferenceHours: parseInt(data.serviceHours, /* radix= */ 10),
-                preferenceTimingStart: parseInt(serviceTimingStart, /* radix= */ 10),
-                preferenceTimingEnd: parseInt(serviceTimingEnd, /* radix= */ 10),
-                preferencesUpdated: dbInstance.currentZonedDateTime(),
-            })
-            .where(tUsersEvents.userId.equals(userId))
-                .and(tUsersEvents.eventId.equals(eventId))
-                .and(tUsersEvents.teamId.equals(teamId))
-            .executeUpdate();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to save their preferences in the database…' };
-
-        RecordLog({
-            type: kLogType.AdminUpdateAvailabilityPreferences,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            targetUser: userId,
-            data: {
-                event: event.shortName,
-                preferences: data.preferences,
-                serviceHours: data.serviceHours,
-                serviceTiming: data.serviceTiming,
-                timeslots: exceptionEvents,
-            },
-        });
-
-        return { success: true, refresh: true };
     });
 }
 

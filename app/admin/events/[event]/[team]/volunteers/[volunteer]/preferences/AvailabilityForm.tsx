@@ -3,6 +3,7 @@
 
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AutocompleteElement, SelectElement, TextFieldElement, useFormContext }
@@ -24,13 +25,19 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import type { TimelineEvent } from '@app/admin/components/Timeline';
-import { AvailabilityFormTimeline } from './AvailabilityFormTimeline';
 import { HiddenInput } from '@components/HiddenInput';
 import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 
 import { kAvailabilityBuildUpTearDownScheme, kAvailabilityTimelineColours,
     kAvailabilityTimelineTitles, kServiceHoursOptions, kServiceTimingOption }
         from './AvailabilitySettings';
+
+/**
+ * Don't include the <AvailabilityFormTimeline> in the default bundle as it's not always required.
+ */
+const AvailabilityFormTimeline = dynamic(() => import('./AvailabilityFormTimeline'), {
+    ssr: false,
+});
 
 /**
  * Formats the date relative to `date` with the given `offsetDays` in days. The `date` must be a
@@ -407,7 +414,6 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                         </HighlightAccordionSummary>
                         <AccordionDetails sx={{ pt: 2, pb: 0 }}>
                             <HiddenInput name="exceptions" />
-                            { /* TODO: Make lazy */ }
                             <AvailabilityFormTimeline
                                 event={props.event} timeslots={timeslots}
                                 onChange={handleTimelineChange}

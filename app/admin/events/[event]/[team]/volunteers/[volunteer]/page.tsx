@@ -13,7 +13,6 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import type { ServerAction } from '@lib/serverAction';
 import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
-import { AvailabilityPreferences } from './AvailabilityPreferences';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
@@ -27,10 +26,7 @@ import db, { tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents 
 import { VolunteerHeader } from './VolunteerHeader';
 import { VolunteerIdentity } from './VolunteerIdentity';
 import { VolunteerSchedule } from './VolunteerSchedule';
-import { getPublicEventsForFestival, type EventTimeslotEntry }
-    from '@app/registration/[slug]/application/[team]/availability/getPublicEventsForFestival';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { readSetting } from '@lib/Settings';
 import { readUserSettings } from '@lib/UserSettings';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -195,44 +191,6 @@ export default async function EventVolunteerPage(
     const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
 
     // ---------------------------------------------------------------------------------------------
-    // Section: Availability
-    // ---------------------------------------------------------------------------------------------
-
-    const availabilityAction = actions.updateAvailability.bind(
-        null, volunteer.userId, event.id, team.id);
-
-    const availabilityDefaultValues: Record<string, any> = {
-        exceptions: volunteer.availabilityExceptions,
-        preferences: volunteer.preferences,
-        serviceHours: `${volunteer.serviceHours}`,
-        availabilityBuildUpTearDown: volunteer.availabilityBuildUpTearDown,
-    };
-
-    if (!!volunteer.serviceTiming) {
-        const { start, end } = volunteer.serviceTiming;
-        availabilityDefaultValues.serviceTiming = `${start}-${end}`;
-    }
-
-    if (!!volunteer.availabilityTimeslots) {
-        availabilityDefaultValues.exceptionEvents =
-            volunteer.availabilityTimeslots.split(',').map(v => parseInt(v, 10));
-    }
-
-    const availabilityEvent = {
-        startTime: event.startTime,
-        endTime: event.endTime,
-        timezone: event.timezone,
-    };
-
-    let availabilityEvents: EventTimeslotEntry[] = [];
-    if (!!event.festivalId && volunteer.actualAvailableEventLimit > 0)
-        availabilityEvents = await getPublicEventsForFestival(event.festivalId, event.timezone);
-
-    const availabilityStep = await readSetting('availability-time-step-minutes');
-
-    // TODO: Exceptions
-
-    // ---------------------------------------------------------------------------------------------
     // Section: Metadata
     // ---------------------------------------------------------------------------------------------
 
@@ -303,20 +261,6 @@ export default async function EventVolunteerPage(
                                    setting="user-admin-volunteers-expand-shifts">
                     <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
                 </ExpandableSection> }
-
-            { /* -- Availability: ------------------------------------------------------------- */ }
-
-            <FormGridSection action={availabilityAction} defaultValues={availabilityDefaultValues}
-                             title="Availability preferences">
-                <AvailabilityPreferences event={availabilityEvent}
-                                         exceptionEventLimit={volunteer.actualAvailableEventLimit}
-                                         exceptionEvents={availabilityEvents}
-                                         exceptions={volunteer.availabilityExceptions}
-                                         includeBuildUp={event.availabilityBuildUpEnabled}
-                                         includeTearDown={event.availabilityTearDownEnabled}
-                                         readOnly={readOnly}
-                                         step={availabilityStep} />
-            </FormGridSection>
 
             { /* ------------------------------------------------------------------------------ */ }
 
