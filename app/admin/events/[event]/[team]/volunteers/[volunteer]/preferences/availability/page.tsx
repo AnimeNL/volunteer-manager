@@ -14,6 +14,7 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { getAvailabilityTimeslots } from '../getAvailabilityTimeslots';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
@@ -61,6 +62,7 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                 data: {
                     buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
                     hours: preferencesAvailabilityJoin.availabilityHours,
+                    timeslotsStr: preferencesAvailabilityJoin.availabilityTimeslots,
                     timing: combinedTimingFragment,
                     remarks: preferencesAvailabilityJoin.availabilityRemarks,
                 },
@@ -74,6 +76,8 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
 
     volunteer.versions.sort((lhs, rhs) =>
         Temporal.ZonedDateTime.compare(lhs.version!, rhs.version!) * -1);
+
+    const availabilityTimeslots = await getAvailabilityTimeslots(event.id);
 
     const baseUrl = `/admin/events/${event.slug}/${team.slug}/volunteers`;
     return (
@@ -118,6 +122,11 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                                               event={{
                                                   startTime: event.startTime.toString(),
                                                   endTime: event.endTime.toString(),
+                                              }}
+                                              timeslots={{
+                                                  limit: 3,
+                                                  open: true,
+                                                  options: availabilityTimeslots,
                                               }} />
                         </FormGrid>
                     </ExpandableSection>

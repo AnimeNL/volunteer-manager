@@ -3,14 +3,20 @@
 
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import { SelectElement, TextFieldElement, useFormContext } from '@proxy/react-hook-form-mui';
+import { AutocompleteElement, SelectElement, TextFieldElement, useFormContext }
+    from '@proxy/react-hook-form-mui';
 
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
 import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import DomainDisabledIcon from '@mui/icons-material/DomainDisabled';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Grid from '@mui/material/Grid';
+import LabelImportantOutlinedIcon from '@mui/icons-material/LabelImportantOutlined';
 import Stack from '@mui/material/Stack';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -67,6 +73,26 @@ interface AvailabilityFormProps {
      * Whether form fields should be rendered in read-only mode.
      */
     readOnly?: boolean;
+
+    /**
+     * Information required to allow volunteers to indicate the events they would like to attend.
+     */
+    timeslots: {
+        /**
+         * Maximum number of timeslots they can select.
+         */
+        limit: number;
+
+        /**
+         * Whether the timeslot section should be opened by default.
+         */
+        open?: boolean;
+
+        /**
+         * Timeslots that can be selected for attendance.
+         */
+        options: { id: number; label: string; }[];
+    };
 }
 
 /**
@@ -75,7 +101,7 @@ interface AvailabilityFormProps {
 export function AvailabilityForm(props: AvailabilityFormProps) {
     const { readOnly } = props;
 
-    const { setValue, watch } = useFormContext();
+    const { getValues, setValue, watch, formState: { defaultValues } } = useFormContext();
 
     // ---------------------------------------------------------------------------------------------
     // Build-up and tear-down availability management.
@@ -120,6 +146,38 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
 
     }, [ buildUpDayBefore, buildUpOpening, setValue, tearDownClosing, tearDownDayAfter ]);
 
+    // ---------------------------------------------------------------------------------------------
+
+    const timeslotsDefaultValue = defaultValues?.timeslotsStr;
+    const timeslotsFieldNames = useMemo(() => {
+        return [ ...Array(props.timeslots.limit) ].map((_, index) => `timeslots.${index}`);
+    }, [ props.timeslots.limit ])
+
+    useEffect(() => {
+        const timeslotsStr = getValues('timeslotsStr') || timeslotsDefaultValue;
+        if (!timeslotsStr)
+            return;
+
+        const timeslotIds = timeslotsStr
+            .split(',')
+            .map((value: string) => parseInt(value, /* radix= */ 10))
+            .filter((value: number) => !Number.isNaN(value));
+
+        for (let index = timeslotIds.length; index < props.timeslots.limit; index++)
+            timeslotIds.push(undefined);
+
+        setValue('timeslots', timeslotIds, {
+            shouldDirty: true,
+            shouldTouch: true,
+        });
+
+    }, [ getValues, props.timeslots.limit, setValue, timeslotsDefaultValue ]);
+
+    const timeslotsValues = watch(timeslotsFieldNames);
+    const timeslotsSelected = timeslotsValues.filter(Boolean).length;
+
+    // ---------------------------------------------------------------------------------------------
+
     const changeHandlers = useMemo(() => ({
         buildUpDayBefore: handleBuildUpTearDownChange.bind(null, 'buildUpDayBefore'),
         buildUpOpening: handleBuildUpTearDownChange.bind(null, 'buildUpOpening'),
@@ -127,8 +185,6 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
         tearDownDayAfter: handleBuildUpTearDownChange.bind(null, 'tearDownDayAfter'),
 
     }), [ handleBuildUpTearDownChange ])
-
-    // ---------------------------------------------------------------------------------------------
 
     return (
         <>
@@ -217,7 +273,38 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                         </BuildUpTearDownDayContainer>
                     </Stack>
                 </BuildUpTearDownGridItem> }
-            { /* TODO: Events they plan to attend */ }
+            { (!!props.timeslots.limit && !!props.timeslots.options.length) &&
+                <Grid size={{ xs: 12 }}>
+                    <HighlightAccordion defaultExpanded={props.timeslots.open}
+                                        disableGutters elevation={0}>
+                        <HighlightAccordionSummary expandIcon={ <ExpandMoreIcon /> }>
+                            Events you would like to attend
+                            { timeslotsSelected > 0 &&
+                                <Typography component="span" color="textDisabled" variant="inherit">
+                                    &nbsp;({timeslotsSelected})
+                                </Typography> }
+                        </HighlightAccordionSummary>
+                        <AccordionDetails sx={{ pt: 2, pb: 0 }}>
+                            <Stack direction="column" spacing={2}>
+                                { [ ...Array(props.timeslots.limit) ].map((_, index) =>
+                                    <Stack key={index} direction="row" spacing={2} sx={{
+                                        alignItems: 'center',
+                                    }}>
+                                        <LabelImportantOutlinedIcon
+                                            color="primary" fontSize="small" />
+                                        <AutocompleteElement
+                                            name={`timeslots.${index}`}
+                                            label="Event…" matchId options={props.timeslots.options}
+                                            autocompleteProps={{
+                                                fullWidth: true,
+                                                readOnly: props.readOnly,
+                                                size: 'small',
+                                            }} />
+                                    </Stack> ) }
+                            </Stack>
+                        </AccordionDetails>
+                    </HighlightAccordion>
+                </Grid> }
             { /* TODO: Availability exceptions */ }
         </>
     );
@@ -238,4 +325,20 @@ const BuildUpTearDownGridItem = styled(Grid)(({ theme }) => ({
 const BuildUpTearDownDayContainer = styled(Stack)(({ theme }) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
+}));
+
+/**
+ * Container of an accordion that should be visually highlighted, removing the background color.
+ */
+const HighlightAccordion = styled(Accordion)(({ theme }) => ({
+    backgroundColor: 'unset',
+}));
+
+/**
+ * Summary of an accordion that should be visually highlighted.
+ */
+const HighlightAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
+    backgroundColor: theme.vars?.palette.backgroundHighlight as string,
+    borderRadius: theme.shape.borderRadius,
+    fontSize: theme.typography.body1.fontSize,
 }));

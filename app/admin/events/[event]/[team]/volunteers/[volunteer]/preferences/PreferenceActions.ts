@@ -27,6 +27,7 @@ import { kTemporalPlainDate } from '@app/api/Types';
 const kAvailabilityPreferencesSchema = z.object({
     buildUpTearDown: z.string().nullish(),
     hours: kServiceHoursProperty,
+    timeslots: z.array(z.number().nullish()).optional(),
     timing: kServiceTimingProperty,
     remarks: z.string().nullish(),
 });
@@ -67,6 +68,13 @@ export async function updateAvailabilityPreferences(
         if (!data.remarks?.length)
             data.remarks = undefined;
 
+        let timeslots: string | undefined;
+        if (!!data.timeslots) {
+            const timeslotSet = new Set(data.timeslots.filter(Boolean) as number[]);
+            if (timeslotSet.size)
+                timeslots = [ ...timeslotSet ].join(',');
+        }
+
         const [ availabilityTimingStart, availabilityTimingEnd ] =
             data.timing.split('-').map(timingValue => parseInt(timingValue, 10));
 
@@ -80,6 +88,7 @@ export async function updateAvailabilityPreferences(
                 .select({
                     buildUpTearDown: tUsersEventsPreferencesAvailability.availabilityBuildUpTearDown,
                     hours: tUsersEventsPreferencesAvailability.availabilityHours,
+                    timeslots: tUsersEventsPreferencesAvailability.availabilityTimeslots,
                     timingStart: tUsersEventsPreferencesAvailability.availabilityTimingStart,
                     timingEnd: tUsersEventsPreferencesAvailability.availabilityTimingEnd,
                     remarks: tUsersEventsPreferencesAvailability.availabilityRemarks,
@@ -89,6 +98,7 @@ export async function updateAvailabilityPreferences(
             if (existing &&
                 existing.buildUpTearDown === buildUpTearDown &&
                 existing.hours === data.hours &&
+                existing.timeslots === timeslots &&
                 existing.timingStart === availabilityTimingStart &&
                 existing.timingEnd === availabilityTimingEnd &&
                 existing.remarks === data.remarks)
@@ -117,7 +127,7 @@ export async function updateAvailabilityPreferences(
                     availabilityBuildUpTearDown: buildUpTearDown,
                     availabilityExceptions: null,  // todo: support this
                     availabilityHours: data.hours,
-                    availabilityTimeslots: null,  // todo: support this
+                    availabilityTimeslots: timeslots,
                     availabilityTimingStart,
                     availabilityTimingEnd,
                     availabilityRemarks: data.remarks,

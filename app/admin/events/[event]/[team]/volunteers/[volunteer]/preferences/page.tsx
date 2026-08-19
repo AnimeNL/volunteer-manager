@@ -11,6 +11,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import Stack from '@mui/material/Stack';
 
+import { AvailabilityForm } from './AvailabilityForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { HistoryIconButton } from './HistoryIconButton';
 import { HotelForm } from './HotelForm';
@@ -22,13 +23,15 @@ import { Section } from '@app/admin/components/Section';
 import { SharedDataIconButton } from './SharedDataIconButton';
 import { TrainingForm } from './TrainingForm';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { getAvailabilityTimeslots } from './getAvailabilityTimeslots';
 import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
+    tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
+    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import * as actions from './PreferenceActions';
-import { AvailabilityForm } from './AvailabilityForm';
 
 /**
  * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
@@ -97,6 +100,7 @@ export default async function EventTeamVolunteerPreferencesPage(
             availability: {
                 buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
                 hours: preferencesAvailabilityJoin.availabilityHours,
+                timeslotsStr: preferencesAvailabilityJoin.availabilityTimeslots,
                 timing: combinedTimingFragment,
                 remarks: preferencesAvailabilityJoin.availabilityRemarks,
             },
@@ -133,6 +137,7 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const { volunteer } = context;
 
+    const availabilityTimeslots = await getAvailabilityTimeslots(event.id);
     const hotelRooms = await getHotelRooms(event.id);
     const trainings = await getTrainings(event.id);
 
@@ -202,6 +207,10 @@ export default async function EventTeamVolunteerPreferencesPage(
                                   event={{
                                       startTime: event.startTime.toString(),
                                       endTime: event.endTime.toString(),
+                                  }}
+                                  timeslots={{
+                                      limit: 3,
+                                      options: availabilityTimeslots,
                                   }} />
             </FormGridSection>
 
