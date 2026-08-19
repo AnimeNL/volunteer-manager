@@ -15,7 +15,7 @@ import db, { tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
 import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
     from './AvailabilitySettings';
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
-import { kTemporalPlainDate } from '@app/api/Types';
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
 
 // -------------------------------------------------------------------------------------------------
 // Availability preferences
@@ -26,6 +26,7 @@ import { kTemporalPlainDate } from '@app/api/Types';
  */
 const kAvailabilityPreferencesSchema = z.object({
     buildUpTearDown: z.string().nullish(),
+    exceptions: z.string().optional(),
     hours: kServiceHoursProperty,
     timeslots: z.array(z.number().nullish()).optional(),
     timing: kServiceTimingProperty,
@@ -65,6 +66,32 @@ export async function updateAvailabilityPreferences(
             }
         }
 
+        let exceptions: string | undefined;
+        if (!!data.exceptions) {
+            const kExceptionSchema = z.array(z.object({
+                start: kTemporalZonedDateTime,
+                end: kTemporalZonedDateTime,
+                state: z.enum([ 'available', 'avoid', 'unavailable' ]),
+            }));
+
+            try {
+                const unvalidatedExceptions = JSON.parse(data.exceptions);
+                const validatedExceptions = kExceptionSchema.parse(unvalidatedExceptions);
+
+                exceptions = JSON.stringify(validatedExceptions.map(exception => ({
+                    start: exception.start.toString(),
+                    end: exception.end.toString(),
+                    state: exception.state,
+                })));
+
+            } catch (error: any) {
+                return {
+                    success: false,
+                    error: `Invalid availability exceptions given: ${error}`,
+                };
+            }
+        }
+
         if (!data.remarks?.length)
             data.remarks = undefined;
 
@@ -87,6 +114,7 @@ export async function updateAvailabilityPreferences(
                     .and(tUsersEventsPreferencesAvailability.preferenceVersionIsLatest.equals(1))
                 .select({
                     buildUpTearDown: tUsersEventsPreferencesAvailability.availabilityBuildUpTearDown,
+                    exceptions: tUsersEventsPreferencesAvailability.availabilityExceptions,
                     hours: tUsersEventsPreferencesAvailability.availabilityHours,
                     timeslots: tUsersEventsPreferencesAvailability.availabilityTimeslots,
                     timingStart: tUsersEventsPreferencesAvailability.availabilityTimingStart,
@@ -95,8 +123,15 @@ export async function updateAvailabilityPreferences(
                 })
                 .executeSelectNoneOrOne();
 
+            // Volunteers are not able to see or alter their exceptions, so these are carried
+            // forward from any existing versions to avoid inadvertently losing that data.
+            const carriedForwardExceptions =
+                !data.exceptions ? existing?.exceptions
+                                 : exceptions;
+
             if (existing &&
                 existing.buildUpTearDown === buildUpTearDown &&
+                existing.exceptions === carriedForwardExceptions &&
                 existing.hours === data.hours &&
                 existing.timeslots === timeslots &&
                 existing.timingStart === availabilityTimingStart &&
@@ -125,7 +160,7 @@ export async function updateAvailabilityPreferences(
                     preferenceVersionIsLatest: /* true= */ 1,
                     preferenceVersionUserId: props.user.id,
                     availabilityBuildUpTearDown: buildUpTearDown,
-                    availabilityExceptions: null,  // todo: support this
+                    availabilityExceptions: carriedForwardExceptions,
                     availabilityHours: data.hours,
                     availabilityTimeslots: timeslots,
                     availabilityTimingStart,

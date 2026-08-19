@@ -99,6 +99,7 @@ export default async function EventTeamVolunteerPreferencesPage(
             },
             availability: {
                 buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
+                exceptions: preferencesAvailabilityJoin.availabilityExceptions.valueWhenNull('[]'),
                 hours: preferencesAvailabilityJoin.availabilityHours,
                 timeslotsStr: preferencesAvailabilityJoin.availabilityTimeslots,
                 timing: combinedTimingFragment,
@@ -204,9 +205,11 @@ export default async function EventTeamVolunteerPreferencesPage(
                 </SectionIntroduction>
                 <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
                                   includeTearDown={event.flags.enableTearDown}
+                                  includeExceptions={{ open: false }}
                                   event={{
                                       startTime: event.startTime.toString(),
                                       endTime: event.endTime.toString(),
+                                      timeZone: event.timeZone,
                                   }}
                                   timeslots={{
                                       limit: 3,

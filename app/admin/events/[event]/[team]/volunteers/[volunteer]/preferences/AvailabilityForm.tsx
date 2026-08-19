@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AutocompleteElement, SelectElement, TextFieldElement, useFormContext }
     from '@proxy/react-hook-form-mui';
@@ -23,11 +23,14 @@ import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
+import type { TimelineEvent } from '@app/admin/components/Timeline';
+import { AvailabilityFormTimeline } from './AvailabilityFormTimeline';
 import { HiddenInput } from '@components/HiddenInput';
-import { formatDate } from '@lib/Temporal';
+import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 
-import { kAvailabilityBuildUpTearDownScheme, kServiceHoursOptions, kServiceTimingOption }
-    from './AvailabilitySettings';
+import { kAvailabilityBuildUpTearDownScheme, kAvailabilityTimelineColours,
+    kAvailabilityTimelineTitles, kServiceHoursOptions, kServiceTimingOption }
+        from './AvailabilitySettings';
 
 /**
  * Formats the date relative to `date` with the given `offsetDays` in days. The `date` must be a
@@ -57,6 +60,11 @@ interface AvailabilityFormProps {
          * Date and time at which the event will conclude.
          */
         endTime: string;
+
+        /**
+         * Timezone in which the event will be hosted.
+         */
+        timeZone: string;
     };
 
     /**
@@ -68,6 +76,16 @@ interface AvailabilityFormProps {
      * Whether to request their availability for helping with festival tear down.
      */
     includeTearDown?: boolean;
+
+    /**
+     * Whether to request availability exception information from leads.
+     */
+    includeExceptions?: {
+        /**
+         * Whether the exception section should be opened by default.
+         */
+        open: boolean;
+    };
 
     /**
      * Whether form fields should be rendered in read-only mode.
@@ -175,6 +193,72 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
 
     const timeslotsValues = watch(timeslotsFieldNames);
     const timeslotsSelected = timeslotsValues.filter(Boolean).length;
+
+    // ---------------------------------------------------------------------------------------------
+
+    const firstValidException = Temporal.ZonedDateTime.from(props.event.startTime)
+        .withTimeZone(props.event.timeZone).with({ hour: 6, minute: 0, second: 0 });
+
+    const lastValidException = Temporal.ZonedDateTime.from(props.event.endTime)
+        .withTimeZone(props.event.timeZone).with({ hour: 22, minute: 0, second: 0 });
+
+    const [ timeslots, setTimeslots ] = useState<TimelineEvent[]>(() => {
+        const initialTimeslots: TimelineEvent[] = [];
+        if (defaultValues?.exceptions && defaultValues.exceptions.length > 2) {
+            try {
+                const unverifiedTimeslots = JSON.parse(defaultValues.exceptions);
+                for (const timeslot of unverifiedTimeslots) {
+                    const start = Temporal.ZonedDateTime.from(timeslot.start);
+                    const end = Temporal.ZonedDateTime.from(timeslot.end);
+
+                    if (isAfter(firstValidException, end))
+                        continue;  // exception happens before the event
+                    if (isBefore(lastValidException, start))
+                        continue;  // exception happens after the event
+
+                    let state: keyof typeof kAvailabilityTimelineTitles = 'unavailable';
+                    switch (timeslot.state) {
+                        case 'available':
+                        case 'avoid':
+                        case 'unavailable':
+                            state = timeslot.state;
+                            break;
+                    }
+
+                    initialTimeslots.push({
+                        id: `anime/${initialTimeslots.length}`,
+                        start: start.toString({ timeZoneName: 'never' }),
+                        end: end.toString({ timeZoneName: 'never' }),
+                        title: kAvailabilityTimelineTitles[state],
+                        color: kAvailabilityTimelineColours[state],
+
+                        // Internal properties:
+                        animeConState: state,
+                    });
+                }
+            } catch (error: any) {
+                console.error('Unable to parse availability exceptions:', error);
+            }
+        }
+
+        return initialTimeslots;
+    });
+
+    const handleTimelineChange = useCallback((timeslots: TimelineEvent[]) => {
+        setTimeslots(timeslots);
+        setValue('exceptions', JSON.stringify(timeslots.map(timeslot => {
+            if (!timeslot.start || !timeslot.end || !timeslot.animeConState)
+                return null;  // invalid `timeslot`
+
+            return {
+                start: timeslot.start,
+                end: timeslot.end,
+                state: timeslot.animeConState,
+            };
+
+        })), { shouldDirty: true });
+
+    }, [ setValue ]);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -305,7 +389,28 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                         </AccordionDetails>
                     </HighlightAccordion>
                 </Grid> }
-            { /* TODO: Availability exceptions */ }
+            { !!props.includeExceptions &&
+                <Grid size={{ xs: 12 }}>
+                    <HighlightAccordion defaultExpanded={props.includeExceptions?.open}
+                                        disableGutters elevation={0}>
+                        <HighlightAccordionSummary expandIcon={ <ExpandMoreIcon /> }>
+                            Availability exceptions
+                            { timeslots.length > 0 &&
+                                <Typography component="span" color="textDisabled" variant="inherit">
+                                    &nbsp;({timeslots.length})
+                                </Typography> }
+                        </HighlightAccordionSummary>
+                        <AccordionDetails sx={{ pt: 2, pb: 0 }}>
+                            <HiddenInput name="exceptions" />
+                            { /* TODO: Make lazy */ }
+                            { /* TODO: Step */ }
+                            <AvailabilityFormTimeline
+                                event={props.event} timeslots={timeslots}
+                                onChange={handleTimelineChange}
+                                readOnly={props.readOnly} />
+                        </AccordionDetails>
+                    </HighlightAccordion>
+                </Grid> }
         </>
     );
 }

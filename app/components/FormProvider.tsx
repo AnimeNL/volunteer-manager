@@ -114,8 +114,10 @@ export function FormProvider(props: React.PropsWithChildren<FormProviderProps>) 
 
                     // TODO: Figure out why |kTemporalZonedDateTimeRegexp| fires on any value that
                     // may contain a timestamp, as opposed to just on real timestamps. Ugh.
-                    if (value.startsWith('['))
+                    if (value.startsWith('[')) {
+                        processedDefaultValues[key] = value;
                         continue;
+                    }
 
                     const zonedDateTime = Temporal.ZonedDateTime.from(value);
                     const localDateTime = zonedDateTime.withTimeZone(cachedTimezone);

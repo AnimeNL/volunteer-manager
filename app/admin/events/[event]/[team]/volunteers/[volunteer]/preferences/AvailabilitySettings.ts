@@ -14,6 +14,38 @@ export const kAvailabilityBuildUpTearDownScheme = z.object({
 });
 
 /**
+ * States that are valid for the availability timeline.
+ */
+type ValidStates = 'available' | 'avoid' | 'unavailable';
+
+/**
+ * Colours to use in the <AvailabilityTimeline> component.
+ */
+export const kAvailabilityTimelineColours: { [k in ValidStates]: string } = {
+    available: '#2E7D32',
+    avoid: '#FFC107',
+    unavailable: '#37474F',
+};
+
+/**
+ * Titles to use in the <AvailabilityTimelineImpl> component.
+ */
+export const kAvailabilityTimelineTitles: { [k in ValidStates]: string } = {
+    available: 'Available',
+    avoid: 'Avoid',
+    unavailable: 'Unavailable',
+};
+
+/**
+ * Options that can be chosen in the availability exception configuration dialog.
+ */
+export const kExceptionTypeOptions = [
+    { id: 'available', label: 'Available for shifts' },
+    { id: 'avoid', label: 'Avoid shifts' },
+    { id: 'unavailable', label: 'Unavailable for shifts' },
+];
+
+/**
  * Number of hours that the volunteer would like to help us out with.
  */
 export const kServiceHoursProperty = z.literal([ 12, 16, 20, 24 ]);
