@@ -3,16 +3,12 @@
 
 import { notFound } from 'next/navigation';
 
-import Alert from '@mui/material/Alert';
 import FreeCancellationIcon from '@mui/icons-material/FreeCancellation';
-import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 
 import { AvailabilityForm } from '../AvailabilityForm';
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { PreferenceHistory } from '../PreferenceHistory';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAvailabilityTimeslots } from '../getAvailabilityTimeslots';
 import { readSetting } from '@lib/Settings';
@@ -100,44 +96,23 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                     Change history of {volunteer.name}'s availability during {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader back="Back to preferences" tabs>
-                <SectionIntroduction>
-                    The Volunteer Managers tracks updates made to these preferences for operational
-                    purposes, particularly so that team leads can quickly accommodate last-minute
-                    schedule adjustments. Please do not engage in any disputes.
-                </SectionIntroduction>
-            </Section>
-            { !volunteer.versions?.length &&
-                <Alert severity="warning" variant="outlined">
-                    No participation preferences have been shared by {volunteer.name}.
-                </Alert> }
-            { volunteer.versions.map(({ version, author, data }, index) => {
-                const date = version!.toString();
-                const title =
-                    <><LocalDateTime dateTime={date} format="MMMM Do [at] HH:mm" /> ({author})</>;
-
-                return (
-                    <ExpandableSection key={date} defaultExpanded={index === 0}
-                                       icon={ <TopicOutlinedIcon /> } title={title}>
-                        <FormGrid action={undefined!} defaultValues={data}>
-                            <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
-                                              includeTearDown={event.flags.enableTearDown}
-                                              includeExceptions={{ open: true, step }}
-                                              readOnly
-                                              event={{
-                                                  startTime: event.startTime.toString(),
-                                                  endTime: event.endTime.toString(),
-                                                  timeZone: event.timeZone,
-                                              }}
-                                              timeslots={{
-                                                  limit: 3,
-                                                  open: true,
-                                                  options: availabilityTimeslots,
-                                              }} />
-                        </FormGrid>
-                    </ExpandableSection>
-                );
-            }) }
+            <PreferenceHistory emptyWarning="No availability preferences have been shared yet"
+                               versions={volunteer.versions}>
+                <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
+                                  includeTearDown={event.flags.enableTearDown}
+                                  includeExceptions={{ open: true, step }}
+                                  readOnly
+                                  event={{
+                                      startTime: event.startTime.toString(),
+                                      endTime: event.endTime.toString(),
+                                      timeZone: event.timeZone,
+                                  }}
+                                  timeslots={{
+                                      limit: 3,
+                                      open: true,
+                                      options: availabilityTimeslots,
+                                  }} />
+            </PreferenceHistory>
         </>
     );
 }

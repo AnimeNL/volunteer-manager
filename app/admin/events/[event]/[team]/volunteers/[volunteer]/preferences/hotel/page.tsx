@@ -3,16 +3,12 @@
 
 import { notFound } from 'next/navigation';
 
-import Alert from '@mui/material/Alert';
 import HotelIcon from '@mui/icons-material/Hotel';
-import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { FormGrid } from '@app/admin/components/FormGrid';
 import { HotelForm } from '../HotelForm';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { PreferenceHistory } from '../PreferenceHistory';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getHotelRooms } from '../getHotelRooms';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
@@ -29,7 +25,7 @@ export default async function EventTeamVolunteerPreferencesHotelPage(
         operation: 'read',
     });
 
-    if (!event.flags.enableTraining)
+    if (!event.flags.enableHotel)
         notFound();
 
     const id = (await props.params).volunteer;
@@ -94,31 +90,10 @@ export default async function EventTeamVolunteerPreferencesHotelPage(
                     Change history of {volunteer.name}'s hotel preferences for {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader back="Back to preferences" tabs>
-                <SectionIntroduction>
-                    The Volunteer Managers tracks updates made to these preferences for operational
-                    purposes, particularly so that team leads can quickly accommodate last-minute
-                    schedule adjustments. Please do not engage in any disputes.
-                </SectionIntroduction>
-            </Section>
-            { !volunteer.versions?.length &&
-                <Alert severity="warning" variant="outlined">
-                    No hotel preferences have been shared by {volunteer.name}.
-                </Alert> }
-            { volunteer.versions.map(({ version, author, data }, index) => {
-                const date = version!.toString();
-                const title =
-                    <><LocalDateTime dateTime={date} format="MMMM Do [at] HH:mm" /> ({author})</>;
-
-                return (
-                    <ExpandableSection key={date} defaultExpanded={index === 0}
-                                       icon={ <TopicOutlinedIcon /> } title={title}>
-                        <FormGrid action={undefined!} defaultValues={data}>
-                            <HotelForm readOnly rooms={hotelRooms} />
-                        </FormGrid>
-                    </ExpandableSection>
-                );
-            }) }
+            <PreferenceHistory emptyWarning="No hotel preferences have been shared yet"
+                               versions={volunteer.versions}>
+                <HotelForm readOnly rooms={hotelRooms} />
+            </PreferenceHistory>
         </>
     );
 }

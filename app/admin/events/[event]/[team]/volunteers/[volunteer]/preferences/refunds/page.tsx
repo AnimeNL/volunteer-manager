@@ -3,16 +3,12 @@
 
 import { notFound } from 'next/navigation';
 
-import Alert from '@mui/material/Alert';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
 
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { PreferenceHistory } from '../PreferenceHistory';
 import { RefundForm } from '../RefundForm';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
@@ -85,31 +81,10 @@ export default async function EventTeamVolunteerPreferencesRefundsPage(
                     Change history of {volunteer.name}'s refund requests for {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader back="Back to preferences" tabs>
-                <SectionIntroduction>
-                    The Volunteer Managers tracks updates made to these preferences for operational
-                    purposes, particularly so that team leads can quickly accommodate last-minute
-                    schedule adjustments. Please do not engage in any disputes.
-                </SectionIntroduction>
-            </Section>
-            { !volunteer.versions?.length &&
-                <Alert severity="warning" variant="outlined">
-                    No refund requests have been made by {volunteer.name}.
-                </Alert> }
-            { volunteer.versions.map(({ version, author, data }, index) => {
-                const date = version!.toString();
-                const title =
-                    <><LocalDateTime dateTime={date} format="MMMM Do [at] HH:mm" /> ({author})</>;
-
-                return (
-                    <ExpandableSection key={date} defaultExpanded={index === 0}
-                                       icon={ <TopicOutlinedIcon /> } title={title}>
-                        <FormGrid action={undefined!} defaultValues={data}>
-                            <RefundForm readOnly />
-                        </FormGrid>
-                    </ExpandableSection>
-                );
-            }) }
+            <PreferenceHistory emptyWarning="No refund requests have been made yet"
+                               versions={volunteer.versions}>
+                <RefundForm readOnly />
+            </PreferenceHistory>
         </>
     );
 }

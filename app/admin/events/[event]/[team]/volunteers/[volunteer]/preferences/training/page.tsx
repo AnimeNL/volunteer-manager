@@ -3,15 +3,11 @@
 
 import { notFound } from 'next/navigation';
 
-import Alert from '@mui/material/Alert';
-import HotelIcon from '@mui/icons-material/Hotel';
-import TopicOutlinedIcon from '@mui/icons-material/TopicOutlined';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { PreferenceHistory } from '../PreferenceHistory';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingForm } from '../TrainingForm';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getTrainings } from '../getTrainings';
@@ -75,8 +71,8 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
     const baseUrl = `/admin/events/${event.slug}/${team.slug}/volunteers`;
     return (
         <>
-            <Section icon={ <HotelIcon color="primary" /> }
-                     title="Hotel preferences"
+            <Section icon={ <HistoryEduIcon color="primary" /> }
+                     title="Training preferences"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
@@ -89,31 +85,10 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
                     Change history of {volunteer.name}'s training preferences for {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader back="Back to preferences" tabs>
-                <SectionIntroduction>
-                    The Volunteer Managers tracks updates made to these preferences for operational
-                    purposes, particularly so that team leads can quickly accommodate last-minute
-                    schedule adjustments. Please do not engage in any disputes.
-                </SectionIntroduction>
-            </Section>
-            { !volunteer.versions?.length &&
-                <Alert severity="warning" variant="outlined">
-                    No training preferences have been shared by {volunteer.name}.
-                </Alert> }
-            { volunteer.versions.map(({ version, author, data }, index) => {
-                const date = version!.toString();
-                const title =
-                    <><LocalDateTime dateTime={date} format="MMMM Do [at] HH:mm" /> ({author})</>;
-
-                return (
-                    <ExpandableSection key={date} defaultExpanded={index === 0}
-                                       icon={ <TopicOutlinedIcon /> } title={title}>
-                        <FormGrid action={undefined!} defaultValues={data}>
-                            <TrainingForm readOnly trainings={trainings} />
-                        </FormGrid>
-                    </ExpandableSection>
-                );
-            }) }
+            <PreferenceHistory emptyWarning="No training preferences have been shared yet"
+                               versions={volunteer.versions}>
+                <TrainingForm readOnly trainings={trainings} />
+            </PreferenceHistory>
         </>
     );
 }
