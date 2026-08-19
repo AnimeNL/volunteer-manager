@@ -12,14 +12,13 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
- * The <SharedDataIconButton> displays a dialog to the user explaining that this data is shared
- * across the team the volunteer participates in.
+ * Displays an icon button with a dialog that explains that preference data is shared across teams.
  */
 export function SharedDataIconButton() {
     const [ open, setOpen ] = useState<boolean>(false);
 
-    const handleClose = useCallback(() => setOpen(false), [ ]);
-    const handleOpen = useCallback(() => setOpen(true), [ ]);
+    const handleClose = useCallback(() => setOpen(false), []);
+    const handleOpen = useCallback(() => setOpen(true), []);
 
     return (
         <>
@@ -29,13 +28,12 @@ export function SharedDataIconButton() {
                 </Tooltip>
             </IconButton>
             <ResponsiveDialog open={open} onClose={handleClose}
-                              title="These preferences are shared!"
+                              title="These preferences are shared"
                               description={
                                   <>
                                       Volunteers have only one set of preferences for each event,
-                                      even if they help out in multiple teams. If you change a
-                                      volunteer's preferences in this team, the system updates their
-                                      preferences for all other teams automatically.
+                                      even when they participate in multiple teams. Updates made in
+                                      this team apply to all other teams automatically.
                                   </>
                               } />
         </>

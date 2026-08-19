@@ -5,7 +5,7 @@ import { formatDate } from '@lib/Temporal';
 import db, { tEvents, tTrainings } from '@lib/database';
 
 /**
- * Fetches the available training sessions for the given `eventId` from the database.
+ * Fetches available training sessions for the given event ID.
  */
 export async function getTrainings(eventId: number) {
     const trainings = await db.selectFrom(tTrainings)

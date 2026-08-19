@@ -18,8 +18,8 @@ import { HotelForm } from './HotelForm';
 import { ParticipationForm } from './ParticipationForm';
 import { PrivacyIconButton } from './PrivacyIconButton';
 import { RefundForm } from './RefundForm';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SharedDataIconButton } from './SharedDataIconButton';
 import { TrainingForm } from './TrainingForm';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -35,8 +35,7 @@ import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
 import * as actions from './PreferenceActions';
 
 /**
- * Page that visualises, and for some, makes managable the preferences that the volunteer has shared
- * for the current event. Each kind of preference maintains a "changelog".
+ * Displays and allows editing of volunteer preferences for the active event.
  */
 export default async function EventTeamVolunteerPreferencesPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
@@ -133,7 +132,7 @@ export default async function EventTeamVolunteerPreferencesPage(
             },
         })
         .executeSelectNoneOrOne();
-    
+
     if (!context)
         notFound();
 
@@ -149,7 +148,7 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
     const canUpdatePreferences =
-        access.can('event.volunteers.information', 'update', { event: event.slug, team: team.slug })
+        access.can('event.volunteers.information', 'update', { event: event.slug, team: team.slug });
 
     const availabilityFn = canUpdatePreferences
         ? actions.updateAvailabilityPreferences.bind(null, volunteer.id, event.slug, team.slug)
@@ -192,9 +191,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                     in {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader tabs>
-                What goes here?!
-            </Section>
+            <Section noHeader tabs />
 
             <FormGridSection icon={ <FreeCancellationIcon /> } title="Availability"
                              action={availabilityFn} defaultValues={context.availability}
@@ -209,6 +206,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
                                   includeTearDown={event.flags.enableTearDown}
                                   includeExceptions={{ open: false, step }}
+                                  readOnly={!canUpdatePreferences}
                                   event={{
                                       startTime: event.startTime.toString(),
                                       endTime: event.endTime.toString(),
@@ -230,9 +228,9 @@ export default async function EventTeamVolunteerPreferencesPage(
                                      </Stack>
                                  }>
                     <SectionIntroduction grid>
-                        Their interest in an hotel room organised by us.
+                        Their interest in a hotel room organised by us.
                     </SectionIntroduction>
-                    <HotelForm rooms={hotelRooms} />
+                    <HotelForm readOnly={!canUpdatePreferences} rooms={hotelRooms} />
                 </FormGridSection> }
 
             <FormGridSection icon={ <SmartToyOutlinedIcon /> } title="Participation"
@@ -246,7 +244,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <SectionIntroduction grid>
                     General preferences regarding participating in {event.shortName}.
                 </SectionIntroduction>
-                <ParticipationForm />
+                <ParticipationForm readOnly={!canUpdatePreferences} />
             </FormGridSection>
 
             { (event.flags.enableRefunds && canUpdateRefunds) &&
@@ -262,7 +260,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                     <SectionIntroduction grid>
                         {volunteer.name}'s refund request for a {event.shortName} ticket.
                     </SectionIntroduction>
-                    <RefundForm />
+                    <RefundForm readOnly={!canUpdateRefunds} />
                 </FormGridSection> }
 
             { event.flags.enableTraining &&
@@ -275,9 +273,9 @@ export default async function EventTeamVolunteerPreferencesPage(
                                      </Stack>
                                  }>
                     <SectionIntroduction grid>
-                        Will they participate in our professional training?
+                        Will they participate in our training session?
                     </SectionIntroduction>
-                    <TrainingForm trainings={trainings} />
+                    <TrainingForm readOnly={!canUpdatePreferences} trainings={trainings} />
                 </FormGridSection> }
         </>
     );

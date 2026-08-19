@@ -10,13 +10,13 @@ import Grid from '@mui/material/Grid';
  */
 interface RefundFormProps {
     /**
-     * Whether form fields should be rendered in read-only mode.
+     * Displays form fields in read-only mode.
      */
     readOnly?: boolean;
 }
 
 /**
- * Form through which a volunteer's refund request can be managed.
+ * Form to manage ticket refund requests from volunteers.
  */
 export function RefundForm(props: RefundFormProps) {
     const { readOnly } = props;
@@ -24,16 +24,15 @@ export function RefundForm(props: RefundFormProps) {
         <>
             <Grid size={{ xs: 6 }}>
                 <TextFieldElement name="accountName" label="Bank account name" size="small" required
-                                  fullWidth multiline slotProps={{ input: { readOnly } }} />
+                                  fullWidth slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <TextFieldElement name="accountIban" label="Bank account IBAN" size="small" required
-                                  fullWidth multiline slotProps={{ input: { readOnly } }} />
+                                  fullWidth slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 12 }}>
                 <TextFieldElement name="ticketNumber" label="Ticket or order number (when known)"
-                                  size="small" fullWidth multiline
-                                  slotProps={{ input: { readOnly } }} />
+                                  size="small" fullWidth slotProps={{ input: { readOnly } }} />
             </Grid>
         </>
     );

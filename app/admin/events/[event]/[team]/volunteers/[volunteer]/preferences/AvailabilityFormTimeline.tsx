@@ -16,16 +16,16 @@ import { kAvailabilityTimelineColours, kAvailabilityTimelineTitles, kExceptionTy
     from './AvailabilitySettings';
 
 /**
- * Props accepted by the <AvailabilityTimelineImpl> component.
+ * Props accepted by the <AvailabilityFormTimeline> component.
  */
 interface AvailabilityFormTimelineProps {
     /**
-     * Called when any mutation has been made to the availability timeline.
+     * Called when the availability timeline changes.
      */
     onChange?: (timeslots: TimelineEvent[]) => void;
 
     /**
-     * The event for which the timeline is being shown.
+     * The event for which the timeline is shown.
      */
     event: {
         startTime: string;
@@ -34,25 +34,23 @@ interface AvailabilityFormTimelineProps {
     };
 
     /**
-     * Whether the timeline should be displayed in a read-only manner.
+     * Displays the timeline in read-only mode.
      */
     readOnly?: boolean;
 
     /**
-     * Time step, in minutes, defining the granularity of events in the exception view.
+     * Time step in minutes for timeline items.
      */
     step?: number;
 
     /**
-     * The timeslots that should be displayed on the timeline. Timeslots should not overlap with
-     * each other, as availability state is mutually exclusive information.
+     * The timeslots displayed on the timeline.
      */
     timeslots: TimelineEvent[];
 }
 
 /**
- * The <AvailabilityFormTimeline> component is the implementation of the <AvailabilityTimeline>
- * specific to the AnimeCon Volunteer Manager, integrated with MUI.
+ * Displays and manages volunteer availability exception intervals on a timeline.
  */
 export default function AvailabilityFormTimeline(props: AvailabilityFormTimelineProps) {
     const { onChange, event, readOnly, step, timeslots } = props;
@@ -89,17 +87,17 @@ export default function AvailabilityFormTimeline(props: AvailabilityFormTimeline
         if (![ 'unavailable', 'avoid', 'available' ].includes(data))
             return;
 
-        const state = data as keyof typeof kAvailabilityTimelineTitles
+        const state = data as keyof typeof kAvailabilityTimelineTitles;
         selectedResolver({
             update: {
                 ...selectedEvent,
                 title: kAvailabilityTimelineTitles[state],
                 color: kAvailabilityTimelineColours[state],
-                animeConState: state
-            }
+                animeConState: state,
+            },
         });
 
-        setSelectedEvent(undefined);  // close the dialog
+        setSelectedEvent(undefined);
 
     }, [ selectedResolver, selectedEvent ]);
 
@@ -129,7 +127,7 @@ export default function AvailabilityFormTimeline(props: AvailabilityFormTimeline
             <ResponsiveDialog
                 open={!!selectedEvent} onClose={handleSettingsClose}
                 title="Availability exception"
-                description="What type of exceptions are you creating?"
+                description="What type of exception are you configuring?"
                 additionalButtons={
                     <Button size="small" variant="contained" color="error"
                             onClick={handleSettingsDelete}>

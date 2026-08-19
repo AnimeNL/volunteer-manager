@@ -5,25 +5,26 @@ import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
 
-import * as options from '@components/SelectElementOptions';
+import { kBooleanOptions, kTShirtFitOptions, kTShirtSizeOptions }
+    from '@components/SelectElementOptions';
 
 /**
  * Props accepted by the <ParticipationForm> component.
  */
 interface ParticipationFormProps {
     /**
-     * Whether the field for dietary restrictions should be omitted.
+     * Omits the dietary restrictions field when set to true.
      */
     disableDietary?: boolean;
 
     /**
-     * Whether form fields should be rendered in read-only mode.
+     * Displays form fields in read-only mode.
      */
     readOnly?: boolean;
 }
 
 /**
- * Form through which a volunteer's participation preferences can be managed.
+ * Form to manage volunteer participation preferences.
  */
 export function ParticipationForm(props: ParticipationFormProps) {
     const { readOnly } = props;
@@ -31,22 +32,22 @@ export function ParticipationForm(props: ParticipationFormProps) {
         <>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="tshirtSize" label="T-shirt size" required size="small"
-                               options={options.kTShirtSizeOptions} fullWidth
+                               options={kTShirtSizeOptions} fullWidth
                                slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="tshirtFit" label="T-shirt fit" required size="small"
-                               options={options.kTShirtFitOptions} fullWidth
+                               options={kTShirtFitOptions} fullWidth
                                slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="includeCreditReel" label="Include in credit reel?" required
-                               options={options.kBooleanOptions} size="small" fullWidth
+                               options={kBooleanOptions} size="small" fullWidth
                                slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 6 }}>
                 <SelectElement name="includeSocialMedia" label="Include on social media?"
-                               options={options.kBooleanOptions} size="small" fullWidth required
+                               options={kBooleanOptions} size="small" fullWidth required
                                slotProps={{ input: { readOnly } }} />
             </Grid>
             { !props.disableDietary &&

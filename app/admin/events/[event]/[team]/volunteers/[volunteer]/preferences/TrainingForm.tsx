@@ -14,18 +14,18 @@ import Grid from '@mui/material/Grid';
  */
 interface TrainingFormProps {
     /**
-     * Whether form fields should be rendered in read-only mode.
+     * Displays form fields in read-only mode.
      */
     readOnly?: boolean;
 
     /**
-     * Training options available for this event.
+     * Available training sessions for the event.
      */
     trainings: { id: number; label: string; }[];
 }
 
 /**
- * Form through which a volunteer's training preferences can be managed.
+ * Form to manage volunteer training participation preferences.
  */
 export function TrainingForm(props: TrainingFormProps) {
     const { readOnly, trainings } = props;
@@ -36,12 +36,11 @@ export function TrainingForm(props: TrainingFormProps) {
     ], [ trainings ]);
 
     return (
-        <>
-            <Grid size={{ xs: 12 }}>
-                <SelectElement name="trainingId" label="Would you to participate in the training?"
-                               options={options} fullWidth size="small" required
-                               slotProps={{ input: { readOnly } }} />
-            </Grid>
-        </>
+        <Grid size={{ xs: 12 }}>
+            <SelectElement name="trainingId"
+                           label="Would you like to participate in the training?"
+                           options={options} fullWidth size="small" required
+                           slotProps={{ input: { readOnly } }} />
+        </Grid>
     );
 }

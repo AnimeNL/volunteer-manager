@@ -4,7 +4,7 @@
 import { z } from 'zod/v4';
 
 /**
- * Scheme definition for valid build-up / tear-down information as stored in the database.
+ * Validates the build-up and tear-down availability data stored in the database.
  */
 export const kAvailabilityBuildUpTearDownScheme = z.object({
     buildUpDayBefore: z.string(),
@@ -14,12 +14,12 @@ export const kAvailabilityBuildUpTearDownScheme = z.object({
 });
 
 /**
- * States that are valid for the availability timeline.
+ * Defines the valid states for the availability timeline.
  */
 type ValidStates = 'available' | 'avoid' | 'unavailable';
 
 /**
- * Colours to use in the <AvailabilityTimeline> component.
+ * Defines the colors for each availability state in the timeline component.
  */
 export const kAvailabilityTimelineColours: { [k in ValidStates]: string } = {
     available: '#2E7D32',
@@ -28,7 +28,7 @@ export const kAvailabilityTimelineColours: { [k in ValidStates]: string } = {
 };
 
 /**
- * Titles to use in the <AvailabilityTimelineImpl> component.
+ * Defines the title labels for each availability state in the timeline component.
  */
 export const kAvailabilityTimelineTitles: { [k in ValidStates]: string } = {
     available: 'Available',
@@ -37,7 +37,7 @@ export const kAvailabilityTimelineTitles: { [k in ValidStates]: string } = {
 };
 
 /**
- * Options that can be chosen in the availability exception configuration dialog.
+ * Defines the options in the availability exception configuration dialog.
  */
 export const kExceptionTypeOptions = [
     { id: 'available', label: 'Available for shifts' },
@@ -46,21 +46,25 @@ export const kExceptionTypeOptions = [
 ];
 
 /**
- * Number of hours that the volunteer would like to help us out with.
+ * Validates the requested number of volunteer service hours.
  */
-export const kServiceHoursProperty = z.literal([ 12, 16, 20, 24 ]);
+export const kServiceHoursProperty = z.union([
+    z.literal(12),
+    z.literal(16),
+    z.literal(20),
+    z.literal(24),
+]);
 
 /**
- * Timing of the shifts the volunteer would like to fulfill.
+ * Validates the requested shift timing window.
  */
-export const kServiceTimingProperty = z.literal([ '8-20', '10-0', '14-3' ]);
+export const kServiceTimingProperty = z.enum([ '8-20', '10-0', '14-3' ]);
 
 type ServiceHourValues = z.TypeOf<typeof kServiceHoursProperty>;
 type ServiceTimingValues = z.TypeOf<typeof kServiceTimingProperty>;
 
 /**
- * Valid options for the number of hours volunteers are willing to work. When updating an ID, make
- * sure that `kDefaultValues` is updated as well.
+ * Options for the number of hours that a volunteer wants to work.
  */
 export const kServiceHoursOptions: { id: ServiceHourValues, label: string }[] = [
     { id: 12, label: 'Up to 12 hours' },
@@ -70,11 +74,15 @@ export const kServiceHoursOptions: { id: ServiceHourValues, label: string }[] = 
 ];
 
 /**
- * Valid options for the timing of shifts a volunteer could be issued. When updating an ID, make
- * sure that `kDefaultValues` is updated as well.
+ * Options for the shift timings that a volunteer can select.
  */
-export const kServiceTimingOption: { id: ServiceTimingValues, label: string }[] = [
+export const kServiceTimingOptions: { id: ServiceTimingValues, label: string }[] = [
     { id: '8-20', label: 'Early (08:00–20:00)' },
     { id: '10-0', label: 'Regular (10:00–00:00)' },
     { id: '14-3', label: 'Late (14:00–03:00)' },
 ];
+
+/**
+ * @deprecated Use `kServiceTimingOptions` instead.
+ */
+export const kServiceTimingOption = kServiceTimingOptions;

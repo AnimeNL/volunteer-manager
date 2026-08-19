@@ -12,17 +12,17 @@ import db, { tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
     tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds,
     tUsersEventsPreferencesTraining } from '@lib/database';
 
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
+import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
     from './AvailabilitySettings';
-import { kShirtFit, kShirtSize } from '@lib/database/Types';
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
 
 // -------------------------------------------------------------------------------------------------
 // Availability preferences
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Schema defining the information required to update availability.
+ * Validates the data required to update availability preferences.
  */
 const kAvailabilityPreferencesSchema = z.object({
     buildUpTearDown: z.string().nullish(),
@@ -34,14 +34,13 @@ const kAvailabilityPreferencesSchema = z.object({
 });
 
 /**
- * Server Action through which one's availability can be updated. Used for updates from the
- * administration area, as well as through the registration portal.
+ * Updates the availability preferences of a volunteer.
  */
 export async function updateAvailabilityPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kAvailabilityPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Amend the authentication check for updates from the registration portal.
 
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -123,8 +122,7 @@ export async function updateAvailabilityPreferences(
                 })
                 .executeSelectNoneOrOne();
 
-            // Volunteers are not able to see or alter their exceptions, so these are carried
-            // forward from any existing versions to avoid inadvertently losing that data.
+            // Volunteers cannot alter their exceptions, so preserve them from earlier versions.
             const carriedForwardExceptions =
                 !data.exceptions ? existing?.exceptions
                                  : exceptions;
@@ -194,7 +192,7 @@ export async function updateAvailabilityPreferences(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Schema defining the information required to update hotel preferences.
+ * Validates the data required to update hotel preferences.
  */
 const kHotelPreferencesSchema = z.object({
     interested: z.literal(0),
@@ -208,14 +206,13 @@ const kHotelPreferencesSchema = z.object({
 }));
 
 /**
- * Server Action through which hotel preferences can be updated. Used for updates from the
- * administration area, as well as through the registration portal.
+ * Updates the hotel preferences of a volunteer.
  */
 export async function updateHotelPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kHotelPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Amend the authentication check for updates from the registration portal.
 
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -303,24 +300,24 @@ export async function updateHotelPreferences(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Schema defining the information required to update participation preferences.
+ * Validates the data required to update participation preferences.
  */
 const kParticipationPreferencesSchema = z.object({
-    includeCreditReel: z.literal([ 0, 1 ]),
-    includeSocialMedia: z.literal([ 0, 1 ]),
+    dietary: z.string().nullish(),
+    includeCreditReel: z.union([ z.literal(0), z.literal(1) ]),
+    includeSocialMedia: z.union([ z.literal(0), z.literal(1) ]),
     tshirtFit: z.enum(kShirtFit),
-    tshirtSize: z.enum(kShirtSize)
+    tshirtSize: z.enum(kShirtSize),
 });
 
 /**
- * Server Action through which participation preferences can be updated. Used for updates from the
- * administration area, as well as through the registration portal.
+ * Updates the participation preferences of a volunteer.
  */
 export async function updateParticipationPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kParticipationPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Amend the authentication check for updates from the registration portal.
 
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -335,6 +332,7 @@ export async function updateParticipationPreferences(
                     .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
                     .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
                 .select({
+                    dietary: tUsersEventsPreferencesParticipation.participationDietary,
                     includeCreditReel:
                         tUsersEventsPreferencesParticipation.participationIncludeCreditReel,
                     includeSocialMedia:
@@ -344,7 +342,11 @@ export async function updateParticipationPreferences(
                 })
                 .executeSelectNoneOrOne();
 
+            const existingDietary = existing?.dietary || null;
+            const updatedDietary = data.dietary || null;
+
             if (existing &&
+                existingDietary === updatedDietary &&
                 existing.includeCreditReel === data.includeCreditReel &&
                 existing.includeSocialMedia === data.includeSocialMedia &&
                 existing.tshirtFit === data.tshirtFit &&
@@ -369,6 +371,7 @@ export async function updateParticipationPreferences(
                     preferenceVersion: dbInstance.currentZonedDateTime(),
                     preferenceVersionIsLatest: /* true= */ 1,
                     preferenceVersionUserId: props.user.id,
+                    participationDietary: data.dietary || null,
                     participationIncludeCreditReel: data.includeCreditReel,
                     participationIncludeSocialMedia: data.includeSocialMedia,
                     participationTshirtFit: data.tshirtFit,
@@ -400,7 +403,7 @@ export async function updateParticipationPreferences(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Schema defining the information required to update a refund request.
+ * Validates the data required to update a refund request.
  */
 const kRefundPreferencesSchema = z.object({
     accountName: z.string().nonempty(),
@@ -409,14 +412,13 @@ const kRefundPreferencesSchema = z.object({
 });
 
 /**
- * Server Action through which a refund request can be updated. Used for updates from the
- * administration area, as well as through the registration portal.
+ * Updates the refund request preferences of a volunteer.
  */
 export async function updateRefundPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kRefundPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Amend the authentication check for updates from the registration portal.
 
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, 'event.refunds');
@@ -488,21 +490,20 @@ export async function updateRefundPreferences(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * Schema defining the information required to training participation preferences.
+ * Validates the data required to update training preferences.
  */
 const kTrainingPreferencesSchema = z.object({
     trainingId: z.number(),
 });
 
 /**
- * Server Action through which training preferences can be updated. Used for updates from the
- * administration area, as well as through the registration portal.
+ * Updates the training preferences of a volunteer.
  */
 export async function updateTrainingPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kTrainingPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal
+        // TODO: Amend the authentication check for updates from the registration portal.
 
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {

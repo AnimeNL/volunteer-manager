@@ -15,7 +15,7 @@ import { dayjs } from '@lib/DateTime';
 import { formatDate } from '@lib/Temporal';
 
 /**
- * Options users can choose from when indicating whether they would like a hotel room.
+ * Options indicating whether the volunteer needs a hotel room.
  */
 const kInterestedOptions = [
     { id: 0, label: 'No, I don\'t need a hotel room' },
@@ -23,7 +23,7 @@ const kInterestedOptions = [
 ];
 
 /**
- * How many days before and after the event can a hotel room be booked for?
+ * Maximum number of days before and after the event for room bookings.
  */
 const kSelectableDaysAroundEvent = 5;
 
@@ -32,25 +32,23 @@ const kSelectableDaysAroundEvent = 5;
  */
 interface HotelFormProps {
     /**
-     * Date on which the event will take place. When provided, this will limit the minimal and
-     * maximal selectable dates within the picker. Will be provided in a `Temporal.ZonedDateTime`
-     * compatible format in UTC.
+     * Start date of the event in ISO 8601 format.
      */
     eventDate?: string;
 
     /**
-     * Whether form fields should be rendered in read-only mode.
+     * Displays form fields in read-only mode.
      */
     readOnly?: boolean;
 
     /**
-     * Hotel room options available for this event.
+     * List of available hotel room options.
      */
     rooms: { id: number; label: string; }[];
 }
 
 /**
- * Form through which a volunteer's hotel room preferences can be managed.
+ * Form to manage volunteer hotel room preferences.
  */
 export function HotelForm(props: HotelFormProps) {
     const { readOnly, rooms } = props;

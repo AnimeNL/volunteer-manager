@@ -15,7 +15,7 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
 /**
- * Overview of changes made to the volunteer's training preferences.
+ * Displays the change history of volunteer training preferences.
  */
 export default async function EventTeamVolunteerPreferencesTrainingPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/training'>)
@@ -59,7 +59,7 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
         })
         .groupBy(tUsersEvents.userId)
         .executeSelectNoneOrOne();
-    
+
     if (!volunteer)
         notFound();
 
@@ -79,7 +79,7 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
                          { label: 'Volunteers', href: baseUrl },
                          { label: volunteer.name, href: `${baseUrl}/${id}`, },
                          { label: 'Preferences', href: `${baseUrl}/${id}/preferences` },
-                         { label: 'Trainings' },
+                         { label: 'Training' },
                      ]}>
                 <SectionIntroduction>
                     Change history of {volunteer.name}'s training preferences for {event.shortName}.

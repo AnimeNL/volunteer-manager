@@ -15,7 +15,7 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesHotel } from '@lib/database';
 
 /**
- * Overview of changes made to the volunteer's hotel preferences.
+ * Displays the change history of volunteer hotel preferences.
  */
 export default async function EventTeamVolunteerPreferencesHotelPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/hotel'>)
@@ -64,7 +64,7 @@ export default async function EventTeamVolunteerPreferencesHotelPage(
         })
         .groupBy(tUsersEvents.userId)
         .executeSelectNoneOrOne();
-    
+
     if (!volunteer)
         notFound();
 

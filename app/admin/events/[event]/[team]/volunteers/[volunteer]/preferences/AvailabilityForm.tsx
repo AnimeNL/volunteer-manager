@@ -10,8 +10,8 @@ import { AutocompleteElement, SelectElement, TextFieldElement, useFormContext }
     from '@proxy/react-hook-form-mui';
 
 import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import Divider from '@mui/material/Divider';
 import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import DomainDisabledIcon from '@mui/icons-material/DomainDisabled';
@@ -19,8 +19,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Grid from '@mui/material/Grid';
 import LabelImportantOutlinedIcon from '@mui/icons-material/LabelImportantOutlined';
 import Stack from '@mui/material/Stack';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
@@ -29,19 +29,18 @@ import { HiddenInput } from '@components/HiddenInput';
 import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 
 import { kAvailabilityBuildUpTearDownScheme, kAvailabilityTimelineColours,
-    kAvailabilityTimelineTitles, kServiceHoursOptions, kServiceTimingOption }
+    kAvailabilityTimelineTitles, kServiceHoursOptions, kServiceTimingOptions }
         from './AvailabilitySettings';
 
 /**
- * Don't include the <AvailabilityFormTimeline> in the default bundle as it's not always required.
+ * Dynamically loads the timeline component to reduce bundle size.
  */
 const AvailabilityFormTimeline = dynamic(() => import('./AvailabilityFormTimeline'), {
     ssr: false,
 });
 
 /**
- * Formats the date relative to `date` with the given `offsetDays` in days. The `date` must be a
- * string in a Temporal-specific serialisation.
+ * Formats a date relative to the given date by adding or subtracting days.
  */
 function formatRelativeDate(date: string, offsetDays: number): string {
     const zonedDateTime = Temporal.ZonedDateTime.from(date);
@@ -55,78 +54,78 @@ function formatRelativeDate(date: string, offsetDays: number): string {
  */
 interface AvailabilityFormProps {
     /**
-     * Information required to contextualise towards the event.
+     * Event configuration containing dates and timezone.
      */
     event: {
         /**
-         * Date and time at which the event will commence.
+         * Start date and time of the event.
          */
         startTime: string;
 
         /**
-         * Date and time at which the event will conclude.
+         * End date and time of the event.
          */
         endTime: string;
 
         /**
-         * Timezone in which the event will be hosted.
+         * Timezone in which the event takes place.
          */
         timeZone: string;
     };
 
     /**
-     * Whether to request their availability for helping with festival build up.
+     * Enables availability options for event build-up.
      */
     includeBuildUp?: boolean;
 
     /**
-     * Whether to request their availability for helping with festival tear down.
+     * Enables availability options for event tear-down.
      */
     includeTearDown?: boolean;
 
     /**
-     * Whether to request availability exception information from leads.
+     * Enables availability exception management.
      */
     includeExceptions?: {
         /**
-         * Whether the exception section should be opened by default.
+         * Whether the exception section starts expanded.
          */
         open: boolean;
 
         /**
-         * Time step, in minutes, defining the granularity of events in the exception view.
+         * Time step in minutes for timeline items.
          */
         step: number;
     };
 
     /**
-     * Whether form fields should be rendered in read-only mode.
+     * Displays form fields in read-only mode.
      */
     readOnly?: boolean;
 
     /**
-     * Information required to allow volunteers to indicate the events they would like to attend.
+     * Configuration for selectable timeslots.
      */
     timeslots: {
         /**
-         * Maximum number of timeslots they can select.
+         * Maximum number of selectable timeslots.
          */
         limit: number;
 
         /**
-         * Whether the timeslot section should be opened by default.
+         * Whether the timeslots section starts expanded.
          */
         open?: boolean;
 
         /**
-         * Timeslots that can be selected for attendance.
+         * List of available timeslots.
          */
         options: { id: number; label: string; }[];
     };
 }
 
 /**
- * Form through which a volunteer's availability can be managed.
+ * Form to manage volunteer availability preferences.
  */
 export function AvailabilityForm(props: AvailabilityFormProps) {
     const { readOnly } = props;
@@ -134,7 +133,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
     const { getValues, setValue, watch, formState: { defaultValues } } = useFormContext();
 
     // ---------------------------------------------------------------------------------------------
-    // Build-up and tear-down availability management.
+    // Build-up and tear-down availability management
     // ---------------------------------------------------------------------------------------------
 
     let buildUpDayBefore: string = 'No';
@@ -167,7 +166,6 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
         const buildUpTearDown =
             { buildUpDayBefore, buildUpOpening, tearDownClosing, tearDownDayAfter };
 
-        // Update the `field` with the new `value`:
         buildUpTearDown[field as keyof typeof buildUpTearDown] = value || 'No';
 
         setValue('buildUpTearDown', JSON.stringify(buildUpTearDown), {
@@ -181,7 +179,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
     const timeslotsDefaultValue = defaultValues?.timeslotsStr;
     const timeslotsFieldNames = useMemo(() => {
         return [ ...Array(props.timeslots.limit) ].map((_, index) => `timeslots.${index}`);
-    }, [ props.timeslots.limit ])
+    }, [ props.timeslots.limit ]);
 
     useEffect(() => {
         const timeslotsStr = getValues('timeslotsStr') || timeslotsDefaultValue;
@@ -224,9 +222,9 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                     const end = Temporal.ZonedDateTime.from(timeslot.end);
 
                     if (isAfter(firstValidException, end))
-                        continue;  // exception happens before the event
+                        continue;
                     if (isBefore(lastValidException, start))
-                        continue;  // exception happens after the event
+                        continue;
 
                     let state: keyof typeof kAvailabilityTimelineTitles = 'unavailable';
                     switch (timeslot.state) {
@@ -244,7 +242,6 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                         title: kAvailabilityTimelineTitles[state],
                         color: kAvailabilityTimelineColours[state],
 
-                        // Internal properties:
                         animeConState: state,
                     });
                 }
@@ -260,7 +257,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
         setTimeslots(timeslots);
         setValue('exceptions', JSON.stringify(timeslots.map(timeslot => {
             if (!timeslot.start || !timeslot.end || !timeslot.animeConState)
-                return null;  // invalid `timeslot`
+                return null;
 
             return {
                 start: timeslot.start,
@@ -280,7 +277,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
         tearDownClosing: handleBuildUpTearDownChange.bind(null, 'tearDownClosing'),
         tearDownDayAfter: handleBuildUpTearDownChange.bind(null, 'tearDownDayAfter'),
 
-    }), [ handleBuildUpTearDownChange ])
+    }), [ handleBuildUpTearDownChange ]);
 
     return (
         <>
@@ -291,7 +288,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
                 <SelectElement name="timing" label="Timing of shifts" required fullWidth
-                               options={kServiceTimingOption} size="small"
+                               options={kServiceTimingOptions} size="small"
                                slotProps={{ input: { readOnly } }} />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -427,7 +424,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
 }
 
 /**
- * Grid container for the build up and tear down availability obxes.
+ * Grid container for build-up and tear-down availability options.
  */
 const BuildUpTearDownGridItem = styled(Grid)(({ theme }) => ({
     border: `1px solid ${theme.vars?.palette.divider}`,
@@ -436,7 +433,7 @@ const BuildUpTearDownGridItem = styled(Grid)(({ theme }) => ({
 }));
 
 /**
- * Stack for the option space for build up and tear down soliciting.
+ * Stack container for each build-up or tear-down day option.
  */
 const BuildUpTearDownDayContainer = styled(Stack)(({ theme }) => ({
     alignItems: 'center',
@@ -444,14 +441,14 @@ const BuildUpTearDownDayContainer = styled(Stack)(({ theme }) => ({
 }));
 
 /**
- * Container of an accordion that should be visually highlighted, removing the background color.
+ * Accordion container with highlighted background.
  */
 const HighlightAccordion = styled(Accordion)(({ theme }) => ({
     backgroundColor: 'unset',
 }));
 
 /**
- * Summary of an accordion that should be visually highlighted.
+ * Summary element for highlighted accordions.
  */
 const HighlightAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
     backgroundColor: theme.vars?.palette.backgroundHighlight as string,

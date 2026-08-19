@@ -11,21 +11,21 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
- * Individual preference version entry as fetched from the database.
+ * Describes a single version entry in preference history.
  */
 interface PreferenceVersion<T extends Record<string, any> = Record<string, any>> {
     /**
-     * Name of the person who created or updated this version, when known.
+     * Name of the user who recorded this preference version.
      */
     author?: string | null;
 
     /**
-     * Form data associated with this preference version.
+     * Form values recorded for this version.
      */
     data?: T | null;
 
     /**
-     * The date and time at which this version was recorded.
+     * Date and time when this version was created.
      */
     version?: Temporal.ZonedDateTime | string | null;
 }
@@ -35,32 +35,32 @@ interface PreferenceVersion<T extends Record<string, any> = Record<string, any>>
  */
 interface PreferenceHistoryProps<T extends Record<string, any> = Record<string, any>> {
     /**
-     * Warning message to display when no preferences have been shared yet.
+     * Warning message to show when no preference history exists.
      */
     emptyWarning: string;
 
     /**
-     * The preference versions that should be displayed.
+     * List of preference version entries to display.
      */
     versions?: PreferenceVersion<T>[];
 
     /**
-     * Children to render within each version's FormGrid.
+     * Form fields to render within each version entry.
      */
     children: React.ReactNode;
 }
 
 /**
- * Renders the change history of a volunteer's preferences as a list of expandable sections.
+ * Displays the version history of volunteer preferences as expandable sections.
  */
 export function PreferenceHistory<T extends Record<string, any>>(props: PreferenceHistoryProps<T>) {
     return (
         <>
             <Section noHeader back="Back to preferences" tabs>
                 <SectionIntroduction>
-                    The Volunteer Managers tracks updates made to these preferences for operational
-                    purposes, particularly so that team leads can quickly accommodate last-minute
-                    schedule adjustments. Please do not engage in any disputes.
+                    The Volunteer Manager tracks updates made to these preferences for operational
+                    purposes, particularly so that team leads can accommodate last-minute
+                    schedule adjustments.
                 </SectionIntroduction>
             </Section>
             { !props.versions?.length &&

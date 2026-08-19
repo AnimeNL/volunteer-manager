@@ -1,38 +1,36 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import db, { tActivities, tActivitiesTimeslots } from '@lib/database';
-
 import { formatDate } from '@lib/Temporal';
 import { getEvent } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
+import db, { tActivities, tActivitiesTimeslots } from '@lib/database';
 
 /**
- * Individual event that can be selected as a preference by the volunteer.
+ * Represents a timeslot that a volunteer can select in their preferences.
  */
 interface Timeslot {
     /**
-     * Unique AnPlan timeslot Id of the entry that can be selected by the volunteer.
+     * Unique AnPlan timeslot ID.
      */
     id: number;
 
     /**
-     * Label that should be displayed for this event in an autocomplete box.
+     * Label to display in the autocomplete input.
      */
     label: string;
 }
 
 /**
- * Fetches the timeslots that a volunteer can request to attend as part of their preferences.
+ * Fetches the program timeslots that a volunteer can request to attend.
  */
 export async function getAvailabilityTimeslots(eventId: number): Promise<Timeslot[]> {
     const maxDurationMinutes =
-            await readSetting('availability-max-event-duration-minutes') ?? Number.MAX_SAFE_INTEGER;
+        await readSetting('availability-max-event-duration-minutes') ?? Number.MAX_SAFE_INTEGER;
 
     const event = await getEvent(eventId);
     const timeslots: Timeslot[] = [];
 
-    // Bail out when the |event| does not have an associated AnPlan ID.
     if (!event?.integrations?.anPlanFestivalId)
         return timeslots;
 
@@ -42,7 +40,6 @@ export async function getAvailabilityTimeslots(eventId: number): Promise<Timeslo
             .and(tActivitiesTimeslots.timeslotDeleted.isNull())
         .where(tActivities.activityFestivalId.equals(event.integrations.anPlanFestivalId))
             .and(tActivities.activityType.equals('Program'))
-            //.and(tActivities.activityVisible.equals(/* true= */ 1))
             .and(tActivities.activityDeleted.isNull())
         .select({
             id: tActivitiesTimeslots.timeslotId,
@@ -57,7 +54,7 @@ export async function getAvailabilityTimeslots(eventId: number): Promise<Timeslo
     for (const timeslot of activityTimeslots) {
         const duration = timeslot.startTime.until(timeslot.endTime, { largestUnit: 'minute' });
         if (duration.minutes < 0 || duration.minutes > maxDurationMinutes)
-            continue;  // this event exceeds the duration cutoff
+            continue;
 
         const localStartTime = timeslot.startTime.withTimeZone(event.timeZone);
         const localStartTimeStr = formatDate(localStartTime, 'dddd, HH:mm');

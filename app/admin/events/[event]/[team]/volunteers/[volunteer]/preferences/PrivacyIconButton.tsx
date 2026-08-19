@@ -12,14 +12,13 @@ import Tooltip from '@mui/material/Tooltip';
 import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
- * The <PrivacyIconButton> displays a dialog to the user explaining that the shown data is sensitive
- * and needs to be handled with care.
+ * Displays an icon button with a dialog that explains the sensitivity of personal data.
  */
 export function PrivacyIconButton() {
     const [ open, setOpen ] = useState<boolean>(false);
 
-    const handleClose = useCallback(() => setOpen(false), [ ]);
-    const handleOpen = useCallback(() => setOpen(true), [ ]);
+    const handleClose = useCallback(() => setOpen(false), []);
+    const handleOpen = useCallback(() => setOpen(true), []);
 
     return (
         <>
@@ -29,7 +28,7 @@ export function PrivacyIconButton() {
                 </Tooltip>
             </IconButton>
             <ResponsiveDialog open={open} onClose={handleClose}
-                              title="This data is sensitive!"
+                              title="This data is sensitive"
                               description={
                                   <>
                                       The data shown in this section is especially sensitive and you

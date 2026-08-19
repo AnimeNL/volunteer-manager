@@ -16,7 +16,7 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
 /**
- * Overview of changes made to the volunteer's availability during an event.
+ * Displays the change history of volunteer availability preferences.
  */
 export default async function EventTeamVolunteerPreferencesAvailabilityPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/availability'>)
@@ -118,5 +118,5 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
 }
 
 export const generateMetadata = createGenerateMetadataFn(
-    'Participation', 'Preferences', { user: 'volunteer' }, 'Volunteers', { team: 'team' },
+    'Availability', 'Preferences', { user: 'volunteer' }, 'Volunteers', { team: 'team' },
     { event: 'event' });

@@ -4,7 +4,7 @@
 import db, { tHotels } from '@lib/database';
 
 /**
- * Fetches the available hotel rooms for the given `eventId` from the database.
+ * Fetches available hotel rooms for the given event ID.
  */
 export async function getHotelRooms(eventId: number) {
     return await db.selectFrom(tHotels)

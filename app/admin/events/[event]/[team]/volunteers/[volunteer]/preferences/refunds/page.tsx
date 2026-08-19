@@ -14,7 +14,7 @@ import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAut
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 /**
- * Overview of changes made to the volunteer's refund requests.
+ * Displays the change history of volunteer refund requests.
  */
 export default async function EventTeamVolunteerPreferencesRefundsPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/refunds'>)
@@ -57,7 +57,7 @@ export default async function EventTeamVolunteerPreferencesRefundsPage(
         })
         .groupBy(tUsersEvents.userId)
         .executeSelectNoneOrOne();
-    
+
     if (!volunteer)
         notFound();
 
