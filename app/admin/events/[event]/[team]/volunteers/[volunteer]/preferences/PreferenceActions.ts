@@ -12,7 +12,8 @@ import db, { tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
     tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds,
     tUsersEventsPreferencesTraining } from '@lib/database';
 
-import { kServiceHoursProperty, kServiceTimingProperty } from './AvailabilitySettings';
+import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
+    from './AvailabilitySettings';
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
 
@@ -24,6 +25,7 @@ import { kTemporalPlainDate } from '@app/api/Types';
  * Schema defining the information required to update availability.
  */
 const kAvailabilityPreferencesSchema = z.object({
+    buildUpTearDown: z.string().nullish(),
     hours: kServiceHoursProperty,
     timing: kServiceTimingProperty,
     remarks: z.string().nullish(),
@@ -45,8 +47,25 @@ export async function updateAvailabilityPreferences(
                 operation: 'update',
             });
 
+        let buildUpTearDown: string | null = null;
+        if (!!data.buildUpTearDown) {
+            try {
+                const deserialisedBuildUpTearDown = JSON.parse(data.buildUpTearDown);
+                const validatedBuildUpTearDown = kAvailabilityBuildUpTearDownScheme.parse(
+                    deserialisedBuildUpTearDown);
+
+                buildUpTearDown = JSON.stringify(validatedBuildUpTearDown);
+
+            } catch (error: any) {
+                return {
+                    success: false,
+                    error: `Invalid build-up & tear-down data given: ${error}`,
+                };
+            }
+        }
+
         if (!data.remarks?.length)
-            data.remarks = null;
+            data.remarks = undefined;
 
         const [ availabilityTimingStart, availabilityTimingEnd ] =
             data.timing.split('-').map(timingValue => parseInt(timingValue, 10));
@@ -59,6 +78,7 @@ export async function updateAvailabilityPreferences(
                     .and(tUsersEventsPreferencesAvailability.teamId.equals(team.id))
                     .and(tUsersEventsPreferencesAvailability.preferenceVersionIsLatest.equals(1))
                 .select({
+                    buildUpTearDown: tUsersEventsPreferencesAvailability.availabilityBuildUpTearDown,
                     hours: tUsersEventsPreferencesAvailability.availabilityHours,
                     timingStart: tUsersEventsPreferencesAvailability.availabilityTimingStart,
                     timingEnd: tUsersEventsPreferencesAvailability.availabilityTimingEnd,
@@ -67,6 +87,7 @@ export async function updateAvailabilityPreferences(
                 .executeSelectNoneOrOne();
 
             if (existing &&
+                existing.buildUpTearDown === buildUpTearDown &&
                 existing.hours === data.hours &&
                 existing.timingStart === availabilityTimingStart &&
                 existing.timingEnd === availabilityTimingEnd &&
@@ -93,7 +114,7 @@ export async function updateAvailabilityPreferences(
                     preferenceVersion: dbInstance.currentZonedDateTime(),
                     preferenceVersionIsLatest: /* true= */ 1,
                     preferenceVersionUserId: props.user.id,
-                    availabilityBuildUpTearDown: null,  // todo: support this
+                    availabilityBuildUpTearDown: buildUpTearDown,
                     availabilityExceptions: null,  // todo: support this
                     availabilityHours: data.hours,
                     availabilityTimeslots: null,  // todo: support this

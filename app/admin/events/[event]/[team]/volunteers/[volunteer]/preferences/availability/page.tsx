@@ -59,6 +59,7 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                 version: preferencesAvailabilityJoin.preferenceVersion,
                 author: usersJoin.name,
                 data: {
+                    buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
                     hours: preferencesAvailabilityJoin.availabilityHours,
                     timing: combinedTimingFragment,
                     remarks: preferencesAvailabilityJoin.availabilityRemarks,
@@ -111,7 +112,13 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                     <ExpandableSection key={date} defaultExpanded={index === 0}
                                        icon={ <TopicOutlinedIcon /> } title={title}>
                         <FormGrid action={undefined!} defaultValues={data}>
-                            <AvailabilityForm readOnly />
+                            <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
+                                              includeTearDown={event.flags.enableTearDown}
+                                              readOnly
+                                              event={{
+                                                  startTime: event.startTime.toString(),
+                                                  endTime: event.endTime.toString(),
+                                              }} />
                         </FormGrid>
                     </ExpandableSection>
                 );

@@ -34,8 +34,10 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 timeZone: tEvents.eventTimezone,
 
                 flags: {
+                    enableBuildUp: tEvents.availabilityBuildUp.equals(/* true= */ 1),
                     enableHotel: tEvents.hotelEnabled.equals(/* true= */ 1),
                     enableRefunds: tEvents.refundEnabled.equals(/* true= */ 1),
+                    enableTearDown: tEvents.availabilityTearDown.equals(/* true= */ 1),
                     enableTraining: tEvents.trainingEnabled.equals(/* true= */ 1),
                 },
 

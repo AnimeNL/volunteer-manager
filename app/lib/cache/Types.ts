@@ -52,6 +52,11 @@ export interface CachedEvent {
      */
     flags: {
         /**
+         * Whether to enable functionality related to soliciting the build up crew.
+         */
+        enableBuildUp: boolean;
+
+        /**
          * Whether to enable functionality related to hotel management.
          */
         enableHotel: boolean;
@@ -60,6 +65,11 @@ export interface CachedEvent {
          * Whether to enable functionality related to managing refund requests.
          */
         enableRefunds: boolean;
+
+        /**
+         * Whether to enable functionality related to soliciting the tear down crew.
+         */
+        enableTearDown: boolean;
 
         /**
          * Whether to enable functionality related to training management.

@@ -95,6 +95,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 name: tUsers.name,
             },
             availability: {
+                buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
                 hours: preferencesAvailabilityJoin.availabilityHours,
                 timing: combinedTimingFragment,
                 remarks: preferencesAvailabilityJoin.availabilityRemarks,
@@ -196,7 +197,12 @@ export default async function EventTeamVolunteerPreferencesPage(
                 <SectionIntroduction grid>
                     Information regarding their availability during {event.shortName}.
                 </SectionIntroduction>
-                <AvailabilityForm />
+                <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
+                                  includeTearDown={event.flags.enableTearDown}
+                                  event={{
+                                      startTime: event.startTime.toString(),
+                                      endTime: event.endTime.toString(),
+                                  }} />
             </FormGridSection>
 
             { event.flags.enableHotel &&

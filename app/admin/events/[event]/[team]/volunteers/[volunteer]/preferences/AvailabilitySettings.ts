@@ -4,6 +4,16 @@
 import { z } from 'zod/v4';
 
 /**
+ * Scheme definition for valid build-up / tear-down information as stored in the database.
+ */
+export const kAvailabilityBuildUpTearDownScheme = z.object({
+    buildUpDayBefore: z.string(),
+    buildUpOpening: z.string(),
+    tearDownClosing: z.string(),
+    tearDownDayAfter: z.string(),
+});
+
+/**
  * Number of hours that the volunteer would like to help us out with.
  */
 export const kServiceHoursProperty = z.literal([ 12, 16, 20, 24 ]);
