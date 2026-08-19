@@ -85,6 +85,11 @@ interface AvailabilityFormProps {
          * Whether the exception section should be opened by default.
          */
         open: boolean;
+
+        /**
+         * Time step, in minutes, defining the granularity of events in the exception view.
+         */
+        step: number;
     };
 
     /**
@@ -403,11 +408,11 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                         <AccordionDetails sx={{ pt: 2, pb: 0 }}>
                             <HiddenInput name="exceptions" />
                             { /* TODO: Make lazy */ }
-                            { /* TODO: Step */ }
                             <AvailabilityFormTimeline
                                 event={props.event} timeslots={timeslots}
                                 onChange={handleTimelineChange}
-                                readOnly={props.readOnly} />
+                                readOnly={props.readOnly}
+                                step={props.includeExceptions.step} />
                         </AccordionDetails>
                     </HighlightAccordion>
                 </Grid> }

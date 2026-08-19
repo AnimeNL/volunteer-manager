@@ -26,6 +26,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAvailabilityTimeslots } from './getAvailabilityTimeslots';
 import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
@@ -142,6 +143,8 @@ export default async function EventTeamVolunteerPreferencesPage(
     const hotelRooms = await getHotelRooms(event.id);
     const trainings = await getTrainings(event.id);
 
+    const step = await readSetting('schedule-time-step-minutes') ?? 15;
+
     // ---------------------------------------------------------------------------------------------
 
     const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
@@ -205,7 +208,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                 </SectionIntroduction>
                 <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
                                   includeTearDown={event.flags.enableTearDown}
-                                  includeExceptions={{ open: false }}
+                                  includeExceptions={{ open: false, step }}
                                   event={{
                                       startTime: event.startTime.toString(),
                                       endTime: event.endTime.toString(),

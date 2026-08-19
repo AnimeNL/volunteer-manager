@@ -15,6 +15,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAvailabilityTimeslots } from '../getAvailabilityTimeslots';
+import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
@@ -80,6 +81,7 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
         Temporal.ZonedDateTime.compare(lhs.version!, rhs.version!) * -1);
 
     const availabilityTimeslots = await getAvailabilityTimeslots(event.id);
+    const step = await readSetting('schedule-time-step-minutes') ?? 15;
 
     const baseUrl = `/admin/events/${event.slug}/${team.slug}/volunteers`;
     return (
@@ -120,7 +122,7 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
                         <FormGrid action={undefined!} defaultValues={data}>
                             <AvailabilityForm includeBuildUp={event.flags.enableBuildUp}
                                               includeTearDown={event.flags.enableTearDown}
-                                              includeExceptions={{ open: true }}
+                                              includeExceptions={{ open: true, step }}
                                               readOnly
                                               event={{
                                                   startTime: event.startTime.toString(),
