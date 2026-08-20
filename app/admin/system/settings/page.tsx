@@ -5,6 +5,7 @@ import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettin
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import CelebrationOutlinedIcon from '@mui/icons-material/CelebrationOutlined';
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import { Section } from '@app/admin/components/Section';
@@ -32,6 +33,22 @@ export default async function SettingsPage() {
             settings: ConfigurableSetting[];
         };
     } = {
+        'General settings': {
+            icon: <GraphicEqIcon />,
+            description: 'Settings relevant to the entire AnimeCon Volunteer Manager system.',
+            settings: [
+                {
+                    setting: 'system-role-account-user-id',
+                    type: 'number',
+                    defaultValue: 1,
+
+                    label: 'System Role Account ID',
+                    description:
+                        'User ID of the account that serves as the Volunteer Manager\'s role ' +
+                        'account for e.g. automated outgoing communication.',
+                }
+            ],
+        },
         'Admin settings': {
             icon: <AdminPanelSettingsOutlinedIcon />,
             description: 'Settings relevant to the administration area of the Volunteer Manager.',

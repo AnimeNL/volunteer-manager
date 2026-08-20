@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
+import Alert from '@mui/material/Alert';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import FaceIcon from '@mui/icons-material/Face';
@@ -23,6 +24,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
+import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
@@ -121,11 +123,13 @@ export default async function AccountInformationPage(
 
     const action = actions.updateAccountInformation.bind(null, account.id);
 
+    const isRoleAccount = await readSetting('system-role-account-user-id') === account.id;
+
     const canDeleteAccounts = access.can('organisation.accounts', 'delete');
     const canUpdateAccounts = access.can('organisation.accounts', 'update');
 
     const anonymizationAction =
-        canDeleteAccounts
+        (canDeleteAccounts && !isRoleAccount)
             ? actions.anonymizeAccount.bind(null, account.id)
             : undefined;
 
@@ -135,12 +139,12 @@ export default async function AccountInformationPage(
             : undefined;
 
     const deactivateAccountFn =
-        (canUpdateAccounts && !!account.activated)
+        (canUpdateAccounts && !!account.activated && !isRoleAccount)
             ? actions.deactivateAccount.bind(null, account.id)
             : undefined;
 
     const restrictFn =
-        (canUpdateAccounts && !account.restricted)
+        (canUpdateAccounts && !account.restricted && !isRoleAccount)
             ? actions.updateAccountSuspension.bind(null, account.id, /* suspend= */ true)
             : undefined;
 
@@ -196,6 +200,13 @@ export default async function AccountInformationPage(
                                          createAccessCodeFn={createAccessCodeFn}
                                          impersonateFn={impersonateFn} />
                 </ActionBar>
+                { isRoleAccount &&
+                    <Alert severity="info" variant="filled">
+                        This is the system service account for the Volunteer Manager. Automated
+                        features, such as registration and application confirmations, run through
+                        this account. To prevent system errors, account management options are
+                        limited.
+                    </Alert>}
             </Section>
             <FormGridSection action={action} defaultValues={account.defaultValues}
                              icon={ <BadgeOutlinedIcon /> } title="Information">
