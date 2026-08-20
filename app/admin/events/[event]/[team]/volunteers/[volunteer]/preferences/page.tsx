@@ -28,7 +28,7 @@ import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
+import db, { tRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
@@ -88,6 +88,8 @@ export default async function EventTeamVolunteerPreferencesPage(
                 .and(preferencesTrainingJoin.preferenceVersionIsLatest.equals(1))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tUsersEvents.roleId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
             .and(tUsersEvents.userId.equals(id))
@@ -96,6 +98,16 @@ export default async function EventTeamVolunteerPreferencesPage(
             volunteer: {
                 id: tUsers.userId,
                 name: tUsers.name,
+
+                availabilityEventLimit:
+                    tUsersEvents.availabilityEventLimit.valueWhenNull(
+                        tRoles.roleAvailabilityEventLimit),
+                hotelEligibility:
+                    tUsersEvents.hotelEligible.valueWhenNull(
+                        tRoles.roleHotelEligible).equals(1),
+                trainingEligibility:
+                    tUsersEvents.trainingEligible.valueWhenNull(
+                        tRoles.roleTrainingEligible).equals(1),
             },
             availability: {
                 buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
@@ -191,9 +203,8 @@ export default async function EventTeamVolunteerPreferencesPage(
                     in {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader tabs />
 
-            <FormGridSection icon={ <FreeCancellationIcon /> } title="Availability"
+            <FormGridSection icon={ <FreeCancellationIcon /> } title="Availability" tabs
                              action={availabilityFn} defaultValues={context.availability}
                              headerAction={
                                 <Stack direction="row" spacing={1}>
@@ -213,12 +224,12 @@ export default async function EventTeamVolunteerPreferencesPage(
                                       timeZone: event.timeZone,
                                   }}
                                   timeslots={{
-                                      limit: 3,
+                                      limit: volunteer.availabilityEventLimit,
                                       options: availabilityTimeslots,
                                   }} />
             </FormGridSection>
 
-            { event.flags.enableHotel &&
+            { (event.flags.enableHotel && !!volunteer.hotelEligibility) &&
                 <FormGridSection icon={ <HotelIcon /> } title="Hotel"
                                  action={hotelFn} defaultValues={context.hotel}
                                  headerAction={
@@ -263,7 +274,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                     <RefundForm readOnly={!canUpdateRefunds} />
                 </FormGridSection> }
 
-            { event.flags.enableTraining &&
+            { (event.flags.enableTraining && !!volunteer.trainingEligibility) &&
                 <FormGridSection icon={ <HistoryEduIcon /> } title="Training"
                                  action={trainingFn} defaultValues={context.training}
                                  headerAction={
