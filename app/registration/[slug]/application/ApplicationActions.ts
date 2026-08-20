@@ -12,8 +12,9 @@ import { determineAvailabilityStatus } from '@lib/EnvironmentContext';
 import { executeServerAction } from '@lib/serverAction';
 import { getPublicEventsForFestival } from './[team]/availability/getPublicEventsForFestival';
 import { getStaticContent } from '@lib/Content';
+import { readSetting } from '@lib/Settings';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents, tEventsTeams, tHotelsPreferences,
-    tRefunds, tRoles, tTeams, tTeamsRoles, tTrainingsAssignments, tUsersEvents,
+    tRefunds, tRoles, tTeams, tTeamsRoles, tTrainingsAssignments, tUsersCommunication, tUsersEvents,
     tUsersEventsPreferencesParticipation}
     from '@lib/database';
 
@@ -157,7 +158,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
         const [ preferenceTimingStart, preferenceTimingEnd ] =
             data.serviceTiming.split('-').map(v => parseInt(v, 10));
 
-        await dbInstance.transaction(async () => {
+        const communicationId = await dbInstance.transaction(async () => {
             await dbInstance.insertInto(tUsersEvents)
                 .set({
                     userId: props.user!.id,
@@ -186,6 +187,19 @@ export async function createApplication(eventId: number, teamId: number, formDat
                     participationTshirtFit: data.tshirtFit,
                     participationTshirtSize: data.tshirtSize,
                 })
+                .executeInsert();
+
+            const roleAccount = await readSetting('system-role-account-user-id');
+
+            return await dbInstance.insertInto(tUsersCommunication)
+                .set({
+                    userId: props.user!.id,
+                    communicationEventId: eventId,
+                    communicationTeamId: teamId,
+                    communicationSenderId: roleAccount ?? 0,
+                    communicationDate: dbInstance.currentZonedDateTime()
+                })
+                .returningLastInsertedId()
                 .executeInsert();
         });
 
@@ -225,6 +239,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
                     markdown: applicationConfirmation.markdown,
                 },
                 attribution: {
+                    communicationId,
                     sourceUserId: props.user.id,
                     targetUserId: props.user.id,
                 },

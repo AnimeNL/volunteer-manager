@@ -1735,7 +1735,8 @@ tables:
     nullable: false
   - name: communication_prompt_id
     type: varchar(64)
-    nullable: false
+    nullable: true
+    default: "NULL"
   - name: communication_sender_id
     type: int(4) unsigned
     nullable: false
@@ -1776,7 +1777,7 @@ tables:
       `user_communication_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
       `communication_event_id` int(4) unsigned NOT NULL,
       `communication_team_id` int(4) unsigned NOT NULL,
-      `communication_prompt_id` varchar(64) NOT NULL,
+      `communication_prompt_id` varchar(64) DEFAULT NULL,
       `communication_sender_id` int(4) unsigned NOT NULL,
       `communication_date` datetime NOT NULL,
       PRIMARY KEY (`user_communication_id`),
