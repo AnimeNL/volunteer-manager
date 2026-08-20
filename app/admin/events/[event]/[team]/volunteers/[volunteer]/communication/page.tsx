@@ -105,7 +105,7 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
                         tUsers.name.containsInsensitiveIfValue(params.search)))
                 .select({
                     id: tOutboxEmail.outboxEmailId,
-                    date: dbInstance.dateTimeAsString(tUsersCommunication.communicationDate),
+                    date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
                     sender: {
                         id: tUsers.userId,
                         name: tUsers.name,
