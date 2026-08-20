@@ -1,65 +1,30 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
 
-import { DateTimePickerElement, SelectElement, TextFieldElement, TextareaAutosizeElement }
-    from '@proxy/react-hook-form-mui';
-
-import EditNoteIcon from '@mui/icons-material/EditNote';
-import Grid from '@mui/material/Grid';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import ScheduleIcon from '@mui/icons-material/Schedule';
 
-import type { ServerAction } from '@lib/serverAction';
-import type { TimelineEvent } from '@AnimeNL/volunteer-manager-timeline';
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers, tUsersEvents }
-    from '@lib/database';
+import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import db, { tUsers, tUsersEvents } from '@lib/database';
 
-import { VolunteerHeader } from './VolunteerHeader';
-import { VolunteerIdentity } from './VolunteerIdentity';
-import { VolunteerSchedule } from './VolunteerSchedule';
-import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { readUserSettings } from '@lib/UserSettings';
-
-import { kRegistrationStatus } from '@lib/database/Types';
-
-import * as actions from '../VolunteerActions';
+import { ActionBar } from '@app/admin/components/ActionBar';
+import { ContactVolunteerSection } from './ContactVolunteerSection';
 
 /**
- * Options for a tri-state binary select box. They look better on the page than checkboxes.
+ * Page displaying the basic information and metadata associated with a volunteer.
  */
-const kTriBooleanSelectOptions = [
-    { id: 2, label: '(default)' },
-    { id: 1, label: 'Eligible' },
-    { id: 0, label: 'Not eligible' },
-];
-
-/**
- * Displays information about an individual volunteer and their participation in a particular event.
- * Different from the general volunteer account information page, which can only be accessed by a
- * more limited number of people.
- */
-export default async function EventVolunteerPage(
+export default async function EventTeamVolunteerPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
-    const { access, user, event, team } = await verifyAccessAndFetchPageInfo(props.params);
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
+        permission: 'event.volunteers.information',
+        operation: 'read',
+    });
 
-    const accessScope = { event: event.slug, team: team.slug };
-    if (!access.can('event.volunteers.information', 'read', accessScope))
-        notFound();
-
-    const params = await props.params;
-    const readOnly = !access.can('event.volunteers.information', 'update', accessScope);
-
-    const storageJoin = tStorage.forUseInLeftJoin();
+    const id = parseInt((await props.params).volunteer, /* radix= */ 10);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -67,154 +32,25 @@ export default async function EventVolunteerPage(
     const volunteer = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
-        .innerJoin(tRoles)
-            .on(tRoles.roleId.equals(tUsersEvents.roleId))
-        .leftJoin(storageJoin)
-            .on(storageJoin.fileId.equals(tUsers.avatarId))
-        .where(tUsersEvents.userId.equals(parseInt(params.volunteer, 10)))
-            .and(tUsersEvents.eventId.equals(event.id))
+        .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.registrationStatus.in(
-                [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+            .and(tUsersEvents.userId.equals(id))
+            .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
         .select({
-            userId: tUsersEvents.userId,
-            username: tUsers.username,
-            firstName: tUsers.firstName,
+            id: tUsers.userId,
             name: tUsers.name,
-            language: tUsers.language,
-            avatarFileHash: storageJoin.fileHash,
-            phoneNumber: tUsers.phoneNumber,
-            roleId: tUsersEvents.roleId,
-            roleName: tRoles.roleName,
-            registrationDate: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
-            registrationStatus: tUsersEvents.registrationStatus,
-            registrationNotes: tUsersEvents.registrationNotes,
-            availabilityBuildUpTearDown: tUsersEvents.availabilityBuildUpTearDown,
-            availabilityEventLimit: tUsersEvents.availabilityEventLimit,
-            availabilityExceptions: tUsersEvents.availabilityExceptions,
-            availabilityTimeslots: tUsersEvents.availabilityTimeslots,
-            hotelEligible: tUsersEvents.hotelEligible,
-            trainingEligible: tUsersEvents.trainingEligible,
-            preferences: tUsersEvents.preferences,
-            serviceHours: tUsersEvents.preferenceHours,
-            serviceTiming: {
-                start: tUsersEvents.preferenceTimingStart,
-                end: tUsersEvents.preferenceTimingEnd,
-            },
-
-            actualAvailableEventLimit: tUsersEvents.availabilityEventLimit.valueWhenNull(
-                tRoles.roleAvailabilityEventLimit),
-            isHotelEligible: tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
-            isTrainingEligible:
-                tUsersEvents.trainingEligible.valueWhenNull(tRoles.roleTrainingEligible),
         })
         .executeSelectNoneOrOne();
 
     if (!volunteer)
         notFound();
 
-    const contactAccess = access.can('organisation.accounts', 'read');
-    const contactInfo =
-        contactAccess ? { username: volunteer.username, phoneNumber: volunteer.phoneNumber }
-                      : undefined;
-
-    const settings = await readUserSettings(user.id, [
-        'user-admin-volunteers-expand-notes',
-        'user-admin-volunteers-expand-shifts',
-    ]);
-
-    const canUpdateApplications = access.can('event.applications', 'update', accessScope);
-    const canUpdateParticipation = access.can('event.volunteers.participation', accessScope);
-
-    // ---------------------------------------------------------------------------------------------
-    // Section: Notes
-    // ---------------------------------------------------------------------------------------------
-
-    const notesAction = actions.updateNotes.bind(null, volunteer.userId, event.id, team.id);
-    const notesExpanded = !!settings['user-admin-volunteers-expand-notes'];
-
-    const notesDefaultValues = {
-        notes: volunteer.registrationNotes,
-    };
-
-    // ---------------------------------------------------------------------------------------------
-    // Section: Schedule
-    // ---------------------------------------------------------------------------------------------
-
-    const schedule: TimelineEvent[] = [];
-    const scheduledShifts = await dbInstance.selectFrom(tSchedule)
-        .innerJoin(tShifts)
-            .on(tShifts.shiftId.equals(tSchedule.shiftId))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tShifts.teamId))
-        .where(tSchedule.eventId.equals(event.id))
-            .and(tSchedule.userId.equals(volunteer.userId))
-            .and(tSchedule.shiftId.isNotNull())
-            .and(tSchedule.scheduleDeleted.isNull())
-        .select({
-            id: tSchedule.scheduleId,
-            start: tSchedule.scheduleTimeStart,
-            end: tSchedule.scheduleTimeEnd,
-            title: tShifts.shiftName,
-
-            shiftId: tSchedule.shiftId,
-            shiftTeam: tTeams.teamSlug,
-        })
-        .executeSelectMany();
-
-    if (!!scheduledShifts.length && !!event.festivalId) {
-        const shifts = await getShiftsForEvent(event.id, event.festivalId);
-        const shiftMap = new Map(shifts.map(shift => ([ shift.id, shift.colour ])));
-
-        for (const scheduledShift of scheduledShifts) {
-            schedule.push({
-                id: scheduledShift.id,
-                start: scheduledShift.start.toString({ timeZoneName: 'never' }),
-                end: scheduledShift.end.toString({ timeZoneName: 'never' }),
-                color: shiftMap.get(scheduledShift.shiftId!),
-                title: scheduledShift.title,
-
-                // Private data to enable double clicking on shift entries:
-                animeConShiftId: scheduledShift.shiftId!,
-                animeConShiftTeam: scheduledShift.shiftTeam,
-            });
-        }
-    }
-
-    const scheduleEvent = {
-        startTime: event.startTime,
-        endTime: event.endTime,
-        timezone: event.timezone,
-    };
-
-    const scheduleExpanded = !!settings['user-admin-volunteers-expand-shifts'];
-    const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
-
-    // ---------------------------------------------------------------------------------------------
-    // Section: Metadata
-    // ---------------------------------------------------------------------------------------------
-
-    let metadataAction: ServerAction | undefined;
-    let metadataDefaultValues: Record<string, any> | undefined;
-
-    if (access.can('event.volunteers.overrides', accessScope)) {
-        metadataAction = actions.updateMetadata.bind(null, volunteer.userId, event.id, team.id);
-        metadataDefaultValues = {
-            availabilityEventLimit: volunteer.availabilityEventLimit,
-            hotelEligible: volunteer.hotelEligible ?? /* default= */ 2,
-            registrationDate: volunteer.registrationDate,
-            trainingEligible: volunteer.trainingEligible ?? /* default= */ 2,
-        };
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
     return (
         <>
             <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
-                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
                          {
                              label: 'Volunteers',
                              href: `/admin/events/${event.slug}/${team.slug}/volunteers`,
@@ -226,78 +62,26 @@ export default async function EventVolunteerPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                TODO
+                <ActionBar>
+                    { /* TODO: Cancel participation */ }
+                    { /* TODO: Reinstate participation */ }
+                    { /* TODO: Change role */ }
+                    { /* TODO: Change team */ }
+                    { /* TODO: Manage overrides */ }
+                </ActionBar>
             </Section>
 
-            <VolunteerHeader
-                canUpdateApplications={canUpdateApplications}
-                canUpdateParticipation={canUpdateParticipation}
-                event={event} team={team} volunteer={volunteer} user={user}
-                cancelParticipationFn={
-                    actions.cancelParticipation.bind(null, volunteer.userId, event.id, team.id) }
-                reinstateParticipationFn={
-                    actions.reinstateParticipation.bind(null, volunteer.userId, event.id, team.id) }
-            />
+            { /* TODO: Identity w/ notes */ }
 
-            <VolunteerIdentity event={event.slug} teamId={team.id} userId={volunteer.userId}
-                               contactInfo={contactInfo} volunteer={volunteer} />
+            { /* TODO: Status tiles */ }
 
-            { /* -- Notes: -------------------------------------------------------------------- */ }
+            { /* TODO: Schedule */ }
 
-            <ExpandableSection icon={ <EditNoteIcon color="info" /> } title="Notes"
-                               defaultExpanded={notesExpanded}
-                               setting="user-admin-volunteers-expand-notes">
-                <FormGrid action={notesAction} defaultValues={notesDefaultValues}>
-                    <TextareaAutosizeElement name="notes" fullWidth size="small"
-                                             slotProps={{ input: { readOnly } }} />
-                </FormGrid>
-            </ExpandableSection>
-
-            { /* -- Schedule: ----------------------------------------------------------------- */ }
-
-            { !!schedule.length &&
-                <ExpandableSection icon={ <ScheduleIcon color="info" /> } title="Schedule"
-                                   subtitle={scheduleSubtitle} defaultExpanded={scheduleExpanded}
-                                   setting="user-admin-volunteers-expand-shifts">
-                    <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
-                </ExpandableSection> }
-
-            { /* ------------------------------------------------------------------------------ */ }
-
-            { !!metadataAction &&
-                <FormGridSection action={metadataAction} defaultValues={metadataDefaultValues}
-                                 title="Application information"
-                                 permission="event.volunteers.overrides">
-                    <Grid size={{ xs: 6 }}>
-                        <DateTimePickerElement name="registrationDate" label="Registration date"
-                                               inputProps={{ fullWidth: true, size: 'small' }} />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <TextFieldElement name="availabilityEventLimit" type="number"
-                                          label="Availability event limit override"
-                                          fullWidth size="small" />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <SelectElement name="hotelEligible" label="Hotel eligibility override"
-                                       options={kTriBooleanSelectOptions} fullWidth size="small" />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <SelectElement name="trainingEligible" label="Training eligibility override"
-                                       options={kTriBooleanSelectOptions} fullWidth size="small" />
-                    </Grid>
-                </FormGridSection> }
+            <ContactVolunteerSection event={event.id} team={team.id} user={{
+                id: volunteer.id,
+                name: volunteer.name,
+            }} />
 
         </>
     );
-}
-
-export async function generateMetadata(
-    props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
-{
-    const userName = await db.selectFrom(tUsers)
-        .where(tUsers.userId.equals(parseInt((await props.params).volunteer, 10)))
-        .selectOneColumn(tUsers.name)
-        .executeSelectNoneOrOne() ?? undefined;
-
-    return generateEventMetadataFn(userName)(props);
 }

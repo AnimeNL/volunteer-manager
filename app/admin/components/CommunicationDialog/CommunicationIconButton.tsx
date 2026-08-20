@@ -28,6 +28,13 @@ type CommunicationIconButtonProps<T extends CommunicationPromptId = Communicatio
     badge?: 'check' | 'none' | 'warning';
 
     /**
+     * Colour to apply to the icon button.
+     *
+     * @default "primary"
+     */
+    color?: 'inherit' | 'primary';
+
+    /**
      * Whether the button should be disabled. No description or tooltip will be available.
      */
     disabled?: boolean;
@@ -58,9 +65,10 @@ type CommunicationIconButtonProps<T extends CommunicationPromptId = Communicatio
 export function CommunicationIconButton<T extends CommunicationPromptId = CommunicationPromptId>(
     props: React.PropsWithChildren<CommunicationIconButtonProps<T>>)
 {
-    let { badge, disabled, size, tooltip, ...communicationDialogProps } = props;
+    let { badge, color, disabled, size, tooltip, ...communicationDialogProps } = props;
 
     badge ??= 'none';
+    color ??= 'primary';
     size ??= 'small';
 
     const [ openCounter, setOpenCounter ] = useState<number>(0);
@@ -77,12 +85,12 @@ export function CommunicationIconButton<T extends CommunicationPromptId = Commun
             <Tooltip title={ tooltip ?? 'Send an e-mail…' }>
                 <IconButton disabled={disabled} onClick={handleOpen} size={size}>
                     { badge === 'check' &&
-                        <MarkEmailReadIcon color="primary" fontSize={size} /> }
+                        <MarkEmailReadIcon color={color} fontSize={size} /> }
                     { badge === 'none' &&
-                        <EmailIcon color="primary" fontSize={size} /> }
+                        <EmailIcon color={color} fontSize={size} /> }
                     { badge === 'warning' &&
                         <Badge color="warning" variant="dot">
-                            <EmailIcon color="primary" fontSize={size} />
+                            <EmailIcon color={color} fontSize={size} />
                         </Badge> }
                 </IconButton>
             </Tooltip>

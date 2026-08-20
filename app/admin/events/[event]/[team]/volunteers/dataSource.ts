@@ -162,6 +162,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
                     .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
                     .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
+                    .and(usersCommunicationJoin.communicationPromptId.isNotNull())
             .leftJoin(usersEventsTicketsJoin)
                 .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
                     .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
@@ -208,9 +209,9 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             const communication: Record<string, string> = {};
             const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
             for (const item of volunteer.communication) {
-                const latestCommunication = communicationPrompts.get(item.promptId);
+                const latestCommunication = communicationPrompts.get(item.promptId!);
                 if (!latestCommunication || isBefore(latestCommunication, item.date))
-                    communicationPrompts.set(item.promptId, item.date);
+                    communicationPrompts.set(item.promptId!, item.date);
             }
 
             for (const [ promptId, date ] of communicationPrompts.entries())

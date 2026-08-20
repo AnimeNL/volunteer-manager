@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
-import { z } from 'zod/v4';
 
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';

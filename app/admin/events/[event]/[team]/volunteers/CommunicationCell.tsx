@@ -32,6 +32,11 @@ export interface CommunicationCellContext {
     action: (userId: number, promptId: CommunicationPromptId) => Promise<ServerActionResult>;
 
     /**
+     * Optional colour to apply to the communication button.
+     */
+    color?: 'inherit' | 'primary';
+
+    /**
      * Unique ID of the event for which a communication can be crafted.
      */
     eventId: number;
@@ -40,11 +45,6 @@ export interface CommunicationCellContext {
      * Short name of the event to further contextualise the flow.
      */
     eventName: string;
-
-    /**
-     * Optional size to pass to the communication icon button.
-     */
-    size?: 'small' | 'medium' | 'large';
 
     /**
      * Unique ID of the team for which a communication can be crafted.
@@ -71,7 +71,7 @@ export function CommunicationCell(
         <CommunicationIconButton
             title={`Update ${props.row.firstName} about ${eventName}?`}
             action={action.bind(null, props.row.id)}
-            disableSilent size={props.context?.size}
+            disableSilent color={props.context?.color}
             language={props.row.language}
             recipientId={props.row.id}
             prompts={[
