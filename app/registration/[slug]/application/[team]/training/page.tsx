@@ -14,15 +14,17 @@ import { AvailabilityWarning } from '../AvailabilityWarning';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
 import { TrainingConfirmation } from './TrainingConfirmation';
-import { TrainingPreferencesForm } from './TrainingPreferencesForm';
+import { TrainingForm } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/TrainingForm';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getStaticContent } from '@lib/Content';
-import { getTrainingOptions } from './getTrainingOptions';
+import { getTrainings } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getTrainings';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tRoles, tTrainings, tTrainingsAssignments, tUsersEvents } from '@lib/database';
+import db, { tEvents, tRoles, tTrainings, tTrainingsAssignments, tUsersEvents,
+    tUsersEventsPreferencesTraining } from '@lib/database';
 
-import * as actions from '../../ApplicationActions';
+import { updateTrainingPreferences }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
 
 /**
  * The <EventApplicationTrainingPage> component serves the ability for users to select which
@@ -42,6 +44,7 @@ export default async function EventApplicationTrainingPage(
     // the training sessions that may be organised.
     // ---------------------------------------------------------------------------------------------
 
+    const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
     const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
     const trainingsJoin = tTrainings.forUseInLeftJoin();
 
@@ -55,6 +58,10 @@ export default async function EventApplicationTrainingPage(
                 .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
         .leftJoin(trainingsJoin)
             .on(trainingsJoin.trainingId.equals(trainingsAssignmentsJoin.assignmentTrainingId))
+        .leftJoin(preferencesTrainingJoin)
+            .on(preferencesTrainingJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesTrainingJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesTrainingJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.userId.equals(user.id))
             .and(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
@@ -69,8 +76,7 @@ export default async function EventApplicationTrainingPage(
                 },
             },
             preferences: {
-                submitted: trainingsAssignmentsJoin.assignmentId.isNotNull(),
-                trainingId: trainingsAssignmentsJoin.preferenceTrainingId,
+                trainingId: preferencesTrainingJoin.trainingId,
             },
             settings: {
                 availability: {
@@ -116,13 +122,9 @@ export default async function EventApplicationTrainingPage(
         },
     });
 
-    const defaultValues = {
-        training: preferences?.trainingId ??
-            (preferences?.submitted ? /* skip the training= */ 0 : undefined),
-    };
+    const action = updateTrainingPreferences.bind(null, user.id, event.slug, team.slug);
 
-    const action = actions.updateTrainingPreferences.bind(null, event.id, team.id);
-    const sessions = await getTrainingOptions(event.id);
+    const trainings = await getTrainings(event.id);
 
     // ---------------------------------------------------------------------------------------------
 
@@ -159,8 +161,8 @@ export default async function EventApplicationTrainingPage(
                             send us an email!
                         </Alert> }
 
-                    <FormProvider action={action} defaultValues={defaultValues}>
-                        <TrainingPreferencesForm sessions={sessions} readOnly={locked} />
+                    <FormProvider action={action} defaultValues={data.preferences}>
+                        <TrainingForm readOnly={locked} trainings={trainings} />
                         { !locked &&
                             <FormSubmitButton callToAction="Update my preferences" sx={{ mt: 2 }}
                                               startIcon={ <HistoryEduIcon /> } /> }

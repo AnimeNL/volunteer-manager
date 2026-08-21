@@ -22,9 +22,28 @@ interface Timeslot {
 }
 
 /**
+ * Represents a timeslot that a volunteer can select in their preferences.
+ */
+export interface TimeslotWithZonedDateTimes extends Timeslot {
+    /**
+     * Time at which the timeslot will commence.
+     */
+    startTime: Temporal.ZonedDateTime;
+
+    /**
+     * Time at which the timeslot will conclude.
+     */
+    endTime: Temporal.ZonedDateTime;
+}
+
+/**
  * Fetches the program timeslots that a volunteer can request to attend.
  */
-export async function getAvailabilityTimeslots(eventId: number): Promise<Timeslot[]> {
+export async function getAvailabilityTimeslots(eventId: number, includeTimes: false)
+    : Promise<Timeslot[]>;
+export async function getAvailabilityTimeslots(eventId: number, includeTimes: true)
+    : Promise<TimeslotWithZonedDateTimes[]>;
+export async function getAvailabilityTimeslots(eventId: number, includeTimes: boolean) {
     const maxDurationMinutes =
         await readSetting('availability-max-event-duration-minutes') ?? Number.MAX_SAFE_INTEGER;
 
@@ -62,10 +81,17 @@ export async function getAvailabilityTimeslots(eventId: number): Promise<Timeslo
         const localEndTime = timeslot.endTime.withTimeZone(event.timeZone);
         const localEndTimeStr = formatDate(localEndTime, 'HH:mm');
 
-        timeslots.push({
+        const composedTimeslot: Timeslot & Partial<TimeslotWithZonedDateTimes> = {
             id: timeslot.id,
             label: `${timeslot.title} (${localStartTimeStr}–${localEndTimeStr})`,
-        });
+        };
+
+        if (includeTimes) {
+            composedTimeslot.startTime = timeslot.startTime;
+            composedTimeslot.endTime = timeslot.endTime;
+        }
+
+        timeslots.push(composedTimeslot);
     }
 
     return timeslots;

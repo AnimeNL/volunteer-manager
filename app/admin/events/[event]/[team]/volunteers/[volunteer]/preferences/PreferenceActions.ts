@@ -182,7 +182,7 @@ export async function updateAvailabilityPreferences(
 
         return {
             success: true,
-            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+            message: userId !== props.user.id ? undefined : 'Your preferences have been updated.',
         };
     });
 }
@@ -290,7 +290,7 @@ export async function updateHotelPreferences(
 
         return {
             success: true,
-            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+            message: userId !== props.user.id ? undefined : 'Your preferences have been updated.',
         };
     });
 }
@@ -393,7 +393,7 @@ export async function updateParticipationPreferences(
 
         return {
             success: true,
-            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+            message: userId !== props.user.id ? undefined : 'Your preferences have been updated.',
         };
     });
 }
@@ -480,7 +480,7 @@ export async function updateRefundPreferences(
 
         return {
             success: true,
-            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+            message: userId !== props.user.id ? undefined : 'Your preferences have been updated.',
         };
     });
 }
@@ -559,7 +559,7 @@ export async function updateTrainingPreferences(
 
         return {
             success: true,
-            message: userId === props.user.id ? undefined : 'Your preferences have been updated.',
+            message: userId !== props.user.id ? undefined : 'Your preferences have been updated.',
         };
     });
 }

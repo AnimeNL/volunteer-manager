@@ -19,14 +19,15 @@ import Typography from '@mui/material/Typography';
 
 import { CollapsableGrid } from '@components/CollapsableGrid';
 import { FormProviderContext } from '@components/FormProvider';
-import { HotelPreferencesForm, type HotelPreferencesFormProps } from './HotelPreferencesForm';
+import { HotelForm, type HotelFormProps }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/HotelForm';
 
 /**
  * The <HotelPreferences> component provides the interactivity for a form through which volunteers
  * are able to submit their preferences in regards to staying in a hotel room organised through us,
  * which requires them to acknowledge that they are making a financial commitment.
  */
-export function HotelPreferences(props: HotelPreferencesFormProps) {
+export function HotelPreferences(props: HotelFormProps) {
     const [ confirmationOpen, setConfirmationOpen ] = useState<boolean>(false);
     const [ formElement, setFormElement ] = useState<HTMLFormElement | null>(null);
 
@@ -78,7 +79,7 @@ export function HotelPreferences(props: HotelPreferencesFormProps) {
                         </Alert>
                     </Grid>}
 
-                <HotelPreferencesForm {...props} />
+                <HotelForm {...props} />
 
                 <CollapsableGrid size={{ xs: 12 }} in={!!formError}>
                     <Alert severity="error">

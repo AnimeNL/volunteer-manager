@@ -427,7 +427,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
  * Grid container for build-up and tear-down availability options.
  */
 const BuildUpTearDownGridItem = styled(Grid)(({ theme }) => ({
-    border: `1px solid ${theme.vars?.palette.divider}`,
+    border: `1px solid ${theme.vars?.palette.divider || theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1, 2),
 }));
@@ -435,7 +435,7 @@ const BuildUpTearDownGridItem = styled(Grid)(({ theme }) => ({
 /**
  * Stack container for each build-up or tear-down day option.
  */
-const BuildUpTearDownDayContainer = styled(Stack)(({ theme }) => ({
+const BuildUpTearDownDayContainer = styled(Stack)(() => ({
     alignItems: 'center',
     justifyContent: 'space-between',
 }));
@@ -443,7 +443,7 @@ const BuildUpTearDownDayContainer = styled(Stack)(({ theme }) => ({
 /**
  * Accordion container with highlighted background.
  */
-const HighlightAccordion = styled(Accordion)(({ theme }) => ({
+const HighlightAccordion = styled(Accordion)(() => ({
     backgroundColor: 'unset',
 }));
 
@@ -451,7 +451,9 @@ const HighlightAccordion = styled(Accordion)(({ theme }) => ({
  * Summary element for highlighted accordions.
  */
 const HighlightAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
-    backgroundColor: theme.vars?.palette.backgroundHighlight as string,
+    backgroundColor:
+        theme.vars?.palette.backgroundHighlight as string
+        || theme.palette.backgroundHighlight as string,
     borderRadius: theme.shape.borderRadius,
     fontSize: theme.typography.body1.fontSize,
 }));

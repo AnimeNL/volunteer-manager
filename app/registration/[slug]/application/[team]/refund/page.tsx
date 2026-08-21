@@ -4,21 +4,23 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Collapse from '@mui/material/Collapse';
+import Grid from '@mui/material/Grid';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import Typography from '@mui/material/Typography';
 
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
-import { RefundConfirmation } from './RefundConfirmation';
-import { RefundRequest } from './RefundRequest';
+import { RefundForm } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/RefundForm';
 import { formatDate } from '@lib/Temporal';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
 import { getStaticContent } from '@lib/Content';
-import db, { tEvents, tRefunds } from '@lib/database';
+import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
-import * as actions from '../../ApplicationActions';
+import { updateRefundPreferences }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
 
 /**
  * The <EventApplicationRefundPage> component allows volunteers to request a refund for their ticket
@@ -35,18 +37,18 @@ export default async function EventApplicationRefundPage(
     // Determine whether the signed in user already has (requested) a refund.
     // ---------------------------------------------------------------------------------------------
 
-    const refund = await dbInstance.selectFrom(tRefunds)
-        .where(tRefunds.userId.equals(user.id))
-            .and(tRefunds.eventId.equals(event.id))
+    const request = await dbInstance.selectFrom(tUsersEventsPreferencesRefunds)
+        .where(tUsersEventsPreferencesRefunds.userId.equals(user.id))
+            .and(tUsersEventsPreferencesRefunds.eventId.equals(event.id))
+            .and(tUsersEventsPreferencesRefunds.preferenceVersionIsLatest.equals(/* true= */ 1))
         .select({
-            ticketNumber: tRefunds.refundTicketNumber,
-            accountIban: tRefunds.refundAccountIban,
-            accountName: tRefunds.refundAccountName,
-
-            requested: dbInstance.dateTimeAsString(tRefunds.refundRequested),
-            confirmed: dbInstance.dateTimeAsString(tRefunds.refundConfirmed),
+            accountName: tUsersEventsPreferencesRefunds.refundAccountName,
+            accountIban: tUsersEventsPreferencesRefunds.refundAccountIban,
+            ticketNumber: tUsersEventsPreferencesRefunds.refundTicketNumber,
         })
-        .executeSelectNoneOrOne() ?? undefined;
+        .executeSelectNoneOrOne();
+
+    // TODO: Join the |request| with a decision or status update when that page has been redone.
 
     // ---------------------------------------------------------------------------------------------
     // Determine the state of the refund mechanism within the defined availability window.
@@ -90,7 +92,7 @@ export default async function EventApplicationRefundPage(
 
         const now = Temporal.Now.zonedDateTimeISO('UTC');
 
-        if (!!refund) {
+        if (!!request) {
             state = 'requested';
             content = await getStaticContent([ ...contentPath, 'refund' ], contentOptions);
         } else if (Temporal.ZonedDateTime.compare(now, refundRequestsStart) < 0) {
@@ -107,19 +109,46 @@ export default async function EventApplicationRefundPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const action = actions.requestRefund.bind(null, event.id);
+    const action = updateRefundPreferences.bind(null, user.id, event.slug, team.slug);
+
+    const readOnly = state !== 'available';
 
     return (
         <Box sx={{ p: 2 }}>
             {content?.markdown}
 
-            <Collapse in={!!refund} unmountOnExit>
-                <RefundConfirmation refund={refund} />
+{ /*
+            <Collapse in={!!request} unmountOnExit>
+                <RefundConfirmation refund={request} />
             </Collapse>
+   */ }
 
-            { (!!refund || state === 'available') &&
-                <FormProvider action={action} defaultValues={refund}>
-                    <RefundRequest readOnly={state !== 'available'} />
+            { (!!request || state === 'available') &&
+                <FormProvider action={action} defaultValues={request}>
+                    <Box sx={{ mt: 1 }}>
+
+                        <Typography variant="h5">
+                            Request a ticket refund
+                        </Typography>
+
+                        { readOnly &&
+                            <Alert severity="warning" sx={{ mt: 1, mb: 2 }}>
+                                Great news! Your request has been received, so your preferences have
+                                been locked in. Please e-mail us for any further changes!
+                            </Alert> }
+
+                        { !readOnly &&
+                            <Typography sx={{ mt: 1, mb: 2 }}>
+                                Your ticket number can be found in the confirmation e-mail you
+                                received when you purchased it. Double check that the information
+                                you enter is correct.
+                            </Typography> }
+
+                        <Grid container spacing={2}>
+                            <RefundForm readOnly={readOnly} />
+                        </Grid>
+
+                    </Box>
                     { state === 'available' &&
                         <FormSubmitButton callToAction="Request a ticket refund"
                                           startIcon={ <MonetizationOnIcon /> } sx={{ mt: 2 }} /> }

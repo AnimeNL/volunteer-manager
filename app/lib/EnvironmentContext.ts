@@ -77,6 +77,11 @@ export interface EnvironmentContextEventAccess {
     endTime: Temporal.ZonedDateTime;
 
     /**
+     * Timezone in which the event will be taking place.
+     */
+    timeZone: string;
+
+    /**
      * Whether a Festival ID has been associated with this event. Availability of the portal depends
      * on this, as there is no program to display without.. a program.
      */
@@ -252,6 +257,7 @@ async function determineEventAccess(
             shortName: tEvents.eventShortName,
             startTime: tEvents.eventStartTime,
             endTime: tEvents.eventEndTime,
+            timeZone: tEvents.eventTimezone,
 
             hasFestivalId: tEvents.eventFestivalId.isNotNull(),
 

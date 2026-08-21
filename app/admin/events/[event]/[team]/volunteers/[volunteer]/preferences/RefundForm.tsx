@@ -22,11 +22,11 @@ export function RefundForm(props: RefundFormProps) {
     const { readOnly } = props;
     return (
         <>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextFieldElement name="accountName" label="Bank account name" size="small" required
                                   fullWidth slotProps={{ input: { readOnly } }} />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
                 <TextFieldElement name="accountIban" label="Bank account IBAN" size="small" required
                                   fullWidth slotProps={{ input: { readOnly } }} />
             </Grid>

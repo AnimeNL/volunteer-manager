@@ -14,13 +14,13 @@ import { HotelConfirmation } from './HotelConfirmation';
 import { HotelPreferences } from './HotelPreferences';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
-import { getHotelRoomOptions } from './getHotelRoomOptions';
+import { getHotelRooms } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getHotelRooms';
 import { getStaticContent } from '@lib/Content';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tUsersEvents, tRoles, tHotelsPreferences, tHotelsAssignments,
-    tHotelsBookings } from '@lib/database';
+import db, { tEvents, tUsersEvents, tRoles, tHotelsAssignments, tHotelsBookings,
+    tUsersEventsPreferencesHotel} from '@lib/database';
 
-import * as actions from '../../ApplicationActions';
+import { updateHotelPreferences } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
 
 /**
  * The <EventApplicationHotelsPage> component serves the ability for users to select which hotel
@@ -42,16 +42,18 @@ export default async function EventApplicationHotelsPage(
 
     const hotelAssignmentsJoin = tHotelsAssignments.forUseInLeftJoin();
     const hotelBookingsJoin = tHotelsBookings.forUseInLeftJoin();
-    const hotelPreferencesJoin = tHotelsPreferences.forUseInLeftJoin();
+
+    const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
 
     const data = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))
         .innerJoin(tRoles)
             .on(tRoles.roleId.equals(tUsersEvents.roleId))
-        .leftJoin(hotelPreferencesJoin)
-            .on(hotelPreferencesJoin.userId.equals(tUsersEvents.userId))
-                .and(hotelPreferencesJoin.eventId.equals(tUsersEvents.eventId))
+        .leftJoin(preferencesHotelJoin)
+            .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .leftJoin(hotelAssignmentsJoin)
             .on(hotelAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
                 .and(hotelAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
@@ -65,11 +67,12 @@ export default async function EventApplicationHotelsPage(
         .select({
             bookings: dbInstance.countDistinct(hotelBookingsJoin.bookingId),
             preferences: {
-                checkIn: dbInstance.dateAsString(hotelPreferencesJoin.hotelDateCheckIn),
-                checkOut: dbInstance.dateAsString(hotelPreferencesJoin.hotelDateCheckOut),
-                hotelId: hotelPreferencesJoin.hotelId,
-                sharingPeople: hotelPreferencesJoin.hotelSharingPeople,
-                sharingPreferences: hotelPreferencesJoin.hotelSharingPreferences,
+                interested: preferencesHotelJoin.hotelInterested,
+                roomId: preferencesHotelJoin.hotelRoomId,
+                occupants: preferencesHotelJoin.hotelRoomOccupants,
+                preferences: preferencesHotelJoin.hotelRoomPreferences,
+                checkIn: dbInstance.dateAsString(preferencesHotelJoin.hotelCheckIn),
+                checkOut: dbInstance.dateAsString(preferencesHotelJoin.hotelCheckOut),
             },
             settings: {
                 availability: {
@@ -115,13 +118,9 @@ export default async function EventApplicationHotelsPage(
         },
     });
 
-    const defaultValues = {
-        interested: !!preferences ? 1 : 0,
-        ...preferences,
-    };
+    const action = updateHotelPreferences.bind(null, user.id, event.slug, team.slug);
 
-    const action = actions.updateHotelPreferences.bind(null, event.id, team.id);
-    const rooms = await getHotelRoomOptions(event.id);
+    const rooms = await getHotelRooms(event.id);
 
     return (
         <Stack spacing={2} sx={{ p: 2 }}>
@@ -140,7 +139,7 @@ export default async function EventApplicationHotelsPage(
             { !!bookings && <HotelConfirmation eventId={event.id} userId={user.id} /> }
 
             { (!!settings.eligible || !!bookings) &&
-                <FormProvider action={action} defaultValues={defaultValues}>
+                <FormProvider action={action} defaultValues={preferences}>
                     <HotelPreferences eventDate={event.startTime.toString()}
                                       readOnly={locked} rooms={rooms} />
                 </FormProvider> }

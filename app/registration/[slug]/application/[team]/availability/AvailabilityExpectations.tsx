@@ -8,7 +8,8 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { EventTimeslotEntry } from './getPublicEventsForFestival';
+import type { TimeslotWithZonedDateTimes }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getAvailabilityTimeslots';
 import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 
 import type { AvailabilityDayInfo, AvailabilityExpectation } from './AvailabilityExpectationsClient';
@@ -30,7 +31,7 @@ interface AvailabilityExpectationsProps {
     /**
      * Events that should be considered for the volunteer's preferences in regards to attendance.
      */
-    availabilityEvents: EventTimeslotEntry[];
+    availabilityEvents: TimeslotWithZonedDateTimes[];
 
     /**
      * Date and time at which the event is expected to start.
@@ -124,7 +125,7 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
     // Determine the timeslots that the volunteer has selected as wanting to attend.
     // ---------------------------------------------------------------------------------------------
 
-    const selectedEvents: EventTimeslotEntry[] = [];
+    const selectedEvents: TimeslotWithZonedDateTimes[] = [];
     if (!!props.exceptionEvents) {
         const exceptionEventIds = new Set(props.exceptionEvents);
         for (const availabilityEvent of props.availabilityEvents) {

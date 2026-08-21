@@ -30,7 +30,7 @@ const kSelectableDaysAroundEvent = 5;
 /**
  * Props accepted by the <HotelForm> component.
  */
-interface HotelFormProps {
+export interface HotelFormProps {
     /**
      * Start date of the event in ISO 8601 format.
      */

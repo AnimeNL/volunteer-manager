@@ -150,7 +150,7 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const { volunteer } = context;
 
-    const availabilityTimeslots = await getAvailabilityTimeslots(event.id);
+    const availabilityTimeslots = await getAvailabilityTimeslots(event.id, false);
     const hotelRooms = await getHotelRooms(event.id);
     const trainings = await getTrainings(event.id);
 

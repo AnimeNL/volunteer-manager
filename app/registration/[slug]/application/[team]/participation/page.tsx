@@ -4,6 +4,7 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 
@@ -52,6 +53,8 @@ export default async function EventApplicationParticipationPage(
         <FormProvider action={updateFn} defaultValues={defaultValues}>
             <Stack spacing={2} sx={{ p: 2 }}>
                 {content?.markdown}
+
+                <Divider />
 
                 <Grid container spacing={2}>
                     <ParticipationForm />

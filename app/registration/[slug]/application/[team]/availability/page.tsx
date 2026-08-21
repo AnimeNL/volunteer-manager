@@ -6,21 +6,26 @@ import { forbidden } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import Grid from '@mui/material/Grid';
 
 import { AvailabilityExpectations } from './AvailabilityExpectations';
-import { AvailabilityPreferencesForm } from './AvailabilityPreferencesForm';
+import { AvailabilityForm } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/AvailabilityForm';
 import { FormProvider } from '@components/FormProvider';
 import { FormSubmitButton } from '@components/FormSubmitButton';
 import { generatePortalMetadataFn } from '../../../../generatePortalMetadataFn';
 import { getApplicationContext } from '../getApplicationContext';
-import { getPublicEventsForFestival, type EventTimeslotEntry } from './getPublicEventsForFestival';
+import { getAvailabilityTimeslots }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getAvailabilityTimeslots';
 import { getStaticContent } from '@lib/Content';
-import db, { tEvents, tRoles, tUsersEvents } from '@lib/database';
+import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
 import { kEventAvailabilityStatus } from '@lib/database/Types';
 
-import * as actions from '../../ApplicationActions';
+import { updateAvailabilityPreferences }
+    from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
+
 
 /**
  * The <EventApplicationAvailabilityPage> component enables our volunteers to indicate when they
@@ -57,11 +62,22 @@ export default async function EventApplicationAvailabilityPage(
     // their preferences thus far. Some of these fields need processing before being presented.
     // ---------------------------------------------------------------------------------------------
 
+    const preferencesAvailabilityJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
+
+    const combinedTimingFragment = dbInstance.fragmentWithType('string', 'required').sql`
+        CONCAT_WS('-', ${preferencesAvailabilityJoin.availabilityTimingStart},
+                       ${preferencesAvailabilityJoin.availabilityTimingEnd})`;
+
     const detailedApplicationInfo = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))
         .innerJoin(tRoles)
             .on(tRoles.roleId.equals(tUsersEvents.roleId))
+        .leftJoin(preferencesAvailabilityJoin)
+            .on(preferencesAvailabilityJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesAvailabilityJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesAvailabilityJoin.teamId.equals(tUsersEvents.teamId))
+                .and(preferencesAvailabilityJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.userId.equals(user.id))
             .and(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
@@ -77,15 +93,12 @@ export default async function EventApplicationAvailabilityPage(
                 timezone: tEvents.eventTimezone,
             },
             preferences: {
-                availabilityBuildUpTearDown: tUsersEvents.availabilityBuildUpTearDown,
-                exceptions: tUsersEvents.availabilityExceptions,
-                preferences: tUsersEvents.preferences,
-                serviceHours: tUsersEvents.preferenceHours,
-                serviceTiming: {
-                    start: tUsersEvents.preferenceTimingStart,
-                    end: tUsersEvents.preferenceTimingEnd,
-                },
-                timeslots: tUsersEvents.availabilityTimeslots,
+                buildUpTearDown: preferencesAvailabilityJoin.availabilityBuildUpTearDown,
+                exceptions: preferencesAvailabilityJoin.availabilityExceptions.valueWhenNull('[]'),
+                hours: preferencesAvailabilityJoin.availabilityHours,
+                timeslotsStr: preferencesAvailabilityJoin.availabilityTimeslots,
+                timing: combinedTimingFragment,
+                remarks: preferencesAvailabilityJoin.availabilityRemarks,
             },
             settings: {
                 exceptionEventLimit: tUsersEvents.availabilityEventLimit.valueWhenNull(
@@ -94,43 +107,7 @@ export default async function EventApplicationAvailabilityPage(
         })
         .executeSelectOne();
 
-    const defaultValues: Record<string, any> = {
-        availabilityBuildUpTearDown:
-            detailedApplicationInfo.preferences?.availabilityBuildUpTearDown,
-        preferences: detailedApplicationInfo.preferences?.preferences,
-        serviceHours: `${detailedApplicationInfo.preferences?.serviceHours}`,
-    };
-
-    if (!!detailedApplicationInfo.preferences?.serviceTiming) {
-        const { start, end } = detailedApplicationInfo.preferences?.serviceTiming;
-        defaultValues.serviceTiming = `${start}-${end}`;
-    }
-
-    if (!!detailedApplicationInfo.preferences?.timeslots) {
-        defaultValues.exceptionEvents =
-            detailedApplicationInfo.preferences.timeslots.split(',').map(v => parseInt(v, 10));
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Determine the events that the volunteer is able to select as availability exceptions.
-    // ---------------------------------------------------------------------------------------------
-
-    let availabilityEvents: undefined | Array<EventTimeslotEntry>;
-    let exceptionEvents: undefined | Array<{ id: number; label: string }>;
-
-    if (!!detailedApplicationInfo.event.festivalId) {
-        availabilityEvents = await getPublicEventsForFestival(
-            detailedApplicationInfo.event.festivalId,
-            detailedApplicationInfo.event.timezone,
-            /* withTimingInfo= */ true);
-
-        // Filter the |availabilityEvents| down to the information we want to send to the client.
-        exceptionEvents = availabilityEvents.map(entry => ({ id: entry.id, label: entry.label }));
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    const action = actions.updateAvailability.bind(null, event.id, team.id);
+    const action = updateAvailabilityPreferences.bind(null, user.id, event.slug, team.slug);
 
     const content = await getStaticContent([ 'registration', 'application', 'availability' ], {
         substitutions: {
@@ -138,34 +115,47 @@ export default async function EventApplicationAvailabilityPage(
         },
     });
 
+    const timeslots = await getAvailabilityTimeslots(event.id, true);
+    const filteredTimeslots = timeslots.map(timeslot => ({
+        id: timeslot.id,
+        label: timeslot.label,
+    }));
+
     return (
         <Box sx={{ p: 2 }}>
             {content?.markdown}
 
-            { !!availabilityEvents &&
+            { !!timeslots &&
                 <AvailabilityExpectations
-                    availabilityEvents={availabilityEvents}
-                    eventStartTime={detailedApplicationInfo.event.startTime}
-                    eventEndTime={detailedApplicationInfo.event.endTime}
-                    eventTimezone={detailedApplicationInfo.event.timezone}
-                    exceptionEvents={defaultValues.exceptionEvents}
+                    availabilityEvents={timeslots}
+                    eventStartTime={event.startTime}
+                    eventEndTime={event.endTime}
+                    eventTimezone={event.timeZone}
+                    exceptionEvents={undefined}
                     exceptions={detailedApplicationInfo.preferences?.exceptions}
-                    timing={detailedApplicationInfo.preferences?.serviceTiming} /> }
+                    timing={undefined} /> }
 
-            <FormProvider action={action} defaultValues={defaultValues}>
+            { !!timeslots && <Divider sx={{ mb: 3 }} /> }
 
-                <AvailabilityPreferencesForm
-                    eventStartDate={detailedApplicationInfo.event.startTime.toString()}
-                    eventEndDate={detailedApplicationInfo.event.endTime.toString()}
-                    exceptionEventLimit={detailedApplicationInfo.settings.exceptionEventLimit}
-                    exceptionEvents={exceptionEvents}
-                    includeBuildUp={detailedApplicationInfo.event.availabilityBuildUpEnabled}
-                    includeTearDown={detailedApplicationInfo.event.availabilityTearDownEnabled}
-                    readOnly={locked} />
-
+            <FormProvider action={action} defaultValues={detailedApplicationInfo.preferences}>
+                <Grid container spacing={2}>
+                    <AvailabilityForm
+                        includeBuildUp={detailedApplicationInfo.event.availabilityBuildUpEnabled}
+                        includeTearDown={detailedApplicationInfo.event.availabilityTearDownEnabled}
+                        readOnly={locked}
+                        event={{
+                            startTime: event.startTime.toString(),
+                            endTime: event.endTime.toString(),
+                            timeZone: event.timeZone,
+                        }}
+                        timeslots={{
+                            limit: detailedApplicationInfo.settings.exceptionEventLimit,
+                            open: true,
+                            options: filteredTimeslots,
+                        }} />
+                </Grid>
                 <FormSubmitButton callToAction="Save your preferences"
-                                  startIcon={ <EventNoteIcon /> } sx={{ my: 2 }} />
-
+                                  startIcon={ <EventNoteIcon /> } sx={{ mt: 3, mb: 2 }} />
             </FormProvider>
 
             <MuiLink component={Link} href={`/registration/${event.slug}/application`}>

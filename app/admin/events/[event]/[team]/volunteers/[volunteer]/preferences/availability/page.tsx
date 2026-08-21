@@ -76,7 +76,7 @@ export default async function EventTeamVolunteerPreferencesAvailabilityPage(
     volunteer.versions.sort((lhs, rhs) =>
         Temporal.ZonedDateTime.compare(lhs.version!, rhs.version!) * -1);
 
-    const availabilityTimeslots = await getAvailabilityTimeslots(event.id);
+    const availabilityTimeslots = await getAvailabilityTimeslots(event.id, false);
     const step = await readSetting('schedule-time-step-minutes') ?? 15;
 
     const baseUrl = `/admin/events/${event.slug}/${team.slug}/volunteers`;
