@@ -69,22 +69,48 @@ export async function requireAuthentication(
     contextOrPermission?: AuthenticationContext | PermissionAccessCheck | PermissionSet,
     permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>
 {
-    let context: AuthenticationContext;
-    let actualPermission: PermissionAccessCheck | PermissionSet | undefined;
+    return authenticate('admin', contextOrPermission, permission);
+}
 
-    if (isAuthenticationContext(contextOrPermission)) {
-        context = contextOrPermission;
-        actualPermission = permission;
-    } else {
-        context = await requireAuthenticationContext();
-        actualPermission = contextOrPermission;
-    }
+/**
+ * Authenticates the user and verifies they have volunteer access (participating in at least one
+ * event or possessing administrative access).
+ *
+ * @example requireVolunteerAuthentication()
+ * @example requireVolunteerAuthentication('volunteer.application')
+ * @example requireVolunteerAuthentication(props.authenticationContext, 'volunteer.application')
+ */
+export async function requireVolunteerAuthentication(
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>;
+export async function requireVolunteerAuthentication(
+    authenticationContext: AuthenticationContext,
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>;
+export async function requireVolunteerAuthentication(
+    contextOrPermission?: AuthenticationContext | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>
+{
+    return authenticate('volunteer', contextOrPermission, permission);
+}
+
+/**
+ * Internal executor for base user authentication.
+ */
+async function authenticate(
+    role: 'admin' | 'volunteer',
+    contextOrPermission?: AuthenticationContext | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>
+{
+    const context = isAuthenticationContext(contextOrPermission)
+        ? contextOrPermission
+        : await requireAuthenticationContext();
 
     if (!context.user)
-        unauthorized();  // not signed in
+        unauthorized();
 
-    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
-        forbidden();  // no admin access
+    verifyAccess(role, context as UserAuthenticationContext);
+
+    const actualPermission =
+        isAuthenticationContext(contextOrPermission) ? permission : contextOrPermission;
 
     if (actualPermission)
         executeAccessCheck(context, actualPermission);
@@ -116,6 +142,46 @@ export async function requireAuthenticationWithEvent(
     eventOrPermission?: EventIdentifier | PermissionAccessCheck | PermissionSet,
     permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContextWithEvent>
 {
+    return authenticateWithEvent('admin', contextOrPropsOrEvent, eventOrPermission, permission);
+}
+
+/**
+ * Authenticates the user, verifies they are participating in the specified event (or possess
+ * administrative access to it), and fetches the relevant cached event information.
+ *
+ * @example requireVolunteerAuthenticationWithEvent(eventSlug)
+ * @example requireVolunteerAuthenticationWithEvent(eventSlug, 'event.schedule.access')
+ * @example requireVolunteerAuthenticationWithEvent(props, 'event.schedule.access')
+ * @example requireVolunteerAuthenticationWithEvent(
+ * .... props.authenticationContext, eventSlug, 'event.schedule.access')
+ */
+export async function requireVolunteerAuthenticationWithEvent(
+    propsOrEvent: EventProps | EventIdentifier,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEvent>;
+export async function requireVolunteerAuthenticationWithEvent(
+    authenticationContext: AuthenticationContext,
+    eventIdentifier: EventIdentifier,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEvent>;
+export async function requireVolunteerAuthenticationWithEvent(
+    contextOrPropsOrEvent: AuthenticationContext | EventProps | EventIdentifier,
+    eventOrPermission?: EventIdentifier | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContextWithEvent>
+{
+    return authenticateWithEvent(
+        'volunteer', contextOrPropsOrEvent, eventOrPermission, permission);
+}
+
+/**
+ * Internal executor for event-scoped user authentication.
+ */
+async function authenticateWithEvent(
+    role: 'admin' | 'volunteer',
+    contextOrPropsOrEvent: AuthenticationContext | EventProps | EventIdentifier,
+    eventOrPermission?: EventIdentifier | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContextWithEvent>
+{
     let context: AuthenticationContext;
     let eventIdentifier: EventIdentifier;
     let actualPermission: PermissionAccessCheck | PermissionSet | undefined;
@@ -141,12 +207,11 @@ export async function requireAuthenticationWithEvent(
     if (!context.user)
         unauthorized();
 
-    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
-        forbidden();  // no admin access
-
     const event = await getEvent(eventIdentifier);
     if (!event)
         notFound();
+
+    verifyAccess(role, context as UserAuthenticationContext, event, teamSlug);
 
     if (actualPermission) {
         executeAccessCheck(context, actualPermission, {
@@ -193,6 +258,61 @@ export async function requireAuthenticationWithEventAndTeam(
     permission?: PermissionAccessCheck | PermissionSet)
         : Promise<UserAuthenticationContextWithEventAndTeam>
 {
+    return authenticateWithEventAndTeam(
+        'admin', contextOrPropsOrEvent, eventOrTeamOrPermission, teamOrPermission, permission);
+}
+
+/**
+ * Authenticates the user, verifies they are participating in the specified event and assigned to
+ * the specified team (or possess administrative access to it), and fetches the relevant cached
+ * event and team information.
+ *
+ * @example requireVolunteerAuthenticationWithEventAndTeam(eventSlug, teamSlug)
+ * @example requireVolunteerAuthenticationWithEventAndTeam(
+ * .... eventSlug, teamSlug, 'event.applications')
+ * @example requireVolunteerAuthenticationWithEventAndTeam(props, 'event.applications')
+ * @example requireVolunteerAuthenticationWithEventAndTeam(
+ * .... props.authenticationContext, eventSlug, teamSlug, 'event.applications')
+ */
+export async function requireVolunteerAuthenticationWithEventAndTeam(
+    props: EventAndTeamProps,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEventAndTeam>;
+export async function requireVolunteerAuthenticationWithEventAndTeam(
+    eventIdentifier: EventIdentifier,
+    teamIdentifier: TeamIdentifier,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEventAndTeam>;
+export async function requireVolunteerAuthenticationWithEventAndTeam(
+    authenticationContext: AuthenticationContext,
+    eventIdentifier: EventIdentifier,
+    teamIdentifier: TeamIdentifier,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEventAndTeam>;
+export async function requireVolunteerAuthenticationWithEventAndTeam(
+    contextOrPropsOrEvent: AuthenticationContext | EventAndTeamProps | EventIdentifier,
+    eventOrTeamOrPermission?:
+        EventIdentifier | TeamIdentifier | PermissionAccessCheck | PermissionSet,
+    teamOrPermission?: TeamIdentifier | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEventAndTeam>
+{
+    return authenticateWithEventAndTeam(
+        'volunteer', contextOrPropsOrEvent, eventOrTeamOrPermission, teamOrPermission, permission);
+}
+
+/**
+ * Internal executor for event- and team-scoped user authentication.
+ */
+async function authenticateWithEventAndTeam(
+    role: 'admin' | 'volunteer',
+    contextOrPropsOrEvent: AuthenticationContext | EventAndTeamProps | EventIdentifier,
+    eventOrTeamOrPermission?:
+        EventIdentifier | TeamIdentifier | PermissionAccessCheck | PermissionSet,
+    teamOrPermission?: TeamIdentifier | PermissionAccessCheck | PermissionSet,
+    permission?: PermissionAccessCheck | PermissionSet)
+        : Promise<UserAuthenticationContextWithEventAndTeam>
+{
     let context: AuthenticationContext;
     let eventIdentifier: EventIdentifier;
     let teamIdentifier: TeamIdentifier;
@@ -220,9 +340,6 @@ export async function requireAuthenticationWithEventAndTeam(
     if (!context.user)
         unauthorized();
 
-    if (!context.access.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
-        forbidden();  // no admin access
-
     const team = await getTeam(teamIdentifier);
     if (!team)
         notFound();
@@ -230,6 +347,8 @@ export async function requireAuthenticationWithEventAndTeam(
     const event = await getEvent(eventIdentifier);
     if (!event)
         notFound();
+
+    verifyAccess(role, context as UserAuthenticationContext, event, team);
 
     if (actualPermission) {
         executeAccessCheck(context, actualPermission, {
@@ -239,6 +358,41 @@ export async function requireAuthenticationWithEventAndTeam(
     }
 
     return { ...context, user: context.user, event, team };
+}
+
+/**
+ * Shared access verification for administrative or volunteer roles.
+ */
+function verifyAccess(
+    role: 'admin' | 'volunteer',
+    context: UserAuthenticationContext,
+    event?: CachedEvent,
+    team?: CachedTeam | string): void | never
+{
+    const teamSlug = typeof team === 'string' ? team : team?.slug;
+    const hasAdminAccess = context.access.can('event.visible', {
+        event: event?.slug ?? kAnyEvent,
+        team: teamSlug ?? kAnyTeam,
+    });
+
+    if (role === 'admin') {
+        if (!hasAdminAccess)
+            forbidden();
+
+    } else if (!hasAdminAccess) {
+        if (!event) {
+            if (context.events.size === 0)
+                forbidden();
+
+        } else if (!teamSlug) {
+            if (!context.events.has(event.slug))
+                forbidden();
+
+        } else {
+            if (context.events.get(event.slug) !== teamSlug)
+                forbidden();
+        }
+    }
 }
 
 /**
