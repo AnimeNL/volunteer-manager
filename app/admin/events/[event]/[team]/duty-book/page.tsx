@@ -20,7 +20,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tDutyBook, tEvents, tTeams, tUsers } from '@lib/database';
 
 /**

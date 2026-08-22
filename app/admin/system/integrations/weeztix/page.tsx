@@ -17,7 +17,7 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weeztix';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Page that demonstrates some of Weeztix' APIs, primarily to test the implementation and provide

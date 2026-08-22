@@ -7,7 +7,7 @@ import { Section } from '@app/admin/components/Section';
 import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kTwilioOutboxType } from '@lib/database/Types';
 

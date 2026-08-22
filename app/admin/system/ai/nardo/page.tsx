@@ -17,7 +17,7 @@ import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeNardoPersonalisedAdvicePrompt } from '@lib/ai/Actions';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

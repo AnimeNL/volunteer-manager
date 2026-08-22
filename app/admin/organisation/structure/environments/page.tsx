@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import { EnvironmentsDataTable } from './EnvironmentsDataTable';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 import * as actions from '../TeamsActions';

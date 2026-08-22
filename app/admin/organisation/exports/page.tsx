@@ -7,7 +7,7 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
     from '@app/admin/components/DataTable';
 import { ExportAvailabilityCell } from './ExportsRowComponents';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 

@@ -21,7 +21,7 @@ import { VisibilityToggle } from './VisibilityToggle';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 
 import * as actions from '../DutyBookActions';

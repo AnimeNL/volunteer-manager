@@ -9,7 +9,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots, tShifts } from '@lib/database';
 
 import { kActivityType, kMutation, kMutationSeverity } from '@lib/database/Types';

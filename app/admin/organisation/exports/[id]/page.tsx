@@ -23,7 +23,7 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';

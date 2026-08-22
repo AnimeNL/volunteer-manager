@@ -16,7 +16,7 @@ import { TicketSearchBar } from '../TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**

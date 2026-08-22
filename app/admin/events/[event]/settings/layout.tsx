@@ -6,7 +6,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <EventSettingsLayout> is used to configure the accessible tabs within event settings.

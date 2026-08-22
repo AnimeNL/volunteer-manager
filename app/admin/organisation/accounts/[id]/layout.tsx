@@ -12,7 +12,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
 /**

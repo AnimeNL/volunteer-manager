@@ -14,7 +14,7 @@ import { type Column, type ExtractRowModel,DataTable, createDataSource, withRowM
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tUsers } from '@lib/database';
 

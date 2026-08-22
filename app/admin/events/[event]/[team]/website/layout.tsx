@@ -7,7 +7,7 @@ import FeedOutlinedIcon from '@mui/icons-material/FeedOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 
 /**
  * The <EventTeamWebsiteLayout> is used to configure the accessible tabs.

@@ -18,7 +18,7 @@ page and layout must begin with an access check, unless it's a public page (for 
 
 ### Authentication
 Never use `verifyAccessAndFetchPageInfo()`; `requireAuthentication(WithEvent(AndTeam?)?)` from
-`@app/admin/lib/requireAuthentication` is the modern way of doing authentication for code in
+`@lib/requireAuthentication` is the modern way of doing authentication for code in
 `app/admin/events/`, whereas other code should use `requireAuthenticationContext` directly.
 
 ### Header and metadata

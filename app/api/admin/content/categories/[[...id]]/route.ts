@@ -8,7 +8,7 @@ import { type DataTableEndpoints, createDataTableApi } from '../../../../createD
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { getEventBySlug } from '@lib/EventLoader';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tContentCategories, tContent } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';

@@ -10,7 +10,7 @@ import TabletIcon from '@mui/icons-material/Tablet';
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <DisplaysLayout> is the layout wrapper that provides navigation for the Display management,

@@ -31,7 +31,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
 
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';

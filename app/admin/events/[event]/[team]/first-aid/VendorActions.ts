@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import type { VendorTeam } from '@lib/database/Types';

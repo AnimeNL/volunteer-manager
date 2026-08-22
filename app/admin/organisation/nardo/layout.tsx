@@ -6,7 +6,7 @@ import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlin
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext'
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <NardoLayout> is the layout wrapper that provides navigation for the Del a Rie Advies section

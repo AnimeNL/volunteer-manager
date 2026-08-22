@@ -22,7 +22,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import { markdownToHtml } from '@components/Markdown';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
 

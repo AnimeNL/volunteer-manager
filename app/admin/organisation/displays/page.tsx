@@ -4,7 +4,7 @@
 import type { DisplayTableEventOption, DisplayTableLocationOption } from './DisplaysTable';
 import { DisplaysTable } from './DisplaysTable';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tActivitiesLocations } from '@lib/database';
 
 /**

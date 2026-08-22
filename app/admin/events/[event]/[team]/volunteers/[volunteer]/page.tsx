@@ -7,7 +7,7 @@ import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tUsers, tUsersEvents } from '@lib/database';
 
 import { ActionBar } from '@app/admin/components/ActionBar';

@@ -14,7 +14,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * Data source for visitor tickets obtained from the ticketing provider for a specific type.

@@ -12,7 +12,7 @@ import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createEvent } from './createEvent';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';

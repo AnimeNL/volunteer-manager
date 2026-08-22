@@ -6,7 +6,7 @@ import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 
 /**
  * The <EventTeamVolunteerLayout> is used to configure the accessible tabs for a volunteer.

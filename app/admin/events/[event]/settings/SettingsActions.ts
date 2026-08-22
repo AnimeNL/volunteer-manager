@@ -5,7 +5,7 @@
 
 import { z } from 'zod/v4';
 
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';

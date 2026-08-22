@@ -7,7 +7,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * Overview page for the event ticket management tooling.

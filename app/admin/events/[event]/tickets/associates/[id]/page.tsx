@@ -20,7 +20,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { YourTicketProviderPurchaseItem } from './YourTicketProviderPurchaseItem';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';

@@ -16,7 +16,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { DiscordIcon } from '../../dashboard/DiscordIcon';
 import { ExportTile } from './ExportTile';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tTeams } from '@lib/database';
 
 import { kExportType } from '@lib/database/Types';

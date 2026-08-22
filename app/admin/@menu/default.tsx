@@ -17,7 +17,7 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls, tLogsFormat } from '@lib/database';
 
 /**

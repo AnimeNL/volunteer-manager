@@ -11,7 +11,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingForm } from '../TrainingForm';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getTrainings } from '../getTrainings';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
 /**

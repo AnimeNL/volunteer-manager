@@ -13,12 +13,11 @@ import { Cache } from '@lib/cache';
 import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
 import { ThemeProvider } from './layout/ThemeProvider';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
 import { checkPermission } from '@lib/auth/AuthenticationContext';
 import { computePalette, type ColorPalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { readUserSettings } from '@lib/UserSettings';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';

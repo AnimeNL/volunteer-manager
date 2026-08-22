@@ -10,7 +10,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';

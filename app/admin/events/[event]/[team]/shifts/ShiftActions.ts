@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { writeUserSetting } from '@lib/UserSettings';
 import db, { tActivities, tShifts, tShiftsCategories } from '@lib/database';
 

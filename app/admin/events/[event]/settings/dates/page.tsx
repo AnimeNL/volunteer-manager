@@ -16,7 +16,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEventsDates, tUsers } from '@lib/database';
 
 import { kDateType } from '@lib/database/Types';

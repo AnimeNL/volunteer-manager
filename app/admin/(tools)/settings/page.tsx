@@ -17,7 +17,7 @@ import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { FormGridSection } from '../../components/FormGridSection';
 import { executeServerAction } from '@lib/serverAction';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeUserSetting } from '@lib/UserSettings';
 
 import { updateAccountSettings } from '../../organisation/accounts/[id]/AccountActions';

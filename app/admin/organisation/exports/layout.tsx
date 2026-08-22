@@ -11,7 +11,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <OrganisationExportsLayout> is the layout surrounding the Data Export functionality. This

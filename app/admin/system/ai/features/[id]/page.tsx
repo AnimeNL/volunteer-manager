@@ -18,7 +18,7 @@ import { TokenOverviewAlert } from '../../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executePromptWithExampleParameters } from '@lib/ai/Actions';
 import { readSettings, type Setting } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { updatePrompt } from '../../AiActions';
 
 import { kAiSupportedModels, type AiSupportedModel } from '@lib/integrations/genai/Models';

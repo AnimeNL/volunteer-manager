@@ -26,7 +26,7 @@ import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
 import { type VolunteerRowModel, volunteerDataSource } from './dataSource';
 import { generateEventMetadataFn } from '../../generateEventMetadataFn';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

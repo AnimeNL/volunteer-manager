@@ -7,7 +7,7 @@ import { BirthdayCalendar } from './BirthdayCalendar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { queryBirthdays } from './queryBirthdays';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page that shows a calendar listing all birthdays that the signed in user has access to.

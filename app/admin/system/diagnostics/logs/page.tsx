@@ -14,7 +14,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The logs page provides access to the most recent log entries created by the Volunteer Manager,

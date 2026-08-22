@@ -18,7 +18,7 @@ import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
 
 /**

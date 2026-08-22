@@ -3,7 +3,7 @@
 
 import { RolesDataTable } from './RolesDataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <RolesPage> component enables the volunteer to adjust the roles that are available on the

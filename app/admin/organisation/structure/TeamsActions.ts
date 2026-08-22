@@ -11,7 +11,7 @@ import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { invalidateTeamCache } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
 
 import { kEnvironmentPurpose } from '@lib/database/Types';

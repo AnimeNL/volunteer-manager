@@ -11,7 +11,7 @@ import PodcastsIcon from '@mui/icons-material/Podcasts';
 import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Server Action that can be used with <CommunicationIconButton> to indicate a successful response.

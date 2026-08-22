@@ -6,7 +6,7 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import PublicIcon from '@mui/icons-material/Public';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <EventTicketsLayout> provides the necessary context for tabs to work across these pages.

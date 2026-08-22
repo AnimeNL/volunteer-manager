@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { type PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEnvironments, tEvents, tEventsTeams, tRoles, tStorage, tTeams, tUsersEvents } from '@lib/database';
 

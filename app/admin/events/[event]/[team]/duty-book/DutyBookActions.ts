@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tDutyBook } from '@lib/database';
 
 /**

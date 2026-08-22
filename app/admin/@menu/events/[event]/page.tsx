@@ -24,7 +24,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
 /**

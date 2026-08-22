@@ -22,7 +22,7 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createYourTicketProviderClient, type YourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Page that demonstrates some of YourTicketProvider' APIs, primarily to test the implementation and

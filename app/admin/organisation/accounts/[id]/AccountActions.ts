@@ -10,7 +10,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { nanoid } from '@lib/nanoid';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { writeSealedSessionCookieToStore } from '@lib/auth/Session';

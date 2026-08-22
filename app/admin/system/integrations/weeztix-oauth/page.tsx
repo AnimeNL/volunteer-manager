@@ -18,7 +18,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './generateWeeztixState';
 import { readSettings, writeSettings } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Endpoint through which access tokens can be obtained.

@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../../lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse, type FeedbackResponse } from '@lib/database/Types';

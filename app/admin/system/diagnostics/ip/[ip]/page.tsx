@@ -15,7 +15,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { ip2location } from '@lib/ip2location';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for IP address diagnostics, providing the ability to look up addresses.

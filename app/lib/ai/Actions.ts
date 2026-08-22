@@ -19,7 +19,7 @@ import { queryRecipientContext } from './prompts/context/RecipientContextParamet
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

@@ -6,7 +6,7 @@ import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Layout for the outbox page. Several tabs are shown displaying the outgoing messages over a set

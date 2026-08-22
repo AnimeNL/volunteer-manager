@@ -12,7 +12,7 @@ import { LogBuilder } from '@lib/log/index';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';

@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

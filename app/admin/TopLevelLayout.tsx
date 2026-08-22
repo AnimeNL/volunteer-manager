@@ -18,7 +18,7 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 import { AdminContent } from './AdminContent';
 import { AdminPageContainer } from './AdminPageContainer';
 import { type AdminSidebarMenuEntry, AdminSidebar } from './AdminSidebar';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
 

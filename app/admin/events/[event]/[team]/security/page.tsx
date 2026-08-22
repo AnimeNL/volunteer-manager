@@ -11,7 +11,7 @@ import { VendorSchedule } from '../first-aid/VendorSchedule';
 import { VendorTable } from '../first-aid/VendorTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';

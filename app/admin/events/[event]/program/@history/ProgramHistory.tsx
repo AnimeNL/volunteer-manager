@@ -12,7 +12,7 @@ import { type Column, type DataSourceListParams, type ExtractContext, type Extra
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs, tUsers }
     from '@lib/database';
 

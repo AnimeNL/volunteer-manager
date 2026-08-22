@@ -21,7 +21,7 @@ import { ColorInput } from '@app/admin/components/ColorInput';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
 import * as actions from '../../TeamsActions';

@@ -11,7 +11,7 @@ import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createContent } from './ContentActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from './ContentScope';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <ContentPage> component lists the global content, which then, in turn, may be edited and

@@ -21,7 +21,7 @@ import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * Page that displays an individual purchase for a particular event and ticket type. While there is

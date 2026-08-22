@@ -11,7 +11,7 @@ import TabletIcon from '@mui/icons-material/Tablet';
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
 
 import { NavigationMenu } from '../../layout/NavigationMenu';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * This variant of the parallel route composes the menu for the Organisation section of our app. It

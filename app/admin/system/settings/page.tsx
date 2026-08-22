@@ -14,7 +14,7 @@ import { SettingSection, type ConfigurableSetting } from './SettingSection';
 import { SettingUtilitiesSection } from './SettingUtilitiesSection';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings, type Setting } from '@lib/Settings';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The Settings page lists configurable settings part of the AnimeCon Volunteer Manager that are not

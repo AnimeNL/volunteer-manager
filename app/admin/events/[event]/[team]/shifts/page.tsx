@@ -27,7 +27,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tSchedule, tShifts } from '@lib/database';
 
 import { createShift } from './ShiftActions';

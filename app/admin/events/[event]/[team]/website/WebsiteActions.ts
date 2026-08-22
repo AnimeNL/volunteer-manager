@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';

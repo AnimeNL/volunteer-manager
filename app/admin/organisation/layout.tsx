@@ -13,7 +13,7 @@ import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import { type AdminSidebarMenuEntry, AdminSidebar } from '../AdminSidebar';
 import { AdminContent } from '../AdminContent';
 import { AdminPageContainer } from '../AdminPageContainer';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kDashboardPermissions } from './dashboard/DashboardPermissions';
 

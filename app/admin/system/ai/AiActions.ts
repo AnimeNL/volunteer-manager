@@ -11,7 +11,7 @@ import { PromptValidator } from '@lib/ai/PromptValidator';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
 import { readExampleMessages, writeExampleMessages } from '@lib/ai/ExampleMessages';
-import { requireAuthentication } from '@app/admin/lib/requireAuthentication';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';

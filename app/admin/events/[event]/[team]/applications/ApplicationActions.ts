@@ -8,7 +8,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
 

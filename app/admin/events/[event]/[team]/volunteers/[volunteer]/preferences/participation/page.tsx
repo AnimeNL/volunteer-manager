@@ -10,7 +10,7 @@ import { PreferenceHistory } from '../PreferenceHistory';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEventAndTeam } from '@app/admin/lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
 
 /**
