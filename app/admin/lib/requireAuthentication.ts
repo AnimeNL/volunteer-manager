@@ -31,9 +31,9 @@ type EventProps = { params: Promise<{ event: string; team?: string }> };
 type EventAndTeamProps = { params: Promise<{ event: string; team: string }> };
 
 /**
- * Data returned by the `requireAuthenticationWithEvent` method.
+ * Data returned by the `require(Volunteer?)AuthenticationWithEvent` method.
  */
-export interface UserAuthenticationContextWithEvent extends UserAuthenticationContext {
+interface UserAuthenticationContextWithEvent extends UserAuthenticationContext {
     /**
      * Information about the event that's contextual to the current request.
      */
@@ -41,11 +41,9 @@ export interface UserAuthenticationContextWithEvent extends UserAuthenticationCo
 }
 
 /**
- * Data returned by the `requireAuthenticationWithEventAndTeam` method.
+ * Data returned by the `require(Volunteer?)AuthenticationWithEventAndTeam` method.
  */
-export interface UserAuthenticationContextWithEventAndTeam
-    extends UserAuthenticationContextWithEvent
-{
+interface UserAuthenticationContextWithEventAndTeam extends UserAuthenticationContextWithEvent {
     /**
      * Information about the team that's contextual to the current request.
      */
@@ -107,7 +105,7 @@ async function authenticate(
     if (!context.user)
         unauthorized();
 
-    verifyAccess(role, context as UserAuthenticationContext);
+    verifyAccess(role, context);
 
     const actualPermission =
         isAuthenticationContext(contextOrPermission) ? permission : contextOrPermission;
@@ -211,12 +209,12 @@ async function authenticateWithEvent(
     if (!event)
         notFound();
 
-    verifyAccess(role, context as UserAuthenticationContext, event, teamSlug);
+    verifyAccess(role, context, event);
 
     if (actualPermission) {
         executeAccessCheck(context, actualPermission, {
             event: event.slug,
-            team: teamSlug,
+            team: teamSlug || kAnyTeam,
         });
     }
 
@@ -348,7 +346,7 @@ async function authenticateWithEventAndTeam(
     if (!event)
         notFound();
 
-    verifyAccess(role, context as UserAuthenticationContext, event, team);
+    verifyAccess(role, context, event, team);
 
     if (actualPermission) {
         executeAccessCheck(context, actualPermission, {
@@ -367,12 +365,11 @@ function verifyAccess(
     role: 'admin' | 'volunteer',
     context: UserAuthenticationContext,
     event?: CachedEvent,
-    team?: CachedTeam | string): void | never
+    team?: CachedTeam): void | never
 {
-    const teamSlug = typeof team === 'string' ? team : team?.slug;
     const hasAdminAccess = context.access.can('event.visible', {
         event: event?.slug ?? kAnyEvent,
-        team: teamSlug ?? kAnyTeam,
+        team: team?.slug ?? kAnyTeam,
     });
 
     if (role === 'admin') {
@@ -382,14 +379,14 @@ function verifyAccess(
     } else if (!hasAdminAccess) {
         if (!event) {
             if (context.events.size === 0)
-                forbidden();
+                forbidden();  // TODO: Is this the right thing to do? They're still logged in.
 
-        } else if (!teamSlug) {
+        } else if (!team?.slug) {
             if (!context.events.has(event.slug))
                 forbidden();
 
         } else {
-            if (context.events.get(event.slug) !== teamSlug)
+            if (context.events.get(event.slug) !== team.slug)
                 forbidden();
         }
     }
