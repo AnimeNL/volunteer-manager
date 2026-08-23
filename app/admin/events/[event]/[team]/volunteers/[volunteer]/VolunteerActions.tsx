@@ -8,6 +8,8 @@ import { z } from 'zod/v4';
 
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import db, { tUsersEvents } from '@lib/database';
+import { LogBuilder } from '@lib/log/LogBuilder';
 
 /**
  * Cancels the volunteer's participation.
@@ -95,7 +97,9 @@ export async function reinstateParticipation(
  * Zod type describing the schema for updating overrides.
  */
 const kUpdateOverridesSchema = z.object({
-
+    timeslotLimit: z.number().min(0).max(99).nullish(),
+    hotelEligible: z.literal([ 0, 1, /* reset= */ '' ]).nullish(),
+    trainingEligible: z.literal([ 0, 1, /* reset= */ '' ]).nullish(),
 });
 
 /**
@@ -108,9 +112,33 @@ export async function updateOverrides(
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug);
 
+        const availabilityEventLimit = data.timeslotLimit ?? null;
+        const hotelEligible = data.hotelEligible === '' ? null : data.hotelEligible;
+        const trainingEligible = data.trainingEligible === '' ? null : data.trainingEligible;
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                availabilityEventLimit,
+                hotelEligible,
+                trainingEligible
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateApplicationOverrides')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user.id)
+            .withAffectedUser(userId)
+            .withSeverity('Error')
+            .record({
+                event: event.shortName,
+            });
+
         return {
-            success: false,
-            error: 'Not yet implemented',
+            success: true,
+            message: 'The overrides have been updated.',
         };
     });
 }

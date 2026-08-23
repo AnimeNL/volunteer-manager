@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 
+import Alert from '@mui/material/Alert';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
 import { Section } from '@app/admin/components/Section';
@@ -44,6 +45,12 @@ export default async function EventTeamVolunteerPage(
             name: tUsers.name,
             firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             status: tUsersEvents.registrationStatus,
+
+            overrides: {
+                timeslotLimit: tUsersEvents.availabilityEventLimit,
+                hotelEligible: tUsersEvents.hotelEligible,
+                trainingEligible: tUsersEvents.trainingEligible,
+            },
         })
         .executeSelectNoneOrOne();
 
@@ -55,6 +62,8 @@ export default async function EventTeamVolunteerPage(
     const canUpdateApplications = access.can('event.applications', 'update', accessScope);
     const canUpdateOverrides = access.can('event.volunteers.overrides', accessScope);
     const canUpdateVolunteer = access.can('event.volunteers.information', 'update', accessScope);
+
+    const canDoAnything = canUpdateApplications || canUpdateOverrides || canUpdateVolunteer;
 
     const cancelFn = (canUpdateApplications && volunteer.status !== 'Cancelled')
         ? actions.cancelParticipation.bind(null, volunteer.id, event.slug, team.slug)
@@ -93,14 +102,21 @@ export default async function EventTeamVolunteerPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                <ActionBar>
-                    <VolunteerQuickActions firstName={volunteer.firstName}
-                                           cancelFn={cancelFn}
-                                           reinstateFn={reinstateFn}
-                                           changeRoleFn={changeRoleFn}
-                                           changeTeamFn={changeTeamFn}
-                                           manageOverridesFn={manageOverridesFn} />
-                </ActionBar>
+                { !canDoAnything &&
+                    <Alert severity="warning" variant="outlined">
+                        You do not have permission to make changes to this volunteer. Contact a
+                        Staff member for assistance if you need to.
+                    </Alert> }
+                { !!canDoAnything &&
+                    <ActionBar>
+                        <VolunteerQuickActions firstName={volunteer.firstName}
+                                               cancelFn={cancelFn}
+                                               reinstateFn={reinstateFn}
+                                               changeRoleFn={changeRoleFn}
+                                               changeTeamFn={changeTeamFn}
+                                               manageOverrides={volunteer.overrides}
+                                               manageOverridesFn={manageOverridesFn} />
+                    </ActionBar> }
             </Section>
 
             { /* TODO: Identity w/ notes */ }

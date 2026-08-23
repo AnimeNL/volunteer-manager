@@ -293,6 +293,10 @@ interface LogTypeParameterMap {
         team: string;  // title ("Volunteering Crew")
     };
 
+    UpdateApplicationOverrides: {
+        event: string;  // short name
+    };
+
     UpdateDutyBookIncident: {
         event: string;  // short name
         incidentId: number;
@@ -476,6 +480,7 @@ export const kLogType: { [k in LogType]: k } = {
     MoveApplication: 'MoveApplication',
     ReconsiderApplication: 'ReconsiderApplication',
     ReleaseApplication: 'ReleaseApplication',
+    UpdateApplicationOverrides: 'UpdateApplicationOverrides',
     UpdateDutyBookIncident: 'UpdateDutyBookIncident',
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
     UpdateShift: 'UpdateShift',

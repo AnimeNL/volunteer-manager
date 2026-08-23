@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 
+import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
+
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import Button from '@mui/material/Button';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
@@ -13,6 +15,16 @@ import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
 import type { ServerAction } from '@lib/serverAction';
+import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
+
+/**
+ * Options available in the hotel and training eligibility override select.
+ */
+const kEligibilityOptions = [
+    { id: '', label: '(default)' },
+    { id: 1, label: 'Yes, they are eligible' },
+    { id: 0, label: 'No, they are not eligible' },
+];
 
 /**
  * Props accepted by the <VolunteerQuickActions> component.
@@ -42,6 +54,26 @@ interface VolunteerQuickActionsProps {
      * Server action to invoke when wanting to change a volunteer's team.
      */
     changeTeamFn?: ServerAction;
+
+    /**
+     * Default values for the overrides management form.
+     */
+    manageOverrides?: {
+        /**
+         * The volunteer's non-default availability timeslot limit.
+         */
+        timeslotLimit?: number;
+
+        /**
+         * The volunteer's non-default hotel room eligibility.
+         */
+        hotelEligible?: number;
+
+        /**
+         * The volunteer's non-default training eligibility.
+         */
+        trainingEligible?: number;
+    };
 
     /**
      * Server action to invoke when wanting to manage their overrides.
@@ -90,6 +122,41 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
                         color="error" onClick={ () => setReinstateDialogOpen(true) }>
                     Reinstate participation
                 </Button> }
+
+            { /* TODO: Change role dialog + communication */ }
+
+            { /* TODO: Change team dialog + communication */ }
+
+            { !!props.manageOverridesFn &&
+                <ResponsiveFormDialog
+                    open={manageOverridesDialogOpen}
+                    onClose={ () => setManageOverridesDialogOpen(false) }
+                    action={props.manageOverridesFn} defaultValues={props.manageOverrides}
+                    submitColor="success"
+                    submitLabel="Update"
+                    title="Manage participation overrides"
+                    description={
+                        <>
+                            Volunteers receive certain abilities and privileges based on their team
+                            and role, but you can customise this for {props.firstName}. Leave fields
+                            empty to use defaults.
+                        </>
+                    }>
+
+                    <TextFieldElement name="timeslotLimit" label="Allowed # of events to attend"
+                                      size="small" fullWidth type="number" />
+
+                    <SelectElement name="hotelEligible" label="Eligible for a hotel room?"
+                                   options={kEligibilityOptions} size="small" fullWidth />
+
+                    <SelectElement name="trainingEligible" label="Eligible for training?"
+                                   options={kEligibilityOptions} size="small" fullWidth />
+
+                </ResponsiveFormDialog> }
+
+            { /* TODO: Cancel participation confirmation + communication */ }
+
+            { /* TODO: Reinstate participation confirmation + communication */ }
 
         </>
     );
