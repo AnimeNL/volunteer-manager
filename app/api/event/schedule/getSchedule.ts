@@ -17,7 +17,7 @@ import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
     tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsSales,
     tEventsSalesConfiguration, tNardo, tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers,
-    tUsersEvents, tVendors, tVendorsSchedule }
+    tUsersEvents, tUsersEventsPreferencesAvailability, tVendors, tVendorsSchedule }
     from '@lib/database';
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
@@ -551,6 +551,7 @@ async function populateVolunteers(
     eventId: number, unavailabilityFn: UnavailabilityFn, notesAccess: boolean,
     phoneNumberAccess: boolean, teamAccess: boolean, team?: string)
 {
+    const availabilityPreferencesJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
 
     const volunteers = await dbInstance.selectFrom(tUsersEvents)
@@ -562,6 +563,11 @@ async function populateVolunteers(
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .leftJoin(storageJoin)
             .on(storageJoin.fileId.equals(tUsers.avatarId))
+        .leftJoin(availabilityPreferencesJoin)
+            .on(availabilityPreferencesJoin.userId.equals(tUsersEvents.userId))
+                .and(availabilityPreferencesJoin.eventId.equals(tUsersEvents.eventId))
+                .and(availabilityPreferencesJoin.teamId.equals(tUsersEvents.teamId))
+                .and(availabilityPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.eventId.equals(eventId))
             .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
             .and(tTeams.teamSlug.equalsIfValue(team).ignoreWhen(teamAccess))
@@ -574,9 +580,9 @@ async function populateVolunteers(
                 notes: tUsersEvents.registrationNotes,
                 phoneNumber: tUsers.phoneNumber,
 
-                availabilityExceptions: tUsersEvents.availabilityExceptions,
-                preferenceTimingStart: tUsersEvents.preferenceTimingStart,
-                preferenceTimingEnd: tUsersEvents.preferenceTimingEnd,
+                availabilityExceptions: availabilityPreferencesJoin.availabilityExceptions,
+                preferenceTimingStart: availabilityPreferencesJoin.availabilityTimingStart,
+                preferenceTimingEnd: availabilityPreferencesJoin.availabilityTimingEnd,
 
                 role: {
                     id: tRoles.roleId,

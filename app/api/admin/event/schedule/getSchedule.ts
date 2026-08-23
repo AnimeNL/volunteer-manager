@@ -15,7 +15,8 @@ import { readSettings } from '@lib/Settings';
 import { validateContext } from '../validateContext';
 import { validateTime } from './fn/validateTime';
 import { writeUserSetting } from '@lib/UserSettings';
-import db, { tRoles, tSchedule, tUsers, tUsersEvents } from '@lib/database';
+import db, { tRoles, tSchedule, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability }
+    from '@lib/database';
 
 import type { kServiceHoursProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -426,6 +427,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
     const users: number[] = [];
     const timeslots = await getTimeslots(event.festivalId);
 
+    const availabilityPreferencesJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const usersEventsJoin = tUsersEvents.forUseInLeftJoinAs('oej');
 
     const dbInstance = db;
@@ -447,6 +449,11 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             .on(tRoles.roleId.equals(tUsersEvents.roleId))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
+        .leftJoin(availabilityPreferencesJoin)
+            .on(availabilityPreferencesJoin.userId.equals(tUsersEvents.userId))
+                .and(availabilityPreferencesJoin.eventId.equals(tUsersEvents.eventId))
+                .and(availabilityPreferencesJoin.teamId.equals(tUsersEvents.teamId))
+                .and(availabilityPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
             .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
@@ -457,11 +464,11 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             children: dbInstance.aggregateAsArray({
                 id: tUsers.userId,
                 name: tUsers.name,
-                hours: tUsersEvents.preferenceHours,
-                availabilityExceptions: tUsersEvents.availabilityExceptions,
-                availabilityTimeslots: tUsersEvents.availabilityTimeslots,
-                preferenceTimingStart: tUsersEvents.preferenceTimingStart,
-                preferenceTimingEnd: tUsersEvents.preferenceTimingEnd,
+                hours: availabilityPreferencesJoin.availabilityHours,
+                availabilityExceptions: availabilityPreferencesJoin.availabilityExceptions,
+                availabilityTimeslots: availabilityPreferencesJoin.availabilityTimeslots,
+                preferenceTimingStart: availabilityPreferencesJoin.availabilityTimingStart,
+                preferenceTimingEnd: availabilityPreferencesJoin.availabilityTimingEnd,
             }),
 
             collapsed: tRoles.roleScheduleCollapse,

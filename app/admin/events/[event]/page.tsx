@@ -202,7 +202,6 @@ async function getRecentChanges(access: AccessControl, event: string, eventId: n
             status: tUsersEvents.registrationStatus,
 
             applicationCreated: tUsersEvents.registrationDate,
-            availabilityPreferencesUpdated: tUsersEvents.preferencesUpdated,
             hotelPreferencesUpdated: hotelsPreferencesJoin.hotelPreferencesUpdated,
             refundRequestUpdated: refundsJoin.refundRequested,
             trainingPreferencesUpdated: trainingsAssignmentsJoin.preferenceUpdated,
@@ -259,8 +258,6 @@ async function getRecentChanges(access: AccessControl, event: string, eventId: n
         // to the same moment in case they all happened within an hour of each other.
         const updatesToVerify: { [k in EventRecentChangeUpdate]?: Temporal.ZonedDateTime } = {};
 
-        if (!!preferenceUpdate.availabilityPreferencesUpdated)
-            updatesToVerify['availability'] = preferenceUpdate.availabilityPreferencesUpdated;
         if (!!preferenceUpdate.hotelPreferencesUpdated)
             updatesToVerify['hotel'] = preferenceUpdate.hotelPreferencesUpdated;
         if (!!preferenceUpdate.trainingPreferencesUpdated)

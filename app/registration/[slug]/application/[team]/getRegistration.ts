@@ -57,13 +57,6 @@ export async function getRegistration(eventId: number, teamId: number, userId: n
             availabilityStatus: tEvents.eventAvailabilityStatus,
             availabilityEventLimit: tUsersEvents.availabilityEventLimit.valueWhenNull(
                 tRoles.roleAvailabilityEventLimit),
-            availability: {
-                preferences: tUsersEvents.preferences,
-                timeslots: tUsersEvents.availabilityTimeslots,
-                serviceHours: tUsersEvents.preferenceHours,
-                serviceTimingStart: tUsersEvents.preferenceTimingStart,
-                serviceTimingEnd: tUsersEvents.preferenceTimingEnd,
-            },
 
             hotelInformationPublished: tEvents.hotelInformationPublished.equals(/* true= */ 1),
             hotelAvailabilityWindow: {

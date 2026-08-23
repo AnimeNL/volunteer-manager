@@ -9,7 +9,8 @@ import type { ApiDefinition, ApiRequest, ApiResponse } from '@app/api/Types';
 import { getEventBySlug } from '@lib/EventLoader';
 import { isAfter } from '@lib/Temporal';
 import { isValidShift } from './fn/isValidShift';
-import db, { tSchedule, tScheduleLogs, tTeams, tUsersEvents } from '@lib/database';
+import db, { tSchedule, tScheduleLogs, tTeams, tUsersEvents, tUsersEventsPreferencesAvailability }
+    from '@lib/database';
 
 import { kMutation, kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/api/Types';
@@ -119,9 +120,16 @@ export async function updateScheduleEntry(request: Request, props: ActionProps):
     if (!shift)
         return { success: false, error: 'The selected shift does not exist anymore' };
 
+    const availabilityPreferencesJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
+
     const volunteer = await db.selectFrom(tUsersEvents)
         .innerJoin(tTeams)
             .on(tTeams.teamId.equals(tUsersEvents.teamId))
+        .leftJoin(availabilityPreferencesJoin)
+            .on(availabilityPreferencesJoin.userId.equals(tUsersEvents.userId))
+                .and(availabilityPreferencesJoin.eventId.equals(tUsersEvents.eventId))
+                .and(availabilityPreferencesJoin.teamId.equals(tUsersEvents.teamId))
+                .and(availabilityPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .where(tUsersEvents.userId.equals(request.shift.userId))
             .and(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
@@ -130,8 +138,8 @@ export async function updateScheduleEntry(request: Request, props: ActionProps):
 
             teamSlug: tTeams.teamSlug,
 
-            availabilityExceptions: tUsersEvents.availabilityExceptions,
-            availabilityTimeslots: tUsersEvents.availabilityTimeslots,
+            availabilityExceptions: availabilityPreferencesJoin.availabilityExceptions,
+            availabilityTimeslots: availabilityPreferencesJoin.availabilityTimeslots,
         })
         .executeSelectNoneOrOne();
 

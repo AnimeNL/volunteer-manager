@@ -10,7 +10,8 @@ import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
-import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesParticipation } from '@lib/database';
+import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
+    tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
 import { kServiceHoursProperty, kServiceTimingProperty } from '@app/registration/[slug]/application/ApplicationActions';
@@ -193,7 +194,7 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
         if (existingApplication > 0)
             return { success: false, error: 'This volunteer already has an active application…' };
 
-        const [ preferenceTimingStart, preferenceTimingEnd ] =
+        const [ availabilityTimingStart, availabilityTimingEnd ] =
             data.serviceTiming.split('-').map(v => parseInt(v, 10));
 
         await dbInstance.transaction(async () => {
@@ -205,11 +206,21 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
                     roleId: teamInfo.roleId,
                     registrationDate: dbInstance.currentZonedDateTime(),
                     registrationStatus: kRegistrationStatus.Registered,
-                    preferenceHours: parseInt(data.serviceHours, 10),
-                    preferenceTimingStart, preferenceTimingEnd,
-                    preferences: data.preferences,
-                    preferencesUpdated: dbInstance.currentZonedDateTime(),
-                    fullyAvailable: 1,
+                })
+                .executeInsert();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesAvailability)
+                .set({
+                    userId: props.user!.id,
+                    eventId: event.id,
+                    teamId: team.id,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: 1,
+                    preferenceVersionUserId: props.user!.id,
+                    availabilityFullyAvailable: /* default= */ 1,
+                    availabilityHours: parseInt(data.serviceHours, 10),
+                    availabilityTimingStart, availabilityTimingEnd,
+                    availabilityRemarks: data.preferences,
                 })
                 .executeInsert();
 

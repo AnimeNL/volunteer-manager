@@ -2457,6 +2457,9 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: availability_fully_available
+    type: tinyint(1) unsigned
+    nullable: false
   - name: availability_hours
     type: int(4) unsigned
     nullable: false
@@ -2506,6 +2509,7 @@ tables:
       `preference_version_user_id` int(4) unsigned NOT NULL,
       `availability_build_up_tear_down` text DEFAULT NULL,
       `availability_exceptions` text DEFAULT NULL,
+      `availability_fully_available` tinyint(1) unsigned NOT NULL,
       `availability_hours` int(4) unsigned NOT NULL,
       `availability_timeslots` text DEFAULT NULL,
       `availability_timing_start` int(4) NOT NULL,

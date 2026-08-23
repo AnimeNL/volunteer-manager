@@ -55,11 +55,6 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     category: z.enum(kEventTicketCategory).or(z.literal('null')).nullish(),
 
     /**
-     * Description of the product, when known.
-     */
-    description: z.string().nullish(),
-
-    /**
      * Price of the product, when known.
      */
     price: z.number().nullish(),

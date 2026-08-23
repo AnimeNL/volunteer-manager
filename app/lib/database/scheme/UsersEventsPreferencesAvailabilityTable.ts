@@ -21,6 +21,7 @@ export class UsersEventsPreferencesAvailabilityTable extends Table<DBConnection,
     preferenceVersionUserId = this.column('preference_version_user_id', 'int');
     availabilityBuildUpTearDown = this.optionalColumnWithDefaultValue('availability_build_up_tear_down', 'string');
     availabilityExceptions = this.optionalColumnWithDefaultValue('availability_exceptions', 'string');
+    availabilityFullyAvailable = this.column('availability_fully_available', 'int');
     availabilityHours = this.column('availability_hours', 'int');
     availabilityTimeslots = this.optionalColumnWithDefaultValue('availability_timeslots', 'string');
     availabilityTimingStart = this.column('availability_timing_start', 'int');

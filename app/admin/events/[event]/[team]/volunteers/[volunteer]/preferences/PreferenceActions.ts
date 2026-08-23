@@ -122,6 +122,7 @@ export async function updateAvailabilityPreferences(
                 .select({
                     buildUpTearDown: tUsersEventsPreferencesAvailability.availabilityBuildUpTearDown,
                     exceptions: tUsersEventsPreferencesAvailability.availabilityExceptions,
+                    fullyAvailable: tUsersEventsPreferencesAvailability.availabilityFullyAvailable,
                     hours: tUsersEventsPreferencesAvailability.availabilityHours,
                     timeslots: tUsersEventsPreferencesAvailability.availabilityTimeslots,
                     timingStart: tUsersEventsPreferencesAvailability.availabilityTimingStart,
@@ -167,6 +168,7 @@ export async function updateAvailabilityPreferences(
                     preferenceVersionUserId: props.user.id,
                     availabilityBuildUpTearDown: buildUpTearDown,
                     availabilityExceptions: carriedForwardExceptions,
+                    availabilityFullyAvailable: existing?.fullyAvailable ?? /* default= */ 1,
                     availabilityHours: data.hours,
                     availabilityTimeslots: timeslots,
                     availabilityTimingStart,

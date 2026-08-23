@@ -6,7 +6,6 @@ import Link from '@app/LinkProxy';
 import Box from '@mui/material/Box';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';

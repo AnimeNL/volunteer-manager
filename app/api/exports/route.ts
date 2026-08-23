@@ -14,7 +14,8 @@ import { readSetting } from '@lib/Settings';
 
 import db, { tEvents, tExports, tExportsLogs, tRefunds, tRoles, tTeams, tTrainings,
     tTrainingsAssignments, tTrainingsExtra, tUsers, tUsersEvents,
-    tUsersEventsPreferencesParticipation, tVendors } from '@lib/database';
+    tUsersEventsPreferencesAvailability, tUsersEventsPreferencesParticipation, tVendors }
+        from '@lib/database';
 
 import { kAvailabilityBuildUpTearDownScheme }
     from '@app/registration/[slug]/application/AvailabilityBuildUpTearDownScheme';
@@ -441,6 +442,8 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
     if (metadata.type === kExportType.BuildUp || metadata.type === kExportType.TearDown) {
         const kNotAvailable = 'No';
 
+        const availabilityJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
+
         const volunteers = await db.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
@@ -448,13 +451,18 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
             .innerJoin(tTeams)
                 .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .leftJoin(availabilityJoin)
+                .on(availabilityJoin.userId.equals(tUsersEvents.userId))
+                    .and(availabilityJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(availabilityJoin.teamId.equals(tUsersEvents.teamId))
+                    .and(availabilityJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
             .where(tUsersEvents.eventId.equals(metadata.eventId))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
             .select({
                 name: tUsers.name,
                 availability: dbInstance.aggregateAsArray({
-                    availability: tUsersEvents.availabilityBuildUpTearDown,
+                    availability: availabilityJoin.availabilityBuildUpTearDown,
                     role: tRoles.roleName,
                     team: tTeams.teamName,
                 }),

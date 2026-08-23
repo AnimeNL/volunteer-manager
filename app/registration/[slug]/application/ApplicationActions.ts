@@ -11,8 +11,8 @@ import { executeServerAction } from '@lib/serverAction';
 import { getStaticContent } from '@lib/Content';
 import { readSetting } from '@lib/Settings';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents, tEventsTeams, tTeams, tTeamsRoles,
-    tUsersCommunication, tUsersEvents, tUsersEventsPreferencesParticipation }
-        from '@lib/database';
+    tUsersCommunication, tUsersEvents, tUsersEventsPreferencesAvailability,
+    tUsersEventsPreferencesParticipation } from '@lib/database';
 
 import { kRegistrationStatus, kShirtFit, kShirtSize, kSubscriptionType } from '@lib/database/Types';
 
@@ -150,7 +150,7 @@ export async function createApplication(eventId: number, teamId: number, formDat
         // Submit the application.
         // -----------------------------------------------------------------------------------------
 
-        const [ preferenceTimingStart, preferenceTimingEnd ] =
+        const [ availabilityTimingStart, availabilityTimingEnd ] =
             data.serviceTiming.split('-').map(v => parseInt(v, 10));
 
         const communicationId = await dbInstance.transaction(async () => {
@@ -162,11 +162,21 @@ export async function createApplication(eventId: number, teamId: number, formDat
                     roleId: teamInfo.defaultRoleId,
                     registrationDate: dbInstance.currentZonedDateTime(),
                     registrationStatus: kRegistrationStatus.Registered,
-                    preferenceHours: parseInt(data.serviceHours, 10),
-                    preferenceTimingStart, preferenceTimingEnd,
-                    preferences: data.preferences,
-                    preferencesUpdated: dbInstance.currentZonedDateTime(),
-                    fullyAvailable: data.availability ? 1 : 0,
+                })
+                .executeInsert();
+
+            await dbInstance.insertInto(tUsersEventsPreferencesAvailability)
+                .set({
+                    userId: props.user!.id,
+                    eventId,
+                    teamId,
+                    preferenceVersion: dbInstance.currentZonedDateTime(),
+                    preferenceVersionIsLatest: 1,
+                    preferenceVersionUserId: props.user!.id,
+                    availabilityFullyAvailable: data.availability ? 1 : 0,
+                    availabilityHours: parseInt(data.serviceHours, 10),
+                    availabilityTimingStart, availabilityTimingEnd,
+                    availabilityRemarks: data.preferences,
                 })
                 .executeInsert();
 

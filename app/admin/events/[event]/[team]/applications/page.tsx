@@ -26,7 +26,8 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateInviteKey } from '@lib/EnvironmentContext';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents,
+    tUsersEventsPreferencesAvailability } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -55,6 +56,7 @@ export default async function ApplicationsPage(
 
     const dbInstance = db;
 
+    const availabilityJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
     const usersEventsJoin = tUsersEvents.forUseInLeftJoinAs('previous_events');
 
@@ -70,6 +72,11 @@ export default async function ApplicationsPage(
         .leftJoin(usersEventsJoin)
             .on(usersEventsJoin.userId.equals(tUsersEvents.userId))
             .and(usersEventsJoin.eventId.notEquals(tUsersEvents.eventId))
+        .leftJoin(availabilityJoin)
+            .on(availabilityJoin.userId.equals(tUsersEvents.userId))
+                .and(availabilityJoin.eventId.equals(tUsersEvents.eventId))
+                .and(availabilityJoin.teamId.equals(tUsersEvents.teamId))
+                .and(availabilityJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .leftJoin(claimedByUsersJoin)
             .on(claimedByUsersJoin.userId.equals(tUsersEvents.registrationOwnerId))
         .where(tUsersEvents.eventId.equals(event.id))
@@ -82,16 +89,18 @@ export default async function ApplicationsPage(
                 .sql`TIMESTAMPDIFF(YEAR,
                     IFNULL(${tUsers.birthdate}, ${dbInstance.currentDate()}),
                     ${tEvents.eventStartTime})`,
-            fullyAvailable: tUsersEvents.fullyAvailable.is(/* true= */ 1),
             date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
             name: tUsers.name,
             firstName: tUsers.firstName,
             avatar: storageJoin.fileHash,
             status: tUsersEvents.registrationStatus,
-            preferences: tUsersEvents.preferences,
-            preferenceHours: tUsersEvents.preferenceHours,
-            preferenceTimingStart: tUsersEvents.preferenceTimingStart,
-            preferenceTimingEnd: tUsersEvents.preferenceTimingEnd,
+
+            fullyAvailable: availabilityJoin.availabilityFullyAvailable.is(/* true= */ 1),
+            preferences: availabilityJoin.availabilityRemarks,
+            preferenceHours: availabilityJoin.availabilityHours,
+            preferenceTimingStart: availabilityJoin.availabilityTimingStart,
+            preferenceTimingEnd: availabilityJoin.availabilityTimingEnd,
+
             history: dbInstance.count(usersEventsJoin.eventId),
             claim: {
                 name: claimedByUsersJoin.name,
