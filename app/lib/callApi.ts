@@ -41,7 +41,6 @@ import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 
 import type { ContentCategoriesEndpoints } from '@app/api/admin/content/categories/[[...id]]/route';
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
-import type { EventFinanceEndpoints } from '@app/api/admin/event/finance/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
@@ -72,7 +71,6 @@ type ApiResponseType<T> = T extends { response: object } ? T['response'] : void;
 export type ApiEndpoints = {
     'get': {
         '/api/admin/content/categories': ContentCategoriesEndpoints['list'],
-        '/api/admin/event/finance': EventFinanceEndpoints['list'],
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
@@ -148,7 +146,6 @@ export type ApiEndpoints = {
     },
     'put': {
         '/api/admin/content/categories/:id': ContentCategoriesEndpoints['update'],
-        '/api/admin/event/finance/:id': EventFinanceEndpoints['update'],
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
