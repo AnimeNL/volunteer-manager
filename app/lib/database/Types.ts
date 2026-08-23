@@ -121,10 +121,10 @@ export const kEventAvailabilityStatus = {
 
 /**
  * Sales categories that can be independently tracked and displayed in finance dashboards.
- * @see Table `events_sales_configuration`
+ * @see Table `events_tickets_configuration`
  */
-export type EventSalesCategory = Values<typeof kEventSalesCategory>;
-export const kEventSalesCategory = {
+export type EventTicketCategory = Values<typeof kEventTicketCategory>;
+export const kEventTicketCategory = {
     Event: 'Event',
     Hidden: 'Hidden',
     Locker: 'Locker',
@@ -135,8 +135,19 @@ export const kEventSalesCategory = {
     TicketFriday: 'TicketFriday',
     TicketSaturday: 'TicketSaturday',
     TicketSunday: 'TicketSunday',
+    TicketVolunteers: 'TicketVolunteers',
     TicketWeekend: 'TicketWeekend'
 } as const;
+
+/**
+ * @deprecated
+ */
+export type EventSalesCategory = EventTicketCategory;
+
+/**
+ * @deprecated
+ */
+export const kEventSalesCategory = kEventTicketCategory;
 
 /**
  * Ticket provider to integrate with for volunteer tickets.

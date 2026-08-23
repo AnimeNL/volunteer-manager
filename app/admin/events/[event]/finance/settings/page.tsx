@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import EuroIcon from '@mui/icons-material/Euro';
@@ -14,12 +15,13 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEventsSalesConfiguration } from '@lib/database';
+import db, { tEventsTicketsConfiguration } from '@lib/database';
 
-import { kEventSaleCategoryOptions } from './SettingsCells';
-import { kEventSalesCategory } from '@lib/database/Types';
+import { kEventTicketCategory } from '@lib/database/Types';
+import { kEventTicketCategoryOptions } from './Settings';
 import { kEventTransformer } from '@app/admin/components/DataTable';
 
 /**
@@ -35,7 +37,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     /**
      * Unique ID of the sale as it exists in the database.
      */
-    id: z.number(),
+    id: z.string(),
 
     /**
      * Type of sale that this row model details.
@@ -43,14 +45,14 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     product: z.string(),
 
     /**
-     * Category of sale that this row model details.
-     */
-    category: z.enum(kEventSalesCategory).or(z.literal('null')).nullish(),
-
-    /**
      * Maximum number of sales that can be supported for this particular category.
      */
-    categoryLimit: z.number().nullish(),
+    productLimit: z.number().nullish(),
+
+    /**
+     * Category of sale that this row model details.
+     */
+    category: z.enum(kEventTicketCategory).or(z.literal('null')).nullish(),
 
     /**
      * Description of the product, when known.
@@ -63,9 +65,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     price: z.number().nullish(),
 
     /**
-     * Optional event ID that this product is associated with.
+     * Optional activity ID that this product is associated with.
      */
-    eventId: z.number().nullish(),
+    activityId: z.number().nullish(),
 
 }), {
     async authorize(operation, props, context) {
@@ -78,46 +80,86 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     },
 
     async list(params, props, context) {
+        const service = await createTicketService(context.event.id);
+        if (!service)
+            notFound();
+
         const dbInstance = db;
-        const results = await dbInstance.selectFrom(tEventsSalesConfiguration)
-            .where(tEventsSalesConfiguration.eventId.equals(context.event.id))
-                .and(tEventsSalesConfiguration.saleProduct.containsInsensitiveIfValue(params.search))
+
+        const types = await service.listTicketTypes();
+        const associations = await dbInstance.selectDistinctFrom(tEventsTicketsConfiguration)
+            .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
             .select({
-                id: tEventsSalesConfiguration.saleId,
-                product: tEventsSalesConfiguration.saleProduct,
-                category: tEventsSalesConfiguration.saleCategory,
-                categoryLimit: tEventsSalesConfiguration.saleCategoryLimit,
-                description: tEventsSalesConfiguration.saleDescription,
-                price: tEventsSalesConfiguration.salePrice,
-                eventId: tEventsSalesConfiguration.saleEventId,
+                ticketId: tEventsTicketsConfiguration.eventTicketId,
+                ticketCategory: tEventsTicketsConfiguration.eventTicketCategory,
+                ticketActivityId: tEventsTicketsConfiguration.eventTicketActivityId,
             })
-            .orderBy(params.sort.field ?? 'product', params.sort.direction)
-            .limit(params.page.limit)
-                .offset(params.page.offset)
-            .executeSelectPage();
+            .executeSelectMany();
+
+        const associationsMap = new Map(
+            associations.map(association => [ association.ticketId, association ]));
+
+        const products = types.map(type => {
+            const association = associationsMap.get(type.id.toString());
+            return {
+                id: type.id.toString(),
+                product: type.name,
+                productLimit: type.amount,
+                category: association?.ticketCategory,
+                price: type.price,
+                activityId: association?.ticketActivityId,
+            };
+        });
+
+        products.sort((lhs, rhs) => {
+            const direction = params.sort.direction === 'asc' ? 1 : -1;
+            switch (params.sort.field) {
+                case 'activityId':
+                    // TODO: Implement sorting.
+                    break;
+
+                case 'category':
+                    // TODO: Implement sorting.
+                    break;
+
+                case 'price':
+                    // TODO: Implement sorting.
+                    break;
+
+                case 'product':
+                    return lhs.product.localeCompare(rhs.product) * direction;
+
+                case 'productLimit':
+                    // TODO: Implement sorting.
+                    break;
+            }
+
+            return 0;
+        });
 
         return {
-            rowCount: results.count,
-            rows: results.data,
+            rowCount: products.length,
+            rows: products.slice(params.page.offset, params.page.offset + params.page.limit),
         };
     },
 
     async update(row, previousRow, props, context) {
-        const saleCategory =
+        const eventTicketActivityId = row.activityId;
+        const eventTicketCategory =
             (row.category === 'null' || !row.category) ? null : row.category;
 
-        const dbInstance = db;
-        const affectedRows = await dbInstance.update(tEventsSalesConfiguration)
+        const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
             .set({
-                saleCategory,
-                saleCategoryLimit: row.categoryLimit || null,
-                saleDescription: row.description || null,
-                salePrice: row.price ?? null,
-                saleEventId: row.eventId || null,
+                eventId: context.event.id,
+                eventTicketId: row.id,
+                eventTicketActivityId,
+                eventTicketCategory,
             })
-            .where(tEventsSalesConfiguration.eventId.equals(context.event.id))
-                .and(tEventsSalesConfiguration.saleId.equals(row.id))
-            .executeUpdate();
+            .onConflictDoUpdateSet({
+                eventTicketActivityId,
+                eventTicketCategory,
+            })
+            .executeInsert();
 
         if (!!affectedRows)
             await FinanceProcessor.revalidateForEvent(context.event.slug);
@@ -169,13 +211,14 @@ export default async function FinanceSettingsPage(
             headerName: 'Category',
             editable: true,
             sortable: true,
+            flex: 1,
+
             type: 'singleSelect',
             valueOptions: [
-                { value: 'null', label: 'Uncategorised' },
-                ...Object.entries(kEventSaleCategoryOptions).map(([ value, label ]) =>
+                { value: '', label: 'Uncategorised' },
+                ...Object.entries(kEventTicketCategoryOptions).map(([ value, label ]) =>
                     ({ value, label })),
             ],
-            flex: 1,
 
             template: 'component',
             templateProps: {
@@ -183,15 +226,15 @@ export default async function FinanceSettingsPage(
             },
         },
         {
-            field: 'eventId',
-            headerName: 'Event ID',
+            field: 'activityId',
+            headerName: 'Activity ID',
             editable: true,
             sortable: true,
             type: 'number',
             flex: 1,
         },
         {
-            field: 'categoryLimit',
+            field: 'productLimit',
             headerName: 'Maximum sales',
             editable: false,
             sortable: true,
@@ -216,8 +259,7 @@ export default async function FinanceSettingsPage(
                 <DataTable columns={columns} source={eventFinanceDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'product', sort: 'asc' }}
-                           subject="product"
-                           disableFooter
+                           subject="product" disableSearch
                            pageSize={100}
                            listViewProps={{
                                primaryField: 'product',

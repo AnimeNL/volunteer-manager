@@ -23,6 +23,7 @@ export { tEventsDates } from './scheme/EventsDatesTable';
 export { tEventsSalesConfiguration } from './scheme/EventsSalesConfigurationTable';
 export { tEventsSales } from './scheme/EventsSalesTable';
 export { tEventsTeams } from './scheme/EventsTeamsTable';
+export { tEventsTicketsConfiguration } from './scheme/EventsTicketsConfigurationTable';
 export { tExports } from './scheme/ExportsTable';
 export { tExportsLogs } from './scheme/ExportsLogsTable';
 export { tFeedback } from './scheme/FeedbackTable';

@@ -6,25 +6,8 @@
 import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-import type { EventSalesCategory } from '@lib/database/Types';
-
-/**
- * Object containing the valid event sale categories, together with a human readable description of
- * what they represent. This object is used to populate the dropdown in the sales configuration.
- */
-export const kEventSaleCategoryOptions: { [k in EventSalesCategory]: string } = {
-    Event: 'Event',
-    Hidden: 'Hidden',
-    Locker: 'Locker',
-    LockerFriday: 'Locker (Friday)',
-    LockerSaturday: 'Locker (Saturday)',
-    LockerSunday: 'Locker (Sunday)',
-    LockerWeekend: 'Locker (Weekend)',
-    TicketFriday: 'Ticket (Friday)',
-    TicketSaturday: 'Ticket (Saturday)',
-    TicketSunday: 'Ticket (Sunday)',
-    TicketWeekend: 'Ticket (Weekend)',
-};
+import type { EventTicketCategory } from '@lib/database/Types';
+import { kEventTicketCategoryOptions } from './Settings';
 
 /**
  * Props accepted by the <PriceCell> component.
@@ -44,7 +27,7 @@ interface PriceCellProps {
 export function PriceCell(props: PriceCellProps) {
     if (props.row.price === undefined || props.row.price === null) {
         return (
-            <Typography component="span" variant="body2" sx={{ color: 'text.disabled' }}>
+            <Typography component="span" color="textDisabled" variant="body2">
                 Unknown
             </Typography>
         );
@@ -61,7 +44,7 @@ interface CategoryCellProps {
      * The row model for the financial setting item.
      */
     row: {
-        category?: EventSalesCategory | 'null' | null;
+        category?: EventTicketCategory | 'null' | null;
     };
 }
 
@@ -83,12 +66,11 @@ export function CategoryCell(props: CategoryCellProps) {
         );
     }
 
-    if (category && category !== 'null' && category in kEventSaleCategoryOptions) {
-        return <>{kEventSaleCategoryOptions[category as EventSalesCategory]}</>;
-    }
+    if (category && category !== 'null' && category in kEventTicketCategoryOptions)
+        return <>{kEventTicketCategoryOptions[category as EventTicketCategory]}</>;
 
     return (
-        <Typography component="span" variant="body2" sx={{ color: 'text.disabled' }}>
+        <Typography component="span" color="textDisabled" variant="body2">
             Uncategorised
         </Typography>
     );

@@ -234,6 +234,10 @@ do {
                     field: [ 'events_sales_configuration', 'sale_category' ],
                     type: 'EventSalesCategory',
                 },
+                {
+                    field: [ 'events_tickets_configuration', 'event_ticket_category' ],
+                    type: 'EventTicketCategory',
+                },
                 { field: [ 'exports', 'export_type' ], type: 'ExportType' },
                 { field: [ 'feedback', 'feedback_response' ], type: 'FeedbackResponse' },
                 { field: [ 'logs', 'log_severity' ], type: 'LogSeverity' },
