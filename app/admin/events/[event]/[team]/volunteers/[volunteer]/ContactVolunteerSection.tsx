@@ -49,13 +49,13 @@ export async function ContactVolunteerSection(props: ContactVolunteerSectionProp
             paddingX: 2,
             paddingY: 1
         }}>
-            <Stack direction="row" divider={ <Divider flexItem orientation="vertical" /> }
-                   spacing={2} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
                     You're most welcome to send {props.user.name} an e-mail—use this action to get
                     started.
                 </Typography>
-                <Suspense fallback={ <CircularProgress color="inherit" /> }>
+                <Divider flexItem orientation="vertical" />
+                <Suspense fallback={ <CircularProgress color="inherit" size="24px" /> }>
                     <ContactVolunteerAction {...props} />
                 </Suspense>
             </Stack>

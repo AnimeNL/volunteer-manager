@@ -12,6 +12,9 @@ import db, { tUsers, tUsersEvents } from '@lib/database';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { ContactVolunteerSection } from './ContactVolunteerSection';
+import { VolunteerQuickActions } from './VolunteerQuickActions';
+
+import * as actions from './VolunteerActions';
 
 /**
  * Page displaying the basic information and metadata associated with a volunteer.
@@ -19,7 +22,7 @@ import { ContactVolunteerSection } from './ContactVolunteerSection';
 export default async function EventTeamVolunteerPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
-    const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });
@@ -39,11 +42,39 @@ export default async function EventTeamVolunteerPage(
         .select({
             id: tUsers.userId,
             name: tUsers.name,
+            firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+            status: tUsersEvents.registrationStatus,
         })
         .executeSelectNoneOrOne();
 
     if (!volunteer)
         notFound();
+
+    const accessScope = { event: event.slug, team: team.slug };
+
+    const canUpdateApplications = access.can('event.applications', 'update', accessScope);
+    const canUpdateOverrides = access.can('event.volunteers.overrides', accessScope);
+    const canUpdateVolunteer = access.can('event.volunteers.information', 'update', accessScope);
+
+    const cancelFn = (canUpdateApplications && volunteer.status !== 'Cancelled')
+        ? actions.cancelParticipation.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const reinstateFn = (canUpdateApplications && volunteer.status !== 'Accepted')
+        ? actions.reinstateParticipation.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const changeRoleFn = canUpdateVolunteer
+        ? actions.changeRole.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const changeTeamFn = canUpdateVolunteer
+        ? actions.changeTeam.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
+
+    const manageOverridesFn = canUpdateOverrides
+        ? actions.updateOverrides.bind(null, volunteer.id, event.slug, team.slug)
+        : undefined!;
 
     return (
         <>
@@ -63,11 +94,12 @@ export default async function EventTeamVolunteerPage(
             </Section>
             <Section noHeader tabs>
                 <ActionBar>
-                    { /* TODO: Cancel participation */ }
-                    { /* TODO: Reinstate participation */ }
-                    { /* TODO: Change role */ }
-                    { /* TODO: Change team */ }
-                    { /* TODO: Manage overrides */ }
+                    <VolunteerQuickActions firstName={volunteer.firstName}
+                                           cancelFn={cancelFn}
+                                           reinstateFn={reinstateFn}
+                                           changeRoleFn={changeRoleFn}
+                                           changeTeamFn={changeTeamFn}
+                                           manageOverridesFn={manageOverridesFn} />
                 </ActionBar>
             </Section>
 

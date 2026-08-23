@@ -6,10 +6,10 @@
 import EmailIcon from '@mui/icons-material/Email';
 import Tooltip from '@mui/material/Tooltip';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
+import type { ServerActionResult } from '@lib/serverAction';
 import type { VolunteerRowModel } from './dataSource';
 import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
-import type { ServerActionResult } from '@lib/serverAction';
-import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 
 /**
  * Cell that serves as the header enabling communication to be initiated.

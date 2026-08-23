@@ -1,0 +1,116 @@
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
+// Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
+'use server';
+
+import { forbidden, notFound } from 'next/navigation';
+import { z } from 'zod/v4';
+
+import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+
+/**
+ * Cancels the volunteer's participation.
+ */
+export async function cancelParticipation(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        return {
+            success: false,
+            error: 'Not yet implemented',
+        };
+    });
+}
+
+/**
+ * Zod type defining the schema for changing a volunteer's role.
+ */
+const kChangeRoleSchema = z.object({
+
+});
+
+/**
+ * Changes the volunteer's role within their team for this event.
+ */
+export async function changeRole(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kChangeRoleSchema, async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        return {
+            success: false,
+            error: 'Not yet implemented',
+        };
+    });
+}
+
+/**
+ * Zod type defining the schema for changing a volunteer's team.
+ */
+const kChangeTeamSchema = z.object({
+
+});
+
+/**
+ * Changes the volunteer's team for this event.
+ */
+export async function changeTeam(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kChangeTeamSchema, async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        return {
+            success: false,
+            error: 'Not yet implemented',
+        };
+    });
+}
+
+/**
+ * Reinstates the volunteer's participation.
+ */
+export async function reinstateParticipation(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        return {
+            success: false,
+            error: 'Not yet implemented',
+        };
+    });
+}
+
+/**
+ * Zod type describing the schema for updating overrides.
+ */
+const kUpdateOverridesSchema = z.object({
+
+});
+
+/**
+ * Updates the overrides applied to the volunteer's participation.
+ */
+export async function updateOverrides(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateOverridesSchema, async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        return {
+            success: false,
+            error: 'Not yet implemented',
+        };
+    });
+}

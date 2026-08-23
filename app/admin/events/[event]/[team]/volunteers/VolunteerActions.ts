@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -12,13 +14,13 @@ import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/api/Types';
+
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 
 /**
  * Returns context, sourced from the database, for a volunteer action with the following properties.
  */
-export async function getContextForVolunteerAction(userId: number, eventId: number, teamId: number)
-{
+async function getContextForVolunteerAction(userId: number, eventId: number, teamId: number) {
     const result = await db.selectFrom(tUsersEvents)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tUsersEvents.eventId))
@@ -365,4 +367,3 @@ export async function reinstateParticipation(
         };
     });
 }
-
