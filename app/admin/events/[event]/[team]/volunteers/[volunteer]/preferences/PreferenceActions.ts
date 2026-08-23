@@ -3,14 +3,16 @@
 
 'use server';
 
+import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { LogBuilder } from '@lib/log/index';
+import { requireVolunteerAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
-    tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds,
-    tUsersEventsPreferencesTraining } from '@lib/database';
+import db, { tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
+    tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
+    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
@@ -40,13 +42,19 @@ export async function updateAvailabilityPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kAvailabilityPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal.
+        const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
 
-        const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, {
+        if (props.user.id !== userId) {
+            executeAccessCheck(props.authenticationContext, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
             });
+        }
 
         let buildUpTearDown: string | null = null;
         if (!!data.buildUpTearDown) {
@@ -212,13 +220,35 @@ export async function updateHotelPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kHotelPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal.
+        const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
 
-        const { event } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, {
+        if (!event.flags.enableHotel)
+            notFound();
+
+        if (props.user.id !== userId) {
+            executeAccessCheck(props.authenticationContext, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
             });
+        } else if (!!data.interested) {
+            const eligibility = await db.selectFrom(tUsersEvents)
+                .innerJoin(tRoles)
+                    .on(tRoles.roleId.equals(tUsersEvents.roleId))
+                .where(tUsersEvents.userId.equals(userId))
+                    .and(tUsersEvents.eventId.equals(event.id))
+                    .and(tUsersEvents.teamId.equals(team.id))
+                .selectOneColumn(
+                    tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible))
+                .executeSelectNoneOrOne();
+
+            if (!eligibility)
+                forbidden();
+        }
 
         const dbInstance = db;
         const updated = await dbInstance.transaction(async () => {
@@ -317,13 +347,19 @@ export async function updateParticipationPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kParticipationPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal.
+        const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
 
-        const { event } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, {
+        if (props.user.id !== userId) {
+            executeAccessCheck(props.authenticationContext, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
+                scope: {
+                    event: event.slug,
+                    team: team.slug,
+                },
             });
+        }
 
         const dbInstance = db;
         const updated = await dbInstance.transaction(async () => {
@@ -418,10 +454,18 @@ export async function updateRefundPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kRefundPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal.
+        const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
 
-        const { event } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, 'event.refunds');
+        if (!event.flags.enableRefunds)
+            notFound();
+
+        if (props.user.id !== userId) {
+            executeAccessCheck(props.authenticationContext, 'event.refunds', {
+                event: event.slug,
+                team: team.slug,
+            });
+        }
 
         const dbInstance = db;
         const updated = await dbInstance.transaction(async () => {
@@ -503,13 +547,34 @@ export async function updateTrainingPreferences(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kTrainingPreferencesSchema, async (data, props) => {
-        // TODO: Amend the authentication check for updates from the registration portal.
+        const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
 
-        const { event } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, {
+        if (!event.flags.enableTraining)
+            notFound();
+
+        if (props.user.id !== userId) {
+            executeAccessCheck(props.authenticationContext, {
                 permission: 'event.volunteers.information',
                 operation: 'update',
+            }, {
+                event: event.slug,
+                team: team.slug,
             });
+        } else if (data.trainingId !== 0) {
+            const eligibility = await db.selectFrom(tUsersEvents)
+                .innerJoin(tRoles)
+                    .on(tRoles.roleId.equals(tUsersEvents.roleId))
+                .where(tUsersEvents.userId.equals(userId))
+                    .and(tUsersEvents.eventId.equals(event.id))
+                    .and(tUsersEvents.teamId.equals(team.id))
+                .selectOneColumn(
+                    tUsersEvents.trainingEligible.valueWhenNull(tRoles.roleTrainingEligible))
+                .executeSelectNoneOrOne();
+
+            if (!eligibility)
+                forbidden();
+        }
 
         const dbInstance = db;
         const updated = await dbInstance.transaction(async () => {
