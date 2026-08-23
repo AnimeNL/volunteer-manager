@@ -94,6 +94,48 @@ export async function reinstateParticipation(
 }
 
 /**
+ * Zod type describing the schema for updating volunteer notes.
+ */
+const kUpdateNotesSchema = z.object({
+    notes: z.string().optional(),
+});
+
+/**
+ * Updates the team-specific notes associated with this volunteer.
+ */
+export async function updateNotes(
+    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateNotesSchema, async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+            });
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                registrationNotes: data.notes,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateVolunteerNotes')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user.id)
+            .withAffectedUser(userId)
+            .record({
+                event: event.shortName,
+                team: team.title,
+            });
+
+        return { success: true };
+    });
+}
+
+/**
  * Zod type describing the schema for updating overrides.
  */
 const kUpdateOverridesSchema = z.object({
@@ -110,7 +152,7 @@ export async function updateOverrides(
 {
     return executeServerAction(formData, kUpdateOverridesSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug);
+            props.authenticationContext, eventSlug, teamSlug, 'event.volunteers.overrides');
 
         const availabilityEventLimit = data.timeslotLimit ?? null;
         const hotelEligible = data.hotelEligible === '' ? null : data.hotelEligible;

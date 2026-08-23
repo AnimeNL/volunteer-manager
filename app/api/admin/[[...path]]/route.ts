@@ -4,7 +4,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { executeAction } from '../../Action';
 
-import { volunteerContactInfo, kVolunteerContactInfoDefinition } from '../volunteerContactInfo';
 import { volunteerRoles, kVolunteerRolesDefinition } from '../volunteerRoles';
 import { volunteerTeams, kVolunteerTeamsDefinition } from '../volunteerTeams';
 
@@ -22,8 +21,6 @@ export async function POST(request: NextRequest, props: RouteProps): Promise<Res
 
     const action = Object.hasOwn(params, 'path') ? params.path?.join('/') : null;
     switch (action) {
-        case 'volunteer-contact-info':
-            return executeAction(request, kVolunteerContactInfoDefinition, volunteerContactInfo);
         case 'volunteer-roles':
             return executeAction(request, kVolunteerRolesDefinition, volunteerRoles);
         case 'volunteer-teams':

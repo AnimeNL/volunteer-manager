@@ -40,7 +40,6 @@ export const kLogType = {
     AccountPasswordUpdate: 'account-password-update',
     AccountUpdateAvatar: 'account-update-avatar',
     AccountUpdate: 'account-update',
-    AdminAccessVolunteerInfo: 'admin-access-volunteer-info',
     AdminClearHotelPreferences: 'admin-clear-hotel-preferences',
     AdminClearRefundRequest: 'admin-clear-refund-request',
     AdminClearTrainingPreferences: 'admin-clear-training-preferences',

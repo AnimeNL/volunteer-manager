@@ -6,11 +6,11 @@ import { z } from 'zod/v4';
 
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
-import { ContactVolunteerSection } from '../ContactVolunteerSection';
 import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { VolunteerContactSection } from '../VolunteerContactSection';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
@@ -219,7 +219,7 @@ export default async function EventTeamVolunteerCommunicationPage(
                             canAccessOutbox ? '/admin/system/outbox/email/{id}' : undefined,
                     }} />
             </Section>
-            <ContactVolunteerSection event={event.id} team={team.id} user={{
+            <VolunteerContactSection event={event.id} team={team.id} user={{
                 id: volunteer.id,
                 name: volunteer.name,
             }} />

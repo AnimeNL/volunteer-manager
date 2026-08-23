@@ -39,7 +39,7 @@ const kLogDifferenceStrictPairSchema = z.union([
 /**
  * Zod schema representing the differential information given to a log record.
  */
-export const kLogDifferencesSchema = z.record(z.string(), kLogDifferenceStrictPairSchema);
+export const kLogDifferencesSchema = z.record(z.string(), kLogDifferenceStrictPairSchema.nullish());
 
 /**
  * Structure through which differences can be included in the log entry.

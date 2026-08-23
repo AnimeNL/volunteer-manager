@@ -36,7 +36,6 @@ import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFa
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedule/updateScheduleEntry';
-import type { VolunteerContactInfoDefinition } from '@app/api/admin/volunteerContactInfo';
 import type { VolunteerRolesDefinition } from '@app/api/admin/volunteerRoles';
 import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 
@@ -107,7 +106,6 @@ export type ApiEndpoints = {
         '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
-        '/api/admin/volunteer-contact-info': VolunteerContactInfoDefinition,
         '/api/admin/volunteer-roles': VolunteerRolesDefinition,
         '/api/admin/volunteer-teams': VolunteerTeamsDefinition,
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,

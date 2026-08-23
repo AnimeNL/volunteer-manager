@@ -17,9 +17,9 @@ import db, { tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 import { sendCommunicationToVolunteer } from '../VolunteerActions';
 
 /**
- * Props accepted by the <ContactVolunteerSection> component.
+ * Props accepted by the <VolunteerContactSection> component.
  */
-interface ContactVolunteerSectionProps {
+interface VolunteerContactSectionProps {
     /**
      * Unique ID or URL-safe slug of the event the communication would be in scope of.
      */
@@ -42,7 +42,7 @@ interface ContactVolunteerSectionProps {
 /**
  * Component through which contact can be conveniently established with a particular volunteer.
  */
-export async function ContactVolunteerSection(props: ContactVolunteerSectionProps) {
+export async function VolunteerContactSection(props: VolunteerContactSectionProps) {
     return (
         <Paper sx={{
             backgroundColor: 'backgroundHighlight',
@@ -67,7 +67,7 @@ export async function ContactVolunteerSection(props: ContactVolunteerSectionProp
  * Action that gathers the necessary data in order to communicate with the volunteer, and, once all
  * data is available, displays a button through which contact can be established.
  */
-async function ContactVolunteerAction(props: ContactVolunteerSectionProps) {
+async function ContactVolunteerAction(props: VolunteerContactSectionProps) {
     const event = await getEvent(props.event);
     const team = await getTeam(props.team);
 

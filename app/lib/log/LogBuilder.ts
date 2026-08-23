@@ -168,6 +168,9 @@ export class LogBuilder<T extends LogType> {
 
         const filteredDiff: LogDifferences = {};
         for (const [ label, pair ] of Object.entries(diff)) {
+            if (pair === undefined || pair === null)
+                continue;
+
             if (!hasChanged(pair.before, pair.after))
                 continue;
 
