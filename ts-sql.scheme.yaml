@@ -2225,8 +2225,8 @@ tables:
   - name: event_id
     type: int(4)
     nullable: false
-  - name: event_ticket_id
-    type: text
+  - name: event_ticket_ytp_id
+    type: int(10) unsigned
     nullable: false
   - name: event_ticket_category
     type: enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend')
@@ -2238,26 +2238,26 @@ tables:
     default: "NULL"
   indexes:
   - name: event_id
-    def: UNIQUE KEY event_id (event_id, event_ticket_id) USING HASH
+    def: UNIQUE KEY event_id (event_id, event_ticket_ytp_id) USING BTREE
     table: events_tickets_configuration
     columns:
     - event_id
-    - event_ticket_id
+    - event_ticket_ytp_id
   constraints:
   - name: event_id
     type: UNIQUE
-    def: UNIQUE KEY event_id (event_id, event_ticket_id)
+    def: UNIQUE KEY event_id (event_id, event_ticket_ytp_id)
     table: events_tickets_configuration
     columns:
     - event_id
-    - event_ticket_id
+    - event_ticket_ytp_id
   def: |-
     CREATE TABLE `events_tickets_configuration` (
       `event_id` int(4) NOT NULL,
-      `event_ticket_id` text NOT NULL,
+      `event_ticket_ytp_id` int(10) unsigned NOT NULL,
       `event_ticket_category` enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend') DEFAULT NULL,
       `event_ticket_activity_id` int(4) unsigned DEFAULT NULL,
-      UNIQUE KEY `event_id` (`event_id`,`event_ticket_id`) USING HASH
+      UNIQUE KEY `event_id` (`event_id`,`event_ticket_ytp_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_passkeys
   type: BASE TABLE

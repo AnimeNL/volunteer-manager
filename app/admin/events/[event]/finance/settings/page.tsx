@@ -35,27 +35,27 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 
 }), withRowModel({
     /**
-     * Unique ID of the sale as it exists in the database.
+     * Unique ID of the ticket type as it exists in the database.
      */
-    id: z.string(),
+    id: z.number(),
 
     /**
-     * Type of sale that this row model details.
+     * Type of ticket type that this row model details.
      */
     product: z.string(),
 
     /**
-     * Maximum number of sales that can be supported for this particular category.
+     * Maximum number of tickets that can be supported for this particular category.
      */
     productLimit: z.number().nullish(),
 
     /**
-     * Category of sale that this row model details.
+     * Category of tickets that this row model details.
      */
     category: z.enum(kEventTicketCategory).or(z.literal('null')).nullish(),
 
     /**
-     * Price of the product, when known.
+     * Price of the ticket, when known.
      */
     price: z.number().nullish(),
 
@@ -77,7 +77,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     async list(params, props, context) {
         const service = await createTicketService(context.event.id);
         if (!service)
-            notFound();
+            return notFound();
 
         const dbInstance = db;
 
@@ -85,7 +85,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
         const associations = await dbInstance.selectDistinctFrom(tEventsTicketsConfiguration)
             .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
             .select({
-                ticketId: tEventsTicketsConfiguration.eventTicketId,
+                ticketId: tEventsTicketsConfiguration.eventTicketYtpId,
                 ticketCategory: tEventsTicketsConfiguration.eventTicketCategory,
                 ticketActivityId: tEventsTicketsConfiguration.eventTicketActivityId,
             })
@@ -95,13 +95,15 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             associations.map(association => [ association.ticketId, association ]));
 
         const products = types.map(type => {
-            const association = associationsMap.get(type.id.toString());
+            const ticketId = Number(type.id);  // TODO: Weeztix compatibility
+
+            const association = associationsMap.get(ticketId);
             return {
-                id: type.id.toString(),
+                id: ticketId,
                 product: type.name,
                 productLimit: type.amount,
                 category: association?.ticketCategory,
-                price: type.price,
+                price: type.price / 100,
                 activityId: association?.ticketActivityId,
             };
         });
@@ -146,7 +148,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
         const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
             .set({
                 eventId: context.event.id,
-                eventTicketId: row.id,
+                eventTicketYtpId: row.id,
                 eventTicketActivityId,
                 eventTicketCategory,
             })
@@ -179,6 +181,10 @@ export default async function FinanceSettingsPage(
     props: PageProps<'/admin/events/[event]/finance/settings'>)
 {
     const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
+
+    const service = await createTicketService(event.id);
+    if (!service)
+        notFound();
 
     const columns: Column<ExtractRowModel<typeof eventFinanceDataSource>>[] = [
         {

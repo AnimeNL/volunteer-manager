@@ -14,7 +14,7 @@ import {
 
 export class EventsTicketsConfigurationTable extends Table<DBConnection, 'EventsTicketsConfigurationTable'> {
     eventId = this.column('event_id', 'int');
-    eventTicketId = this.column('event_ticket_id', 'string');
+    eventTicketYtpId = this.column('event_ticket_ytp_id', 'int');
     eventTicketCategory = this.optionalColumnWithDefaultValue<EventTicketCategory>('event_ticket_category', 'enum', 'EventTicketCategory');
     eventTicketActivityId = this.optionalColumnWithDefaultValue('event_ticket_activity_id', 'int');
 

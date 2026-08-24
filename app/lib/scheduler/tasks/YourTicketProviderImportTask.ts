@@ -221,6 +221,9 @@ export class YourTicketProviderImportTask extends Task {
             for (const liveTicket of liveTickets) {
                 const knownTicket = knownTicketsMap.get(liveTicket.Id);
 
+                // Store ticket prices in cents because IEEE-754:
+                const ytpTicketPrice = Math.round(liveTicket.Price * 100);
+
                 let ytpTicketSalesStart: Temporal.ZonedDateTime | undefined;
                 let ytpTicketSalesEnd: Temporal.ZonedDateTime | undefined;
 
@@ -239,7 +242,7 @@ export class YourTicketProviderImportTask extends Task {
                 let ytpTicketUpdated = Temporal.Now.zonedDateTimeISO('UTC');
                 if (!!knownTicket) {
                     if (knownTicket.Name === liveTicket.Name &&
-                        knownTicket.Price === liveTicket.Price &&
+                        knownTicket.Price === ytpTicketPrice &&
                         knownTicket.Amount === liveTicket.Amount &&
                         knownTicket.SoldOut === !!liveTicket.SoldOut &&
                         knownTicket.Live === !!liveTicket.Live &&
@@ -259,7 +262,7 @@ export class YourTicketProviderImportTask extends Task {
                         ytpTicketId: liveTicket.Id,
                         ytpTicketEventId: eventId,
                         ytpTicketName: liveTicket.Name,
-                        ytpTicketPrice: liveTicket.Price,
+                        ytpTicketPrice,
                         ytpTicketAmount: liveTicket.Amount,
                         ytpTicketSoldOut: liveTicket.SoldOut ? 1 : 0,
                         ytpTicketLive: liveTicket.Live ? 1 : 0,
@@ -272,7 +275,7 @@ export class YourTicketProviderImportTask extends Task {
                     })
                     .onConflictDoUpdateSet({
                         ytpTicketName: liveTicket.Name,
-                        ytpTicketPrice: liveTicket.Price,
+                        ytpTicketPrice,
                         ytpTicketAmount: liveTicket.Amount,
                         ytpTicketSoldOut: liveTicket.SoldOut ? 1 : 0,
                         ytpTicketLive: liveTicket.Live ? 1 : 0,
