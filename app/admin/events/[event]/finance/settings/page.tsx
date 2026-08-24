@@ -112,23 +112,19 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             const direction = params.sort.direction === 'asc' ? 1 : -1;
             switch (params.sort.field) {
                 case 'activityId':
-                    // TODO: Implement sorting.
-                    break;
+                    return ((lhs.activityId ?? 0) - (rhs.activityId ?? 0)) * direction;
 
                 case 'category':
-                    // TODO: Implement sorting.
-                    break;
+                    return (lhs.category ?? '').localeCompare(rhs.category ?? '') * direction;
 
                 case 'price':
-                    // TODO: Implement sorting.
-                    break;
+                    return ((lhs.price ?? 0) - (rhs.price ?? 0)) * direction;
 
                 case 'product':
                     return lhs.product.localeCompare(rhs.product) * direction;
 
                 case 'productLimit':
-                    // TODO: Implement sorting.
-                    break;
+                    return ((lhs.productLimit ?? 0) - (rhs.productLimit ?? 0)) * direction;
             }
 
             return 0;
@@ -174,10 +170,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 });
 
 /**
- * The <FinanceSettingsPage> component represents the settings related to the financial information
- * of a particular event, such as ticket prices and event associations.
+ * Page that allows product associations to be established for the given event.
  */
-export default async function FinanceSettingsPage(
+export default async function EventFinanceSettingsPage(
     props: PageProps<'/admin/events/[event]/finance/settings'>)
 {
     const { event } = await requireAuthenticationWithEvent(props, 'event.settings');

@@ -1,7 +1,8 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
+import { notFound } from 'next/navigation';
 
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import Badge from '@mui/material/Badge';
@@ -15,45 +16,57 @@ import { FinanceDashboard } from './FinanceDashboard';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { generateEventMetadataFn } from '../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEventsSales, tEventsSalesConfiguration } from '@lib/database';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases, tYourTicketProviderTickets }
+    from '@lib/database';
 
 /**
- * The <FinancePage> component represents the financial dashboard of a certain AnimeCon event. This
- * data is only accessible to a subset of our users, as it's not usually applicable.
+ * Page that displays the financial dashboard for the given event.
  */
-export default async function FinancePage(props: PageProps<'/admin/events/[event]/finance'>) {
-    const { access, event } = await verifyAccessAndFetchPageInfo(props.params, {
-        permission: 'statistics.finances',
-    });
+export default async function EventFinancePage(props: PageProps<'/admin/events/[event]/finance'>) {
+    const { access, event } = await requireAuthenticationWithEvent(props, 'statistics.finances');
+
+    const service = await createTicketService(event.id);
+    if (!service)
+        notFound();
 
     const dbInstance = db;
-    const mostRecentUpdate = await dbInstance.selectFrom(tEventsSales)
-        .where(tEventsSales.eventId.equals(event.id))
-        .selectOneColumn(dbInstance.max(tEventsSales.eventSaleUpdated))
-        .groupBy(tEventsSales.eventId)
-        .executeSelectNoneOrOne();
 
-    const headerActions: React.ReactNode[] = [];
-    if (access.can('event.settings', { event: event.slug })) {
-        const pendingCategorisationCount = await dbInstance.selectFrom(tEventsSalesConfiguration)
-            .where(tEventsSalesConfiguration.eventId.equals(event.id))
-                .and(tEventsSalesConfiguration.saleCategory.isNull())
-            .selectCountAll()
-            .executeSelectOne();
+    const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();
 
-        headerActions.push(
-            <Tooltip title="Settings" key="settings">
-                <IconButton LinkComponent={Link} href="./finance/settings" size="small">
-                    <Badge variant="dot" color="error" invisible={!pendingCategorisationCount}>
-                        <SettingsIcon fontSize="small" />
-                    </Badge>
-                </IconButton>
-            </Tooltip>
-        )
+    let mostRecentUpdate: Temporal.ZonedDateTime | undefined;
+    let pendingCategorisationCount: number | undefined;
+
+    switch (service.id) {
+        case 'Weeztix':
+            throw new Error('Support for Weeztix is not yet implemented.');
+
+        case 'YourTicketProvider': {
+            const ytpEventId = Number(service.eventId);
+
+            mostRecentUpdate = await dbInstance.selectFrom(tYourTicketProviderPurchases)
+                .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(ytpEventId))
+                .selectOneColumn(
+                    dbInstance.max(tYourTicketProviderPurchases.ytpPurchaseItemUpdated))
+                .executeSelectNoneOrOne() ?? undefined;
+
+            pendingCategorisationCount = await dbInstance.selectFrom(tYourTicketProviderTickets)
+                .leftJoin(eventsTicketsConfigurationJoin)
+                    .on(eventsTicketsConfigurationJoin.eventId.equals(event.id))
+                        .and(eventsTicketsConfigurationJoin.eventTicketYtpId.equals(
+                                 tYourTicketProviderTickets.ytpTicketId))
+                .where(tYourTicketProviderTickets.ytpTicketEventId.equals(ytpEventId))
+                    .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
+                .selectCountAll()
+                .executeSelectOne();
+
+            break;
+        }
     }
 
+    const headerActions: React.ReactNode[] = [];
     if (!!mostRecentUpdate) {
         headerActions.push(
             <Tooltip title="Data updated on…" key="updated">
@@ -64,17 +77,31 @@ export default async function FinancePage(props: PageProps<'/admin/events/[event
             </Tooltip>);
     }
 
+    if (access.can('event.settings', { event: event.slug })) {
+        headerActions.push(
+            <IconButton LinkComponent={Link} href="./finance/settings" size="small" key="settings">
+                <Badge variant="dot" color="error" invisible={!pendingCategorisationCount}>
+                    <SettingsIcon fontSize="small" />
+                </Badge>
+            </IconButton>
+        );
+    }
+
     return (
         <>
-            <Section title="Finances" subtitle={event.shortName}
-                     icon={ <AnalyticsOutlinedIcon color="primary" /> } headerAction={
-                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                            {headerActions}
-                        </Stack>
+            <Section icon={ <AnalyticsOutlinedIcon color="primary" /> } title="Finances"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: 'Finances' },
+                     ]}
+                     headerAction={
+                         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                             {headerActions}
+                         </Stack>
                      }>
                 <SectionIntroduction>
-                    This is the financial dashboard for {event.shortName}, showing key ticket sale
-                    figures and comparisons with past editions.
+                    Financial dashboard for {event.shortName}, showing key ticket and product sales
+                    figures.
                 </SectionIntroduction>
             </Section>
             <FinanceDashboard event={event.slug} />
@@ -82,4 +109,4 @@ export default async function FinancePage(props: PageProps<'/admin/events/[event
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Finances');
+export const generateMetadata = createGenerateMetadataFn('Finances', { event: 'event' });
