@@ -19,32 +19,33 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
+import type { EventTicketCategory } from '@lib/database/Types';
 import type { RemoteGraphFnReturn } from './graphs/RemoteGraphFn';
 import { RemoteGraphDialog } from './graphs/RemoteGraphDialog';
 import { SalesDataGridGroupingCell } from './SalesDataGridGroupingCell';
 import { formatMetric } from './kpi/ValueFormatter';
 
-import { kEventSalesCategory, type EventSalesCategory } from '@lib/database/Types';
+import { kEventTicketCategory } from '@lib/database/Types';
 
 /**
  * Optional category labels to translate to a human readable name. Falls back to the category name.
  */
-const kCategoryLabels: { [key in EventSalesCategory]?: string } = {
-    [kEventSalesCategory.LockerFriday]: 'Friday lockers',
-    [kEventSalesCategory.LockerSaturday]: 'Saturday lockers',
-    [kEventSalesCategory.LockerSunday]: 'Sunday lockers',
-    [kEventSalesCategory.LockerWeekend]: 'Weekend lockers',
-    [kEventSalesCategory.TicketFriday]: 'Friday tickets',
-    [kEventSalesCategory.TicketSaturday]: 'Saturday tickets',
-    [kEventSalesCategory.TicketSunday]: 'Sunday tickets',
-    [kEventSalesCategory.TicketWeekend]: 'Weekend tickets',
+const kCategoryLabels: { [key in EventTicketCategory]?: string } = {
+    [kEventTicketCategory.LockerFriday]: 'Friday lockers',
+    [kEventTicketCategory.LockerSaturday]: 'Saturday lockers',
+    [kEventTicketCategory.LockerSunday]: 'Sunday lockers',
+    [kEventTicketCategory.LockerWeekend]: 'Weekend lockers',
+    [kEventTicketCategory.TicketFriday]: 'Friday tickets',
+    [kEventTicketCategory.TicketSaturday]: 'Saturday tickets',
+    [kEventTicketCategory.TicketSunday]: 'Sunday tickets',
+    [kEventTicketCategory.TicketWeekend]: 'Weekend tickets',
 };
 
 /**
  * Returns the tree data path for category grouping as supported by the <SalesDataGrid> component.
  */
 function getTreeDataPathForCategories(row: SalesDataGridRow): string[] {
-    const categoryLabel = kCategoryLabels[row.category as EventSalesCategory] ?? row.category;
+    const categoryLabel = kCategoryLabels[row.category as EventTicketCategory] ?? row.category;
     return (row.id <= 0 || row.avoidCategoryAggregation)
         ? [ categoryLabel ]
         : [ categoryLabel, row.product ];
@@ -240,7 +241,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                 id: 0 - categoryAggregates.size,
                 category,
                 // |href| intentionally omitted
-                product: kCategoryLabels[category as EventSalesCategory] ?? category,
+                product: kCategoryLabels[category as EventTicketCategory] ?? category,
                 productIds: [ /* will be populated */ ],
                 totalRevenue: 0,
                 totalSales: 0,

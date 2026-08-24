@@ -1,11 +1,11 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventSalesCategory } from '@lib/database/Types';
+import type { EventTicketCategory } from '@lib/database/Types';
 import type { FinancialData } from './FinancialData';
 import { formatDate } from '@lib/Temporal';
 
-import { kEventSalesCategory } from '@lib/database/Types';
+import { kEventTicketCategory } from '@lib/database/Types';
 
 /**
  * Number of days that should be considered in the change percentage window.
@@ -30,22 +30,27 @@ const kSalesBarColors = [
 /**
  * Labels to apply to each of the sales categories.
  */
-const kSalesCategoryLabels: { [key in EventSalesCategory]?: string } = {
+const kSalesCategoryLabels: { [key in EventTicketCategory]?: string } = {
     Event: 'Event tickets',
     Hidden: 'N/A',
     Locker: 'Lockers',
+    LockerFriday: 'Friday',
+    LockerSaturday: 'Saturday',
+    LockerSunday: 'Sunday',
+    LockerWeekend: 'Weekend',
     TicketFriday: 'Friday',
     TicketSaturday: 'Saturday',
     TicketSunday: 'Sunday',
-    TicketWeekend: 'Weekend'
+    TicketVolunteers: 'Volunteers',
+    TicketWeekend: 'Weekend',
 };
 
 /**
  * Generates the view necessary to populate the `<EventSalesTable>` component.
  */
 export function generateEventSalesTableView(financialData: FinancialData) {
-    function IsEvent(product: { category: EventSalesCategory }): boolean {
-        return product.category === kEventSalesCategory.Event;
+    function IsEvent(product: { category: EventTicketCategory }): boolean {
+        return product.category === kEventTicketCategory.Event;
     }
 
     return generateSalesTableView(IsEvent, financialData);
@@ -82,18 +87,18 @@ export function generateLockerSalesGraphView(financialData: FinancialData) {
  * Generates the view necessary to populate the `<LockerSalesTable>` component.
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
-    function IsLocker(product: { category: EventSalesCategory }): boolean {
-        return product.category === kEventSalesCategory.Locker ||
-               product.category === kEventSalesCategory.LockerFriday ||
-               product.category === kEventSalesCategory.LockerSaturday ||
-               product.category === kEventSalesCategory.LockerSunday ||
-               product.category === kEventSalesCategory.LockerWeekend;
+    function IsLocker(product: { category: EventTicketCategory }): boolean {
+        return product.category === kEventTicketCategory.Locker ||
+               product.category === kEventTicketCategory.LockerFriday ||
+               product.category === kEventTicketCategory.LockerSaturday ||
+               product.category === kEventTicketCategory.LockerSunday ||
+               product.category === kEventTicketCategory.LockerWeekend;
     }
 
     return generateSalesTableView(IsLocker, financialData);
 }
 
-type ProductFilterFn = (product: { category: EventSalesCategory }) => boolean;
+type ProductFilterFn = (product: { category: EventTicketCategory }) => boolean;
 
 /**
  * Generates a sales graph view for products of the given |type|. Two data series will be returned,
@@ -111,17 +116,17 @@ function generateSalesGraphView(type: 'lockers' | 'tickets', financialData: Fina
     const kIndexSunday = 2;
     const kIndexWeekend = 3;  // only valid for |salesSeries|
 
-    const kProductCategoryToIndexMapping: { [key in EventSalesCategory]?: number } =
+    const kProductCategoryToIndexMapping: { [key in EventTicketCategory]?: number } =
         type === 'lockers' ? {
-            [kEventSalesCategory.LockerFriday]: kIndexFriday,
-            [kEventSalesCategory.LockerSaturday]: kIndexSaturday,
-            [kEventSalesCategory.LockerSunday]: kIndexSunday,
-            [kEventSalesCategory.LockerWeekend]: kIndexWeekend,
+            [kEventTicketCategory.LockerFriday]: kIndexFriday,
+            [kEventTicketCategory.LockerSaturday]: kIndexSaturday,
+            [kEventTicketCategory.LockerSunday]: kIndexSunday,
+            [kEventTicketCategory.LockerWeekend]: kIndexWeekend,
         } : {
-            [kEventSalesCategory.TicketFriday]: kIndexFriday,
-            [kEventSalesCategory.TicketSaturday]: kIndexSaturday,
-            [kEventSalesCategory.TicketSunday]: kIndexSunday,
-            [kEventSalesCategory.TicketWeekend]: kIndexWeekend,
+            [kEventTicketCategory.TicketFriday]: kIndexFriday,
+            [kEventTicketCategory.TicketSaturday]: kIndexSaturday,
+            [kEventTicketCategory.TicketSunday]: kIndexSunday,
+            [kEventTicketCategory.TicketWeekend]: kIndexWeekend,
         };
 
     type SalesGraphPoint = { color: string; label: string; value: number; };
@@ -217,7 +222,7 @@ export function generateTicketRevenueView(financialData: FinancialData) {
  * Generates the view necessary to populate the `<TicketSalesTable>` component.
  */
 export function generateTicketSalesTableView(financialData: FinancialData) {
-    function IsTicket(product: { category: EventSalesCategory }): boolean {
+    function IsTicket(product: { category: EventTicketCategory }): boolean {
         return isTicketSalesCategory(product.category);
     }
 
@@ -259,11 +264,11 @@ function maybeRemoveProductNameDuplication(product: string, programTitle?: strin
 /**
  * Utility function to determine whether |category| describes ticket sales.
  */
-function isTicketSalesCategory(category: EventSalesCategory): boolean {
-    return category === kEventSalesCategory.TicketFriday ||
-           category === kEventSalesCategory.TicketSaturday ||
-           category === kEventSalesCategory.TicketSunday ||
-           category === kEventSalesCategory.TicketWeekend;
+function isTicketSalesCategory(category: EventTicketCategory): boolean {
+    return category === kEventTicketCategory.TicketFriday ||
+           category === kEventTicketCategory.TicketSaturday ||
+           category === kEventTicketCategory.TicketSunday ||
+           category === kEventTicketCategory.TicketWeekend;
 }
 
 /**
@@ -295,12 +300,12 @@ function computeKeyMetricsData(financialData: FinancialData, selection: KeyMetri
 
         const historyWindowStart = financialData.remaining + kKeyMetricHistoryBars;
         const historyWindowEnd = financialData.remaining;
-        const history = new Map<EventSalesCategory, number[]>;
+        const history = new Map<EventTicketCategory, number[]>;
 
         // -----------------------------------------------------------------------------------------
 
         for (const product of event.products.values()) {
-            if (selection.eventTicketSales && product.category !== kEventSalesCategory.Event)
+            if (selection.eventTicketSales && product.category !== kEventTicketCategory.Event)
                 continue;  // filter out non-event ticket sales
             if (selection.ticketSales && !isTicketSalesCategory(product.category))
                 continue;  // filter out non-ticket sales

@@ -123,7 +123,7 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
             rows: paginated.map(ticketType => ({
                 id: ticketType.id,
                 name: ticketType.name,
-                price: kPriceFormatter.format(ticketType.price),
+                price: kPriceFormatter.format(ticketType.price / 100),
                 live: ticketType.active,
                 sold: ticketType.sold,
                 amount: ticketType.amount,

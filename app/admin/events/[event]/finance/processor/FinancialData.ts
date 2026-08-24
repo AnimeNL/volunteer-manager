@@ -1,8 +1,9 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventSalesCategory } from '@lib/database/Types';
-import db, { tActivities, tEvents, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
+import type { EventTicketCategory } from '@lib/database/Types';
+import db, { tActivities, tEvents, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
+    tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Interface defining the raw representation of finaicial data associated with a specific event.
@@ -45,7 +46,7 @@ interface FinancialEventData {
         /**
          * Category of sale that this product belongs to.
          */
-        category: EventSalesCategory;
+        category: EventTicketCategory;
 
         /**
          * Maximum number of products that can be sold.
@@ -120,13 +121,16 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
     const dbInstance = db;
 
     const eventValidation = await dbInstance.selectFrom(tEvents)
-        .innerJoin(tEventsSales)
-            .on(tEventsSales.eventId.equals(tEvents.eventId))
+        .innerJoin(tYourTicketProviderPurchases)
+            .on(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(tEvents.eventYtpEventId))
+                .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
+                .and(tYourTicketProviderPurchases.ytpPurchaseDatePaid.isNotNull())
         .where(tEvents.eventSlug.equals(eventSlug))
         .select({
             endTime: tEvents.eventEndTime.asOptional(),
-            sales: dbInstance.count(tEventsSales.eventSaleDate),
+            sales: dbInstance.count(tYourTicketProviderPurchases.ytpPurchaseItemId),
         })
+        .groupBy(tEvents.eventId)
         .executeSelectNoneOrOne();
 
     if (!eventValidation || !eventValidation.endTime || eventValidation.sales === 0)
@@ -135,9 +139,9 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
     // ---------------------------------------------------------------------------------------------
 
     const events = await dbInstance.selectFrom(tEvents)
-        .innerJoin(tEventsSalesConfiguration)
-            .on(tEventsSalesConfiguration.eventId.equals(tEvents.eventId))
-                .and(tEventsSalesConfiguration.saleCategory.isNotNull())
+        .innerJoin(tEventsTicketsConfiguration)
+            .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
+                .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
         .where(tEvents.eventEndTime.lessOrEqual(eventValidation.endTime))
         .select({
             id: tEvents.eventId,
@@ -148,7 +152,8 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
             shortName: tEvents.eventShortName,
             slug: tEvents.eventSlug,
 
-            products: dbInstance.aggregateAsArrayOfOneColumn(tEventsSalesConfiguration.saleId),
+            products: dbInstance.aggregateAsArrayOfOneColumn(
+                tEventsTicketsConfiguration.eventTicketYtpId),
         })
         .groupBy(tEvents.eventId)
         .orderBy(tEvents.eventEndTime, 'desc')
@@ -158,36 +163,42 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
     // ---------------------------------------------------------------------------------------------
 
     const activitiesJoin = tActivities.forUseInLeftJoin();
-    const daysFromEvent = dbInstance.fragmentWithType('int', 'required')
-        .sql`DATEDIFF(${tEvents.eventEndTime}, ${tEventsSales.eventSaleDate})`;
+    const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
 
-    const products = await dbInstance.selectFrom(tEventsSalesConfiguration)
+    const daysFromEvent = dbInstance.fragmentWithType('int', 'optional')
+        .sql`DATEDIFF(${tEvents.eventEndTime}, ${purchasesJoin.ytpPurchaseDatePaid})`;
+
+    const products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
         .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tEventsSalesConfiguration.eventId))
-        .innerJoin(tEventsSales)
-            .on(tEventsSales.eventSaleId.equals(tEventsSalesConfiguration.saleId))
+            .on(tEvents.eventId.equals(tEventsTicketsConfiguration.eventId))
+        .innerJoin(tYourTicketProviderTickets)
+            .on(tYourTicketProviderTickets.ytpTicketId.equals(
+                tEventsTicketsConfiguration.eventTicketYtpId))
         .leftJoin(activitiesJoin)
-            .on(activitiesJoin.activityId.equals(tEventsSalesConfiguration.saleEventId))
-        .where(tEventsSalesConfiguration.eventId.in(events.map(event => event.id)))
-            .and(tEventsSalesConfiguration.saleCategory.isNotNull())
+            .on(activitiesJoin.activityId.equals(
+                tEventsTicketsConfiguration.eventTicketActivityId))
+        .leftJoin(purchasesJoin)
+            .on(purchasesJoin.ytpPurchaseItemTicketId.equals(
+                tEventsTicketsConfiguration.eventTicketYtpId))
+                .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
+                .and(purchasesJoin.ytpPurchaseDatePaid.isNotNull())
+        .where(tEventsTicketsConfiguration.eventId.in(events.map(event => event.id)))
+            .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
         .select({
-            id: tEventsSalesConfiguration.saleId,
+            id: tEventsTicketsConfiguration.eventTicketYtpId,
 
-            category: tEventsSalesConfiguration.saleCategory,
-            limit: tEventsSalesConfiguration.saleCategoryLimit,
-            price: tEventsSalesConfiguration.salePrice,
-            product: tEventsSalesConfiguration.saleProduct,
+            category: tEventsTicketsConfiguration.eventTicketCategory,
+            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
+            price: tYourTicketProviderTickets.ytpTicketPrice.divide(100),
+            product: tYourTicketProviderTickets.ytpTicketName,
             program: {
-                id: tEventsSalesConfiguration.saleEventId,
+                id: tEventsTicketsConfiguration.eventTicketActivityId,
                 title: activitiesJoin.activityTitle,
             },
 
-            sales: dbInstance.aggregateAsArray({
-                days: daysFromEvent,
-                count: tEventsSales.eventSaleCount,
-            }),
+            sales: dbInstance.aggregateAsArrayOfOneColumn(daysFromEvent),
         })
-        .groupBy(tEventsSalesConfiguration.saleId)
+        .groupBy(tEventsTicketsConfiguration.eventTicketYtpId)
         .executeSelectMany();
 
     // Transforms the |products| array into a map for faster lookup:
@@ -206,12 +217,15 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
             const product = productsMap.get(productId)!;
             const sales: Map<number, number> = new Map;
 
-            for (let days = 365; days <= 0; --days)
+            for (let days = 365; days >= 0; --days)
                 sales.set(days, /* default value= */ 0);
 
-            for (const { days, count } of product.sales) {
+            for (const days of product.sales) {
+                if (typeof days !== 'number')
+                    continue;
+
                 const clampedDays = Math.max(0, Math.min(days, 365));
-                sales.set(clampedDays, (sales.get(clampedDays) ?? 0) + count);
+                sales.set(clampedDays, (sales.get(clampedDays) ?? 0) + 1);
             }
 
             products.set(product.id, {

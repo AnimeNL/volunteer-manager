@@ -11,7 +11,8 @@ import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { executeServerAction } from '@lib/serverAction';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tEventsDates, tEventsSales, tEventsSalesConfiguration } from '@lib/database';
+import db, { tEvents, tEventsDates, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
+    tYourTicketProviderTickets } from '@lib/database';
 
 import { kDateType } from '@lib/database/Types';
 import { kProductHighlightColors } from './ProductHighlightColors';
@@ -59,14 +60,15 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     // dates, or to the product category's availability dates, depending on a settings.
     // ---------------------------------------------------------------------------------------------
 
-    const dateRange = await dbInstance.selectFrom(tEventsSales)
+    const dateRange = await dbInstance.selectFrom(tYourTicketProviderPurchases)
         .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tEventsSales.eventId))
-        .where(tEventsSales.eventId.equals(eventId))
-            .and(tEventsSales.eventSaleId.in(products))
-            .and(tEventsSales.eventSaleCount.greaterThan(0))
+            .on(tEvents.eventYtpEventId.equals(tYourTicketProviderPurchases.ytpPurchaseEventId))
+        .where(tEvents.eventId.equals(eventId))
+            .and(tYourTicketProviderPurchases.ytpPurchaseItemTicketId.in(products))
+            .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
+            .and(tYourTicketProviderPurchases.ytpPurchaseDatePaid.isNotNull())
         .select({
-            min: dbInstance.min(tEventsSales.eventSaleDate),
+            min: dbInstance.min(tYourTicketProviderPurchases.ytpPurchaseDatePaid),
             max: tEvents.eventEndTime,
         })
         .executeSelectNoneOrOne();
@@ -78,7 +80,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
 
     const maxPlainDate = dateRange.max.toPlainDate();
 
-    const min = dateRange.min;
+    const min = dateRange.min.toPlainDate();
     const max = isBefore(currentDate, maxPlainDate) ? currentDate : maxPlainDate;
 
     // ---------------------------------------------------------------------------------------------
@@ -113,25 +115,31 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     // Fetch the sales information from the database and populate the
     // ---------------------------------------------------------------------------------------------
 
-    const eventsSalesJoin = tEventsSales.forUseInLeftJoin();
-    const eventsSalesData = await dbInstance.selectFrom(tEventsSalesConfiguration)
-        .leftJoin(eventsSalesJoin)
-            .on(eventsSalesJoin.eventSaleId.equals(tEventsSalesConfiguration.saleId))
-        .where(tEventsSalesConfiguration.saleId.in(products))
+    const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
+    const paidDate = dbInstance.dateTimeAsDateString(purchasesJoin.ytpPurchaseDatePaid);
+
+    const ticketsData = await dbInstance.selectFrom(tEventsTicketsConfiguration)
+        .innerJoin(tYourTicketProviderTickets)
+            .on(tYourTicketProviderTickets.ytpTicketId.equals(
+                tEventsTicketsConfiguration.eventTicketYtpId))
+        .leftJoin(purchasesJoin)
+            .on(purchasesJoin.ytpPurchaseItemTicketId.equals(
+                tEventsTicketsConfiguration.eventTicketYtpId))
+                .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
+                .and(purchasesJoin.ytpPurchaseDatePaid.isNotNull())
+        .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+            .and(tEventsTicketsConfiguration.eventTicketYtpId.in(products))
         .select({
-            id: tEventsSalesConfiguration.saleId,
-            product: tEventsSalesConfiguration.saleProduct,
-            limit: tEventsSalesConfiguration.saleCategoryLimit,
-            sales: dbInstance.aggregateAsArray({
-                date: dbInstance.dateAsString(eventsSalesJoin.eventSaleDate),
-                count: eventsSalesJoin.eventSaleCount,
-            }),
+            id: tEventsTicketsConfiguration.eventTicketYtpId,
+            product: tYourTicketProviderTickets.ytpTicketName,
+            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
+            purchaseDates: dbInstance.aggregateAsArrayOfOneColumn(paidDate),
         })
-        .groupBy(tEventsSalesConfiguration.saleId)
+        .groupBy(tEventsTicketsConfiguration.eventTicketYtpId)
         .executeSelectMany();
 
     let productIndex = 0;
-    for (const data of eventsSalesData) {
+    for (const data of ticketsData) {
         if (typeof data.limit === 'number' && !!cumulative) {
             limits.set(data.limit, [ ...(limits.get(data.limit) || []), data.product ]);
             limitMaximum = Math.max(limitMaximum, data.limit);
@@ -156,8 +164,12 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
         });
 
         const productSales = sales.get(data.id)!;
-        for (const { date, count } of data.sales)
-            productSales.set(date, count);
+        for (const date of data.purchaseDates) {
+            if (!date)
+                continue;
+
+            productSales.set(date, (productSales.get(date) ?? 0) + 1);
+        }
 
         productIndex++;
     }
