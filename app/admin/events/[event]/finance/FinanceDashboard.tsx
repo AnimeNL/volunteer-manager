@@ -56,16 +56,16 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
             { /** Section: KPI overview ------------------------------------------------------- */ }
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
                 <TicketSalesCard processor={processor} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
                 <TicketRevenueCard processor={processor} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
                 <EventSalesCard processor={processor} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
                 <EventRevenueCard processor={processor} />
             </Grid>
 
@@ -85,11 +85,11 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
 
                     { /** Section: Graphs ------------------------------------------------------ */}
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, lg: 6 }}>
                         <VisitorGraphCard aspectRatio={kPieChartAspectRatio}
                                           processor={processor} />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, lg: 6 }}>
                         <LockerSalesGraph aspectRatio={kPieChartAspectRatio}
                                           processor={processor} />
                     </Grid>

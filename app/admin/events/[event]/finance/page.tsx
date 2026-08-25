@@ -6,14 +6,12 @@ import { notFound } from 'next/navigation';
 
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import Badge from '@mui/material/Badge';
-import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 
 import { FinanceDashboard } from './FinanceDashboard';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { FinanceUpdatedChip } from './FinanceUpdatedChip';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -69,12 +67,7 @@ export default async function EventFinancePage(props: PageProps<'/admin/events/[
     const headerActions: React.ReactNode[] = [];
     if (!!mostRecentUpdate) {
         headerActions.push(
-            <Tooltip title="Data updated on…" key="updated">
-                <Chip size="small" color="primary" variant="outlined" label={
-                    <LocalDateTime dateTime={mostRecentUpdate.toString()}
-                                   format="dddd, MMMM Do [at] HH:mm" />
-                } />
-            </Tooltip>);
+            <FinanceUpdatedChip updated={ mostRecentUpdate.toString() } key="updated" />);
     }
 
     if (access.can('event.settings', { event: event.slug })) {

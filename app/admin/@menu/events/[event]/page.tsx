@@ -81,8 +81,8 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
         },
         {
             Icon: AnalyticsOutlinedIcon,
-            badge: { migration: true, value: true },  // migration not started
-            // TODO: Condition on availability
+            condition: !!event.integrations?.yourTicketProviderEventId ||
+                       !!event.integrations?.weeztixGuid,
             label: 'Finances',
             permission: {
                 permission: 'statistics.finances',

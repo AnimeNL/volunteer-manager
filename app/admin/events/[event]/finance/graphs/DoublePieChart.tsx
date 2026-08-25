@@ -49,16 +49,16 @@ export function DoublePieChart(props: DoublePieChartProps) {
                 ...commonSeriesProperties,
                 innerRadius: '35%',
                 outerRadius: '55%',
-                data: props.series.pop()!.data,
+                data: props.series[1].data,
             },
             {
                 ...commonSeriesProperties,
                 innerRadius: '60%',
                 outerRadius: '90%',
-                data: props.series.pop()!.data,
+                data: props.series[0].data,
             }
         ] satisfies PieChartProProps['series'];
     }, [ props.series ]);
 
-    return <PieChartPro hideLegend series={series} />;
+    return <PieChartPro hideLegend series={series} sx={{ width: '100%' }} />;
 }
