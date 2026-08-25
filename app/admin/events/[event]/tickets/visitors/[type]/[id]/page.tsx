@@ -30,7 +30,7 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 export default async function EventTicketsVisitorPurchasePage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/[type]/[id]'>)
 {
-    const { access, event } = await requireAuthenticationWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });

@@ -92,7 +92,8 @@ export const kColumnTemplates = {
 
             if (!!href) {
                 return (
-                    <MuiLink component={Link} href={href}>
+                    <MuiLink component={Link} href={href}
+                             onClick={ event => event.stopPropagation() }>
                         <LocalDateTime dateTime={params.value} fixedWidth format={format} />
                     </MuiLink>
                 );
@@ -171,7 +172,8 @@ export const kColumnTemplates = {
             if (!!column.templateProps?.href) {
                 const href = resolveTemplate(params.row, column.templateProps?.href);
                 return (
-                    <MuiLink component={Link} href={href}>
+                    <MuiLink component={Link} href={href}
+                             onClick={ event => event.stopPropagation() }>
                         { !!column.templateProps?.prefix &&
                             <Typography variant="inherit" color="textDisabled" component="span">
                                 {column.templateProps?.prefix}

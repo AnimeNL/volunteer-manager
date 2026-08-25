@@ -3,12 +3,12 @@
 
 'use client';
 
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import NotInterestedOutlinedIcon from '@mui/icons-material/NotInterestedOutlined';
+import RemoveShoppingCartOutlinedIcon from '@mui/icons-material/RemoveShoppingCartOutlined';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -31,13 +31,13 @@ export function LiveCell(props: { row: { live: boolean } }) {
     if (props.row.live) {
         return (
             <Tooltip title="Ticket type is live">
-                <CheckCircleOutlinedIcon color="success" fontSize="small" />
+                <ShoppingCartIcon color="success" fontSize="small" />
             </Tooltip>
         );
     } else {
         return (
             <Tooltip title="Ticket type is not live">
-                <CancelOutlinedIcon color="error" fontSize="small" />
+                <RemoveShoppingCartOutlinedIcon color="error" fontSize="small" />
             </Tooltip>
         );
     }

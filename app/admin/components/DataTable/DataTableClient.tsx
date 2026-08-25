@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
@@ -174,7 +174,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // Use memoized versions of certain props that would excessively invalidate the component tree.
     // ---------------------------------------------------------------------------------------------
 
-    const context = useMemo(() => props.context ?? {}, [ props.context ]);
+    const context = props.context ?? {};
+    const contextString = JSON.stringify(props.context);
+
     const estimatedListViewRowHeight =
         useMemo(() => calculateListViewRowHeight(props.listViewProps), [ props.listViewProps ]);
 
@@ -199,6 +201,11 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         pageSize: props.pageSize ?? kPageSizeDefault,
     });
 
+    const isMountedRef = useRef(false);
+    useEffect(() => {
+        isMountedRef.current = true;
+    }, []);
+
     // ---------------------------------------------------------------------------------------------
 
     const filterModel = useMemo((): GridFilterModel => ({
@@ -216,6 +223,9 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     // ---------------------------------------------------------------------------------------------
 
     const handlePaginationModelChange = useCallback((model: GridPaginationModel) => {
+        if (!isMountedRef.current)
+            return;
+
         let newPage = model.page;
 
         // Adjust the |newPage| if the page size changed, to ensure that the first currently visible
@@ -223,12 +233,18 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         if (model.pageSize !== pageSize)
             newPage = Math.floor((page * pageSize) / model.pageSize);
 
-        setPage(newPage);
-        setPageSize(model.pageSize);
+        if (newPage !== page)
+            setPage(newPage);
+
+        if (model.pageSize !== pageSize)
+            setPageSize(model.pageSize);
 
     }, [ page, pageSize, setPage, setPageSize ]);
 
     const handleSortModelChange = useCallback((model: GridSortModel) => {
+        if (!isMountedRef.current)
+            return;
+
         const item = model[0];
 
         const newField = item ? item.field : null;
@@ -240,20 +256,28 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         // through unsorted -> asc -> desc -> unsorted. Unsorted is represented as "null", which
         // causes Nuqs to fall back to the default value, making the column unsortable.
         const orderToSet = model.length === 0 && defaultOrder === 'desc' ? 'asc' : newOrder;
+        const nextOrder = orderToSet ?? null;
 
-        setSortField(newField);
-        setSortOrder(orderToSet ?? null);
-        setPage(null);
+        if (newField !== sortField || nextOrder !== sortOrder) {
+            setSortField(newField);
+            setSortOrder(nextOrder);
+            setPage(null);
+        }
 
-    }, [ props.defaultSort.sort, setSortField, setSortOrder, setPage ]);
+    }, [ props.defaultSort.sort, setSortField, setSortOrder, setPage, sortField, sortOrder ]);
 
     const handleFilterModelChange = useCallback((model: GridFilterModel) => {
+        if (!isMountedRef.current)
+            return;
+
         const newSearch = model.quickFilterValues?.[0] ?? '';
 
-        setSearch(newSearch);
-        setPage(null);
+        if (newSearch !== search) {
+            setSearch(newSearch);
+            setPage(null);
+        }
 
-    }, [ setSearch, setPage ]);
+    }, [ setSearch, setPage, search ]);
 
     // ---------------------------------------------------------------------------------------------
     // Ability to delete rows from the data table, when exposed by the source. Confirmation will be
@@ -401,6 +425,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     contextRef.current = context;
 
     const dataSource = useMemo((): GridDataSource => {
+        (void contextString);    // silence the Biome warning
         (void props.source.id);  // silence the Biome warning
         (void refreshTrigger);   // silence the Biome warning
 
@@ -427,7 +452,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 : undefined,
         };
 
-    }, [ props.refreshOnMutation, props.source.id, props.source.update, refreshTrigger, router ]);
+    }, [ contextString, props.refreshOnMutation, props.source.id, props.source.update,
+         refreshTrigger, router ]);
 
     // ---------------------------------------------------------------------------------------------
     // Mess:

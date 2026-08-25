@@ -190,7 +190,7 @@ export function FormProvider(props: React.PropsWithChildren<FormProviderProps>) 
                 if (!!result.redirect)
                     router.push(result.redirect);
 
-                if (!!router.refresh)
+                if (!!result.refresh)
                     router.refresh();
             }
 

@@ -86,41 +86,44 @@ export function useDataTableState(options: UseDataTableStateOptions) {
         if (disableQueryParams) {
             setStatePage(val ?? 0);
         } else {
-            setQueryPage(val ? val + 1 : null);
+            const targetPage = val ?? 0;
+            if (targetPage !== page)
+                setQueryPage(val ? val + 1 : null);
         }
-    }, [ disableQueryParams, setQueryPage ]);
+    }, [ disableQueryParams, page, setQueryPage ]);
 
     const setPageSize = useCallback((val: number) => {
         if (disableQueryParams) {
             setStatePageSize(val);
-        } else {
-            setQueryPageSize(val);
+        } else if (val !== pageSize) {
+            setQueryPageSize(val === defaultPageSize ? null : val);
         }
-    }, [ disableQueryParams, setQueryPageSize ]);
+    }, [ defaultPageSize, disableQueryParams, pageSize, setQueryPageSize ]);
 
     const setSortField = useCallback((val: string | null) => {
+        const targetField = val ?? defaultSort.field;
         if (disableQueryParams) {
-            setStateSortField(val ?? defaultSort.field);
-        } else {
-            setQuerySortField(val);
+            setStateSortField(targetField);
+        } else if (targetField !== sortField) {
+            setQuerySortField(val === defaultSort.field ? null : val);
         }
-    }, [ disableQueryParams, defaultSort.field, setQuerySortField ]);
+    }, [ defaultSort.field, disableQueryParams, setQuerySortField, sortField ]);
 
     const setSortOrder = useCallback((val: 'asc' | 'desc' | null) => {
         if (disableQueryParams) {
             setStateSortOrder(val);
-        } else {
-            setQuerySortOrder(val);
+        } else if (val !== sortOrder) {
+            setQuerySortOrder(val === defaultSort.sort ? null : val);
         }
-    }, [ disableQueryParams, setQuerySortOrder ]);
+    }, [ defaultSort.sort, disableQueryParams, setQuerySortOrder, sortOrder ]);
 
     const setSearch = useCallback((val: string) => {
         if (disableQueryParams) {
             setStateSearch(val);
-        } else {
+        } else if (val !== search) {
             setQuerySearch(val || null);
         }
-    }, [ disableQueryParams, setQuerySearch ]);
+    }, [ disableQueryParams, search, setQuerySearch ]);
 
     return {
         page, pageSize, sortField, sortOrder, search,

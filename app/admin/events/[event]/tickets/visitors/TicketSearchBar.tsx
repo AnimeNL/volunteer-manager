@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
@@ -19,20 +19,27 @@ import { FormProvider } from '@components/FormProvider';
  * the thousands of individual tickets created through our ticketing partners.
  */
 export function TicketSearchBar(props: { eventSlug: string; query?: string }) {
+    const defaultValues = useMemo(() => ({
+        query: props.query ?? '',
+    }), [ props.query ]);
+
     const handleSubmit = useCallback(async (data: { query: string }) => {
         if (!data.query)
             return { success: true };  // silently ignore
 
         const encodedQuery = encodeURIComponent(data.query.toString());
+        const redirect =
+            `/admin/events/${props.eventSlug}/tickets/visitors/search?for=${encodedQuery}`;
+
         return {
             success: true,
-            redirect: `/admin/events/${props.eventSlug}/tickets/visitors/search?q=${encodedQuery}`,
+            redirect,
         };
 
     }, [ props.eventSlug ]);
 
     return (
-        <FormProvider action={handleSubmit} defaultValues={{ query: props.query }}>
+        <FormProvider action={handleSubmit} defaultValues={defaultValues}>
             <Stack direction="row" spacing={1}>
                 <TextFieldElement name="query" sx={{ flex: 1 }}
                                   slotProps={{

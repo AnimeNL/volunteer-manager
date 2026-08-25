@@ -45,6 +45,11 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
     purchaseId: z.string().or(z.number()),
 
     /**
+     * Relative URL fragment linking to this ticket purchase ({type}/{purchaseId}).
+     */
+    link: z.string(),
+
+    /**
      * Formatted unique ID of the purchase that this ticket is part of.
      */
     order: z.string(),
@@ -114,6 +119,7 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
             .select({
                 id: tYourTicketProviderPurchases.ytpPurchaseItemId,
                 purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
+                type: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
                 holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
                 ticket: tYourTicketProviderTickets.ytpTicketName,
                 purchased: dbInstance.dateTimeAsString(
@@ -129,6 +135,7 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
             rowCount: purchases.count,
             rows: purchases.data.map(row => ({
                 ...row,
+                link: `${row.type}/${row.purchaseId}`,
                 order: service.formatPurchaseId(row.purchaseId),
             })),
         };
@@ -150,8 +157,8 @@ export default async function EventTicketsVisitorSearchPage(
     if (!service)
         notFound();
 
-    const { q } = await props.searchParams;
-    const query = typeof q === 'string' ? q : undefined;
+    const searchParams = await props.searchParams;
+    const query = typeof searchParams.for === 'string' ? searchParams.for : undefined;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -228,7 +235,7 @@ export default async function EventTicketsVisitorSearchPage(
                                subject="ticket" disableSearch
                                listViewProps={{
                                    primaryField: 'holder',
-                                   secondaryTemplate: '{purchaseIdFormatted} • Ticket #{id}',
+                                   secondaryTemplate: '{order} • Ticket #{id}',
                                    startComponent: ValidityCell,
                                    linkTemplate: `/admin/events/${event.slug}/tickets/visitors/` +
                                        `{link}`,
