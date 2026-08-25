@@ -262,7 +262,12 @@ function NavigationSectionClient(props: {
         <>
             <NavigationSectionDivider />
             <NavigationSectionHeader direction="row" onClick={handleToggleExpanded}>
-                <NavigationSectionHeaderText sx={{ color: props.section.color }}>
+                <NavigationSectionHeaderText
+                    data-has-color={ !!props.section.color || undefined }
+                    style={
+                        props.section.color
+                            ? { '--section-color': props.section.color } as React.CSSProperties
+                            : undefined }>
                     {props.section.header}
                 </NavigationSectionHeaderText>
                 <ExpandMoreIcon className={ expanded ? '' : 'collapsed' } color="action"
@@ -317,11 +322,24 @@ const NavigationSectionHeader = styled(Stack)(({ theme }) => ({
 /**
  * Text on the header to be displayed as part of a <NavigationSectionClient>.
  */
-const NavigationSectionHeaderText = styled(ListSubheader)(({ theme }) => ({
-    backgroundColor: 'unset',
-    flexGrow: 1,
-    fontWeight: 'normal',
-    lineHeight: 'unset',
+const NavigationSectionHeaderText = styled(ListSubheader)(({ theme }) => ([
+    {
+        backgroundColor: 'unset',
+        color: theme.vars?.palette.text.secondary,
+        flexGrow: 1,
+        fontWeight: 'normal',
+        lineHeight: 'unset',
 
-    marginBottom: theme.spacing(1),
-}));
+        marginBottom: theme.spacing(1),
+    },
+    theme.applyStyles('light', {
+        '&[data-has-color]': {
+            color: 'oklch(from var(--section-color) min(l, 0.67) c h)',
+        },
+    }),
+    theme.applyStyles('dark', {
+        '&[data-has-color]': {
+            color: 'oklch(from var(--section-color) max(l, 0.75) c h)',
+        },
+    }),
+]));
