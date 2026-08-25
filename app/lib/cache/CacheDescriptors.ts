@@ -115,6 +115,15 @@ interface CacheDescriptorMap {
     };
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Events
+    // ---------------------------------------------------------------------------------------------
+
+    EventFinances: {
+        Parameters: string;
+        Contents: any;  // FinanceProcessor
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Administration > Events > Tickets
     // ---------------------------------------------------------------------------------------------
 
@@ -316,6 +325,16 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Active events for use in the admin navigation.',
         type: 'ttl',
         ttl: 300,
+    },
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Events
+    // ---------------------------------------------------------------------------------------------
+
+    EventFinances: {
+        name: 'EventFinances',
+        description: 'Processed financial information associated with an event.',
+        type: 'permanent',
     },
 
     // ---------------------------------------------------------------------------------------------

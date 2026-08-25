@@ -289,7 +289,7 @@ function computeKeyMetricsData(
 
                 const figure = metricType === 'revenue'
                     ? sale.paid * product.price!
-                    : sale.paid + sale.complimentary;
+                    : sale.paid;
 
                 if (days < historyWindowStart && days >= historyWindowEnd)
                     history.get(product.category)![days - historyWindowEnd] += figure;

@@ -1,13 +1,10 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Cache } from '@lib/cache';
 import { fetchFinancialData, type FinancialData } from './processor/FinancialData';
 
 import * as views from './processor/FinancialView';
-
-declare namespace globalThis {
-    let animeConFinanceProcessorCache: Map<string, FinanceProcessor | undefined> | undefined;
-}
 
 /**
  * Processor that provides operations to work with the financial information of a particular event,
@@ -19,7 +16,7 @@ export class FinanceProcessor {
      * method may block for several seconds.
      */
     static async revalidateForEvent(event: string): Promise<void> {
-        globalThis.animeConFinanceProcessorCache?.delete(event);
+        Cache.getInstance('EventFinances').delete(event);
         /* dismiss return value */ await FinanceProcessor.getOrCreateForEvent(event);
     }
 
@@ -29,19 +26,13 @@ export class FinanceProcessor {
      * be created for the given `event`, for example because it does not contain financial data.
      */
     static async getOrCreateForEvent(event: string): Promise<FinanceProcessor | undefined> {
-        if (!globalThis.animeConFinanceProcessorCache)
-            globalThis.animeConFinanceProcessorCache = new Map;
+        return await Cache.getInstance('EventFinances').getOrInsert(event, async () => {
+            const financialData = await fetchFinancialData(event);
+            return financialData
+                ? new FinanceProcessor(financialData)
+                : undefined;
 
-        if (globalThis.animeConFinanceProcessorCache.has(event))
-            return globalThis.animeConFinanceProcessorCache.get(event);
-
-        const financialData = await fetchFinancialData(event);
-        const financialProcessor = financialData
-            ? new FinanceProcessor(financialData)
-            : undefined;
-
-        globalThis.animeConFinanceProcessorCache.set(event, financialProcessor);
-        return financialProcessor;
+        }) ?? undefined;
     }
 
     // ---------------------------------------------------------------------------------------------
