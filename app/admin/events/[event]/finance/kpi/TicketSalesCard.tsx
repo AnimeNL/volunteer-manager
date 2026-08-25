@@ -19,9 +19,7 @@ interface TicketSalesCardProps {
  * The <TicketSalesCard> component displays the ticket sale (volume) KPI card.
  */
 export function TicketSalesCard(props: TicketSalesCardProps) {
-    const view = props.processor.ticketSalesView;
-
-    const [ headline, ...historical ] = view;
+    const [ headline, ...historical ] = props.processor.ticketSalesView;
 
     return (
         <KeyMetricCard title="Ticket sales" format="sales" headline={headline}

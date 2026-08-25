@@ -19,9 +19,7 @@ interface EventRevenueCardProps {
  * The <EventRevenueCard> component displays the event ticket revenue KPI card.
  */
 export function EventRevenueCard(props: EventRevenueCardProps) {
-    const view = props.processor.eventTicketRevenueView;
-
-    const [ headline, ...historical ] = view;
+    const [ headline, ...historical ] = props.processor.eventTicketRevenueView;
 
     return (
         <KeyMetricCard title="Event ticket revenue" format="revenue" headline={headline}

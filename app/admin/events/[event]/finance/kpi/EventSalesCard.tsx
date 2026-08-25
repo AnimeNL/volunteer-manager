@@ -19,9 +19,7 @@ interface EventSalesCardProps {
  * The <EventSalesCard> component displays the event ticket sales (volume) KPI card.
  */
 export function EventSalesCard(props: EventSalesCardProps) {
-    const view = props.processor.eventTicketSalesView;
-
-    const [ headline, ...historical ] = view;
+    const [ headline, ...historical ] = props.processor.eventTicketSalesView;
 
     return (
         <KeyMetricCard title="Event ticket sales" format="sales" headline={headline}

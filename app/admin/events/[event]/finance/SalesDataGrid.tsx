@@ -86,6 +86,16 @@ export interface SalesDataGridRow {
     price?: number;
 
     /**
+     * Number of paid products sold.
+     */
+    paidSales?: number;
+
+    /**
+     * Number of complimentary products issued.
+     */
+    complimentarySales?: number;
+
+    /**
      * Total revenue that has been generated on this event.
      */
     totalRevenue: number;
@@ -169,19 +179,38 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             align: 'right',
             flex: 1,
 
-            renderCell: params =>
-                <Typography variant="inherit">
-                    { params.row.maximumSales === params.row.totalSales &&
-                        <Tooltip title="Sold out!">
-                            <VerifiedIcon fontSize="inherit" color="success"
-                                          sx={{ mr: 0.75, transform: 'translateY(2px)' }} />
-                        </Tooltip> }
-                    { params.value }
-                    { !!params.row.maximumSales &&
-                        <Typography component="span" color="textDisabled" variant="inherit">
-                            {' '}/ {params.row.maximumSales}
-                        </Typography> }
-                </Typography>,
+            renderCell: params => {
+                const hasComplimentary = (params.row.complimentarySales ?? 0) > 0;
+                const salesContent = (
+                    <Typography component="span" variant="inherit">
+                        {params.value}
+                    </Typography>
+                );
+
+                return (
+                    <Typography variant="inherit">
+                        { params.row.maximumSales === params.row.totalSales &&
+                            <Tooltip title="Sold out!">
+                                <VerifiedIcon fontSize="inherit" color="success"
+                                              sx={{ mr: 0.75, transform: 'translateY(2px)' }} />
+                            </Tooltip> }
+                        { hasComplimentary ? (
+                            <Tooltip title={
+                                `${params.row.paidSales ?? 0} paid, ` +
+                                `${params.row.complimentarySales} complimentary`
+                            }>
+                                {salesContent}
+                            </Tooltip>
+                        ) : (
+                            salesContent
+                        ) }
+                        { !!params.row.maximumSales &&
+                            <Typography component="span" color="textDisabled" variant="inherit">
+                                {' '}/ {params.row.maximumSales}
+                            </Typography> }
+                    </Typography>
+                );
+            },
         },
         {
             field: 'totalRevenue',
@@ -243,6 +272,8 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                 // |href| intentionally omitted
                 product: kCategoryLabels[category as EventTicketCategory] ?? category,
                 productIds: [ /* will be populated */ ],
+                paidSales: 0,
+                complimentarySales: 0,
                 totalRevenue: 0,
                 totalSales: 0,
                 // |maximumSales| intentionally omitted
@@ -258,6 +289,9 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             if (aggregate) {
                 aggregate.href ??= row.href;
                 aggregate.productIds.push(row.productIds[0]);
+                aggregate.paidSales = (aggregate.paidSales ?? 0) + (row.paidSales ?? 0);
+                aggregate.complimentarySales =
+                    (aggregate.complimentarySales ?? 0) + (row.complimentarySales ?? 0);
                 aggregate.totalRevenue += row.totalRevenue;
                 aggregate.totalSales += row.totalSales;
             } else {

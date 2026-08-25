@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketCategory } from '@lib/database/Types';
-import type { FinancialData } from './FinancialData';
+import type { FinancialData, FinancialProduct } from './FinancialData';
 import { formatDate } from '@lib/Temporal';
 
 import { kEventTicketCategory } from '@lib/database/Types';
@@ -46,34 +46,51 @@ const kSalesCategoryLabels: { [key in EventTicketCategory]?: string } = {
 };
 
 /**
+ * Predicate to determine whether a product describes an event ticket.
+ */
+const isEventTicket = (product: FinancialProduct): boolean =>
+    product.category === kEventTicketCategory.Event;
+
+/**
+ * Predicate to determine whether a product describes a festival ticket.
+ */
+const isFestivalTicket = (product: FinancialProduct): boolean =>
+    product.category === kEventTicketCategory.TicketFriday ||
+    product.category === kEventTicketCategory.TicketSaturday ||
+    product.category === kEventTicketCategory.TicketSunday ||
+    product.category === kEventTicketCategory.TicketWeekend;
+
+/**
+ * Predicate to determine whether a product describes a locker.
+ */
+const isLockerProduct = (product: FinancialProduct): boolean =>
+    product.category === kEventTicketCategory.Locker ||
+    product.category === kEventTicketCategory.LockerFriday ||
+    product.category === kEventTicketCategory.LockerSaturday ||
+    product.category === kEventTicketCategory.LockerSunday ||
+    product.category === kEventTicketCategory.LockerWeekend;
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * Generates the view necessary to populate the `<EventSalesTable>` component.
  */
 export function generateEventSalesTableView(financialData: FinancialData) {
-    function IsEvent(product: { category: EventTicketCategory }): boolean {
-        return product.category === kEventTicketCategory.Event;
-    }
-
-    return generateSalesTableView(IsEvent, financialData);
+    return generateSalesTableView(isEventTicket, financialData);
 }
 
 /**
  * Generates the view necessary to populate the `<EventRevenueCard>` component.
  */
 export function generateEventTicketRevenueView(financialData: FinancialData) {
-    return computeKeyMetricsData(financialData, {
-        eventTicketSales: true,
-        figure: 'revenue',
-    });
+    return computeKeyMetricsData(financialData, isEventTicket, 'revenue');
 }
 
 /**
  * Generates the view necessary to populate the `<EventSalesCard>` component.
  */
 export function generateEventTicketSalesView(financialData: FinancialData) {
-    return computeKeyMetricsData(financialData, {
-        eventTicketSales: true,
-        figure: 'sales',
-    });
+    return computeKeyMetricsData(financialData, isEventTicket, 'sales');
 }
 
 /**
@@ -87,34 +104,56 @@ export function generateLockerSalesGraphView(financialData: FinancialData) {
  * Generates the view necessary to populate the `<LockerSalesTable>` component.
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
-    function IsLocker(product: { category: EventTicketCategory }): boolean {
-        return product.category === kEventTicketCategory.Locker ||
-               product.category === kEventTicketCategory.LockerFriday ||
-               product.category === kEventTicketCategory.LockerSaturday ||
-               product.category === kEventTicketCategory.LockerSunday ||
-               product.category === kEventTicketCategory.LockerWeekend;
-    }
-
-    return generateSalesTableView(IsLocker, financialData);
+    return generateSalesTableView(isLockerProduct, financialData);
 }
 
-type ProductFilterFn = (product: { category: EventTicketCategory }) => boolean;
+/**
+ * Generates a graph view for ticket sales and visitor expectations during the event.
+ */
+export function generateTicketSalesGraphView(financialData: FinancialData) {
+    return generateSalesGraphView('tickets', financialData);
+}
 
 /**
- * Generates a sales graph view for products of the given |type|. Two data series will be returned,
- * one specific to sales, and one specific to actual use. (E.g. weekend sales multiply across days.)
+ * Generates the view necessary to populate the `<TicketRevenueCard>` component.
+ */
+export function generateTicketRevenueView(financialData: FinancialData) {
+    return computeKeyMetricsData(financialData, isFestivalTicket, 'revenue');
+}
+
+/**
+ * Generates the view necessary to populate the `<TicketSalesTable>` component.
+ */
+export function generateTicketSalesTableView(financialData: FinancialData) {
+    return generateSalesTableView(isFestivalTicket, financialData);
+}
+
+/**
+ * Generates the view necessary to populate the `<TicketSalesCard>` component.
+ */
+export function generateTicketSalesView(financialData: FinancialData) {
+    return computeKeyMetricsData(financialData, isFestivalTicket, 'sales');
+}
+
+// -------------------------------------------------------------------------------------------------
+
+type ProductFilterFn = (product: FinancialProduct) => boolean;
+
+/**
+ * Generates a sales graph view for products of the given `type`. Two data series will be returned:
+ * one specific to occupancy (use), and one specific to total sales.
  */
 function generateSalesGraphView(type: 'lockers' | 'tickets', financialData: FinancialData) {
     if (!financialData.data.length)
-        return [ /* no event, no products */ ];
+        return [];
 
     const kOccupancySuffix = type === 'lockers' ? 'occupied lockers' : 'visitors';
-    const kSalesSuffix = type === 'lockers'? 'locker sales' : 'ticket sales';
+    const kSalesSuffix = type === 'lockers' ? 'locker sales' : 'ticket sales';
 
     const kIndexFriday = 0;
     const kIndexSaturday = 1;
     const kIndexSunday = 2;
-    const kIndexWeekend = 3;  // only valid for |salesSeries|
+    const kIndexWeekend = 3;
 
     const kProductCategoryToIndexMapping: { [key in EventTicketCategory]?: number } =
         type === 'lockers' ? {
@@ -149,13 +188,15 @@ function generateSalesGraphView(type: 'lockers' | 'tickets', financialData: Fina
             continue;
 
         for (const sales of product.sales.values()) {
-            salesSeries[seriesIndex].value += sales;
+            const count = sales.paid + sales.complimentary;
+
+            salesSeries[seriesIndex].value += count;
             if (seriesIndex !== kIndexWeekend) {
-                occupancySeries[seriesIndex].value += sales;
+                occupancySeries[seriesIndex].value += count;
             } else {
-                occupancySeries[kIndexFriday].value += sales;
-                occupancySeries[kIndexSaturday].value += sales;
-                occupancySeries[kIndexSunday].value += sales;
+                occupancySeries[kIndexFriday].value += count;
+                occupancySeries[kIndexSaturday].value += count;
+                occupancySeries[kIndexSunday].value += count;
             }
         }
     }
@@ -164,24 +205,16 @@ function generateSalesGraphView(type: 'lockers' | 'tickets', financialData: Fina
 }
 
 /**
- * Generates a sales table view for products matching the given |filter|. Only the first event in
- * the |financialData| will be considered.
+ * Generates a sales table view for products matching the given `filter`. Only the first event in
+ * the `financialData` will be considered.
  */
 function generateSalesTableView(filter: ProductFilterFn, financialData: FinancialData) {
     if (!financialData.data.length)
-        return [ /* no event, no products */ ];
+        return [];
 
     const baseHref = `/admin/events/${financialData.data[0].slug}/program/activities`;
 
     return [ ...financialData.data[0].products.values() ].filter(filter).map(product => {
-        let totalRevenue: number = 0;
-        let totalSales: number = 0;
-
-        for (const sales of product.sales.values()) {
-            totalRevenue += sales * (product.price ?? 0);
-            totalSales += sales;
-        }
-
         let href: string | undefined;
         if (!!product.program.id)
             href = `${baseHref}/${product.program.id}`;
@@ -193,50 +226,14 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
             product: maybeRemoveProductNameDuplication(product.product, product.program.title),
             productIds: [ product.id ],
             price: product.price,
-            totalRevenue,
-            totalSales,
+            paidSales: product.paidSales,
+            complimentarySales: product.complimentarySales,
+            totalRevenue: product.totalRevenue,
+            totalSales: product.totalSales,
             maximumSales: product.limit,
         };
 
     }).sort((lhs, rhs) => lhs.product.localeCompare(rhs.product));
-}
-
-/**
- * Generates a graph view for ticket sales and visitor expectations during the event.
- */
-export function generateTicketSalesGraphView(financialData: FinancialData) {
-    return generateSalesGraphView('tickets', financialData);
-}
-
-/**
- * Generates the view necessary to populate the `<TicketRevenueCard>` component.
- */
-export function generateTicketRevenueView(financialData: FinancialData) {
-    return computeKeyMetricsData(financialData, {
-        figure: 'revenue',
-        ticketSales: true,
-    });
-}
-
-/**
- * Generates the view necessary to populate the `<TicketSalesTable>` component.
- */
-export function generateTicketSalesTableView(financialData: FinancialData) {
-    function IsTicket(product: { category: EventTicketCategory }): boolean {
-        return isTicketSalesCategory(product.category);
-    }
-
-    return generateSalesTableView(IsTicket, financialData);
-}
-
-/**
- * Generates the view necessary to populate the `<TicketSalesCard>` component.
- */
-export function generateTicketSalesView(financialData: FinancialData) {
-    return computeKeyMetricsData(financialData, {
-        figure: 'sales',
-        ticketSales: true,
-    });
 }
 
 /**
@@ -262,39 +259,13 @@ function maybeRemoveProductNameDuplication(product: string, programTitle?: strin
 }
 
 /**
- * Utility function to determine whether |category| describes ticket sales.
+ * Computes key metrics data from the given `financialData` based on the `filter` and `metricType`.
  */
-function isTicketSalesCategory(category: EventTicketCategory): boolean {
-    return category === kEventTicketCategory.TicketFriday ||
-           category === kEventTicketCategory.TicketSaturday ||
-           category === kEventTicketCategory.TicketSunday ||
-           category === kEventTicketCategory.TicketWeekend;
-}
-
-/**
- * Selection criteria when computing key metric data.
- */
-interface KeyMetricSelection {
-    /**
-     * Whether event ticket sales should be considered in the selection.
-     */
-    eventTicketSales?: boolean;
-
-    /**
-     * Type of metric that should be computed from the sales.
-     */
-    figure: 'revenue' | 'sales';
-
-    /**
-     * Whether ticket sales should be considered in the selection.
-     */
-    ticketSales?: boolean;
-}
-
-/**
- * Computes key metrics data from the given `financialData` based on the `selection`.
- */
-function computeKeyMetricsData(financialData: FinancialData, selection: KeyMetricSelection) {
+function computeKeyMetricsData(
+    financialData: FinancialData,
+    filter: ProductFilterFn,
+    metricType: 'revenue' | 'sales')
+{
     return financialData.data.map(event => {
         let computedFigure = 0;
 
@@ -302,29 +273,24 @@ function computeKeyMetricsData(financialData: FinancialData, selection: KeyMetri
         const historyWindowEnd = financialData.remaining;
         const history = new Map<EventTicketCategory, number[]>;
 
-        // -----------------------------------------------------------------------------------------
-
         for (const product of event.products.values()) {
-            if (selection.eventTicketSales && product.category !== kEventTicketCategory.Event)
-                continue;  // filter out non-event ticket sales
-            if (selection.ticketSales && !isTicketSalesCategory(product.category))
-                continue;  // filter out non-ticket sales
+            if (!filter(product))
+                continue;
 
-            if (selection.figure === 'revenue' && !product.price)
-                continue;  // unable to consider free products, or products with no known price
+            if (metricType === 'revenue' && !product.price)
+                continue;
 
             if (!history.has(product.category))
-                history.set(product.category, [ ...Array(kKeyMetricHistoryBars) ].map(_ => 0));
+                history.set(product.category, [ ...Array(kKeyMetricHistoryBars) ].map(() => 0));
 
             for (const [ days, sale ] of product.sales.entries()) {
                 if (days < financialData.remaining)
                     continue;
 
-                const figure = selection.figure === 'revenue' ? sale * product.price!
-                                                              : sale;
+                const figure = metricType === 'revenue'
+                    ? sale.paid * product.price!
+                    : sale.paid + sale.complimentary;
 
-                // Record this |figure| in the history overview if |days| is within the window. Each
-                // product category may appear multiple times, as does each individual day of sales.
                 if (days < historyWindowStart && days >= historyWindowEnd)
                     history.get(product.category)![days - historyWindowEnd] += figure;
 
@@ -332,43 +298,24 @@ function computeKeyMetricsData(financialData: FinancialData, selection: KeyMetri
             }
         }
 
-        // -----------------------------------------------------------------------------------------
-
         const sortedHistory =
             [ ...history.entries() ].sort((lhs, rhs) => lhs[0].localeCompare(rhs[0]));
 
         const normalisedHistory = sortedHistory.map((entry, index) => ({
-            type: 'bar' as const,  // <KeyMetricGraph> requirement
-            stack: 'total',  // <KeyMetricGraph> requirement
+            type: 'bar' as const,
+            stack: 'total',
             data: entry[1].reverse(),
             label: kSalesCategoryLabels[entry[0]],
             color: kSalesBarColors[index],
         }));
 
-        const historyLabels: string[] = [ /* none yet */ ];
+        const historyLabels: string[] = [];
         for (let days = historyWindowStart - 1; days >= historyWindowEnd; --days) {
             historyLabels.push(
                 formatDate(financialData.referenceDate.subtract({ days }), 'dddd, MMMM D'));
         }
 
-        // -----------------------------------------------------------------------------------------
-
-        let changePercentage: number | undefined;
-        if (normalisedHistory[0]?.data.length >= 2 * kChangePercentageWindow) {
-            const window = kChangePercentageWindow;
-
-            const currentPeriodFigure = computeTotalFigure(normalisedHistory, 0, window);
-            const previousPeriodFigure = computeTotalFigure(normalisedHistory, window, 2 * window);
-
-            if (!!previousPeriodFigure) {
-                const preciseChangePercentage =
-                    ((currentPeriodFigure - previousPeriodFigure) / previousPeriodFigure) * 100;
-
-                changePercentage = Math.round(preciseChangePercentage * 10) / 10;
-            }
-        }
-
-        // -----------------------------------------------------------------------------------------
+        const changePercentage = computeChangePercentage(normalisedHistory);
 
         return {
             label: event.shortName,
@@ -383,14 +330,29 @@ function computeKeyMetricsData(financialData: FinancialData, selection: KeyMetri
 }
 
 /**
- * Input necessary to compute total sales in a particular period of time.
+ * Computes the 7-day week-over-week change percentage for the normalised history series.
  */
-type TotalSalesInput = { data: number[] };
+function computeChangePercentage(history: { data: number[] }[]): number | undefined {
+    if (!history[0] || history[0].data.length < 2 * kChangePercentageWindow)
+        return undefined;
+
+    const currentPeriodFigure = computeTotalFigure(history, 0, kChangePercentageWindow);
+    const previousPeriodFigure =
+        computeTotalFigure(history, kChangePercentageWindow, 2 * kChangePercentageWindow);
+
+    if (!previousPeriodFigure)
+        return undefined;
+
+    const preciseChangePercentage =
+        ((currentPeriodFigure - previousPeriodFigure) / previousPeriodFigure) * 100;
+
+    return Math.round(preciseChangePercentage * 10) / 10;
+}
 
 /**
  * Computes the total figure across all series for the given `input` between days `start` and `end`.
  */
-function computeTotalFigure(input: TotalSalesInput[], start: number, end: number): number {
+function computeTotalFigure(input: { data: number[] }[], start: number, end: number): number {
     let totalFigure = 0;
 
     for (const { data } of input) {
