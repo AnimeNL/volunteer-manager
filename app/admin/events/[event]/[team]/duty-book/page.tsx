@@ -251,7 +251,7 @@ export default async function EventTeamDutyBookPage(
                      headerAction={ <SummaryAction generateSummaryFn={generateSummaryFn} /> }
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
-                         { label: team.name, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
                          { label: 'Duty book' },
                      ]}>
                 <SectionIntroduction>

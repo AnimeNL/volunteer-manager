@@ -1,182 +1,332 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import Alert from '@mui/material/Alert';
-import Collapse from '@mui/material/Collapse';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
+import RepeatIcon from '@mui/icons-material/Repeat';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { RetentionDataTable } from './RetentionDataTable';
+import type { Column } from '@app/admin/components/DataTable';
+import type { RetentionCellContext } from './RetentionCells';
+import { DataTable, createDataSource, withContext, withRowModel }
+    from '@app/admin/components/DataTable';
+import { LogBuilder } from '@lib/log/index';
+import { RetentionActionsCell, RetentionLatestEventCell, RetentionStatusCell,
+    RetentionStatusMobileCell, RetentionVolunteerCell } from './RetentionCells';
 import { RetentionOutreachList } from './RetentionOutreachList';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { executeServerAction } from '@lib/serverAction';
-import { formatDate } from '@lib/Temporal';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { readSetting } from '@lib/Settings';
-import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tEvents, tRetention, tTeams, tUsersEvents, tUsers } from '@lib/database';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import db, { tEvents, tRetention, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
-import { kRetentionStatus } from '@lib/database/Types';
+import { kCommunicationLanguage, kRegistrationStatus, kRetentionStatus, type RetentionStatus }
+    from '@lib/database/Types';
+import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';
 
-/**
- * Resolves context and verifies access for retention actions.
- */
-async function verifyAccessAndGetContext(
-    authenticationContext: any, eventId: number, teamId: number, recipientId: number)
-{
-    const event = await db.selectFrom(tEvents)
-        .where(tEvents.eventId.equals(eventId))
-        .select({
-            slug: tEvents.eventSlug,
-            shortName: tEvents.eventShortName,
-        })
-        .executeSelectNoneOrOne();
-
-    const teamSlug = await db.selectFrom(tTeams)
-        .where(tTeams.teamId.equals(teamId))
-        .selectOneColumn(tTeams.teamSlug)
-        .executeSelectNoneOrOne();
-
-    const volunteer = await db.selectFrom(tUsers)
-        .where(tUsers.userId.equals(recipientId))
-        .select({
-            emailAddress: tUsers.username,
-            phoneNumber: tUsers.phoneNumber,
-        })
-        .executeSelectNoneOrOne();
-
-    if (!event || !teamSlug || !volunteer)
-        notFound();
-
-    executeAccessCheck(authenticationContext, {
-        permission: 'event.retention',
-        operation: 'update',
-        scope: {
-            event: event.slug,
-            team: teamSlug,
-        },
-    });
-
-    return { event, volunteer };
-}
+import { sendRetentionEmail } from './RetentionActions';
 
 /**
- * Assigns the volunteer and records the outreach activity.
+ * Row model for the retention data table.
  */
-async function recordRetentionOutreach(
-    eventId: number, teamId: number, recipientId: number, assigneeId: number,
-    medium: 'e-mail' | 'WhatsApp')
-{
-    const noteDate = formatDate(Temporal.Now.instant(), 'MMMM Do');
-    const noteNotes = medium === 'e-mail' ? `Sent an e-mail (${noteDate})`
-                                          : `Sent a WhatsApp message (${noteDate})`;
+const kRetentionRowModel = withRowModel({
+    /**
+     * Unique ID assigned to this person in the retention table.
+     */
+    id: z.number(),
 
-    const affectedRows = await db.insertInto(tRetention)
-        .set({
-            userId: recipientId,
-            eventId: eventId,
-            teamId: teamId,
-            retentionStatus: kRetentionStatus.Contacting,
-            retentionAssigneeId: assigneeId,
-            retentionNotes: noteNotes,
-        })
-        .onConflictDoUpdateSet({
-            retentionStatus: kRetentionStatus.Contacting,
-            retentionAssigneeId: assigneeId,
-            retentionNotes: noteNotes,
-        })
-        .executeInsert();
+    /**
+     * Unique ID of the user in the database for account linking.
+     */
+    userIdForAccountLink: z.number().optional(),
 
-    if (!affectedRows)
-        throw new Error('Unable to assign this volunteer to you…');
-}
+    /**
+     * Name of the volunteer for whom retention is being considered.
+     */
+    name: z.string(),
+
+    /**
+     * The volunteer's first name.
+     */
+    firstName: z.string(),
+
+    /**
+     * Language in which the communication should be written, when known.
+     */
+    language: z.enum(kCommunicationLanguage).optional(),
+
+    /**
+     * The most recent event that this volunteer participated in.
+     */
+    latestEvent: z.string(),
+
+    /**
+     * Slug of the most recent event that the volunteer participated in.
+     */
+    latestEventSlug: z.string(),
+
+    /**
+     * Whether their participation in the most recent event was cancelled.
+     */
+    latestEventDidCancel: z.boolean(),
+
+    /**
+     * Status of this volunteer in regards to retention planning.
+     */
+    status: z.enum([ 'Unknown', 'Contacting', 'Declined', 'Applied', 'Retained' ]),
+
+    /**
+     * Slug of the team they have applied to if they participate in this event.
+     */
+    statusTeam: z.string().optional(),
+
+    /**
+     * Name of the lead who is pursuing contacting this volunteer.
+     */
+    assigneeName: z.string().nullish(),
+
+    /**
+     * Notes that were written by that lead regarding contacting this person.
+     */
+    notes: z.string().nullish(),
+});
 
 /**
- * Server Action that will be invoked by the <CommunicationIconButton> component when a message
- * should be send on the user's behalf. All input should be treated as untrusted until verified.
+ * Type of a retention row model.
  */
-async function sendRetentionEmail(
-    eventId: number, teamId: number, recipientId: number,
-    subject?: string, message?: string)
-{
-    'use server';
+export type RetentionRowModel = z.infer<typeof kRetentionRowModel>;
 
-    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        const { volunteer } = await verifyAccessAndGetContext(
-            props.authenticationContext, eventId, teamId, recipientId);
+/**
+ * The table will first be sorted by status, and this record decides the actual order.
+ */
+const kRetentionSortOrder: Record<RetentionRowModel['status'], number> = {
+    'Unknown': 0,
+    'Contacting': 2,
+    'Applied': 3,
+    'Retained': 4,
+    'Declined': 5,
+};
 
-        if (!subject || !message)
-            return { success: false, error: 'Subject and/or message are missing from the request' };
+/**
+ * Data source for the retention table.
+ */
+const retentionDataSource = createDataSource('admin/event/retention', withContext({
+    /**
+     * Event for which retention is being managed.
+     */
+    event: kEventTransformer,
 
-        if (!volunteer.emailAddress)
-            return { success: false, error: 'We don\'t have their e-mail address on file…' };
+    /**
+     * Team for which retention is being managed.
+     */
+    team: kTeamTransformer,
 
-        await recordRetentionOutreach(eventId, teamId, recipientId, props.user.id, 'e-mail');
-        await sendCommunication({
-            sender: props.user,
-            recipient: 1,
-            subject,
-            message,
-            metadata: {
-                eventId,
-                teamId,
-                promptId: 'participation-reminder',
+}), kRetentionRowModel, {
+    async authorize(operation, props, context) {
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'event.retention',
+            operation,
+            scope: {
+                event: context.event.slug,
+                team: context.team.slug,
             },
         });
+    },
 
-        return {
-            success: true,
-            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
-        };
-    });
-}
+    async list(params, props, context) {
+        const numHistoricEventsToConsider =
+            await readSetting('retention-number-of-events-to-consider') ?? /* default= */ 2;
 
-/**
- * Server Action that will be invoked when a WhatsApp reminder message was sent.
- * It assigns the volunteer to the current user, writes a log entry, and returns
- * the target volunteer's phone number.
- */
-async function sendRetentionWhatsApp(
-    eventId: number, teamId: number, recipientId: number, message: string)
-{
-    'use server';
+        const events = await db.selectFrom(tEvents)
+            .selectOneColumn(tEvents.eventId)
+            .where(tEvents.eventStartTime.lessThan(context.event.startTime))
+            .orderBy(tEvents.eventStartTime, 'desc')
+            .limit(numHistoricEventsToConsider)
+            .executeSelectMany();
 
-    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        const { event, volunteer } = await verifyAccessAndGetContext(
-            props.authenticationContext, eventId, teamId, recipientId);
+        if (!events.length) {
+            return {
+                rowCount: 0,
+                rows: [],
+            };
+        }
 
-        if (!message || !message.trim())
-            return { success: false, error: 'Message is missing from the request' };
+        const retentionJoin = tRetention.forUseInLeftJoin();
+        const teamsJoin = tTeams.forUseInLeftJoin();
+        const usersEventsJoin = tUsersEvents.forUseInLeftJoinAs('curEvent');
+        const usersJoin = tUsers.forUseInLeftJoinAs('assignedUser');
 
-        if (!volunteer.phoneNumber)
-            return { success: false, error: 'We don\'t have their phone number on file…' };
+        const dbInstance = db;
+        const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tEvents)
+                .on(tEvents.eventId.equals(tUsersEvents.eventId))
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .leftJoin(usersEventsJoin)
+                .on(usersEventsJoin.eventId.equals(context.event.id))
+                .and(usersEventsJoin.userId.equals(tUsersEvents.userId))
+            .leftJoin(teamsJoin)
+                .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
+            .leftJoin(retentionJoin)
+                .on(retentionJoin.userId.equals(tUsersEvents.userId))
+                .and(retentionJoin.eventId.equals(context.event.id))
+                .and(retentionJoin.teamId.equals(tUsersEvents.teamId))
+            .leftJoin(usersJoin)
+                .on(usersJoin.userId.equals(retentionJoin.retentionAssigneeId))
+            .where(tUsersEvents.eventId.in(events))
+                .and(tUsersEvents.teamId.equals(context.team.id))
+                .and(tUsersEvents.registrationStatus.in(
+                    [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+            .select({
+                id: tUsers.userId,
+                name: tUsers.name,
+                firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+                language: tUsers.language,
+                events: dbInstance.aggregateAsArray({
+                    slug: tEvents.eventSlug,
+                    name: tEvents.eventShortName,
+                    status: tUsersEvents.registrationStatus,
+                }),
+                registrationStatus: dbInstance.aggregateAsArray({
+                    status: usersEventsJoin.registrationStatus,
+                    team: teamsJoin.teamSlug,
+                }),
+                retentionStatus: retentionJoin.retentionStatus,
+                retentionAssigneeName: usersJoin.name,
+                retentionNotes: retentionJoin.retentionNotes,
+            })
+            .groupBy(tUsersEvents.userId, usersEventsJoin.eventId)
+            .executeSelectPage();
 
-        await recordRetentionOutreach(eventId, teamId, recipientId, props.user.id, 'WhatsApp');
+        const includeAccountLink = props.access.can('organisation.accounts', 'read');
 
-        RecordLog({
-            type: kLogType.AdminEventRetentionMessage,
-            severity: kLogSeverity.Info,
-            sourceUser: props.user,
-            targetUser: recipientId,
-            data: {
-                channel: 'WhatsApp',
-                event: event.shortName,
-                message: message,
+        const volunteerRows: RetentionRowModel[] = [];
+        for (const volunteer of volunteers.data) {
+            if (!volunteer.events.length)
+                continue;
+
+            const latestEvent = volunteer.events.pop()!;
+
+            let status: RetentionRowModel['status'] = 'Unknown';
+            let statusTeam: string | undefined;
+            let userIdForAccountLink: number | undefined;
+
+            if (volunteer.registrationStatus.length) {
+                for (const application of volunteer.registrationStatus) {
+                    switch (application.status) {
+                        case kRegistrationStatus.Accepted:
+                        case kRegistrationStatus.Cancelled:
+                            status = 'Retained';
+                            statusTeam = application.team;
+                            break;
+
+                        case kRegistrationStatus.Registered:
+                            if (status !== 'Retained') {
+                                status = 'Applied';
+                                statusTeam = application.team;
+                            }
+                            break;
+                    }
+                }
+            } else if (!!volunteer.retentionStatus) {
+                status = volunteer.retentionStatus;
+            } else {
+                if (includeAccountLink)
+                    userIdForAccountLink = volunteer.id;
             }
+
+            volunteerRows.push({
+                id: volunteer.id,
+                userIdForAccountLink,
+                name: volunteer.name,
+                firstName: volunteer.firstName,
+                language: volunteer.language,
+                latestEvent: latestEvent.name,
+                latestEventSlug: latestEvent.slug,
+                latestEventDidCancel: latestEvent.status === kRegistrationStatus.Cancelled,
+                status,
+                statusTeam,
+                assigneeName: volunteer.retentionAssigneeName,
+                notes: volunteer.retentionNotes,
+            });
+        }
+
+        volunteerRows.sort((lhs, rhs) => {
+            if (lhs.status !== rhs.status)
+                return kRetentionSortOrder[lhs.status] - kRetentionSortOrder[rhs.status];
+
+            return lhs.name.localeCompare(rhs.name);
         });
 
         return {
-            success: true,
-            phoneNumber: volunteer.phoneNumber,
+            rowCount: volunteers.count,
+            rows: volunteerRows,
         };
-    });
-}
+    },
+
+    async update(updatedRow, previousRow, props, context) {
+        let updatedAssigneeId: number | undefined | null;
+        if (!!updatedRow.assigneeName) {
+            updatedAssigneeId = await db.selectFrom(tUsers)
+                .selectOneColumn(tUsers.userId)
+                .where(tUsers.name.equals(updatedRow.assigneeName))
+                .executeSelectNoneOrOne();
+        }
+
+        let retentionStatus: RetentionStatus | undefined | null;
+        let retentionAssigneeId: number | undefined | null;
+
+        switch (updatedRow.status) {
+            case 'Contacting':
+            case 'Declined':
+                retentionStatus = updatedRow.status;
+                retentionAssigneeId = updatedAssigneeId || props.user.id;
+                break;
+
+            case 'Unknown':
+                if (updatedRow.assigneeName !== previousRow.assigneeName && !!updatedAssigneeId) {
+                    retentionStatus = 'Contacting';
+                    retentionAssigneeId = updatedAssigneeId;
+                } else {
+                    retentionStatus = undefined;
+                    retentionAssigneeId = undefined;
+                }
+                break;
+
+            case 'Applied':
+            case 'Retained':
+                break;
+        }
+
+        const affectedRows = await db.insertInto(tRetention)
+            .set({
+                userId: updatedRow.id,
+                eventId: context.event.id,
+                teamId: context.team.id,
+                retentionStatus,
+                retentionAssigneeId,
+                retentionNotes: updatedRow.notes,
+            })
+            .onConflictDoUpdateSet({
+                retentionStatus,
+                retentionAssigneeId,
+                retentionNotes: updatedRow.notes,
+            })
+            .executeInsert();
+
+        LogBuilder.for('UpdateRetention')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(updatedRow.id)
+            .record({
+                event: context.event.shortName,
+            });
+
+        return !!affectedRows;
+    },
+});
 
 /**
  * The retention page displays a recruiting tool to understand how participants from the past two
@@ -185,15 +335,9 @@ async function sendRetentionWhatsApp(
 export default async function EventTeamRetentionPage(
     props: PageProps<'/admin/events/[event]/[team]/retention'>)
 {
-    const params = await props.params;
-
-    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params, {
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.retention',
         operation: 'read',
-        scope: {
-            event: params.event,
-            team: params.team,
-        },
     });
 
     const usersEventJoin = tUsersEvents.forUseInLeftJoin();
@@ -217,10 +361,12 @@ export default async function EventTeamRetentionPage(
         })
         .executeSelectMany();
 
+    // ---------------------------------------------------------------------------------------------
+
     const comprehensiveLeaders = await getLeadersForEvent(event.id);
     const leaders = comprehensiveLeaders.map(leader => leader.label);
 
-    const readOnly = !access.can('event.retention', 'update', {
+    const canUpdateRetention = access.can('event.retention', 'update', {
         event: event.slug,
         team: team.slug,
     });
@@ -228,44 +374,131 @@ export default async function EventTeamRetentionPage(
     const whatsAppLink = `https://${team.domain}/registration`;
     const whatsAppMessage = await readSetting('retention-whatsapp-message') ?? '{name}, {link}?!';
 
+    // ---------------------------------------------------------------------------------------------
+
+    const cellContext: RetentionCellContext = {
+        event: event.slug,
+        eventId: event.id,
+        eventName: event.shortName,
+        leaders,
+        sendEmailFn: sendRetentionEmail.bind(null, event.slug, team.slug),
+        team: team.slug,
+        teamId: team.id,
+        whatsAppLink,
+        whatsAppMessage,
+    };
+
+    const columns: Column<RetentionRowModel>[] = [
+        {
+            field: 'name',
+            headerName: 'Volunteer',
+            editable: false,
+            sortable: false,
+            flex: 2,
+
+            template: 'component',
+            templateProps: {
+                component: RetentionVolunteerCell,
+                componentContext: cellContext,
+            },
+        },
+        {
+            field: 'latestEvent',
+            headerName: 'Latest event',
+            editable: false,
+            sortable: false,
+            flex: 2,
+
+            template: 'component',
+            templateProps: {
+                component: RetentionLatestEventCell,
+                componentContext: cellContext,
+            },
+        },
+        {
+            field: 'status',
+            headerName: 'Status',
+            editable: canUpdateRetention,
+            sortable: false,
+            width: 115,
+
+            type: 'singleSelect',
+            valueOptions: [ 'Unknown', 'Contacting', 'Declined' ],
+
+            template: 'component',
+            templateProps: {
+                component: RetentionStatusCell,
+            },
+        },
+        {
+            field: 'assigneeName',
+            headerName: 'Assignee',
+            editable: canUpdateRetention,
+            sortable: false,
+            flex: 2,
+
+            type: 'singleSelect',
+            valueOptions: [ ' ', ...leaders ],
+
+            template: 'text',
+            templateProps: {
+                defaultValue: 'Unassigned',
+            },
+        },
+        {
+            field: 'firstName',
+            headerName: 'Actions',
+            editable: false,
+            sortable: false,
+            width: 80,
+
+            template: 'component',
+            templateProps: {
+                component: RetentionActionsCell,
+                componentContext: cellContext,
+            },
+        },
+        {
+            field: 'notes',
+            headerName: 'Notes',
+            editable: canUpdateRetention,
+            sortable: false,
+            flex: 3,
+
+            template: 'text',
+        },
+    ];
+
     return (
         <>
-            <Collapse in={!!assignedVolunteers.length} unmountOnExit>
-                <RetentionOutreachList assignedVolunteers={assignedVolunteers} />
-            </Collapse>
-            <Paper sx={{ p: 2 }}>
-                <Typography variant="h5">
-                    {team.name.replace(/s$/, '')} retention
-                    <Typography component="span" variant="h5" sx={{
-                        color: 'action.active',
-                        paddingLeft: 1
-                    }}>
-                        ({event.shortName})
-                    </Typography>
-                </Typography>
-                { readOnly &&
-                    <Alert severity="info" sx={{ mt: 1, mb: 2 }}>
-                        This table displays all {team.name} who participated in the past few years,
-                        and might want to participate again.
-                    </Alert> }
-                { !readOnly &&
-                    <Alert severity="info" sx={{ mt: 1, mb: 2 }}>
-                        This table displays all {team.name} who participated in the past few years,
-                        and might want to participate again. Reach out by clicking on either of the
-                        icons in the "Assignee" column, or double click on the column to manually
-                        assign it in case outreach has already started.
-                    </Alert> }
-                <RetentionDataTable whatsAppLink={whatsAppLink} whatsAppMessage={whatsAppMessage}
-                                    readOnly={readOnly}
-                                    event={event.slug} leaders={leaders} team={team.slug}
-                                    eventId={event.id} teamId={team.id} eventName={event.shortName}
-                                    sendEmailFn={
-                                        sendRetentionEmail.bind(null, event.id, team.id) }
-                                    sendWhatsAppFn={
-                                        sendRetentionWhatsApp.bind(null, event.id, team.id) } />
-            </Paper>
+            <Section icon={ <RepeatIcon color="primary" /> }
+                     title={ `${team.title.replace(/s$/, '')} retention` }
+                     documentation="event/retention"
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         { label: 'Retention' },
+                     ]}>
+                <SectionIntroduction>
+                    We aim to retain 60–75% of volunteers each year. These are people from previous
+                    years whom you can contact through email or WhatsApp.
+                </SectionIntroduction>
+            </Section>
+            <RetentionOutreachList assignedVolunteers={assignedVolunteers} />
+            <Section noHeader>
+                <DataTable columns={columns} source={retentionDataSource}
+                           context={{ event: event.slug, team: team.slug }}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           pageSize={100} disableFooter refreshOnMutation
+                           listViewProps={{
+                               primaryField: 'name',
+                               secondaryTemplate: '{status} · {latestEvent}',
+                               startComponent: RetentionStatusMobileCell,
+                           }} />
+            </Section>
         </>
-    )
+    );
 }
 
-export const generateMetadata = generateEventMetadataFn('Retention');
+export const generateMetadata =
+    createGenerateMetadataFn('Retention', { team: 'team' }, { event: 'event' });

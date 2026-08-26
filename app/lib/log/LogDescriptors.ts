@@ -293,6 +293,11 @@ interface LogTypeParameterMap {
         team: string;  // title ("Volunteering Crew")
     };
 
+    RecordRetentionOutreach: {
+        event: string;  // short name
+        channel: 'e-mail' | 'WhatsApp';
+    };
+
     ReleaseApplication: {
         event: string;  // short name
         team: string;  // title ("Volunteering Crew")
@@ -310,6 +315,10 @@ interface LogTypeParameterMap {
     UpdateDutyBookIncidentVisibility: {
         event: string;  // short name
         incidentId: number;
+    };
+
+    UpdateRetention: {
+        event: string;  // short name
     };
 
     UpdateShift: {
@@ -490,10 +499,12 @@ export const kLogType: { [k in LogType]: k } = {
     DeleteVendor: 'DeleteVendor',
     MoveApplication: 'MoveApplication',
     ReconsiderApplication: 'ReconsiderApplication',
+    RecordRetentionOutreach: 'RecordRetentionOutreach',
     ReleaseApplication: 'ReleaseApplication',
     UpdateApplicationOverrides: 'UpdateApplicationOverrides',
     UpdateDutyBookIncident: 'UpdateDutyBookIncident',
     UpdateDutyBookIncidentVisibility: 'UpdateDutyBookIncidentVisibility',
+    UpdateRetention: 'UpdateRetention',
     UpdateShift: 'UpdateShift',
     UpdateShiftDemand: 'UpdateShiftDemand',
     UpdateVendor: 'UpdateVendor',

@@ -3,14 +3,11 @@
 
 'use client';
 
-import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Table from '@mui/material/Table';
-import Typography from '@mui/material/Typography';
+import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
+
+import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
  * Props accepted by the <RetentionOutreachList> component.
@@ -33,33 +30,28 @@ interface RetentionOutreachListProps {
  * conveniently progress the state of the outreach.
  */
 export function RetentionOutreachList(props: RetentionOutreachListProps) {
+    if (!props.assignedVolunteers.length)
+        return null;
+
     return (
-        <Paper sx={{ p: 2 }}>
-            <Typography variant="h5">
-                Your outreach tasks
-            </Typography>
-            <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
-                You are expected to reach out to the following volunteers and ask if they want to
-                participate again—even if it's in one of the other teams. Volunteers will be removed
-                from this list once they apply or decline to participate.
-            </Alert>
-            <Table size="small">
-                <TableHead>
-                    <TableRow>
-                        <TableCell width="34%">Volunteer</TableCell>
-                        <TableCell width="33%">E-mail address</TableCell>
-                        <TableCell width="33%">Phone number</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    { props.assignedVolunteers.map(volunteer =>
-                        <TableRow key={volunteer.id}>
-                            <TableCell>{volunteer.name}</TableCell>
-                            <TableCell>{volunteer.email}</TableCell>
-                            <TableCell>{volunteer.phoneNumber}</TableCell>
-                        </TableRow> )}
-                </TableBody>
-            </Table>
-        </Paper>
+        <Section icon={ <AssignmentTurnedInOutlinedIcon /> } title="Your outreach tasks" highlight>
+            <SectionIntroduction>
+                Contact the volunteers on this list to invite them to participate again, including
+                in other teams.
+            </SectionIntroduction>
+            <KeyValueList items={props.assignedVolunteers.map(volunteer => {
+                const contactDetails: string[] = [];
+                if (volunteer.email)
+                    contactDetails.push(volunteer.email);
+                if (volunteer.phoneNumber)
+                    contactDetails.push(volunteer.phoneNumber);
+
+                return {
+                    key: volunteer.name,
+                    value: contactDetails.length ? contactDetails.join(' · ')
+                                                 : 'No contact information available',
+                };
+            })} />
+        </Section>
     );
 }

@@ -198,7 +198,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: RepeatIcon,
-                    badge: { migration: true, value: true },  // migration not started
                     label: 'Retention',
                     permission: {
                         permission: 'event.retention',
