@@ -9,7 +9,6 @@ import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-fo
 
 import Button from '@mui/material/Button';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
-import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
@@ -45,11 +44,6 @@ interface VolunteerQuickActionsProps {
     reinstateFn?: ServerAction;
 
     /**
-     * Server action to invoke when wanting to change a volunteer's team.
-     */
-    changeTeamFn?: ServerAction;
-
-    /**
      * Default values for the overrides management form.
      */
     manageOverrides?: {
@@ -81,17 +75,10 @@ interface VolunteerQuickActionsProps {
 export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
     const [ cancelDialogOpen, setCancelDialogOpen ] = useState(false);
     const [ reinstateDialogOpen, setReinstateDialogOpen ] = useState(false);
-    const [ changeTeamDialogOpen, setChangeTeamDialogOpen ] = useState(false);
     const [ manageOverridesDialogOpen, setManageOverridesDialogOpen ] = useState(false);
 
     return (
         <>
-            { !!props.changeTeamFn &&
-                <Button startIcon={ <PeopleAltOutlinedIcon /> } size="small" variant="outlined"
-                        color="inherit" onClick={ () => setChangeTeamDialogOpen(true) }>
-                    Change team
-                </Button> }
-
             { !!props.manageOverridesFn &&
                 <Button startIcon={ <LayersOutlinedIcon /> } size="small" variant="outlined"
                         color="warning" onClick={ () => setManageOverridesDialogOpen(true) }>
@@ -109,8 +96,6 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
                         color="error" onClick={ () => setReinstateDialogOpen(true) }>
                     Reinstate participation
                 </Button> }
-
-            { /* TODO: Change team dialog + communication */ }
 
             { !!props.manageOverridesFn &&
                 <ResponsiveFormDialog

@@ -3,12 +3,17 @@
 
 'use server';
 
+import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/LogBuilder';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
+import { getTeam } from '@lib/cache';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
+
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Cancels the volunteer's participation.
@@ -94,7 +99,9 @@ export async function changeRole(
  * Zod type defining the schema for changing a volunteer's team.
  */
 const kChangeTeamSchema = z.object({
-
+    message: z.string().optional(),
+    subject: z.string().optional(),
+    team: z.string(),
 });
 
 /**
@@ -104,12 +111,78 @@ export async function changeTeam(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)
 {
     return executeServerAction(formData, kChangeTeamSchema, async (data, props) => {
-        const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug);
+        const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+            });
+
+        const targetTeam = await getTeam(data.team);
+        if (!targetTeam)
+            return { success: false, error: 'The selected team does not exist.' };
+
+        const teamRole = await db.selectFrom(tTeamsRoles)
+            .where(tTeamsRoles.teamId.equals(targetTeam.id))
+                .and(tTeamsRoles.roleDefault.equals(/* true= */ 1))
+            .select({
+                roleId: tTeamsRoles.roleId,
+            })
+            .executeSelectOne();
+
+        const existingApplication = await db.selectFrom(tUsersEvents)
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(targetTeam.id))
+            .selectCountAll()
+            .executeSelectOne();
+
+        if (existingApplication > 0)
+            return { success: false, error: 'This volunteer already participates in that team.' };
+
+        const isSilent = !data.subject || !data.message;
+        if (isSilent) {
+            if (!props.access.can('organisation.silent'))
+                forbidden();
+
+        } else {
+            await sendCommunication({
+                sender: props.user,
+                recipient: userId,
+                subject: data.subject!,
+                message: data.message!,
+                metadata: {
+                    eventId: event.id,
+                    teamId: targetTeam.id,
+                    promptId: 'team-change',
+                },
+            });
+        }
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                teamId: targetTeam.id,
+                roleId: teamRole.roleId,
+                registrationStatus: kRegistrationStatus.Accepted,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(currentTeam.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateVolunteerTeam')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user.id)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+                sourceTeam: currentTeam.name,
+                targetTeam: targetTeam.name,
+            });
 
         return {
-            success: false,
-            error: 'Not yet implemented',
+            success: true,
+            redirect: `/admin/events/${eventSlug}/${targetTeam.slug}/volunteers/${userId}`,
         };
     });
 }

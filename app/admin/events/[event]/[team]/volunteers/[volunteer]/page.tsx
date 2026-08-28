@@ -10,12 +10,14 @@ import { ActionBar } from '@app/admin/components/ActionBar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
+import { VolunteerChangeTeamQuickAction } from './VolunteerChangeTeamQuickAction';
 import { VolunteerContactSection } from './VolunteerContactSection';
 import { VolunteerIdentitySection } from './VolunteerIdentitySection';
 import { VolunteerQuickActions } from './VolunteerQuickActions';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tRoles, tStorage, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
+import db, { tEvents, tEventsTeams, tRoles, tStorage, tTeams, tTeamsRoles, tUsers, tUsersEvents }
+    from '@lib/database';
 
 import * as actions from './VolunteerActions';
 
@@ -54,6 +56,7 @@ export default async function EventTeamVolunteerPage(
             firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             avatarHash: storageJoin.fileHash,
             email: tUsers.username,
+            language: tUsers.language,
             notes: tUsersEvents.registrationNotes,
             phoneNumber: tUsers.phoneNumber,
             role: tRoles.roleName,
@@ -70,6 +73,32 @@ export default async function EventTeamVolunteerPage(
 
     if (!volunteer)
         notFound();
+
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const teams = await dbInstance.selectFrom(tEvents)
+        .innerJoin(tEventsTeams)
+            .on(tEventsTeams.eventId.equals(tEvents.eventId))
+                .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+        .innerJoin(tTeamsRoles)
+            .on(tTeamsRoles.teamId.equals(tTeams.teamId))
+                .and(tTeamsRoles.roleDefault.equals(/* true= */ 1))
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.eventId.equals(tEvents.eventId))
+                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
+                .and(usersEventsJoin.userId.equals(id))
+        .where(tEvents.eventId.equals(event.id))
+        .select({
+            id: tTeams.teamId,
+            colour: tTeams.teamColourLightTheme,
+            name: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            status: usersEventsJoin.registrationStatus,
+        })
+        .orderBy(tTeams.teamName, 'asc')
+        .executeSelectMany();
 
     const roles = await dbInstance.selectFrom(tTeamsRoles)
         .innerJoin(tRoles)
@@ -148,10 +177,15 @@ export default async function EventTeamVolunteerPage(
                                                             currentRole={volunteer.roleId}
                                                             firstName={volunteer.firstName}
                                                             roles={roles} /> }
+                        { !!changeTeamFn &&
+                            <VolunteerChangeTeamQuickAction action={changeTeamFn}
+                                                            currentTeamId={team.id}
+                                                            eventId={event.id}
+                                                            teams={teams}
+                                                            volunteer={volunteer} /> }
                         <VolunteerQuickActions firstName={volunteer.firstName}
                                                cancelFn={cancelFn}
                                                reinstateFn={reinstateFn}
-                                               changeTeamFn={changeTeamFn}
                                                manageOverrides={volunteer.overrides}
                                                manageOverridesFn={manageOverridesFn} />
                     </ActionBar> }
