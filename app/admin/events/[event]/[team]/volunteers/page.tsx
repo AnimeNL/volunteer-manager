@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { Column } from '@app/admin/components/DataTable';
 import type { CommunicationCellContext } from './CommunicationCell';
+import type { VolunteerRowModel } from './dataSource';
 import { CommunicationCell, CommunicationHeaderCell } from './CommunicationCell';
 import { DataTable } from '@app/admin/components/DataTable';
 import { ExperienceCell, ExperienceHeaderCell } from './ExperienceCell';
@@ -24,10 +25,10 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
-import { type VolunteerRowModel, volunteerDataSource } from './dataSource';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tUsersEvents, tUsers } from '@lib/database';
+import { volunteerDataSource } from './dataSource';
+import db, { tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -116,7 +117,7 @@ export default async function EventVolunteersPage(
                     action: sendCommunicationToVolunteer.bind(null, event.id, team.id),
                     eventId: event.id,
                     eventName: event.shortName,
-                    teamId: team.id
+                    teamId: team.id,
                 } satisfies CommunicationCellContext,
             },
         },
@@ -211,4 +212,6 @@ export default async function EventVolunteersPage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Volunteers');
+export const generateMetadata =
+    createGenerateMetadataFn('Volunteers', { team: 'team' }, { event: 'event' });
+

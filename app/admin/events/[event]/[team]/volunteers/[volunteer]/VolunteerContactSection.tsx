@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 
 import { CommunicationCell } from '../CommunicationCell';
 import { getEvent, getTeam } from '@lib/cache';
-import { isBefore } from '@lib/Temporal';
+import { processVolunteerCommunication } from '../dataSource';
 import db, { tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 
 import { sendCommunicationToVolunteer } from '../VolunteerActions';
@@ -103,16 +103,7 @@ async function ContactVolunteerAction(props: VolunteerContactSectionProps) {
     if (!volunteer)
         return null;
 
-    const communication: Record<string, string> = {};
-    const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
-    for (const item of volunteer.communication) {
-        const latestCommunication = communicationPrompts.get(item.promptId!);
-        if (!latestCommunication || isBefore(latestCommunication, item.date))
-            communicationPrompts.set(item.promptId!, item.date);
-    }
-
-    for (const [ promptId, date ] of communicationPrompts.entries())
-        communication[promptId] = date.toString();
+    const communication = processVolunteerCommunication(volunteer.communication);
 
     return (
         <CommunicationCell

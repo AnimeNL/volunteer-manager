@@ -82,7 +82,3 @@ export const kServiceTimingOptions: { id: ServiceTimingValues, label: string }[]
     { id: '14-3', label: 'Late (14:00–03:00)' },
 ];
 
-/**
- * @deprecated Use `kServiceTimingOptions` instead.
- */
-export const kServiceTimingOption = kServiceTimingOptions;

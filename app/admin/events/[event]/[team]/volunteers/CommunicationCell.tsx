@@ -59,12 +59,25 @@ type CommunicationCellRow =
     Pick<VolunteerRowModel, 'id' | 'firstName' | 'language' | 'communication'>;
 
 /**
+ * Props accepted by the <CommunicationCell> component.
+ */
+interface CommunicationCellProps {
+    /**
+     * Context passed to the communication cell.
+     */
+    context?: CommunicationCellContext;
+
+    /**
+     * Row model containing volunteer identity and communication state.
+     */
+    row: CommunicationCellRow;
+}
+
+/**
  * Cell that contains a communication button through which the user can be contacted on a variety of
  * topics. Each topic is included as a prompt in the component.
  */
-export function CommunicationCell(
-    props: { context?: CommunicationCellContext, row: CommunicationCellRow })
-{
+export function CommunicationCell(props: CommunicationCellProps) {
     const { action, eventId, eventName, teamId } = props.context!;
 
     return (
@@ -92,8 +105,8 @@ export function CommunicationCell(
                     promptParams: { eventId, teamId },
                     title: 'Announce training availability',
                     mostRecentCommunication: props.row.communication['event-trainings-announced'],
-                }
-        ]}>
+                },
+            ]}>
 
             Send <strong>{props.row.firstName}</strong> an update about their
             participation in {eventName}.

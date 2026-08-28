@@ -24,11 +24,12 @@ export async function getTrainings(eventId: number) {
         .executeSelectMany();
 
     return trainings.map(training => {
-        const date =
-            formatDate(training.trainingStart.withTimeZone(training.timezone), 'dddd, MMMM D');
+        const startZonedDateTime = training.trainingStart.withTimeZone(training.timezone);
+        const endZonedDateTime = training.trainingEnd.withTimeZone(training.timezone);
 
-        const start = formatDate(training.trainingStart.withTimeZone(training.timezone), 'H:mm');
-        const end = formatDate(training.trainingEnd.withTimeZone(training.timezone), 'H:mm');
+        const date = formatDate(startZonedDateTime, 'dddd, MMMM D');
+        const start = formatDate(startZonedDateTime, 'H:mm');
+        const end = formatDate(endZonedDateTime, 'H:mm');
 
         return {
             id: training.id,

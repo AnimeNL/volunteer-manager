@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
@@ -207,9 +207,9 @@ export default async function EventTeamVolunteerPreferencesPage(
             <FormGridSection icon={ <FreeCancellationIcon /> } title="Availability" tabs
                              action={availabilityFn} defaultValues={context.availability}
                              headerAction={
-                                <Stack direction="row" spacing={1}>
-                                    <HistoryIconButton href="./preferences/availability" />
-                                </Stack>
+                                 <Stack direction="row" spacing={1}>
+                                     <HistoryIconButton href="./preferences/availability" />
+                                 </Stack>
                              }>
                 <SectionIntroduction grid>
                     Information regarding their availability during {event.shortName}.
@@ -288,6 +288,7 @@ export default async function EventTeamVolunteerPreferencesPage(
                     </SectionIntroduction>
                     <TrainingForm readOnly={!canUpdatePreferences} trainings={trainings} />
                 </FormGridSection> }
+
         </>
     );
 }

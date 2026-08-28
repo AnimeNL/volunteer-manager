@@ -7,12 +7,35 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
-import db, { tRoles, tUsersEvents, tUsers, tUsersCommunication, tSchedule, tShifts,
-    tShiftsCategories, tUsersEventsTickets, tYourTicketProviderPurchases, tEvents }
-        from '@lib/database';
+import db, { tEvents, tRoles, tSchedule, tShifts, tShiftsCategories, tUsers,
+    tUsersCommunication, tUsersEvents, tUsersEventsTickets,
+    tYourTicketProviderPurchases } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
+
+/**
+ * Processes volunteer communication records to extract the latest communication date per prompt.
+ */
+export function processVolunteerCommunication(
+    records: { promptId?: string | null; date: Temporal.ZonedDateTime }[]): Record<string, string>
+{
+    const communication: Record<string, string> = {};
+    const communicationPrompts = new Map<string, Temporal.ZonedDateTime>();
+    for (const item of records) {
+        if (!item.promptId)
+            continue;
+
+        const latestCommunication = communicationPrompts.get(item.promptId);
+        if (!latestCommunication || isBefore(latestCommunication, item.date))
+            communicationPrompts.set(item.promptId, item.date);
+    }
+
+    for (const [ promptId, date ] of communicationPrompts.entries())
+        communication[promptId] = date.toString();
+
+    return communication;
+}
 
 /**
  * Data source used to populate the volunteer list for a particular event and team tuple.
@@ -108,9 +131,9 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
     },
 
     async list(params, props, context) {
-        const dbInstance = db;
         const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
 
+        const dbInstance = db;
         const currentEventStartTime = await dbInstance.selectFrom(tEvents)
             .where(tEvents.eventId.equals(context.eventId))
             .selectOneColumn(tEvents.eventStartTime)
@@ -205,23 +228,10 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 .offset(params.page.offset)
             .executeSelectPage();
 
-        const rows = volunteers.data.map(volunteer => {
-            const communication: Record<string, string> = {};
-            const communicationPrompts: Map<string, Temporal.ZonedDateTime> = new Map();
-            for (const item of volunteer.communication) {
-                const latestCommunication = communicationPrompts.get(item.promptId!);
-                if (!latestCommunication || isBefore(latestCommunication, item.date))
-                    communicationPrompts.set(item.promptId!, item.date);
-            }
-
-            for (const [ promptId, date ] of communicationPrompts.entries())
-                communication[promptId] = date.toString();
-
-            return {
-                ...volunteer,
-                communication,
-            };
-        });
+        const rows = volunteers.data.map(volunteer => ({
+            ...volunteer,
+            communication: processVolunteerCommunication(volunteer.communication),
+        }));
 
         return {
             rowCount: volunteers.count,

@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from 'react';
 
-import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
+import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Button from '@mui/material/Button';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';

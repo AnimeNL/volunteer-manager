@@ -82,7 +82,7 @@ export default async function EventTeamVolunteerPreferencesHotelPage(
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
                          { label: 'Volunteers', href: baseUrl },
-                         { label: volunteer.name, href: `${baseUrl}/${id}`, },
+                         { label: volunteer.name, href: `${baseUrl}/${id}` },
                          { label: 'Preferences', href: `${baseUrl}/${id}/preferences` },
                          { label: 'Hotel' },
                      ]}>

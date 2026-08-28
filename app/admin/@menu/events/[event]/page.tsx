@@ -242,7 +242,6 @@ export default async function EventMenu(props: LayoutProps<'/admin/events/[event
                 },
                 {
                     Icon: PeopleAltOutlinedIcon,
-                    badge: { migration: true, value: true },  // migration not started
                     label: 'Volunteers',
                     permission: {
                         permission: 'event.volunteers.information',

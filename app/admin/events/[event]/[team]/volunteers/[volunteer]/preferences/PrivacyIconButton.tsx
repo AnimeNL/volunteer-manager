@@ -33,7 +33,7 @@ export function PrivacyIconButton() {
                                   <>
                                       The data shown in this section is especially sensitive and you
                                       have access by exception. Treat it with care, and expect it to
-                                      be anonimised after the event.
+                                      be anonymised after the event.
                                   </>
                               } />
         </>

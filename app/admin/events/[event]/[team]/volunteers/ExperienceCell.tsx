@@ -17,6 +17,11 @@ import GradeIcon from '@mui/icons-material/Grade';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
+const kExperienceIcons = [
+    Filter2Icon, Filter3Icon, Filter4Icon, Filter5Icon, Filter6Icon, Filter7Icon, Filter8Icon,
+    Filter9Icon
+];
+
 /**
  * Cell that serves as the header for indicating the volunteer's experience.
  */
@@ -29,14 +34,24 @@ export function ExperienceHeaderCell() {
 }
 
 /**
+ * Props accepted by the <ExperienceCell> component.
+ */
+interface ExperienceCellProps {
+    /**
+     * Row model containing participation and permission grant details.
+     */
+    row: {
+        priorParticipationCount: number;
+        roleHasPermissionGrant: boolean;
+    };
+}
+
+/**
  * Cell used to illustrate a volunteer's experience. Both first-time volunteers and Senior and Staff
  * volunteers will be highlighted in the table.
  */
-export function ExperienceCell(props: { row: {
-    priorParticipationCount: number;
-    roleHasPermissionGrant: boolean;
-} }) {
-    if (!!props.row.roleHasPermissionGrant) {
+export function ExperienceCell(props: ExperienceCellProps) {
+    if (props.row.roleHasPermissionGrant) {
         return (
             <Tooltip title="Senior/Staff volunteer">
                 <GradeIcon color="warning" fontSize="small" />
@@ -51,10 +66,6 @@ export function ExperienceCell(props: { row: {
             </Tooltip>
         );
     }
-
-    const kExperienceIcons = [
-        Filter2Icon, Filter3Icon, Filter4Icon, Filter5Icon, Filter6Icon, Filter7Icon, Filter8Icon,
-        Filter9Icon ];
 
     const tooltip = generateOrdinalTooltip(props.row.priorParticipationCount + 1);
     const Icon = kExperienceIcons[props.row.priorParticipationCount - 1] ?? Filter9PlusIcon;

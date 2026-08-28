@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
@@ -6,8 +6,9 @@ import { z } from 'zod/v4';
 
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
-    withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
+    withRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerContactSection } from '../VolunteerContactSection';
@@ -85,8 +86,7 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
                     break;
             }
 
-            const dbInstance = db;
-            const messages = await dbInstance.selectFrom(tUsersCommunication)
+            const messages = await db.selectFrom(tUsersCommunication)
                 .innerJoin(tOutboxEmail)
                     .on(tOutboxEmail.outboxCommunicationId.equals(
                         tUsersCommunication.userCommunicationId))
@@ -100,7 +100,7 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
                         tUsers.name.containsInsensitiveIfValue(params.search)))
                 .select({
                     id: tOutboxEmail.outboxEmailId,
-                    date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),
+                    date: db.dateTimeAsString(tOutboxEmail.outboxTimestamp),
                     sender: {
                         id: tUsers.userId,
                         name: tUsers.name,
@@ -133,8 +133,7 @@ export default async function EventTeamVolunteerCommunicationPage(
 
     const id = (await props.params).volunteer;
 
-    const dbInstance = db;
-    const volunteer = await dbInstance.selectFrom(tUsersEvents)
+    const volunteer = await db.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
@@ -229,3 +228,4 @@ export default async function EventTeamVolunteerCommunicationPage(
 
 export const generateMetadata = createGenerateMetadataFn(
     'Communication', { user: 'volunteer' }, 'Volunteers', { team: 'team' }, { event: 'event' });
+

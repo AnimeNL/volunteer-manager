@@ -9,7 +9,6 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import type { TimelineEvent } from '@app/admin/components/Timeline';
 import { ActionBar } from '@app/admin/components/ActionBar';
-import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
@@ -18,9 +17,9 @@ import { VolunteerContactSection } from './VolunteerContactSection';
 import { VolunteerIdentitySection } from './VolunteerIdentitySection';
 import { VolunteerQuickActions } from './VolunteerQuickActions';
 import { VolunteerSchedule } from './VolunteerSchedule';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { readUserSetting } from '@lib/UserSettings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tRoles, tSchedule, tShifts, tStorage, tTeams, tTeamsRoles,
     tUsers, tUsersEvents } from '@lib/database';
@@ -35,7 +34,7 @@ import * as actions from './VolunteerActions';
 export default async function EventTeamVolunteerPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
-    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
+    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });
@@ -135,24 +134,24 @@ export default async function EventTeamVolunteerPage(
     const cancelFn = (canUpdateApplications && volunteer.status !== 'Cancelled')
         ? actions.updateVolunteerStatus.bind(
             null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Cancelled)
-        : undefined!;
+        : undefined;
 
     const reinstateFn = (canUpdateApplications && volunteer.status !== 'Accepted')
         ? actions.updateVolunteerStatus.bind(
             null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Accepted)
-        : undefined!;
+        : undefined;
 
     const changeRoleFn = canUpdateVolunteer
         ? actions.changeRole.bind(null, volunteer.id, event.slug, team.slug)
-        : undefined!;
+        : undefined;
 
     const changeTeamFn = canUpdateVolunteer
         ? actions.changeTeam.bind(null, volunteer.id, event.slug, team.slug)
-        : undefined!;
+        : undefined;
 
     const manageOverridesFn = canUpdateOverrides
         ? actions.updateOverrides.bind(null, volunteer.id, event.slug, team.slug)
-        : undefined!;
+        : undefined;
 
     const updateNotesFn = canUpdateVolunteer
         ? actions.updateNotes.bind(null, volunteer.id, event.slug, team.slug)
@@ -205,9 +204,6 @@ export default async function EventTeamVolunteerPage(
         endTime: event.endTime.toString(),
         timezone: event.timeZone,
     };
-
-    const scheduleExpanded =
-        !!(await readUserSetting(user.id, 'user-admin-volunteers-expand-shifts'));
 
     const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
 
@@ -275,12 +271,15 @@ export default async function EventTeamVolunteerPage(
             { /* TODO: Status tiles */ }
 
             { !!schedule.length &&
-                <ExpandableSection icon={ <ScheduleIcon color="info" /> } title="Schedule"
-                                   subtitle={scheduleSubtitle} defaultExpanded={scheduleExpanded}
-                                   setting="user-admin-volunteers-expand-shifts">
+                <Section icon={ <ScheduleIcon /> } title="Schedule"
+                         subtitle={scheduleSubtitle}>
                     <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
-                </ExpandableSection> }
+                </Section> }
 
         </>
     );
 }
+
+export const generateMetadata =
+    createGenerateMetadataFn({ user: 'volunteer' }, 'Volunteers', { team: 'team' },
+                             { event: 'event' });

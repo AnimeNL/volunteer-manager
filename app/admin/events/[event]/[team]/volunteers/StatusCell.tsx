@@ -13,10 +13,27 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { VolunteerRowModel } from './dataSource';
 
+const kDisabledIconSx = { color: 'rgba(0, 0, 0, .15)' } as const;
+
+/**
+ * Props accepted by the <StatusCell> component.
+ */
+interface StatusCellProps {
+    /**
+     * Row model for the volunteer.
+     */
+    row: VolunteerRowModel;
+
+    /**
+     * Whether the cell is being rendered in a list view.
+     */
+    listView?: boolean;
+}
+
 /**
  * Cell used to display the status of a volunteer's application.
  */
-export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }) {
+export function StatusCell(props: StatusCellProps) {
     const { status } = props.row;
 
     // TODO: Availability [eligibility, preferences]
@@ -34,7 +51,7 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
     } else if (!props.listView) {
         hotelIcon = (
             <Tooltip title="Not eligible for a room">
-                <HotelIcon color="disabled" fontSize="small" sx={{ color: 'rgba(0, 0, 0, .15)' }} />
+                <HotelIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
         );
     }
@@ -49,8 +66,7 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
     } else if (!props.listView) {
         trainingIcon = (
             <Tooltip title="Not eligible for training">
-                <HistoryEduIcon color="disabled" fontSize="small"
-                                sx={{ color: 'rgba(0, 0, 0, .15)' }} />
+                <HistoryEduIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
         );
     }
@@ -76,8 +92,7 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
     if (!props.listView) {
         refundIcon = (
             <Tooltip title="Refund status unknown">
-                <PaidIcon color="disabled" fontSize="small"
-                          sx={{ color: 'rgba(0, 0, 0, .15)' }} />
+                <PaidIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
         );
     }
@@ -85,8 +100,7 @@ export function StatusCell(props: { row: VolunteerRowModel, listView?: boolean }
     return (
         <Stack direction="row" spacing={1}>
             <Tooltip title="Availability status unknown">
-                <EventBusyIcon color="disabled" fontSize="small"
-                               sx={{ color: 'rgba(0, 0, 0, .15)' }}/>
+                <EventBusyIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
             {hotelIcon}
             {trainingIcon}

@@ -1,4 +1,4 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use server';
@@ -9,9 +9,8 @@ import { z } from 'zod/v4';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
-
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
+import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
 
 /**
  * Returns context, sourced from the database, for a volunteer action with the following properties.
@@ -55,9 +54,7 @@ export async function sendCommunicationToVolunteer(
     eventId: number, teamId: number, recipientId: number, promptId: CommunicationPromptId,
     subject?: string, message?: string)
 {
-    'use server';
-
-    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
+    return executeServerAction(new FormData(), z.object({ /* none */ }), async (data, props) => {
         const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
