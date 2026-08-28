@@ -3,13 +3,12 @@
 
 'use server';
 
-import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tUsersEvents } from '@lib/database';
 import { LogBuilder } from '@lib/log/LogBuilder';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { executeServerAction } from '@lib/serverAction';
+import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
 
 /**
  * Cancels the volunteer's participation.
@@ -32,7 +31,7 @@ export async function cancelParticipation(
  * Zod type defining the schema for changing a volunteer's role.
  */
 const kChangeRoleSchema = z.object({
-
+    role: z.coerce.number(),
 });
 
 /**
@@ -43,11 +42,50 @@ export async function changeRole(
 {
     return executeServerAction(formData, kChangeRoleSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug);
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.volunteers.information',
+                operation: 'update',
+            });
+
+        const role = await db.selectFrom(tTeamsRoles)
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tTeamsRoles.roleId))
+            .where(tTeamsRoles.teamId.equals(team.id))
+                .and(tTeamsRoles.roleId.equals(data.role))
+            .select({
+                id: tRoles.roleId,
+                name: tRoles.roleName,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!role)
+            return { success: false, error: 'That role is not valid for this team.' };
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                roleId: data.role,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateVolunteerRole')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user.id)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+                role: role.name,
+                team: team.title,
+            });
 
         return {
-            success: false,
-            error: 'Not yet implemented',
+            success: true,
+
+            close: true,
+            refresh: true,
         };
     });
 }

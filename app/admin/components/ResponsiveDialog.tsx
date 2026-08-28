@@ -99,7 +99,7 @@ function ResponsiveDialogDesktop(props: React.PropsWithChildren<ResponsiveDialog
     return (
         <Dialog open={props.open} onClose={props.onClose} fullWidth>
             <Container {...props.ContainerProps}>
-                <DialogTitle>
+                <DialogTitle sx={{ pb: 1 }}>
                     {props.title}
                 </DialogTitle>
                 <DialogContent>

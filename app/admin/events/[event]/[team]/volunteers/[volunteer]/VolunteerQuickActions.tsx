@@ -7,7 +7,6 @@ import { useState } from 'react';
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
-import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import Button from '@mui/material/Button';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
@@ -46,11 +45,6 @@ interface VolunteerQuickActionsProps {
     reinstateFn?: ServerAction;
 
     /**
-     * Server action to invoke when wanting to change a volunteer's role.
-     */
-    changeRoleFn?: ServerAction;
-
-    /**
      * Server action to invoke when wanting to change a volunteer's team.
      */
     changeTeamFn?: ServerAction;
@@ -87,18 +81,11 @@ interface VolunteerQuickActionsProps {
 export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
     const [ cancelDialogOpen, setCancelDialogOpen ] = useState(false);
     const [ reinstateDialogOpen, setReinstateDialogOpen ] = useState(false);
-    const [ changeRoleDialogOpen, setChangeRoleDialogOpen ] = useState(false);
     const [ changeTeamDialogOpen, setChangeTeamDialogOpen ] = useState(false);
     const [ manageOverridesDialogOpen, setManageOverridesDialogOpen ] = useState(false);
 
     return (
         <>
-            { !!props.changeRoleFn &&
-                <Button startIcon={ <BadgeOutlinedIcon /> } size="small" variant="outlined"
-                        color="inherit" onClick={ () => setChangeRoleDialogOpen(true) }>
-                    Change role
-                </Button> }
-
             { !!props.changeTeamFn &&
                 <Button startIcon={ <PeopleAltOutlinedIcon /> } size="small" variant="outlined"
                         color="inherit" onClick={ () => setChangeTeamDialogOpen(true) }>
@@ -122,8 +109,6 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
                         color="error" onClick={ () => setReinstateDialogOpen(true) }>
                     Reinstate participation
                 </Button> }
-
-            { /* TODO: Change role dialog + communication */ }
 
             { /* TODO: Change team dialog + communication */ }
 

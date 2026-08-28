@@ -6,16 +6,16 @@ import { notFound } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
+import { ActionBar } from '@app/admin/components/ActionBar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tRoles, tStorage, tUsers, tUsersEvents } from '@lib/database';
-
-import { ActionBar } from '@app/admin/components/ActionBar';
+import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
 import { VolunteerContactSection } from './VolunteerContactSection';
 import { VolunteerIdentitySection } from './VolunteerIdentitySection';
 import { VolunteerQuickActions } from './VolunteerQuickActions';
 import { getBlobUrl } from '@lib/database/BlobStore';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import db, { tRoles, tStorage, tTeamsRoles, tUsers, tUsersEvents } from '@lib/database';
 
 import * as actions from './VolunteerActions';
 
@@ -57,6 +57,7 @@ export default async function EventTeamVolunteerPage(
             notes: tUsersEvents.registrationNotes,
             phoneNumber: tUsers.phoneNumber,
             role: tRoles.roleName,
+            roleId: tUsersEvents.roleId,
             status: tUsersEvents.registrationStatus,
 
             overrides: {
@@ -69,6 +70,18 @@ export default async function EventTeamVolunteerPage(
 
     if (!volunteer)
         notFound();
+
+    const roles = await dbInstance.selectFrom(tTeamsRoles)
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tTeamsRoles.roleId))
+        .where(tTeamsRoles.teamId.equals(team.id))
+        .select({
+            id: tRoles.roleId,
+            label: tRoles.roleName,
+            privilegeWarning: tRoles.rolePermissionGrant.isNotNull(),
+        })
+        .orderBy(tRoles.roleOrder, 'asc')
+        .executeSelectMany();
 
     const accountLink = access.can('organisation.accounts', 'read')
         ? `/admin/organisation/accounts/${volunteer.id}`
@@ -130,10 +143,14 @@ export default async function EventTeamVolunteerPage(
                     </Alert> }
                 { !!canDoAnything &&
                     <ActionBar>
+                        { !!changeRoleFn &&
+                            <VolunteerChangeRoleQuickAction action={changeRoleFn}
+                                                            currentRole={volunteer.roleId}
+                                                            firstName={volunteer.firstName}
+                                                            roles={roles} /> }
                         <VolunteerQuickActions firstName={volunteer.firstName}
                                                cancelFn={cancelFn}
                                                reinstateFn={reinstateFn}
-                                               changeRoleFn={changeRoleFn}
                                                changeTeamFn={changeTeamFn}
                                                manageOverrides={volunteer.overrides}
                                                manageOverridesFn={manageOverridesFn} />

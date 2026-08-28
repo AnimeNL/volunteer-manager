@@ -349,6 +349,12 @@ interface LogTypeParameterMap {
         team: string;  // title
     };
 
+    UpdateVolunteerRole: {
+        event: string;  // short name
+        role: string;  // name
+        team: string;  // title
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
@@ -510,6 +516,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateVendor: 'UpdateVendor',
     UpdateVendorSchedule: 'UpdateVendorSchedule',
     UpdateVolunteerNotes: 'UpdateVolunteerNotes',
+    UpdateVolunteerRole: 'UpdateVolunteerRole',
 
     // ---------------------------------------------------------------------------------------------
     // Registration portal:

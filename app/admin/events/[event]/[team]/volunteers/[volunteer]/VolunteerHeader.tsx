@@ -6,12 +6,8 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { type FieldValues, SelectElement, useFormContext } from '@proxy/react-hook-form-mui';
-
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -21,7 +17,6 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import Paper from '@mui/material/Paper';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
@@ -30,147 +25,15 @@ import Typography from '@mui/material/Typography';
 
 import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import type { User } from '@lib/auth/User';
-import type { VolunteerRolesDefinition } from '@app/api/admin/volunteerRoles';
 import type { VolunteerTeamsDefinition } from '@app/api/admin/volunteerTeams';
 import { AdminClientContext } from '@app/admin/AdminClientContext';
 import { CommunicationButton, CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { type CommunicationLanguage, type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { ContrastBox } from '@app/admin/components/ContrastBox';
-import { SettingDialog } from '@app/admin/components/SettingDialog';
 import { callApi } from '@lib/callApi';
 import type { ServerActionResult } from '@lib/serverAction';
 
 type TeamsForVolunteer = VolunteerTeamsDefinition['response']['teams'];
-
-/**
- * Props accepted by the <ChangeRoleDialogFields> component.
- */
-interface ChangeRoleDialogFieldsProps {
-    /**
-     * The roles that are available for the current team.
-     */
-    roles: NonNullable<VolunteerRolesDefinition['response']['roles']>;
-
-    /**
-     * The volunteer for whom this dialog is being displayed.
-     */
-    volunteer: VolunteerHeaderProps['volunteer'];
-}
-
-/**
- * The <ChangeRoleDialogFields> component contains the fields that are part of the change role
- * dialog, isolated to be able to watch value changes in the encapsulating form.
- */
-function ChangeRoleDialogFields(props: ChangeRoleDialogFieldsProps) {
-    const { roles, volunteer } = props;
-    const { watch } = useFormContext();
-
-    const options = useMemo(() => {
-        return roles ? roles.map(role => ({ id: role.roleId, label: role.roleName })) : [];
-    }, [ roles ]);
-
-    const selectedRole = watch('role');
-    const selectedRoleWarning =
-        roles.some(entry => entry.roleId === selectedRole && entry.rolePrivilegeWarning);
-
-    return (
-        <>
-            <SelectElement name="role" label="Role" size="small" fullWidth
-                           options={options} sx={{ mt: 2 }} />
-
-            <Collapse in={!!selectedRoleWarning}>
-                <Alert severity="warning" sx={{ mt: 2 }}>
-                    This role will grant administration access to
-                    <strong> {volunteer.firstName}</strong> for this event.
-                </Alert>
-            </Collapse>
-        </>
-    );
-}
-
-
-/**
- * Props accepted by the <ChangeRoleDialog> dialog.
- */
-interface ChangeRoleDialogProps {
-    /**
-     * Callback function that should be called when the dialog is being closed.
-     */
-    onClose: (refresh?: boolean) => void;
-
-    /**
-     * ID of the event for which the role might be changed.
-     */
-    eventId: number;
-
-    /**
-     * URL-safe slug of the event for which the role might be changed.
-     */
-    event: string;
-
-    /**
-     * Whether the dialog is currently open.
-     */
-    open?: boolean;
-
-    /**
-     * The roles that are available for the current team.
-     */
-    roles: NonNullable<VolunteerRolesDefinition['response']['roles']>;
-
-    /**
-     * ID of the team for which the role might be changed.
-     */
-    teamId: number;
-
-    /**
-     * The volunteer for whom this dialog is being displayed.
-     */
-    volunteer: VolunteerHeaderProps['volunteer'];
-}
-
-/**
- * The <ChangeRoleDialog> dialog allows certain people to change the roles assigned to volunteers.
- * The list of available roles will be fetched on first load.
- */
-function ChangeRoleDialog(props: ChangeRoleDialogProps) {
-    const { eventId, event, onClose, open, roles, teamId, volunteer } = props;
-
-    const router = useRouter();
-    const handleSubmit = useCallback(async (data: FieldValues) => {
-        const response = await callApi('post', '/api/admin/volunteer-roles', {
-            eventId,
-            event,
-            roleId: data.role,
-            teamId,
-            userId: volunteer.userId,
-        });
-
-        if (!response.success)
-            return { error: `${volunteer.firstName}'s role could not be updated right now.` };
-
-        router.refresh();
-
-        return { success: `${volunteer.firstName}'s role has been successfully updated.` };
-
-    }, [ eventId, event, router, teamId, volunteer ]);
-
-    return (
-        <SettingDialog defaultValues={{ role: volunteer.roleId }}
-                       description={
-                           <>
-                               You can change the role that <strong>{volunteer.firstName} </strong>
-                               has been assigned, defining what our expectations are for them
-                               during the event.
-                           </> }
-                        onClose={onClose} onSubmit={handleSubmit} open={open}
-                        title="Change role">
-
-            <ChangeRoleDialogFields roles={roles} volunteer={volunteer} />
-
-        </SettingDialog>
-    );
-}
 
 /**
  * Props accepted by the <ChangeTeamDialog> component.
@@ -452,32 +315,6 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
         props.canUpdateParticipation;
 
     // ---------------------------------------------------------------------------------------------
-    // Change role
-    // ---------------------------------------------------------------------------------------------
-
-    const [ roles, setRoles ] = useState<VolunteerRolesDefinition['response']['roles']>();
-    const [ rolesLoading, setRolesLoading ] = useState<boolean>(false);
-    const [ rolesOpen, setRolesOpen ] = useState<boolean>(false);
-
-    const handleRolesClose = useCallback(() => setRolesOpen(false), [ /* no deps */ ]);
-    const handleRolesOpen = useCallback(async () => {
-        if (!roles) {
-            setRolesLoading(true);
-            try {
-                const response = await callApi('post', '/api/admin/volunteer-roles', {
-                    event: event.slug,
-                    teamId: team.id,
-                });
-
-                setRoles(response.roles);
-            } finally {
-                setRolesLoading(false);
-            }
-        }
-        setRolesOpen(true);
-    }, [ event.slug, roles, team ]);
-
-    // ---------------------------------------------------------------------------------------------
     // Change team
     // ---------------------------------------------------------------------------------------------
 
@@ -561,12 +398,6 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                         </CommunicationButton> }
 
                     { props.canUpdateParticipation &&
-                        <Button startIcon={ <ManageAccountsIcon /> } onClick={handleRolesOpen}
-                                loading={rolesLoading}>
-                            Change role
-                        </Button> }
-
-                    { props.canUpdateParticipation &&
                         <Button startIcon={ <PeopleIcon /> } onClick={handleTeamsOpen}
                                 loading={teamsLoading}>
                             Change team
@@ -575,10 +406,6 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
                 </Stack>
             </ContrastBox>
 
-            <ChangeRoleDialog onClose={handleRolesClose} open={roles && rolesOpen}
-                              roles={roles!} volunteer={volunteer} eventId={event.id}
-                              event={event.slug} teamId={team.id} />
-
             <ChangeTeamDialog onClose={handleTeamsClose} open={teamsForVolunteer && teamsOpen}
                               teams={teamsForVolunteer!}
                               volunteer={volunteer} event={event.slug} eventId={event.id}
@@ -586,4 +413,5 @@ export function VolunteerHeader(props: VolunteerHeaderProps) {
 
         </Paper>
     );
+
 }
