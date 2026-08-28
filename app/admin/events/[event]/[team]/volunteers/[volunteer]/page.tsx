@@ -5,8 +5,11 @@ import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 
+import type { TimelineEvent } from '@app/admin/components/Timeline';
 import { ActionBar } from '@app/admin/components/ActionBar';
+import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
@@ -14,10 +17,13 @@ import { VolunteerChangeTeamQuickAction } from './VolunteerChangeTeamQuickAction
 import { VolunteerContactSection } from './VolunteerContactSection';
 import { VolunteerIdentitySection } from './VolunteerIdentitySection';
 import { VolunteerQuickActions } from './VolunteerQuickActions';
+import { VolunteerSchedule } from './VolunteerSchedule';
 import { getBlobUrl } from '@lib/database/BlobStore';
+import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
+import { readUserSetting } from '@lib/UserSettings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tEvents, tEventsTeams, tRoles, tStorage, tTeams, tTeamsRoles, tUsers, tUsersEvents }
-    from '@lib/database';
+import db, { tEvents, tEventsTeams, tRoles, tSchedule, tShifts, tStorage, tTeams, tTeamsRoles,
+    tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -29,7 +35,7 @@ import * as actions from './VolunteerActions';
 export default async function EventTeamVolunteerPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
-    const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'event.volunteers.information',
         operation: 'read',
     });
@@ -152,6 +158,59 @@ export default async function EventTeamVolunteerPage(
         ? actions.updateNotes.bind(null, volunteer.id, event.slug, team.slug)
         : undefined!;
 
+    // ---------------------------------------------------------------------------------------------
+
+    const schedule: TimelineEvent[] = [];
+    const scheduledShifts = await dbInstance.selectFrom(tSchedule)
+        .innerJoin(tShifts)
+            .on(tShifts.shiftId.equals(tSchedule.shiftId))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tShifts.teamId))
+        .where(tSchedule.eventId.equals(event.id))
+            .and(tSchedule.userId.equals(volunteer.id))
+            .and(tSchedule.shiftId.isNotNull())
+            .and(tSchedule.scheduleDeleted.isNull())
+        .select({
+            id: tSchedule.scheduleId,
+            start: tSchedule.scheduleTimeStart,
+            end: tSchedule.scheduleTimeEnd,
+            title: tShifts.shiftName,
+
+            shiftId: tSchedule.shiftId,
+            shiftTeam: tTeams.teamSlug,
+        })
+        .executeSelectMany();
+
+    if (!!scheduledShifts.length) {
+        const shifts = await getShiftsForEvent(event.id, event.integrations?.anPlanFestivalId);
+        const shiftMap = new Map(shifts.map(shift => ([ shift.id, shift.colour ])));
+
+        for (const scheduledShift of scheduledShifts) {
+            schedule.push({
+                id: scheduledShift.id,
+                start: scheduledShift.start.toString({ timeZoneName: 'never' }),
+                end: scheduledShift.end.toString({ timeZoneName: 'never' }),
+                color: shiftMap.get(scheduledShift.shiftId!),
+                title: scheduledShift.title,
+
+                // Private data to enable double clicking on shift entries:
+                animeConShiftId: scheduledShift.shiftId!,
+                animeConShiftTeam: scheduledShift.shiftTeam,
+            });
+        }
+    }
+
+    const scheduleEvent = {
+        startTime: event.startTime.toString(),
+        endTime: event.endTime.toString(),
+        timezone: event.timeZone,
+    };
+
+    const scheduleExpanded =
+        !!(await readUserSetting(user.id, 'user-admin-volunteers-expand-shifts'));
+
+    const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
+
     return (
         <>
             <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
@@ -215,7 +274,12 @@ export default async function EventTeamVolunteerPage(
 
             { /* TODO: Status tiles */ }
 
-            { /* TODO: Schedule */ }
+            { !!schedule.length &&
+                <ExpandableSection icon={ <ScheduleIcon color="info" /> } title="Schedule"
+                                   subtitle={scheduleSubtitle} defaultExpanded={scheduleExpanded}
+                                   setting="user-admin-volunteers-expand-shifts">
+                    <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
+                </ExpandableSection> }
 
         </>
     );
