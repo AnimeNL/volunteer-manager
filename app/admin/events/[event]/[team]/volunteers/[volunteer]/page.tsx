@@ -1,16 +1,21 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
+import type { CachedEvent } from '@lib/cache';
+import type { CommunicationLanguage } from '@lib/database/Types';
+import type { ServerAction } from '@lib/serverAction';
 import type { TimelineEvent } from '@app/admin/components/Timeline';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
 import { VolunteerChangeTeamQuickAction } from './VolunteerChangeTeamQuickAction';
 import { VolunteerContactSection } from './VolunteerContactSection';
@@ -45,8 +50,7 @@ export default async function EventTeamVolunteerPage(
 
     const storageJoin = tStorage.forUseInLeftJoin();
 
-    const dbInstance = db;
-    const volunteer = await dbInstance.selectFrom(tUsersEvents)
+    const volunteer = await db.selectFrom(tUsersEvents)
         .innerJoin(tRoles)
             .on(tRoles.roleId.equals(tUsersEvents.roleId))
         .innerJoin(tUsers)
@@ -80,44 +84,6 @@ export default async function EventTeamVolunteerPage(
 
     if (!volunteer)
         notFound();
-
-    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
-
-    const teams = await dbInstance.selectFrom(tEvents)
-        .innerJoin(tEventsTeams)
-            .on(tEventsTeams.eventId.equals(tEvents.eventId))
-                .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tEventsTeams.teamId))
-        .innerJoin(tTeamsRoles)
-            .on(tTeamsRoles.teamId.equals(tTeams.teamId))
-                .and(tTeamsRoles.roleDefault.equals(/* true= */ 1))
-        .leftJoin(usersEventsJoin)
-            .on(usersEventsJoin.eventId.equals(tEvents.eventId))
-                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
-                .and(usersEventsJoin.userId.equals(id))
-        .where(tEvents.eventId.equals(event.id))
-        .select({
-            id: tTeams.teamId,
-            colour: tTeams.teamColourLightTheme,
-            name: tTeams.teamName,
-            slug: tTeams.teamSlug,
-            status: usersEventsJoin.registrationStatus,
-        })
-        .orderBy(tTeams.teamName, 'asc')
-        .executeSelectMany();
-
-    const roles = await dbInstance.selectFrom(tTeamsRoles)
-        .innerJoin(tRoles)
-            .on(tRoles.roleId.equals(tTeamsRoles.roleId))
-        .where(tTeamsRoles.teamId.equals(team.id))
-        .select({
-            id: tRoles.roleId,
-            label: tRoles.roleName,
-            privilegeWarning: tRoles.rolePermissionGrant.isNotNull(),
-        })
-        .orderBy(tRoles.roleOrder, 'asc')
-        .executeSelectMany();
 
     const accountLink = access.can('organisation.accounts', 'read')
         ? `/admin/organisation/accounts/${volunteer.id}`
@@ -159,54 +125,6 @@ export default async function EventTeamVolunteerPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const schedule: TimelineEvent[] = [];
-    const scheduledShifts = await dbInstance.selectFrom(tSchedule)
-        .innerJoin(tShifts)
-            .on(tShifts.shiftId.equals(tSchedule.shiftId))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tShifts.teamId))
-        .where(tSchedule.eventId.equals(event.id))
-            .and(tSchedule.userId.equals(volunteer.id))
-            .and(tSchedule.shiftId.isNotNull())
-            .and(tSchedule.scheduleDeleted.isNull())
-        .select({
-            id: tSchedule.scheduleId,
-            start: tSchedule.scheduleTimeStart,
-            end: tSchedule.scheduleTimeEnd,
-            title: tShifts.shiftName,
-
-            shiftId: tSchedule.shiftId,
-            shiftTeam: tTeams.teamSlug,
-        })
-        .executeSelectMany();
-
-    if (!!scheduledShifts.length) {
-        const shifts = await getShiftsForEvent(event.id, event.integrations?.anPlanFestivalId);
-        const shiftMap = new Map(shifts.map(shift => ([ shift.id, shift.colour ])));
-
-        for (const scheduledShift of scheduledShifts) {
-            schedule.push({
-                id: scheduledShift.id,
-                start: scheduledShift.start.toString({ timeZoneName: 'never' }),
-                end: scheduledShift.end.toString({ timeZoneName: 'never' }),
-                color: shiftMap.get(scheduledShift.shiftId!),
-                title: scheduledShift.title,
-
-                // Private data to enable double clicking on shift entries:
-                animeConShiftId: scheduledShift.shiftId!,
-                animeConShiftTeam: scheduledShift.shiftTeam,
-            });
-        }
-    }
-
-    const scheduleEvent = {
-        startTime: event.startTime.toString(),
-        endTime: event.endTime.toString(),
-        timezone: event.timeZone,
-    };
-
-    const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
-
     return (
         <>
             <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
@@ -232,16 +150,19 @@ export default async function EventTeamVolunteerPage(
                 { !!canDoAnything &&
                     <ActionBar>
                         { !!changeRoleFn &&
-                            <VolunteerChangeRoleQuickAction action={changeRoleFn}
-                                                            currentRole={volunteer.roleId}
-                                                            firstName={volunteer.firstName}
-                                                            roles={roles} /> }
+                            <Suspense fallback={null}>
+                                <VolunteerChangeRoleAction action={changeRoleFn}
+                                                           currentRoleId={volunteer.roleId}
+                                                           firstName={volunteer.firstName}
+                                                           teamId={team.id} />
+                            </Suspense> }
                         { !!changeTeamFn &&
-                            <VolunteerChangeTeamQuickAction action={changeTeamFn}
-                                                            currentTeamId={team.id}
-                                                            eventId={event.id}
-                                                            teams={teams}
-                                                            volunteer={volunteer} /> }
+                            <Suspense fallback={null}>
+                                <VolunteerChangeTeamAction action={changeTeamFn}
+                                                           currentTeamId={team.id}
+                                                           eventId={event.id}
+                                                           volunteer={volunteer} />
+                            </Suspense> }
                         <VolunteerQuickActions cancelFn={cancelFn}
                                                eventId={event.id}
                                                manageOverrides={volunteer.overrides}
@@ -270,15 +191,214 @@ export default async function EventTeamVolunteerPage(
 
             { /* TODO: Status tiles */ }
 
-            { !!schedule.length &&
-                <Section icon={ <ScheduleIcon /> } title="Schedule"
-                         subtitle={scheduleSubtitle}>
-                    <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
-                </Section> }
-
+            <Suspense fallback={
+                <Section icon={ <ScheduleIcon /> } title="Schedule">
+                    <SectionLoading />
+                </Section>
+            }>
+                <VolunteerScheduleSection event={event} volunteerId={volunteer.id} />
+            </Suspense>
         </>
     );
 }
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Props accepted by the <VolunteerChangeRoleAction> component.
+ */
+interface VolunteerChangeRoleActionProps {
+    /**
+     * Server Action to execute when changing the volunteer's role.
+     */
+    action: ServerAction<{ role: number }>;
+
+    /**
+     * Unique ID of the role the volunteer currently holds.
+     */
+    currentRoleId: number;
+
+    /**
+     * First name of the volunteer, to contextualise warnings.
+     */
+    firstName: string;
+
+    /**
+     * Unique ID of the team for which roles should be obtained.
+     */
+    teamId: number;
+}
+
+/**
+ * Async subcomponent that queries team-specific roles for the Change Role quick action.
+ */
+async function VolunteerChangeRoleAction(props: VolunteerChangeRoleActionProps) {
+    const roles = await db.selectFrom(tTeamsRoles)
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tTeamsRoles.roleId))
+        .where(tTeamsRoles.teamId.equals(props.teamId))
+        .select({
+            id: tRoles.roleId,
+            label: tRoles.roleName,
+            privilegeWarning: tRoles.rolePermissionGrant.isNotNull(),
+        })
+        .orderBy(tRoles.roleOrder, 'asc')
+        .executeSelectMany();
+
+    return (
+        <VolunteerChangeRoleQuickAction action={props.action}
+                                        currentRole={props.currentRoleId}
+                                        firstName={props.firstName}
+                                        roles={roles} />
+    );
+}
+
+/**
+ * Props accepted by the <VolunteerChangeTeamAction> component.
+ */
+interface VolunteerChangeTeamActionProps {
+    /**
+     * Server Action to execute when changing the volunteer's team.
+     */
+    action: ServerAction<{ message?: string; subject?: string; team: string }>;
+
+    /**
+     * Unique ID of the team that the volunteer currently participates in.
+     */
+    currentTeamId: number;
+
+    /**
+     * Unique ID of the event for which the teams should be retrieved.
+     */
+    eventId: number;
+
+    /**
+     * The volunteer for whom the team is being changed.
+     */
+    volunteer: {
+        id: number;
+        firstName: string;
+        language?: CommunicationLanguage;
+    };
+}
+
+/**
+ * Async subcomponent that queries event teams for the Change Team quick action.
+ */
+async function VolunteerChangeTeamAction(props: VolunteerChangeTeamActionProps) {
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const teams = await db.selectFrom(tEvents)
+        .innerJoin(tEventsTeams)
+            .on(tEventsTeams.eventId.equals(tEvents.eventId))
+                .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+        .innerJoin(tTeamsRoles)
+            .on(tTeamsRoles.teamId.equals(tTeams.teamId))
+                .and(tTeamsRoles.roleDefault.equals(/* true= */ 1))
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.eventId.equals(tEvents.eventId))
+                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
+                .and(usersEventsJoin.userId.equals(props.volunteer.id))
+        .where(tEvents.eventId.equals(props.eventId))
+        .select({
+            id: tTeams.teamId,
+            colour: tTeams.teamColourLightTheme,
+            name: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            status: usersEventsJoin.registrationStatus,
+        })
+        .orderBy(tTeams.teamName, 'asc')
+        .executeSelectMany();
+
+    return (
+        <VolunteerChangeTeamQuickAction action={props.action}
+                                        currentTeamId={props.currentTeamId}
+                                        eventId={props.eventId}
+                                        teams={teams}
+                                        volunteer={props.volunteer} />
+    );
+}
+
+/**
+ * Props accepted by the <VolunteerScheduleSection> component.
+ */
+interface VolunteerScheduleSectionProps {
+    /**
+     * Information about the event this volunteer will participate in.
+     */
+    event: CachedEvent;
+
+    /**
+     * Unique ID of the volunteer whose schedule should be displayed.
+     */
+    volunteerId: number;
+}
+
+/**
+ * Async subcomponent that queries shift schedules and renders the timeline section.
+ */
+async function VolunteerScheduleSection(props: VolunteerScheduleSectionProps) {
+    const { event, volunteerId } = props;
+
+    const scheduledShifts = await db.selectFrom(tSchedule)
+        .innerJoin(tShifts)
+            .on(tShifts.shiftId.equals(tSchedule.shiftId))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tShifts.teamId))
+        .where(tSchedule.eventId.equals(event.id))
+            .and(tSchedule.userId.equals(volunteerId))
+            .and(tSchedule.shiftId.isNotNull())
+            .and(tSchedule.scheduleDeleted.isNull())
+        .select({
+            id: tSchedule.scheduleId,
+            start: tSchedule.scheduleTimeStart,
+            end: tSchedule.scheduleTimeEnd,
+            title: tShifts.shiftName,
+
+            shiftId: tSchedule.shiftId,
+            shiftTeam: tTeams.teamSlug,
+        })
+        .executeSelectMany();
+
+    if (!scheduledShifts.length)
+        return null;
+
+    const schedule: TimelineEvent[] = [];
+    const shifts = await getShiftsForEvent(event.id, event.integrations?.anPlanFestivalId);
+    const shiftMap = new Map(shifts.map(shift => ([ shift.id, shift.colour ])));
+
+    for (const scheduledShift of scheduledShifts) {
+        schedule.push({
+            id: scheduledShift.id,
+            start: scheduledShift.start.toString({ timeZoneName: 'never' }),
+            end: scheduledShift.end.toString({ timeZoneName: 'never' }),
+            color: shiftMap.get(scheduledShift.shiftId!),
+            title: scheduledShift.title,
+
+            // Private data to enable double clicking on shift entries:
+            animeConShiftId: scheduledShift.shiftId!,
+            animeConShiftTeam: scheduledShift.shiftTeam,
+        });
+    }
+
+    const scheduleEvent = {
+        startTime: event.startTime.toString(),
+        endTime: event.endTime.toString(),
+        timezone: event.timeZone,
+    };
+
+    const scheduleSubtitle = `${schedule.length} shift${schedule.length !== 1 ? 's' : ''}`;
+
+    return (
+        <Section icon={ <ScheduleIcon /> } title="Schedule" subtitle={scheduleSubtitle}>
+            <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
+        </Section>
+    );
+}
+
+// -------------------------------------------------------------------------------------------------
 
 export const generateMetadata =
     createGenerateMetadataFn({ user: 'volunteer' }, 'Volunteers', { team: 'team' },
