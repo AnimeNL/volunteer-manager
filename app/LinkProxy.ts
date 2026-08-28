@@ -23,4 +23,3 @@
 import Link from 'next/link';
 
 export default Link;
-export * from 'next/link';

@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { PageInfo } from '../verifyAccessAndFetchPageInfo';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { isAfter, isBefore } from '@lib/Temporal';
 
 /**
@@ -222,7 +223,9 @@ export function EventMetadata(props: EventMetadataProps) {
                                 <ListItem disableGutters disablePadding>
                                     <ListItemIcon sx={{ minWidth: '40px' }}>
                                         <Tooltip title={hotelText}>
-                                            <HotelIcon fontSize="small" color={hotelColor} />
+                                            <TooltipIconWrapper>
+                                                <HotelIcon fontSize="small" color={hotelColor} />
+                                            </TooltipIconWrapper>
                                         </Tooltip>
                                     </ListItemIcon>
                                     <ListItemText>
@@ -233,8 +236,10 @@ export function EventMetadata(props: EventMetadataProps) {
                                 <ListItem disableGutters disablePadding>
                                     <ListItemIcon sx={{ minWidth: '40px' }}>
                                         <Tooltip title={trainingText}>
-                                            <HistoryEduIcon fontSize="small"
-                                                            color={trainingColor} />
+                                            <TooltipIconWrapper>
+                                                <HistoryEduIcon fontSize="small"
+                                                                color={trainingColor} />
+                                            </TooltipIconWrapper>
                                         </Tooltip>
                                     </ListItemIcon>
                                     <ListItemText>

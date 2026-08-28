@@ -395,14 +395,15 @@ export default async function EventPage(props: PageProps<'/admin/events/[event]'
     if (growthChartTeamTitles.length === 1) {
         growthChartTeamDescription = `Participating team: ${growthChartTeamTitles[0]}.`;
     } else if (growthChartTeamTitles.length > 1) {
-        const finalTitle = growthChartTeamTitles.sort().pop()!;
+        const sortedTitles = [ ...growthChartTeamTitles ].sort();
+        const finalTitle = sortedTitles.pop()!;
         growthChartTeamDescription =
-            `Participating teams: ${growthChartTeamTitles.join(', ')} and ${finalTitle}.`;
+            `Participating teams: ${sortedTitles.join(', ')} and ${finalTitle}.`;
     }
 
     // Server Action through which remote graph data can be obtained.
     const partialFetchDataFn = fetchTeamGrowth.bind(null, event.id, event.slug);
-    const fetchDataFn = partialFetchDataFn.bind(null, growthChartTeams);
+    const fetchDataFn = fetchTeamGrowth.bind(null, event.id, event.slug, growthChartTeams);
 
     return (
         <>

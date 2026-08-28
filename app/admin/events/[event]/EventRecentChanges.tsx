@@ -1,6 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use client';
+
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
@@ -12,8 +14,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { PageInfo } from '../verifyAccessAndFetchPageInfo';
-import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 import { formatDuration } from '@lib/Temporal';
+
+import { type RegistrationStatus, kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Whether the volunteer's application `status` is still pending.
@@ -32,12 +35,12 @@ function writeDescription(updates: EventRecentChangeUpdate[], teamName: string):
     if (updates.includes('refund'))
         return 'requested a refund for their ticket';
 
-    updates.sort();
-    if (updates.length === 1)
-        return `updated their ${updates[0]} preferences`;
+    const sortedUpdates = [ ...updates ].sort();
+    if (sortedUpdates.length === 1)
+        return `updated their ${sortedUpdates[0]} preferences`;
 
-    const finalUpdate = updates.pop();
-    return `updated their ${updates.join(', ')} and ${finalUpdate} preferences`;
+    const finalUpdate = sortedUpdates.pop();
+    return `updated their ${sortedUpdates.join(', ')} and ${finalUpdate} preferences`;
 }
 
 /**
@@ -91,7 +94,7 @@ export interface EventRecentChangesProps {
  * The <EventRecentChanges> component displays changes that were recently made by volunteers in
  * context of this event, such as sharing their preferences. Only a few highlights are shown.
  */
-export async function EventRecentChanges(props: EventRecentChangesProps) {
+export function EventRecentChanges(props: EventRecentChangesProps) {
     const currentTime = Temporal.Now.zonedDateTimeISO('UTC');
     return (
         <Card>

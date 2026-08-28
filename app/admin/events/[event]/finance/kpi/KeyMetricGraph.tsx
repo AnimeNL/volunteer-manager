@@ -5,13 +5,12 @@
 
 import { useMemo } from 'react';
 
-import { BarPlot, ChartsContainerPremium, ChartsAxisHighlight, ChartsAxisTooltipContent,
-    ChartsTooltipContainer, useAxesTooltip, type BarSeriesType }
-    from '@components/proxy/mui-x-charts-premium';
-
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { type BarSeriesType, BarPlot, ChartsAxisHighlight, ChartsAxisTooltipContent,
+    ChartsContainerPremium, ChartsTooltipContainer, useAxesTooltip }
+    from '@mui/x-charts-premium';
 
 import { formatMetric } from './ValueFormatter';
 
