@@ -6,20 +6,17 @@
 import { useCallback, useState } from 'react';
 
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import PeopleIcon from '@mui/icons-material/People';
-import Typography from '@mui/material/Typography';
 
 import type { CommunicationLanguage, RegistrationStatus } from '@lib/database/Types';
 import type { ServerAction, ServerActionResult } from '@lib/serverAction';
 import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Type describing an individual team option available to the volunteer.
@@ -97,6 +94,30 @@ interface VolunteerChangeTeamQuickActionProps {
 }
 
 /**
+ * Returns the secondary message to display for a team option, when applicable.
+ */
+function getTeamOptionSecondaryMessage(
+    status: RegistrationStatus | null | undefined, firstName: string): string | undefined
+{
+    switch (status) {
+        case 'Accepted':
+            return `${firstName} participates in this team`;
+
+        case 'Cancelled':
+            return `${firstName} cancelled their participation in this team`;
+
+        case 'Registered':
+            return `${firstName} already applied to join this team`;
+
+        case 'Rejected':
+            return `${firstName} was rejected for this team`;
+
+        default:
+            return undefined;
+    }
+}
+
+/**
  * The <VolunteerChangeTeamQuickAction> component allows event administrators to change the team
  * that a volunteer participates in during a particular event.
  */
@@ -126,94 +147,55 @@ export function VolunteerChangeTeamQuickAction(props: VolunteerChangeTeamQuickAc
         });
     }, [ action, selectedTeam ]);
 
-    // ---------------------------------------------------------------------------------------------
-
-    if (selectedTeam) {
-        return (
-            <CommunicationDialog title={`Change ${volunteer.firstName}'s team`}
-                                 open={dialogOpen}
-                                 onClose={handleDialogClose}
-                                 recipientId={volunteer.id}
-                                 language={volunteer.language}
-                                 promptId="team-change"
-                                 promptParams={{
-                                     eventId: eventId,
-                                     oldTeamId: currentTeamId,
-                                     newTeamId: selectedTeam.id,
-                                 }}
-                                 action={handleSubmit}>
-                Send an e-mail to <strong>{volunteer.firstName}</strong> about moving them to the
-                <strong> {selectedTeam.name}</strong>.
-            </CommunicationDialog>
-        );
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
     return (
         <>
             <Button startIcon={ <PeopleAltOutlinedIcon /> } size="small" variant="outlined"
                     color="inherit" onClick={handleDialogOpen}>
                 Change team
             </Button>
-            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth>
-                <DialogTitle>
-                    Change team
-                </DialogTitle>
-                <DialogContent>
-                    <Typography variant="body2">
-                        You can change the team that <strong>{volunteer.firstName}</strong> participates
-                        in during this event to the following. Not all teams may be available.
-                    </Typography>
-                    <List dense>
-                        { teams.map((team, index) => {
-                            let secondary: string | undefined = undefined;
-                            switch (team.status) {
-                                case 'Accepted':
-                                    secondary =
-                                        `${volunteer.firstName} is currently part of this team`;
-                                    break;
-
-                                case 'Cancelled':
-                                    secondary =
-                                        `${volunteer.firstName} cancelled their participation ` +
-                                        'in this team, and can be reinstated';
-                                    break;
-
-                                case 'Registered':
-                                    secondary =
-                                        `${volunteer.firstName} already applied to join this ` +
-                                        'team, which can be approved';
-                                    break;
-
-                                case 'Rejected':
-                                    secondary =
-                                        `${volunteer.firstName} was rejected for this team, ` +
-                                        'which can be reconsidered';
-                                    break;
-
-                                default:
-                                    // No secondary message necessary - they can join this team.
-                                    break;
-                            }
-
-                            const disabled = !!team.status;
-
-                            return (
-                                <ListItemButton key={index} disabled={disabled}
-                                                onClick={ () => setSelectedTeam(team) }>
-                                    <ListItemIcon>
-                                        <PeopleIcon htmlColor={team.colour} />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary={team.name} secondary={secondary}
-                                        slotProps={{ primary: { variant: 'subtitle2' } }} />
-                                </ListItemButton>
-                            );
-                        }) }
-                    </List>
-                </DialogContent>
-            </Dialog>
+            <ResponsiveDialog
+                open={dialogOpen && !selectedTeam}
+                onClose={handleDialogClose}
+                title="Change team"
+                description={
+                    <>
+                        You can change the team that <strong>{volunteer.firstName}</strong>{' '}
+                        participates in during this event to the following. Not all teams may be
+                        available.
+                    </>
+                }>
+                <List dense disablePadding>
+                    { teams.map(team => (
+                        <ListItemButton key={team.id} disabled={!!team.status}
+                                        onClick={ () => setSelectedTeam(team) }>
+                            <ListItemIcon>
+                                <PeopleIcon htmlColor={team.colour} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={team.name}
+                                secondary={getTeamOptionSecondaryMessage(
+                                    team.status, volunteer.firstName)}
+                                slotProps={{ primary: { variant: 'subtitle2' } }} />
+                        </ListItemButton>
+                    )) }
+                </List>
+            </ResponsiveDialog>
+            { !!selectedTeam &&
+                <CommunicationDialog
+                    title={`Change ${volunteer.firstName}'s team`}
+                    open={dialogOpen} onClose={handleDialogClose}
+                    action={handleSubmit}
+                    recipientId={volunteer.id}
+                    language={volunteer.language}
+                    promptId="team-change"
+                    promptParams={{
+                        eventId: eventId,
+                        oldTeamId: currentTeamId,
+                        newTeamId: selectedTeam.id,
+                    }}>
+                    Send an e-mail to {volunteer.firstName} about moving them to the{' '}
+                    {selectedTeam.name}.
+                </CommunicationDialog> }
         </>
     );
 }
