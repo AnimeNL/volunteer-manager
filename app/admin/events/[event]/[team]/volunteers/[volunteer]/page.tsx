@@ -19,6 +19,8 @@ import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthenticatio
 import db, { tEvents, tEventsTeams, tRoles, tStorage, tTeams, tTeamsRoles, tUsers, tUsersEvents }
     from '@lib/database';
 
+import { kRegistrationStatus } from '@lib/database/Types';
+
 import * as actions from './VolunteerActions';
 
 /**
@@ -125,11 +127,13 @@ export default async function EventTeamVolunteerPage(
     const canDoAnything = canUpdateApplications || canUpdateOverrides || canUpdateVolunteer;
 
     const cancelFn = (canUpdateApplications && volunteer.status !== 'Cancelled')
-        ? actions.cancelParticipation.bind(null, volunteer.id, event.slug, team.slug)
+        ? actions.updateVolunteerStatus.bind(
+            null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Cancelled)
         : undefined!;
 
     const reinstateFn = (canUpdateApplications && volunteer.status !== 'Accepted')
-        ? actions.reinstateParticipation.bind(null, volunteer.id, event.slug, team.slug)
+        ? actions.updateVolunteerStatus.bind(
+            null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Accepted)
         : undefined!;
 
     const changeRoleFn = canUpdateVolunteer
@@ -183,11 +187,13 @@ export default async function EventTeamVolunteerPage(
                                                             eventId={event.id}
                                                             teams={teams}
                                                             volunteer={volunteer} /> }
-                        <VolunteerQuickActions firstName={volunteer.firstName}
-                                               cancelFn={cancelFn}
-                                               reinstateFn={reinstateFn}
+                        <VolunteerQuickActions cancelFn={cancelFn}
+                                               eventId={event.id}
                                                manageOverrides={volunteer.overrides}
-                                               manageOverridesFn={manageOverridesFn} />
+                                               manageOverridesFn={manageOverridesFn}
+                                               reinstateFn={reinstateFn}
+                                               teamId={team.id}
+                                               volunteer={volunteer} />
                     </ActionBar> }
             </Section>
 
@@ -195,6 +201,7 @@ export default async function EventTeamVolunteerPage(
                                       details={{
                                           accountLink,
                                           avatar: getBlobUrl(volunteer.avatarHash),
+                                          cancelled: volunteer.status !== 'Accepted',
                                           email: volunteer.email,
                                           name: volunteer.name,
                                           phoneNumber: volunteer.phoneNumber,

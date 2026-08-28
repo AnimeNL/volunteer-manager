@@ -16,18 +16,79 @@ import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
- * Cancels the volunteer's participation.
+ * Zod type defining the schema for cancelling or reinstating a volunteer's participation.
  */
-export async function cancelParticipation(
-    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
+const kParticipationActionSchema = z.object({
+    message: z.string().optional(),
+    subject: z.string().optional(),
+});
+
+/**
+ * Updates the volunteer's participation status (e.g. Cancelled or Accepted).
+ */
+export async function updateVolunteerStatus(
+    userId: number, eventSlug: string, teamSlug: string,
+    status: typeof kRegistrationStatus.Accepted | typeof kRegistrationStatus.Cancelled,
+    formData: unknown)
 {
-    return executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
+    const isCancelled = status === kRegistrationStatus.Cancelled;
+
+    return executeServerAction(formData, kParticipationActionSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug);
+            props.authenticationContext, eventSlug, teamSlug, {
+                permission: 'event.applications',
+                operation: 'update',
+            });
+
+        const isSilent = !data.subject || !data.message;
+        if (isSilent) {
+            if (!props.access.can('organisation.silent'))
+                forbidden();
+
+        } else {
+            await sendCommunication({
+                sender: props.user,
+                recipient: userId,
+                subject: data.subject!,
+                message: data.message!,
+                metadata: {
+                    eventId: event.id,
+                    teamId: team.id,
+                    promptId: isCancelled ? 'participation-cancelled' : 'participation-reinstated',
+                },
+            });
+        }
+
+        const affectedRows = await db.update(tUsersEvents)
+            .set({
+                registrationStatus: status,
+            })
+            .where(tUsersEvents.userId.equals(userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .executeUpdate();
+
+        LogBuilder.for('UpdateVolunteerStatus')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user.id)
+            .withAffectedUser(userId)
+            .withSeverity('Warning')
+            .record({
+                action: isCancelled ? 'Cancelled' : 'Reinstated',
+                event: event.shortName,
+                team: team.title,
+            });
+
+        const message = isCancelled
+            ? isSilent ? 'Their participation has been cancelled silently.'
+                       : 'The e-mail has been sent and their participation has been cancelled.'
+            : isSilent ? 'They have been reinstated silently.'
+                       : 'The e-mail has been sent and they have been reinstated.';
 
         return {
-            success: false,
-            error: 'Not yet implemented',
+            success: true,
+            refresh: true,
+            message,
         };
     });
 }
@@ -187,22 +248,6 @@ export async function changeTeam(
     });
 }
 
-/**
- * Reinstates the volunteer's participation.
- */
-export async function reinstateParticipation(
-    userId: number, eventSlug: string, teamSlug: string, formData: unknown)
-{
-    return executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
-        const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug);
-
-        return {
-            success: false,
-            error: 'Not yet implemented',
-        };
-    });
-}
 
 /**
  * Zod type describing the schema for updating volunteer notes.

@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
@@ -12,7 +12,9 @@ import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
-import type { ServerAction } from '@lib/serverAction';
+import type { CommunicationLanguage } from '@lib/database/Types';
+import type { ServerAction, ServerActionResult } from '@lib/serverAction';
+import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 
 /**
@@ -29,19 +31,14 @@ const kEligibilityOptions = [
  */
 interface VolunteerQuickActionsProps {
     /**
-     * First name of the volunteer, to contextualise warning prompts.
-     */
-    firstName: string;
-
-    /**
      * Server action to invoke when wanting to cancel a volunteer's participation.
      */
-    cancelFn?: ServerAction;
+    cancelFn?: ServerAction<{ message?: string; subject?: string }>;
 
     /**
-     * Server action to invoke when wanting to reinstate a volunteer's participation.
+     * Unique ID of the event for which the volunteer is participating.
      */
-    reinstateFn?: ServerAction;
+    eventId?: number;
 
     /**
      * Default values for the overrides management form.
@@ -67,6 +64,36 @@ interface VolunteerQuickActionsProps {
      * Server action to invoke when wanting to manage their overrides.
      */
     manageOverridesFn?: ServerAction;
+
+    /**
+     * Server action to invoke when wanting to reinstate a volunteer's participation.
+     */
+    reinstateFn?: ServerAction<{ message?: string; subject?: string }>;
+
+    /**
+     * Unique ID of the team in which the volunteer is participating.
+     */
+    teamId?: number;
+
+    /**
+     * Information about the volunteer for whom this quick action is being displayed.
+     */
+    volunteer: {
+        /**
+         * Unique ID of the volunteer.
+         */
+        id: number;
+
+        /**
+         * First name of the volunteer, to contextualise warning prompts.
+         */
+        firstName: string;
+
+        /**
+         * Language in which the communication should be written, when known.
+         */
+        language?: CommunicationLanguage;
+    };
 }
 
 /**
@@ -76,6 +103,30 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
     const [ cancelDialogOpen, setCancelDialogOpen ] = useState(false);
     const [ reinstateDialogOpen, setReinstateDialogOpen ] = useState(false);
     const [ manageOverridesDialogOpen, setManageOverridesDialogOpen ] = useState(false);
+
+    const handleCancelSubmit = useCallback(async (subject?: string, message?: string)
+        : Promise<ServerActionResult> =>
+    {
+        if (!props.cancelFn)
+            return { success: false, error: 'Unable to perform this action.' };
+
+        return await props.cancelFn({
+            subject,
+            message,
+        });
+    }, [ props.cancelFn ]);
+
+    const handleReinstateSubmit = useCallback(async (subject?: string, message?: string)
+        : Promise<ServerActionResult> =>
+    {
+        if (!props.reinstateFn)
+            return { success: false, error: 'Unable to perform this action.' };
+
+        return await props.reinstateFn({
+            subject,
+            message,
+        });
+    }, [ props.reinstateFn ]);
 
     return (
         <>
@@ -108,8 +159,8 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
                     description={
                         <>
                             Volunteers receive certain abilities and privileges based on their team
-                            and role, but you can customise this for {props.firstName}. Leave fields
-                            empty to use defaults.
+                            and role, but you can customise this for {props.volunteer.firstName}.
+                            Leave fields empty to use defaults.
                         </>
                     }>
 
@@ -124,10 +175,39 @@ export function VolunteerQuickActions(props: VolunteerQuickActionsProps) {
 
                 </ResponsiveFormDialog> }
 
-            { /* TODO: Cancel participation confirmation + communication */ }
+            { (!!props.cancelFn && !!props.eventId && !!props.teamId) &&
+                <CommunicationDialog
+                    title={`Cancel ${props.volunteer.firstName}'s participation`}
+                    open={cancelDialogOpen}
+                    onClose={ () => setCancelDialogOpen(false) }
+                    action={handleCancelSubmit}
+                    recipientId={props.volunteer.id}
+                    language={props.volunteer.language}
+                    promptId="participation-cancelled"
+                    promptParams={{
+                        eventId: props.eventId,
+                        teamId: props.teamId,
+                    }}>
+                    Send an e-mail to <strong>{props.volunteer.firstName}</strong> about their
+                    participation having been cancelled.
+                </CommunicationDialog> }
 
-            { /* TODO: Reinstate participation confirmation + communication */ }
-
+            { (!!props.reinstateFn && !!props.eventId && !!props.teamId) &&
+                <CommunicationDialog
+                    title={`Reinstate ${props.volunteer.firstName}'s participation`}
+                    open={reinstateDialogOpen}
+                    onClose={ () => setReinstateDialogOpen(false) }
+                    action={handleReinstateSubmit}
+                    recipientId={props.volunteer.id}
+                    language={props.volunteer.language}
+                    promptId="participation-reinstated"
+                    promptParams={{
+                        eventId: props.eventId,
+                        teamId: props.teamId,
+                    }}>
+                    Send an e-mail to <strong>{props.volunteer.firstName}</strong> about their
+                    participation having been reinstated.
+                </CommunicationDialog> }
         </>
     );
 }

@@ -355,6 +355,12 @@ interface LogTypeParameterMap {
         team: string;  // title
     };
 
+    UpdateVolunteerStatus: {
+        action: 'Cancelled' | 'Reinstated';
+        event: string;  // short name
+        team: string;  // title
+    };
+
     UpdateVolunteerTeam: {
         event: string;  // short name
         sourceTeam: string;  // name
@@ -523,6 +529,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateVendorSchedule: 'UpdateVendorSchedule',
     UpdateVolunteerNotes: 'UpdateVolunteerNotes',
     UpdateVolunteerRole: 'UpdateVolunteerRole',
+    UpdateVolunteerStatus: 'UpdateVolunteerStatus',
     UpdateVolunteerTeam: 'UpdateVolunteerTeam',
 
     // ---------------------------------------------------------------------------------------------

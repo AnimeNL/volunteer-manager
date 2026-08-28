@@ -10,6 +10,7 @@ import { TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
@@ -48,6 +49,11 @@ interface VolunteerIdentitySectionProps {
          * URL to the user's avatar, when known.
          */
         avatar?: string;
+
+        /**
+         * Whether the volunteer has cancelled their participation.
+         */
+        cancelled?: boolean;
 
         /**
          * E-mail address of the volunteer, when known.
@@ -94,9 +100,13 @@ export function VolunteerIdentitySection(props: VolunteerIdentitySectionProps) {
                         <Typography variant="subtitle2">
                             {props.details.name}
                         </Typography>
-                        <Typography color="textDisabled" variant="body2">
-                            {props.details.role}
-                        </Typography>
+                        { !props.details.cancelled &&
+                            <Typography color="textDisabled" variant="body2">
+                                {props.details.role}
+                            </Typography> }
+                        { !!props.details.cancelled &&
+                            <Chip color="error" label="Cancelled" size="small"
+                                  sx={{ alignSelf: 'flex-start' }} /> }
                     </Stack>
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                         { !!props.details.accountLink &&
