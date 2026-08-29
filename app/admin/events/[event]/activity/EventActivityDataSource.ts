@@ -123,6 +123,7 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
                 .innerJoin(tTeams)
                     .on(tTeams.teamId.equals(tUsersEvents.teamId))
                 .where(table.eventId.equals(context.event.id))
+                    .and(table.preferenceVersion.notEquals(tUsersEvents.registrationDate as any))
                 .select({
                     date: dbInstance.dateTimeAsString(table.preferenceVersion),
                     team: tTeams.teamName,
