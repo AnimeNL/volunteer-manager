@@ -16,10 +16,10 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
+import MobileOffIcon from '@mui/icons-material/MobileOff';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { styled } from '@mui/material/styles';
 
 import type { NavigationItem, NavigationSection, NavigationTopLevelItem } from './NavigationItem';
@@ -231,9 +231,9 @@ const NavigationMenuListItemIcon = styled(ListItemIcon)(({ theme }) => ({
 /**
  * The "migration in progress" icon indicating that works are still taking place.
  */
-const NavigationMenuWarningIcon = styled(WarningAmberIcon)(({ theme }) => ({
+const NavigationMenuWarningIcon = styled(MobileOffIcon)(({ theme }) => ({
     marginRight: '-10px',
-    color: theme.vars?.palette.warning.main,
+    color: theme.vars?.palette.error.main,
     fontSize: '1.25rem',
 }));
 

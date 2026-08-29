@@ -31,7 +31,7 @@ import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
  * This variant of the parallel route composes the menu for a particular event, including the teams
  * that are participating in that event. Rich, real-time information is conveyed.
  */
-export default async function EventMenu(props: LayoutProps<'/admin/events/[event]'>) {
+export default async function EventMenu(props: PageProps<'/admin/events/[event]'>) {
     const { access, event, user } = await requireAuthenticationWithEvent(props);
 
     const eventsTeamsJoin = tEventsTeams.forUseInLeftJoin();

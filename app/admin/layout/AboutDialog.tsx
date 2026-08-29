@@ -8,11 +8,6 @@ import { useMemo } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -21,6 +16,7 @@ import ListItemText from '@mui/material/ListItemText';
 import NavigateNextOutlinedIcon from '@mui/icons-material/NavigateNextOutlined';
 import Typography from '@mui/material/Typography';
 
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 import { formatDate } from '@lib/Temporal';
 
 /**
@@ -83,39 +79,35 @@ export function AboutDialog(props: AboutDialogProps) {
     }, [ /* no dependencies */ ]);
 
     return (
-        <Dialog open={props.open} onClose={props.onClose} fullWidth>
-            <DialogTitle sx={{ pb: 0.5 }}>
-                { process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION }
-            </DialogTitle>
-            <DialogContent sx={{ pb: 1 }}>
-                <Typography variant="body2">
-                    Version v{ process.env.NEXT_PUBLIC_PROJECT_VERSION }{' '}
-                    ({ process.env.NEXT_PUBLIC_PROJECT_BUILD_HASH }) built on {buildDate} —{' '}
-                    <MuiLink component={Link} href={ process.env.NEXT_PUBLIC_PROJECT_HOMEPAGE! }
+        <ResponsiveDialog
+            open={props.open}
+            onClose={props.onClose}
+            title={process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION}
+            description={
+                <>
+                    Version v{process.env.NEXT_PUBLIC_PROJECT_VERSION}{' '}
+                    ({process.env.NEXT_PUBLIC_PROJECT_BUILD_HASH}) built on {buildDate} —{' '}
+                    <MuiLink component={Link} href={process.env.NEXT_PUBLIC_PROJECT_HOMEPAGE!}
                              target="_blank">
                         GitHub
                     </MuiLink>
-                </Typography>
-                <Divider sx={{ mt: 2 }} />
-                <List dense sx={{ mx: -3 }}>
-                    { kDependencies.map((dependency, index) =>
-                        <ListItemButton key={index} LinkComponent={Link} href={dependency.url}
-                                        target="_blank" sx={{ px: 3 }}>
-                            <ListItemIcon>
-                                <AccountTreeOutlinedIcon fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText primary={dependency.name} />
-                            <Typography variant="body2" color="textDisabled">
-                                v{dependency.version}
-                            </Typography>
-                            <NavigateNextOutlinedIcon color="action" />
-                        </ListItemButton> ) }
-                </List>
-                <Divider />
-            </DialogContent>
-            <DialogActions sx={{ pt: 0, mr: 2, mb: 0 }}>
-                <Button onClick={props.onClose} variant="text">Close</Button>
-            </DialogActions>
-        </Dialog>
+                </>
+            }>
+            <Divider />
+            <List dense disablePadding>
+                { kDependencies.map((dependency, index) =>
+                    <ListItemButton key={index} LinkComponent={Link} href={dependency.url}
+                                    target="_blank" disableGutters>
+                        <ListItemIcon>
+                            <AccountTreeOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary={dependency.name} />
+                        <Typography variant="body2" color="textDisabled">
+                            v{dependency.version}
+                        </Typography>
+                        <NavigateNextOutlinedIcon color="action" />
+                    </ListItemButton> ) }
+            </List>
+        </ResponsiveDialog>
     );
 }

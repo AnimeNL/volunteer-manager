@@ -49,13 +49,13 @@ export default async function AccountSettingsPage() {
                     you.
                 </SectionIntroduction>
             </Section>
-            <FormGridSection icon={ <GeminiIcon /> } title="Personalised AI"
+            <FormGridSection icon={ <GeminiIcon /> } title="Personalise the AI"
                              action={saveSettingsFn} defaultValues={defaultValues}>
                 <Grid size={{ xs: 12 }}>
                     <SectionIntroduction>
                         Provide up to five of the favourite e-mails you've written to help AI write
-                        better e-mail drafts on your behalf. Provide both Dutch and English
-                        examples, and it doesn't matter what they're about!
+                        better e-mail drafts on your behalf. Include both Dutch and English
+                        examples. It doesn't matter what they're about!
                     </SectionIntroduction>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
