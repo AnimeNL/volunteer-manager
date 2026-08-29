@@ -3,7 +3,6 @@
 
 import type { Metadata } from 'next';
 
-import { default as TopLevelLayout } from './TopLevelLayout';
 import { ActivityCard } from './dashboard/ActivityCard';
 import { BirthdayCard } from './dashboard/BirthdayCard';
 import { DashboardGrid } from './dashboard/DashboardGrid';
@@ -41,11 +40,7 @@ export default async function AdminPage() {
     if (access.can('system.internals.scheduler'))
         cards.push(<SchedulerCard key="scheduler-card" />);
 
-    return (
-        <TopLevelLayout>
-            <DashboardGrid cards={cards} />
-        </TopLevelLayout>
-    );
+    return <DashboardGrid cards={cards} />;
 }
 
 export const metadata: Metadata = {

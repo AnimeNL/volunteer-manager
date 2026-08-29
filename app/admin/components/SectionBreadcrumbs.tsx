@@ -39,8 +39,8 @@ export interface SectionBreadcrumbsProps {
  * desktop devices, without having to use the menu.
  */
 export function SectionBreadcrumbs(props: SectionBreadcrumbsProps) {
-    const { isLayoutV2, isMobile } = useContext(AdminClientContext);
-    if (!isLayoutV2 || isMobile)
+    const { isMobile } = useContext(AdminClientContext);
+    if (isMobile)
         return null;  // breadcrumbs are only shown on desktop
 
     if (!props.breadcrumbs.length)

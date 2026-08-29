@@ -18,7 +18,6 @@ export type UserSettingsMap = {
     'admin-theme-color': string;
 
     'user-admin-event-finance-configuration': boolean;
-    'user-admin-experimental-layout': boolean;
     'user-admin-knowledge-expand-categories': boolean;
     'user-admin-menu-state': string;
     'user-admin-schedule-date': string;

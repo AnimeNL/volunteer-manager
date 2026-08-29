@@ -48,17 +48,14 @@ export function ExpandableSection(props: React.PropsWithChildren<ExpandableSecti
 
     }, [ props.setting ]);
 
-    const { isMobile, isLayoutV2 } = useContext(AdminClientContext);
-
-    const mobilePadding = isLayoutV2 ? '-8px !important' : '-16px !important';
-
+    const { isMobile } = useContext(AdminClientContext);
     return (
         <Paper component={Accordion} defaultExpanded={defaultExpanded} disableGutters
                onChange={handleStoreSetting} square={isMobile}
                sx={{
                    borderRadius: isMobile ? '0 !important' : undefined,
-                   marginLeft: isMobile ? mobilePadding : undefined,
-                   marginRight: isMobile ? mobilePadding : undefined,
+                   marginLeft: isMobile ? '-8px !important' : undefined,
+                   marginRight: isMobile ? '-8px !important' : undefined,
                    '&::before': {
                        backgroundColor: 'transparent'
                     }

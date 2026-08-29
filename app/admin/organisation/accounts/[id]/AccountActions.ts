@@ -597,11 +597,6 @@ const kAccountSettingsData = z.object({
      * Example messages that are used to personalise generated AI responses.
      */
     exampleMessages: z.array(z.string().nullish()),
-
-    /**
-     * Whether experimental support for the v2 layout should be enabled.
-     */
-    experimentalLayout: z.boolean().optional(),
 });
 
 /**
@@ -616,13 +611,6 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
             await requireAuthentication(props.authenticationContext, {
                 permission: 'organisation.accounts',
                 operation: 'update',
-            });
-        }
-
-        // Write the user settings to the database.
-        if (data.experimentalLayout !== undefined) {
-            await writeUserSettings(userId, {
-                'user-admin-experimental-layout': !!data.experimentalLayout,
             });
         }
 

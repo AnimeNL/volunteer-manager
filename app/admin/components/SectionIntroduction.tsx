@@ -1,15 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
-import { useContext } from 'react';
-
-import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-
-import { AdminClientContext } from '@app/admin/AdminClientContext';
 
 /**
  * Props accepted by the <SectionIntroduction> component.
@@ -31,28 +24,19 @@ interface SectionIntroductionProps {
  * particular section. The `important` prop can be used to give the explanation additional clarity.
  */
 export function SectionIntroduction(props: React.PropsWithChildren<SectionIntroductionProps>) {
-    const { isLayoutV2 } = useContext(AdminClientContext);
-    if (!isLayoutV2) {
+    if (props.grid) {
         return (
-            <Alert severity={ !!props.important ? 'warning' : 'info' }>
-                {props.children}
-            </Alert>
-        );
-    } else {
-        if (props.grid) {
-            return (
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="body2">
-                        {props.children}
-                    </Typography>
-                </Grid>
-            );
-        } else {
-            return (
+            <Grid size={{ xs: 12 }}>
                 <Typography variant="body2">
                     {props.children}
                 </Typography>
-            );
-        }
+            </Grid>
+        );
+    } else {
+        return (
+            <Typography variant="body2">
+                {props.children}
+            </Typography>
+        );
     }
 }

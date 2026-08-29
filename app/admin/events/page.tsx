@@ -4,7 +4,6 @@
 import type { Metadata } from 'next';
 import { z } from 'zod/v4';
 
-import { default as TopLevelLayout } from '../TopLevelLayout';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 import { EventSettingsForm } from './[event]/settings/configuration/EventSettingsForm';
 import { EventStatusCell, EventTeamsCell } from './EventRowComponents';
@@ -184,7 +183,7 @@ export default async function EventsPage() {
     };
 
     return (
-        <TopLevelLayout>
+        <>
             <Section title="Events">
                 <DataTable columns={columns} source={eventDataSource}
                            defaultSort={{ field: 'startTime', sort: 'desc' }} disableFooter
@@ -205,7 +204,7 @@ export default async function EventsPage() {
                         <EventSettingsForm mutableSlug />
                     </FormGrid>
                 </Section> }
-        </TopLevelLayout>
+        </>
     );
 }
 

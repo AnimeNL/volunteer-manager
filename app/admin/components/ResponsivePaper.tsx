@@ -26,14 +26,12 @@ interface ResponsivePaperProps extends PaperProps {
 export function ResponsivePaper(props: ResponsivePaperProps) {
     const { children, highlight, sx, ...otherProps } = props;
 
-    const { isMobile, isLayoutV2 } = useContext(AdminClientContext);
-
-    const mobilePadding = isLayoutV2 ? '-8px !important' : '-16px !important';
+    const { isMobile } = useContext(AdminClientContext);
     return (
         <Paper square={isMobile} {...otherProps} sx={{
             backgroundColor: highlight ? 'var(--mui-palette-backgroundHighlight)' : undefined,
-            marginLeft: isMobile ? mobilePadding : undefined,
-            marginRight: isMobile ? mobilePadding : undefined,
+            marginLeft: isMobile ? '-8px !important' : undefined,
+            marginRight: isMobile ? '-8px !important' : undefined,
             ...sx,
         }}>
             {children}

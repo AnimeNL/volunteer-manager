@@ -49,12 +49,10 @@ export default async function AccountSettingsPage(
 
     const userSettings = await readUserSettings(account.id, [
         'ai-example-messages',
-        'user-admin-experimental-layout',
     ], /* disableFallback= */ true);
 
     const defaultValues: AccountSettings = {
         exampleMessages: userSettings['ai-example-messages'] ?? [ /* no example messages */ ],
-        experimentalLayout: !!userSettings['user-admin-experimental-layout'],
     };
 
     const updateSettingsFn = updateAccountSettings.bind(null, account.id);
