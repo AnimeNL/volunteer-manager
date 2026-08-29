@@ -107,8 +107,8 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
 
     return (
         <Card>
-            <CardContent sx={{ paddingBottom: '8px !important' }}>
-                <Typography sx={{ color: 'text.secondary', fontSize: 14, mb: -0.5 }}>
+            <CardContent sx={{ paddingY: '8px !important' }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {title}
                 </Typography>
                 <Stack direction="row" sx={{
@@ -118,7 +118,7 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
                     <Typography variant="h6">
                         { formatMetric(headline.figure, format) }
                     </Typography>
-                    { headline.changePercentage &&
+                    { !!headline.changePercentage &&
                         <Tooltip title="Compared to the previous 7-day period">
                             <Chip size="small"
                                   color={ headline.changePercentage >= 0 ? 'success' : 'error' }
