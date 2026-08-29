@@ -3,8 +3,9 @@
 
 import type { CachedEvent } from './Types';
 import { Cache } from './Cache';
+import { getBlobUrl } from '@lib/database/BlobStore';
 import { getUrlSlug, invalidateUrlSlug } from './getUrlSlug';
-import db, { tEvents } from '@lib/database';
+import db, { tEvents, tStorage } from '@lib/database';
 
 /**
  * Returns basic information about the given `event` uniquely identified by either its ID or slug.
@@ -21,14 +22,19 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
     }
 
     return await Cache.getInstance('EventCache').getOrInsert(slug, async slug => {
-        return db.selectFrom(tEvents)
+        const storageJoin = tStorage.forUseInLeftJoin();
+        const event = await db.selectFrom(tEvents)
+            .leftJoin(storageJoin)
+                .on(storageJoin.fileId.equals(tEvents.eventIdentityId))
             .where(tEvents.eventSlug.equals(slug))
             .select({
                 id: tEvents.eventId,
                 slug: tEvents.eventSlug,
                 name: tEvents.eventName,
                 shortName: tEvents.eventShortName,
+                imageUrl: storageJoin.fileHash,
                 published: tEvents.eventHidden.equals(/* false= */ 0),
+                location: tEvents.eventLocation,
                 startTime: tEvents.eventStartTime,
                 endTime: tEvents.eventEndTime,
                 timeZone: tEvents.eventTimezone,
@@ -56,6 +62,14 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                 },
             })
             .executeSelectNoneOrOne();
+
+        if (!event)
+            return null;
+
+        return {
+            ...event,
+            imageUrl: getBlobUrl(event?.imageUrl),
+        };
 
     }) ?? undefined;
 }

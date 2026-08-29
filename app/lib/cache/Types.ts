@@ -28,9 +28,19 @@ export interface CachedEvent {
     shortName: string;
 
     /**
+     * URL to the theme image associated with this event.
+     */
+    imageUrl?: string;
+
+    /**
      * Whether the event has been published.
      */
     published: boolean;
+
+    /**
+     * Place where the event will be taking place.
+     */
+    location?: string;
 
     /**
      * Date and time at which the event will commence.
