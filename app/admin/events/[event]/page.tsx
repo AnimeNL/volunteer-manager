@@ -4,6 +4,7 @@
 import { DashboardGrid } from '@app/admin/dashboard/DashboardGrid';
 import { EventFinancesCard } from './dashboard/EventFinancesCard';
 import { EventIdentityCard } from './dashboard/EventIdentityCard';
+import { EventRecentChangesCard } from './dashboard/EventRecentChangesCard';
 import { EventTeamsCard } from './dashboard/EventTeamsCard';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -25,7 +26,9 @@ export default async function EventVolunteersDashboard(props: PageProps<'/admin/
         cards.push(<EventFinancesCard key="finances" event={event} />);
 
     // TODO: Hotel status
-    // TODO: Recent changes
+
+    cards.push(<EventRecentChangesCard key="changes" event={event} />);
+
     // TODO: Recent volunteers
     // TODO: Team growth chart
     // TODO: Training status

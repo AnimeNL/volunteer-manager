@@ -30,7 +30,7 @@ interface EventTeamsCardProps {
 }
 
 /**
- * Event dashboard card that
+ * Event dashboard card that displays the team who participate in this event.
  */
 export async function EventTeamsCard(props: EventTeamsCardProps) {
     const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
