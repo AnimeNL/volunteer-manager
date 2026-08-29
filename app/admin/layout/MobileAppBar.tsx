@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { default as MuiAppBar } from '@mui/material/AppBar';
@@ -74,7 +74,24 @@ export function MobileAppBar(props: MobileAppBarProps) {
 
     }, [ pathname ]);
 
-    // TODO: Figure out what to do with the page title
+    // Determine the page title. This is the project's long name, unless a page is being requested
+    // for an event that has a known short name.
+    //
+    // biome-ignore lint/correctness/useExhaustiveDependencies: events are ~constant
+    const title = useMemo(() => {
+        const kEventPathPrefix = '/admin/events/';
+        const kEventPathPrefixLength = kEventPathPrefix.length;
+
+        if (pathname.startsWith(kEventPathPrefix)) {
+            for (const { label, slug } of props.slotProps.sidebar.events) {
+                if (pathname.indexOf(slug, kEventPathPrefixLength) === kEventPathPrefixLength)
+                    return label;
+            }
+        }
+
+        return process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION;
+
+    }, [ pathname ]);
 
     return (
         <>
@@ -84,7 +101,7 @@ export function MobileAppBar(props: MobileAppBarProps) {
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1, ml: 1 }}>
-                        { process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION }
+                        {title}
                     </Typography>
                     <NavigationSidebarLogo className="anime-logo" />
                 </Toolbar>
