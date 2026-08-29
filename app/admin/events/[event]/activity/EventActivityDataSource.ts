@@ -112,8 +112,8 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
     async list(params, props, context) {
         const dbInstance = db;
 
-        const preferenceQueries = kPreferenceTables.map(async ({ table, type, description }) => {
-            const rows = await dbInstance.selectFrom(table)
+        const preferenceQueries = kPreferenceTables.map(({ table, type, description }) => {
+            return dbInstance.selectFrom(table)
                 .innerJoin(tUsersEvents)
                     .on(tUsersEvents.eventId.equals(table.eventId))
                     .and(tUsersEvents.userId.equals(table.userId))
@@ -128,87 +128,81 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
                     team: tTeams.teamName,
                     teamColour: tTeams.teamColourLightTheme,
                     teamSlug: tTeams.teamSlug,
-                    user: {
-                        id: tUsers.userId,
-                        name: tUsers.name,
-                        firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
-                    },
-                })
-                .executeSelectMany();
-
-            return rows.map(row => ({
-                id: `${type}-${row.user.id}-${row.date}`,
-                user: row.user,
-                team: row.team,
-                teamColour: row.teamColour,
-                type,
-                description,
-                href: `/admin/events/${context.event.slug}/${row.teamSlug}/volunteers/${row.user.id}`,
-                date: row.date,
-            }));
+                    userId: tUsers.userId,
+                    userName: tUsers.name,
+                    userFirstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+                    type: dbInstance.const(type, 'string'),
+                    description: dbInstance.const(description, 'string'),
+                });
         });
 
-        const applicationQuery = (async () => {
-            const rows = await dbInstance.selectFrom(tUsersEvents)
-                .innerJoin(tUsers)
-                    .on(tUsers.userId.equals(tUsersEvents.userId))
-                .innerJoin(tTeams)
-                    .on(tTeams.teamId.equals(tUsersEvents.teamId))
-                .where(tUsersEvents.eventId.equals(context.event.id))
-                    .and(tUsersEvents.registrationDate.isNotNull())
-                .select({
-                    date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
-                    team: tTeams.teamName,
-                    teamColour: tTeams.teamColourLightTheme,
-                    teamSlug: tTeams.teamSlug,
-                    user: {
-                        id: tUsers.userId,
-                        name: tUsers.name,
-                        firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
-                    },
-                })
-                .executeSelectMany();
+        const applicationQuery = dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .where(tUsersEvents.eventId.equals(context.event.id))
+                .and(tUsersEvents.registrationDate.isNotNull())
+            .select({
+                date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
+                team: tTeams.teamName,
+                teamColour: tTeams.teamColourLightTheme,
+                teamSlug: tTeams.teamSlug,
+                userId: tUsers.userId,
+                userName: tUsers.name,
+                userFirstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
+                type: dbInstance.const('Application', 'string'),
+                description: dbInstance.const('Applied to join the ', 'string')
+                    .concat(tTeams.teamName),
+            });
 
-            return rows.map(row => ({
-                id: `Application-${row.user.id}-${row.date}`,
-                user: row.user,
-                team: row.team,
-                teamColour: row.teamColour,
-                type: 'Application',
-                description: `Applied to join the ${row.team}`,
-                href: `/admin/events/${context.event.slug}/${row.teamSlug}/applications`,
-                date: row.date!,
-            }));
-        })();
+        let compoundQuery: any = preferenceQueries[0];
+        for (let i = 1; i < preferenceQueries.length; ++i) {
+            compoundQuery = compoundQuery.unionAll(preferenceQueries[i]);
+        }
+        compoundQuery = compoundQuery.unionAll(applicationQuery);
 
-        const results = await Promise.all([ ...preferenceQueries, applicationQuery ]);
-        const allRows = results.flat();
+        let sortField: 'date' | 'description' | 'team' | 'type' | 'userName';
+        switch (params.sort.field) {
+            case 'description':
+            case 'team':
+            case 'type':
+                sortField = params.sort.field;
+                break;
 
-        const sorted = allRows.sort((lhs, rhs) => {
-            let comparison = 0;
-            const field = params.sort.field;
+            case 'user':
+                sortField = 'userName';
+                break;
 
-            if (field === 'user') {
-                comparison = lhs.user.name.localeCompare(rhs.user.name);
-            } else if (field === 'type') {
-                comparison = lhs.type.localeCompare(rhs.type);
-            } else if (field === 'description') {
-                comparison = lhs.description.localeCompare(rhs.description);
-            } else if (field === 'team') {
-                comparison = lhs.team.localeCompare(rhs.team);
-            } else {
-                comparison = lhs.date.localeCompare(rhs.date);
-            }
+            default:
+                sortField = 'date';
+                break;
+        }
 
-            return params.sort.direction === 'asc' ? comparison : -comparison;
-        });
-
-        const paginated = sorted.slice(
-            params.page.offset, params.page.offset + params.page.limit);
+        const { count, data } = await compoundQuery
+            .orderBy(sortField, params.sort.direction)
+            .limit(params.page.limit)
+            .offset(params.page.offset)
+            .executeSelectPage();
 
         return {
-            rowCount: sorted.length,
-            rows: paginated,
+            rowCount: count,
+            rows: data.map((row: any) => ({
+                id: `${row.type}-${row.userId}-${row.date}`,
+                user: {
+                    id: row.userId,
+                    name: row.userName,
+                    firstName: row.userFirstName,
+                },
+                team: row.team,
+                teamColour: row.teamColour,
+                type: row.type,
+                description: row.description,
+                href: row.type === 'Application'
+                    ? `/admin/events/${context.event.slug}/${row.teamSlug}/applications`
+                    : `/admin/events/${context.event.slug}/${row.teamSlug}/volunteers/${row.userId}`,
+                date: row.date!,
+            })),
         };
     },
 });
