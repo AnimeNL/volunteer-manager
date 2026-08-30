@@ -74,7 +74,6 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
     const items: NavigationTopLevelItem[] = [
         {
             Icon: DashboardOutlinedIcon,
-            badge: { migration: true, value: true },  // migration in progress
             label: 'Dashboard',
             url: `/admin/events/${event.slug}`,
             urlMatchMode: 'strict',

@@ -29,7 +29,6 @@ export default async function OrganisationMenu() {
             },
             {
                 Icon: ShareIcon,
-                badge: { migration: true, value: true },  // migration not started
                 label: 'Data exports',
                 permission: 'organisation.exports',
                 url: '/admin/organisation/exports/create',

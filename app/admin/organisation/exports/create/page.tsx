@@ -1,8 +1,9 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DomainAddIcon from '@mui/icons-material/DomainAdd';
 import DomainDisabledIcon from '@mui/icons-material/DomainDisabled';
 import EuroIcon from '@mui/icons-material/Euro';
@@ -15,6 +16,8 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { DiscordIcon } from '../../dashboard/DiscordIcon';
 import { ExportTile } from './ExportTile';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tTeams } from '@lib/database';
@@ -80,8 +83,21 @@ export default async function OrganisationExportsCreatePage() {
     const exportWhatsappFn = actions.createSimpleExport.bind(null, kExportType.WhatsApp);
 
     return (
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
+        <>
+            <Section icon={ <AccountBalanceIcon color="primary" /> }
+                     title="Data exports"
+                     documentation="organisation/exports"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Data exports', href: '/admin/organisation/exports' },
+                         { label: 'Export data' },
+                     ]}>
+                <SectionIntroduction>
+                    Generate a GDPR-compliant data export when it is necessary to share data with
+                    third parties.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
                 <Stack direction="row" spacing={2} useFlexGap sx={{
                     flexWrap: 'wrap',
                     justifyContent: 'center',
@@ -134,8 +150,8 @@ export default async function OrganisationExportsCreatePage() {
                         <CommonExportForm events={events} teams={teams} />
                     </ExportTile>
                 </Stack>
-            </Grid>
-        </Grid>
+            </Section>
+        </>
     );
 }
 
@@ -188,4 +204,6 @@ function CommonExportForm(props: CommonExportFormProps) {
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Exports', 'Organisation');
+export const generateMetadata =
+    createGenerateMetadataFn('Export data', 'Data exports', 'Organisation');
+

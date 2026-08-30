@@ -1,4 +1,4 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use client';
@@ -12,7 +12,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ServerActionDialog } from '@app/admin/components/ServerActionDialog';
+import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 
 /**
  * Recapitalises the given `label` to be lowercase, unless one of a known set of brands is included
@@ -80,17 +80,17 @@ export function ExportTile(props: React.PropsWithChildren<ExportTileProps>) {
                 </Stack>
             </ButtonBase>
             { !!dialogEverOpen &&
-                <ServerActionDialog action={props.action} submitLabel="Export"
-                                    title={`Export ${recapitalise(props.label)}`}
-                                    open={dialogOpen} onClose={handleDialogClose}>
-                    <Alert severity="warning" sx={{ mt: -1, mb: 2 }}>
+                <ResponsiveFormDialog action={props.action} submitLabel="Export"
+                                      title={`Export ${recapitalise(props.label)}`}
+                                      open={dialogOpen} onClose={handleDialogClose}>
+                    <Alert severity="warning" variant="outlined" sx={{ mt: -1, mb: 2 }}>
                         You're about to export {recapitalise(props.label)} information, possibly to
                         a third party. All data access will be logged for accountability.
                     </Alert>
                     <Grid container spacing={2}>
                         {props.children}
                     </Grid>
-                </ServerActionDialog> }
+                </ResponsiveFormDialog> }
         </>
     );
 }

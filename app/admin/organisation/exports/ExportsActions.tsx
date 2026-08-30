@@ -1,11 +1,11 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { ExportType } from '@lib/database/Types';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -66,16 +66,13 @@ export async function createSimpleExport(type: ExportType, formData: unknown) {
         if (!insertId)
             return { success: false, error: 'Unable to store the export in the database…' };
 
-        RecordLog({
-            type: kLogType.AdminExportMutation,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                eventName: event.shortName,
-                mutation: 'Created',
+        LogBuilder.for('CreateExport')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
                 type,
-            },
-        });
+            });
 
         return {
             success: true,
@@ -119,19 +116,14 @@ export async function expireExport(exportId: number, formData: unknown) {
                 .and(tExports.exportEnabled.equals(/* true= */ 1))
             .executeUpdate();
 
-        if (!affectedRows)
-            return { success: false, error: 'Unable to expire the export in the database…' };
-
-        RecordLog({
-            type: kLogType.AdminExportMutation,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
-                eventName: info.shortName,
-                mutation: 'Expired',
+        LogBuilder.for('ExpireExport')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                event: info.shortName,
                 type: info.type,
-            },
-        });
+            });
 
         return {
             success: true,

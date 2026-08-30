@@ -77,7 +77,7 @@ export async function EventTeamsCard(props: EventTeamsCardProps) {
                                 </Typography>
                             </Typography>
                             <IconButton size="small">
-                                <Tooltip title="Ayy">
+                                <Tooltip title="Coming back soon!">
                                     <TooltipIconWrapper>
                                     <SsidChartIcon color="primary" fontSize="inherit" />
                                     </TooltipIconWrapper>

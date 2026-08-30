@@ -393,6 +393,7 @@ const kUpdateTeamData = z.object({
     plural: z.string().nonempty(),
     // slug is deliberately omitted
     title: z.string().nonempty(),
+    emailAccountId: z.number(),
 
     defaultRoleId: z.number(),
     availableRoleIds: z.array(z.number()),
@@ -433,6 +434,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
                     teamName: data.name,
                     teamPlural: data.plural,
                     teamTitle: data.title,
+                    teamEmailAccountId: data.emailAccountId,
 
                     teamFlagEnableDutyBook: !!data.flagEnableDutyBook ? 1 : 0,
                     teamFlagEnableScheduling: !!data.flagEnableScheduling ? 1 : 0,

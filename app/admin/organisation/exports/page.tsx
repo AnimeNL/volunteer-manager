@@ -1,14 +1,18 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { z } from 'zod/v4';
 
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { ExportAvailabilityCell } from './ExportsRowComponents';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
 /**
@@ -75,6 +79,7 @@ const exportsDataSource = createDataSource('admin/organisation/exports', withRow
             case 'views':
                 sortField = params.sort.field as 'context' | 'expirationDate' | 'views';
                 break;
+
             case 'responsible':
                 sortField = 'responsible.name';
                 break;
@@ -181,18 +186,33 @@ export default async function OrganisationExportsPage() {
     ];
 
     return (
-        <DataTable columns={columns} source={exportsDataSource}
-                   defaultSort={{ field: 'expirationDate', sort: 'desc' }}
-                   pageSize={25}
-                   listViewProps={{
-                       primaryField: 'context',
-                       secondaryField: 'reason',
-                       dateField: 'expirationDate',
-                       dateFieldFormat: 'YYYY-MM-DD',
-                       startComponent: ExportAvailabilityCell,
-                       linkTemplate: '/admin/organisation/exports/{id}',
-                   }} />
+        <>
+            <Section icon={ <AccountBalanceIcon color="primary" /> }
+                     title="Data exports"
+                     documentation="organisation/exports"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Data exports' },
+                     ]}>
+                <SectionIntroduction>
+                    Overview of active and past instances where we exported data to third parties.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                <DataTable columns={columns} source={exportsDataSource}
+                           defaultSort={{ field: 'expirationDate', sort: 'desc' }}
+                           pageSize={25}
+                           listViewProps={{
+                               primaryField: 'context',
+                               secondaryField: 'reason',
+                               dateField: 'expirationDate',
+                               dateFieldFormat: 'YYYY-MM-DD',
+                               startComponent: ExportAvailabilityCell,
+                               linkTemplate: '/admin/organisation/exports/{id}',
+                           }} />
+            </Section>
+        </>
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Exports', 'Organisation');
+export const generateMetadata = createGenerateMetadataFn('Data exports', 'Organisation');

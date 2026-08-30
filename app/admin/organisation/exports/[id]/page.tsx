@@ -1,31 +1,25 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { default as MuiLink } from '@mui/material/Link';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import UpdateDisabledIcon from '@mui/icons-material/UpdateDisabled';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import Alert from '@mui/material/Alert';
+import DvrIcon from '@mui/icons-material/Dvr';
 
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
-import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
+import { ExpireExportQuickAction } from './ExpireExportQuickAction';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
 import * as actions from '../ExportsActions';
@@ -116,7 +110,7 @@ const exportAccessLogsDataSource = createDataSource('organisation/exports/access
 export default async function OrganisationExportsLogPage(
     props: PageProps<'/admin/organisation/exports/[id]'>)
 {
-    await requireAuthentication('organisation.exports');
+    const { access } = await requireAuthentication('organisation.exports');
 
     const environment = await determineEnvironment();
     if (!environment)
@@ -147,7 +141,7 @@ export default async function OrganisationExportsLogPage(
             justification: tExports.exportJustification,
             userId: tExports.exportCreatedUserId,
             userName: tUsers.name,
-            views: dbInstance.count(exportsLogsJoin.accessDate)
+            views: dbInstance.count(exportsLogsJoin.accessDate),
         })
         .groupBy(tExports.exportId)
         .executeSelectNoneOrOne();
@@ -178,6 +172,13 @@ export default async function OrganisationExportsLogPage(
             field: 'userIp',
             headerName: 'IP Address',
             width: 150,
+
+            template: 'text',
+            templateProps: {
+                href: access.can('system.logs', 'read')
+                    ? '/admin/system/diagnostics/ip/{userIp}'
+                    : undefined,
+            },
         },
         {
             field: 'userAgent',
@@ -193,118 +194,89 @@ export default async function OrganisationExportsLogPage(
             templateProps: {
                 noAccountLabel: 'unknown',
             },
-        }
+        },
     ];
 
     return (
-        <Grid container spacing={2}>
-            <BackButtonGrid href="/admin/organisation/exports" size={6}>
-                Back to export logs
-            </BackButtonGrid>
-            <Grid size={{ xs: 6 }}>
-                { !!active &&
-                    <ConfirmationButton action={expireExportFn} callToAction="Expire"
-                                        icon={ <UpdateDisabledIcon /> }
-                                        label="Expire this export…"
-                                        sx={{ float: 'right' }}>
-                        Are you sure you want to revoke access to this export? Once you do,
-                        anyone with the link will no longer be able to view the exported data.
-                    </ConfirmationButton> }
+        <>
+            <Section icon={ <AccountBalanceIcon color="primary" /> }
+                     title={`${data.eventName} ${data.type}`}
+                     documentation="organisation/exports"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Data exports', href: '/admin/organisation/exports' },
+                         { label: 'Logs', href: '/admin/organisation/exports' },
+                         { label: `${data.eventName} ${data.type}` },
+                     ]}>
+                <SectionIntroduction>
+                    Detailed information about an export that was generated for {data.eventName}.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader back="Back to export logs" tabs>
                 { !active &&
-                    <Button size="small" variant="outlined" disabled sx={{ float: 'right' }}
-                            endIcon={ <UpdateDisabledIcon /> }>
-                        This export has expired
-                    </Button> }
-            </Grid>
-
-            <Grid size={{ xs: 12 }}>
-                <Table size="small" sx={{ mt: -1 }}>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell variant="head" width="25%">
-                                Shareable link
-                            </TableCell>
-                            <TableCell>
-                                <ShareableLink href={shareableLink} />
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell variant="head">
-                                Expiration date
-                            </TableCell>
-                            <TableCell>
-                                <LocalDateTime dateTime={data.expirationDate.toString()}
-                                               format="MMMM D, YYYY [at] HH:mm:ss" />
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell variant="head">
-                                Expiration views
-                            </TableCell>
-                            <TableCell>
-                                {data.expirationViews} (seen: {data.views})
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell variant="head">
-                                Exported by
-                            </TableCell>
-                            <TableCell>
-                                <MuiLink component={Link}
-                                         href={`/admin/organisation/accounts/${data.userId}`}>
-                                    {data.userName}
-                                </MuiLink> on{' '}
-                                <LocalDateTime dateTime={data.date}
-                                               format="MMMM D, YYYY [at] HH:mm:ss" />
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell variant="head">
-                                Exported data
-                            </TableCell>
-                            <TableCell>
-                                {data.eventName} {data.type}
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell variant="head">
-                                Justification
-                            </TableCell>
-                            <TableCell>
-                                {data.justification}
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </Grid>
-
+                    <Alert severity="info" variant="outlined">
+                        This export has expired and is no longer accessible.
+                    </Alert> }
+                <KeyValueList items={[
+                    {
+                        key: 'Shareable link',
+                        value: <ShareableLink href={shareableLink} />,
+                        valueTemplate: 'component',
+                    },
+                    {
+                        key: 'Expiration date',
+                        value: data.expirationDate.toString(),
+                        valueTemplate: 'localDateTime',
+                    },
+                    {
+                        key: 'Expiration views',
+                        value: `${data.expirationViews} (seen: ${data.views})`,
+                    },
+                    {
+                        key: 'Exported by',
+                        value: {
+                            id: data.userId,
+                            name: data.userName,
+                        },
+                        valueTemplate: 'account',
+                    },
+                    {
+                        key: 'Exported on',
+                        value: data.date,
+                        valueTemplate: 'localDateTime',
+                    },
+                    {
+                        key: 'Exported data',
+                        value: `${data.eventName} ${data.type}`,
+                    },
+                    {
+                        key: 'Justification',
+                        value: data.justification,
+                    },
+                ]} />
+                { !!active && <ExpireExportQuickAction action={expireExportFn} /> }
+            </Section>
             { !!data.views &&
-                <>
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant="h6" sx={{ mb: -1 }}>
-                            Access logs
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <DataTable
-                            columns={columns}
-                            source={exportAccessLogsDataSource}
-                            context={{ exportId: data.id }}
-                            defaultSort={{ field: 'date', sort: 'desc' }}
-                            pageSize={100}
-                            disableSearch
-                            listViewProps={{
-                                primaryField: 'userIp',
-                                secondaryField: 'userAgent',
-                                dateField: 'date',
-                                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
-                            }}
-                        />
-                    </Grid>
-                </> }
-
-        </Grid>
+                <Section icon={ <DvrIcon /> } title="Access logs">
+                    <DataTable
+                        columns={columns}
+                        source={exportAccessLogsDataSource}
+                        context={{ exportId: data.id }}
+                        defaultSort={{ field: 'date', sort: 'desc' }}
+                        pageSize={100}
+                        disableSearch
+                        listViewProps={{
+                            primaryField: 'userIp',
+                            secondaryField: 'userAgent',
+                            dateField: 'date',
+                            dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                        }}
+                    />
+                </Section> }
+        </>
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Logs', 'Exports', 'Organisation');
+export const generateMetadata =
+    createGenerateMetadataFn({ param: 'id', prefix: '#' }, 'Logs', 'Data exports', 'Organisation');
+

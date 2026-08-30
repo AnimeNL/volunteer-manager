@@ -78,6 +78,20 @@ interface LogTypeParameterMap {
     };
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation
+    // ---------------------------------------------------------------------------------------------
+
+    CreateExport: {
+        event: string;  // short name
+        type: string;
+    };
+
+    ExpireExport: {
+        event: string;  // short name
+        type: string;
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
     // ---------------------------------------------------------------------------------------------
 
@@ -446,6 +460,13 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
     UpdateSystemSettings: 'UpdateSystemSettings',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation
+    // ---------------------------------------------------------------------------------------------
+
+    CreateExport: 'CreateExport',
+    ExpireExport: 'ExpireExport',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
