@@ -294,7 +294,7 @@ export function Application(props: ApplicationProps) {
     return (
         <>
             <Paper sx={{ display: 'flex', minHeight: '100%' }}>
-                <Stack direction="column">
+                <Stack direction="column" sx={{ width: '100%' }}>
                     <CardHeader action={actions}
                                 avatar={
                                     <Avatar src={avatarUrl}>

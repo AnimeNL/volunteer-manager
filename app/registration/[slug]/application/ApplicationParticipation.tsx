@@ -114,18 +114,24 @@ export function ApplicationAvailabilityForm(props: ApplicationAvailabilityFormPr
     let tearDownDayAfter: string = 'No';
 
     const availabilityBuildUpTearDown = watch('availabilityBuildUpTearDown');
-    try {
-        const parsedAvailabilityBuildUpTearDown =
-            kAvailabilityBuildUpTearDownScheme.safeParse(JSON.parse(availabilityBuildUpTearDown));
+    if (!!availabilityBuildUpTearDown && availabilityBuildUpTearDown !== 'undefined') {
+        try {
+            const deserialised = typeof availabilityBuildUpTearDown === 'string'
+                ? JSON.parse(availabilityBuildUpTearDown)
+                : availabilityBuildUpTearDown;
 
-        if (parsedAvailabilityBuildUpTearDown.success) {
-            buildUpDayBefore = parsedAvailabilityBuildUpTearDown.data.buildUpDayBefore;
-            buildUpOpening = parsedAvailabilityBuildUpTearDown.data.buildUpOpening;
-            tearDownClosing = parsedAvailabilityBuildUpTearDown.data.tearDownClosing;
-            tearDownDayAfter = parsedAvailabilityBuildUpTearDown.data.tearDownDayAfter;
+            const parsedAvailabilityBuildUpTearDown =
+                kAvailabilityBuildUpTearDownScheme.safeParse(deserialised);
+
+            if (parsedAvailabilityBuildUpTearDown.success) {
+                buildUpDayBefore = parsedAvailabilityBuildUpTearDown.data.buildUpDayBefore;
+                buildUpOpening = parsedAvailabilityBuildUpTearDown.data.buildUpOpening;
+                tearDownClosing = parsedAvailabilityBuildUpTearDown.data.tearDownClosing;
+                tearDownDayAfter = parsedAvailabilityBuildUpTearDown.data.tearDownDayAfter;
+            }
+        } catch (error: any) {
+            console.warn('Invalid availabilityBuildUpTearDown value', error);
         }
-    } catch (error: any) {
-        console.warn('Invalid availabilityBuildUpTearDown value', error);
     }
 
     const handleBuildUpTearDownChange = useCallback((field: string, event: unknown, value: any) => {
