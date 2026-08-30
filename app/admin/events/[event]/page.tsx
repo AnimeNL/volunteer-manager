@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { DashboardGrid } from '@app/admin/dashboard/DashboardGrid';
+import { EventDeadlinesCard } from './dashboard/EventDeadlinesCard';
 import { EventFinancesCard } from './dashboard/EventFinancesCard';
 import { EventIdentityCard } from './dashboard/EventIdentityCard';
 import { EventRecentChangesCard } from './dashboard/EventRecentChangesCard';
@@ -20,17 +21,15 @@ export default async function EventVolunteersDashboard(props: PageProps<'/admin/
         <EventTeamsCard key="teams" event={event} />,
     ];
 
-    // TODO: Deadlines
-
     if (access.can('statistics.finances'))
         cards.push(<EventFinancesCard key="finances" event={event} />);
 
-    // TODO: Hotel status
-
     cards.push(<EventRecentChangesCard key="changes" event={event} />);
+    cards.push(<EventDeadlinesCard key="deadlines" event={event} />);
 
-    // TODO: Recent volunteers
-    // TODO: Team growth chart
+    // TODO: Hotel status
+    // TODO: Program requests
+    // TODO: Refund status
     // TODO: Training status
 
     return <DashboardGrid cards={cards} />;
