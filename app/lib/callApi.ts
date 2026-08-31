@@ -37,7 +37,6 @@ import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/update
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedule/updateScheduleEntry';
 
-import type { ContentCategoriesEndpoints } from '@app/api/admin/content/categories/[[...id]]/route';
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
@@ -67,7 +66,6 @@ type ApiResponseType<T> = T extends { response: object } ? T['response'] : void;
  */
 export type ApiEndpoints = {
     'get': {
-        '/api/admin/content/categories': ContentCategoriesEndpoints['list'],
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
@@ -89,7 +87,6 @@ export type ApiEndpoints = {
         '/api/display': DisplayDefinition,
     },
     'post': {
-        '/api/admin/content/categories': ContentCategoriesEndpoints['create'],
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
@@ -124,7 +121,6 @@ export type ApiEndpoints = {
         '/api/nardo/personalised': NardoPersonalisedEndpoints['create'],
     },
     'delete': {
-        '/api/admin/content/categories/:id': ContentCategoriesEndpoints['delete'],
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['delete'],
@@ -139,7 +135,6 @@ export type ApiEndpoints = {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
-        '/api/admin/content/categories/:id': ContentCategoriesEndpoints['update'],
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],

@@ -183,9 +183,19 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    CreateKnowledgeBaseCategory: {
+        event: string;  // short name
+        category: string;
+    };
+
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
+    };
+
+    DeleteKnowledgeBaseCategory: {
+        event: string;  // short name
+        category: string;
     };
 
     DisassociateTicketFromVolunteer: {
@@ -242,6 +252,11 @@ interface LogTypeParameterMap {
         event: string;  // short name
         question: string;
         mutation: string;
+    };
+
+    UpdateKnowledgeBaseCategory: {
+        event: string;  // short name
+        category: string;
     };
 
     UpdateTicketPurchase: {
@@ -510,7 +525,9 @@ export const kLogType: { [k in LogType]: k } = {
     CancelVolunteerTicket: 'CancelVolunteerTicket',
     CreateAssociateTicket: 'CreateAssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
+    CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
+    DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
     UpdateAssociateTicket: 'UpdateAssociateTicket',
@@ -522,6 +539,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateKnowledgeBase: 'UpdateKnowledgeBase',
+    UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------

@@ -3,11 +3,15 @@
 
 import { notFound } from 'next/navigation';
 
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
 import { ContentEditor } from '@app/admin/system/content/ContentEditor';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createKnowledgeBaseScope } from '@app/admin/system/content/ContentScope';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tContentCategories } from '@lib/database';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import db, { tContent, tContentCategories } from '@lib/database';
 
 import { fetchContent, updateContent } from '@app/admin/system/content/ContentActions';
 
@@ -18,13 +22,31 @@ import { fetchContent, updateContent } from '@app/admin/system/content/ContentAc
 export default async function EventFaqEntryPage(
     props: PageProps<'/admin/events/[event]/[team]/knowledge/[id]'>)
 {
-    const { event, team } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!team.flagManagesFaq)
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props);
+    if (!team.flags.managesKnowledgeBase)
         notFound();
 
     const params = await props.params;
+    const contentId = parseInt(params.id, /* radix= */ 10);
+    const scope = createKnowledgeBaseScope(event.id);
 
-    // Select the categories that questions can be associated with.
+    // ---------------------------------------------------------------------------------------------
+
+    const content = await db.selectFrom(tContent)
+        .where(tContent.contentId.equals(contentId))
+            .and(tContent.eventId.equals(scope.eventId))
+            .and(tContent.teamId.equals(scope.teamId))
+            .and(tContent.contentType.equals(scope.type))
+        .select({
+            title: tContent.contentTitle,
+        })
+        .executeSelectNoneOrOne();
+
+    if (!content)
+        notFound();
+
+    // ---------------------------------------------------------------------------------------------
+
     const categories = await db.selectFrom(tContentCategories)
         .where(tContentCategories.eventId.equals(event.id))
             .and(tContentCategories.categoryDeleted.isNull())
@@ -35,16 +57,31 @@ export default async function EventFaqEntryPage(
         .orderBy(tContentCategories.categoryOrder, 'asc')
         .executeSelectMany();
 
-    const contentId = parseInt(params.id, /* radix= */ 10);
-    const scope = createKnowledgeBaseScope(event.id);
-
     const fetchFn = fetchContent.bind(null, scope, contentId);
     const updateFn = updateContent.bind(null, scope, contentId);
 
     return (
-        <ContentEditor categories={categories} fetchFn={fetchFn} pathHidden updateFn={updateFn}
-                       title="Knowledge base" subtitle={event.shortName} />
+        <>
+            <Section icon={ <InfoOutlinedIcon color="primary" /> } title={content.title}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
+                         {
+                             label: 'Knowledge base',
+                             href: `/admin/events/${event.slug}/${team.slug}/knowledge`,
+                         },
+                         { label: content.title },
+                     ]}>
+                <SectionIntroduction>
+                    A frequently asked question by people who attend AnimeCon. Please be brief in
+                    your answer.
+                </SectionIntroduction>
+            </Section>
+            <ContentEditor categories={categories} fetchFn={fetchFn} pathHidden updateFn={updateFn}
+                           noHeader />
+        </>
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Knowledge base');
+export const generateMetadata =
+    createGenerateMetadataFn('Knowledge base', { team: 'team' }, { event: 'event' });

@@ -20,9 +20,9 @@ import { kAnyTeam } from '@lib/auth/AccessList';
  * Server action schema for creating a new content item.
  */
 const kCreateContentData = z.object({
-    path: z.string(),
+    path: z.string().optional().default(''),
     title: z.string().min(1),
-    categoryId: z.number().optional(),
+    categoryId: z.coerce.number().optional(),
 });
 
 /**

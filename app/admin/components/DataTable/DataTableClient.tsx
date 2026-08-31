@@ -257,14 +257,24 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         // causes Nuqs to fall back to the default value, making the column unsortable.
         const orderToSet = model.length === 0 && defaultOrder === 'desc' ? 'asc' : newOrder;
         const nextOrder = orderToSet ?? null;
+        const effectiveField = newField ?? props.defaultSort.field;
+        const effectiveOrder = nextOrder ?? props.defaultSort.sort;
 
-        if (newField !== sortField || nextOrder !== sortOrder) {
+        if (effectiveField !== sortField || effectiveOrder !== sortOrder) {
             setSortField(newField);
             setSortOrder(nextOrder);
             setPage(null);
         }
 
-    }, [ props.defaultSort.sort, setSortField, setSortOrder, setPage, sortField, sortOrder ]);
+    }, [
+        props.defaultSort.field,
+        props.defaultSort.sort,
+        setSortField,
+        setSortOrder,
+        setPage,
+        sortField,
+        sortOrder
+    ]);
 
     const handleFilterModelChange = useCallback((model: GridFilterModel) => {
         if (!isMountedRef.current)

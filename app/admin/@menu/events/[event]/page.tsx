@@ -8,8 +8,8 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LanguageIcon from '@mui/icons-material/Language';
+import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -189,8 +189,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     condition: team.flagManagesFirstAid,
                 },
                 {
-                    Icon: InfoOutlinedIcon,
-                    badge: { migration: true, value: true },  // migration in progress
+                    Icon: LibraryBooksOutlinedIcon,
                     label: 'Knowledge base',
                     url: `/admin/events/${event.slug}/${team.slug}/knowledge`,
                     condition: team.flagManagesFaq,

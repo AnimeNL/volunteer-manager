@@ -201,10 +201,14 @@ export const contentDataSource = createDataSource('admin/system/content', withCo
 
         let sortField: 'path' | 'title' | 'updatedOn' | 'updatedBy.name' | 'categoryOrder';
         switch (params.sort.field) {
+            case 'categoryName':
             case 'categoryOrder':
+                sortField = 'categoryOrder';
+                break;
+
             case 'title':
             case 'updatedOn':
-                sortField = params.sort.field as 'categoryOrder' | 'title' | 'updatedOn';
+                sortField = params.sort.field as 'title' | 'updatedOn';
                 break;
 
             case 'updatedBy':

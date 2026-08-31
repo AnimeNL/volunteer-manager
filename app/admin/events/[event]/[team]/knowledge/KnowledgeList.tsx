@@ -1,10 +1,12 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Column } from '@app/admin/components/DataTable';
+import type { ContentRowModel } from '@app/admin/system/content/ContentDataSource';
 import type { ContentScope } from '@app/admin/system/content/ContentScope';
 import { AnswerCell, AnswerHeader } from './AnswerCell';
-import { DataTable, type Column } from '@app/admin/components/DataTable';
-import { contentDataSource, type ContentRowModel } from '@app/admin/system/content/ContentDataSource';
+import { DataTable } from '@app/admin/components/DataTable';
+import { contentDataSource } from '@app/admin/system/content/ContentDataSource';
 
 /**
  * Props accepted by the <KnowledgeList> component.
@@ -43,7 +45,7 @@ export function KnowledgeList(props: KnowledgeListProps) {
             field: 'updatedOn',
             headerName: 'Last updated',
             sortable: true,
-            flex: 1,
+            width: 185,
 
             template: 'date',
         },
@@ -77,7 +79,7 @@ export function KnowledgeList(props: KnowledgeListProps) {
             columns={columns}
             source={contentDataSource}
             context={props.scope}
-            defaultSort={{ field: 'categoryOrder', sort: 'asc' }}
+            defaultSort={{ field: 'categoryName', sort: 'asc' }}
             pageSize={25}
             subject="knowledge base article"
             listViewProps={{

@@ -3,17 +3,13 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
-    from '@proxy/react-hook-form-mui';
+import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Grid from '@mui/material/Grid';
 
-import type { ServerActionResult } from '@lib/serverAction';
-import { SubmitCollapse } from '@app/admin/components/SubmitCollapse';
+import type { ServerAction } from '@lib/serverAction';
+import { FormGrid } from '@app/admin/components/FormGrid';
 
 /**
  * Props accepted by the <CreateQuestionForm> component.
@@ -27,8 +23,7 @@ interface CreateQuestionFormProps {
     /**
      * Server Action through which creation of a new content page can be submitted.
      */
-    createFn: (row: { categoryId: number; path: string; title: string; })
-        => Promise<ServerActionResult>;
+    createFn: ServerAction;
 }
 
 /**
@@ -36,49 +31,15 @@ interface CreateQuestionFormProps {
  * Only the question is necessary—the answer can be filled in by to volunteer after the fact.
  */
 export function CreateQuestionForm(props: CreateQuestionFormProps) {
-    const [ error, setError ] = useState<string | undefined>();
-    const [ invalidated, setInvalidated ] = useState<boolean>(false);
-    const [ loading, setLoading ] = useState<boolean>(false);
-
-    const router = useRouter();
-
-    const handleChange = useCallback(() => setInvalidated(true), [ /* no deps */ ]);
-    const handleSubmit = useCallback(async (data: FieldValues) => {
-        setLoading(true);
-        setError(undefined);
-        try {
-            const response = await props.createFn({
-                path: /* intentionally empty= */ '',
-                categoryId: data.category,
-                title: data.question,
-            });
-
-            if (response.success)
-                router.push(`./knowledge/${response.contentId}`);
-            else
-                setError(response.error ?? 'Unable to create the new question');
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [ props.createFn, router ]);
-
     return (
-        <FormContainer onSuccess={handleSubmit}>
-            <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <SelectElement name="category" label="Category" fullWidth size="small"
-                                   onChange={handleChange} options={props.categories} required />
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <TextFieldElement name="question" label="Question…" fullWidth size="small"
-                                      onChange={handleChange} required />
-                </Grid>
+        <FormGrid action={props.createFn} callToAction="Create question">
+            <Grid size={{ xs: 12, md: 4 }}>
+                <SelectElement name="categoryId" label="Category" fullWidth size="small"
+                               options={props.categories} required />
             </Grid>
-
-
-            <SubmitCollapse error={error} loading={loading} open={invalidated} sx={{ mt: 2 }} />
-        </FormContainer>
+            <Grid size={{ xs: 12, md: 8 }}>
+                <TextFieldElement name="title" label="Question…" fullWidth size="small" required />
+            </Grid>
+        </FormGrid>
     );
 }
