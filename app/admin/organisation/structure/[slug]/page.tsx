@@ -1,4 +1,4 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
@@ -9,17 +9,20 @@ import { AutocompleteElement, SelectElement, TextareaAutosizeElement, TextFieldE
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import GroupsIcon from '@mui/icons-material/Groups';
 import KeyIcon from '@mui/icons-material/Key';
 import List from '@mui/material/List';
 import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Stack from '@mui/material/Stack';
 
+import type { FlagProps } from './Flag';
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ColorInput } from '@app/admin/components/ColorInput';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
-import { Flag, type FlagProps } from './Flag';
-import { FormGrid } from '@app/admin/components/FormGrid';
+import { Flag } from './Flag';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
@@ -170,8 +173,6 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
     const readOnly = false;  // should we support this?
 
-    const backButtonSize = canDisableTeam ? 6 : 12;
-
     const disableTeamFn = actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ false);
     const enableTeamFn = actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ true);
     const resetTeamKeyFn = actions.resetTeamKey.bind(null, team.id);
@@ -180,116 +181,126 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
     // ---------------------------------------------------------------------------------------------
 
     return (
-        <FormGrid action={updateTeamFn} defaultValues={team}>
+        <>
+            <Section icon={ <GroupsIcon color="primary" /> } title={team.title} breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Structure', href: '/admin/organisation/structure' },
+                { label: team.title },
+            ]}>
+                <SectionIntroduction>
+                    This page allows you to configure the settings for the{' '}
+                    <strong>{team.title}</strong>.
+                </SectionIntroduction>
+            </Section>
 
-            <BackButtonGrid href="/admin/organisation/structure" size={backButtonSize}>
-                Back to teams
-            </BackButtonGrid>
-            { (canResetInviteKey || canDisableTeam) &&
-                <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-                        { canResetInviteKey &&
-                            <ConfirmationButton callToAction="Reset" action={resetTeamKeyFn}
-                                                icon={ <KeyIcon /> } color="info"
-                                                label="Reset key…">
-                                Are you sure you want to reset the <strong>{team.name} </strong>
-                                team's key? This will invalidate all invite links, for past
-                                and future events alike.
-                            </ConfirmationButton> }
-                        { (canDisableTeam && !!team.enabled) &&
-                            <ConfirmationButton callToAction="Disable" action={disableTeamFn}
-                                                icon={ <RemoveCircleOutlinedIcon /> }
-                                                label="Disable this team…">
-                                Are you sure you want to disable the <strong>{team.name} </strong>
-                                team? This will stop the team from being considered for any future
-                                events, but won't remove any data.
-                            </ConfirmationButton> }
-                        { (canDisableTeam && !team.enabled) &&
-                            <ConfirmationButton callToAction="Enable" action={enableTeamFn}
-                                                color="success" icon={ <AddCircleOutlinedIcon /> }
-                                                label="Enable this team…">
-                                Are you sure you want to enable the <strong>{team.name} </strong>
-                                team? This means that they can be considered for future events
-                                again.
-                            </ConfirmationButton> }
-                    </Stack>
-                </Grid> }
+            <FormGridSection noHeader tabs back="Back to teams"
+                             action={updateTeamFn} defaultValues={team}>
+                { (canResetInviteKey || canDisableTeam) &&
+                    <Grid size={{ xs: 12 }}>
+                        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
+                            { canResetInviteKey &&
+                                <ConfirmationButton callToAction="Reset" action={resetTeamKeyFn}
+                                                    icon={ <KeyIcon /> } color="info"
+                                                    label="Reset key…">
+                                    Are you sure you want to reset the <strong>{team.name} </strong>
+                                    team's key? This will invalidate all invite links, for past
+                                    and future events alike.
+                                </ConfirmationButton> }
+                            { (canDisableTeam && !!team.enabled) &&
+                                <ConfirmationButton callToAction="Disable" action={disableTeamFn}
+                                                    icon={ <RemoveCircleOutlinedIcon /> }
+                                                    label="Disable this team…">
+                                    Are you sure you want to disable the <strong>{team.name} </strong>
+                                    team? This will stop the team from being considered for any future
+                                    events, but won't remove any data.
+                                </ConfirmationButton> }
+                            { (canDisableTeam && !team.enabled) &&
+                                <ConfirmationButton callToAction="Enable" action={enableTeamFn}
+                                                    color="success" icon={ <AddCircleOutlinedIcon /> }
+                                                    label="Enable this team…">
+                                    Are you sure you want to enable the <strong>{team.name} </strong>
+                                    team? This means that they can be considered for future events
+                                    again.
+                                </ConfirmationButton> }
+                        </Stack>
+                    </Grid> }
 
-            <Grid size={{ xs: 12, md: 6 }}>
-                <TextFieldElement name="slug" label="Slug" fullWidth size="small" required
-                                  slotProps={{ input: { readOnly: true } }} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <SelectElement name="environment" label="Environment" fullWidth size="small"
-                               required options={environments}
-                               slotProps={{ select: { readOnly: !!readOnly } }} />
-            </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="slug" label="Slug" fullWidth size="small" required
+                                      slotProps={{ input: { readOnly: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <SelectElement name="environment" label="Environment" fullWidth size="small"
+                                   required options={environments}
+                                   slotProps={{ select: { readOnly: !!readOnly } }} />
+                </Grid>
 
-            <Grid size={{ xs: 6, md: 3 }}>
-                <TextFieldElement name="title" label="Team title" fullWidth size="small" required
-                                  slotProps={{ input: { readOnly: !!readOnly } }} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-                <TextFieldElement name="department" label="Team department" fullWidth size="small"
-                                  slotProps={{ input: { readOnly: !!readOnly } }} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-                <TextFieldElement name="name" label="Team name" fullWidth size="small" required
-                                  slotProps={{ input: { readOnly: !!readOnly } }} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-                <TextFieldElement name="plural" label="Team plural" fullWidth size="small" required
-                                  slotProps={{ input: { readOnly: !!readOnly } }} />
-            </Grid>
+                <Grid size={{ xs: 6, md: 3 }}>
+                    <TextFieldElement name="title" label="Team title" fullWidth size="small" required
+                                      slotProps={{ input: { readOnly: !!readOnly } }} />
+                </Grid>
+                <Grid size={{ xs: 6, md: 3 }}>
+                    <TextFieldElement name="department" label="Team department" fullWidth size="small"
+                                      slotProps={{ input: { readOnly: !!readOnly } }} />
+                </Grid>
+                <Grid size={{ xs: 6, md: 3 }}>
+                    <TextFieldElement name="name" label="Team name" fullWidth size="small" required
+                                      slotProps={{ input: { readOnly: !!readOnly } }} />
+                </Grid>
+                <Grid size={{ xs: 6, md: 3 }}>
+                    <TextFieldElement name="plural" label="Team plural" fullWidth size="small" required
+                                      slotProps={{ input: { readOnly: !!readOnly } }} />
+                </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-                <ColorInput name="colorDarkMode" label="Theme (Dark Mode)" fullWidth
-                            size="small" required disabled={!!readOnly} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <ColorInput name="colorLightMode" label="Theme (Light Mode)" fullWidth size="small"
-                            required disabled={!!readOnly} />
-            </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <ColorInput name="colorDarkMode" label="Theme (Dark Mode)" fullWidth
+                                size="small" required disabled={!!readOnly} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <ColorInput name="colorLightMode" label="Theme (Light Mode)" fullWidth size="small"
+                                required disabled={!!readOnly} />
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-                <TextareaAutosizeElement name="description" label="Description" fullWidth
-                                         size="small" required
-                                         slotProps={{ input: { readOnly: !!readOnly } }} />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <TextareaAutosizeElement name="description" label="Description" fullWidth
+                                             size="small" required
+                                             slotProps={{ input: { readOnly: !!readOnly } }} />
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-                <SelectElement name="emailAccountId" label="E-mail account" fullWidth size="small"
-                               required options={emailAccounts}
-                               slotProps={{ select: { readOnly: !!readOnly } }} />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <SelectElement name="emailAccountId" label="E-mail account" fullWidth size="small"
+                                   required options={emailAccounts}
+                                   slotProps={{ select: { readOnly: !!readOnly } }} />
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-                <Divider />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <Divider />
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-                <AutocompleteElementWithDisabledOptions
-                    name="defaultRoleId" label="Default role" options={roles}
-                    matchId autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-                <AutocompleteElement
-                    name="availableRoleIds" label="Available roles" options={roles} multiple
-                    matchId autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <AutocompleteElementWithDisabledOptions
+                        name="defaultRoleId" label="Default role" options={roles}
+                        matchId autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <AutocompleteElement
+                        name="availableRoleIds" label="Available roles" options={roles} multiple
+                        matchId autocompleteProps={{ fullWidth: true, readOnly, size: 'small' }} />
+                </Grid>
 
-            <Grid size={{ xs: 12 }}>
-                <Divider />
-            </Grid>
+                <Grid size={{ xs: 12 }}>
+                    <Divider />
+                </Grid>
 
-            <Grid size={{ xs: 12 }} sx={{ mt: -1, mb: -1 }}>
-                <List disablePadding>
-                    { kFlags.map(entry => <Flag key={entry.field} {...entry} /> )}
-                </List>
-            </Grid>
-
-        </FormGrid>
+                <Grid size={{ xs: 12 }} sx={{ mt: -1, mb: -1 }}>
+                    <List disablePadding>
+                        { kFlags.map(entry => <Flag key={entry.field} {...entry} /> )}
+                    </List>
+                </Grid>
+            </FormGridSection>
+        </>
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn({ team: 'slug' }, 'Teams', 'Organisation');
+export const generateMetadata =
+    createGenerateMetadataFn({ team: 'slug' }, 'Structure', 'Organisation');

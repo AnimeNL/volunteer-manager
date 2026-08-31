@@ -4,11 +4,10 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { Cache } from '@lib/cache';
-import { RecordLog, kLogType } from '@lib/Log';
-import { executeServerAction } from '@lib/serverAction';
+import { Cache, invalidateTeamCache } from '@lib/cache';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { invalidateTeamCache } from '@lib/cache';
+import { LogBuilder } from '@lib/log/index';
+import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -68,14 +67,12 @@ export async function createEnvironment(formData: unknown) {
         if (!environmentId)
             return { success: false, error: 'Unable to store the environment in the database…' };
 
-        RecordLog({
-            type: kLogType.AdminEnvironmentCreate,
-            sourceUser: props.user,
-            data: {
-                id: environmentId,
+        LogBuilder.for('CreateEnvironment')
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
                 domain: data.domain,
-            },
-        });
+            });
 
         Cache.getInstance('Environments').clear();
 
@@ -160,15 +157,12 @@ export async function createTeam(formData: unknown) {
 
         await invalidateTeamCache(data.slug);
 
-        RecordLog({
-            type: kLogType.AdminTeamCreate,
-            sourceUser: props.user,
-            data: {
-                id: teamId,
-                slug: data.slug,
-                title: data.title,
-            },
-        });
+        LogBuilder.for('CreateTeam')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                team: data.title,
+            });
 
         Cache.getInstance('Environments').clear();
 
@@ -219,16 +213,16 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
         if (!affectedRows)
             return { success: false, error: 'Unable to remove the environment from the database…' };
 
-        RecordLog({
-            type: kLogType.AdminEnvironmentDelete,
-            sourceUser: props.user,
-            data: {
-                environmentId,
+        LogBuilder.for('DeleteEnvironment')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
                 domain: existingEnvironment,
-            },
-        });
+            });
 
         Cache.getInstance('Environments').clear();
+
         clearPageMetadataCache('environment');
 
         return {
@@ -267,13 +261,13 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
 
         await invalidateTeamCache(teamId);
 
-        RecordLog({
-            type: kLogType.AdminTeamResetKey,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('ResetTeamKey')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
                 team: teamName,
-            },
-        });
+            });
 
         return { success: true };
     });
@@ -314,14 +308,14 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
 
         await invalidateTeamCache(teamId);
 
-        RecordLog({
-            type: kLogType.AdminTeamEnable,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('UpdateTeamEnabled')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
                 action: enabled ? 'Enabled' : 'Disabled',
                 team: existingTeam.title,
-            },
-        });
+            });
 
         return {
             success: true,
@@ -350,6 +344,15 @@ export async function updateEnvironment(environmentId: number, formData: unknown
     return executeServerAction(formData, kUpdateEnvironmentData, async (data, props) => {
         await requireAuthentication('organisation.environments');
 
+        const existingEnvironment = await db.selectFrom(tEnvironments)
+            .where(tEnvironments.environmentId.equals(environmentId))
+                .and(tEnvironments.environmentDeleted.isNull())
+            .selectOneColumn(tEnvironments.environmentDomain)
+            .executeSelectNoneOrOne();
+
+        if (!existingEnvironment)
+            notFound();
+
         const affectedRows = await db.update(tEnvironments)
             .set({
                 environmentColourDarkMode: data.colorDarkMode,
@@ -362,23 +365,21 @@ export async function updateEnvironment(environmentId: number, formData: unknown
                 .and(tEnvironments.environmentDeleted.isNull())
             .executeUpdate();
 
-        if (!affectedRows)
-            return { success: false, error: 'Unable to update the environment in the database…' };
-
-        RecordLog({
-            type: kLogType.AdminUpdateEnvironment,
-            sourceUser: props.user,
-            data: {
-                environmentId,
-            },
-        });
+        LogBuilder.for('UpdateEnvironment')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Error')
+            .record({
+                domain: existingEnvironment,
+            });
 
         Cache.getInstance('Environments').clear();
+
         clearPageMetadataCache('environment');
 
         return { success: true, refresh: true };
     });
-};
+}
 
 /**
  * Zod type that describes information required in order to update a team.
@@ -471,13 +472,12 @@ export async function updateTeam(teamId: number, formData: unknown) {
 
         await invalidateTeamCache(teamId);
 
-        RecordLog({
-            type: kLogType.AdminUpdateTeam,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('UpdateTeam')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
                 team: data.title,
-            },
-        });
+            });
 
         return { success: true, refresh: true };
     });

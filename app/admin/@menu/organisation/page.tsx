@@ -67,7 +67,6 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: AccountBalanceIcon,
-                        badge: { migration: true, value: true },  // migration not started
                         label: 'Structure',
                         permission: [
                             'organisation.environments',

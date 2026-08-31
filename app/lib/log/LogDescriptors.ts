@@ -147,6 +147,47 @@ interface LogTypeParameterMap {
     UpdateNardoAdvice: NoParameters;
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Structure
+    // ---------------------------------------------------------------------------------------------
+
+    CreateEnvironment: {
+        domain: string;
+    };
+
+    CreateRole: {
+        role: string;
+    };
+
+    CreateTeam: {
+        team: string;
+    };
+
+    DeleteEnvironment: {
+        domain: string;
+    };
+
+    ResetTeamKey: {
+        team: string;
+    };
+
+    UpdateEnvironment: {
+        domain: string;
+    };
+
+    UpdateRole: {
+        role: string;
+    };
+
+    UpdateTeam: {
+        team: string;
+    };
+
+    UpdateTeamEnabled: {
+        team: string;
+        action: 'Enabled' | 'Disabled';
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers
     // ---------------------------------------------------------------------------------------------
 
@@ -513,6 +554,20 @@ export const kLogType: { [k in LogType]: k } = {
     CreateNardoAdvice: 'CreateNardoAdvice',
     DeleteNardoAdvice: 'DeleteNardoAdvice',
     UpdateNardoAdvice: 'UpdateNardoAdvice',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Structure
+    // ---------------------------------------------------------------------------------------------
+
+    CreateEnvironment: 'CreateEnvironment',
+    CreateRole: 'CreateRole',
+    CreateTeam: 'CreateTeam',
+    DeleteEnvironment: 'DeleteEnvironment',
+    ResetTeamKey: 'ResetTeamKey',
+    UpdateEnvironment: 'UpdateEnvironment',
+    UpdateRole: 'UpdateRole',
+    UpdateTeam: 'UpdateTeam',
+    UpdateTeamEnabled: 'UpdateTeamEnabled',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers
