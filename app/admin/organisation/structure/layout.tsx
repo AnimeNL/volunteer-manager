@@ -1,91 +1,46 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden } from 'next/navigation';
-
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import GroupsIcon from '@mui/icons-material/Groups';
-import Paper from '@mui/material/Paper';
 import PublicIcon from '@mui/icons-material/Public';
 import WorkOutlinedIcon from '@mui/icons-material/WorkOutlined';
 
-import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { or } from '@lib/auth/AuthenticationContext';
 
 /**
- * The <OrganisationEntitiesLayout> is the core page that gives the user access to the environments,
- * roles and teams that exist as part of the Volunteer Manager. Each is guarded behind a separate
- * permission, and will be displayed in a tabbed manner.
+ * The <OrganisationEntitiesLayout> is the core layout that provides tab navigation between the
+ * teams, environments and roles that exist within our organisation.
  */
 export default async function OrganisationEntitiesLayout(
     props: LayoutProps<'/admin/organisation/structure'>)
 {
-    const { access } = await requireAuthentication(or(
-        'organisation.environments',
-        'organisation.roles',
-        'organisation.teams'));
-
-    // ---------------------------------------------------------------------------------------------
-    // Determine the tabs that the signed in user has access to
-    // ---------------------------------------------------------------------------------------------
-
-    const tabs: NavigationTabsProps['tabs'] = [];
-    if (access.can('organisation.environments')) {
-        tabs.push({
-            icon: <PublicIcon />,
-            label: 'Environments',
-            url: '/admin/organisation/structure/environments',
-            urlMatchMode: 'prefix',
-        });
-    }
-
-    if (access.can('organisation.roles')) {
-        tabs.push({
-            icon: <WorkOutlinedIcon />,
-            label: 'Roles',
-            url: '/admin/organisation/structure/roles',
-        });
-    }
-
-    if (access.can('organisation.teams')) {
-        tabs.push({
-            icon: <GroupsIcon />,
-            label: 'Teams',
-            url: '/admin/organisation/structure',
-            urlMatchMode: 'prefix',
-        });
-    }
-
-    if (!tabs.length)
-        forbidden();
-
-    // ---------------------------------------------------------------------------------------------
-
+    const { access } = await requireAuthentication();
     return (
-        <>
-            <Section icon={ <AccountBalanceIcon color="primary" /> } title="Structure"
-                     documentation="organisation/structure" breadcrumbs={[
-                { label: 'Organisation', href: '/admin/organisation' },
-                { label: 'Structure' },
-            ]}>
-                <SectionIntroduction>
-                    Our organisation consists of <strong>environments</strong>,{' '}
-                    <strong>roles</strong> and <strong>teams</strong>. This page allows you to
-                    create and manage these entities.
-                </SectionIntroduction>
-            </Section>
-            <Paper>
-                <NavigationTabs tabs={tabs} />
-                <Divider />
-                <Box sx={{ p: 2 }}>
-                    {props.children}
-                </Box>
-            </Paper>
-        </>
+        <SectionTabContext access={access} tabs={[
+            {
+                Icon: GroupsIcon,
+                label: 'Teams',
+                permission: 'organisation.teams',
+                url: '/admin/organisation/structure',
+                urlMatchMode: 'strict',
+            },
+            {
+                Icon: PublicIcon,
+                label: 'Environments',
+                permission: 'organisation.environments',
+                url: '/admin/organisation/structure/environments',
+                urlMatchMode: 'prefix',
+            },
+            {
+                Icon: WorkOutlinedIcon,
+                label: 'Roles',
+                permission: 'organisation.roles',
+                url: '/admin/organisation/structure/roles',
+                urlMatchMode: 'prefix',
+            },
+        ]}>
+            {props.children}
+        </SectionTabContext>
     );
 }

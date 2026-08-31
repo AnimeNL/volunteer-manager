@@ -1,30 +1,30 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import { SelectElement, TextareaAutosizeElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
+import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Typography from '@mui/material/Typography';
+import PublicIcon from '@mui/icons-material/Public';
 
 import type { EnvironmentPurpose } from '@lib/database/Types';
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
 import { ColorInput } from '@app/admin/components/ColorInput';
 import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
-import { FormGrid } from '@app/admin/components/FormGrid';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEnvironments, tTeams } from '@lib/database';
 
-import * as actions from '../../TeamsActions';
+import { deleteEnvironment, updateEnvironment } from '../../TeamsActions';
 
 /**
  * Options for the purpose of an environment that can be selected.
@@ -69,12 +69,10 @@ export default async function EnvironmentPage(
             color: tTeams.teamColourLightTheme,
             name: tTeams.teamName,
             slug: tTeams.teamSlug,
-            title: tTeams.teamTitle,
         })
-        .orderBy('title', 'asc')
+        .orderBy('name', 'asc')
         .executeSelectMany();
 
-    const backButtonSize = canDeleteEnvironment ? 6 : 12;
     const purposeOptions = Object.entries(kEnvironmentPurposeOptions).map(([ k, v ]) => ({
         id: k,
         label: v,
@@ -82,19 +80,28 @@ export default async function EnvironmentPage(
 
     const readOnly = false;  // should we support this?
 
-    const deleteEnvironmentFn = actions.deleteEnvironment.bind(null, environment.id);
-    const updateEnvironmentFn = actions.updateEnvironment.bind(null, environment.id);
+    const deleteEnvironmentFn = deleteEnvironment.bind(null, environment.id);
+    const updateEnvironmentFn = updateEnvironment.bind(null, environment.id);
 
     return (
         <>
-            <FormGrid action={updateEnvironmentFn} defaultValues={environment}>
+            <Section icon={ <PublicIcon color="primary" /> } title={environment.title}
+                     breadcrumbs={[
+                { label: 'Organisation', href: '/admin/organisation' },
+                { label: 'Structure', href: '/admin/organisation/structure' },
+                { label: 'Environments', href: '/admin/organisation/structure/environments' },
+                { label: environment.title },
+            ]}>
+                <SectionIntroduction>
+                    Identity and configuration for the {environment.title} <em>tenant</em> on our
+                    system.
+                </SectionIntroduction>
+            </Section>
 
-                <BackButtonGrid href="/admin/organisation/structure/environments"
-                                size={backButtonSize}>
-                    Back to environments
-                </BackButtonGrid>
+            <FormGridSection noHeader tabs back="Back to environments"
+                             action={updateEnvironmentFn} defaultValues={environment}>
                 { canDeleteEnvironment &&
-                    <Grid size={{ xs: 6 }}>
+                    <Grid size={{ xs: 12 }}>
                         <ConfirmationButton action={deleteEnvironmentFn}
                                             label="Delete this environment…"
                                             sx={{ float: 'right' }}>
@@ -130,34 +137,28 @@ export default async function EnvironmentPage(
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
-                    <TextareaAutosizeElement name="description" label="Description" fullWidth
-                                             size="small" required
-                                             slotProps={{ input: { readOnly: !!readOnly } }} />
+                    <TextFieldElement name="description" label="Description" fullWidth size="small"
+                                      required multiline
+                                      slotProps={{ input: { readOnly: !!readOnly } }} />
                 </Grid>
-
-            </FormGrid>
+            </FormGridSection>
 
             { teams.length > 0 &&
-                <>
-                    <Divider sx={{ mt: 2, mb: 1 }} />
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                        Teams part of this environment
-                    </Typography>
-                    <List disablePadding>
+                <Section title="Teams" icon={ <GroupsIcon /> }>
+                    <List dense disablePadding sx={{ mx: '-16px !important' }}>
                         { teams.map(team =>
-                            <ListItemButton key={team.slug} dense LinkComponent={Link}
-                                            href={`../${team.slug}`}>
+                            <ListItemButton key={team.slug} LinkComponent={Link}
+                                            href={`/admin/organisation/structure/${team.slug}`}>
                                 <ListItemIcon>
                                     <GroupsIcon htmlColor={team.color} />
                                 </ListItemIcon>
-                                <ListItemText primary={team.name} secondary={team.title} />
+                                <ListItemText secondary={team.name} />
                             </ListItemButton> )}
                     </List>
-                </> }
-
+                </Section> }
         </>
     );
 }
 
-export const generateMetadata =
-    createGenerateMetadataFn({ environment: 'domain' }, 'Environments', 'Organisation');
+export const generateMetadata = createGenerateMetadataFn(
+    { environment: 'domain' }, 'Environments', 'Structure', 'Organisation');

@@ -165,7 +165,7 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 teams: tContentCategories.categoryTeams,
                 order: tContentCategories.categoryOrder,
             })
-            .orderBy(params.sort.field ?? 'order', params.sort.direction)
+            .orderBy('order', 'asc')
             .limit(params.page.limit)
                 .offset(params.page.offset)
             .executeSelectPage();
@@ -191,7 +191,6 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 await dbInstance.update(tContentCategories)
                     .set({
                         categoryOrder: index,
-                        categoryUpdated: dbInstance.currentZonedDateTime(),
                     })
                     .where(tContentCategories.categoryId.equals(order[index]))
                         .and(tContentCategories.eventId.equals(context.event.id))
