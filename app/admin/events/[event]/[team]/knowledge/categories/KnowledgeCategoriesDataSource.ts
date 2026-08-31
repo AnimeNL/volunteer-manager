@@ -47,12 +47,12 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
     /**
      * Roles that content in the category should be restricted to.
      */
-    roles: z.string(),
+    roles: z.array(z.number()),
 
     /**
      * Teams that content in the category should be restricted to.
      */
-    teams: z.string(),
+    teams: z.array(z.number()),
 
     /**
      * Ordering for this category.
@@ -172,7 +172,15 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
 
         return {
             rowCount: categories.count,
-            rows: categories.data,
+            rows: categories.data.map(category => ({
+                ...category,
+                roles: !!category.roles.length
+                    ? category.roles.split(',').map(v => parseInt(v, /* radix= */ 10))
+                    : [ /* none */ ],
+                teams: !!category.teams.length
+                    ? category.teams.split(',').map(v => parseInt(v, /* radix= */ 10))
+                    : [ /* none */ ],
+            }))
         };
     },
 
@@ -183,8 +191,8 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 categoryTitle: updatedRow.title,
                 categoryIcon: updatedRow.icon,
                 categoryDescription: updatedRow.description || null,
-                categoryRoles: updatedRow.roles,
-                categoryTeams: updatedRow.teams,
+                categoryRoles: updatedRow.roles.join(','),
+                categoryTeams: updatedRow.teams.join(','),
                 categoryOrder: updatedRow.order,
                 categoryUpdated: dbInstance.currentZonedDateTime(),
             })
