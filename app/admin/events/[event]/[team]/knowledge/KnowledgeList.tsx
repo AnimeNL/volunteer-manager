@@ -87,6 +87,7 @@ export function KnowledgeList(props: KnowledgeListProps) {
                 secondaryField: 'categoryName',
                 dateField: 'updatedOn',
                 dateFieldFormat: 'YYYY-MM-DD',
+                linkTemplate: './knowledge/{id}',
                 startComponent: AnswerCell,
             }}
         />
