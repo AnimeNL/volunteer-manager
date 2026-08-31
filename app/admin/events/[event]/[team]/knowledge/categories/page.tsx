@@ -29,8 +29,6 @@ export default async function KnowledgeCategoriesPage(
     if (!team.flags.managesKnowledgeBase)
         notFound();
 
-    // TODO: Re-enable reordering the rows when that's supported.
-
     const dbInstance = db;
     const availableRoles = await dbInstance.selectFrom(tEventsTeams)
         .innerJoin(tTeamsRoles)
@@ -122,16 +120,6 @@ export default async function KnowledgeCategoriesPage(
 
             type: 'multiSelect',
             valueOptions: availableTeams,
-        },
-        {
-            field: 'order',
-            headerName: 'Order',
-            align: 'center',
-            headerAlign: 'center',
-            editable: true,
-            sortable: true,
-            type: 'number',
-            width: 75,
         },
     ];
 

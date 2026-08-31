@@ -41,6 +41,11 @@ export interface DataSourceInterface<
     delete?(context: unknown, row: GridRowModel): Promise<boolean>;
 
     /**
+     * Reorders rows in the data source.
+     */
+    reorder?(context: unknown, order: unknown[]): Promise<boolean>;
+
+    /**
      * Updates a row in the data source.
      */
     update?(context: unknown, params: GridRowModel, previousParams: GridRowModel)

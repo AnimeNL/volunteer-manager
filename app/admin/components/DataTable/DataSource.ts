@@ -5,7 +5,7 @@ import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { DataSourceProps } from './DataSourceProps';
 
-export type DataSourceOperation = 'create' | 'delete' | 'list' | 'update';
+export type DataSourceOperation = 'create' | 'delete' | 'list' | 'reorder' | 'update';
 
 /**
  * Interface that has to be provided in order for a <DataTable> component to be able to gather or
@@ -62,6 +62,18 @@ export interface DataSource<Context, RowModel> {
     delete?(row: RowModel,
             props: DataSourceProps,
             context: Context): Promise<boolean>;
+
+    /**
+     * Reorders rows in the data source.
+     *
+     * @param order Ordered list of row IDs as they should now be presented.
+     * @param props Props indicating the circumstances under which this data source is used.
+     * @param context When set, contextual information required by this data source.
+     * @returns A boolean indicating whether the reorder succeeded.
+     */
+    reorder?(order: Array<RowModel extends { id: infer Id } ? Id : any>,
+             props: DataSourceProps,
+             context: Context): Promise<boolean>;
 
     /**
      * Updates a row in the data source.

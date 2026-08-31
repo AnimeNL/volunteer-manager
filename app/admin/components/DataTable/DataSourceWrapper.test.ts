@@ -228,4 +228,36 @@ describe('DataSourceWrapper', () => {
 
         expect(errorLogDelegateInvoked).toBeFalsy();
     });
+
+    it('is able to execute reorder() operations', async () => {
+        let reorderedOrder: number[] | undefined;
+
+        const wrapper = new DataSourceWrapper(kEmptyContext, kBasicRowModel, kDefaultDataSourceId, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async reorder(order, props, context) {
+                reorderedOrder = order;
+                return true;
+            },
+        });
+
+        const success = await wrapper.call('reorder', { /* empty */ }, [ 3, 1, 2 ]);
+        expect(success).toBe(true);
+        expect(reorderedOrder).toEqual([ 3, 1, 2 ]);
+
+        expect(errorLogDelegateInvoked).toBeFalsy();
+    });
+
+    it('validates the order array during reorder() operations', async () => {
+        const wrapper = new DataSourceWrapper(kEmptyContext, kBasicRowModel, kDefaultDataSourceId, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async reorder(order, props, context) {
+                return true;
+            },
+        });
+
+        await expect(wrapper.call('reorder', { /* empty */ }, [ 'not', 'a', 'number' ] as any))
+            .rejects.toThrow(/NEXT_HTTP_ERROR_FALLBACK;404/);
+
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
 });

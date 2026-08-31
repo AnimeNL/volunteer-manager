@@ -6,8 +6,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
-    type GridPaginationModel, type GridRowModel, type GridSortModel, type GridValidRowModel } from '@mui/x-data-grid-premium';
+import {
+    DataGridPremium, type GridColDef, type GridDataSource, type GridFilterModel,
+    type GridPaginationModel, type GridRowModel, type GridRowOrderChangeParams, type GridSortModel,
+    type GridValidRowModel } from '@mui/x-data-grid-premium';
 
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Alert from '@mui/material/Alert';
@@ -169,6 +171,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
     const router = useRouter();
     const subject = props.subject ?? 'item';
+
+    const enableReorder = !!props.source.reorder;
+
+    const loadedRowIdsRef = useRef<Array<number | string>>([]);
 
     // ---------------------------------------------------------------------------------------------
     // Use memoized versions of certain props that would excessively invalidate the component tree.
@@ -359,10 +365,44 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
     }, [ context, editCandidate, props.refreshOnMutation, props.source, router, subject ]);
 
     // ---------------------------------------------------------------------------------------------
+    // Ability to reorder rows in the data table, when exposed by the source.
+    // ---------------------------------------------------------------------------------------------
+
+    const handleReorder = useCallback(async (params: GridRowOrderChangeParams) => {
+        if (!props.source.reorder)
+            return;
+
+        if (params.oldIndex === params.targetIndex)
+            return;
+
+        const rowIds = [ ...loadedRowIdsRef.current ];
+        if (params.oldIndex < 0 || params.oldIndex >= rowIds.length)
+            return;
+        if (params.targetIndex < 0 || params.targetIndex >= rowIds.length)
+            return;
+
+        const movedId = rowIds.splice(params.oldIndex, 1)[0];
+        rowIds.splice(params.targetIndex, 0, movedId);
+
+        loadedRowIdsRef.current = rowIds;
+
+        try {
+            const result = await props.source.reorder(contextRef.current, rowIds);
+            if (!result)
+                throw new Error(`Unable to update the row order for these ${subject}s`);
+
+            if (props.refreshOnMutation)
+                router.refresh();
+
+        } catch (error: any) {
+            setError(error.message);
+            setRefreshTrigger(prev => prev + 1);
+        }
+    }, [ props.refreshOnMutation, props.source.reorder, router, subject ]);
+
+    // ---------------------------------------------------------------------------------------------
     // Compose the columns. Various common, canonical column types have templates to avoid having to
     // redefine their interface several times, which are handled here.
-    //
-    // TODO: Automatically generated column for reordering
     // ---------------------------------------------------------------------------------------------
 
     const columns = useMemo(() => {
@@ -413,15 +453,19 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
         }
 
         for (const column of props.columns) {
+            let sortable: boolean | undefined = column.sortable;
+            if (enableReorder)
+                sortable = false;
+
             if ('template' in column && !!column.template)
-                columns.push(kColumnTemplates[column.template](column));
+                columns.push({ ...kColumnTemplates[column.template](column), sortable });
             else
-                columns.push(column);
+                columns.push({ ...column, sortable });
         }
 
         return columns;
 
-    }, [ props.columns, props.source.create, props.source.delete, isMobile, subject,
+    }, [ enableReorder, props.columns, props.source.create, props.source.delete, isMobile, subject,
          props.protectedColumn ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -441,7 +485,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
         return {
             getRows: async (params) => {
-                return sourceRef.current.list(contextRef.current, params);
+                const response = await sourceRef.current.list(contextRef.current, params);
+
+                loadedRowIdsRef.current = response.rows.map((row: any) => row.id);
+                return response;
             },
             updateRow: props.source.update
                 ? async (params) => {
@@ -488,14 +535,17 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
                 editMode={sourceRef.current.update ? 'row' : undefined}
 
+                rowReordering={!isMobile && enableReorder}
+                onRowOrderChange={enableReorder ? handleReorder : undefined}
+
                 density="compact"
                 pageSizeOptions={kPageSizeOptions}
                 pagination
                 paginationModel={{ page, pageSize }}
                 onPaginationModelChange={handlePaginationModelChange}
 
-                sortModel={sortModel}
-                onSortModelChange={handleSortModelChange}
+                sortModel={enableReorder ? undefined : sortModel}
+                onSortModelChange={enableReorder ? undefined : handleSortModelChange}
 
                 filterModel={filterModel}
                 onFilterModelChange={handleFilterModelChange}

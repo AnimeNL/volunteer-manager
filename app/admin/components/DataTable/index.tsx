@@ -3,8 +3,6 @@
 
 // TODO:
 // - Client side:
-//   - Functionality:
-//     - Reorder rows
 //   - Presentation:
 //     - Tree data?
 

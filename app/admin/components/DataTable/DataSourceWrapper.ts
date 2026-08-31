@@ -42,6 +42,9 @@ function toAccessOperation(operation: DataSourceOperation): AccessOperation {
 
         case 'list':
             return 'read';
+
+        case 'reorder':
+            return 'update';
     }
 }
 
@@ -95,8 +98,11 @@ export class DataSourceWrapper {
         if (!verifiedContextResult.success)
             throw new Error('Invalid context passed to a data source, unable to authorize');
 
+        const kOperations: DataSourceOperation[] =
+            [ 'create', 'delete', 'list', 'reorder', 'update' ];
+
         const allowedOperations = new Set<DataSourceOperation>;
-        for (const operation of [ 'create', 'delete', 'list', 'update' ] as DataSourceOperation[]) {
+        for (const operation of kOperations) {
             if (!Object.hasOwn(this.#dataSource, operation))
                 continue;  // operation not supported by the data source
 
@@ -122,6 +128,7 @@ export class DataSourceWrapper {
      */
     async call(operation: 'create', context: unknown, partialRow: GridRowModel): Promise<boolean>;
     async call(operation: 'delete', context: unknown, params: GridRowModel): Promise<boolean>;
+    async call(operation: 'reorder', context: unknown, order: unknown[]): Promise<boolean>;
     async call(operation: 'update', context: unknown, params: GridRowModel, previousParams: GridRowModel): Promise<boolean | GridRowModel>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
@@ -195,6 +202,27 @@ export class DataSourceWrapper {
                 }
 
                 return this.#dataSource.delete!(deletingRowValidation.data, props, verifiedContext);
+            }
+
+            case 'reorder': {
+                if (!Object.hasOwn(this.#dataSource, 'reorder')) {
+                    this.reportError(
+                        operation, context, 'Data source does not support reorder() operations');
+
+                    notFound();  // does not return
+                }
+
+                const orderValidation =
+                    await z.array(this.#rowModel.shape.id).safeParseAsync(args[0]);
+                if (!orderValidation.success) {
+                    this.reportError(
+                        operation, context, 'Unable to validate the order given by the client',
+                        orderValidation.error);
+
+                    notFound();  // does not return
+                }
+
+                return this.#dataSource.reorder!(orderValidation.data, props, verifiedContext);
             }
 
             case 'update': {

@@ -99,6 +99,7 @@ export function createDataSource(...args: any) {
         create: undefined,
         delete: undefined,
         list: listProxy.bind(null, dataSourceId),
+        reorder: undefined,
         update: undefined,
     };
 
@@ -107,6 +108,9 @@ export function createDataSource(...args: any) {
 
     if (Object.hasOwn(instance, 'delete'))
         dataSourceInterface.delete = deleteProxy.bind(null, dataSourceId);
+
+    if (Object.hasOwn(instance, 'reorder'))
+        dataSourceInterface.reorder = reorderProxy.bind(null, dataSourceId);
 
     if (Object.hasOwn(instance, 'update'))
         dataSourceInterface.update = updateProxy.bind(null, dataSourceId);
@@ -131,7 +135,8 @@ export async function authorizeDataSource<DataSourceType extends DataSourceInter
     const authorizedOperations =
         await dataSourceWrapper.batchAuthorizeOperations(authenticationContext, context);
 
-    for (const operation of [ 'create', 'delete', 'list', 'update' ] as DataSourceOperation[]) {
+    const kOperations: DataSourceOperation[] = [ 'create', 'delete', 'list', 'reorder', 'update' ];
+    for (const operation of kOperations) {
         if (!authorizedOperations.has(operation))
             delete authorizedDataSource[operation];
     }
@@ -176,6 +181,19 @@ async function listProxy(dataSourceId: string, context: unknown, params: GridGet
         notFound();
 
     return dataSourceWrapper.call('list', context, params);
+}
+
+/**
+ * Proxy Server Action towards reordering rows in the associated data source.
+ */
+async function reorderProxy(dataSourceId: string, context: unknown, order: unknown[]) {
+    'use server';
+
+    const dataSourceWrapper = kDataSourceRegistry.get(dataSourceId);
+    if (!dataSourceWrapper)
+        notFound();
+
+    return dataSourceWrapper.call('reorder', context, order);
 }
 
 /**

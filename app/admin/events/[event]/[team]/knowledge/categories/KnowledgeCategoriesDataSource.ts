@@ -184,6 +184,26 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
         };
     },
 
+    async reorder(order, props, context) {
+        const dbInstance = db;
+        await dbInstance.transaction(async () => {
+            for (let index = 0; index < order.length; ++index) {
+                await dbInstance.update(tContentCategories)
+                    .set({
+                        categoryOrder: index,
+                        categoryUpdated: dbInstance.currentZonedDateTime(),
+                    })
+                    .where(tContentCategories.categoryId.equals(order[index]))
+                        .and(tContentCategories.eventId.equals(context.event.id))
+                        .and(tContentCategories.categoryDeleted.isNull())
+                    .executeUpdate();
+            }
+        });
+
+        ScheduleCache.clear('knowledge', context.event.id);
+        return true;
+    },
+
     async update(updatedRow, previousRow, props, context) {
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tContentCategories)
