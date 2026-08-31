@@ -48,7 +48,6 @@ import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id
 import type { ProgramLocationsEndpoints } from '@app/api/admin/program/locations/[[...id]]/route';
 import type { ProgramRequestEndpoints } from '@app/api/admin/program/requests/[[...id]]/route';
 import type { RefundRequestEndpoints } from '@app/api/admin/refunds/[[...id]]/route';
-import type { RolesEndpoints } from '@app/api/admin/organisation/roles/[[...id]]/route';
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
 import type { TrainingsExtraEndpoints } from '@app/api/admin/trainings/extra/[[...id]]/route';
@@ -72,7 +71,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
-        '/api/admin/organisation/roles': RolesEndpoints['list'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
         '/api/admin/program/areas': ProgramAreasEndpoints['list'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['list'],
@@ -91,7 +89,6 @@ export type ApiEndpoints = {
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
         '/api/admin/hotels': HotelsEndpoints['create'],
-        '/api/admin/organisation/roles': RolesEndpoints['create'],
         '/api/admin/program/activities': ProgramActivitiesEndpoints['create'],
         '/api/admin/program/areas': ProgramAreasEndpoints['create'],
         '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
@@ -140,7 +137,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],
-        '/api/admin/organisation/roles/:id': RolesEndpoints['update'],
         '/api/admin/program/activities/:id': ProgramActivitiesEndpoints['list'],
         '/api/admin/program/areas/:id': ProgramAreasEndpoints['update'],
         '/api/admin/program/locations/:id': ProgramLocationsEndpoints['update'],
