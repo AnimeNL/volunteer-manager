@@ -6,15 +6,13 @@ import { z } from 'zod/v4';
 
 import { TextFieldElement } from '@proxy/react-hook-form-mui';
 
-import DeleteIcon from '@mui/icons-material/Delete';
 import Grid from '@mui/material/Grid';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
 import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withContext,
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
-
+import { DeleteIncidentAction } from './DeleteIncidentAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { SectionClearAction } from '@app/admin/components/SectionClearAction';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
 import { VisibilityToggle } from './VisibilityToggle';
@@ -172,15 +170,8 @@ export default async function EventTeamDutyBookIncidentPage(
         actions.updateVisibility.bind(null, event.slug, team.slug, incident.id);
 
     let sectionClearAction: React.ReactNode = undefined;
-    if (access.can('event.duty-book', 'delete', { event: event.slug, team: team.slug })) {
-        sectionClearAction = (
-            <SectionClearAction action={deleteIncidentFn}
-                                icon={ <DeleteIcon color="error" fontSize="small" /> }
-                                subject="incident"
-                                title="Remove this incident"
-                                verb="remove" />
-        );
-    }
+    if (access.can('event.duty-book', 'delete', { event: event.slug, team: team.slug }))
+        sectionClearAction = <DeleteIncidentAction action={deleteIncidentFn} />;
 
     // ---------------------------------------------------------------------------------------------
 

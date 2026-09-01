@@ -14,10 +14,9 @@ import DoneIcon from '@mui/icons-material/Done';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
+import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
 
 /**
  * Props accepted by the <AvatarControl> component.
@@ -68,24 +67,7 @@ export function AvatarControl(props: AvatarControlProps) {
     const handleDeleteClose = useCallback(() => setDeleteOpen(false), [ /* no deps */ ]);
     const handleDeleteOpen = useCallback(() => setDeleteOpen(true), [ /* no deps */ ]);
 
-    const { deleteFn, setDefaultFn } = props;
-
-    const handleDeleteCommit = useCallback(async () => {
-        if (!deleteFn)
-            return { error: 'No delete action is available' };
-
-        const result = await deleteFn(new FormData);
-        if (!result.success)
-            return { error: result.error };
-
-        setSnackbarOpen(true);
-        setSnackbarText('Selected avatar has been deleted');
-        setSnackbarType('success');
-
-        router.refresh();
-        return true;
-
-    }, [ deleteFn, router ]);
+    const { setDefaultFn } = props;
 
     const handleSetDefault = useCallback(async () => {
         try {
@@ -157,14 +139,12 @@ export function AvatarControl(props: AvatarControlProps) {
                 </Alert>
             </Snackbar>
             { !!props.deleteFn &&
-                <ConfirmationDialog open={deleteOpen} onClose={handleDeleteClose}
-                                    onConfirm={handleDeleteCommit}
-                                    title="Delete this avatar?" confirmLabel="Delete">
-                    <Typography variant="body1">
-                        Are you sure you want to remove this avatar? Once it's gone, you won't be
-                        able to bring it back.
-                    </Typography>
-                </ConfirmationDialog> }
+                <ResponsiveConfirmationDialog open={deleteOpen} onClose={handleDeleteClose}
+                                              action={props.deleteFn} confirmLabel="Delete"
+                                              title="Delete this avatar?">
+                    Are you sure you want to remove this avatar? Once it's gone, you won't be
+                    able to bring it back.
+                </ResponsiveConfirmationDialog> }
         </>
     );
 }

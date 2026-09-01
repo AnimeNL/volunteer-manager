@@ -13,10 +13,11 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PublicIcon from '@mui/icons-material/Public';
+import Stack from '@mui/material/Stack';
 
 import type { EnvironmentPurpose } from '@lib/database/Types';
 import { ColorInput } from '@app/admin/components/ColorInput';
-import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
+import { DeleteEnvironmentAction } from './DeleteEnvironmentAction';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -102,14 +103,10 @@ export default async function EnvironmentPage(
                              action={updateEnvironmentFn} defaultValues={environment}>
                 { canDeleteEnvironment &&
                     <Grid size={{ xs: 12 }}>
-                        <ConfirmationButton action={deleteEnvironmentFn}
-                                            label="Delete this environment…"
-                                            sx={{ float: 'right' }}>
-                            Are you sure you want to delete <strong>{environment.domain}</strong>?
-                            This action is permanent and cannot be undone. All teams currently
-                            linked to this environment will need to be reassigned to a different
-                            one.
-                        </ConfirmationButton>
+                        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
+                            <DeleteEnvironmentAction action={deleteEnvironmentFn}
+                                                     domain={environment.domain} />
+                        </Stack>
                     </Grid> }
 
                 <Grid size={{ xs: 12, md: 6 }}>

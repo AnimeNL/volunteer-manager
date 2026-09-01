@@ -183,15 +183,17 @@ export async function confirmDiscord(userId: number, formData: unknown) {
                 .and(tUsers.discordHandleUpdated.isNotNull())
             .executeUpdate();
 
-        if (!affectedRows)
-            return { success: false, error: 'The verification could not be stored…' };
-
         LogBuilder.for('AdminVerifyDiscord')
+            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .withAffectedUser(userId)
             .record();
 
-        return { success: true };
+        return {
+            success: true,
+            refresh: true,
+            close: true,
+        };
     });
 }
 

@@ -15,9 +15,9 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ConfirmationDialog } from '@app/admin/components/ConfirmationDialog';
 import { DiscordIcon } from '@app/admin/components/icons/DiscordIcon';
 import { LocalDatePickerElement } from '@components/LocalDatePickerElement';
+import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
 
 import { kGenderOptions, kLanguageOptions } from '@app/registration/authentication/RegisterForm';
 
@@ -146,13 +146,14 @@ export function AccountInformation(props: AccountInformationProps) {
             </Grid>
 
             { !!props.discordHandle &&
-                <ConfirmationDialog open={!!discordConfirmationOpen} onClose={handleCloseDiscord}
-                                    onConfirm={handleConfirmDiscord}
-                                    title="Verify their Discord handle">
+                <ResponsiveConfirmationDialog open={!!discordConfirmationOpen}
+                                              onClose={handleCloseDiscord}
+                                              action={props.confirmDiscordFn} confirmColor="success"
+                                              title="Verify their Discord handle">
                     By confirming this dialog, you verify that their Discord handle
                     (<strong>{props.discordHandle}</strong>) has been granted the "Crew" role on our
                     server. Ideally you'd have send them a nice message too.
-                </ConfirmationDialog> }
+                </ResponsiveConfirmationDialog> }
 
         </>
     );

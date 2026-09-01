@@ -6,23 +6,20 @@ import { notFound } from 'next/navigation';
 import { AutocompleteElement, SelectElement, TextareaAutosizeElement, TextFieldElement }
     from '@components/proxy/react-hook-form-mui';
 
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
-import KeyIcon from '@mui/icons-material/Key';
 import List from '@mui/material/List';
-import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 import Stack from '@mui/material/Stack';
 
 import type { FlagProps } from './Flag';
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
 import { ColorInput } from '@app/admin/components/ColorInput';
-import { ConfirmationButton } from '@app/admin/components/ConfirmationButton';
 import { Flag } from './Flag';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TeamQuickActions } from './TeamQuickActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
@@ -173,9 +170,18 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
     const readOnly = false;  // should we support this?
 
-    const disableTeamFn = actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ false);
-    const enableTeamFn = actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ true);
-    const resetTeamKeyFn = actions.resetTeamKey.bind(null, team.id);
+    const disableTeamFn = (canDisableTeam && !!team.enabled)
+        ? actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ false)
+        : undefined;
+
+    const enableTeamFn = (canDisableTeam && !team.enabled)
+        ? actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ true)
+        : undefined;
+
+    const resetTeamKeyFn = canResetInviteKey
+        ? actions.resetTeamKey.bind(null, team.id)
+        : undefined;
+
     const updateTeamFn = actions.updateTeam.bind(null, team.id);
 
     // ---------------------------------------------------------------------------------------------
@@ -198,30 +204,10 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
                 { (canResetInviteKey || canDisableTeam) &&
                     <Grid size={{ xs: 12 }}>
                         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-                            { canResetInviteKey &&
-                                <ConfirmationButton callToAction="Reset" action={resetTeamKeyFn}
-                                                    icon={ <KeyIcon /> } color="info"
-                                                    label="Reset key…">
-                                    Are you sure you want to reset the <strong>{team.name} </strong>
-                                    team's key? This will invalidate all invite links, for past
-                                    and future events alike.
-                                </ConfirmationButton> }
-                            { (canDisableTeam && !!team.enabled) &&
-                                <ConfirmationButton callToAction="Disable" action={disableTeamFn}
-                                                    icon={ <RemoveCircleOutlinedIcon /> }
-                                                    label="Disable this team…">
-                                    Are you sure you want to disable the <strong>{team.name} </strong>
-                                    team? This will stop the team from being considered for any future
-                                    events, but won't remove any data.
-                                </ConfirmationButton> }
-                            { (canDisableTeam && !team.enabled) &&
-                                <ConfirmationButton callToAction="Enable" action={enableTeamFn}
-                                                    color="success" icon={ <AddCircleOutlinedIcon /> }
-                                                    label="Enable this team…">
-                                    Are you sure you want to enable the <strong>{team.name} </strong>
-                                    team? This means that they can be considered for future events
-                                    again.
-                                </ConfirmationButton> }
+                            <TeamQuickActions name={team.name}
+                                              disableTeamFn={disableTeamFn}
+                                              enableTeamFn={enableTeamFn}
+                                              resetKeyFn={resetTeamKeyFn} />
                         </Stack>
                     </Grid> }
 
