@@ -3,8 +3,6 @@
 
 import { notFound } from 'next/navigation';
 
-import Collapse from '@mui/material/Collapse';
-
 import { HotelAssignment } from './HotelAssignment';
 import { HotelConfiguration } from './HotelConfiguration';
 import { HotelPendingAssignment } from './HotelPendingAssignment';
@@ -38,18 +36,13 @@ export default async function EventHotelsPage(props: PageProps<'/admin/events/[e
     // An alphabetically ordered list of the visible hotel room options.
     const rooms = processor.composeRoomOptions();
 
-    // An alphabetically ordered list of volunteers whose requests have not been fulfilled yet.
-    const unassignedRequests = processor.compileUnassignedRequests();
-
     // A prioritised list of the warnings in the current hotel room planning.
     const warnings = processor.compileWarnings();
 
     return (
         <>
             <HotelAssignment event={event} requests={requests} rooms={rooms} warnings={warnings} />
-            <Collapse in={!!unassignedRequests.length} sx={{ mt: '0px !important' }}>
-                <HotelPendingAssignment requests={unassignedRequests} />
-            </Collapse>
+            <HotelPendingAssignment event={event.slug} />
             <HotelConfiguration event={event} />
         </>
     );

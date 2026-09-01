@@ -1,10 +1,9 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { HotelPendingRequestRowModel } from './HotelPendingAssignment';
 import { formatDate, isBefore } from '@lib/Temporal';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tTeams, tUsers, tUsersEvents }
-    from '@lib/database';
+import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tTeams, tUsers,
+    tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -139,37 +138,6 @@ export class HotelProcessor {
 
         for (const preference of preferences)
             this.#preferences.set(preference.userId, preference);
-    }
-
-    /**
-     * Returns a list of the hotel requests that have not been fulfilled yet.
-     */
-    compileUnassignedRequests(): HotelPendingRequestRowModel[] {
-        const unassignedRequests: HotelPendingRequestRowModel[] = [];
-        for (const request of this.#preferences.values()) {
-            if (this.#assignmentsForUsers.has(request.userId))
-                continue;  // the volunteer already has an assigned room
-
-            if (!request.hotelId || !request.checkIn || !request.checkOut)
-                continue;  // the volunteer doesn't want a hotel room
-
-            const hotel = this.#hotels.get(request.hotelId);
-            if (!hotel)
-                throw new Error(`Invalid hotel room specified for volunteer ${request.userId}`)
-
-            unassignedRequests.push({
-                id: request.userId,
-                name: request.name,
-                team: request.team,
-                hotel: `${hotel.hotelName} (${hotel.roomName})`,
-                checkIn: request.checkIn.toString(),
-                checkOut: request.checkOut.toString(),
-                requested: formatDate(request.updated, 'YYYY-MM-DD'),
-            });
-        }
-
-        unassignedRequests.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-        return unassignedRequests;
     }
 
     /**
