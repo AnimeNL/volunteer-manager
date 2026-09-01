@@ -1,4 +1,4 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use server';
@@ -8,14 +8,14 @@ import { z } from 'zod/v4';
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
     from '@mui/x-charts-premium';
 
-import type { RemoteGraphFnReturn } from './finance/graphs/RemoteGraphFn';
+import type { RemoteGraphFnReturn } from '../finance/graphs/RemoteGraphFn';
 import { executeServerAction } from '@lib/serverAction';
 import { isAfter, isBefore } from '@lib/Temporal';
 import db, { tEvents, tEventsDates, tUsersEvents } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';
 import { kDateType, kRegistrationStatus } from '@lib/database/Types';
-import { kProductHighlightColors } from './finance/graphs/ProductHighlightColors';
+import { kProductHighlightColors } from '../finance/graphs/ProductHighlightColors';
 
 /**
  * Which colours should the edition series be rendered in? More recent series (first entries) should

@@ -123,7 +123,8 @@ export function RemoteGraph(props: RemoteGraphProps) {
             <ChartsGrid horizontal />
             <ChartsTooltip />
             <ChartsXAxis />
-            { result.yAxis.map(axis => <ChartsYAxis key={axis.id} axisId={axis.id} />) }
+            { result.yAxis.map((axis, index) =>
+                <ChartsYAxis key={axis.id ?? index} axisId={axis.id} />) }
         </ChartsContainerPremium>
     );
 }

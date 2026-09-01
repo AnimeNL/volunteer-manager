@@ -3,20 +3,17 @@
 
 import GroupIcon from '@mui/icons-material/Group';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
-import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import SsidChartIcon from '@mui/icons-material/SsidChart';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { CachedEvent } from '@lib/cache';
 import { DashboardCard } from '@app/admin/dashboard/DashboardCard';
 import { DashboardCardTitle } from '@app/admin/dashboard/DashboardCardTitle';
-import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
+import { EventTeamsGrowthIconButton } from './EventTeamsGrowthIconButton';
 import db, { tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 /**
@@ -76,13 +73,11 @@ export async function EventTeamsCard(props: EventTeamsCardProps) {
                                     / {team.target}
                                 </Typography>
                             </Typography>
-                            <IconButton size="small">
-                                <Tooltip title="Coming back soon!">
-                                    <TooltipIconWrapper>
-                                    <SsidChartIcon color="primary" fontSize="inherit" />
-                                    </TooltipIconWrapper>
-                                </Tooltip>
-                            </IconButton>
+                            <EventTeamsGrowthIconButton
+                                eventId={props.event.id}
+                                eventSlug={props.event.slug}
+                                teamId={team.id}
+                                teamName={team.name} />
                         </Stack>
                     </ListItem> ) }
             </List>
