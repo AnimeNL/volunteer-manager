@@ -1,11 +1,15 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import TabletIcon from '@mui/icons-material/Tablet';
+
 import type { DisplayTableEventOption, DisplayTableLocationOption } from './DisplaysTable';
 import { DisplaysTable } from './DisplaysTable';
-import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEvents, tActivitiesLocations } from '@lib/database';
+import db, { tActivitiesLocations, tEvents } from '@lib/database';
 
 /**
  * The <DisplaysPage> component hosts a data table that shows the physical displays that have
@@ -38,7 +42,26 @@ export default async function DisplaysPage() {
         .orderBy('label', 'asc')
         .executeSelectMany();
 
-    return <DisplaysTable events={events} locations={locations} />;
+    return (
+        <>
+            <Section icon={ <TabletIcon color="primary" /> }
+                     title="Displays"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Displays' },
+                     ]}>
+                <SectionIntroduction>
+                    We distribute <strong>physical displays</strong> during the festival to help
+                    busy areas self-manage their volunteers. They automatically register with the
+                    Volunteer Manager, and can be provisioned and controlled through this interface.
+                    Updates can take a few minutes to propagate.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                <DisplaysTable events={events} locations={locations} />
+            </Section>
+        </>
+    );
 }
 
 export const generateMetadata = createGenerateMetadataFn('Displays', 'Organisation');

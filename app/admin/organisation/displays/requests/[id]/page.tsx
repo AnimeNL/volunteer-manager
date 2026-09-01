@@ -1,22 +1,17 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
+import HelpIcon from '@mui/icons-material/Help';
 import Alert from '@mui/material/Alert';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import { BackButtonGrid } from '@app/admin/components/BackButtonGrid';
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
-import { createGenerateMetadataFn } from '../../../../lib/generatePageMetadata';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
@@ -82,145 +77,111 @@ export default async function DisplayRequestPage(
                 /* noPrefix= */ true);
     }
 
-    const accountBaseUrl = '/admin/organisation/accounts/';
-
     return (
-        <Grid container spacing={2}>
-            <BackButtonGrid href="/admin/organisation/displays/requests">
-                Back to help requests
-            </BackButtonGrid>
-
-            <Grid size={{ xs: 12 }} sx={{ mt: -1 }}><Divider /></Grid>
-            <Grid size={{ xs: 12 }} sx={{ mt: -2 }}>
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Date
-                            </TableCell>
-                            <TableCell>
-                                <LocalDateTime dateTime={request.date.toString()}
-                                               format="MMMM D, YYYY [at] H:mm:ss" />
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Received from display
-                            </TableCell>
-                            <TableCell>
-                                {request.display}
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Received for event
-                            </TableCell>
-                            <TableCell>
-                                {request.event}
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell width="25%" component="th" scope="row">
-                                Request target
-                            </TableCell>
-                            <TableCell>
-                                {request.target}
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </Grid>
-
+        <>
+            <Section icon={ <HelpIcon color="primary" /> }
+                     title={`Help request #${id}`}
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Displays', href: '/admin/organisation/displays' },
+                         { label: 'Help requests', href: '/admin/organisation/displays/requests' },
+                         { label: `#${id}` },
+                     ]}>
+                <SectionIntroduction>
+                    Help request issued by <strong>{request.display}</strong> during {request.event}.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader back="Back to help requests" tabs>
+                <KeyValueList items={[
+                    {
+                        key: 'Date',
+                        value: request.date.toString(),
+                        valueTemplate: 'localDateTime',
+                    },
+                    {
+                        key: 'Received from display',
+                        value: request.display,
+                    },
+                    {
+                        key: 'Received for event',
+                        value: request.event,
+                    },
+                    {
+                        key: 'Request target',
+                        value: request.target,
+                    },
+                ]} />
+            </Section>
             { !request.acknowledgedBy &&
-                <Grid size={{ xs: 12 }}>
+                <Section noHeader>
                     <Alert severity="warning">
                         This request has not been acknowledged yet.
                     </Alert>
-                </Grid> }
+                </Section> }
             { !!request.acknowledgedBy &&
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6" sx={{ mt: -1 }}>
-                        Acknowledgement
-                    </Typography>
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">
-                                    Acknowledged
-                                </TableCell>
-                                <TableCell>
-                                    <LocalDateTime dateTime={request.acknowledgedDate!.toString()}
-                                                   format="MMMM D, YYYY [at] H:mm:ss" />
+                <Section title="Acknowledgement">
+                    <KeyValueList items={[
+                        {
+                            key: 'Acknowledged',
+                            value: (
+                                <Typography variant="body2">
+                                    <LocalDateTime
+                                        dateTime={request.acknowledgedDate!.toString()}
+                                        format="YYYY-MM-DD HH:mm:ss" />
                                     {' '}(latency: {acknowledgedLatency})
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell component="th" scope="row">
-                                    Volunteer
-                                </TableCell>
-                                <TableCell>
-                                    <MuiLink
-                                        component={Link}
-                                        href={`${accountBaseUrl}${request.acknowledgedByUserId}`}>
-
-                                        {request.acknowledgedBy}
-
-                                    </MuiLink>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </Grid> }
-
+                                </Typography>
+                            ),
+                            valueTemplate: 'component',
+                        },
+                        {
+                            key: 'Volunteer',
+                            value: {
+                                id: request.acknowledgedByUserId!,
+                                name: request.acknowledgedBy!,
+                            },
+                            valueTemplate: 'account',
+                        },
+                    ]} />
+                </Section> }
             { !request.closedBy &&
-                <Grid size={{ xs: 12 }}>
+                <Section noHeader>
                     <Alert severity="warning">
                         This request has not been closed yet.
                     </Alert>
-                </Grid> }
+                </Section> }
             { !!request.closedBy &&
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="h6" sx={{ mt: -1 }}>
-                        Resolution
-                    </Typography>
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell width="25%" component="th" scope="row">
-                                    Closed
-                                </TableCell>
-                                <TableCell>
-                                    <LocalDateTime dateTime={request.closedDate!.toString()}
-                                                   format="MMMM D, YYYY [at] H:mm:ss" />
+                <Section title="Resolution">
+                    <KeyValueList items={[
+                        {
+                            key: 'Closed',
+                            value: (
+                                <Typography variant="body2">
+                                    <LocalDateTime
+                                        dateTime={request.closedDate!.toString()}
+                                        format="YYYY-MM-DD HH:mm:ss" />
                                     {' '}(latency: {closedLatency})
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell component="th" scope="row">
-                                    Volunteer
-                                </TableCell>
-                                <TableCell>
-                                    <MuiLink component={Link}
-                                             href={`${accountBaseUrl}${request.closedByUserId}`}>
-                                        {request.closedBy}
-                                    </MuiLink>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell component="th" scope="row">
-                                    Reason
-                                </TableCell>
-                                <TableCell>
-                                    {request.closedReason ?? 'No reason given…'}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </Grid> }
-
-        </Grid>
+                                </Typography>
+                            ),
+                            valueTemplate: 'component',
+                        },
+                        {
+                            key: 'Volunteer',
+                            value: {
+                                id: request.closedByUserId!,
+                                name: request.closedBy!,
+                            },
+                            valueTemplate: 'account',
+                        },
+                        {
+                            key: 'Reason',
+                            value: request.closedReason ?? 'No reason given…',
+                        },
+                    ]} />
+                </Section> }
+        </>
     );
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn('Help request', 'Displays', 'Organisation');
+    createGenerateMetadataFn({ param: 'id', prefix: '#' }, 'Help requests', 'Displays',
+                             'Organisation');

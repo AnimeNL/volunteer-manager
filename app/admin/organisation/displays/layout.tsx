@@ -1,15 +1,10 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import HelpIcon from '@mui/icons-material/Help';
-import Paper from '@mui/material/Paper';
 import TabletIcon from '@mui/icons-material/Tablet';
 
-import { NavigationTabs, type NavigationTabsProps } from '@app/admin/components/NavigationTabs';
-import { Section } from '@app/admin/components/Section';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
@@ -17,49 +12,24 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * which also includes visualising the received help requests.
  */
 export default async function DisplaysLayout(props: LayoutProps<'/admin/organisation/displays'>) {
-    await requireAuthentication('organisation.displays');
-
-    // ---------------------------------------------------------------------------------------------
-    // Determine the tabs that the signed in user has access to
-    // ---------------------------------------------------------------------------------------------
-
-    const tabs: NavigationTabsProps['tabs'] = [
-        {
-            icon: <TabletIcon />,
-            label: 'Devices',
-            url: '/admin/organisation/displays',
-            urlMatchMode: 'strict',
-        },
-        {
-            icon: <HelpIcon />,
-            label: 'Help requests',
-            url: '/admin/organisation/displays/requests',
-            urlMatchMode: 'prefix',
-        },
-    ];
-
-    // ---------------------------------------------------------------------------------------------
+    const { access } = await requireAuthentication('organisation.displays');
 
     return (
-        <>
-            <Section icon={ <TabletIcon color="primary" /> } title="Displays" breadcrumbs={[
-                { label: 'Organisation', href: '/admin/organisation' },
-                { label: 'Displays' },
-            ]}>
-                <SectionIntroduction>
-                    We distribute <strong>physical displays</strong> during the festival to help
-                    busy areas self-manage their volunteers. They automatically register with the
-                    Volunteer Manager, and can be provisioned and controlled through this interface.
-                    Updates can take a few minutes to propagate.
-                </SectionIntroduction>
-            </Section>
-            <Paper>
-                <NavigationTabs tabs={tabs} />
-                <Divider />
-                <Box sx={{ p: 2 }}>
-                    {props.children}
-                </Box>
-            </Paper>
-        </>
+        <SectionTabContext access={access} tabs={[
+            {
+                Icon: TabletIcon,
+                label: 'Devices',
+                url: '/admin/organisation/displays',
+                urlMatchMode: 'strict',
+            },
+            {
+                Icon: HelpIcon,
+                label: 'Help requests',
+                url: '/admin/organisation/displays/requests',
+                urlMatchMode: 'prefix',
+            },
+        ]}>
+            {props.children}
+        </SectionTabContext>
     );
 }

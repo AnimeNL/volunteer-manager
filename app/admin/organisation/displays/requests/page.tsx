@@ -3,12 +3,16 @@
 
 import { z } from 'zod/v4';
 
+import HelpIcon from '@mui/icons-material/Help';
+
+import { HelpRequestStatusCell, HelpRequestTargetCell } from './HelpRequestRowComponents';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { HelpRequestStatusCell, HelpRequestTargetCell } from './HelpRequestRowComponents';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestTarget } from '@lib/database/Types';
@@ -192,21 +196,38 @@ export default async function HelpRequestsPage() {
     ];
 
     return (
-        <DataTable
-            columns={columns}
-            source={helpRequestsDataSource}
-            defaultSort={{ field: 'date', sort: 'desc' }}
-            pageSize={25}
-            listViewProps={{
-                primaryField: 'display',
-                secondaryTemplate: 'Request for {target}',
-                dateField: 'date',
-                dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
-                startComponent: HelpRequestStatusCell,
-                linkTemplate: './requests/{id}',
-            }}
-        />
+        <>
+            <Section icon={ <HelpIcon color="primary" /> }
+                     title="Help requests"
+                     breadcrumbs={[
+                         { label: 'Organisation', href: '/admin/organisation' },
+                         { label: 'Displays', href: '/admin/organisation/displays' },
+                         { label: 'Help requests' },
+                     ]}>
+                <SectionIntroduction>
+                    Overview of the help requests that have been issued through our physical
+                    displays.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader tabs>
+                <DataTable
+                    columns={columns}
+                    source={helpRequestsDataSource}
+                    defaultSort={{ field: 'date', sort: 'desc' }}
+                    pageSize={25}
+                    listViewProps={{
+                        primaryField: 'display',
+                        secondaryTemplate: 'Request for {target}',
+                        dateField: 'date',
+                        dateFieldFormat: 'YYYY-MM-DD HH:mm:ss',
+                        startComponent: HelpRequestStatusCell,
+                        linkTemplate: './requests/{id}',
+                    }}
+                />
+            </Section>
+        </>
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Help Requests', 'Organisation');
+export const generateMetadata =
+    createGenerateMetadataFn('Help requests', 'Displays', 'Organisation');
