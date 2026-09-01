@@ -4,9 +4,9 @@
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 
-import { SelectElement } from '@proxy/react-hook-form-mui';
+import { SelectElement, TimePickerElement } from '@proxy/react-hook-form-mui';
 
 import type { PopoverPosition } from '@mui/material/Popover';
 import Button from '@mui/material/Button';
@@ -31,11 +31,10 @@ import type { ScheduleEvent, ScheduleEventMutation, ScheduleMarker, ScheduleReso
     from '@app/admin/components/Schedule';
 
 import type { EventScheduleHistoryContext } from '@app/api/admin/event/schedule/history/[[...id]]/route';
+import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
+import { Schedule } from '@app/admin/components/Schedule';
 import { ScheduleContext } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
-import { Schedule } from '@app/admin/components/Schedule';
-import { SettingDialog } from '@app/admin/components/SettingDialog';
-import { TimePickerElement } from 'react-hook-form-mui/date-pickers';
 import { callApi } from '@lib/callApi';
 import { dayjs } from '@lib/DateTime';
 import { useWindowHeight } from '@app/admin/lib/useWindowHeight';
@@ -159,25 +158,27 @@ export function ScheduleImpl(props: ScheduleImplProps) {
     const [ dialogEvent, setDialogEvent ] = useState<ScheduleEvent | undefined>();
     const [ dialogResolver, setDialogResolver ] = useState<DialogResolver>();
 
-    const handleSettingDialogClose = useCallback(() => {
+    const handleShiftDialogClose = useCallback(() => {
         setDialogEvent(undefined);
-        if (!!dialogResolver)
+        if (!!dialogResolver) {
             dialogResolver(/* do nothing */);
-
+            setDialogResolver(undefined);
+        }
     }, [ dialogResolver ]);
 
-    const handleSettingDialogDelete = useCallback(async () => {
+    const handleShiftDialogDelete = useCallback(() => {
         if (!dialogEvent || !dialogResolver)
-            return { error: <>I forgot which shift was selected, sorry!</> };
+            return;
 
         dialogResolver({ delete: true });
-        return { close: true } as const;
+        setDialogResolver(undefined);
+        setDialogEvent(undefined);
 
     }, [ dialogEvent, dialogResolver ]);
 
-    const handleSettingDialogUpdate = useCallback(async (event: ScheduleEvent) => {
+    const handleShiftDialogUpdate = useCallback(async (event: ScheduleEvent) => {
         if (!dialogEvent || !dialogResolver)
-            return { error: <>I forgot which shift was selected, sorry!</> };
+            return { success: false, error: 'Context on the selected shift has been lost.' };
 
         for (const shift of shifts) {
             if (shift.id !== event.shiftId)
@@ -191,7 +192,6 @@ export function ScheduleImpl(props: ScheduleImplProps) {
             if (dayjs.isDayjs(event.endTime))
                 end = event.endTime.toISOString();
 
-            setDialogEvent(undefined);
             dialogResolver({
                 update: {
                     ...event,
@@ -202,10 +202,13 @@ export function ScheduleImpl(props: ScheduleImplProps) {
                 }
             });
 
-            return { close: true } as const;
+            setDialogResolver(undefined);
+            setDialogEvent(undefined);
+
+            return { success: true, close: true };
         }
 
-        return { error: <>You need to select a shift to assign them to!</> };
+        return { success: false, error: 'You need to select a shift to assign them to!' };
 
     }, [ dialogEvent, dialogResolver, shifts ]);
 
@@ -216,16 +219,16 @@ export function ScheduleImpl(props: ScheduleImplProps) {
         });
     }, [ /* no dependencies */ ]);
 
-    const [ dialogDefaultValues, setDialogDefaultValues ] = useState<Record<string, any>>({ });
-    useEffect(() => {
-        if (!!dialogEvent) {
-            setDialogDefaultValues({
-                ...dialogEvent,
-                shiftId: dialogEvent.shiftId,
-                startTime: dayjs(dialogEvent.start).tz(context.schedule?.timezone),
-                endTime: dayjs(dialogEvent.end).tz(context.schedule?.timezone),
-            });
-        }
+    const dialogDefaultValues = useMemo(() => {
+        if (!dialogEvent)
+            return {};
+
+        return {
+            ...dialogEvent,
+            shiftId: dialogEvent.shiftId,
+            startTime: dayjs(dialogEvent.start).tz(context.schedule?.timezone),
+            endTime: dayjs(dialogEvent.end).tz(context.schedule?.timezone),
+        };
     }, [ context.schedule?.timezone, dialogEvent ]);
 
     // ---------------------------------------------------------------------------------------------
@@ -394,26 +397,32 @@ export function ScheduleImpl(props: ScheduleImplProps) {
                       onDoubleClick={handleDoubleClick} markers={markers} resources={resources}
                       displayTimezone={context.schedule.timezone} subject="shift" renderSidebar />
 
-            { !!dialogEvent &&
-                <SettingDialog title="Select a shift" open delete
-                               onClose={handleSettingDialogClose}
-                               onDelete={handleSettingDialogDelete}
-                               onSubmit={handleSettingDialogUpdate}
-                               defaultValues={dialogDefaultValues}>
-                    <Grid container>
-                        <Grid size={{ xs: 12 }}>
-                            <SelectElement name="shiftId" options={shifts} size="small" fullWidth />
-                        </Grid>
-                        <Grid size={{ xs: 6 }} sx={{ pt: 1, pr: 0.5 }}>
-                            <TimePickerElement name="startTime"
-                                               inputProps={{ size: 'small', fullWidth: true }} />
-                        </Grid>
-                        <Grid size={{ xs: 6 }} sx={{ pt: 1, pl: 0.5 }}>
-                            <TimePickerElement name="endTime"
-                                               inputProps={{ size: 'small', fullWidth: true }} />
-                        </Grid>
+            <ResponsiveFormDialog defaultValues={dialogDefaultValues}
+                                  onClose={handleShiftDialogClose}
+                                  onSubmit={handleShiftDialogUpdate}
+                                  open={!!dialogEvent}
+                                  submitLabel="Update"
+                                  title="Select a shift"
+                                  additionalButtons={
+                                      <Button color="error" onClick={handleShiftDialogDelete}
+                                              size="small" variant="contained">
+                                          Delete
+                                      </Button>
+                                  }>
+                <Grid container spacing={2}>
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="shiftId" options={shifts} size="small" fullWidth />
                     </Grid>
-                </SettingDialog> }
+                    <Grid size={{ xs: 6 }}>
+                        <TimePickerElement name="startTime"
+                                           inputProps={{ size: 'small', fullWidth: true }} />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <TimePickerElement name="endTime"
+                                           inputProps={{ size: 'small', fullWidth: true }} />
+                    </Grid>
+                </Grid>
+            </ResponsiveFormDialog>
 
             { !!historyDialogEvent &&
                 <Dialog open onClose={handleHistoryDialogClose} fullWidth maxWidth="md">
