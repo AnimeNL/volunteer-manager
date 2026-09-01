@@ -57,9 +57,8 @@ It should be rare for a Server Action to not write a log message. Ask the user f
 this is omitted.
 
 ### Dialogs
-Use of <ConfirmationDialog>, <ServerActionDialog> and <SettingDialog> outside of
-`app/admin/components` is deprecated and must be superseded. Instead, use
-<ResponsiveConfirmationDialog>, <ResponsiveFormDialog> or <ResponsiveDialog>.
+Use of manual dialogs outside of `app/admin/components` is deprecated and must be superseded.
+Instead, use <ResponsiveConfirmationDialog>, <ResponsiveFormDialog> or <ResponsiveDialog>.
 
 ### Sections
 At the top-level of a page or layout, the following rules exist:
@@ -75,19 +74,9 @@ At the top-level of a page or layout, the following rules exist:
 4. Use of non-<Section> top-level components, unless they're a variant such as <FormGridSection>,
    should be relatively rare. Ask the user for confirmation when in doubt.
 
-### Tabs
-Use of <NavigationTabs> is deprecated and must be superseded. Instead:
-
-1. Migrate any page headers from the local `layout.tsx` to each individual page, adjusting their
-   titles as appropriate.
-2. Change `layout.tsx` to wrap its children in a <SectionTabContext> instead
-3. Change each page so that the first <Section> after the header is given the "tabs" prop, such
-   as <Section tabs>.
-
 ### Use of deprecated components
 The following components are no longer supported and should be substituted:
 
-* <CollapsableSection> should become a regular <Section>
 * react-hook-form <FormContainer> should be updated to use <FormGridSection>, <FormGrid> or
   <FormProvider>, as most applicable
 * MUI <Paper> at a layout or page's top level almost never is appropriate, and should be updated

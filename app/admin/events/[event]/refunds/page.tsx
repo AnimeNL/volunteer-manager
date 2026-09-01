@@ -13,8 +13,8 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { RefundsHeader } from './RefundsHeader';
 import { RefundsTable } from './RefundsTable';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { generateEventMetadataFn } from '../generateEventMetadataFn';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEvents } from '@lib/database';
 
@@ -128,4 +128,4 @@ export default async function EventRefundsPage(props: PageProps<'/admin/events/[
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Refunds');
+export const generateMetadata = createGenerateMetadataFn('Refunds', { event: 'event' });

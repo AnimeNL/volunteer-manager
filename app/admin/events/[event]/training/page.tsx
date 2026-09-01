@@ -11,7 +11,7 @@ import { TrainingConfiguration } from './TrainingConfiguration';
 import { TrainingExternal } from './TrainingExternal';
 import { TrainingOverview, type TrainingConfirmation } from './TrainingOverview';
 import { TrainingProcessor } from './TrainingProcessor';
-import { generateEventMetadataFn } from '../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsersEvents,
     tUsers } from '@lib/database';
@@ -227,4 +227,4 @@ export default async function EventTrainingPage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Trainings');
+export const generateMetadata = createGenerateMetadataFn('Trainings', { event: 'event' });

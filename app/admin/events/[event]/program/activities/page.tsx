@@ -4,7 +4,7 @@
 import { notFound } from 'next/navigation';
 
 import { ActivityDataTable } from './ActivityDataTable';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tActivitiesLocations } from '@lib/database';
 
@@ -33,4 +33,5 @@ export default async function ProgramActivitiesPage(
     return <ActivityDataTable event={event.slug} locations={locations} />;
 }
 
-export const generateMetadata = generateEventMetadataFn('Activities');
+export const generateMetadata =
+    createGenerateMetadataFn('Activities', 'Program', { event: 'event' });

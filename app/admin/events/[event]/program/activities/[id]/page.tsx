@@ -14,8 +14,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDate } from '@lib/Temporal';
-import { generateEventMetadataFn } from '../../../generateEventMetadataFn';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tEventsSalesConfiguration,
@@ -243,5 +243,6 @@ export async function generateMetadata(
         .selectOneColumn(tActivities.activityTitle)
         .executeSelectNoneOrOne() ?? undefined;
 
-    return generateEventMetadataFn(activityTitle)(props);
+    return createGenerateMetadataFn(
+        activityTitle ?? 'Activity', 'Activities', 'Program', { event: 'event' })(props);
 }

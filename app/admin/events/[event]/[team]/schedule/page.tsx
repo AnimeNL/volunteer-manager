@@ -12,7 +12,7 @@ import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { ScheduleContextImpl } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
 import { ScheduleImpl } from './ScheduleImpl';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readUserSettings } from '@lib/UserSettings';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
@@ -105,4 +105,5 @@ export default async function EventTeamSchedulePage(
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Schedule');
+export const generateMetadata =
+    createGenerateMetadataFn('Schedule', { team: 'team' }, { event: 'event' });

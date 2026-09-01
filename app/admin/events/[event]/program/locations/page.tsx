@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { LocationDataTable } from './LocationDataTable';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tActivitiesAreas } from '@lib/database';
 
@@ -27,4 +27,5 @@ export default async function ProgramLocationsPage(
     return <LocationDataTable areas={areas} context={{ event: event.slug }} />;
 }
 
-export const generateMetadata = generateEventMetadataFn('Locations');
+export const generateMetadata =
+    createGenerateMetadataFn('Locations', 'Program', { event: 'event' });

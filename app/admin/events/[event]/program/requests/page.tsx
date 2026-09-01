@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { RequestDataTable } from './RequestDataTable';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import db, { tEventsTeams, tTeams } from '@lib/database';
@@ -40,4 +40,5 @@ export default async function ProgramRequestsPage(
                              teams={teams} />;
 }
 
-export const generateMetadata = generateEventMetadataFn('Program requests');
+export const generateMetadata =
+    createGenerateMetadataFn('Requests', 'Program', { event: 'event' });

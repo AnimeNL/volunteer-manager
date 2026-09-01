@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { AreaDataTable } from './AreaDataTable';
-import { generateEventMetadataFn } from '../../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
 /**
@@ -16,4 +16,5 @@ export default async function ProgramAreasPage(
     return <AreaDataTable event={event.slug} />;
 }
 
-export const generateMetadata = generateEventMetadataFn('Areas');
+export const generateMetadata =
+    createGenerateMetadataFn('Areas', 'Program', { event: 'event' });

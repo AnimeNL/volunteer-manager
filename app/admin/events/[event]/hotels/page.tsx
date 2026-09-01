@@ -7,7 +7,7 @@ import { HotelAssignment } from './HotelAssignment';
 import { HotelConfiguration } from './HotelConfiguration';
 import { HotelPendingAssignment } from './HotelPendingAssignment';
 import { HotelProcessor } from './HotelProcessor';
-import { generateEventMetadataFn } from '../generateEventMetadataFn';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 
 /**
@@ -48,4 +48,4 @@ export default async function EventHotelsPage(props: PageProps<'/admin/events/[e
     );
 }
 
-export const generateMetadata = generateEventMetadataFn('Hotels');
+export const generateMetadata = createGenerateMetadataFn('Hotels', { event: 'event' });
