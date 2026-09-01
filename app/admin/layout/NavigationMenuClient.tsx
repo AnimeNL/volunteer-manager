@@ -178,7 +178,7 @@ function NavigationItemClient(props: { item: NavigationItem, path: string }) {
             { (!!props.item.badge && typeof props.item.badge.value === 'number') &&
                 <Badge badgeContent={props.item.badge.value} color={props.item.badge.severity} /> }
             { (!!props.item.badge && !!props.item.badge.migration) &&
-                <Tooltip title="Migration in progress">
+                <Tooltip title="Not yet mobile friendly">
                     <NavigationMenuWarningIcon />
                 </Tooltip> }
             { (!!props.item.badge

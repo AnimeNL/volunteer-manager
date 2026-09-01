@@ -105,6 +105,9 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
         return formattedMetric;
     }
 
+    const changePercentage =
+        headline.changePercentage ? Math.round(headline.changePercentage) : undefined;
+
     return (
         <Card>
             <CardContent sx={{ paddingY: '8px !important' }}>
@@ -118,14 +121,14 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
                     <Typography variant="h6">
                         { formatMetric(headline.figure, format) }
                     </Typography>
-                    { !!headline.changePercentage &&
+                    { !!changePercentage &&
                         <Tooltip title="Compared to the previous 7-day period">
                             <Chip size="small"
-                                  color={ headline.changePercentage >= 0 ? 'success' : 'error' }
+                                  color={ changePercentage >= 0 ? 'success' : 'error' }
                                   label={
-                                      headline.changePercentage > 0
-                                          ? `+${headline.changePercentage}% w/w`
-                                          : `${headline.changePercentage}% w/w`
+                                      changePercentage > 0
+                                          ? `+${changePercentage}% w/w`
+                                          : `${changePercentage}% w/w`
                                   } />
                         </Tooltip> }
                 </Stack>
