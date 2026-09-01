@@ -105,12 +105,12 @@ export function AccountInformation(props: AccountInformationProps) {
                                slotProps={{ select: { readOnly: !!props.readOnly } }} />
             </Grid>
 
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldElement name="username" label="E-mail address" type="email"
                                   fullWidth size="small"
                                   slotProps={{ input: { readOnly: !!props.readOnly } }} />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldElement name="phoneNumber" label="Phone number" type="tel"
                                   fullWidth size="small"
                                   slotProps={{ input: { readOnly: !!props.readOnly } }} />

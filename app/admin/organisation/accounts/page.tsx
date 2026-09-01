@@ -5,13 +5,12 @@ import { z } from 'zod/v4';
 
 import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import Grid from '@mui/material/Grid';
 import PersonIcon from '@mui/icons-material/Person';
-import Typography from '@mui/material/Typography';
 
 import { type Column, type ExtractRowModel,DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { FormGrid } from '@app/admin/components/FormGrid';
+import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -148,36 +147,29 @@ export default async function AccountsPage() {
                                primaryField: 'name',
                                linkTemplate: '/admin/organisation/accounts/{id}',
                            }} />
-                { canCreateAccounts &&
-                    <>
-                        <Divider />
-                        <FormGrid action={actions.createAccount} callToAction="Create">
-                            <Grid size={{ xs: 12 }} sx={{ my: -1 }}>
-                                <Typography variant="h6">
-                                    Create a new account
-                                </Typography>
-                            </Grid>
-
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <TextFieldElement name="username" label="E-mail address"
-                                                  size="small" fullWidth required type="email" />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <SelectElement name="gender" label="Gender" size="small" fullWidth
-                                               options={kGenderOptions} />
-                            </Grid>
-
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <TextFieldElement name="firstName" label="First name" size="small"
-                                                  fullWidth required />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <TextFieldElement name="lastName" label="Last name" size="small"
-                                                  fullWidth required />
-                            </Grid>
-                        </FormGrid>
-                    </> }
             </Section>
+            { canCreateAccounts &&
+                <FormGridSection action={actions.createAccount} callToAction="Create"
+                                 icon={ <AddCircleOutlineOutlinedIcon /> }
+                                 title="Create a new account">
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextFieldElement name="username" label="E-mail address"
+                                            size="small" fullWidth required type="email" />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <SelectElement name="gender" label="Gender" size="small" fullWidth
+                                        options={kGenderOptions} />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextFieldElement name="firstName" label="First name" size="small"
+                                            fullWidth required />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextFieldElement name="lastName" label="Last name" size="small"
+                                            fullWidth required />
+                    </Grid>
+                </FormGridSection> }
         </>
     );
 }
