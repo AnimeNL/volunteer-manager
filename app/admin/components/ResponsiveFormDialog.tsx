@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { DefaultValues, FieldValues } from '@proxy/react-hook-form-mui';
+import type { DefaultValues, FieldValues, FormContainerProps } from '@proxy/react-hook-form-mui';
 import { FormContainer, useForm } from '@proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
@@ -114,7 +114,7 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
 
     // ---------------------------------------------------------------------------------------------
 
-    const handleSubmit = useCallback(async (data: FieldValues) => {
+    const handleSuccess = useCallback(async (data: FieldValues) => {
         setError(undefined);
         setLoading(true);
         try {
@@ -150,13 +150,14 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
     const ContainerProps = useMemo(() => ({
         defaultValues: defaultValues,
         formContext: formContext,
-        onSuccess: handleSubmit,
-    }), [ formContext, handleSubmit, defaultValues ]);
+        onSuccess: handleSuccess,
+    }), [ formContext, handleSuccess, defaultValues ]);
 
     return (
         <ResponsiveDialog closeLabel="Cancel"
                           {...responsiveDialogProps}
-                          Container={FormContainer} ContainerProps={ContainerProps}
+                          Container={InterceptingFormContainer}
+                          ContainerProps={ContainerProps}
                           additionalContent={
                               <Collapse in={!!confirmation || !!error} sx={{ mt: '0 !important' }}>
                                   { !!confirmation &&
@@ -179,5 +180,17 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
                                   {props.additionalButtons}
                               </>
                           } />
+    );
+}
+
+/**
+ * Intercepting container that wraps `<FormContainer>` in a `<div>` that stops propagation of the
+ * `submit` event, preventing parent forms from being submitted when this dialog's form is submitted.
+ */
+function InterceptingFormContainer(props: FormContainerProps) {
+    return (
+        <div onSubmit={event => event.stopPropagation()}>
+            <FormContainer {...props} />
+        </div>
     );
 }
