@@ -269,7 +269,7 @@ export default async function RolesPage() {
             <Section noHeader tabs>
                 <DataTable columns={columns} source={rolesDataSource}
                            defaultSort={{ field: 'id', sort: 'asc' }}
-                           disableSearch pageSize={50}
+                           disableFooter disableSearch pageSize={100}
                            subject="role"
                            listViewProps={{
                                primaryField: 'roleName',

@@ -188,6 +188,101 @@ describe('DataTable - Create', () => {
         });
     });
 
+    it('is able to create a row via the reorder header button on desktop', async () => {
+        let createInvokedWith: any = null;
+
+        const dataSource = createDataSource('test/create-row-reorder-desktop', kExampleRowModel, {
+            async authorize() {},
+            async reorder() { return true; },
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async create(row) {
+                createInvokedWith = row;
+                return true;
+            },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', editable: true },
+            { field: 'role', editable: true }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        // The button should be in the reorder header.
+        const createButtons = screen.getAllByRole('button', { name: 'Create a new item' });
+        expect(createButtons.length).toBe(1);
+
+        fireEvent.click(createButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByRole('heading', { name: 'Create item' })).toBeDefined();
+        });
+
+        const nameInput = screen.getByLabelText('name');
+        const roleInput = screen.getByLabelText('role');
+        fireEvent.change(nameInput, { target: { value: 'Reorder Expert' } });
+        fireEvent.change(roleInput, { target: { value: 'Tester' } });
+
+        const submitBtn = screen.getByRole('button', { name: 'Create' });
+        fireEvent.click(submitBtn);
+
+        await waitFor(() => {
+            expect(createInvokedWith).toEqual({ name: 'Reorder Expert', role: 'Tester' });
+        });
+    });
+
+    it('renders a single create button in header when both reorder and delete are enabled', async () => {
+        const dataSource = createDataSource('test/create-row-reorder-delete', kExampleRowModel, {
+            async authorize() {},
+            async delete() { return true; },
+            async reorder() { return true; },
+            async list(params) {
+                return {
+                    rowCount: kExampleRowData.length,
+                    rows: kExampleRowData.slice(
+                        params.page.offset, params.page.offset + params.page.limit),
+                };
+            },
+            async create() { return true; },
+        });
+
+        const columns: Column<ExampleRowModel>[] = [
+            { field: 'name', editable: true },
+            { field: 'role', editable: true }
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        const createButtons = screen.getAllByRole('button', { name: 'Create a new item' });
+        expect(createButtons.length).toBe(1);
+    });
+
     it('is able to create a row via the footer button on mobile', async () => {
         let createInvokedWith: any = null;
 
