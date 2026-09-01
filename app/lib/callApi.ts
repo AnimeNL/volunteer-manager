@@ -30,7 +30,6 @@ import type { SignOutDefinition } from '@app/api/auth/signOut';
 import type { SubmitFeedbackDefinition } from '@app/api/event/schedule/submitFeedback';
 import type { TrainingsDefinition } from '@app/api/event/trainings/[event]/route';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
-import type { UpdateApplicationDefinition } from '@app/api/application/updateApplication';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
@@ -145,7 +144,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],
-        '/api/application/:event/:team/:userId': UpdateApplicationDefinition,
         '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
         '/api/event/schedule/help-request': UpdateHelpRequestDefinition,
