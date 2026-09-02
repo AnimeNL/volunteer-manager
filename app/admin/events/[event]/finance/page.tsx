@@ -56,6 +56,7 @@ export default async function EventFinancePage(props: PageProps<'/admin/events/[
                         .and(eventsTicketsConfigurationJoin.eventTicketYtpId.equals(
                                  tYourTicketProviderTickets.ytpTicketId))
                 .where(tYourTicketProviderTickets.ytpTicketEventId.equals(ytpEventId))
+                    .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
                     .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
                 .selectCountAll()
                 .executeSelectOne();

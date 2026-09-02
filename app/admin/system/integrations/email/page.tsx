@@ -315,6 +315,11 @@ export default async function EmailIntegrationPage() {
                 placeholder: 'Password / API key',
                 required: true,
             },
+
+            template: 'text',
+            templateProps: {
+                template: '●●●●●●●●',
+            },
         },
     ];
 

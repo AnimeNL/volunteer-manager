@@ -126,6 +126,7 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
                     .and(table.preferenceVersion.notEquals(tUsersEvents.registrationDate as any))
                 .select({
                     date: dbInstance.dateTimeAsString(table.preferenceVersion),
+                    status: tUsersEvents.registrationStatus,
                     team: tTeams.teamName,
                     teamColour: tTeams.teamColourLightTheme,
                     teamSlug: tTeams.teamSlug,
@@ -146,6 +147,7 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
                 .and(tUsersEvents.registrationDate.isNotNull())
             .select({
                 date: dbInstance.dateTimeAsString(tUsersEvents.registrationDate),
+                status: tUsersEvents.registrationStatus,
                 team: tTeams.teamName,
                 teamColour: tTeams.teamColourLightTheme,
                 teamSlug: tTeams.teamSlug,
@@ -199,7 +201,7 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
                 teamColour: row.teamColour,
                 type: row.type,
                 description: row.description,
-                href: row.type === 'Application'
+                href: (row.status === 'Registered' || row.status === 'Rejected')
                     ? `/admin/events/${context.event.slug}/${row.teamSlug}/applications`
                     : `/admin/events/${context.event.slug}/${row.teamSlug}/volunteers/${row.userId}`,
                 date: row.date!,

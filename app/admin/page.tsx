@@ -10,6 +10,7 @@ import { DatabaseCard } from './dashboard/DatabaseCard';
 import { EventCard } from './dashboard/EventCard';
 import { ProfilePromotionCard } from './dashboard/ProfilePromotionCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
+import { WelcomeCard } from './dashboard/WelcomeCard';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
@@ -39,6 +40,8 @@ export default async function AdminPage() {
 
     if (access.can('system.internals.scheduler'))
         cards.push(<SchedulerCard key="scheduler-card" />);
+
+    cards.push(<WelcomeCard key="welcome" />);
 
     return <DashboardGrid cards={cards} />;
 }
