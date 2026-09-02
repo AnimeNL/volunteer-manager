@@ -1397,14 +1397,6 @@ tables:
     type: text
     nullable: true
     default: "NULL"
-  - name: shirt_fit
-    type: enum('Regular','Girly')
-    nullable: false
-    default: "'Regular'"
-  - name: shirt_size
-    type: enum('XS','S','M','L','XL','XXL','3XL','4XL')
-    nullable: true
-    default: "NULL"
   - name: hotel_eligible
     type: tinyint(1) unsigned
     nullable: true
@@ -1413,58 +1405,10 @@ tables:
     type: tinyint(1) unsigned
     nullable: true
     default: "NULL"
-  - name: availability_build_up_tear_down
-    type: text
-    nullable: true
-    default: "NULL"
   - name: availability_event_limit
     type: int(8) unsigned
     nullable: true
     default: "NULL"
-  - name: availability_exceptions
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: availability_timeslots
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: preference_hours
-    type: int(4) unsigned
-    nullable: true
-    default: "NULL"
-  - name: preference_timing_start
-    type: int(4) unsigned
-    nullable: true
-    default: "NULL"
-  - name: preference_timing_end
-    type: int(4) unsigned
-    nullable: true
-    default: "NULL"
-  - name: preferences
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: preferences_dietary
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: preferences_updated
-    type: datetime
-    nullable: true
-    default: "NULL"
-  - name: fully_available
-    type: tinyint(1)
-    nullable: false
-    default: "1"
-  - name: include_credits
-    type: tinyint(1)
-    nullable: false
-    default: "1"
-  - name: include_socials
-    type: tinyint(1)
-    nullable: false
-    default: "1"
   indexes:
   - name: users_events_event_id
     def: KEY users_events_event_id (event_id) USING BTREE
@@ -1543,23 +1487,9 @@ tables:
       `registration_status` enum('Registered','Cancelled','Accepted','Rejected') NOT NULL DEFAULT 'Registered',
       `registration_owner_id` int(4) unsigned DEFAULT NULL,
       `registration_notes` text DEFAULT NULL,
-      `shirt_fit` enum('Regular','Girly') NOT NULL DEFAULT 'Regular',
-      `shirt_size` enum('XS','S','M','L','XL','XXL','3XL','4XL') DEFAULT NULL,
       `hotel_eligible` tinyint(1) unsigned DEFAULT NULL,
       `training_eligible` tinyint(1) unsigned DEFAULT NULL,
-      `availability_build_up_tear_down` text DEFAULT NULL,
       `availability_event_limit` int(8) unsigned DEFAULT NULL,
-      `availability_exceptions` text DEFAULT NULL,
-      `availability_timeslots` text DEFAULT NULL,
-      `preference_hours` int(4) unsigned DEFAULT NULL,
-      `preference_timing_start` int(4) unsigned DEFAULT NULL,
-      `preference_timing_end` int(4) unsigned DEFAULT NULL,
-      `preferences` text DEFAULT NULL,
-      `preferences_dietary` text DEFAULT NULL,
-      `preferences_updated` datetime DEFAULT NULL,
-      `fully_available` tinyint(1) NOT NULL DEFAULT 1,
-      `include_credits` tinyint(1) NOT NULL DEFAULT 1,
-      `include_socials` tinyint(1) NOT NULL DEFAULT 1,
       UNIQUE KEY `user_id` (`user_id`,`event_id`,`team_id`),
       KEY `users_events_event_id` (`event_id`),
       KEY `users_events_team_id` (`team_id`),

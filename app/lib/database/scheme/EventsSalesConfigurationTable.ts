@@ -9,13 +9,13 @@
 import { Table } from "ts-sql-query/Table";
 import type { DBConnection } from "../Connection";
 import {
-    EventSalesCategory,
+    EventTicketCategory,
 } from "../Types";
 
 export class EventsSalesConfigurationTable extends Table<DBConnection, 'EventsSalesConfigurationTable'> {
     eventId = this.column('event_id', 'int');
     saleId = this.column('sale_id', 'int');
-    saleCategory = this.optionalColumnWithDefaultValue<EventSalesCategory>('sale_category', 'enum', 'EventSalesCategory');
+    saleCategory = this.optionalColumnWithDefaultValue<EventTicketCategory>('sale_category', 'enum', 'EventTicketCategory');
     saleCategoryLimit = this.optionalColumnWithDefaultValue('sale_category_limit', 'int');
     saleDescription = this.optionalColumnWithDefaultValue('sale_description', 'string');
     salePrice = this.optionalColumnWithDefaultValue('sale_price', 'double');

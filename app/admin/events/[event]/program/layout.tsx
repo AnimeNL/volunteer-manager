@@ -18,12 +18,9 @@ export default async function ProgramLayout(props: LayoutProps<'/admin/events/[e
         notFound();  // events must be associated with a `festivalId` in order to have a program
 
     return (
-        <>
-            <Paper>
-                <ProgramNavigation slug={event.slug} />
-                {props.children}
-            </Paper>
-            {props.history}
-        </>
+        <Paper>
+            <ProgramNavigation slug={event.slug} />
+            {props.children}
+        </Paper>
     );
 }

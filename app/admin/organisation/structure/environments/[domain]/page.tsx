@@ -8,10 +8,12 @@ import { SelectElement, TextFieldElement } from '@components/proxy/react-hook-fo
 
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PublicIcon from '@mui/icons-material/Public';
 import Stack from '@mui/material/Stack';
 
@@ -86,15 +88,21 @@ export default async function EnvironmentPage(
 
     return (
         <>
-            <Section icon={ <PublicIcon color="primary" /> } title={environment.title}
+            <Section icon={ <PublicIcon color="primary" /> } title={environment.domain}
+                     headerAction={
+                         <IconButton LinkComponent={Link} href={`https://${environment.domain}/`}
+                                     target="_blank" size="small">
+                             <OpenInNewIcon color="primary" fontSize="small" />
+                         </IconButton>
+                     }
                      breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure', href: '/admin/organisation/structure' },
                 { label: 'Environments', href: '/admin/organisation/structure/environments' },
-                { label: environment.title },
+                { label: environment.domain },
             ]}>
                 <SectionIntroduction>
-                    Identity and configuration for the {environment.title} <em>tenant</em> on our
+                    Identity and configuration for the {environment.domain} <em>tenant</em> on our
                     system.
                 </SectionIntroduction>
             </Section>
