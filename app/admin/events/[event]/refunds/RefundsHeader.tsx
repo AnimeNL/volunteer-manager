@@ -29,14 +29,12 @@ interface RefundsHeaderProps {
  * The <RefundsHeader> component displays the page the user is on together with a share button.
  */
 export function RefundsHeader(props: RefundsHeaderProps) {
-    const { event } = props;
-
     const router = useRouter();
-    const handleExportButton = useCallback(() => {
+    const _handleExportButton = useCallback(() => {
         router.push('/admin/organisation/exports/create');
-    }, [ router ])
+    }, [ router ]);
 
-    // TODO: onExport={!!props.enableExport ? handleExportButton : undefined}
+    // TODO: onExport={!!props.enableExport ? _handleExportButton : undefined}
 
     return (
         <Section title="Refund requests">

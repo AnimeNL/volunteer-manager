@@ -5,10 +5,8 @@ import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import MarkChatReadOutlinedIcon from '@mui/icons-material/MarkChatReadOutlined';
-import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 import Typography from '@mui/material/Typography';
 import WebhookIcon from '@mui/icons-material/Webhook';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
@@ -84,10 +82,6 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
 
     if (!message)
         notFound();
-
-    const messageIcon = props.type === kTwilioOutboxType.SMS
-        ? <TextsmsOutlinedIcon />
-        : <WhatsAppIcon />;
 
     return (
         <>

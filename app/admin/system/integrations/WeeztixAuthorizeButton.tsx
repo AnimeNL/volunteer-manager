@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import IconButton from '@mui/material/IconButton';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 
 import { ResponsiveConfirmationDialog }
     from '@app/admin/components/ResponsiveConfirmationDialog';

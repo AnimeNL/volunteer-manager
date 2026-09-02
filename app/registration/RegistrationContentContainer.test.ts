@@ -6,6 +6,7 @@ import { render, screen } from '@testing-library/react';
 import { RegistrationContentContainer } from './RegistrationContentContainer';
 
 describe('RegistrationContentContainer', () => {
+    // biome-ignore lint/suspicious/noSkippedTests: not yet supported in JSDOM
     it.skip('should list no active events when the environment has no assigned teams', async () => {
         const SyncRegistrationContentContainer = await RegistrationContentContainer({
             /* no props */

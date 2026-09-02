@@ -4,10 +4,10 @@
 import { notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
-import type { EventAvailabilityStatus } from '@lib/database/Types';
+import type { PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
 import type { User } from '@lib/auth/User';
+import type { EventAvailabilityStatus } from '@lib/database/Types';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { type PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEnvironments, tEvents, tEventsTeams, tRoles, tStorage, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -248,9 +248,7 @@ export async function verifyAccessAndFetchPageInfo(
     accessCheck?: PermissionAccessCheck): Promise<(PageInfo | PageInfoWithTeam) | never>
 {
     const params = await asyncParams;
-    const permission = typeof accessCheck === 'object' ? accessCheck : undefined;
-
-    const { access, user } = await requireAuthentication();
+    const { access, user } = await requireAuthentication(accessCheck);
 
     // ---------------------------------------------------------------------------------------------
     // Event information

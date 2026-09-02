@@ -232,7 +232,7 @@ do {
                 { field: [ 'events_dates', 'date_type' ], type: 'DateType' },
                 {
                     field: [ 'events_sales_configuration', 'sale_category' ],
-                    type: 'EventSalesCategory',
+                    type: 'EventTicketCategory',
                 },
                 {
                     field: [ 'events_tickets_configuration', 'event_ticket_category' ],

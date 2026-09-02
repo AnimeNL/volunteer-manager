@@ -4,7 +4,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
@@ -56,21 +55,9 @@ interface AccountInformationProps {
  * by the person who has access to this page. Amendments are made using an API call.
  */
 export function AccountInformation(props: AccountInformationProps) {
-    const router = useRouter();
-
     const [ discordConfirmationOpen, setDiscordConfirmationOpen ] = useState<boolean>(false);
 
     const handleCloseDiscord = useCallback(() => setDiscordConfirmationOpen(false), []);
-    const handleConfirmDiscord = useCallback(async () => {
-        const response = await props.confirmDiscordFn(new FormData);
-        if (!response.success)
-            return { error: response.error || 'The verification could not be processed…' };
-
-        router.refresh();
-        return true;
-
-    }, [ props, router ]);
-
     const handleVerifyDiscord = useCallback(() => {
         setDiscordConfirmationOpen(true);
     }, [ /* no dependencies */ ]);

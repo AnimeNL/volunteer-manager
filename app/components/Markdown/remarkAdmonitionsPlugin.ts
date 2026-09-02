@@ -52,7 +52,10 @@ export function remarkAdmonitionsPlugin() {
                 return;
             }
 
-            const data = node.data || (node.data = {});
+            if (!node.data)
+                node.data = {};
+
+            const data = node.data;
             const tagName =
                 node.type === 'containerDirective' ? 'admonition'
                                                     : 'remote';

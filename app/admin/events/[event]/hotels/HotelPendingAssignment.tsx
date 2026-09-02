@@ -166,7 +166,7 @@ const pendingAssignmentDataSource = createDataSource('admin/events/hotels/pendin
             })
             .executeSelectMany();
 
-        let rows: HotelPendingAssignmentRowModel[] = [];
+        const rows: HotelPendingAssignmentRowModel[] = [];
         for (const preference of preferences) {
             if (assignedUserIds.has(preference.id))
                 continue;
