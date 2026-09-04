@@ -20,7 +20,7 @@ import { styled } from '@mui/material/styles';
 
 import type { RowModelFields } from './Types';
 import { LocalDateTime } from '../LocalDateTime';
-import { isProtectedRow, resolveRowModelField, resolveTemplate } from './Utilities';
+import { isFrozenRow, isProtectedRow, resolveRowModelField, resolveTemplate } from './Utilities';
 
 /**
  * Props used to compose the list view presentation of a <DataTable> row.
@@ -98,6 +98,12 @@ export interface DataTableListViewProps<RowModel extends object> {
  */
 interface DataTableListViewRowProps<RowModel extends object = any> {
     /**
+     * Column through which it can be derived whether this row has been frozen. Frozen rows cannot
+     * be edited.
+     */
+    frozenColumn?: keyof RowModel & string;
+
+    /**
      * Height, in pixels, to apply to the list view row. Calculated from the `listViewProps`.
      */
     height: number;
@@ -141,6 +147,10 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
  * date display. Note that individual components are able to provide their own row display.
  */
 export function DataTableListViewRow(props: React.PropsWithChildren<DataTableListViewRowProps>) {
+    const isFrozen = useMemo(() => isFrozenRow(props.row, props.frozenColumn), [
+        props.row, props.frozenColumn,
+    ]);
+
     const isProtected = useMemo(() => isProtectedRow(props.row, props.protectedColumn), [
         props.row, props.protectedColumn,
     ]);
@@ -245,10 +255,14 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                                   onClose={handleCloseMenu}
                                   anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
                                   transformOrigin={{ vertical: 'center', horizontal: 'right' }}>
-                            { !!props.onEdit &&
+                            { !!props.onEdit && !isFrozen &&
                                 <IconButton component="li" onClick={handleEditClick}
                                             aria-label="Edit">
                                     <EditIcon color="primary" fontSize="medium" />
+                                </IconButton> }
+                            { !!props.onEdit && isFrozen &&
+                                <IconButton component="li" disabled>
+                                    <EditIcon color="disabled" fontSize="medium" />
                                 </IconButton> }
                             { !!props.onDelete && !isProtected &&
                                 <IconButton component="li" onClick={handleDeleteClick}

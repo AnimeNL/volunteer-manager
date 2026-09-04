@@ -205,8 +205,6 @@ const programAreasDataSource = createDataSource('admin/event/program/areas', wit
                 anplanLink: area.id > kInternalAreaIdOffset
                     ? undefined
                     : getAnPlanAreaUrl(area.id),
-
-                // TODO: isFrozen
                 isProtected: area.type !== kActivityType.Internal,
             })),
         };

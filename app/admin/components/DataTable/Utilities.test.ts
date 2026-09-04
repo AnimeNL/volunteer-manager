@@ -1,7 +1,42 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { resolveTemplate } from './Utilities';
+import { isFrozenRow, isProtectedRow, resolveTemplate } from './Utilities';
+
+describe('isFrozenRow', () => {
+    it('returns false when no frozenColumn is specified', () => {
+        expect(isFrozenRow({ id: 1, frozen: true })).toBe(false);
+        expect(isFrozenRow({ id: 1, frozen: true }, undefined)).toBe(false);
+    });
+
+    it('returns true when the frozenColumn resolves to truthy', () => {
+        expect(isFrozenRow({ id: 1, frozen: true }, 'frozen')).toBe(true);
+        expect(isFrozenRow({ id: 1, status: { frozen: true } }, 'status.frozen')).toBe(true);
+    });
+
+    it('returns false when the frozenColumn resolves to falsy', () => {
+        expect(isFrozenRow({ id: 1, frozen: false }, 'frozen')).toBe(false);
+        expect(isFrozenRow({ id: 1 }, 'frozen')).toBe(false);
+    });
+});
+
+describe('isProtectedRow', () => {
+    it('returns false when no protectedColumn is specified', () => {
+        expect(isProtectedRow({ id: 1, protected: true })).toBe(false);
+        expect(isProtectedRow({ id: 1, protected: true }, undefined)).toBe(false);
+    });
+
+    it('returns true when the protectedColumn resolves to truthy', () => {
+        expect(isProtectedRow({ id: 1, protected: true }, 'protected')).toBe(true);
+        expect(isProtectedRow({ id: 1, status: { protected: true } }, 'status.protected'))
+            .toBe(true);
+    });
+
+    it('returns false when the protectedColumn resolves to falsy', () => {
+        expect(isProtectedRow({ id: 1, protected: false }, 'protected')).toBe(false);
+        expect(isProtectedRow({ id: 1 }, 'protected')).toBe(false);
+    });
+});
 
 describe('resolveTemplatedUrl', () => {
     it('returns "#" when the template is not provided', () => {

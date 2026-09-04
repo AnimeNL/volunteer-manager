@@ -273,4 +273,94 @@ describe('DataTable - Update', () => {
             expect(updatePreviousInvokedWith).toEqual({ id: 1, name: 'Amia Bell', role: 'Manager' });
         });
     });
+
+    it('disallows updating a frozen row on desktop', async () => {
+        type FrozenRowModel = z.infer<typeof kFrozenRowModel>;
+        const kFrozenRowModel = withRowModel({
+            id: z.number(),
+            name: z.string(),
+            isFrozen: z.boolean(),
+        });
+
+        const dataSource = createDataSource('test/frozen-row-desktop', kFrozenRowModel, {
+            async authorize() {},
+            async list() {
+                return {
+                    rowCount: 1,
+                    rows: [{ id: 1, name: 'Amia Bell', isFrozen: true }],
+                };
+            },
+            async update() {
+                return true;
+            },
+        });
+
+        const columns: Column<FrozenRowModel>[] = [{ field: 'name', editable: true }];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           frozenColumn="isFrozen"
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        const cell = screen.getByText('Amia Bell');
+        fireEvent.doubleClick(cell);
+
+        // Input should not be displayed because the row is frozen.
+        expect(screen.queryByDisplayValue('Amia Bell')).toBeNull();
+    });
+
+    it('disallows updating a frozen row on mobile', async () => {
+        type FrozenRowModel = z.infer<typeof kFrozenRowModel>;
+        const kFrozenRowModel = withRowModel({
+            id: z.number(),
+            name: z.string(),
+            isFrozen: z.boolean(),
+        });
+
+        const dataSource = createDataSource('test/frozen-row-mobile', kFrozenRowModel, {
+            async authorize() {},
+            async list() {
+                return {
+                    rowCount: 1,
+                    rows: [{ id: 1, name: 'Amia Bell', isFrozen: true }],
+                };
+            },
+            async update() {
+                return true;
+            },
+        });
+
+        const columns: Column<FrozenRowModel>[] = [{ field: 'name', editable: true }];
+
+        mocks.useIsMobile.mockReturnValue(true);
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           frozenColumn="isFrozen"
+                           listViewProps={{ primaryField: 'name' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Amia Bell')).toBeDefined();
+        });
+
+        const actionButtons = screen.getAllByRole('button', { name: 'Actions' });
+        expect(actionButtons.length).toBeGreaterThan(0);
+        fireEvent.click(actionButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
+        });
+    });
 });

@@ -11,6 +11,11 @@ import { fetchProductSales } from './ProductSalesGraphFn';
  */
 interface ProductSalesGraphProps extends Omit<RemoteGraphProps, 'fetchDataFn'> {
     /**
+     * Whether cumulative lines should be included in this graph.
+     */
+    cumulative?: boolean;
+
+    /**
      * Unique ID of the event for which the graph should be displayed.
      */
     eventId: number;
@@ -29,5 +34,5 @@ export function ProductSalesGraph(props: ProductSalesGraphProps) {
     const { eventId, products, ...rest } = props;
 
     const fetchDataFn = fetchProductSales.bind(null, eventId, products);
-    return <RemoteGraph fetchDataFn={fetchDataFn} {...rest} />;
+    return <RemoteGraph cumulative={props.cumulative} fetchDataFn={fetchDataFn} {...rest} />;
 }

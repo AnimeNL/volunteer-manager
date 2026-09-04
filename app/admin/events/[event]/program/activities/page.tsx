@@ -86,6 +86,11 @@ const programActivitiesDataSource = createDataSource('admin/event/program/activi
     anplanLink: z.string().optional(),
 
     /**
+     * Whether the row is frozen from editing (AnPlan activities).
+     */
+    isFrozen: z.boolean(),
+
+    /**
      * Whether the row is protected from deletion (AnPlan activities).
      */
     isProtected: z.boolean(),
@@ -299,7 +304,7 @@ const programActivitiesDataSource = createDataSource('admin/event/program/activi
                     visible: !!activity.visible,
                     anplanLink,
 
-                    // TODO: isFrozen
+                    isFrozen: activity.type !== kActivityType.Internal,
                     isProtected: activity.type !== kActivityType.Internal,
                 };
             }),
@@ -486,8 +491,8 @@ export default async function ProgramActivitiesPage(
                 <DataTable columns={columns} source={programActivitiesDataSource}
                            context={{ event: event.slug }} pageSize={50}
                            defaultSort={{ field: 'title', sort: 'asc' }}
-                           protectedColumn="isProtected" subject="activity"
-                           search="prominent"
+                           frozenColumn="isFrozen" protectedColumn="isProtected"
+                           search="prominent" subject="activity"
                            listViewProps={{
                                primaryField: 'title',
                                secondaryField: 'location',

@@ -7,8 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
-    DataGridPremium, GRID_REORDER_COL_DEF, type GridColDef, type GridDataSource,
-    type GridFilterModel, type GridPaginationModel, type GridRowModel,
+    DataGridPremium, GRID_REORDER_COL_DEF, type GridCellParams, type GridColDef,
+    type GridDataSource, type GridFilterModel, type GridPaginationModel, type GridRowModel,
     type GridRowOrderChangeParams, type GridSortModel, type GridValidRowModel }
     from '@mui/x-data-grid-premium';
 
@@ -29,7 +29,7 @@ import { DataTableProminentSearchToolbar } from './DataTableProminentSearchToolb
 import { DataTableResponsiveFooter, DataTableResponsiveFooterWithQuickSearch } from './DataTableResponsiveFooter';
 import { DataTableRowEditor } from './DataTableRowEditor';
 import { ResponsiveConfirmationDialog } from '../ResponsiveConfirmationDialog';
-import { isProtectedRow } from './Utilities';
+import { isFrozenRow, isProtectedRow } from './Utilities';
 import { useDataTableState } from './useDataTableState';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
@@ -89,6 +89,12 @@ interface DataTableClientCommonProps<
      * to support search, regardless of whether it's a prominent or subtle user interface.
      */
     disableSearch?: boolean;
+
+    /**
+     * Column through which it can be derived whether this row has been frozen. Frozen rows cannot
+     * be edited.
+     */
+    frozenColumn?: keyof RowModel & string;
 
     /**
      * Props given to the default list view component that's used in the responsive mobile display.
@@ -365,6 +371,10 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
 
     }, [ context, editCandidate, props.refreshOnMutation, props.source, router, subject ]);
 
+    const isCellEditable = useCallback((params: GridCellParams) => {
+        return !isFrozenRow(params.row, props.frozenColumn);
+    }, [ props.frozenColumn ]);
+
     // ---------------------------------------------------------------------------------------------
     // Ability to reorder rows in the data table, when exposed by the source.
     // ---------------------------------------------------------------------------------------------
@@ -544,6 +554,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                 dataSourceKeepPreviousData
 
                 editMode={sourceRef.current.update ? 'row' : undefined}
+                isCellEditable={props.frozenColumn ? isCellEditable : undefined}
 
                 rowReordering={!isMobile && enableReorder}
                 onRowOrderChange={enableReorder ? handleReorder : undefined}
@@ -582,12 +593,14 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                                 listViewProps={props.listViewProps} row={params.row}
                                 onDelete={props.source.delete ? setDeleteCandidate : undefined}
                                 onEdit={props.source.update ? setEditCandidate : undefined}
+                                frozenColumn={props.frozenColumn}
                                 protectedColumn={props.protectedColumn} /> :
                             <DataTableListViewRow
                                 height={estimatedListViewRowHeight}
                                 listViewProps={props.listViewProps} row={params.row}
                                 onDelete={props.source.delete ? setDeleteCandidate : undefined}
                                 onEdit={props.source.update ? setEditCandidate : undefined}
+                                frozenColumn={props.frozenColumn}
                                 protectedColumn={props.protectedColumn} />,
                 }}
 

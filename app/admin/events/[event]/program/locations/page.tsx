@@ -227,8 +227,6 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
                 anplanLink: location.id > kInternalLocationIdOffset
                     ? undefined
                     : getAnPlanLocationUrl(location.id),
-
-                // TODO: isFrozen
                 isProtected: location.type !== kActivityType.Internal,
             })),
         };

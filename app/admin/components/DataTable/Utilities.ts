@@ -4,6 +4,17 @@
 import type { GridRowModel } from '@mui/x-data-grid-premium';
 
 /**
+ * Returns whether the given |row| has been frozen.
+ */
+export function isFrozenRow(row: GridRowModel<any>, frozenColumn?: any): boolean {
+    if (!frozenColumn)
+        return false;
+
+    const frozenColumnValue = resolveRowModelField(row, frozenColumn);
+    return !!frozenColumnValue;
+}
+
+/**
  * Returns whether the given |row| has been protected.
  */
 export function isProtectedRow(row: GridRowModel<any>, protectedColumn?: any): boolean {

@@ -252,7 +252,7 @@ export default async function ProgramActivityPage(
                 </Section> }
             { !!products.length &&
                 <Section title="Ticket sales" icon={ <LocalActivityOutlinedIcon /> }>
-                    <ProductSalesGraph eventId={event.id} products={products} />
+                    <ProductSalesGraph cumulative eventId={event.id} products={products} />
                 </Section> }
             <HistorySection event={event.slug} activityId={activityId} />
         </>
