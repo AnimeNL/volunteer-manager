@@ -105,6 +105,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
             condition: !!event.integrations?.anPlanFestivalId,
             label: 'Program',
             url: `/admin/events/${event.slug}/program/requests`,
+            urlPrefix: `/admin/events/${event.slug}/program`,
         },
         {
             Icon: MonetizationOnIcon,
