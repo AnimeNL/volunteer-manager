@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { HistorySection } from '../HistorySection';
 import { ActivityLocationCell, ActivityTitleCell, AnPlanLinkCell, AnPlanLinkHeader,
     HelpRequestedCell, HelpRequestedHeader, VisibleCell, VisibleHeader } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
@@ -494,6 +495,7 @@ export default async function ProgramActivitiesPage(
                                linkTemplate: './activities/{id}',
                            }} />
             </Section>
+            <HistorySection event={event.slug} scope="activities" />
         </>
     );
 }

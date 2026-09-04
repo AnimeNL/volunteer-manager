@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import MapIcon from '@mui/icons-material/Map';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { HistorySection } from '../HistorySection';
 import { AnPlanLinkCell, AnPlanLinkHeader, DisplayNameCell } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
@@ -330,6 +331,7 @@ export default async function ProgramAreasPage(
                                secondaryField: 'name',
                            }} />
             </Section>
+            <HistorySection event={event.slug} scope="areas" />
         </>
     );
 }

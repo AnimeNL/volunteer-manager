@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { HistorySection } from '../HistorySection';
 import { RequestStatusCell, RequestTeamShiftCell, RequestTeamShiftHeader } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
@@ -17,7 +18,10 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tActivities, tEventsTeams, tShifts, tTeams, tUsers } from '@lib/database';
+import db, { tActivities, tActivitiesLogs, tEventsTeams, tShifts, tTeams, tUsers }
+    from '@lib/database';
+
+import { kMutation, kMutationSeverity } from '@lib/database/Types';
 
 /**
  * Sort order mapping for program request statuses.
@@ -194,6 +198,21 @@ const programRequestsDataSource = createDataSource('admin/event/program/requests
                 .and(tActivities.activityFestivalId.equals(festivalId))
             .executeUpdate();
 
+        if (!affectedRows)
+            return false;
+
+        await dbInstance.insertInto(tActivitiesLogs)
+            .set({
+                festivalId,
+                activityId: row.id,
+                mutation: kMutation.Updated,
+                mutationFields: 'help request notes, assignee',
+                mutationSeverity: kMutationSeverity.Important,
+                mutationUserId: props.user?.id,
+                mutationDate: dbInstance.currentZonedDateTime(),
+            })
+            .executeInsert();
+
         LogBuilder.for('UpdateProgramRequest')
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
@@ -347,6 +366,7 @@ export default async function ProgramRequestsPage(
                                secondaryField: 'status',
                            }} />
             </Section>
+            <HistorySection event={event.slug} scope="requests" />
         </>
     );
 }

@@ -101,7 +101,6 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: EventNoteIcon,
-            badge: { migration: true, value: true },  // migration in progress
             condition: !!event.integrations?.anPlanFestivalId,
             label: 'Program',
             url: `/admin/events/${event.slug}/program/requests`,

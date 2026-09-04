@@ -62,8 +62,8 @@ export default async function ModelsAiPage() {
         'ai-setting-top-p',
     ]);
 
-    const kDefaultImageModel = kAiSupportedModelIdentifiers['gemini-2.5-flash-image'];
-    const kDefaultTextModel = kAiSupportedModelIdentifiers['gemini-2.5-flash'];
+    const kDefaultImageModel = kAiSupportedModelIdentifiers['gemini-3.1-flash-image'];
+    const kDefaultTextModel = kAiSupportedModelIdentifiers['gemini-3.8-flash'];
 
     const defaultValues = {
         imageModel: settings['ai-setting-image-model'] ?? kDefaultImageModel,

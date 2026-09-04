@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { HistorySection } from '../HistorySection';
 import { AnPlanLinkCell, AnPlanLinkHeader, DisplayNameCell } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
@@ -394,6 +395,7 @@ export default async function ProgramLocationsPage(
                                secondaryField: 'area',
                            }} />
             </Section>
+            <HistorySection event={event.slug} scope="locations" />
         </>
     );
 }

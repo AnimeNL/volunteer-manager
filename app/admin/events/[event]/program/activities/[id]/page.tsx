@@ -17,6 +17,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
+import { HistorySection } from '../../HistorySection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
 import { Section } from '@app/admin/components/Section';
@@ -253,6 +254,7 @@ export default async function ProgramActivityPage(
                 <Section title="Ticket sales" icon={ <LocalActivityOutlinedIcon /> }>
                     <ProductSalesGraph eventId={event.id} products={products} />
                 </Section> }
+            <HistorySection event={event.slug} activityId={activityId} />
         </>
     );
 }
