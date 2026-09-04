@@ -229,6 +229,12 @@ interface LogTypeParameterMap {
         category: string;
     };
 
+    CreateProgramEntity: {
+        event: string;  // short name
+        entity: string;
+        entityType: 'activity' | 'area' | 'location';
+    };
+
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
@@ -237,6 +243,12 @@ interface LogTypeParameterMap {
     DeleteKnowledgeBaseCategory: {
         event: string;  // short name
         category: string;
+    };
+
+    DeleteProgramEntity: {
+        event: string;  // short name
+        entity: string;
+        entityType: 'activity' | 'area' | 'location';
     };
 
     DisassociateTicketFromVolunteer: {
@@ -298,6 +310,17 @@ interface LogTypeParameterMap {
     UpdateKnowledgeBaseCategory: {
         event: string;  // short name
         category: string;
+    };
+
+    UpdateProgramEntity: {
+        event: string;  // short name
+        entity: string;
+        entityType: 'activity' | 'area' | 'location';
+    };
+
+    UpdateProgramRequest: {
+        event: string;  // short name
+        activity: string;
     };
 
     UpdateTicketPurchase: {
@@ -581,8 +604,10 @@ export const kLogType: { [k in LogType]: k } = {
     CreateAssociateTicket: 'CreateAssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
+    CreateProgramEntity: 'CreateProgramEntity',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
+    DeleteProgramEntity: 'DeleteProgramEntity',
     DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
     UpdateAssociateTicket: 'UpdateAssociateTicket',
@@ -595,6 +620,8 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateKnowledgeBase: 'UpdateKnowledgeBase',
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
+    UpdateProgramEntity: 'UpdateProgramEntity',
+    UpdateProgramRequest: 'UpdateProgramRequest',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------

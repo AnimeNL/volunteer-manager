@@ -42,10 +42,6 @@ import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
-import type { ProgramActivitiesEndpoints } from '@app/api/admin/program/activities/[[...id]]/route';
-import type { ProgramAreasEndpoints } from '@app/api/admin/program/areas/[[...id]]/route';
-import type { ProgramLocationsEndpoints } from '@app/api/admin/program/locations/[[...id]]/route';
-import type { ProgramRequestEndpoints } from '@app/api/admin/program/requests/[[...id]]/route';
 import type { RefundRequestEndpoints } from '@app/api/admin/refunds/[[...id]]/route';
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
@@ -70,10 +66,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
-        '/api/admin/program/activities': ProgramActivitiesEndpoints['list'],
-        '/api/admin/program/areas': ProgramAreasEndpoints['list'],
-        '/api/admin/program/locations': ProgramLocationsEndpoints['list'],
-        '/api/admin/program/requests': ProgramRequestEndpoints['list'],
         '/api/admin/refunds': RefundRequestEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
@@ -88,9 +80,6 @@ export type ApiEndpoints = {
         '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
         '/api/admin/hotels': HotelsEndpoints['create'],
-        '/api/admin/program/activities': ProgramActivitiesEndpoints['create'],
-        '/api/admin/program/areas': ProgramAreasEndpoints['create'],
-        '/api/admin/program/locations': ProgramLocationsEndpoints['create'],
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,
@@ -123,9 +112,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/hotels/:id': HotelsEndpoints['delete'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['delete'],
-        '/api/admin/program/activities/:id': ProgramActivitiesEndpoints['delete'],
-        '/api/admin/program/areas/:id': ProgramAreasEndpoints['delete'],
-        '/api/admin/program/locations/:id': ProgramLocationsEndpoints['delete'],
         '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
@@ -136,10 +122,6 @@ export type ApiEndpoints = {
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],
-        '/api/admin/program/activities/:id': ProgramActivitiesEndpoints['list'],
-        '/api/admin/program/areas/:id': ProgramAreasEndpoints['update'],
-        '/api/admin/program/locations/:id': ProgramLocationsEndpoints['update'],
-        '/api/admin/program/requests/:id': ProgramRequestEndpoints['update'],
         '/api/admin/refunds/:id': RefundRequestEndpoints['update'],
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],

@@ -483,7 +483,7 @@ export default async function ProgramActivitiesPage(
             </Section>
             <Section noHeader tabs>
                 <DataTable columns={columns} source={programActivitiesDataSource}
-                           context={{ event: event.slug }} pageSize={25}
+                           context={{ event: event.slug }} pageSize={50}
                            defaultSort={{ field: 'title', sort: 'asc' }}
                            protectedColumn="isProtected" subject="activity"
                            search="prominent"

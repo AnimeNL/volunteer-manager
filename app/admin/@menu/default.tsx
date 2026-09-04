@@ -43,6 +43,7 @@ export default async function DefaultMenu() {
             .innerJoin(tLogsFormat)
                 .on(tLogsFormat.logType.equals(tLogs.logType))
             .where(tLogs.logDate.greaterOrEqual(exactlyOneDayAgo))
+                .and(tLogs.logDeleted.isNull())
                 .and(tLogsFormat.logTypeVisible.equals(/* true= */ 1))
             .selectCountAll()
             .forUseAsInlineQueryValue();

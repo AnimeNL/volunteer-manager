@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
@@ -65,7 +65,10 @@ const programAreasDataSource = createDataSource('admin/event/program/areas', wit
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'admin',
+            permission: 'event.visible',
+            scope: {
+                event: context.event.slug,
+            },
         });
     },
 
