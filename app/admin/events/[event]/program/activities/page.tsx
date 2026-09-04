@@ -297,6 +297,8 @@ const programActivitiesDataSource = createDataSource('admin/event/program/activi
                     shiftScheduled: !!activity.shiftScheduled,
                     visible: !!activity.visible,
                     anplanLink,
+
+                    // TODO: isFrozen
                     isProtected: activity.type !== kActivityType.Internal,
                 };
             }),
