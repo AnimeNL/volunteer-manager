@@ -21,17 +21,13 @@ type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
+    'gemini-3.8-flash': {  // EOL: Not announced
+        name: 'Gemini 3.8 Flash',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-8-flash',
+    },
     'gemini-3.7-flash': {  // EOL: Not announced
         name: 'Gemini 3.7 Flash',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-7-flash',
-    },
-    'gemini-3.6-flash': {  // EOL: May 19, 2027 or later
-        name: 'Gemini 3.6 Flash',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-6-flash',
-    },
-    'gemini-3.5-flash': {  // EOL: May 19, 2027 or later
-        name: 'Gemini 3.5 Flash',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-5-flash',
     },
     'gemini-3.1-flash-image': {  // EOL: May 28, 2027 or later
         name: 'Gemini 3.1 Flash (Nano Banana)',
@@ -49,25 +45,9 @@ export const kAiSupportedModels = {
         name: 'Gemini 3.1 Pro (Preview)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-pro',
     },
-    'gemini-3-flash-preview': {  // EOL: Not announced
-        name: 'Gemini 3 Flash (Preview)',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-flash',
-    },
     'gemini-3-pro-image': {  // EOL: May 28, 2027 or later
         name: 'Gemini 3 Pro (Nano Banana Pro)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-pro-image',
-    },
-    'gemini-2.5-flash': {  // EOL: Not before October 16, 2026
-        name: 'Gemini 2.5 Flash',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash',
-    },
-    'gemini-2.5-flash-image': {  // EOL: October 2, 2026
-        name: 'Gemini 2.5 Flash (Nano Banana)',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash-image',
-    },
-    'gemini-2.5-flash-lite': {  // EOL: Not before October 16, 2026
-        name: 'Gemini 2.5 Flash (Lite)',
-        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash-lite',
     },
 } as const satisfies Partial<Record<LibrarySupportedAiModels, { name: string, url: string }>>;
 
