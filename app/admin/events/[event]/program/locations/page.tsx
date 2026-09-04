@@ -82,7 +82,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
     async create(partialRow, props, context) {
         const festivalId = context.event.integrations?.anPlanFestivalId;
         if (!festivalId)
-            return false;
+            notFound();
 
         if (!partialRow.displayName || !partialRow.areaId)
             return false;
@@ -140,7 +140,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
     async delete(row, props, context) {
         const festivalId = context.event.integrations?.anPlanFestivalId;
         if (!festivalId)
-            return false;
+            notFound();
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tActivitiesLocations)
@@ -184,7 +184,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
     async list(params, props, context) {
         const festivalId = context.event.integrations?.anPlanFestivalId;
         if (!festivalId)
-            return { rowCount: 0, rows: [] };
+            notFound();
 
         const areasJoin = tActivitiesAreas.forUseInLeftJoin();
 
@@ -196,7 +196,9 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
                 .and(tActivitiesLocations.locationDeleted.isNull())
                 .and(tActivitiesLocations.locationName.containsInsensitiveIfValue(params.search).or(
                     tActivitiesLocations.locationDisplayName.containsInsensitiveIfValue(
-                        params.search)))
+                        params.search).or(
+                    areasJoin.areaDisplayName.containsInsensitiveIfValue(params.search).or(
+                    areasJoin.areaName.containsInsensitiveIfValue(params.search)))))
             .select({
                 id: tActivitiesLocations.locationId,
                 type: tActivitiesLocations.locationType,
@@ -231,7 +233,7 @@ const programLocationsDataSource = createDataSource('admin/event/program/locatio
     async update(row, previousRow, props, context) {
         const festivalId = context.event.integrations?.anPlanFestivalId;
         if (!festivalId)
-            return false;
+            notFound();
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tActivitiesLocations)
