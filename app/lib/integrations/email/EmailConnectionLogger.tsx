@@ -1,7 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Logger, LoggerLevel } from 'nodemailer/lib/shared';
+import type { Logger } from 'nodemailer/lib/shared';
 import type { EmailLogger } from './EmailLogger';
 
 /**
@@ -22,10 +22,6 @@ export class EmailConnectionLogger implements Logger {
     // ---------------------------------------------------------------------------------------------
     // Logger implementation:
     // ---------------------------------------------------------------------------------------------
-
-    level(level: LoggerLevel): void {
-        // no implementation provided
-    }
 
     trace(...params: any[]): void {
         this.#messageLogger?.reportLog('trace', params);

@@ -1,13 +1,14 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Address, AttachmentLike } from 'nodemailer/lib/mailer';
+import type Mail from 'nodemailer/lib/mailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { Readable } from 'node:stream';
 
 import type { SendMessageRequest } from './SendMessageRequest';
 import type { User } from '@lib/auth/User';
 import db, { tOutboxEmail } from '@lib/database';
+import type { MimeNodeAddressInput } from 'nodemailer/lib/mime-node';
 
 /**
  * Severity of messages that can be stored by the EmailLogger.
@@ -101,23 +102,31 @@ export class EmailLoggerImpl implements EmailLogger {
     /**
      * Normalizes the given `input` in a string that can be stored in a log.
      */
-    private normalizeRecipients(input?: string | Address | Array<string | Address>): string | null {
+    private normalizeRecipients(input?: MimeNodeAddressInput)
+        : string | null
+    {
         if (!input)
             return null;
 
-        const inputArray = Array.isArray(input) ? input : [ input ];
-        const normalizedArray = inputArray.map(individualAddress => {
-            return typeof individualAddress === 'string' ? individualAddress
-                                                         : individualAddress.address;
-        });
+        function normalizeRecipient(input?: MimeNodeAddressInput): string[] {
+            if (typeof input === 'string')
+                return [ input ];
 
-        return normalizedArray.join(', ');
+            if (Array.isArray(input))
+                return input.flatMap(normalizeRecipient);
+
+            return !!input?.address ? [ input.address ]
+                                    : [ /* no recipient */ ];
+        }
+
+        const normalizedRecipients = normalizeRecipient(input);
+        return normalizedRecipients.join(', ');
     }
 
     /**
      * Normalizes the given `input` in a string that can be stored in a log.
      */
-    private normalizeContent(input?: string | Buffer | Readable | AttachmentLike): string {
+    private normalizeContent(input?: string | Buffer | Readable | Mail.AttachmentLike): string {
         if (!input)
             return /* empty content= */ '';
 

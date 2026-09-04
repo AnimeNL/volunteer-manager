@@ -66,6 +66,6 @@ export class EmailClientMock extends EmailClient {
      * from being send to real e-mail addresses.
      */
     protected override createTransport(options: SMTPTransport.Options) {
-        return nodemailermock.createTransport(options);
+        return nodemailermock.createTransport(options) as any;  // TODO: Fix w/ nodemailer-mock roll
     }
 }
