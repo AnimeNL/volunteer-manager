@@ -7,8 +7,7 @@ import { z } from 'zod/v4';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { RequestAssigneeCell, RequestNotesCell, RequestStatusCell, RequestTeamShiftCell,
-    RequestTeamShiftHeader } from '../ProgramCells';
+import { RequestStatusCell, RequestTeamShiftCell, RequestTeamShiftHeader } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
@@ -285,9 +284,9 @@ export default async function ProgramRequestsPage(
                 ...leaders
             ],
 
-            template: 'component',
+            template: 'text',
             templateProps: {
-                component: RequestAssigneeCell,
+                field: 'assignee',
             },
         },
         {
@@ -297,10 +296,7 @@ export default async function ProgramRequestsPage(
             sortable: false,
             flex: 3,
 
-            template: 'component',
-            templateProps: {
-                component: RequestNotesCell,
-            },
+            template: 'text',
         },
     ];
 

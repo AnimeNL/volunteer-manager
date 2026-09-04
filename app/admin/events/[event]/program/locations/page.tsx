@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { AnPlanLinkCell, AnPlanLinkHeader, DisplayNameCell, LocationAreaCell } from '../ProgramCells';
+import { AnPlanLinkCell, AnPlanLinkHeader, DisplayNameCell } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
@@ -363,9 +363,10 @@ export default async function ProgramLocationsPage(
                 required: true,
             },
 
-            template: 'component',
+            template: 'text',
             templateProps: {
-                component: LocationAreaCell,
+                field: 'area',
+                href: './areas',
             },
         },
     ];

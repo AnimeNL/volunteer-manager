@@ -1,49 +1,51 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import Paper from '@mui/material/Paper';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import LabelImportantOutlinedIcon from '@mui/icons-material/LabelImportantOutlined';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import PeopleIcon from '@mui/icons-material/People';
-import Stack from '@mui/material/Stack';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
+import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
+import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDate } from '@lib/Temporal';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
-import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tEventsSalesConfiguration,
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tEventsTicketsConfiguration,
     tShifts, tTeams } from '@lib/database';
 
 /**
- * Date and time format in which updates should be displayed.
- */
-const kUpdateFormat = ' dddd, MMMM D, [at] HH:mm';
-
-/**
- * The <ProgramLayout> component contains the common elements between the different pages that make
- * up the Program section of the Volunteer Manager. A program is bound to an event.
+ * Detail page for a specific activity part of an event's program.
  */
 export default async function ProgramActivityPage(
     props: PageProps<'/admin/events/[event]/program/activities/[id]'>)
 {
-    const { access, event } = await verifyAccessAndFetchPageInfo(props.params);
+    const { access, event } = await requireAuthenticationWithEvent(props);
     const { id } = await props.params;
 
     const activityId = parseInt(id, 10);
-    if (!Number.isSafeInteger(activityId) || !event.festivalId)
+    if (!Number.isSafeInteger(activityId) || !event.integrations?.anPlanFestivalId)
         notFound();
 
     const dbInstance = db;
     const activity = await dbInstance.selectFrom(tActivities)
         .where(tActivities.activityId.equals(activityId))
-            .and(tActivities.activityFestivalId.equals(event.festivalId))
+            .and(tActivities.activityFestivalId.equals(event.integrations.anPlanFestivalId))
             .and(tActivities.activityDeleted.isNull())
         .select({
             title: tActivities.activityTitle,
@@ -104,134 +106,154 @@ export default async function ProgramActivityPage(
     let products: number[] = [ /* none */ ];
 
     if (access.can('statistics.basic')) {
-        products = await dbInstance.selectFrom(tEventsSalesConfiguration)
-            .where(tEventsSalesConfiguration.eventId.equals(event.id))
-                .and(tEventsSalesConfiguration.saleEventId.equals(activityId))
-            .selectOneColumn(tEventsSalesConfiguration.saleId)
+        products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
+            .where(tEventsTicketsConfiguration.eventId.equals(event.id))
+                .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(activityId))
+            .selectOneColumn(tEventsTicketsConfiguration.eventTicketYtpId)
             .executeSelectMany();
     }
 
     return (
-        <Box component={Stack} direction="column" spacing={2} sx={{ p: 2 }}>
-            <Paper variant="outlined" sx={{ p: 1 }}>
-                <Typography variant="h6" sx={{ pb: .5 }}>
-                    {activity.title}
-                </Typography>
+        <>
+            <Section icon={ <EventNoteIcon color="primary" /> } title={activity.title}
+                     breadcrumbs={[
+                         { label: event.shortName, href: `/admin/events/${event.slug}` },
+                         { label: 'Program', href: `/admin/events/${event.slug}/program` },
+                         {
+                             label: 'Activities',
+                             href: `/admin/events/${event.slug}/program/activities`,
+                         },
+                         { label: activity.title },
+                     ]}>
+                <SectionIntroduction>
+                    Information about an individual activity during {event.shortName}.
+                </SectionIntroduction>
+            </Section>
+            <Section noHeader back tabs>
                 { !!activity.description &&
-                    <Typography variant="body2" sx={{ pb: .5 }}>
+                    <Typography variant="body2">
                         {activity.description}
                     </Typography> }
-
-                <Divider sx={{ mt: .5 }} />
-
-                <Stack divider={ <Divider flexItem /> } spacing={1} sx={{ mt: 1 }}>
-                    { !!anplanLink &&
-                        <Typography variant="body2">
-                            <strong>AnPlan link</strong>:{' '}
+                <KeyValueList items={[
+                    {
+                        condition: !!anplanLink,
+                        key: 'AnPlan link',
+                        valueTemplate: 'component',
+                        value: (
                             <MuiLink component={Link} target="_blank" href={anplanLink}>
-                                click
+                                <Typography variant="body2">click</Typography>
                             </MuiLink>
-                        </Typography> }
-                    <Typography variant="body2">
-                        <strong>Portal link</strong>:{' '}
-                        <MuiLink component={Link} target="_blank" href={portalLink}>
-                            click
-                        </MuiLink>
-                    </Typography>
-                    { !!activity.url &&
-                        <Typography variant="body2">
-                            <strong>Website link</strong>:{' '}
-                            <MuiLink component={Link} target="_blank" href={activity.url}>
-                                click
+                        ),
+                    },
+                    {
+                        key: 'Portal link',
+                        valueTemplate: 'component',
+                        value: (
+                            <MuiLink component={Link} target="_blank" href={portalLink}>
+                                <Typography variant="body2">click</Typography>
                             </MuiLink>
-                        </Typography> }
-
-                    <Typography variant="body2">
-                        <strong>Public</strong>: { activity.visible ? 'Yes' : 'No' }
-                        { !!activity.visibleReason &&
-                            <Typography component="span" variant="body2"
-                                        sx={{ pl: .5, color: 'text.disabled' }}>
-                                ({activity.visibleReason})
-                            </Typography> }
-                    </Typography>
-
-                    <Typography variant="body2">
-                        <strong>Help requested</strong>: { activity.helpRequested ? 'Yes' : 'No' }
-                    </Typography>
-
-                    { !!activity.maxVisitors &&
-                        <Typography variant="body2">
-                            <strong>Max visitors</strong>: {activity.maxVisitors}
-                        </Typography> }
-
-                    { !!activity.price &&
-                        <Typography variant="body2">
-                            <strong>Price</strong>: €{activity.price}
-                        </Typography> }
-
-                    <Typography variant="body2">
-                        <strong>Created on</strong>:
-                        { formatDate(activity.created.withTimeZone(event.timezone), kUpdateFormat) }
-                    </Typography>
-
-                    <Typography variant="body2">
-                        <strong>Updated on</strong>:
-                        { formatDate(activity.updated.withTimeZone(event.timezone), kUpdateFormat) }
-                    </Typography>
-
-                </Stack>
-            </Paper>
+                        ),
+                    },
+                    {
+                        condition: !!activity.url,
+                        key: 'Website link',
+                        valueTemplate: 'component',
+                        value: (
+                            <MuiLink component={Link} target="_blank" href={activity.url!}>
+                                <Typography variant="body2">click</Typography>
+                            </MuiLink>
+                        ),
+                    },
+                    {
+                        key: 'Public',
+                        valueTemplate: 'component',
+                        value: (
+                            <Typography variant="body2">
+                                { activity.visible ? 'Yes' : 'No' }
+                                { !!activity.visibleReason &&
+                                    <Typography component="span" variant="inherit"
+                                                sx={{ pl: .5, color: 'text.disabled' }}>
+                                        ({activity.visibleReason})
+                                    </Typography> }
+                            </Typography>
+                        ),
+                    },
+                    {
+                        key: 'Help requested',
+                        value: activity.helpRequested ? 'Yes' : 'No',
+                    },
+                    {
+                        condition: !!activity.maxVisitors,
+                        key: 'Max visitors',
+                        value: activity.maxVisitors,
+                    },
+                    {
+                        condition: !!activity.price,
+                        key: 'Price',
+                        value: `€${activity.price}`,
+                    },
+                    {
+                        key: 'Created on',
+                        valueTemplate: 'localDateTime',
+                        value: activity.created.toString(),
+                    },
+                    {
+                        key: 'Updated on',
+                        valueTemplate: 'localDateTime',
+                        value: activity.created.toString(),
+                    },
+                ]} />
+            </Section>
             { timeslots.length > 0 &&
-                <Paper variant="outlined" sx={{ p: 1 }}>
-                    <Typography variant="h6">
-                        Timeslots
-                    </Typography>
-                    <Stack divider={ <Divider flexItem /> } spacing={1} sx={{ mt: 1 }}>
+                <Section title="Timeslots" icon={ <ScheduleIcon /> }>
+                    <List dense disablePadding>
                         { timeslots.map((timeslot, index) =>
-                            <Typography key={index} variant="body2">
-                                { formatDate(
-                                    timeslot.start.withTimeZone(event.timezone), 'dddd, HH:mm') }–
-                                { formatDate(
-                                    timeslot.end.withTimeZone(event.timezone), 'HH:mm') },
-                                in the{' '}
-                                <MuiLink component={Link} href="../locations">
-                                    {timeslot.location}
-                                </MuiLink>
-                            </Typography> )}
-                    </Stack>
-                </Paper> }
+                            <ListItem key={index} divider={ index !== timeslots.length - 1 }
+                                      disableGutters>
+                                <ListItemIcon>
+                                    <LabelImportantOutlinedIcon color="primary" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={
+                                        formatDate(
+                                            timeslot.start.withTimeZone(event.timeZone),
+                                            'dddd (HH:mm–') +
+                                        formatDate(
+                                            timeslot.end.withTimeZone(event.timeZone), 'HH:mm)')
+                                    }
+                                    secondary={timeslot.location} />
+                            </ListItem> )}
+                    </List>
+                </Section> }
             { shifts.length > 0 &&
-                <Paper variant="outlined" sx={{ p: 1 }}>
-                    <Typography variant="h6">
-                        Volunteering shifts
-                    </Typography>
-                    <Stack divider={ <Divider flexItem /> } spacing={1} sx={{ mt: 1 }}>
+                <Section title="Volunteering shifts" icon={ <PeopleIcon /> }>
+                    <List dense disablePadding>
                         { shifts.map(({ shift, team }, index) =>
-                            <Stack key={index} direction="row" spacing={1} sx={{
-                                alignContent: 'center'
-                            }}>
-                                <Tooltip title={team.name}>
-                                    <PeopleIcon fontSize="small" htmlColor={team.colour} />
-                                </Tooltip>
-                                <Typography variant="body2">
-                                    <MuiLink component={Link}
-                                             href={`../../${team.slug}/shifts/${shift.id}`}>
-                                        {shift.name}
-                                    </MuiLink>{' '}
-                                    ({team.name})
-                                </Typography>
-                            </Stack>
-                        )}
-                    </Stack>
-                </Paper> }
+                            <ListItem key={index} divider={ index !== shifts.length - 1 }
+                                      disableGutters>
+                                <ListItemIcon>
+                                    <Tooltip title={team.name}>
+                                        <TooltipIconWrapper>
+                                            <PeopleIcon fontSize="small" htmlColor={team.colour} />
+                                        </TooltipIconWrapper>
+                                    </Tooltip>
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={
+                                        <MuiLink component={Link}
+                                                 href={`../../${team.slug}/shifts/${shift.id}`}>
+                                            {shift.name}
+                                        </MuiLink>
+                                    }
+                                    secondary={team.name} />
+                            </ListItem> )}
+                    </List>
+                </Section> }
             { !!products.length &&
-                <Paper variant="outlined" sx={{ p: 1 }}>
-                    <Typography variant="h6">
-                        Ticket sales
-                    </Typography>
+                <Section title="Ticket sales" icon={ <LocalActivityOutlinedIcon /> }>
                     <ProductSalesGraph eventId={event.id} products={products} />
-                </Paper> }
-        </Box>
+                </Section> }
+        </>
     );
 }
 
