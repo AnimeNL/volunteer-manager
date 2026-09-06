@@ -81,6 +81,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: system.internals.settings omitted
         // note: system.logs:delete omitted
         'system.logs:read',
+        'system.permissions',
         'system.subscriptions.eligible',
         'system.subscriptions.management',
 
@@ -152,6 +153,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: system.internals.settings omitted
         // note: system.logs:delete omitted
         'system.logs:read',
+        // note: system.permissions omitted
         'system.subscriptions.eligible',
         // note: system.subscriptions.management omitted
 
@@ -223,6 +225,7 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: system.internals.settings omitted
         // note: system.logs:delete omitted
         // note: system.logs:read omitted
+        // note: system.permissions omitted
         'system.subscriptions.eligible',
         // note: system.subscriptions.management omitted
 

@@ -460,6 +460,15 @@ export const kPermissions = {
         warning: true,
     },
 
+    'system.permissions': {
+        name: 'Permission management',
+        description:
+            'Management of the permissions, roles and their principals throughout the Volunteer ' +
+            'Manager. Write access is implied, with minimal safeguards.',
+        type: 'boolean',
+        warning: true,
+    },
+
     'system.subscriptions.eligible': {
         name: 'Subscription eligibility',
         description:

@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import ApiIcon from '@mui/icons-material/Api';
 import AppsIcon from '@mui/icons-material/Apps';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -54,6 +55,11 @@ export default async function SystemPage() {
                     Icon: ApiIcon,
                     href: '/admin/system/integrations',
                     label: 'Integrations',
+                },
+                {
+                    Icon: AdminPanelSettingsOutlinedIcon,
+                    href: '/admin/system/permissions/principals',
+                    label: 'Permissions',
                 },
                 {
                     Icon: LoopIcon,
