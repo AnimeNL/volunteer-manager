@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
+import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
@@ -64,11 +64,9 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
     },
 
     async create(partialRow, props) {
-        if (!partialRow.name || !partialRow.name.trim()) {
+        if (!partialRow.name || !partialRow.name.trim())
             return false;
-        }
 
-        const dbInstance = db;
         const name = partialRow.name.trim();
         const description = partialRow.description?.trim() || '';
 
@@ -78,18 +76,17 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             .replace(/^-+|-+$/g, '')
             .slice(0, 50);
 
-        if (!roleId || roleId === 'root') {
-            roleId = roleId ? `${roleId}-${nanoid(4)}` : nanoid(8);
-        }
+        if (!roleId || roleId === 'root')
+            return false;
 
+        const dbInstance = db;
         const existing = await dbInstance.selectFrom(tPermissionsRoles)
             .where(tPermissionsRoles.permissionRoleId.equals(roleId))
             .selectOneColumn(tPermissionsRoles.permissionRoleId)
             .executeSelectNoneOrOne();
 
-        if (existing) {
-            roleId = `${roleId}-${nanoid(4)}`;
-        }
+        if (existing)
+            return false;
 
         const insertedRows = await dbInstance.insertInto(tPermissionsRoles)
             .set({
@@ -105,9 +102,8 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
     },
 
     async delete(row, props) {
-        if (row.id === 'root') {
+        if (row.id === 'root')
             return false;
-        }
 
         const dbInstance = db;
         const userCount = await dbInstance.selectFrom(tUsers)
@@ -117,9 +113,8 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             .selectCountAll()
             .executeSelectOne();
 
-        if (userCount > 0) {
+        if (userCount > 0)
             return false;
-        }
 
         const affectedRows = await dbInstance.deleteFrom(tPermissionsRoles)
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
@@ -173,6 +168,24 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             rows,
         };
     },
+
+    async update(row, previousRow) {
+        if (row.id === 'root')
+            return false;
+
+        const description = row.description.trim();
+        if (description === previousRow.description?.trim())
+            return true;
+
+        const affectedRows = await db.update(tPermissionsRoles)
+            .set({
+                permissionRoleDescription: description,
+            })
+            .where(tPermissionsRoles.permissionRoleId.equals(row.id))
+            .executeUpdate();
+
+        return !!affectedRows;
+    },
 });
 
 /**
@@ -220,7 +233,8 @@ export default async function RolesPage() {
 
     return (
         <>
-            <Section icon={ <WorkOutlineOutlinedIcon color="primary" /> } title="Roles"
+            <Section icon={ <AutoAwesomeMotionOutlinedIcon color="primary" /> }
+                     title="Permission roles"
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Permissions', href: '/admin/system/permissions' },
