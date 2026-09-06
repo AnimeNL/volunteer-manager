@@ -31,7 +31,6 @@ function checkPermissionGranted(
         return access.can(permissionName as BooleanPermission, scope);
 
     return ([ 'read', 'create', 'update', 'delete' ] as const).some(op =>
-        !(Array.isArray(descriptor.hide) && descriptor.hide.includes(op)) &&
         access.can(permissionName as CRUDPermission, op, scope));
 }
 
@@ -201,34 +200,34 @@ export default async function PrincipalsPage() {
         descriptor: AccessDescriptor;
     };
 
-    const permissionDefs: PermissionMetadata[] = [];
+    const permissionDefinitions: PermissionMetadata[] = [];
     for (const [ key, rawDescriptor ] of Object.entries(kPermissions)) {
-        if (key === 'root' || key === 'admin')
+        if (key === 'root' || key === 'admin' || key.startsWith('test.'))
             continue;
 
-        const descriptor = rawDescriptor as AccessDescriptor;
-        if (typeof descriptor.hide === 'boolean' && descriptor.hide)
-            continue;
+        const metadata = permissionMap.get(key);
+        if (!metadata)
+            continue;  // permissions must be defined first
 
-        const dbPerm = permissionMap.get(key);
-        const name = dbPerm?.name || descriptor.name;
-        const description = dbPerm?.description || descriptor.description;
-
-        if (name && description)
-            permissionDefs.push({ id: key, name, description, descriptor });
+        permissionDefinitions.push({
+            id: key,
+            name: metadata.name,
+            description: metadata.description,
+            descriptor: rawDescriptor as AccessDescriptor
+        });
     }
 
-    permissionDefs.sort((a, b) => a.name.localeCompare(b.name));
+    permissionDefinitions.sort((a, b) => a.name.localeCompare(b.name));
 
-    const permissionRecords: PrincipalRecord[] = permissionDefs.map(permDef => {
+    const permissionRecords: PrincipalRecord[] = permissionDefinitions.map(definition => {
         const permUsers: PrincipalUser[] = [];
 
         for (const u of processedUsers) {
             const scopes: PrincipalUserScope[] = [];
 
-            if (checkPermissionGranted(u.globalAccess, permDef.descriptor, permDef.id)) {
+            if (checkPermissionGranted(u.globalAccess, definition.descriptor, definition.id)) {
                 let source = 'Global grant';
-                if (u.grants.includes(permDef.id)) {
+                if (u.grants.includes(definition.id)) {
                     source = 'Direct grant';
                 } else if (u.grants.includes('root')) {
                     source = 'Root administrator';
@@ -240,7 +239,7 @@ export default async function PrincipalsPage() {
                 scopes.push({ scope: u.scope, source });
             } else {
                 for (const e of u.eventRoles) {
-                    if (checkPermissionGranted(e.access, permDef.descriptor, permDef.id)) {
+                    if (checkPermissionGranted(e.access, definition.descriptor, definition.id)) {
                         const matchingRole = dbRoles.find(r => r.id === e.roleGrant);
                         scopes.push({ scope: e.scope, source: matchingRole?.name ?? e.roleGrant });
                     }
@@ -254,9 +253,9 @@ export default async function PrincipalsPage() {
         permUsers.sort((a, b) => a.name.localeCompare(b.name));
 
         return {
-            id: permDef.id,
-            name: permDef.name,
-            description: permDef.description,
+            id: definition.id,
+            name: definition.name,
+            description: definition.description,
             users: permUsers,
         };
     });

@@ -17,20 +17,10 @@ export type AccessRestriction = 'root';
  */
 export interface AccessDescriptor {
     /**
-     * Human-readable name given to the permission.
+     * Whether the permission is either granted or not granted ("boolean"), or has additional
+     * granularity ("crud") for the Create, Read, Update and Delete operations.
      */
-    name: string;
-
-    /**
-     * Brief description explaining what the permission does.
-     */
-    description: string;
-
-    /**
-     * Whether certain access operations should be hidden from the user interface, or, in case of
-     * boolean permissions, whether the entire permission should be omitted.
-     */
-    hide?: AccessOperation[] | boolean;
+    type: 'boolean' | 'crud';
 
     /**
      * Whether the applicable event must be specified when checking whether this permission has been
@@ -48,15 +38,4 @@ export interface AccessDescriptor {
      * Restrictions that should be placed on visibility of this permission.
      */
     restrict?: AccessRestriction | { [key in AccessOperation]?: AccessRestriction };
-
-    /**
-     * Whether the permission is either granted or not granted ("boolean"), or has additional
-     * granularity ("crud") for the Create, Read, Update and Delete operations.
-     */
-    type: 'boolean' | 'crud';
-
-    /**
-     * Whether a warning should be shown next to this permission in the user interface.
-     */
-    warning?: boolean;
 }
