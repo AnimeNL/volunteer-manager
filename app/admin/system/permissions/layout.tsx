@@ -1,9 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 import KeyIcon from '@mui/icons-material/Key';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -31,7 +31,7 @@ export default async function PermissionsLayout(
                 urlMatchMode: 'prefix',
             },
             {
-                Icon: WorkOutlineOutlinedIcon,
+                Icon: AutoAwesomeMotionOutlinedIcon,
                 label: 'Roles',
                 url: '/admin/system/permissions/roles',
                 urlMatchMode: 'prefix',

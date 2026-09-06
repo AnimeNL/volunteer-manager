@@ -117,12 +117,7 @@ interface LogTypeParameterMap {
 
     AdminUpdateAvatar: NoParameters;
 
-    AdminUpdatePermission: {
-        grants: string;
-        revokes: string;
-        events: string;
-        teams: string;
-    };
+    AdminUpdatePermission: NoParameters;
 
     AdminUpdateVolunteer: NoParameters;
 

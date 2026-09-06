@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 
 import CategoryIcon from '@mui/icons-material/Category';
 
-import { AccountPermissions } from './AccountPermissions';
+import { AccountPermissionSelector } from '@app/admin/system/permissions/AccountPermissionSelector';
 import { AccountStatusButton } from '../AccountStatusButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -13,9 +13,11 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tUsers } from '@lib/database';
 
+import { updateAccountPermissions } from '@app/admin/system/permissions/PermissionActions';
+
 /**
- * The <AccountPermissions> component displays the permissions that have been set for this account.
- * When the signed in user has sufficient rights, they can modify the permissions as well.
+ * The <AccountPermissionSelector> component displays the permissions that have been set for this
+ * account. When the signed in user has sufficient rights, they can modify the permissions as well.
  */
 export default async function AccountPermissionsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/permissions'>)
@@ -41,6 +43,8 @@ export default async function AccountPermissionsPage(
     if (!account)
         notFound();
 
+    const action = updateAccountPermissions.bind(null, account.id);
+
     const readOnly = !access.can('system.permissions');
 
     return (
@@ -61,7 +65,8 @@ export default async function AccountPermissionsPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader tabs>
-                <AccountPermissions access={access} readOnly={readOnly} userId={account.id} />
+                <AccountPermissionSelector access={access} action={action} readOnly={readOnly}
+                                           userId={account.id} />
             </Section>
         </>
     );

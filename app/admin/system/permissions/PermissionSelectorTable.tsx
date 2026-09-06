@@ -1,4 +1,4 @@
-// Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use client';
@@ -31,7 +31,7 @@ import type { AccessResult } from '@lib/auth/AccessControl';
 /**
  * Information stored for a particular permission.
  */
-export interface AccountPermissionStatus {
+export interface PermissionSelectorStatus {
     /**
      * Unique ID of the permission. May contain dots as a path separator.
      */
@@ -72,13 +72,13 @@ export interface AccountPermissionStatus {
 }
 
 /**
- * Props accepted by the <AccountPermissionsTable> component.
+ * Props accepted by the <PermissionSelectorTable> component.
  */
-interface AccountPermissionsTableProps {
+interface PermissionSelectorTableProps {
     /**
      * The permissions that should be shown in the table.
      */
-    permissions: AccountPermissionStatus[];
+    permissions: PermissionSelectorStatus[];
 
     /**
      * Whether the permissions should be displayed as read-only.
@@ -87,10 +87,10 @@ interface AccountPermissionsTableProps {
 }
 
 /**
- * The <AccountPermissionsTable> component displays a data table listing all of the permissions,
- * and whether the account has been granted them.
+ * The <PermissionSelectorTable> component displays a data table listing all of the permissions,
+ * and whether the principal has been granted them.
  */
-export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
+export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
     const permissionGroupsToExpand = useMemo(() => {
         const permissionGroupsToExpand = new Set<GridRowId>();
         for (const permission of props.permissions) {
@@ -124,13 +124,13 @@ export function AccountPermissionsTable(props: AccountPermissionsTableProps) {
 
     }, [ /* no dependencies */ ]);
 
-    const grouping: GridGroupingColDefOverride<AccountPermissionStatus> = {
+    const grouping: GridGroupingColDefOverride<PermissionSelectorStatus> = {
         headerName: 'Permission',
         hideDescendantCount: true,
         width: 250,
     };
 
-    const columns: GridColDef<AccountPermissionStatus>[] = [
+    const columns: GridColDef<PermissionSelectorStatus>[] = [
         {
             display: 'flex',
             field: 'description',
