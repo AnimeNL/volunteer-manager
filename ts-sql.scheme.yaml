@@ -2412,9 +2412,10 @@ tables:
   - name: permission_description
     type: text
     nullable: false
-  - name: permission_type
-    type: enum('Boolean','CrudCreate','CrudRead','CrudUpdate','CrudDelete')
-    nullable: false
+  - name: permission_operations
+    type: text
+    nullable: true
+    default: "NULL"
   - name: permission_warning
     type: tinyint(1)
     nullable: false
@@ -2436,7 +2437,7 @@ tables:
       `permission_id` varchar(64) NOT NULL,
       `permission_name` text NOT NULL,
       `permission_description` text NOT NULL,
-      `permission_type` enum('Boolean','CrudCreate','CrudRead','CrudUpdate','CrudDelete') NOT NULL,
+      `permission_operations` text DEFAULT NULL,
       `permission_warning` tinyint(1) NOT NULL,
       PRIMARY KEY (`permission_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci

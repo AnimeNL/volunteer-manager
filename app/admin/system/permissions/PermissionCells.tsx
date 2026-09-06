@@ -4,6 +4,7 @@
 'use client';
 
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import Chip from '@mui/material/Chip';
 import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -46,20 +47,13 @@ export function OperationsCell(props: { row: { operations?: string[]; type?: str
     if (props.row.type !== 'CRUD') {
         return (
             <Tooltip title="Not applicable for Boolean permissions">
-                <span style={{ color: 'var(--mui-palette-text-disabled)' }}>—</span>
+                <span style={{ color: 'var(--mui-palette-text-disabled)' }}>n/a</span>
             </Tooltip>
         );
     }
 
-    if (!props.row.operations || props.row.operations.length === 0) {
-        return (
-            <Tooltip title="No operations selected">
-                <span style={{ color: 'var(--mui-palette-text-disabled)', fontStyle: 'italic' }}>
-                    None
-                </span>
-            </Tooltip>
-        );
-    }
+    if (!props.row.operations || props.row.operations.length === 0)
+        return <Chip color="error" label="undefined" size="small" />;
 
     return props.row.operations.join(', ');
 }
