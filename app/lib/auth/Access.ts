@@ -323,17 +323,6 @@ export const kPermissions = {
         type: 'boolean',
     },
 
-    'organisation.permissions': {
-        name: 'Permission management',
-        description:
-            'This permission determines whether the volunteer is able to manage the permissions ' +
-            'of other accounts. This is an extremely dangerous permission, as it enables them ' +
-            'to manage their own permissions as well.',
-        hide: [ 'create', 'delete' ],  // all mutations are considered updates
-        type: 'crud',
-        warning: true,
-    },
-
     'organisation.roles': {
         name: 'Role management',
         description:

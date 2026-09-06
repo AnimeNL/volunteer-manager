@@ -21,7 +21,7 @@ export default async function AccountPermissionsPage(
     props: PageProps<'/admin/organisation/accounts/[id]/permissions'>)
 {
     const { access } = await requireAuthentication({
-        permission: 'organisation.permissions',
+        permission: 'organisation.accounts',
         operation: 'read',
     });
 
@@ -41,7 +41,7 @@ export default async function AccountPermissionsPage(
     if (!account)
         notFound();
 
-    const readOnly = !access.can('organisation.permissions', 'update');
+    const readOnly = !access.can('system.permissions');
 
     return (
         <>

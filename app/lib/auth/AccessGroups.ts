@@ -63,8 +63,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         'organisation.feedback',
         // note: organisation.impersonation omitted
         'organisation.nardo',
-        'organisation.permissions:read',
-        'organisation.permissions:update',
         'orrganisation.roles',
         // note: organisation.silent omitted
         'organisation.teams',
@@ -135,8 +133,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         'organisation.feedback',
         // note: organisation.impersonation omitted
         'organisation.nardo',
-        // note: organisation.permissions:read omitted
-        // note: organisation.permissions:update omitted
         // note: organisation.roles omitted
         // note: organisation.silent omitted
         // note: organisation.teams omitted
@@ -207,8 +203,6 @@ export const kPermissionGroups: Record<string, string[]> = {
         // note: organisation.feedback omitted
         // note: organisation.impersonation omitted
         // note: organisation.nardo omitted
-        // note: organisation.permissions:read omitted
-        // note: organisation.permissions:update omitted
         // note: organisation.roles omitted
         // note: organisation.silent omitted
         // note: organisation.teams omitted

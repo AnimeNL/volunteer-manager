@@ -17,10 +17,6 @@ export const kDashboardPermissions = or(
     'organisation.exports',
     'organisation.feedback',
     'organisation.nardo',
-    {
-        permission: 'organisation.permissions',
-        operation: 'read',
-    },
     'organisation.roles',
     'organisation.teams',
 );

@@ -4,7 +4,6 @@
 'use client';
 
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import Chip from '@mui/material/Chip';
 import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -39,22 +38,3 @@ export function DangerousCell(props: { row: { warning?: boolean } }) {
 
     return null;
 }
-
-/**
- * Cell to visualise enabled CRUD operations, or a dash when not applicable.
- */
-export function OperationsCell(props: { row: { operations?: string[]; type?: string } }) {
-    if (props.row.type !== 'CRUD') {
-        return (
-            <Tooltip title="Not applicable for Boolean permissions">
-                <span style={{ color: 'var(--mui-palette-text-disabled)' }}>n/a</span>
-            </Tooltip>
-        );
-    }
-
-    if (!props.row.operations || props.row.operations.length === 0)
-        return <Chip color="error" label="undefined" size="small" />;
-
-    return props.row.operations.join(', ');
-}
-

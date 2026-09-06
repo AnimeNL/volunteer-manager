@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import CategoryIcon from '@mui/icons-material/Category';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import PersonIcon from '@mui/icons-material/Person';
@@ -54,16 +53,6 @@ export default async function OrganisationMenu() {
                         label: 'Feedback',
                         permission: 'organisation.feedback',
                         url: '/admin/organisation/feedback',
-                    },
-                    {
-                        Icon: CategoryIcon,
-                        badge: { migration: true, value: true },  // migration not started
-                        label: 'Permissions',
-                        permission: {
-                            permission: 'organisation.permissions',
-                            operation: 'read',
-                        },
-                        url: '/admin/organisation/permissions',
                     },
                     {
                         Icon: AccountBalanceIcon,

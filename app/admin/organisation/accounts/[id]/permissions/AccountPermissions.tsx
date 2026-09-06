@@ -59,7 +59,7 @@ const kAccountPermissionData = z.object({
 async function updateAccountPermissions(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kAccountPermissionData, async (data, props) => {
-        if (!props.access.can('organisation.permissions', 'update'))
+        if (!props.access.can('system.permissions'))
             return { success: false, error: 'You are not able to update permissions' };
 
         const existingAccessInfo = await db.selectFrom(tUsers)

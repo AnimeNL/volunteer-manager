@@ -1,12 +1,13 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import KeyIcon from '@mui/icons-material/Key';
 
 import type { Column } from '@app/admin/components/DataTable';
-import { DangerousCell, DangerousHeader, OperationsCell } from '../PermissionCells';
+import { DangerousCell, DangerousHeader } from '../PermissionCells';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -82,6 +83,9 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
 
         const rows: PermissionRow[] = [];
         for (const [ key, descriptor ] of Object.entries(kPermissions)) {
+            if (key.startsWith('test.'))
+                continue;  // ignore permissions internal to the system
+
             const permission = permissionMap.get(key);
 
             rows.push({
@@ -89,7 +93,7 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
                 name: permission?.name,
                 description: permission?.description,
                 type: descriptor.type === 'crud' ? 'CRUD' : 'Boolean',
-                operations: permission?.operations?.split(',').filter(Boolean),
+                operations: permission?.operations?.split(',').filter(Boolean).sort(),
                 warning: permission?.warning,
             });
         }
@@ -103,6 +107,9 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
     },
 
     async update(updatedRow) {
+        if (updatedRow.id.startsWith('test.'))
+            forbidden();
+
         const permissionName = updatedRow.name ?? '';
         const permissionDescription = updatedRow.description ?? '';
         const permissionWarning = updatedRow.warning ? 1 : 0;
@@ -184,11 +191,6 @@ export default async function PermissionsPage() {
 
             type: 'multiSelect',
             valueOptions: [ 'create', 'read', 'update', 'delete' ],
-
-            template: 'component',
-            templateProps: {
-                component: OperationsCell,
-            },
         },
         {
             field: 'warning',
