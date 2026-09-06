@@ -151,16 +151,6 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
             access={props.access}
             action={props.action}
             defaultValues={defaultValues}
-            introduction={
-                <>
-                    Granting permissions to an account gives them more access within the
-                    Volunteer Manager. While you can also revoke permissions, it's usually
-                    best to keep that to a minimum. Role-based granted access will be
-                    reflected in the permission's effective status, for example because
-                    they're a Senior in a particular event.
-                </>
-            }
-            outranksMessage="This account has higher permissions than yours, so you won't be able to change their permission settings."
             readOnly={readOnly}
             roleAccessControl={roleAccessControl}
             targetAccessControl={targetAccessControl}

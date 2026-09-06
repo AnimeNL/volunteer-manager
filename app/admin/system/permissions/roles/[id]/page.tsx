@@ -3,13 +3,16 @@
 
 import { notFound } from 'next/navigation';
 
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
+import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
+import { RolePermissionSelector } from '../../RolePermissionSelector';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissionsRoles } from '@lib/database';
+
+import { updateRolePermissions } from '../../PermissionActions';
 
 /**
  * Page for managing an individual role.
@@ -17,7 +20,7 @@ import db, { tPermissionsRoles } from '@lib/database';
 export default async function RoleDetailPage(
     props: PageProps<'/admin/system/permissions/roles/[id]'>)
 {
-    await requireAuthentication('system.permissions');
+    const { access } = await requireAuthentication('system.permissions');
 
     const { id } = await props.params;
 
@@ -31,7 +34,7 @@ export default async function RoleDetailPage(
 
     if (!role && id === 'root') {
         role = {
-            name: 'Root administrator',
+            name: 'root',
             description: 'Role granting all permissions in the system without exceptions.',
         };
     }
@@ -39,9 +42,12 @@ export default async function RoleDetailPage(
     if (!role)
         notFound();
 
+    const action = updateRolePermissions.bind(null, id);
+
     return (
         <>
-            <Section icon={ <WorkOutlineOutlinedIcon color="primary" /> } title={role.name}
+            <Section icon={ <AutoAwesomeMotionOutlinedIcon color="primary" /> }
+                     title={`Role: ${role.name}`}
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Permissions', href: '/admin/system/permissions' },
@@ -52,8 +58,9 @@ export default async function RoleDetailPage(
                     {role.description}
                 </SectionIntroduction>
             </Section>
-            <Section tabs noHeader>
-                TODO
+            <Section back="Back to roles" tabs noHeader>
+                <RolePermissionSelector access={access} action={action} readOnly={ id === 'root' }
+                                        roleId={id} />
             </Section>
         </>
     );

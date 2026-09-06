@@ -75,21 +75,12 @@ export async function RolePermissionSelector(props: RolePermissionSelectorProps)
         <PermissionSelector
             access={props.access}
             action={props.action}
-            introduction={
-                <>
-                    Granting permissions to a role gives all principals assigned to this role that
-                    access within the Volunteer Manager. While you can also revoke permissions, it's
-                    usually best to keep that to a minimum.
-                </>
-            }
-            outranksMessage="This role has higher permissions than yours, so you won't be able to change its permission settings."
             readOnly={props.readOnly || isRoot}
             targetAccessControl={targetAccessControl}>
             { isRoot &&
                 <Grid size={{ xs: 12 }}>
                     <Alert severity="info" variant="outlined">
-                        The root administrator role implicitly grants all permissions and cannot be
-                        modified.
+                        <strong>root</strong> implicitly grants all permissions and cannot be modified.
                     </Alert>
                 </Grid> }
         </PermissionSelector>

@@ -249,7 +249,7 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                             </Typography>
                             <Divider sx={{ mb: 1 }} />
                             { count === 0 &&
-                                <Alert severity="info" sx={{ py: 0.25, px: 1.5 }}>
+                                <Alert severity="info" variant="outlined" sx={{ py: .25, px: 1.5 }}>
                                     Nobody has been granted access.
                                 </Alert> }
                             { count > 0 &&

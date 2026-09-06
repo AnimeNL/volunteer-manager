@@ -11,7 +11,6 @@ import type { ServerAction } from '@lib/serverAction';
 import { AccessControl as AccessControlImpl } from '@lib/auth/AccessControl';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { PermissionSelectorTable } from './PermissionSelectorTable';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { isRestricted } from './toPermissionList';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
@@ -81,16 +80,6 @@ interface PermissionSelectorProps {
      * Optional footer to render after the permission selector table.
      */
     footer?: React.ReactNode;
-
-    /**
-     * Introduction text to display at the top of the permission selector.
-     */
-    introduction: React.ReactNode;
-
-    /**
-     * Message to display when the target entity outranks the signed in user.
-     */
-    outranksMessage?: string;
 
     /**
      * Whether the permissions should be displayed as read-only.
@@ -228,21 +217,13 @@ export function PermissionSelector(props: PermissionSelectorProps) {
     const outranks = targetAccessControl.can('root') && !props.access.can('root');
     const readOnly = props.readOnly || outranks;
 
-    const outranksMessage = props.outranksMessage ??
-        "This entity has higher permissions than yours, so you won't be able to change its permission settings.";
-
     return (
         <FormGrid action={props.action} defaultValues={defaultValues}>
-            <Grid size={{ xs: 12 }}>
-                <SectionIntroduction important>
-                    {props.introduction}
-                </SectionIntroduction>
-            </Grid>
-
             { outranks &&
                 <Grid size={{ xs: 12 }}>
-                    <Alert severity="error">
-                        {outranksMessage}
+                    <Alert severity="error" variant="outlined">
+                        This entity has higher permissions than yours, so you won't be able to
+                        change its permission settings.
                     </Alert>
                 </Grid> }
 

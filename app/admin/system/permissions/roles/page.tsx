@@ -19,7 +19,7 @@ import db, { tPermissionsRoles, tUsers } from '@lib/database';
  */
 const kRootRole = {
     id: 'root',
-    name: 'Root administrator',
+    name: 'root',
     description: 'Role granting all permissions in the system without exceptions.',
 };
 
@@ -160,7 +160,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
                 frozen: false,
                 protected: role.userCount > 0,
             })),
-        ];
+        ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 
         return {
             rowCount: rows.length,

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import WorkspacesOutlinedIcon from '@mui/icons-material/WorkspacesOutlined';
 
 import type { AccessDescriptor } from '@lib/auth/AccessDescriptor';
 import type { PrincipalRecord, PrincipalUser, PrincipalUserScope } from './PrincipalsAccordions';
@@ -17,15 +18,7 @@ import db, { tEvents, tPermissions, tPermissionsRoles, tRoles, tStorage, tTeams,
 
 import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';
 import { kRegistrationStatus } from '@lib/database/Types';
-
-/**
- * Root administrator role, which is implicitly available throughout the system.
- */
-const kRootRole = {
-    id: 'root',
-    name: 'Root administrator',
-    description: 'Role granting all permissions in the system without exceptions.',
-};
+import { kRootRole } from '../Root';
 
 /**
  * Checks whether the given permission is granted under the given `access` control instance.
@@ -52,7 +45,7 @@ export default async function PrincipalsPage() {
     const dbInstance = db;
 
     // 1. Fetch permissions and roles configured in the database
-    const dbPermissions = await dbInstance.selectFrom(tPermissions)
+    const permissions = await dbInstance.selectFrom(tPermissions)
         .select({
             id: tPermissions.permissionId,
             name: tPermissions.permissionName,
@@ -60,7 +53,7 @@ export default async function PrincipalsPage() {
         })
         .executeSelectMany();
 
-    const dbPermissionsMap = new Map(dbPermissions.map(p => [ p.id, p ]));
+    const permissionMap = new Map(permissions.map(p => [ p.id, p ]));
 
     const dbRoles = await dbInstance.selectFrom(tPermissionsRoles)
         .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
@@ -72,7 +65,7 @@ export default async function PrincipalsPage() {
         .orderBy(tPermissionsRoles.permissionRoleName, 'asc')
         .executeSelectMany();
 
-    const roles = [ kRootRole, ...dbRoles ];
+    const roles = [ kRootRole, ...dbRoles ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 
     // 2. Fetch users and their permissions and event-level roles
     const eventsJoin = tEvents.forUseInLeftJoin();
@@ -217,7 +210,7 @@ export default async function PrincipalsPage() {
         if (typeof descriptor.hide === 'boolean' && descriptor.hide)
             continue;
 
-        const dbPerm = dbPermissionsMap.get(key);
+        const dbPerm = permissionMap.get(key);
         const name = dbPerm?.name || descriptor.name;
         const description = dbPerm?.description || descriptor.description;
 
@@ -297,7 +290,7 @@ export default async function PrincipalsPage() {
                     return null;
 
                 return (
-                    <Section key={root} title={title}>
+                    <Section key={root} icon={ <WorkspacesOutlinedIcon /> } title={title}>
                         <PrincipalsAccordion items={rootPermissions}
                                              emptyMessage="No accounts have been granted these permissions." />
                     </Section>

@@ -12,12 +12,6 @@ import type { GridColDef, GridGroupNode, GridGroupingColDefOverride, GridRowId,
 import { DataGridPremium } from '@mui/x-data-grid-premium';
 
 import BlockIcon from '@mui/icons-material/Block';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ReportIcon from '@mui/icons-material/Report';
@@ -27,6 +21,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { AccessResult } from '@lib/auth/AccessControl';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Information stored for a particular permission.
@@ -343,21 +338,12 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
                              initialState={{ density: 'compact' }}
                              autoHeight disableColumnMenu hideFooterSelectedRowCount
                              hideFooter />
-            <Dialog fullWidth open={learnMoreOpen} onClose={closeLearnMore}>
-                <DialogTitle>
-                    {learnMoreTitle} permission
-                </DialogTitle>
-                <DialogContent sx={{ pb: 0 }}>
-                    <DialogContentText>
-                        {learnMoreText}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button autoFocus onClick={closeLearnMore}>
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ResponsiveDialog open={learnMoreOpen} onClose={closeLearnMore}
+                              title={`${learnMoreTitle} permission`}>
+                <Typography variant="body2">
+                    {learnMoreText}
+                </Typography>
+            </ResponsiveDialog>
         </>
     );
 }
