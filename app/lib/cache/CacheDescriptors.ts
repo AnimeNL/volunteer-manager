@@ -114,6 +114,11 @@ interface CacheDescriptorMap {
         }[];
     };
 
+    AdminNavigationMenuCache: {
+        Parameters: string;
+        Contents: any;  // menu-specific
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Events
     // ---------------------------------------------------------------------------------------------
@@ -323,6 +328,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     AdminNavigationActiveEvents: {
         name: 'AdminNavigationActiveEvents',
         description: 'Active events for use in the admin navigation.',
+        type: 'ttl',
+        ttl: 300,
+    },
+
+    AdminNavigationMenuCache: {
+        name: 'AdminNavigationMenuCache',
+        description: 'Badges and counters displayed in the administration navigation.',
         type: 'ttl',
         ttl: 300,
     },

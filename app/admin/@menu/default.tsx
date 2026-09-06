@@ -15,6 +15,7 @@ import StreamIcon from '@mui/icons-material/Stream';
 import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
+import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
@@ -36,41 +37,47 @@ export default async function DefaultMenu() {
     };
 
     if (access.can('system.logs', 'read') || access.can('system.internals.outbox')) {
-        const dbInstance = db;
+        const cache = Cache.getInstance('AdminNavigationMenuCache')
+        const counts = await cache.getOrInsert('system', async () => {
+            const dbInstance = db;
 
-        const exactlyOneDayAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 1 });
+            const exactlyOneDayAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 1 });
 
-        const logsValue = dbInstance.selectFrom(tLogs)
-            .innerJoin(tLogsFormat)
-                .on(tLogsFormat.logType.equals(tLogs.logType))
-            .where(tLogs.logDate.greaterOrEqual(exactlyOneDayAgo))
-                .and(tLogs.logDeleted.isNull())
-                .and(tLogsFormat.logTypeVisible.equals(/* true= */ 1))
-            .selectCountAll()
-            .forUseAsInlineQueryValue();
+            const logsValue = dbInstance.selectFrom(tLogs)
+                .innerJoin(tLogsFormat)
+                    .on(tLogsFormat.logType.equals(tLogs.logType))
+                .where(tLogs.logDate.greaterOrEqual(exactlyOneDayAgo))
+                    .and(tLogs.logDeleted.isNull())
+                    .and(tLogsFormat.logTypeVisible.equals(/* true= */ 1))
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
 
-        const outboxEmailValue = dbInstance.selectFrom(tOutboxEmail)
-            .where(tOutboxEmail.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
-            .selectCountAll()
-            .forUseAsInlineQueryValue();
+            const outboxEmailValue = dbInstance.selectFrom(tOutboxEmail)
+                .where(tOutboxEmail.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
 
-        const outboxTwilioValue = dbInstance.selectFrom(tOutboxTwilio)
-            .where(tOutboxTwilio.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
-            .selectCountAll()
-            .forUseAsInlineQueryValue();
+            const outboxTwilioValue = dbInstance.selectFrom(tOutboxTwilio)
+                .where(tOutboxTwilio.outboxTimestamp.greaterOrEqual(exactlyOneDayAgo))
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
 
-        const twilioWebhookValue = dbInstance.selectFrom(tTwilioWebhookCalls)
-            .where(tTwilioWebhookCalls.webhookCallDate.greaterOrEqual(exactlyOneDayAgo))
-            .selectCountAll()
-            .forUseAsInlineQueryValue();
+            const twilioWebhookValue = dbInstance.selectFrom(tTwilioWebhookCalls)
+                .where(tTwilioWebhookCalls.webhookCallDate.greaterOrEqual(exactlyOneDayAgo))
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
 
-        badges = await dbInstance.selectFromNoTable()
-            .select({
-                logs: logsValue,
-                outbox: outboxEmailValue.add(outboxTwilioValue),
-                webhooks: twilioWebhookValue,
-            })
-            .executeSelectOne();
+            return await dbInstance.selectFromNoTable()
+                .select({
+                    logs: logsValue,
+                    outbox: outboxEmailValue.add(outboxTwilioValue),
+                    webhooks: twilioWebhookValue,
+                })
+                .executeSelectOne();
+        });
+
+        if (counts)
+            badges = { ...badges, ...counts };
     }
 
     if (access.can('system.internals.settings')) {

@@ -11,6 +11,8 @@ describe('Cache', () => {
         cache.clear();
         const adminCache = Cache.getInstance('AdminNavigationActiveEvents');
         adminCache.clear();
+        const menuCache = Cache.getInstance('AdminNavigationMenuCache');
+        menuCache.clear();
 
         // Clear any dynamic test caches if registered
         if (Object.hasOwn(kCacheDescriptor, 'TestCacheWithTTL')) {
@@ -438,6 +440,7 @@ describe('Cache', () => {
             const names = caches.map(c => c.descriptor.name);
             expect(names).toContain('ManifestLatestEvent');
             expect(names).toContain('AdminNavigationActiveEvents');
+            expect(names).toContain('AdminNavigationMenuCache');
 
             // Should not contain internal test caches
             expect(names).not.toContain('TestCacheWithParams');
