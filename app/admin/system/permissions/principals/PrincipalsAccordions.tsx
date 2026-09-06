@@ -3,6 +3,8 @@
 
 'use client';
 
+import Link from '@app/LinkProxy';
+
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -15,8 +17,8 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import Link from '@app/LinkProxy';
 import { Avatar } from '@components/Avatar';
+import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 /**
  * Information regarding a specific scope that a user has been granted access under.
@@ -156,6 +158,8 @@ interface PrincipalsAccordionProps {
 export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
     const { emptyMessage = 'No items configured.', items } = props;
 
+    const isMobile = useIsMobile();
+
     if (!items.length) {
         return (
             <Alert severity="info">
@@ -206,7 +210,7 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                 });
 
                 return (
-                    <Accordion key={item.id} disableGutters sx={{
+                    <Accordion key={item.id} disableGutters elevation={0} sx={{
                         '&:before': { display: 'none' },
                         border: 1,
                         borderColor: 'divider',
@@ -234,8 +238,12 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {item.name}
                                     </Typography>
-                                    <Chip label={item.id} size="small" variant="outlined"
-                                          sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }} />
+                                    { !isMobile &&
+                                        <Chip label={item.id} size="small" variant="outlined"
+                                              sx={{
+                                                  fontFamily: 'monospace',
+                                                  fontSize: '0.75rem'
+                                              }} /> }
                                 </Stack>
                                 <Chip color={ count > 0 ? 'primary' : 'default' }
                                       label={countLabel}

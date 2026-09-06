@@ -20,6 +20,7 @@ const kAccountPermissionData = z.object({
     revokes: z.any(),
     events: z.array(z.string()),
     teams: z.array(z.string()),
+    roles: z.array(z.string()).default([]),
 });
 
 /**
@@ -50,6 +51,9 @@ export async function updateAccountPermissions(userId: number, formData: unknown
         if (existingAccess.can('root') && !props.access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
+        if (!!data.roles?.includes('root') && !props.access.can('root') && !existingAccess.can('root'))
+            return { success: false, error: 'You are not allowed to assign the "root" role…' };
+
         let grants: string | null = null;
         let revokes: string | null = null;
 
@@ -64,6 +68,17 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             return { success: false, error: error.message };
         }
 
+        let finalGrants: string | null = null;
+        {
+            const grantList = [
+                ...(data.roles ?? []),
+                ...(grants ? grants.split(',') : []),
+            ];
+
+            if (grantList.length > 0)
+                finalGrants = [ ...new Set(grantList) ].join(',');
+        }
+
         let events: string | null = null;
         if (!!data.events.length)
             events = data.events.includes(kAnyEvent) ? kAnyEvent : data.events.join(',');
@@ -74,7 +89,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
 
         const affectedRows = await dbInstance.update(tUsers)
             .set({
-                permissionsGrants: grants,
+                permissionsGrants: finalGrants,
                 permissionsRevokes: revokes,
                 permissionsEvents: events,
                 permissionsTeams: teams,
@@ -90,7 +105,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             .withDiff({
                 grants: {
                     before: existingAccessInfo.grants || '',
-                    after: grants || '',
+                    after: finalGrants || '',
                 },
                 revokes: {
                     before: existingAccessInfo.revokes || '',

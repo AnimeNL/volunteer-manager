@@ -5,17 +5,21 @@ import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 
 import type { AccessControl, AccessResult } from '@lib/auth/AccessControl';
-import type { AccessDescriptor, AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { PermissionSelectorStatus } from './PermissionSelectorTable';
 import type { ServerAction } from '@lib/serverAction';
 import { AccessControl as AccessControlImpl } from '@lib/auth/AccessControl';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { PermissionSelectorTable } from './PermissionSelectorTable';
 import { isRestricted } from './toPermissionList';
+import db, { tPermissions } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
-import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';
 import { kSelfSuffix } from './toPermissionList';
+
+/**
+ * Supported operations for CRUD permissions, in canonical display order.
+ */
+const kOperations = [ 'create', 'read', 'update', 'delete' ] as const;
 
 /**
  * Helper function that lowercases the first letter of the given `text`.
@@ -101,7 +105,7 @@ interface PermissionSelectorProps {
  * The <PermissionSelector> component displays the permissions that have been granted to the given
  * target access control object. The settings can be updated in real time.
  */
-export function PermissionSelector(props: PermissionSelectorProps) {
+export async function PermissionSelector(props: PermissionSelectorProps) {
     const defaultValues: Record<string, any> = { ...props.defaultValues };
 
     const targetAccessControl = props.targetAccessControl;
@@ -114,70 +118,58 @@ export function PermissionSelector(props: PermissionSelectorProps) {
     };
 
     const permissions: PermissionSelectorStatus[] = [ /* empty */ ];
-    for (const [ name, rawDescriptor ] of Object.entries(kPermissions)) {
-        const descriptor = rawDescriptor as AccessDescriptor;
-        if (typeof descriptor.hide === 'boolean' && !!descriptor.hide)
-            continue;  // this permission has been explicitly hidden
 
+    const dbInstance = db;
+    const dbPermissions = await dbInstance.selectFrom(tPermissions)
+        .select({
+            id: tPermissions.permissionId,
+            name: tPermissions.permissionName,
+            description: tPermissions.permissionDescription,
+            operations: tPermissions.permissionOperations,
+            warning: tPermissions.permissionWarning.equals(/* true= */ 1),
+        })
+        .orderBy(tPermissions.permissionId, 'asc')
+        .executeSelectMany();
+
+    for (const permissionRecord of dbPermissions) {
         const permissionChildren: PermissionSelectorStatus[] = [];
         const permission: PermissionSelectorStatus = {
-            id: name,
-            name: descriptor.name,
-            description: descriptor.description,
+            id: permissionRecord.id,
+            name: permissionRecord.name,
+            description: permissionRecord.description,
             status: {
                 account: undefined,
                 roles: undefined,
             },
-            warning: !!descriptor.warning,
+            warning: permissionRecord.warning,
         };
 
-        if (typeof descriptor.restrict === 'string')
-            permission.restricted = isRestricted(descriptor.restrict, props.access);
+        if (permissionRecord.id === 'root')
+            permission.restricted = isRestricted('root', props.access);
 
-        if (descriptor.type === 'boolean') {
-            const booleanPermission = name as BooleanPermission;
+        const rawOperations = permissionRecord.operations
+            ? permissionRecord.operations.split(',').map(op => op.trim()).filter(Boolean)
+            : [];
 
-            permission.status.account =
-                targetAccessControl.query(booleanPermission, defaultOptions);
-            permission.status.roles =
-                roleAccessControl.query(booleanPermission, defaultOptions);
+        const operations = kOperations.filter(op => rawOperations.includes(op));
 
-            if (permission.status.account?.expanded === false) {
-                if (permission.status.account.result === 'granted')
-                    defaultValues[`grants[${name}]`] = true;
-                else
-                    defaultValues[`revokes[${name}]`] = true;
-            }
-
-        } else if (descriptor.type === 'crud') {
-            const crudPermission = name as CRUDPermission;
-
+        if (operations.length > 0) {
             permission.suffix = kSelfSuffix;  // avoids overwriting values when submitting the form
 
-            for (const rawOperation of [ 'create', 'read', 'update', 'delete' ]) {
-                const operation = rawOperation as AccessOperation;
-
-                if (!!descriptor.hide && descriptor.hide.includes(operation))
-                    continue;  // this operation has been explicitly hidden
-
+            for (const operation of operations) {
                 const childPermission: PermissionSelectorStatus = {
-                    id: `${name}.${operation}`,
-                    name: `${uppercaseFirst(operation)} ${lowercaseFirst(descriptor.name)}`,
+                    id: `${permissionRecord.id}.${operation}`,
+                    name: `${uppercaseFirst(operation)} ${lowercaseFirst(permissionRecord.name)}`,
                     restricted: !!permission.restricted,
                     status: {
                         account:
-                            targetAccessControl.query(crudPermission, operation, defaultOptions),
+                            targetAccessControl.query(
+                                permissionRecord.id as any, operation, defaultOptions),
                         roles:
-                            roleAccessControl.query(crudPermission, operation, defaultOptions),
+                            roleAccessControl.query(
+                                permissionRecord.id as any, operation, defaultOptions),
                     },
                 };
-
-                if (typeof descriptor.restrict === 'object' && operation in descriptor.restrict) {
-                    if (!!descriptor.restrict[operation]) {
-                        childPermission.restricted =
-                            isRestricted(descriptor.restrict[operation], props.access);
-                    }
-                }
 
                 permission.status.account = maybeUpgradePermissionStatus(
                     permission.status.account, childPermission.status.account);
@@ -191,22 +183,32 @@ export function PermissionSelector(props: PermissionSelectorProps) {
                 {
                     if (childPermission.status.account.result === 'granted') {
                         if (childPermission.status.account.crud)
-                            defaultValues[`grants[${name}.${operation}]`] = true;
+                            defaultValues[`grants[${permissionRecord.id}.${operation}]`] = true;
                         else
-                            defaultValues[`grants[${name}${kSelfSuffix}]`] = true;
+                            defaultValues[`grants[${permissionRecord.id}${kSelfSuffix}]`] = true;
 
                     } else {
                         if (childPermission.status.account.crud)
-                            defaultValues[`revokes[${name}.${operation}]`] = true;
+                            defaultValues[`revokes[${permissionRecord.id}.${operation}]`] = true;
                         else
-                            defaultValues[`revokes[${name}${kSelfSuffix}]`] = true;
+                            defaultValues[`revokes[${permissionRecord.id}${kSelfSuffix}]`] = true;
                     }
                 }
 
                 permissionChildren.push(childPermission);
             }
         } else {
-            throw new Error(`Unhandled permission type: "${descriptor.type}"`);
+            permission.status.account =
+                targetAccessControl.query(permissionRecord.id as any, defaultOptions);
+            permission.status.roles =
+                roleAccessControl.query(permissionRecord.id as any, defaultOptions);
+
+            if (permission.status.account?.expanded === false) {
+                if (permission.status.account.result === 'granted')
+                    defaultValues[`grants[${permissionRecord.id}]`] = true;
+                else
+                    defaultValues[`revokes[${permissionRecord.id}]`] = true;
+            }
         }
 
         permissions.push(permission, ...permissionChildren);

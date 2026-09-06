@@ -12,10 +12,11 @@ import type { AccessControlParams } from '@lib/auth/AccessControl';
 import type { ServerAction } from '@lib/serverAction';
 import { AccessControl } from '@lib/auth/AccessControl';
 import { PermissionSelector } from './PermissionSelector';
-import db, { tEvents, tRoles, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import db, { tEvents, tPermissionsRoles, tRoles, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
 import { kRegistrationStatus } from '@lib/database/Types';
+import { kRootRole } from './Root';
 
 /**
  * Props accepted by the <AccountPermissionSelector> component.
@@ -50,8 +51,18 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
     const dbInstance = db;
     const defaultValues: Record<string, any> = {
         events: [],
+        roles: [],
         teams: [],
     };
+
+    const roles = await dbInstance.selectFrom(tPermissionsRoles)
+        .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
+        .select({
+            id: tPermissionsRoles.permissionRoleId,
+            label: tPermissionsRoles.permissionRoleName,
+        })
+        .orderBy(tPermissionsRoles.permissionRoleName, 'asc')
+        .executeSelectMany();
 
     const events = await dbInstance.selectFrom(tEvents)
         .select({
@@ -135,6 +146,21 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
 
     const roleAccessControl = new AccessControl(roleGrants);
 
+    const rolesOptions = [ ...roles ];
+    if (props.access.can('root') || targetAccessControl.can('root'))
+        rolesOptions.push({ id: kRootRole.id, label: kRootRole.name });
+
+    rolesOptions.sort((lhs, rhs) => lhs.label.localeCompare(rhs.label));
+
+    const knownRoleIds = new Set(rolesOptions.map(role => role.id));
+    knownRoleIds.add(kRootRole.id);
+
+    const userGrants = userConfiguration?.access?.grants
+        ? userConfiguration.access.grants.split(',').map(g => g.trim()).filter(Boolean)
+        : [];
+
+    defaultValues['roles'] = userGrants.filter(grant => knownRoleIds.has(grant));
+
     if (userConfiguration?.access?.events)
         defaultValues['events'] = userConfiguration.access.events.split(',');
 
@@ -170,6 +196,18 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
                     </Grid>
                 </>
             }>
+            <Grid size={{ xs: 2 }}>
+                <Typography variant="body2" sx={{ pt: 1.25 }}>
+                    Permission roles:
+                </Typography>
+            </Grid>
+            <Grid size={{ xs: 10 }}>
+                <SelectElement name="roles" label="Permission roles" options={rolesOptions}
+                               size="small" fullWidth disabled={readOnly} slotProps={{
+                                   select: { multiple: true },
+                               }} />
+            </Grid>
+
             <Grid size={{ xs: 2 }}>
                 <Typography variant="body2" sx={{ pt: 1.25 }}>
                     Global event access:
