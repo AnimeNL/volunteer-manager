@@ -18,6 +18,11 @@ import db, { tPermissionsRoles, tUsers } from '@lib/database';
 import { kRootRole } from '../Root';
 
 /**
+ * Set of roles that should be protected from being removed.
+ */
+const kProtectedRoles = new Set([ 'senior', 'staff' ]);
+
+/**
  * Data source through which the configured permission roles can be retrieved.
  */
 const rolesDataSource = createDataSource('admin/system/permissions/roles', withRowModel({
@@ -168,7 +173,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             ...dbRoles.map(role => ({
                 ...role,
                 frozen: false,
-                protected: role.userCount > 0,
+                protected: role.userCount > 0 || kProtectedRoles.has(role.id),
             })),
         ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 
