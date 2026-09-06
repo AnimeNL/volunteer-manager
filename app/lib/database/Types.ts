@@ -233,6 +233,19 @@ export const kMutationSeverity = {
 } as const;
 
 /**
+ * Type of permission in the Permission management area.
+ * @see Table `permissions`
+ */
+export type PermissionType = Values<typeof kPermissionType>;
+export const kPermissionType = {
+    Boolean: 'Boolean',
+    CrudCreate: 'CrudCreate',
+    CrudRead: 'CrudRead',
+    CrudUpdate: 'CrudUpdate',
+    CrudDelete: 'CrudDelete',
+} as const;
+
+/**
  * Type of message that is being logged by the Twilio table.
  * @see Table `outbox_twilio`
  */

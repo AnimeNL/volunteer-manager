@@ -37,6 +37,8 @@ export { tNardo } from './scheme/NardoTable';
 export { tNardoPersonalised } from './scheme/NardoPersonalisedTable';
 export { tOutboxEmail } from './scheme/OutboxEmailTable';
 export { tOutboxTwilio } from './scheme/OutboxTwilioTable';
+export { tPermissions } from './scheme/PermissionsTable';
+export { tPermissionsRoles } from './scheme/PermissionsRolesTable';
 export { tRefunds } from './scheme/RefundsTable';
 export { tRetention } from './scheme/RetentionTable';
 export { tRoles } from './scheme/RolesTable';

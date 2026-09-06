@@ -242,6 +242,7 @@ do {
                 { field: [ 'feedback', 'feedback_response' ], type: 'FeedbackResponse' },
                 { field: [ 'logs', 'log_severity' ], type: 'LogSeverity' },
                 { field: [ 'outbox_twilio', 'outbox_type' ], type: 'TwilioOutboxType' },
+                { field: [ 'permissions', 'permission_type' ], type: 'PermissionType' },
                 { field: [ 'retention', 'retention_status' ], type: 'RetentionStatus' },
                 { field: [ 'schedule_logs', 'mutation' ], type: 'Mutation' },
                 { field: [ 'shifts', 'shift_demand_overlap' ], type: 'ShiftDemandOverlap' },

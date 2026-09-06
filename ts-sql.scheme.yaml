@@ -630,6 +630,48 @@ tables:
       UNIQUE KEY `event_id` (`event_id`,`sale_id`),
       KEY `event_id_2` (`event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: permissions_roles
+  type: BASE TABLE
+  columns:
+  - name: permission_role_id
+    type: varchar(64)
+    nullable: false
+  - name: permission_role_name
+    type: text
+    nullable: false
+  - name: permission_role_description
+    type: text
+    nullable: false
+  - name: permission_role_grants
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: permission_role_revokes
+    type: text
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (permission_role_id) USING BTREE
+    table: permissions_roles
+    columns:
+    - permission_role_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (permission_role_id)
+    table: permissions_roles
+    columns:
+    - permission_role_id
+  def: |-
+    CREATE TABLE `permissions_roles` (
+      `permission_role_id` varchar(64) NOT NULL,
+      `permission_role_name` text NOT NULL,
+      `permission_role_description` text NOT NULL,
+      `permission_role_grants` text DEFAULT NULL,
+      `permission_role_revokes` text DEFAULT NULL,
+      PRIMARY KEY (`permission_role_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: settings
   type: BASE TABLE
   columns:
@@ -2358,6 +2400,46 @@ tables:
       CONSTRAINT `events_teams_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `events_teams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: permissions
+  type: BASE TABLE
+  columns:
+  - name: permission_id
+    type: varchar(64)
+    nullable: false
+  - name: permission_name
+    type: text
+    nullable: false
+  - name: permission_description
+    type: text
+    nullable: false
+  - name: permission_type
+    type: enum('Boolean','CrudCreate','CrudRead','CrudUpdate','CrudDelete')
+    nullable: false
+  - name: permission_warning
+    type: tinyint(1)
+    nullable: false
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (permission_id) USING BTREE
+    table: permissions
+    columns:
+    - permission_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (permission_id)
+    table: permissions
+    columns:
+    - permission_id
+  def: |-
+    CREATE TABLE `permissions` (
+      `permission_id` varchar(64) NOT NULL,
+      `permission_name` text NOT NULL,
+      `permission_description` text NOT NULL,
+      `permission_type` enum('Boolean','CrudCreate','CrudRead','CrudUpdate','CrudDelete') NOT NULL,
+      `permission_warning` tinyint(1) NOT NULL,
+      PRIMARY KEY (`permission_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_events_preferences_availability
   type: BASE TABLE
   columns:
