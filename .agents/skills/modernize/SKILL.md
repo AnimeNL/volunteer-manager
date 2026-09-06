@@ -17,9 +17,14 @@ page and layout must begin with an access check, unless it's a public page (for 
 ## Administration area (`app/admin/`)
 
 ### Authentication
-Never use `verifyAccessAndFetchPageInfo()`; `requireAuthentication(WithEvent(AndTeam?)?)` from
-`@lib/requireAuthentication` is the modern way of doing authentication for code in
-`app/admin/events/`, whereas other code should use `requireAuthenticationContext` directly.
+Never use `verifyAccessAndFetchPageInfo()`; all code in `app/admin/` must use one of the
+`requireAuthentication` variants (such as `requireAuthentication(WithEvent(AndTeam?)?)`) from
+`@lib/requireAuthentication`.
+
+### Database access
+Code interacting with the database must do so using `db` from `@lib/database`. When multiple queries
+are done in a single function or system, store `db` in a local `dbInstance` as it ensures that the
+same connection is used throughout.
 
 ### Header and metadata
 Each page in `app/admin/` must start with <Section> component that includes breadcrumbs. It also

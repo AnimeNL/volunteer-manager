@@ -1,10 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { AccessDescriptor, AccessOperation, AccessRestriction } from '@lib/auth/AccessDescriptor';
 
-import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';
+import { kPermissions } from '@lib/auth/Access';
 
 /**
  * Suffix to distinguish the root of nested permissions from its children. Forms are submitted in

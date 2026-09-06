@@ -9,8 +9,8 @@ import type { PermissionSelectorStatus } from './PermissionSelectorTable';
 import type { ServerAction } from '@lib/serverAction';
 import { AccessControl as AccessControlImpl } from '@lib/auth/AccessControl';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { PermissionSelectorTable } from './PermissionSelectorTable';
 import { isRestricted } from './toPermissionList';
+import { PermissionSelectorTable } from './PermissionSelectorTable';
 import db, { tPermissions } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
@@ -119,8 +119,7 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
 
     const permissions: PermissionSelectorStatus[] = [ /* empty */ ];
 
-    const dbInstance = db;
-    const dbPermissions = await dbInstance.selectFrom(tPermissions)
+    const dbPermissions = await db.selectFrom(tPermissions)
         .select({
             id: tPermissions.permissionId,
             name: tPermissions.permissionName,

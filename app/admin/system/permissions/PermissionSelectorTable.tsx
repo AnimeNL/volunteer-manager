@@ -7,10 +7,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { CheckboxElement } from '@components/proxy/react-hook-form-mui';
 
-import type { GridColDef, GridGroupNode, GridGroupingColDefOverride, GridRowId,
-    DataGridPremiumProps } from '@mui/x-data-grid-premium';
+import type { DataGridPremiumProps, GridColDef, GridGroupNode, GridGroupingColDefOverride,
+    GridRowId } from '@mui/x-data-grid-premium';
 import { DataGridPremium } from '@mui/x-data-grid-premium';
-
 import BlockIcon from '@mui/icons-material/Block';
 import IconButton from '@mui/material/IconButton';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';

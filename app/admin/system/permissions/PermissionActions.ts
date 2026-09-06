@@ -6,11 +6,13 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { AccessControl, kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
-import { LogBuilder } from '@lib/log/index';
+import { AccessControl } from '@lib/auth/AccessControl';
 import { executeServerAction } from '@lib/serverAction';
+import { LogBuilder } from '@lib/log/index';
 import { toPermissionList } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
+
+import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
 
 /**
  * Data associated with an account permission update.
@@ -115,7 +117,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
                     before: existingAccessInfo.events || '',
                     after: events || '',
                 },
-                Teams: {
+                teams: {
                     before: existingAccessInfo.teams || '',
                     after: teams || '',
                 },
@@ -189,6 +191,24 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
 
         if (!affectedRows)
             return { success: false, error: 'Unable to update permissions in the database…' };
+
+        LogBuilder.for('UpdateRolePermissions')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .withDiff({
+                grants: {
+                    before: existingRoleInfo.grants || '',
+                    after: grants || '',
+                },
+                revokes: {
+                    before: existingRoleInfo.revokes || '',
+                    after: revokes || '',
+                },
+            })
+            .record({
+                role: roleId,
+            });
 
         return {
             success: true,

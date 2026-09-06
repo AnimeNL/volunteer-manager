@@ -7,13 +7,14 @@ import { z } from 'zod/v4';
 import KeyIcon from '@mui/icons-material/Key';
 
 import type { Column } from '@app/admin/components/DataTable';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { DangerousCell, DangerousHeader } from '../PermissionCells';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { LogBuilder } from '@lib/log/index';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissions } from '@lib/database';
 
 import { kPermissions } from '@lib/auth/Access';
@@ -106,7 +107,7 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
         };
     },
 
-    async update(updatedRow) {
+    async update(updatedRow, previousRow, props) {
         if (updatedRow.id.startsWith('test.'))
             forbidden();
 
@@ -133,6 +134,13 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
                 permissionWarning,
             })
             .executeInsert();
+
+        LogBuilder.for('UpdatePermission')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                permission: updatedRow.id,
+            });
 
         return true;
     },

@@ -36,12 +36,20 @@ interface LogTypeParameterMap {
         type: string;
     };
 
+    CreatePermissionRole: {
+        role: string;
+    };
+
     CreateSchedulerTask: {
         taskName: string;
     };
 
     DeleteEmailAddress: {
         address: string;
+    };
+
+    DeletePermissionRole: {
+        role: string;
     };
 
     RepeatSchedulerTask: {
@@ -71,6 +79,18 @@ interface LogTypeParameterMap {
 
     UpdateLogMessageFormat: {
         type: string;
+    };
+
+    UpdatePermission: {
+        permission: string;
+    };
+
+    UpdatePermissionRole: {
+        role: string;
+    };
+
+    UpdateRolePermissions: {
+        role: string;
     };
 
     UpdateSystemSettings: {
@@ -525,14 +545,19 @@ export const kLogType: { [k in LogType]: k } = {
 
     CreateEmailAddress: 'CreateEmailAddress',
     CreateLogMessageFormat: 'CreateLogMessageFormat',
+    CreatePermissionRole: 'CreatePermissionRole',
     CreateSchedulerTask: 'CreateSchedulerTask',
     DeleteEmailAddress: 'DeleteEmailAddress',
+    DeletePermissionRole: 'DeletePermissionRole',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
     UpdateAiPrompt: 'UpdateAiPrompt',
     UpdateContent: 'UpdateContent',
     UpdateEmailAddress: 'UpdateEmailAddress',
     UpdateIntegrationSettings: 'UpdateIntegrationSettings',
     UpdateLogMessageFormat: 'UpdateLogMessageFormat',
+    UpdatePermission: 'UpdatePermission',
+    UpdatePermissionRole: 'UpdatePermissionRole',
+    UpdateRolePermissions: 'UpdateRolePermissions',
     UpdateSystemSettings: 'UpdateSystemSettings',
 
     // ---------------------------------------------------------------------------------------------

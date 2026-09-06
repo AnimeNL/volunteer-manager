@@ -4,8 +4,8 @@
 'use client';
 
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 import Tooltip from '@mui/material/Tooltip';
+import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 
 /**
  * Header for the column that indicates whether a permission is dangerous.

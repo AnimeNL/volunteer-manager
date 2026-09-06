@@ -6,22 +6,16 @@ import { z } from 'zod/v4';
 import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { LogBuilder } from '@lib/log/index';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
 
-/**
- * Root administrator role, which is implicitly available throughout the system.
- */
-const kRootRole = {
-    id: 'root',
-    name: 'root',
-    description: 'Role granting all permissions in the system without exceptions.',
-};
+import { kRootRole } from '../Root';
 
 /**
  * Data source through which the configured permission roles can be retrieved.
@@ -69,7 +63,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
         const name = partialRow.name.trim();
         const description = partialRow.description?.trim() || '';
 
-        let roleId = name
+        const roleId = name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '')
@@ -97,6 +91,14 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             })
             .executeInsert();
 
+        LogBuilder.for('CreatePermissionRole')
+            .withCondition(!!insertedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                role: roleId,
+            });
+
         return !!insertedRows;
     },
 
@@ -118,6 +120,14 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
         const affectedRows = await dbInstance.deleteFrom(tPermissionsRoles)
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
             .executeDelete();
+
+        LogBuilder.for('DeletePermissionRole')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                role: row.id,
+            });
 
         return !!affectedRows;
     },
@@ -168,7 +178,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
         };
     },
 
-    async update(row, previousRow) {
+    async update(row, previousRow, props) {
         if (row.id === 'root')
             return false;
 
@@ -182,6 +192,14 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             })
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
             .executeUpdate();
+
+        LogBuilder.for('UpdatePermissionRole')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                role: row.id,
+            });
 
         return !!affectedRows;
     },
