@@ -5,6 +5,7 @@ import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import WorkspacesOutlinedIcon from '@mui/icons-material/WorkspacesOutlined';
 
 import type { AccessDescriptor } from '@lib/auth/AccessDescriptor';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { PrincipalRecord, PrincipalUser, PrincipalUserScope } from './PrincipalsAccordions';
 import { AccessControl, kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
 import { PrincipalsAccordion } from './PrincipalsAccordions';
@@ -16,9 +17,51 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tPermissions, tPermissionsRoles, tRoles, tStorage, tTeams, tUsers,
     tUsersEvents } from '@lib/database';
 
-import { kPermissions, type BooleanPermission, type CRUDPermission } from '@lib/auth/Access';
+import { kPermissions } from '@lib/auth/Access';
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kRootRole } from '../Root';
+
+/**
+ * Represents a user who has active access grants or event roles, ready for inspection.
+ */
+interface ProcessedUser {
+    id: number;
+    name: string;
+    avatar?: string;
+    grants: string[];
+    globalAccess: AccessControl;
+    hasCustomScope: boolean;
+    customScope?: string;
+    eventRoles: {
+        roleGrant: string;
+        event: string;
+        eventSlug: string;
+        team: string;
+        access: AccessControl;
+    }[];
+}
+
+/**
+ * Metadata for a permission defined in the system.
+ */
+interface PermissionDefinition {
+    id: string;
+    name: string;
+    description: string;
+    operations: string[];
+    descriptor: AccessDescriptor;
+}
+
+/**
+ * Categories under which permissions are grouped on the page.
+ */
+const kPermissionCategories = [
+    { root: 'event', title: 'Events' },
+    { root: 'organisation', title: 'Organisation' },
+    { root: 'statistics', title: 'Statistics' },
+    { root: 'system', title: 'System' },
+    { root: 'volunteers', title: 'Volunteers' },
+] as const;
 
 /**
  * Checks whether the given permission is granted under the given `access` control instance.
@@ -32,6 +75,125 @@ function checkPermissionGranted(
 
     return ([ 'read', 'create', 'update', 'delete' ] as const).some(op =>
         access.can(permissionName as CRUDPermission, op, scope));
+}
+
+/**
+ * Returns the granted operations for a CRUD permission, or undefined if all (or not CRUD).
+ */
+function getGrantedOperations(
+    access: AccessControl,
+    permissionId: string,
+    supportedOperations: string[],
+    isCrud: boolean
+): string[] | undefined {
+    if (!isCrud)
+        return undefined;
+
+    const ops = supportedOperations.filter(op =>
+        access.can(permissionId as CRUDPermission, op as any, {
+            event: kAnyEvent,
+            team: kAnyTeam,
+        }));
+
+    return ops.length < supportedOperations.length ? ops : undefined;
+}
+
+/**
+ * Resolves the source description for a globally granted permission.
+ */
+function resolveGlobalGrantSource(
+    grants: string[], permissionId: string, dbRoles: { id: string; name: string }[]): string
+{
+    if (grants.includes(permissionId))
+        return 'Direct grant';
+    if (grants.includes('root'))
+        return 'Root administrator';
+
+    const matchingRole = dbRoles.find(r => grants.includes(r.id));
+    if (matchingRole)
+        return matchingRole.name;
+
+    return 'Global grant';
+}
+
+/**
+ * Computes scopes for a specific role and user.
+ */
+function getRoleScopes(user: ProcessedUser, roleId: string): PrincipalUserScope[] {
+    if (user.grants.includes(roleId))
+        return [{ type: 'global', customScope: user.customScope }];
+
+    const hasGlobalSuperRole =
+        (user.grants.includes('root') || user.grants.includes('admin')) && !user.hasCustomScope;
+
+    if (hasGlobalSuperRole)
+        return [];
+
+    return user.eventRoles
+        .filter(e => e.roleGrant === roleId)
+        .map(e => ({
+            type: 'event',
+            event: e.event,
+            eventSlug: e.eventSlug,
+            team: e.team,
+        }));
+}
+
+/**
+ * Computes scopes for a specific permission and user.
+ */
+function getPermissionScopes(
+    user: ProcessedUser,
+    definition: PermissionDefinition,
+    dbRoles: { id: string; name: string }[],
+    roleNameMap: Map<string, string>
+): PrincipalUserScope[] {
+    const isCrud = definition.descriptor.type === 'crud';
+
+    if (checkPermissionGranted(user.globalAccess, definition.descriptor, definition.id)) {
+        return [{
+            type: 'global',
+            customScope: user.customScope,
+            operations: getGrantedOperations(
+                user.globalAccess, definition.id, definition.operations, isCrud),
+            source: resolveGlobalGrantSource(user.grants, definition.id, dbRoles),
+        }];
+    }
+
+    const scopes: PrincipalUserScope[] = [];
+    for (const e of user.eventRoles) {
+        if (checkPermissionGranted(e.access, definition.descriptor, definition.id)) {
+            scopes.push({
+                type: 'event',
+                event: e.event,
+                eventSlug: e.eventSlug,
+                team: e.team,
+                operations: getGrantedOperations(
+                    e.access, definition.id, definition.operations, isCrud),
+                source: roleNameMap.get(e.roleGrant) ?? e.roleGrant,
+            });
+        }
+    }
+
+    return scopes;
+}
+
+/**
+ * Collects and sorts users that have matching scopes for a principal record.
+ */
+function collectPrincipalUsers(
+    users: ProcessedUser[],
+    getScopes: (user: ProcessedUser) => PrincipalUserScope[]
+): PrincipalUser[] {
+    const principalUsers: PrincipalUser[] = [];
+
+    for (const user of users) {
+        const scopes = getScopes(user);
+        if (scopes.length > 0)
+            principalUsers.push({ id: user.id, name: user.name, avatar: user.avatar, scopes });
+    }
+
+    return principalUsers.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -66,6 +228,7 @@ export default async function PrincipalsPage() {
         .executeSelectMany();
 
     const roles = [ kRootRole, ...dbRoles ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
+    const roleNameMap = new Map(roles.map(r => [ r.id, r.name ]));
 
     // 2. Fetch users and their permissions and event-level roles
     const eventsJoin = tEvents.forUseInLeftJoin();
@@ -111,7 +274,7 @@ export default async function PrincipalsPage() {
         .executeSelectMany();
 
     // 3. Process active users with their access models and event roles
-    const processedUsers = users.flatMap(u => {
+    const processedUsers: ProcessedUser[] = users.flatMap(u => {
         const grants = u.access?.grants
             ? u.access.grants.split(',').map(g => g.trim()).filter(Boolean)
             : [];
@@ -164,55 +327,15 @@ export default async function PrincipalsPage() {
     });
 
     // 4. Build Roles Section
-    const roleRecords: PrincipalRecord[] = roles.map(role => {
-        const roleUsers: PrincipalUser[] = [];
-
-        for (const u of processedUsers) {
-            const scopes: PrincipalUserScope[] = [];
-
-            if (u.grants.includes(role.id))
-                scopes.push({ type: 'global', customScope: u.customScope });
-
-            const hasGlobalSuperRole =
-                (u.grants.includes('root') || u.grants.includes('admin')) && !u.hasCustomScope;
-
-            if (!u.grants.includes(role.id) && !hasGlobalSuperRole) {
-                for (const e of u.eventRoles) {
-                    if (e.roleGrant === role.id) {
-                        scopes.push({
-                            type: 'event',
-                            event: e.event,
-                            eventSlug: e.eventSlug,
-                            team: e.team,
-                        });
-                    }
-                }
-            }
-
-            if (scopes.length)
-                roleUsers.push({ id: u.id, name: u.name, avatar: u.avatar, scopes });
-        }
-
-        roleUsers.sort((a, b) => a.name.localeCompare(b.name));
-
-        return {
-            id: role.id,
-            name: role.name,
-            description: role.description || '',
-            users: roleUsers,
-        };
-    });
+    const roleRecords: PrincipalRecord[] = roles.map(role => ({
+        id: role.id,
+        name: role.name,
+        description: role.description || '',
+        users: collectPrincipalUsers(processedUsers, u => getRoleScopes(u, role.id)),
+    }));
 
     // 5. Build Permissions Section
-    type PermissionMetadata = {
-        id: string;
-        name: string;
-        description: string;
-        operations: string[];
-        descriptor: AccessDescriptor;
-    };
-
-    const permissionDefinitions: PermissionMetadata[] = [];
+    const permissionDefinitions: PermissionDefinition[] = [];
     for (const [ key, rawDescriptor ] of Object.entries(kPermissions)) {
         if (key === 'root' || key === 'admin' || key.startsWith('test.'))
             continue;
@@ -239,85 +362,13 @@ export default async function PrincipalsPage() {
 
     permissionDefinitions.sort((a, b) => a.name.localeCompare(b.name));
 
-    const permissionRecords: PrincipalRecord[] = permissionDefinitions.map(definition => {
-        const permUsers: PrincipalUser[] = [];
-        const isCrud = definition.descriptor.type === 'crud';
-        const supportedOperations = definition.operations;
-
-        for (const u of processedUsers) {
-            const scopes: PrincipalUserScope[] = [];
-
-            if (checkPermissionGranted(u.globalAccess, definition.descriptor, definition.id)) {
-                let source = 'Global grant';
-                if (u.grants.includes(definition.id)) {
-                    source = 'Direct grant';
-                } else if (u.grants.includes('root')) {
-                    source = 'Root administrator';
-                } else {
-                    const matchingRole = dbRoles.find(r => u.grants.includes(r.id));
-                    if (matchingRole)
-                        source = matchingRole.name;
-                }
-
-                let operations: string[] | undefined;
-                if (isCrud) {
-                    const ops = supportedOperations.filter(op =>
-                        u.globalAccess.can(definition.id as CRUDPermission, op as any, {
-                            event: kAnyEvent,
-                            team: kAnyTeam,
-                        }));
-                    if (ops.length < supportedOperations.length)
-                        operations = [ ...ops ];
-                }
-
-                scopes.push({
-                    type: 'global',
-                    customScope: u.customScope,
-                    operations,
-                    source,
-                });
-            } else {
-                for (const e of u.eventRoles) {
-                    if (checkPermissionGranted(e.access, definition.descriptor, definition.id)) {
-                        const matchingRole = dbRoles.find(r => r.id === e.roleGrant);
-                        const source = matchingRole?.name ?? e.roleGrant;
-
-                        let operations: string[] | undefined;
-                        if (isCrud) {
-                            const ops = supportedOperations.filter(op =>
-                                e.access.can(definition.id as CRUDPermission, op as any, {
-                                    event: kAnyEvent,
-                                    team: kAnyTeam,
-                                }));
-                            if (ops.length < supportedOperations.length)
-                                operations = [ ...ops ];
-                        }
-
-                        scopes.push({
-                            type: 'event',
-                            event: e.event,
-                            eventSlug: e.eventSlug,
-                            team: e.team,
-                            operations,
-                            source,
-                        });
-                    }
-                }
-            }
-
-            if (scopes.length)
-                permUsers.push({ id: u.id, name: u.name, avatar: u.avatar, scopes });
-        }
-
-        permUsers.sort((a, b) => a.name.localeCompare(b.name));
-
-        return {
-            id: definition.id,
-            name: definition.name,
-            description: definition.description,
-            users: permUsers,
-        };
-    });
+    const permissionRecords: PrincipalRecord[] = permissionDefinitions.map(definition => ({
+        id: definition.id,
+        name: definition.name,
+        description: definition.description,
+        users: collectPrincipalUsers(
+            processedUsers, u => getPermissionScopes(u, definition, dbRoles, roleNameMap)),
+    }));
 
     return (
         <>
@@ -336,13 +387,7 @@ export default async function PrincipalsPage() {
                 <PrincipalsAccordion items={roleRecords}
                                      emptyMessage="No roles have been configured in the system." />
             </Section>
-            { [
-                { root: 'event', title: 'Events' },
-                { root: 'organisation', title: 'Organisation' },
-                { root: 'statistics', title: 'Statistics' },
-                { root: 'system', title: 'System' },
-                { root: 'volunteers', title: 'Volunteers' },
-            ].map(({ root, title }) => {
+            { kPermissionCategories.map(({ root, title }) => {
                 const rootPermissions = permissionRecords.filter(p => p.id.startsWith(`${root}.`));
                 if (!rootPermissions.length)
                     return null;
