@@ -13,7 +13,6 @@ import type { ErrorDefinition } from '@app/api/error/route';
 import type { ExportsDefinition } from '@app/api/exports/route';
 import type { GetScheduleDefinition } from '@app/api/admin/event/schedule/getSchedule';
 import type { HelpRequestDefinition } from '@app/api/display/help-request/route';
-import type { HotelsDefinition } from '@app/api/event/hotels/[event]/route';
 import type { ListPasskeysDefinition } from '@app/api/auth/passkeys/listPasskeys';
 import type { PasswordChangeDefinition } from '@app/api/auth/passwordChange';
 import type { PasswordResetDefinition } from '@app/api/auth/passwordReset';
@@ -28,7 +27,6 @@ import type { SignInPasswordDefinition } from '@app/api/auth/signInPassword';
 import type { SignInPasswordUpdateDefinition } from '@app/api/auth/signInPasswordUpdate';
 import type { SignOutDefinition } from '@app/api/auth/signOut';
 import type { SubmitFeedbackDefinition } from '@app/api/event/schedule/submitFeedback';
-import type { TrainingsDefinition } from '@app/api/event/trainings/[event]/route';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
@@ -69,8 +67,6 @@ export type ApiEndpoints = {
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
         '/api/auth/passkeys/list': ListPasskeysDefinition,
-        '/api/event/hotels/:event': HotelsDefinition,
-        '/api/event/trainings/:event': TrainingsDefinition,
         '/api/display': DisplayDefinition,
     },
     'post': {
