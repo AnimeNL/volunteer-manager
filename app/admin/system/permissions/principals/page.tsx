@@ -49,6 +49,7 @@ export default async function PrincipalsPage() {
             id: tPermissions.permissionId,
             name: tPermissions.permissionName,
             description: tPermissions.permissionDescription,
+            operations: tPermissions.permissionOperations,
         })
         .executeSelectMany();
 
@@ -119,7 +120,9 @@ export default async function PrincipalsPage() {
             .filter(e => !!e.eventSlug && !!e.roleGrant)
             .map(e => ({
                 roleGrant: e.roleGrant!,
-                scope: `${e.eventShortName || e.eventSlug} · ${e.teamName || e.teamSlug}`,
+                event: e.eventShortName || e.eventSlug!,
+                eventSlug: e.eventSlug!,
+                team: e.teamName || e.teamSlug || '',
                 access: new AccessControl({
                     grants: {
                         permission: e.roleGrant!,
@@ -141,10 +144,12 @@ export default async function PrincipalsPage() {
 
         const hasCustomScope = (!!u.access?.events || !!u.access?.teams) &&
             !(u.access?.events === '*' && u.access?.teams === '*');
-        const scope = hasCustomScope
-            ? [ u.access?.events === '*' ? 'All events' : u.access?.events,
-                u.access?.teams === '*' ? 'All teams' : u.access?.teams ].filter(Boolean).join(' · ')
-            : 'Global';
+        const customScope = hasCustomScope
+            ? [
+                u.access?.events === '*' ? 'All events' : u.access?.events,
+                u.access?.teams === '*' ? 'All teams' : u.access?.teams,
+            ].filter(Boolean).join(' · ')
+            : undefined;
 
         return [{
             id: u.user.id,
@@ -153,7 +158,7 @@ export default async function PrincipalsPage() {
             grants,
             globalAccess,
             hasCustomScope,
-            scope,
+            customScope,
             eventRoles,
         }];
     });
@@ -166,15 +171,21 @@ export default async function PrincipalsPage() {
             const scopes: PrincipalUserScope[] = [];
 
             if (u.grants.includes(role.id))
-                scopes.push({ scope: u.scope });
+                scopes.push({ type: 'global', customScope: u.customScope });
 
             const hasGlobalSuperRole =
                 (u.grants.includes('root') || u.grants.includes('admin')) && !u.hasCustomScope;
 
             if (!u.grants.includes(role.id) && !hasGlobalSuperRole) {
                 for (const e of u.eventRoles) {
-                    if (e.roleGrant === role.id)
-                        scopes.push({ scope: e.scope });
+                    if (e.roleGrant === role.id) {
+                        scopes.push({
+                            type: 'event',
+                            event: e.event,
+                            eventSlug: e.eventSlug,
+                            team: e.team,
+                        });
+                    }
                 }
             }
 
@@ -197,6 +208,7 @@ export default async function PrincipalsPage() {
         id: string;
         name: string;
         description: string;
+        operations: string[];
         descriptor: AccessDescriptor;
     };
 
@@ -209,11 +221,19 @@ export default async function PrincipalsPage() {
         if (!metadata)
             continue;  // permissions must be defined first
 
+        const rawOperations = metadata.operations
+            ? metadata.operations.split(',').map(op => op.trim()).filter(Boolean)
+            : [];
+        const supportedOperations = rawOperations.length > 0
+            ? rawOperations
+            : [ 'create', 'read', 'update', 'delete' ];
+
         permissionDefinitions.push({
             id: key,
             name: metadata.name,
             description: metadata.description,
-            descriptor: rawDescriptor as AccessDescriptor
+            operations: supportedOperations,
+            descriptor: rawDescriptor as AccessDescriptor,
         });
     }
 
@@ -221,6 +241,8 @@ export default async function PrincipalsPage() {
 
     const permissionRecords: PrincipalRecord[] = permissionDefinitions.map(definition => {
         const permUsers: PrincipalUser[] = [];
+        const isCrud = definition.descriptor.type === 'crud';
+        const supportedOperations = definition.operations;
 
         for (const u of processedUsers) {
             const scopes: PrincipalUserScope[] = [];
@@ -236,12 +258,49 @@ export default async function PrincipalsPage() {
                     if (matchingRole)
                         source = matchingRole.name;
                 }
-                scopes.push({ scope: u.scope, source });
+
+                let operations: string[] | undefined;
+                if (isCrud) {
+                    const ops = supportedOperations.filter(op =>
+                        u.globalAccess.can(definition.id as CRUDPermission, op as any, {
+                            event: kAnyEvent,
+                            team: kAnyTeam,
+                        }));
+                    if (ops.length < supportedOperations.length)
+                        operations = [ ...ops ];
+                }
+
+                scopes.push({
+                    type: 'global',
+                    customScope: u.customScope,
+                    operations,
+                    source,
+                });
             } else {
                 for (const e of u.eventRoles) {
                     if (checkPermissionGranted(e.access, definition.descriptor, definition.id)) {
                         const matchingRole = dbRoles.find(r => r.id === e.roleGrant);
-                        scopes.push({ scope: e.scope, source: matchingRole?.name ?? e.roleGrant });
+                        const source = matchingRole?.name ?? e.roleGrant;
+
+                        let operations: string[] | undefined;
+                        if (isCrud) {
+                            const ops = supportedOperations.filter(op =>
+                                e.access.can(definition.id as CRUDPermission, op as any, {
+                                    event: kAnyEvent,
+                                    team: kAnyTeam,
+                                }));
+                            if (ops.length < supportedOperations.length)
+                                operations = [ ...ops ];
+                        }
+
+                        scopes.push({
+                            type: 'event',
+                            event: e.event,
+                            eventSlug: e.eventSlug,
+                            team: e.team,
+                            operations,
+                            source,
+                        });
                     }
                 }
             }
@@ -290,8 +349,9 @@ export default async function PrincipalsPage() {
 
                 return (
                     <Section key={root} icon={ <WorkspacesOutlinedIcon /> } title={title}>
-                        <PrincipalsAccordion items={rootPermissions}
-                                             emptyMessage="No accounts have been granted these permissions." />
+                        <PrincipalsAccordion
+                            items={rootPermissions}
+                            emptyMessage="No accounts have been granted these permissions." />
                     </Section>
                 );
             }) }

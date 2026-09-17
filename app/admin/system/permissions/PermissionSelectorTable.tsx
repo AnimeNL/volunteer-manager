@@ -3,12 +3,11 @@
 
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { CheckboxElement } from '@components/proxy/react-hook-form-mui';
 
-import type { DataGridPremiumProps, GridColDef, GridGroupNode, GridGroupingColDefOverride,
-    GridRowId } from '@mui/x-data-grid-premium';
+import type { DataGridPremiumProps, GridColDef, GridGroupingColDefOverride } from '@mui/x-data-grid-premium';
 import { DataGridPremium } from '@mui/x-data-grid-premium';
 import BlockIcon from '@mui/icons-material/Block';
 import IconButton from '@mui/material/IconButton';
@@ -85,26 +84,6 @@ interface PermissionSelectorTableProps {
  * and whether the principal has been granted them.
  */
 export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
-    const permissionGroupsToExpand = useMemo(() => {
-        const permissionGroupsToExpand = new Set<GridRowId>();
-        for (const permission of props.permissions) {
-            if (!permission.status.account || typeof permission.status.account === 'string')
-                continue;  // this permission was not set for their account
-            if (!!permission.status.account.expanded)
-                continue;  // a parent permission led to this permission being granted
-
-            const path = permission.id.split('.');
-            do {
-                permissionGroupsToExpand.add(path.join('.'));
-                path.pop();
-
-            } while (!!path.length)
-        }
-
-        return permissionGroupsToExpand;
-
-    }, [ props.permissions ]);
-
     const [ learnMoreOpen, setLearnMoreOpen ] = useState<boolean>(false);
 
     const [ learnMoreTitle, setLearnMoreTitle ] = useState<string | undefined>();
@@ -321,19 +300,11 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
 
     }, [ /* no dependencies */ ]);
 
-    const isGroupExpandedByDefault = useCallback((node: GridGroupNode) => {
-        if (!node.depth)
-            return true;  // always expand top-level nodes
-
-        return permissionGroupsToExpand.has(node.id);
-
-    }, [ permissionGroupsToExpand ]);
-
     return (
         <>
             <DataGridPremium columns={columns} rows={props.permissions}
                              treeData getTreeDataPath={getTreeDataPath} groupingColDef={grouping}
-                             isGroupExpandedByDefault={isGroupExpandedByDefault}
+                             defaultGroupingExpansionDepth={ /* all= */ -1 }
                              initialState={{ density: 'compact' }}
                              autoHeight disableColumnMenu hideFooterSelectedRowCount
                              hideFooter />

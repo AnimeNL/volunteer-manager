@@ -25,14 +25,39 @@ import { useIsMobile } from '@app/admin/lib/useIsMobile';
  */
 export interface PrincipalUserScope {
     /**
-     * Label of the scope, e.g. "Global" or "2025 · Stewards".
+     * Type of access granted.
      */
-    scope: string;
+    type: 'global' | 'event';
+
+    /**
+     * Name of the event when type is 'event', e.g. "AnimeCon 2026".
+     */
+    event?: string;
+
+    /**
+     * Slug of the event when type is 'event', e.g. "2026".
+     */
+    eventSlug?: string;
+
+    /**
+     * Name of the team when type is 'event', e.g. "Bag Room Crew".
+     */
+    team?: string;
+
+    /**
+     * Optional custom scope label if access is restricted, e.g. "All events · care,crew".
+     */
+    customScope?: string;
 
     /**
      * Optional source that indicates how the permission was granted, e.g. "Administrator".
      */
     source?: string;
+
+    /**
+     * Specific CRUD operations granted, if applicable and not all operations.
+     */
+    operations?: string[];
 }
 
 /**
@@ -86,52 +111,107 @@ export interface PrincipalRecord {
 }
 
 /**
- * Represents a group of users under an expanded accordion row.
+ * Formats partial CRUD operations into a readable string.
  */
-interface UserGroup {
+function formatOperations(operations?: string[]): string | undefined {
+    if (!operations || operations.length === 0)
+        return undefined;
+    if (operations.length === 1)
+        return `${operations[0]} only`;
+    return operations.join(', ');
+}
+
+/**
+ * Represents a subgroup of users under a top-level scope group.
+ */
+/**
+ * Represents a subgroup of users under a top-level scope group.
+ */
+interface Subgroup {
     key: string;
-    title: string;
+    title?: string;
+    operations?: string;
     users: PrincipalUser[];
 }
 
 /**
- * Renders a group of users as a cluster of compact chips.
+ * Represents a top-level scope group (Global access or an Event).
  */
-function UserGroupSection(props: { group: UserGroup }) {
-    const { group } = props;
+interface ScopeGroup {
+    key: string;
+    title: string;
+    type: 'global' | 'event';
+    subgroups: Subgroup[];
+}
+
+/**
+ * Renders a stack of user avatars with tooltips.
+ */
+function UserAvatarStack(props: { users: PrincipalUser[] }) {
+    const { users } = props;
     return (
-        <Box sx={{ mb: 1, '&:last-child': { mb: 0 } }}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+            { users.map(user =>
+                <Tooltip key={user.id} title={user.name} arrow>
+                    <Box component={Link}
+                         href={`/admin/organisation/accounts/${user.id}/permissions`}
+                         sx={{
+                             borderRadius: '50%',
+                             display: 'inline-flex',
+                             textDecoration: 'none',
+                             transition: 'transform 0.1s ease-in-out',
+                             '&:hover': {
+                                 transform: 'scale(1.15)',
+                             },
+                         }}>
+                        <Avatar src={user.avatar}>
+                            {user.name}
+                        </Avatar>
+                    </Box>
+                </Tooltip> ) }
+        </Stack>
+    );
+}
+
+/**
+ * Renders a subgroup of users with its title and operations badge.
+ */
+function SubgroupSection(props: { subgroup: Subgroup }) {
+    const { subgroup } = props;
+    return (
+        <Box>
             <Typography variant="caption"
                         sx={{
+                            alignItems: 'center',
                             color: 'text.secondary',
-                            display: 'block',
+                            display: 'flex',
+                            flexWrap: 'wrap',
                             fontWeight: 600,
                             letterSpacing: '0.04em',
                             mb: 0.5,
                             textTransform: 'uppercase',
                         }}>
-                {group.title} ({group.users.length})
+                { !!subgroup.title &&
+                    <span>{subgroup.title}</span> }
+                { !!subgroup.operations && (
+                    <Box component="span"
+                         sx={{
+                             bgcolor: 'action.selected',
+                             borderRadius: '4px',
+                             color: 'info.main',
+                             fontWeight: 700,
+                             ml: subgroup.title ? 0.75 : 0,
+                             px: 0.5,
+                             py: 0.125,
+                         }}>
+                        {subgroup.operations}
+                    </Box>
+                ) }
+                <Box component="span" sx={{ ml: 0.5 }}>
+                    ({subgroup.users.length})
+                </Box>
             </Typography>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                { group.users.map(user =>
-                    <Tooltip key={user.id} title={user.name} arrow>
-                        <Box component={Link}
-                             href={`/admin/organisation/accounts/${user.id}/permissions`}
-                             sx={{
-                                 display: 'inline-flex',
-                                 borderRadius: '50%',
-                                 textDecoration: 'none',
-                                 transition: 'transform 0.1s ease-in-out',
-                                 '&:hover': {
-                                     transform: 'scale(1.15)',
-                                 },
-                             }}>
-                            <Avatar src={user.avatar}>
-                                {user.name}
-                            </Avatar>
-                        </Box>
-                    </Tooltip> ) }
-            </Stack>
+            <UserAvatarStack users={subgroup.users} />
         </Box>
     );
 }
@@ -174,38 +254,100 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                 const count = item.users.length;
                 const countLabel = count === 1 ? '1 account' : `${count} accounts`;
 
-                // Group users by their scope and optional grant source
-                const groupsMap = new Map<string, PrincipalUser[]>();
+                // Group users hierarchically: top-level by scope type (Global vs. Events),
+                // then sub-grouped by team and source grant.
+                const scopeGroupsMap = new Map<string, {
+                    group: ScopeGroup;
+                    subgroupsMap: Map<string, {
+                        title?: string;
+                        operations?: string;
+                        users: PrincipalUser[];
+                    }>;
+                }>();
+
                 for (const user of item.users) {
                     for (const s of user.scopes) {
-                        let title = s.scope;
-                        if (s.source && s.source !== s.scope) {
-                            title = s.scope === 'Global'
-                                ? `${s.source} (Global)`
-                                : `${s.scope} (${s.source})`;
+                        const groupKey =
+                            s.type === 'global' ? 'global' : `event:${s.eventSlug || s.event}`;
+                        const groupTitle =
+                            s.type === 'global' ? 'Global access' : (s.event || 'Unknown event');
+
+                        let groupEntry = scopeGroupsMap.get(groupKey);
+                        if (!groupEntry) {
+                            groupEntry = {
+                                group: {
+                                    key: groupKey,
+                                    title: groupTitle,
+                                    type: s.type,
+                                    subgroups: [],
+                                },
+                                subgroupsMap: new Map(),
+                            };
+                            scopeGroupsMap.set(groupKey, groupEntry);
                         }
 
-                        let group = groupsMap.get(title);
-                        if (!group) {
-                            group = [];
-                            groupsMap.set(title, group);
+                        let subTitle: string | undefined;
+                        const opsLabel = formatOperations(s.operations);
+
+                        if (s.type === 'global') {
+                            let sourceLabel = s.customScope;
+                            if (s.source) {
+                                sourceLabel = sourceLabel
+                                    ? `${sourceLabel} (${s.source})`
+                                    : s.source;
+                            }
+                            subTitle = sourceLabel;
+                        } else {
+                            const team = s.team || 'Unknown team';
+                            if (s.source && s.source !== team)
+                                subTitle = `${team} (${s.source})`;
+                            else
+                                subTitle = team;
                         }
-                        if (!group.some(u => u.id === user.id))
-                            group.push(user);
+
+                        const subKey = `${subTitle || ''}|${opsLabel || ''}`;
+                        let subEntry = groupEntry.subgroupsMap.get(subKey);
+                        if (!subEntry) {
+                            subEntry = {
+                                title: subTitle,
+                                operations: opsLabel,
+                                users: [],
+                            };
+                            groupEntry.subgroupsMap.set(subKey, subEntry);
+                        }
+
+                        if (!subEntry.users.some(u => u.id === user.id))
+                            subEntry.users.push(user);
                     }
                 }
 
-                const groups: UserGroup[] = [ ...groupsMap.entries() ].map(([ title, users ]) => ({
-                    key: title,
-                    title,
-                    users: users.sort((a, b) => a.name.localeCompare(b.name)),
-                }));
+                const scopeGroups: ScopeGroup[] = [];
+                for (const { group, subgroupsMap } of scopeGroupsMap.values()) {
+                    const subgroups: Subgroup[] = [];
+                    for (const [ subKey, subEntry ] of subgroupsMap.entries()) {
+                        subgroups.push({
+                            key: subKey,
+                            title: subEntry.title,
+                            operations: subEntry.operations,
+                            users: subEntry.users.sort((a, b) => a.name.localeCompare(b.name)),
+                        });
+                    }
 
-                groups.sort((a, b) => {
-                    const aGlobal = a.title.includes('Global') || a.title.includes('Direct grant');
-                    const bGlobal = b.title.includes('Global') || b.title.includes('Direct grant');
-                    if (aGlobal && !bGlobal) return -1;
-                    if (!aGlobal && bGlobal) return 1;
+                    subgroups.sort((a, b) => {
+                        const titleA = a.title || '';
+                        const titleB = b.title || '';
+                        if (titleA !== titleB)
+                            return titleA.localeCompare(titleB);
+                        return (a.operations || '').localeCompare(b.operations || '');
+                    });
+
+                    group.subgroups = subgroups;
+                    scopeGroups.push(group);
+                }
+
+                scopeGroups.sort((a, b) => {
+                    if (a.type === 'global') return -1;
+                    if (b.type === 'global') return 1;
                     return a.title.localeCompare(b.title);
                 });
 
@@ -242,7 +384,7 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                                         <Chip label={item.id} size="small" variant="outlined"
                                               sx={{
                                                   fontFamily: 'monospace',
-                                                  fontSize: '0.75rem'
+                                                  fontSize: '0.75rem',
                                               }} /> }
                                 </Stack>
                                 <Chip color={ count > 0 ? 'primary' : 'default' }
@@ -257,13 +399,53 @@ export function PrincipalsAccordion(props: PrincipalsAccordionProps) {
                             </Typography>
                             <Divider sx={{ mb: 1 }} />
                             { count === 0 &&
-                                <Alert severity="info" variant="outlined" sx={{ py: .25, px: 1.5 }}>
+                                <Alert severity="info" variant="outlined"
+                                       sx={{ py: .25, px: 1.5 }}>
                                     Nobody has been granted access.
                                 </Alert> }
                             { count > 0 &&
-                                <Stack direction="column" spacing={1}>
-                                    { groups.map(group =>
-                                        <UserGroupSection key={group.key} group={group} /> )}
+                                <Stack direction="column" spacing={1.5}>
+                                    { scopeGroups.map(group => {
+                                        const hasSingleUntitledSubgroup =
+                                            group.subgroups.length === 1 &&
+                                            !group.subgroups[0].title &&
+                                            !group.subgroups[0].operations;
+
+                                        const groupTitle = hasSingleUntitledSubgroup
+                                            ? `${group.title} (${group.subgroups[0].users.length})`
+                                            : group.title;
+
+                                        return (
+                                            <Box key={group.key}>
+                                                <Typography variant="body2"
+                                                            sx={{
+                                                                color: 'text.primary',
+                                                                fontWeight: 600,
+                                                                mb: 0.75,
+                                                            }}>
+                                                    {groupTitle}
+                                                </Typography>
+                                                <Box sx={{
+                                                    borderLeft: 1,
+                                                    borderColor: 'divider',
+                                                    ml: 0.5,
+                                                    pl: 1.5,
+                                                }}>
+                                                    { hasSingleUntitledSubgroup ? (
+                                                        <UserAvatarStack
+                                                            users={group.subgroups[0].users} />
+                                                    ) : (
+                                                        <Stack direction="column" spacing={1}>
+                                                            { group.subgroups.map(subgroup =>
+                                                                <SubgroupSection
+                                                                    key={subgroup.key}
+                                                                    subgroup={subgroup} />) }
+                                                        </Stack>
+                                                    ) }
+                                                </Box>
+                                            </Box>
+                                        );
+                                    }) }
                                 </Stack> }
                         </AccordionDetails>
                     </Accordion>
