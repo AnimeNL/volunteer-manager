@@ -6,13 +6,18 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
 
 import { AccessControl } from './AccessControl';
 import { type SessionData, kSessionCookieName, sealSession } from './Session';
-import { executeAccessCheck, getAuthenticationContextFromHeaders } from './AuthenticationContext';
+import { executeAccessCheck, getAuthenticationContextFromHeaders, initialisePermissionRoles }
+    from './AuthenticationContext';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
 import { stringifySetCookie } from 'cookie';
 import { useMockConnection } from '../database/Connection';
 
 describe('AuthenticationContext', () => {
     const mockConnection = useMockConnection();
+
+    beforeEach(async () => {
+        await initialisePermissionRoles([]);
+    });
 
     it('is able to authenticate users based on valid session data', async () => {
         const sessionData: SessionData = {

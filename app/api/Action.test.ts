@@ -10,6 +10,7 @@ import type { User } from '@lib/auth/User';
 import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
 import { type ActionProps, executeAction } from './Action';
 import { expectAuthenticationQuery } from '@lib/auth/AuthenticationTestHelpers';
+import { initialisePermissionRoles } from '@lib/auth/AuthenticationContext';
 import { kSessionCookieName, sealSession } from '@lib/auth/Session';
 import { useMockConnection } from '@lib/database/Connection';
 
@@ -18,7 +19,8 @@ describe('Action', () => {
 
     let errorLogDelegateInvoked: boolean = false;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await initialisePermissionRoles([]);
         errorLogDelegateInvoked = false;
         SetRecordErrorLogDeferDelegate(async () => { errorLogDelegateInvoked = true });
     });
