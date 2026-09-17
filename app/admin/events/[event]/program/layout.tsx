@@ -31,6 +31,7 @@ export default async function ProgramLayout(props: LayoutProps<'/admin/events/[e
                 Icon: EventNoteIcon,
                 label: 'Activities',
                 url: `/admin/events/${event.slug}/program/activities`,
+                urlMatchMode: 'prefix',
             },
             {
                 Icon: LocationOnIcon,
