@@ -9,8 +9,10 @@ import ShareIcon from '@mui/icons-material/Share';
 import TabletIcon from '@mui/icons-material/Tablet';
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
 
+import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../layout/NavigationMenu';
 import { requireAuthentication } from '@lib/requireAuthentication';
+import db, { tDisplays, tFeedback } from '@lib/database';
 
 /**
  * This variant of the parallel route composes the menu for the Organisation section of our app. It
@@ -18,6 +20,42 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  */
 export default async function OrganisationMenu() {
     const { access, user } = await requireAuthentication();
+
+    let badges: Record<string, number> = {
+        displays: 0,
+        feedback: 0,
+    };
+
+    if (access.can('organisation.displays') || access.can('organisation.feedback')) {
+        const exactlyOneDayAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 1 });
+
+        const cache = Cache.getInstance('AdminNavigationMenuCache');
+        const counts = await cache.getOrInsert('organisation', async () => {
+            const dbInstance = db;
+
+            const displaysValue = dbInstance.selectFrom(tDisplays)
+                .where(tDisplays.displayCheckIn.greaterOrEqual(exactlyOneDayAgo))
+                    .and(tDisplays.displayDeleted.isNull())
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
+
+            const feedbackValue = dbInstance.selectFrom(tFeedback)
+                .where(tFeedback.feedbackResponse.isNull())
+                .selectCountAll()
+                .forUseAsInlineQueryValue();
+
+            return await dbInstance.selectFromNoTable()
+                .select({
+                    displays: displaysValue,
+                    feedback: feedbackValue,
+                })
+                .executeSelectOne();
+        });
+
+        if (counts)
+            badges = { ...badges, ...counts };
+    }
+
     return (
         <NavigationMenu access={access} id="organisation" title="Organisation" items={[
             {
@@ -40,7 +78,6 @@ export default async function OrganisationMenu() {
                 items: [
                     {
                         Icon: PersonIcon,
-                        badge: { migration: true, value: true },  // migration in progress
                         label: 'Accounts',
                         permission: {
                             permission: 'organisation.accounts',
@@ -50,6 +87,10 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: FeedbackOutlinedIcon,
+                        badge: {
+                            severity: 'warning',
+                            value: badges.feedback,
+                        },
                         label: 'Feedback',
                         permission: 'organisation.feedback',
                         url: '/admin/organisation/feedback',
@@ -79,7 +120,10 @@ export default async function OrganisationMenu() {
                     },
                     {
                         Icon: TabletIcon,
-                        badge: { migration: true, value: true },  // migration in progress
+                        badge: {
+                            severity: 'success',
+                            value: badges.displays,
+                        },
                         label: 'Displays',
                         permission: 'organisation.displays',
                         url: '/admin/organisation/displays',

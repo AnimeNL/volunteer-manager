@@ -1,9 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { CheckboxElement, TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
+import { TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -37,8 +36,7 @@ interface AccountSettingsFormProps {
 export function AccountSettingsForm(props: AccountSettingsFormProps) {
     return (
         <>
-
-            <Grid size={{ xs: 3 }}>
+            <Grid size={{ xs: 12, lg: 3 }}>
                 <Typography variant="subtitle2" sx={{ pt: 0 }}>
                     Example messages
                 </Typography>
@@ -47,7 +45,7 @@ export function AccountSettingsForm(props: AccountSettingsFormProps) {
                     a better job for you. Includes messages in both Dutch and English.
                 </Typography>
             </Grid>
-            <Grid size={{ xs: 9 }}>
+            <Grid size={{ xs: 12, lg: 9 }}>
                 <Stack direction="column" spacing={2}>
                     { Array(kExampleMessageCount).fill(null).map((_, index) =>
                         <TextFieldElement key={index} name={`exampleMessages[${index}]`}
@@ -56,22 +54,6 @@ export function AccountSettingsForm(props: AccountSettingsFormProps) {
                                           slotProps={{ input: { readOnly: !!props.readOnly } }}/> )}
                 </Stack>
             </Grid>
-
-            <Grid size={{ xs: 12 }}><Divider /></Grid>
-
-            <Grid size={{ xs: 3 }}>
-                <Typography variant="subtitle2">
-                    Enable Layout Refresh
-                </Typography>
-                <Typography variant="body2" color="textDisabled">
-                    This feature is experimental!
-                </Typography>
-            </Grid>
-            <Grid size={{ xs: 9 }}>
-                <CheckboxElement name="experimentalLayout" size="small"
-                                 readOnly={!!props.readOnly} />
-            </Grid>
-
         </>
     );
 }
