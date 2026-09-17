@@ -35,6 +35,25 @@ if (typeof window !== 'undefined') {
             }
         });
     };
+
+    // Workaround for a bug introduced in jsdom 30.1.0: when a focused element is removed from the
+    // DOM, jsdom internally tracks the viewport as the Document. However, subsequent focus events
+    // erroneously pass this Document as event.relatedTarget (violating W3C UI Events specs where
+    // relatedTarget must be an Element or null). Material UI's <FocusTrap> stores relatedTarget to
+    // restore focus on unmount and calls .focus() on it, throwing because Document.focus does not
+    // exist. Normalizing Document to null restores standard browser behavior.
+    const originalRelatedTarget =
+        Object.getOwnPropertyDescriptor(window.FocusEvent.prototype, 'relatedTarget')?.get;
+    if (originalRelatedTarget) {
+        Object.defineProperty(window.FocusEvent.prototype, 'relatedTarget', {
+            get() {
+                const target = originalRelatedTarget.call(this);
+                return target instanceof Document ? null : target;
+            },
+            configurable: true,
+            enumerable: true,
+        });
+    }
 }
 
 vi.mock('next/navigation', () => {
