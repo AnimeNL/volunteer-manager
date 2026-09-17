@@ -7,8 +7,8 @@ import type { AccessDescriptor, AccessOperation } from './AccessDescriptor';
 import type { AccessScope, Grant, Result } from './AccessList';
 import type { BooleanPermission, CRUDPermission } from './Access';
 import { AccessList, kAnyEvent, kAnyTeam } from './AccessList';
+import { Cache } from '@lib/cache';
 
-import { kPermissionGroups } from './AccessGroups';
 import { kPermissions } from './Access';
 
 /**
@@ -88,19 +88,25 @@ export type AccessResult = Result & {
  * Individual permissions have hierarchical names, each scope separated by a dot, with the most
  * significant scope being the left-most entry. CRUD permissions can further have modifiers on the
  * permission that indicate the scope, e.g. "foo.bar:update".
+ *
+ * @todo Support role-based permission revokes in expansions, rather than just grants.
  */
 export class AccessControl {
     #grants: AccessList;
     #revokes: AccessList;
 
     constructor(grants: AccessControlParams) {
+        const expansions =
+            Object.fromEntries([ ...Cache.getInstance('PermissionRoles').entries() ].map(
+                ([ role, permissions ]) => [ role, permissions?.grants || [ /* no grants */ ] ]));
+
         this.#revokes = new AccessList({
             grants: grants.revokes,
             requireSpecificScope: true,
         });
 
         this.#grants = new AccessList({
-            expansions: kPermissionGroups,
+            expansions,
             grants: grants.grants,
             events: grants.events,
             teams: grants.teams,

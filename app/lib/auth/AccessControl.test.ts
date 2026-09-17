@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { AccessControl, kAnyEvent, kAnyTeam, kPermissionPattern } from './AccessControl';
-import { kPermissionGroups } from './AccessGroups';
+import { Cache } from '@lib/cache';
+import { initialisePermissionRoles } from './AuthenticationContext';
 
 describe('AccessControl', () => {
     it.each([
@@ -269,7 +270,13 @@ describe('AccessControl', () => {
     });
 
     it('should expand the Volunteer Manager permission groups', () => {
-        expect(kPermissionGroups).toHaveProperty('testgroup');  // verify the input condition
+        Cache.getInstance('PermissionRoles').set('testgroup', {
+            grants: [
+                'test.boolean',
+                'test.crud',
+            ],
+            revokes: [ /* none */ ],
+        });
 
         const accessControl = new AccessControl({ grants: 'testgroup' });
         expect(accessControl.query('test.boolean')).toEqual({
@@ -306,10 +313,23 @@ describe('AccessControl', () => {
         expect(() => accessControl.require('test.crud', 'update')).not.toThrow();
     });
 
-    it('should behave sensibly when it comes down to event visibility checks', () => {
+    it('should behave sensibly when it comes down to event visibility checks', async () => {
         // This is a reference test for the permission system with expected outcomes for the
         // "event.visible" permission, which heavily relies on automatically granted scoping rules.
         // Any change in this test should be carefully reviewed.
+
+        await initialisePermissionRoles(/* rolesForTesting= */ [
+            {
+                role: 'staff',
+                grants: 'event.visible',
+                revokes: undefined,
+            },
+            {
+                role: 'senior',
+                grants: 'event.visible',
+                revokes: undefined,
+            }
+        ]);
 
         const accessControl = new AccessControl({
             grants: [
@@ -362,9 +382,17 @@ describe('AccessControl', () => {
         expect(accessControl.can('event.visible', { event: '2025', team: 'hosts' })).toBeFalsy();
     });
 
-    it('should issue a broad permission grant for explicit grants', () => {
+    it('should issue a broad permission grant for explicit grants', async () => {
         // When a volunteer has been issued permission to, for example, access schedule requests, it
         // should be granted for all events and all teams by default.
+
+        await initialisePermissionRoles(/* rolesForTesting= */ [
+            {
+                role: 'senior',
+                grants: 'event.visible',
+                revokes: undefined,
+            }
+        ]);
 
         const defaultAccessControl = new AccessControl({
             grants: [

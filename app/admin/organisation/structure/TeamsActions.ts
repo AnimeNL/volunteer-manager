@@ -291,7 +291,10 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
 export async function toggleTeamEnabled(teamId: number, enabled: boolean, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication('root');
+        await requireAuthentication({
+            permission: 'organisation.teams',
+            operation: 'update',
+        });
 
         const dbInstance = db;
         const existingTeam = await dbInstance.selectFrom(tTeams)

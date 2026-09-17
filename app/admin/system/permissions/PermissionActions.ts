@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { AccessControl } from '@lib/auth/AccessControl';
+import { Cache } from '@lib/cache';
 import { executeServerAction } from '@lib/serverAction';
 import { LogBuilder } from '@lib/log/index';
 import { toPermissionList } from './toPermissionList';
@@ -191,6 +192,11 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
 
         if (!affectedRows)
             return { success: false, error: 'Unable to update permissions in the database…' };
+
+        Cache.getInstance('PermissionRoles').set(roleId, {
+            grants: grants?.split(',') || [ /* no grants */ ],
+            revokes: revokes?.split(',') || [ /* no revokes */ ],
+        });
 
         LogBuilder.for('UpdateRolePermissions')
             .withCondition(!!affectedRows)

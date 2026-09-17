@@ -81,6 +81,14 @@ interface CacheDescriptorMap {
         };
     },
 
+    PermissionRoles: {
+        Parameters: string;
+        Contents: {
+            grants: string[];
+            revokes: string[];
+        };
+    },
+
     Settings: {
         Parameters: string;
         Contents: { value: unknown };  // any JSON-serialisable value
@@ -294,6 +302,12 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     ManifestLatestEvent: {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
+        type: 'permanent',
+    },
+
+    PermissionRoles: {
+        name: 'PermissionRoles',
+        description: 'Roles that can be assigned to users granting them certain permissions',
         type: 'permanent',
     },
 

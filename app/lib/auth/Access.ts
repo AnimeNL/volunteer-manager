@@ -4,6 +4,17 @@
 import type { AccessDescriptor } from './AccessDescriptor';
 
 /**
+ * List of permission groups available in the Volunteer Manager.
+ */
+export const kPermissionGroups = [
+    'event',
+    'organisation',
+    'statistics',
+    'system',
+    'volunteers',
+];
+
+/**
  * List of permissions available in the Volunteer Manager. Keep grouped based on namespace, then
  * alphabetized based on the individual permission names.
  */

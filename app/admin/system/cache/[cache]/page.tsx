@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
+import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
@@ -15,6 +15,8 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from '../formatBytes';
+
+import { kProtectedCaches } from './../ProtectedCaches';
 
 /**
  * Formats a duration in milliseconds to a human-readable string.
@@ -84,12 +86,20 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
      */
     sizeLabel: z.string(),
 
+    /**
+     * Whether this cache (content) should be protected from being cleared.
+     */
+    protected: z.boolean(),
+
 }), {
     async authorize(operation, props) {
         executeAccessCheck(props.authenticationContext, 'system.internals.cache');
     },
 
     async delete(params, props, context) {
+        if (kProtectedCaches.has(context.cacheName))
+            forbidden();
+
         const cache = Cache.getInstance(context.cacheName as any);
         (cache as any).delete(params.rawParams === null ? undefined : params.rawParams);
         return true;
@@ -115,6 +125,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
                 lastAccess: formatTimeSince(timeSinceLastAccess),
                 size: metadata.bytes,
                 sizeLabel: formatBytes(metadata.bytes),
+                protected: kProtectedCaches.has(context.cacheName),
             });
         }
 
@@ -208,7 +219,7 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
                            context={{ cacheName: cache.descriptor.name }}
                            defaultSort={{ field: 'accessCount', sort: 'desc' }}
                            pageSize={25}
-                           subject="cache entry"
+                           subject="cache entry" protectedColumn="protected"
                            listViewProps={{
                                primaryField: 'params',
                                secondaryTemplate:

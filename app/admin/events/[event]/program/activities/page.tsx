@@ -98,7 +98,10 @@ const programActivitiesDataSource = createDataSource('admin/event/program/activi
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'admin',
+            permission: 'event.visible',
+            scope: {
+                event: context.event.slug,
+            },
         });
     },
 

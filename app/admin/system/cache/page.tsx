@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
@@ -16,6 +17,8 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from './formatBytes';
+
+import { kProtectedCaches } from './ProtectedCaches';
 
 /**
  * Data source through which the caches can be listed.
@@ -51,12 +54,20 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
      */
     type: z.enum([ 'permanent', 'ttl', 'lru' ]),
 
+    /**
+     * Whether this cache should be protected from being cleared.
+     */
+    protected: z.boolean(),
+
 }), {
     async authorize(operation, props) {
         executeAccessCheck(props.authenticationContext, 'system.internals.cache');
     },
 
     async delete(params) {
+        if (kProtectedCaches.has(params.id))
+            forbidden();
+
         Cache.getInstance(params.id as any).clear();
         return true;
     },
@@ -77,6 +88,7 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
                 size: sizeInBytes,
                 sizeLabel: formatBytes(sizeInBytes),
                 type: cache.descriptor.type,
+                protected: kProtectedCaches.has(cache.descriptor.name),
             };
         });
 
@@ -169,7 +181,7 @@ export default async function CacheManagementPage() {
                 <DataTable columns={columns} source={cacheDataSource} disableFooter
                            defaultSort={{ field: 'name', sort: 'asc' }}
                            pageSize={25}
-                           subject="cache"
+                           subject="cache" protectedColumn="protected"
                            listViewProps={{
                                primaryField: 'name',
                                secondaryField: 'sizeLabel',

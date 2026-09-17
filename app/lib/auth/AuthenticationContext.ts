@@ -12,8 +12,12 @@ import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { SessionData } from './Session';
 
 import { AccessControl, type AccessScope } from './AccessControl';
+import { Cache } from '@lib/cache';
 import { authenticateUser } from './Authentication';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
+import db, { tPermissionsRoles } from '@lib/database';
+
+import { kPermissionGroups } from './Access';
 
 import type {
     AuthenticationContext,
@@ -26,6 +30,10 @@ export type {
     UserAuthenticationContext,
     VisitorAuthenticationContext,
 };
+
+declare namespace globalThis {
+    let animeConRolesInitialised: boolean | undefined;
+}
 
 /**
  * Access check for a specific permission. May be a simple boolean permission, or a CRUD permission
@@ -132,6 +140,9 @@ export async function requireAuthenticationContext(
     if (!authenticationContext.user)
         unauthorized();
 
+    if (!globalThis.animeConRolesInitialised)
+        await initialisePermissionRoles();
+
     if (permission)
         executeAccessCheck(authenticationContext, permission, scope);
 
@@ -176,3 +187,37 @@ export const getAuthenticationContext = cache(async (): Promise<AuthenticationCo
         user: /* guest= */ undefined,
     };
 });
+
+/**
+ * Ability to explicitly set the roles that the system should be initialised with for tests.
+ */
+type RolesForTesting = { role: string; grants?: string; revokes?: string; }[];
+
+/**
+ * Provides one-off initialisation of permission roles by fetching them from the database and
+ * storing them in the Cache. Any further modifications will be synchronised in the Cache directly.
+ */
+export async function initialisePermissionRoles(rolesForTesting?: RolesForTesting) {
+    const cache = Cache.getInstance('PermissionRoles');
+    const roles = rolesForTesting || await db.selectFrom(tPermissionsRoles)
+        .select({
+            role: tPermissionsRoles.permissionRoleId,
+            grants: tPermissionsRoles.permissionRoleGrants,
+            revokes: tPermissionsRoles.permissionRoleRevokes,
+        })
+        .executeSelectMany();
+
+    for (const { role, grants, revokes } of roles) {
+        cache.set(role, {
+            grants: grants?.split(',') || [ /* no grants */ ],
+            revokes: revokes?.split(',') || [ /* no revokes */ ],
+        });
+    }
+
+    cache.set('root', {
+        grants: kPermissionGroups,
+        revokes: [ /* no revokes */ ],
+    });
+
+    globalThis.animeConRolesInitialised = true;
+}
