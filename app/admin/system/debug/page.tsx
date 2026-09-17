@@ -68,7 +68,7 @@ async function debugAction(formData: unknown) {
  * internals that we'd like to see in production, but don't really know how to.
  */
 export default async function DebugPage() {
-    await requireAuthentication('system.internals');
+    await requireAuthentication('system.internals.debug');
 
     const debugValues: Record<string, any> = {};
     debugValues['Cookies'] = [ ...await cookies() ];

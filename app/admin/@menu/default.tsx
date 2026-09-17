@@ -151,7 +151,7 @@ export default async function DefaultMenu() {
                     {
                         Icon: FolderCopyOutlinedIcon,
                         label: 'Cache',
-                        permission: 'system.internals',
+                        permission: 'system.internals.cache',
                         url: '/admin/system/cache',
                     },
                     {

@@ -20,7 +20,7 @@ import { kThemeImageVersion } from '@app/config';
  * theme, in the size at which they'll be displayed in reality.
  */
 export default async function ThemeDebugPage() {
-    await requireAuthentication('system.internals');
+    await requireAuthentication('system.internals.debug');
 
     type ThemeImage = {
         src: string;

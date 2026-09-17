@@ -26,7 +26,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     location: z.string().optional(),
 }), {
     async authorize(operation, props, context) {
-        if (!props.access.can('admin'))
+        if (!props.access.can('system.internals.debug'))
             forbidden();
     },
 

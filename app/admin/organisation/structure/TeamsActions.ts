@@ -41,7 +41,10 @@ const kCreateEnvironmentData = z.object({
 export async function createEnvironment(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateEnvironmentData, async (data, props) => {
-        await requireAuthentication('root');
+        await requireAuthentication({
+            permission: 'organisation.environments',
+            operation: 'create',
+        });
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentDomain.equals(data.domain))
@@ -100,7 +103,10 @@ const kCreateTeamData = z.object({
 export async function createTeam(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateTeamData, async (data, props) => {
-        await requireAuthentication('root');
+        await requireAuthentication({
+            permission: 'organisation.teams',
+            operation: 'create',
+        });
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentId.equals(data.environment))
@@ -179,7 +185,10 @@ export async function createTeam(formData: unknown) {
 export async function deleteEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication('root');
+        await requireAuthentication({
+            permission: 'organisation.environments',
+            operation: 'delete',
+        });
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentId.equals(environmentId))
@@ -238,7 +247,10 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
 export async function resetTeamKey(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication('root');
+        await requireAuthentication({
+            permission: 'organisation.teams',
+            operation: 'update',
+        });
 
         const dbInstance = db;
         const teamName = await dbInstance.selectFrom(tTeams)
@@ -342,7 +354,10 @@ const kUpdateEnvironmentData = z.object({
 export async function updateEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateEnvironmentData, async (data, props) => {
-        await requireAuthentication('organisation.environments');
+        await requireAuthentication({
+            permission: 'organisation.environments',
+            operation: 'update',
+        });
 
         const existingEnvironment = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentId.equals(environmentId))
@@ -416,7 +431,10 @@ const kUpdateTeamData = z.object({
 export async function updateTeam(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateTeamData, async (data, props) => {
-        await requireAuthentication('organisation.teams');
+        await requireAuthentication({
+            permission: 'organisation.teams',
+            operation: 'update',
+        });
 
         if (!data.availableRoleIds.length)
             return { success: false, error: 'The team must have at least one available role…' };

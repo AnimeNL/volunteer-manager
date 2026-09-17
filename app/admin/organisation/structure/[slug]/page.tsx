@@ -31,10 +31,13 @@ import * as actions from '../TeamsActions';
  * been indicated in the URL's parameters. The team's settings can be updated from here too.
  */
 export default async function TeamPage(props: PageProps<'/admin/organisation/structure/[slug]'>) {
-    const { access } = await requireAuthentication('organisation.teams');
+    const { access } = await requireAuthentication({
+        permission: 'organisation.teams',
+        operation: 'read',
+    });
 
-    const canDisableTeam = access.can('root');  // only root can disable teams
-    const canResetInviteKey = access.can('admin');  // only admin (& root) can reset invite keys
+    const canDisableTeam = access.can('organisation.teams', 'delete');
+    const canResetInviteKey = access.can('organisation.teams', 'update');
 
     const teamsRolesDefaultJoin = tTeamsRoles.forUseInLeftJoinAs('trdj');
     const teamsRolesJoin = tTeamsRoles.forUseInLeftJoinAs('trj');

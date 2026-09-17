@@ -148,11 +148,11 @@ export default async function EventSettingsConfigurationPage(
 
     const service = await createTicketService(event.slug);
 
-    const anonymizeRefundsFn = access.can('admin')
+    const anonymizeRefundsFn = access.can('root')
         ? actions.anonymizeRefundRequests.bind(null, event.slug)
         : undefined!;
 
-    const anonymizeTicketsFn = access.can('admin')
+    const anonymizeTicketsFn = access.can('root')
         ? actions.anonymizeVisitorTickets.bind(null, event.slug)
         : undefined!;
 

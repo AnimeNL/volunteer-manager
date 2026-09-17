@@ -44,9 +44,10 @@ const kEnvironmentPurposeOptions: { [key in EnvironmentPurpose]: string } = {
 export default async function EnvironmentPage(
     props: PageProps<'/admin/organisation/structure/environments/[domain]'>)
 {
-    const { access } = await requireAuthentication('organisation.environments');
-
-    const canDeleteEnvironment = access.can('root');  // only root can delete environments
+    const { access } = await requireAuthentication({
+        permission: 'organisation.environments',
+        operation: 'read'
+    });
 
     const params = await props.params;
     const environment = await db.selectFrom(tEnvironments)
@@ -81,10 +82,15 @@ export default async function EnvironmentPage(
         label: v,
     }));
 
-    const readOnly = false;  // should we support this?
+    const readOnly = !access.can('organisation.environments', 'update');
 
-    const deleteEnvironmentFn = deleteEnvironment.bind(null, environment.id);
-    const updateEnvironmentFn = updateEnvironment.bind(null, environment.id);
+    const deleteEnvironmentFn = access.can('organisation.environments', 'delete')
+        ? deleteEnvironment.bind(null, environment.id)
+        : undefined!;
+
+    const updateEnvironmentFn = access.can('organisation.environments', 'update') ?
+        updateEnvironment.bind(null, environment.id)
+        : undefined!;
 
     return (
         <>
@@ -109,7 +115,7 @@ export default async function EnvironmentPage(
 
             <FormGridSection noHeader tabs back="Back to environments"
                              action={updateEnvironmentFn} defaultValues={environment}>
-                { canDeleteEnvironment &&
+                { !!deleteEnvironmentFn &&
                     <Grid size={{ xs: 12 }}>
                         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
                             <DeleteEnvironmentAction action={deleteEnvironmentFn}

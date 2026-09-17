@@ -55,8 +55,8 @@ interface UserAuthenticationContextWithEventAndTeam extends UserAuthenticationCo
  * without an existing `authenticationContext` (e.g. from Server Actions).
  *
  * @example requireAuthentication()
- * @example requireAuthentication('system.internals')
- * @example requireAuthentication(props.authenticationContext, 'system.internals')
+ * @example requireAuthentication('system.internals.ai')
+ * @example requireAuthentication(props.authenticationContext, 'system.internals.ai')
  */
 export async function requireAuthentication(
     permission?: PermissionAccessCheck | PermissionSet): Promise<UserAuthenticationContext>;

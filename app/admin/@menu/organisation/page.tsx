@@ -58,9 +58,9 @@ export default async function OrganisationMenu() {
                         Icon: AccountBalanceIcon,
                         label: 'Structure',
                         permission: [
-                            'organisation.environments',
-                            'organisation.roles',
-                            'organisation.teams',
+                            { permission: 'organisation.environments', operation: 'read' },
+                            { permission: 'organisation.roles', operation: 'read' },
+                            { permission: 'organisation.teams', operation: 'read' },
                         ],
                         url: '/admin/organisation/structure',
                     },

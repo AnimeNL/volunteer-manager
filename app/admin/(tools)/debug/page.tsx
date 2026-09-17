@@ -16,7 +16,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
  * Page that lists the debugging tools available in the Volunteer Manager.
  */
 export default async function DebugPage() {
-    await requireAuthentication('admin');
+    await requireAuthentication('system.internals.debug');
     return (
         <>
             <Section icon={ <BugReportOutlinedIcon color="primary" /> } title="Debugging tools"

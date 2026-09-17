@@ -64,7 +64,10 @@ const teamsDataSource = createDataSource('organisation/structure/teams', withRow
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.teams');
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'organisation.teams',
+            operation: 'read',
+        });
     },
 
     async list(params) {
@@ -109,11 +112,11 @@ const teamsDataSource = createDataSource('organisation/structure/teams', withRow
  */
 export default async function TeamsPage() {
     const { access } = await requireAuthentication();
-    if (!access.can('organisation.teams')) {
-        if (access.can('organisation.environments'))
+    if (!access.can('organisation.teams', 'read')) {
+        if (access.can('organisation.environments', 'read'))
             redirect('/admin/organisation/structure/environments');
 
-        if (access.can('organisation.roles'))
+        if (access.can('organisation.roles', 'read'))
             redirect('/admin/organisation/structure/roles');
 
         forbidden();
@@ -121,7 +124,7 @@ export default async function TeamsPage() {
 
     let environments: { id: number; label: string }[] = [ /* empty */ ];
 
-    const canCreateTeams = access.can('root');  // only root can create new teams
+    const canCreateTeams = access.can('organisation.teams', 'create');
     if (canCreateTeams) {
         environments = await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentDeleted.isNull())

@@ -149,7 +149,7 @@ export const kPermissions = {
     },
 
     'organisation.environments': {
-        type: 'boolean',
+        type: 'crud',
     },
 
     'organisation.exports': {
@@ -170,7 +170,7 @@ export const kPermissions = {
     },
 
     'organisation.roles': {
-        type: 'boolean',
+        type: 'crud',
     },
 
     'organisation.silent': {
@@ -178,7 +178,7 @@ export const kPermissions = {
     },
 
     'organisation.teams': {
-        type: 'boolean',
+        type: 'crud',
     },
 
     // ---------------------------------------------------------------------------------------------
@@ -205,11 +205,15 @@ export const kPermissions = {
         type: 'boolean',
     },
 
-    'system.internals': {
+    'system.internals.ai': {
         type: 'boolean',
     },
 
-    'system.internals.ai': {
+    'system.internals.cache': {
+        type: 'boolean',
+    },
+
+    'system.internals.debug': {
         type: 'boolean',
     },
 

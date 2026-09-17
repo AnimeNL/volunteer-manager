@@ -53,7 +53,7 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.internals');
+        executeAccessCheck(props.authenticationContext, 'system.internals.cache');
     },
 
     async delete(params) {
@@ -107,7 +107,7 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
  * use a centralised caching mechanism for management, recovery, and adaptability.
  */
 export default async function CacheManagementPage() {
-    await requireAuthentication('system.internals');
+    await requireAuthentication('system.internals.cache');
 
     const columns: Column<ExtractRowModel<typeof cacheDataSource>>[] = [
         {

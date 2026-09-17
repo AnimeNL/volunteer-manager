@@ -105,9 +105,9 @@ describe('NavigationMenu', () => {
                 label: 'Structure (Granted)',
                 url: '/structure',
                 permission: [
-                    'organisation.environments',
-                    'organisation.roles',
-                    'organisation.teams',
+                    { permission: 'organisation.environments', operation: 'read' },
+                    { permission: 'organisation.roles', operation: 'read' },
+                    { permission: 'organisation.teams', operation: 'read' },
                 ],
             },
             {
@@ -115,8 +115,8 @@ describe('NavigationMenu', () => {
                 label: 'Other Structure (Denied)',
                 url: '/other-structure',
                 permission: [
-                    'organisation.environments',
-                    'organisation.roles',
+                    { permission: 'organisation.environments', operation: 'read' },
+                    { permission: 'organisation.roles', operation: 'read' },
                 ],
             },
         ];

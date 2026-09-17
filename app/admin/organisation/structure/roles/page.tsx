@@ -60,19 +60,10 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.roles');
-
-        switch (operation) {
-            case 'create':
-            case 'delete':
-                executeAccessCheck(props.authenticationContext, 'root');
-                break;
-
-            case 'read':
-            case 'update':
-                // No additional permission checks required.
-                break;
-        }
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'organisation.roles',
+            operation,
+        });
     },
 
     async create(partialRow, props) {
@@ -170,7 +161,10 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
  * Volunteer Manager. Roles define what function people exercise within our organisation.
  */
 export default async function RolesPage() {
-    await requireAuthentication('organisation.roles');
+    await requireAuthentication({
+        permission: 'organisation.roles',
+        operation: 'read',
+    });
 
     const columns: Column<ExtractRowModel<typeof rolesDataSource>>[] = [
         {

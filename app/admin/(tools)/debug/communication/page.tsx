@@ -54,7 +54,7 @@ async function commit(
  * Page that displays utilities towards trying out the communication features in the system.
  */
 export default async function CommunicationPage() {
-    await requireAuthentication('admin');
+    await requireAuthentication('system.internals.debug');
 
     const commitClose = commit.bind(null, 'close');
     const commitFailure = commit.bind(null, 'failure');

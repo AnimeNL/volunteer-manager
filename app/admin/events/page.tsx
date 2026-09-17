@@ -194,7 +194,7 @@ export default async function EventsPage() {
                                startComponent: EventStatusCell,
                            }} />
             </Section>
-            { access.can('admin') &&
+            { access.can('event.settings') &&
                 <Section title="Create new event">
                     <SectionIntroduction important>
                         Events will remain hidden until they are published in their settings.

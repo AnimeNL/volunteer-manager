@@ -86,7 +86,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.internals');
+        executeAccessCheck(props.authenticationContext, 'system.internals.cache');
     },
 
     async delete(params, props, context) {
@@ -147,7 +147,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
  * Page that provides insight in an individual cache as specified in the URL.
  */
 export default async function CacheInspectionPage(props: PageProps<'/admin/system/cache/[cache]'>) {
-    await requireAuthentication('system.internals');
+    await requireAuthentication('system.internals.cache');
 
     let cache: Cache<any>;
     try {

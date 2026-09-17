@@ -24,7 +24,7 @@ import db, { tSubscriptions, tTeams } from '@lib/database';
 export async function publishSubscriptionTest() {
     'use server';
     return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals');
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
 
         await Publish({
             type: kSubscriptionType.Test,

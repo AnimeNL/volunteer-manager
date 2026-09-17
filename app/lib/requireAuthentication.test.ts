@@ -82,7 +82,7 @@ describe('requireAuthentication', () => {
 
             // Missing permission
             try {
-                await requireAuthentication(context, 'system.internals');
+                await requireAuthentication(context, 'system.internals.ai');
                 expect.unreachable('Expected requireAuthentication to throw 403');
             } catch (error: any) {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
@@ -336,7 +336,7 @@ describe('requireAuthentication', () => {
             expect(result.user).toEqual(context.user);
 
             try {
-                await requireVolunteerAuthentication(context, 'system.internals');
+                await requireVolunteerAuthentication(context, 'system.internals.ai');
                 expect.unreachable('Expected requireVolunteerAuthentication to throw 403');
             } catch (error: any) {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();

@@ -119,7 +119,7 @@ export default async function SubscriptionPage() {
     const { access } = await requireAuthentication('system.subscriptions.management');
 
     let action: React.ReactNode;
-    if (access.can('system.internals'))
+    if (access.can('system.integrations'))
         action = <SubscriptionTestAction testFn={publishSubscriptionTest} />;
 
     const columns: Column<ExtractRowModel<typeof subscriptionsDataSource>>[] = [

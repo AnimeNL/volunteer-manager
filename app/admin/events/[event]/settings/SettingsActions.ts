@@ -21,7 +21,7 @@ import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 export async function anonymizeRefundRequests(eventSlug: string) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, 'admin');
+            props.authenticationContext, eventSlug, 'root');
 
         // This intentionally affects all versions, to avoid older variants of the data sticking
         // around in our database. The intention of this functionality is for the data to be gone.
@@ -54,7 +54,7 @@ export async function anonymizeRefundRequests(eventSlug: string) {
 export async function anonymizeVisitorTickets(eventSlug: string) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, 'admin');
+            props.authenticationContext, eventSlug, 'root');
 
         if (!event.integrations?.yourTicketProviderEventId)
             return { success: false, error: 'No ticketing partner has been set up for this event' };

@@ -115,7 +115,7 @@ describe('DataSourceWrapper', () => {
     it('can fail when a call cannot be appropriately authorized', async () => {
         const wrapper = new DataSourceWrapper(kEmptyContext, kBasicRowModel, kDefaultDataSourceId, {
             async authorize(operation, props, context) {
-                if (!props.access.can('admin'))
+                if (!props.access.can('root'))
                     forbidden();
             },
         });

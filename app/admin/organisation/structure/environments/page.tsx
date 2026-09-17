@@ -64,7 +64,10 @@ const environmentsDataSource = createDataSource('organisation/structure/environm
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.environments');
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'organisation.environments',
+            operation: 'read',
+        });
     },
 
     async list(params) {
@@ -107,9 +110,10 @@ const environmentsDataSource = createDataSource('organisation/structure/environm
  * reached, each having its own lightweight personalisation.
  */
 export default async function EnvironmentsPage() {
-    const { access } = await requireAuthentication('organisation.environments');
-
-    const canCreateEnvironments = access.can('root');  // only root can create new environments
+    await requireAuthentication({
+        permission: 'organisation.environments',
+        operation: 'read',
+    });
 
     const teamsJoin = tTeams.forUseInLeftJoin();
 
@@ -228,15 +232,14 @@ export default async function EnvironmentsPage() {
                                linkTemplate: '/admin/organisation/structure/environments/{domain}',
                            }} />
             </Section>
-            { canCreateEnvironments &&
-                <FormGridSection icon={ <AddCircleOutlineOutlinedIcon /> }
-                                 title="Create a new environment"
-                                 action={createEnvironment} callToAction="Create">
-                    <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="domain" label="Domain" fullWidth size="small"
-                                          placeholder="example.com" required />
-                    </Grid>
-                </FormGridSection> }
+            <FormGridSection icon={ <AddCircleOutlineOutlinedIcon /> }
+                             title="Create a new environment"
+                             action={createEnvironment} callToAction="Create">
+                <Grid size={{ xs: 12 }}>
+                    <TextFieldElement name="domain" label="Domain" fullWidth size="small"
+                                      placeholder="example.com" required />
+                </Grid>
+            </FormGridSection>
         </>
     );
 }

@@ -35,7 +35,7 @@ export default async function AdminPage() {
     if (!userSettings['ai-example-messages']?.length)
         cards.push(<ProfilePromotionCard key="profile-promotion-card" />);
 
-    if (access.can('system.internals'))
+    if (access.can('system.internals.cache'))
         cards.push(<DatabaseCard key="database-card" />);
 
     if (access.can('system.internals.scheduler'))
