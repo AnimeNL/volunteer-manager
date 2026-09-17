@@ -156,10 +156,9 @@ export default async function DefaultMenu() {
                     },
                     {
                         Icon: StorageIcon,
-                        badge: { severity: 'warning', value: true },
                         condition: databaseQueryLogHasNonZeroValue(),
                         label: 'Database',
-                        permission: 'root',
+                        permission: 'system.internals.debug',
                         url: '/admin/system/database',
                     },
                     {

@@ -84,6 +84,9 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
 
         const rows: PermissionRow[] = [];
         for (const [ key, descriptor ] of Object.entries(kPermissions)) {
+            if (key === 'root')
+                continue;  // ignore the "root" permission
+
             if (key.startsWith('test.'))
                 continue;  // ignore permissions internal to the system
 

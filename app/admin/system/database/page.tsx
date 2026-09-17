@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Alert from '@mui/material/Alert';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -18,11 +17,10 @@ import { getQueryLog } from '@lib/database/Connection';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
- * Internal page that displays information about the database. This page is only available on local
- * builds, as tracking all executing database queries is deemed too invasive on production.
+ * Internal page that displays information about the database.
  */
 export default async function DatabasePage() {
-    await requireAuthentication('root');
+    await requireAuthentication('system.internals.debug');
     return (
         <>
             <Section icon={ <StorageIcon color="primary" /> } title="Database"
@@ -34,10 +32,6 @@ export default async function DatabasePage() {
                     Insight in the queries that are being executed on the database. Only the latest
                     {' '}{process.env.APP_DATABASE_QUERY_LOG} queries will be stored.
                 </SectionIntroduction>
-                <Alert severity="warning" variant="outlined">
-                    This is an invasive capability that should only be enabled on local and staging
-                    environments.
-                </Alert>
             </Section>
             <Section noHeader>
                 <List dense disablePadding>

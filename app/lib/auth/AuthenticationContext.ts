@@ -140,9 +140,6 @@ export async function requireAuthenticationContext(
     if (!authenticationContext.user)
         unauthorized();
 
-    if (!globalThis.animeConRolesInitialised)
-        await initialisePermissionRoles();
-
     if (permission)
         executeAccessCheck(authenticationContext, permission, scope);
 
@@ -155,6 +152,9 @@ export async function requireAuthenticationContext(
 async function getAuthenticationContextFromSessionData(sessionData: SessionData)
     : Promise<AuthenticationContext>
 {
+    if (!globalThis.animeConRolesInitialised)
+        await initialisePermissionRoles();
+
     return authenticateUser({ type: 'session', ...sessionData });
 }
 
@@ -168,7 +168,7 @@ export async function getAuthenticationContextFromHeaders(
 {
     const sessionData = await getSessionFromHeaders(headers);
     if (!sessionData)
-        return { access: new AccessControl({}), user: undefined };
+        return { access: new AccessControl({ /* no grants */ }), user: undefined };
 
     return getAuthenticationContextFromSessionData(sessionData);
 }
