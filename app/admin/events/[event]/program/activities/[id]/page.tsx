@@ -91,6 +91,7 @@ export default async function ProgramActivityPage(
             .on(tTeams.teamId.equals(tShifts.teamId))
         .where(tShifts.eventId.equals(event.id))
             .and(tShifts.shiftActivityId.equals(activityId))
+            .and(tShifts.shiftDeleted.isNull())
         .select({
             shift: {
                 id: tShifts.shiftId,
