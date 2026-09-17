@@ -34,7 +34,6 @@ import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/update
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedule/updateScheduleEntry';
 
-import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
@@ -61,7 +60,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
-        '/api/admin/organisation/displays': DisplaysEndpoints['list'],
         '/api/admin/refunds': RefundRequestEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
@@ -103,7 +101,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/hotels/:id': HotelsEndpoints['delete'],
-        '/api/admin/organisation/displays/:id': DisplaysEndpoints['delete'],
         '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
@@ -112,7 +109,6 @@ export type ApiEndpoints = {
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
-        '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],
         '/api/admin/refunds/:id': RefundRequestEndpoints['update'],
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],

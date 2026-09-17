@@ -112,6 +112,20 @@ interface LogTypeParameterMap {
     };
 
     // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Displays
+    // ---------------------------------------------------------------------------------------------
+
+    DeleteDisplay: {
+        identifier: string;
+        label: string;
+    };
+
+    UpdateDisplay: {
+        identifier: string;
+        label: string;
+    };
+
+    // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
     // ---------------------------------------------------------------------------------------------
 
@@ -578,6 +592,13 @@ export const kLogType: { [k in LogType]: k } = {
 
     CreateExport: 'CreateExport',
     ExpireExport: 'ExpireExport',
+
+    // ---------------------------------------------------------------------------------------------
+    // Administration > Organisation > Displays
+    // ---------------------------------------------------------------------------------------------
+
+    DeleteDisplay: 'DeleteDisplay',
+    UpdateDisplay: 'UpdateDisplay',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
