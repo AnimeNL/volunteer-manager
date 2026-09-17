@@ -250,6 +250,10 @@ interface LogTypeParameterMap {
         entityType: 'activity' | 'area' | 'location';
     };
 
+    CreateShiftCategory: {
+        category: string;
+    };
+
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
@@ -264,6 +268,10 @@ interface LogTypeParameterMap {
         event: string;  // short name
         entity: string;
         entityType: 'activity' | 'area' | 'location';
+    };
+
+    DeleteShiftCategory: {
+        category: string;
     };
 
     DisassociateTicketFromVolunteer: {
@@ -336,6 +344,10 @@ interface LogTypeParameterMap {
     UpdateProgramRequest: {
         event: string;  // short name
         activity: string;
+    };
+
+    UpdateShiftCategory: {
+        category: string;
     };
 
     UpdateTicketPurchase: {
@@ -625,9 +637,11 @@ export const kLogType: { [k in LogType]: k } = {
     CreateEventKeyDate: 'CreateEventKeyDate',
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     CreateProgramEntity: 'CreateProgramEntity',
+    CreateShiftCategory: 'CreateShiftCategory',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DeleteProgramEntity: 'DeleteProgramEntity',
+    DeleteShiftCategory: 'DeleteShiftCategory',
     DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
     UpdateAssociateTicket: 'UpdateAssociateTicket',
@@ -642,6 +656,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
     UpdateProgramEntity: 'UpdateProgramEntity',
     UpdateProgramRequest: 'UpdateProgramRequest',
+    UpdateShiftCategory: 'UpdateShiftCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 
     // ---------------------------------------------------------------------------------------------

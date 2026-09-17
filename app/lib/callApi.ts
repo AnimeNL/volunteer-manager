@@ -38,7 +38,6 @@ import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedul
 
 import type { DisplaysEndpoints } from '@app/api/admin/organisation/displays/[[...id]]/route';
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
-import type { EventShiftCategoriesEndpoints } from '@app/api/admin/event/shifts/categories/[[...id]]/route';
 import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { HotelsEndpoints } from '@app/api/admin/hotels/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
@@ -62,7 +61,6 @@ export type ApiEndpoints = {
     'get': {
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
-        '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['list'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/hotels': HotelsEndpoints['list'],
         '/api/admin/organisation/displays': DisplaysEndpoints['list'],
@@ -77,7 +75,6 @@ export type ApiEndpoints = {
     },
     'post': {
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
-        '/api/admin/event/shifts/categories': EventShiftCategoriesEndpoints['create'],
         '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
         '/api/admin/hotels': HotelsEndpoints['create'],
         '/api/admin/trainings': TrainingsEndpoints['create'],
@@ -108,7 +105,6 @@ export type ApiEndpoints = {
     'delete': {
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
-        '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['delete'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/hotels/:id': HotelsEndpoints['delete'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['delete'],
@@ -118,7 +114,6 @@ export type ApiEndpoints = {
     },
     'put': {
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
-        '/api/admin/event/shifts/categories/:id': EventShiftCategoriesEndpoints['update'],
         '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/hotels/:id': HotelsEndpoints['update'],
         '/api/admin/organisation/displays/:id': DisplaysEndpoints['update'],

@@ -48,7 +48,6 @@ export const kLogType = {
     AdminEventHotelMutation: 'admin-event-hotel',
     AdminEventPublishInfo: 'admin-event-publish-info',
     AdminEventRoleUpdate: 'admin-event-role-update',
-    AdminEventShiftCategoryMutation: 'admin-event-shift-category-mutation',
     AdminEventShiftMutation: 'admin-event-shift-mutation',
     AdminEventTeamUpdate: 'admin-event-team-update',
     AdminEventTrainingAssignment: 'admin-event-training-assignment',
