@@ -140,6 +140,9 @@ export default async function ApplicationsPage(
     // conveyed through the existence of Server Action references shared with the client.
     // ---------------------------------------------------------------------------------------------
 
+    const canCreateVolunteers = access.can('volunteers.participation', 'create', accessScope);
+    const canUpdateVolunteers = access.can('volunteers.participation', 'update', accessScope);
+
     let approveApplicationFn:
         ((userId: number, subject?: string, message?: string) => Promise<ServerActionResult>)
             | undefined;
@@ -150,7 +153,7 @@ export default async function ApplicationsPage(
     let claimApplicationFn: PartialServerAction<number> | undefined;
     let moveApplicationFn: PartialServerAction<number> | undefined;
 
-    if (access.can('volunteers.participation', 'update', accessScope)) {
+    if (canUpdateVolunteers) {
         approveApplicationFn = actions.decideApplication.bind(null, event.slug, team.slug, true);
         claimApplicationFn = actions.claimApplication.bind(null, event.slug, team.slug);
         moveApplicationFn = actions.moveApplication.bind(null, event.slug, team.slug);
@@ -160,7 +163,7 @@ export default async function ApplicationsPage(
     let createApplicationFn: ServerAction | undefined;
     let reconsiderApplicationFn: PartialServerAction<number> | undefined;
 
-    if (access.can('volunteers.participation', 'create', accessScope)) {
+    if (canCreateVolunteers) {
         createApplicationFn = actions.createApplication.bind(null, event.slug, team.slug);
         reconsiderApplicationFn = actions.reconsiderApplication.bind(null, event.slug, team.slug);
     }
@@ -209,6 +212,7 @@ export default async function ApplicationsPage(
         <>
             <Section icon={ <NewReleasesOutlinedIcon color="primary" /> } title="Applications"
                      documentation="event/applications"
+                     limited={!canUpdateVolunteers || !canCreateVolunteers}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

@@ -300,7 +300,7 @@ export default async function EventTeamShiftsPage(
     return (
         <>
             <Section icon={ <PendingActionsIcon color="primary" /> } title="Shifts"
-                     headerAction={headerAction}
+                     headerAction={headerAction} limited={!canCreateShifts || !canDeleteShifts}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
@@ -329,7 +329,7 @@ export default async function EventTeamShiftsPage(
             </Section>
             { canCreateShifts &&
                 <FormGridSection icon={ <AddBoxOutlinedIcon /> } title="Create a new shift"
-                                 action={createShiftFn} permission="volunteers.shifts">
+                                 action={createShiftFn}>
                     <ShiftSettingsForm activities={activities} categories={categories}
                                        locations={locations} />
                 </FormGridSection> }

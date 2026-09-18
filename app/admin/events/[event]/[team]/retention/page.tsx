@@ -473,7 +473,7 @@ export default async function EventTeamRetentionPage(
         <>
             <Section icon={ <RepeatIcon color="primary" /> }
                      title={ `${team.title.replace(/s$/, '')} retention` }
-                     documentation="event/retention"
+                     documentation="event/retention" limited={!canUpdateRetention}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

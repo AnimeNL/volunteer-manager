@@ -185,6 +185,7 @@ export default async function EventTeamVolunteerPreferencesPage(
     return (
         <>
             <Section icon={ <ManageAccountsOutlinedIcon color="primary" /> } title="Preferences"
+                     limited={!canUpdatePreferences}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

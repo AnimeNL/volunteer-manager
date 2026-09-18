@@ -342,6 +342,7 @@ export default async function ProgramRequestsPage(
     return (
         <>
             <Section icon={ <NewReleasesIcon color="primary" /> } title="Help requests"
+                     limited={!canManageRequests}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Program', href: `/admin/events/${event.slug}/program` },

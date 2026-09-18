@@ -203,6 +203,7 @@ export default async function EventTicketsAssociatesPage(
         <>
             <Section icon={ <Diversity1Icon color="primary" /> }
                      title="Associate tickets" documentation="event/tickets"
+                     limited={!serviceCanCreateTickets}
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },

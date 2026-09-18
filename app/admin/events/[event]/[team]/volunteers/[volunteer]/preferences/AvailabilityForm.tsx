@@ -313,6 +313,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                                 { formatRelativeDate(props.event.startTime, /* offsetDays= */ -1) }
                             </Typography>
                             <ToggleButtonGroup exclusive size="small" value={buildUpDayBefore}
+                                               disabled={props.readOnly}
                                                onChange={changeHandlers.buildUpDayBefore}>
                                 <ToggleButton value="10:00+">10:00+</ToggleButton>
                                 <ToggleButton value="14:00+">14:00+</ToggleButton>
@@ -324,6 +325,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                                 { formatRelativeDate(props.event.startTime, /* offsetDays= */ 0) }
                             </Typography>
                             <ToggleButtonGroup exclusive size="small" value={buildUpOpening}
+                                               disabled={props.readOnly}
                                                onChange={changeHandlers.buildUpOpening}>
                                 <ToggleButton value="10:00+">10:00+</ToggleButton>
                                 <ToggleButton value="12:00+">12:00+</ToggleButton>
@@ -347,6 +349,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                                 { formatRelativeDate(props.event.endTime, /* offsetDays= */ 0) }
                             </Typography>
                             <ToggleButtonGroup exclusive size="small" value={tearDownClosing}
+                                               disabled={props.readOnly}
                                                onChange={changeHandlers.tearDownClosing}>
                                 <ToggleButton value="19:00">until 19:00</ToggleButton>
                                 <ToggleButton value="22:00">22:00</ToggleButton>
@@ -358,6 +361,7 @@ export function AvailabilityForm(props: AvailabilityFormProps) {
                                 { formatRelativeDate(props.event.endTime, /* offsetDays= */ 1) }
                             </Typography>
                             <ToggleButtonGroup exclusive size="small" value={tearDownDayAfter}
+                                               disabled={props.readOnly}
                                                onChange={changeHandlers.tearDownDayAfter}>
                                 <ToggleButton value="12:00">until 12:00</ToggleButton>
                                 <ToggleButton value="18:00">18:00</ToggleButton>

@@ -77,7 +77,7 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
             permission: 'volunteers.vendor-teams',
-            operation: operation,
+            operation: operation === 'read' ? 'read' : 'update',
             scope: {
                 event: context.event.slug,
                 team: kAnyTeam,

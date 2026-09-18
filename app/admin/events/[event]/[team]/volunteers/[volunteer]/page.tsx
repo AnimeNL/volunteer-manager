@@ -96,9 +96,8 @@ export default async function EventTeamVolunteerPage(
 
     const canUpdateOverrides = access.can('volunteers.participation-overrides', accessScope);
     const canUpdateParticipation = access.can('volunteers.participation', 'update', accessScope);
-    const canUpdateVolunteer = access.can('volunteers.participation', 'update', accessScope);
 
-    const canDoAnything = canUpdateParticipation || canUpdateOverrides || canUpdateVolunteer;
+    const canDoAnything = canUpdateParticipation || canUpdateOverrides;
 
     const cancelFn = (canUpdateParticipation && volunteer.status !== 'Cancelled')
         ? actions.updateVolunteerStatus.bind(
@@ -122,7 +121,7 @@ export default async function EventTeamVolunteerPage(
         ? actions.updateOverrides.bind(null, volunteer.id, event.slug, team.slug)
         : undefined;
 
-    const updateNotesFn = canUpdateVolunteer
+    const updateNotesFn = canUpdateParticipation
         ? actions.updateNotes.bind(null, volunteer.id, event.slug, team.slug)
         : undefined!;
 
@@ -139,6 +138,7 @@ export default async function EventTeamVolunteerPage(
     return (
         <>
             <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
+                     limited={!canUpdateParticipation}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },

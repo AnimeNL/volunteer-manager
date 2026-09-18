@@ -1,12 +1,11 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography, { type TypographyProps } from '@mui/material/Typography';
 
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import { DocumentationButton } from '@app/admin/components/Documentation';
+import { SectionLimitedButton } from './SectionLimitedButton';
 
 /**
  * Props accepted by the <SectionHeader> component.
@@ -33,9 +32,9 @@ export interface SectionHeaderProps {
     icon?: React.ReactNode;
 
     /**
-     * The permission behind which this feature has been gated.
+     * Whether functionality of the section is limited due to lack of privileges.
      */
-    permission?: BooleanPermission | CRUDPermission;
+    limited?: boolean;
 
     /**
      * Title of this section. Required.
@@ -79,12 +78,13 @@ export function SectionHeader(props: SectionHeaderProps) {
                         </Typography> }
                 </Typography>
             </Stack>
-            {props.headerAction}
-            { !!props.documentation &&
-                <Box sx={{ my: -0.5, mr: -1 }}>
-                    <DocumentationButton topic={props.documentation}
-                                         title={props.documentationTitle || String(props.title)} />
-                </Box> }
+            <Stack direction="row" spacing={0} sx={{ my: -0.5 }}>
+                {props.headerAction}
+                { !!props.limited && <SectionLimitedButton /> }
+                { !!props.documentation &&
+                    <DocumentationButton title={props.documentationTitle || String(props.title)}
+                                         topic={props.documentation} /> }
+            </Stack>
         </Stack>
     );
 }

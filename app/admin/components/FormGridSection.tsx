@@ -42,7 +42,6 @@ export function FormGridSection(props: React.PropsWithChildren<FormGridSectionPr
     const sectionHeaderProps: Omit<SectionHeaderProps, 'action' | 'sx'> = {
         headerAction: props.headerAction,
         icon: props.icon,
-        permission: props.permission,
         title: props.title,
         subtitle: props.subtitle,
     };

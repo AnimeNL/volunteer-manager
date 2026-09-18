@@ -260,7 +260,7 @@ export default async function EventTeamShiftInformationPage(
     return (
         <>
             <Section icon={ <PendingActionsIcon color="primary" /> }
-                     title={`${shift.name} shift`}
+                     title={`${shift.name} shift`} limited={readOnly}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
