@@ -32,7 +32,7 @@ export async function claimApplication(
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'update',
             });
 
@@ -87,7 +87,7 @@ export async function decideApplication(
     return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'update',
             });
 
@@ -166,7 +166,7 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
     return executeServerAction(formData, kCreateApplicationData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'create',
             });
 
@@ -272,7 +272,7 @@ export async function moveApplication(
     return executeServerAction(formData, kMoveApplicationData, async (data, props) => {
         const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'update',
             });
 
@@ -348,7 +348,7 @@ export async function reconsiderApplication(
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'create',
             });
 

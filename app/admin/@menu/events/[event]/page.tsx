@@ -165,7 +165,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: NewReleasesOutlinedIcon,
                     label: 'Applications',
                     permission: {
-                        permission: 'event.applications',
+                        permission: 'volunteers.applications',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },

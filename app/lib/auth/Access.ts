@@ -32,12 +32,6 @@ export const kPermissions = {
     // Event-associated permissions
     // ---------------------------------------------------------------------------------------------
 
-    'event.applications': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
     'event.duty-book': {
         type: 'crud',
         requireEvent: true,
@@ -258,6 +252,12 @@ export const kPermissions = {
     // ---------------------------------------------------------------------------------------------
     // Volunteer-associated permissions
     // ---------------------------------------------------------------------------------------------
+
+    'volunteers.applications': {
+        type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
+    },
 
     'volunteers.tickets': {
         type: 'crud',

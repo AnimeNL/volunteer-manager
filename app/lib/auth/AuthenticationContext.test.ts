@@ -106,19 +106,19 @@ describe('AuthenticationContext', () => {
         const userWithCrudPermContext = buildAuthenticationContext({
             access: {
                 grants: [
-                    { permission: 'event.applications:read', event: '2026', team: 'stewards' },
+                    { permission: 'volunteers.applications:read', event: '2026', team: 'stewards' },
                 ],
             },
         });
         executeAccessCheck(userWithCrudPermContext, {
-            permission: 'event.applications',
+            permission: 'volunteers.applications',
             operation: 'read',
             scope: { event: '2026', team: 'stewards' },
         });
 
         try {
             executeAccessCheck(userWithCrudPermContext, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'update',
                 scope: { event: '2026', team: 'stewards' },
             });

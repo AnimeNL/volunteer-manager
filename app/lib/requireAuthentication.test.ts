@@ -223,7 +223,7 @@ describe('requireAuthentication', () => {
                             team: 'stewards',
                         },
                         {
-                            permission: 'event.applications:read',
+                            permission: 'volunteers.applications:read',
                             event: 'event-2026',
                             team: 'stewards',
                         },
@@ -233,7 +233,7 @@ describe('requireAuthentication', () => {
 
             const result = await requireAuthenticationWithEventAndTeam(
                 context, 'event-2026', 'stewards', {
-                    permission: 'event.applications',
+                    permission: 'volunteers.applications',
                     operation: 'read',
                 });
             expect(result.team).toEqual(kTestTeam);
@@ -241,7 +241,7 @@ describe('requireAuthentication', () => {
             try {
                 await requireAuthenticationWithEventAndTeam(
                     context, 'event-2026', 'stewards', {
-                        permission: 'event.applications',
+                        permission: 'volunteers.applications',
                         operation: 'update',
                     });
                 expect.unreachable('Expected requireAuthenticationWithEventAndTeam to throw 403');
@@ -277,7 +277,7 @@ describe('requireAuthentication', () => {
                 access: {
                     grants: [
                         {
-                            permission: 'event.applications:read',
+                            permission: 'volunteers.applications:read',
                             event: 'event-2026',
                             team: 'other-team',
                         },
@@ -288,7 +288,7 @@ describe('requireAuthentication', () => {
             try {
                 await requireAuthenticationWithEventAndTeam(
                     context, 'event-2026', 'stewards', {
-                        permission: 'event.applications',
+                        permission: 'volunteers.applications',
                         operation: 'read',
                     });
                 expect.unreachable('Expected 403 for unauthorised team access');
@@ -487,7 +487,7 @@ describe('requireAuthentication', () => {
                 access: {
                     grants: [
                         {
-                            permission: 'event.applications:read',
+                            permission: 'volunteers.applications:read',
                             event: 'event-2026',
                             team: 'stewards',
                         },
@@ -498,7 +498,7 @@ describe('requireAuthentication', () => {
 
             const result = await requireVolunteerAuthenticationWithEventAndTeam(
                 context, 'event-2026', 'stewards', {
-                    permission: 'event.applications',
+                    permission: 'volunteers.applications',
                     operation: 'read',
                 });
             expect(result.team).toEqual(kTestTeam);
@@ -506,7 +506,7 @@ describe('requireAuthentication', () => {
             try {
                 await requireVolunteerAuthenticationWithEventAndTeam(
                     context, 'event-2026', 'stewards', {
-                        permission: 'event.applications',
+                        permission: 'volunteers.applications',
                         operation: 'update',
                     });
                 expect.unreachable(

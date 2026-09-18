@@ -59,7 +59,10 @@ export default async function EventContentPage(
         event.acceptApplications === 'active' ||
         event.acceptApplications === 'override' ||
         event.teams.some(team =>
-            access.can('event.applications', 'create', { event: event.slug, team: team.slug }));
+            access.can('volunteers.applications', 'create', {
+                event: event.slug,
+                team: team.slug
+            }));
 
     return (
         <Stack spacing={2} sx={{ p: 2 }}>

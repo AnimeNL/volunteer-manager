@@ -228,10 +228,10 @@ async function authenticateWithEvent(
  * identifiers.
  *
  * @example requireAuthenticationWithEventAndTeam(eventSlug, teamSlug)
- * @example requireAuthenticationWithEventAndTeam(eventSlug, teamSlug, 'event.applications')
- * @example requireAuthenticationWithEventAndTeam(props, 'event.applications')
+ * @example requireAuthenticationWithEventAndTeam(eventSlug, teamSlug, 'volunteers.applications')
+ * @example requireAuthenticationWithEventAndTeam(props, 'volunteers.applications')
  * @example requireAuthenticationWithEventAndTeam(
- * .... props.authenticationContext, eventSlug, teamSlug, 'event.applications')
+ * .... props.authenticationContext, eventSlug, teamSlug, 'volunteers.applications')
  */
 export async function requireAuthenticationWithEventAndTeam(
     props: EventAndTeamProps,
@@ -267,10 +267,10 @@ export async function requireAuthenticationWithEventAndTeam(
  *
  * @example requireVolunteerAuthenticationWithEventAndTeam(eventSlug, teamSlug)
  * @example requireVolunteerAuthenticationWithEventAndTeam(
- * .... eventSlug, teamSlug, 'event.applications')
- * @example requireVolunteerAuthenticationWithEventAndTeam(props, 'event.applications')
+ * .... eventSlug, teamSlug, 'volunteers.applications')
+ * @example requireVolunteerAuthenticationWithEventAndTeam(props, 'volunteers.applications')
  * @example requireVolunteerAuthenticationWithEventAndTeam(
- * .... props.authenticationContext, eventSlug, teamSlug, 'event.applications')
+ * .... props.authenticationContext, eventSlug, teamSlug, 'volunteers.applications')
  */
 export async function requireVolunteerAuthenticationWithEventAndTeam(
     props: EventAndTeamProps,

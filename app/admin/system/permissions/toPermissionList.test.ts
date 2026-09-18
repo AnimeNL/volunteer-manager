@@ -23,7 +23,7 @@ describe('toPermissionList', () => {
             .toBe(null);
         expect(toPermissionList({
             event: { applications: true, visible: true }
-        }, rootAccess, emptyAccess)).toBe('event.applications,event.visible');
+        }, rootAccess, emptyAccess)).toBe('volunteers.applications,event.visible');
         expect(toPermissionList({
             event: { visible: true }, test: { boolean: true }
         }, rootAccess, emptyAccess)).toBe('event.visible,test.boolean');
@@ -38,16 +38,18 @@ describe('toPermissionList', () => {
         }, rootAccess, emptyAccess)).toBe(null);
         expect(toPermissionList({
             event: { applications: { read: true } }
-        }, rootAccess, emptyAccess)).toBe('event.applications:read');
+        }, rootAccess, emptyAccess)).toBe('volunteers.applications:read');
         expect(toPermissionList({
             event: { applications: { read: true, update: true } }
-        }, rootAccess, emptyAccess)).toBe('event.applications:read,event.applications:update');
+        }, rootAccess, emptyAccess)).toBe(
+            'volunteers.applications:read,volunteers.applications:update');
         expect(toPermissionList({
             event: { applications: { create: true, read: false, update: false, delete: true } }
-        }, rootAccess, emptyAccess)).toBe('event.applications:create,event.applications:delete');
+        }, rootAccess, emptyAccess)).toBe(
+            'volunteers.applications:create,volunteers.applications:delete');
         expect(toPermissionList({
             event: { applications: { create: true, read: true, update: true, delete: true } }
-        }, rootAccess, emptyAccess)).toBe('event.applications');
+        }, rootAccess, emptyAccess)).toBe('volunteers.applications');
         expect(toPermissionList({
             event: { applications: { create: false, read: false, update: false, delete: false } }
         }, rootAccess, emptyAccess)).toBe(null);

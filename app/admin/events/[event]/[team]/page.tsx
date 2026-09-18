@@ -30,7 +30,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
 
     const tiles = [];
 
-    if (access.can('event.applications', 'read', scope)) {
+    if (access.can('volunteers.applications', 'read', scope)) {
         tiles.push({
             Icon: NewReleasesOutlinedIcon,
             href: `/admin/events/${event.slug}/${team.slug}/applications`,

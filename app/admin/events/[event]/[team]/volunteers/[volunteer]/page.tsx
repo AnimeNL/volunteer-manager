@@ -91,7 +91,7 @@ export default async function EventTeamVolunteerPage(
 
     const accessScope = { event: event.slug, team: team.slug };
 
-    const canUpdateApplications = access.can('event.applications', 'update', accessScope);
+    const canUpdateApplications = access.can('volunteers.applications', 'update', accessScope);
     const canUpdateOverrides = access.can('event.volunteers.overrides', accessScope);
     const canUpdateVolunteer = access.can('event.volunteers.information', 'update', accessScope);
 

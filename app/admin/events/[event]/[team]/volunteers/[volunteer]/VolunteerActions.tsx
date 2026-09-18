@@ -36,7 +36,7 @@ export async function updateVolunteerStatus(
     return executeServerAction(formData, kParticipationActionSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.applications',
+                permission: 'volunteers.applications',
                 operation: 'update',
             });
 

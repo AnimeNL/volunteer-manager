@@ -91,7 +91,7 @@ export interface PrincipalUser {
  */
 export interface PrincipalRecord {
     /**
-     * Unique identifier of the role or permission, e.g. "root" or "event.applications".
+     * Unique identifier of the role or permission, e.g. "root" or "volunteers.applications".
      */
     id: string;
 

@@ -41,9 +41,8 @@ import * as actions from './ApplicationActions';
 export default async function ApplicationsPage(
     props: PageProps<'/admin/events/[event]/[team]/applications'>)
 {
-    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props,
-    {
-        permission: 'event.applications',
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
+        permission: 'volunteers.applications',
         operation: 'read',
     });
 
@@ -151,7 +150,7 @@ export default async function ApplicationsPage(
     let claimApplicationFn: PartialServerAction<number> | undefined;
     let moveApplicationFn: PartialServerAction<number> | undefined;
 
-    if (access.can('event.applications', 'update', accessScope)) {
+    if (access.can('volunteers.applications', 'update', accessScope)) {
         approveApplicationFn = actions.decideApplication.bind(null, event.slug, team.slug, true);
         claimApplicationFn = actions.claimApplication.bind(null, event.slug, team.slug);
         moveApplicationFn = actions.moveApplication.bind(null, event.slug, team.slug);
@@ -161,7 +160,7 @@ export default async function ApplicationsPage(
     let createApplicationFn: ServerAction | undefined;
     let reconsiderApplicationFn: PartialServerAction<number> | undefined;
 
-    if (access.can('event.applications', 'create', accessScope)) {
+    if (access.can('volunteers.applications', 'create', accessScope)) {
         createApplicationFn = actions.createApplication.bind(null, event.slug, team.slug);
         reconsiderApplicationFn = actions.reconsiderApplication.bind(null, event.slug, team.slug);
     }
