@@ -26,6 +26,17 @@
     to { opacity: 0; }
 }
 
+/* Disable view transitions when the mobile app drawer is open */
+body:has(.MuiDrawer-root) .mobile-content-wrapper {
+    view-transition-name: none !important;
+}
+
+html:has(.MuiDrawer-root) ::view-transition-group(.navigation-transition),
+html:has(.MuiDrawer-root) ::view-transition-old(.navigation-transition),
+html:has(.MuiDrawer-root) ::view-transition-new(.navigation-transition) {
+    animation: none !important;
+}
+
 @media (min-width: 600px) {
     body {
         overflow-y: scroll;

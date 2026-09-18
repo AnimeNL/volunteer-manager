@@ -102,9 +102,11 @@ function MobileLayout(props: LayoutProps) {
     return (
         <MobilePageWrapper>
             <MobileAppBar menu={props.menu} slotProps={props.slotProps} />
-            <MobileContentWrapper>
-                {props.children}
-            </MobileContentWrapper>
+            <ViewTransition default="navigation-transition">
+                <MobileContentWrapper className="mobile-content-wrapper">
+                    {props.children}
+                </MobileContentWrapper>
+            </ViewTransition>
         </MobilePageWrapper>
     );
 }
