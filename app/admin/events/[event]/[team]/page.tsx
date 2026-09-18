@@ -30,7 +30,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
 
     const tiles = [];
 
-    if (access.can('volunteers.applications', 'read', scope)) {
+    if (access.can('volunteers.participation', 'read', scope)) {
         tiles.push({
             Icon: NewReleasesOutlinedIcon,
             href: `/admin/events/${event.slug}/${team.slug}/applications`,
@@ -46,7 +46,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (team.flags.managesFirstAid && access.can('event.vendors', 'read', scope)) {
+    if (team.flags.managesFirstAid && access.can('volunteers.vendor-teams', 'read', scope)) {
         tiles.push({
             Icon: LocalHospitalIcon,
             href: `/admin/events/${event.slug}/${team.slug}/first-aid`,
@@ -70,7 +70,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (team.flags.enableScheduling && access.can('event.schedule.planning', 'read', scope)) {
+    if (team.flags.enableScheduling && access.can('volunteers.schedules', 'read', scope)) {
         tiles.push({
             Icon: ScheduleIcon,
             href: `/admin/events/${event.slug}/${team.slug}/schedule`,
@@ -78,7 +78,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (team.flags.managesSecurity && access.can('event.vendors', 'read', scope)) {
+    if (team.flags.managesSecurity && access.can('volunteers.vendor-teams', 'read', scope)) {
         tiles.push({
             Icon: SecurityIcon,
             href: `/admin/events/${event.slug}/${team.slug}/security`,
@@ -86,7 +86,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (team.flags.enableScheduling && access.can('event.shifts', 'read', scope)) {
+    if (team.flags.enableScheduling && access.can('volunteers.shifts', 'read', scope)) {
         tiles.push({
             Icon: PendingActionsIcon,
             href: `/admin/events/${event.slug}/${team.slug}/shifts`,
@@ -94,7 +94,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (access.can('event.volunteers.information', 'read', scope)) {
+    if (access.can('volunteers.participation', 'read', scope)) {
         tiles.push({
             Icon: PeopleAltOutlinedIcon,
             href: `/admin/events/${event.slug}/${team.slug}/volunteers`,

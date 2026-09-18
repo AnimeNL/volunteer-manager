@@ -30,7 +30,7 @@ export default async function EventTeamSchedulePage(
     props: PageProps<'/admin/events/[event]/[team]/schedule'>)
 {
     const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!access.can('event.schedule.planning', 'read', { event: event.slug, team: team.slug }))
+    if (!access.can('volunteers.schedules', 'read', { event: event.slug, team: team.slug }))
         notFound();
 
     if (!team.flagEnableScheduling)
@@ -52,7 +52,7 @@ export default async function EventTeamSchedulePage(
     };
 
     const readOnly =
-        !access.can('event.schedule.planning', 'update', { event: event.slug, team: team.slug });
+        !access.can('volunteers.schedules', 'update', { event: event.slug, team: team.slug });
 
     let sections: z.infer<typeof kExpandSection> = {};
     try {

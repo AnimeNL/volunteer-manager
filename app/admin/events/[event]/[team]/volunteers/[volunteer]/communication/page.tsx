@@ -64,7 +64,7 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
     }), {
         async authorize(operation, props, context) {
             executeAccessCheck(props.authenticationContext, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'read',
                 scope: {
                     event: context.event.slug,
@@ -127,7 +127,7 @@ export default async function EventTeamVolunteerCommunicationPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/communication'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 

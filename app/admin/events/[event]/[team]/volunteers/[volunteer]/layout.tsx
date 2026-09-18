@@ -15,7 +15,7 @@ export default async function EventTeamVolunteerLayout(
     props: LayoutProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 

@@ -42,7 +42,7 @@ export default async function EventVolunteersPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 

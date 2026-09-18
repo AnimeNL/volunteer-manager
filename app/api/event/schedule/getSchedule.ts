@@ -919,7 +919,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
             forbidden();
     }
 
-    const notesAccess = access.can('event.volunteers.information', 'read', {
+    const notesAccess = access.can('volunteers.participation', 'read', {
         event: event.slug,
         team: kAnyTeam,
     });
@@ -1012,7 +1012,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
     await populateProgram(dbInstance, schedule, includeProductPanel,
         !!settings['schedule-sales-sold-out'], currentTime, event.id, event.festivalId);
 
-    const fullVendorAccess = access.can('event.vendors', 'read', {
+    const fullVendorAccess = access.can('volunteers.vendor-teams', 'read', {
         event: event.slug,
         team: kAnyTeam
     });

@@ -165,7 +165,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: NewReleasesOutlinedIcon,
                     label: 'Applications',
                     permission: {
-                        permission: 'volunteers.applications',
+                        permission: 'volunteers.participation',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
@@ -181,7 +181,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: LocalHospitalIcon,
                     label: 'First aid',
                     permission: {
-                        permission: 'event.vendors',
+                        permission: 'volunteers.vendor-teams',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
@@ -209,7 +209,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     badge: { migration: true, value: true },  // migration not started
                     label: 'Schedule',
                     permission: {
-                        permission: 'event.schedule.planning',
+                        permission: 'volunteers.schedules',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
@@ -220,7 +220,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: SecurityIcon,
                     label: 'Security',
                     permission: {
-                        permission: 'event.vendors',
+                        permission: 'volunteers.vendor-teams',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
@@ -231,7 +231,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: PendingActionsIcon,
                     label: 'Shifts',
                     permission: {
-                        permission: 'event.shifts',
+                        permission: 'volunteers.shifts',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },
@@ -242,7 +242,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: PeopleAltOutlinedIcon,
                     label: 'Volunteers',
                     permission: {
-                        permission: 'event.volunteers.information',
+                        permission: 'volunteers.participation',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },

@@ -36,7 +36,7 @@ export async function updateVolunteerStatus(
     return executeServerAction(formData, kParticipationActionSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'volunteers.applications',
+                permission: 'volunteers.participation',
                 operation: 'update',
             });
 
@@ -109,7 +109,7 @@ export async function changeRole(
     return executeServerAction(formData, kChangeRoleSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
             });
 
@@ -174,7 +174,7 @@ export async function changeTeam(
     return executeServerAction(formData, kChangeTeamSchema, async (data, props) => {
         const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
             });
 
@@ -265,7 +265,7 @@ export async function updateNotes(
     return executeServerAction(formData, kUpdateNotesSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
             });
 
@@ -308,7 +308,7 @@ export async function updateOverrides(
 {
     return executeServerAction(formData, kUpdateOverridesSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
-            props.authenticationContext, eventSlug, teamSlug, 'event.volunteers.overrides');
+            props.authenticationContext, eventSlug, teamSlug, 'volunteers.participation-overrides');
 
         const availabilityEventLimit = data.timeslotLimit ?? null;
         const hotelEligible = data.hotelEligible === '' ? null : data.hotelEligible;

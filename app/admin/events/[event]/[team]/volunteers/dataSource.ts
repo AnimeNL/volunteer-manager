@@ -121,7 +121,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.volunteers.information',
+            permission: 'volunteers.participation',
             operation: 'read',
             scope: {
                 event: kAnyEvent,

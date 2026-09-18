@@ -90,7 +90,7 @@ export default async function EventTeamShiftInformationPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts/[id]'>)
 {
     const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.shifts',
+        permission: 'volunteers.shifts',
         operation: 'read',
     });
 
@@ -238,7 +238,8 @@ export default async function EventTeamShiftInformationPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const readOnly = !access.can('event.shifts', 'update', { event: event.slug, team: team.slug });
+    const readOnly =
+        !access.can('volunteers.shifts', 'update', { event: event.slug, team: team.slug });
 
     const updateShiftFn =
         readOnly ? undefined!

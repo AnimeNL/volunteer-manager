@@ -41,7 +41,7 @@ export default async function EventTeamVolunteerPreferencesPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 
@@ -160,7 +160,7 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
     const canUpdatePreferences =
-        access.can('event.volunteers.information', 'update', { event: event.slug, team: team.slug });
+        access.can('volunteers.participation', 'update', { event: event.slug, team: team.slug });
 
     const availabilityFn = canUpdatePreferences
         ? actions.updateAvailabilityPreferences.bind(null, volunteer.id, event.slug, team.slug)

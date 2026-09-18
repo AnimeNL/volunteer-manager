@@ -86,7 +86,7 @@ export const { DELETE, GET } =
 createDataTableApi(kEventScheduleHistoryRowModel, kEventScheduleHistoryContext, {
     async accessCheck({ context }, action, props) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.schedule.planning',
+            permission: 'volunteers.schedules',
             operation: 'read',
             scope: {
                 event: context.event,

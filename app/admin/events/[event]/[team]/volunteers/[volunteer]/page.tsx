@@ -40,7 +40,7 @@ export default async function EventTeamVolunteerPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 
@@ -91,27 +91,27 @@ export default async function EventTeamVolunteerPage(
 
     const accessScope = { event: event.slug, team: team.slug };
 
-    const canUpdateApplications = access.can('volunteers.applications', 'update', accessScope);
-    const canUpdateOverrides = access.can('event.volunteers.overrides', accessScope);
-    const canUpdateVolunteer = access.can('event.volunteers.information', 'update', accessScope);
+    const canUpdateOverrides = access.can('volunteers.participation-overrides', accessScope);
+    const canUpdateParticipation = access.can('volunteers.participation', 'update', accessScope);
+    const canUpdateVolunteer = access.can('volunteers.participation', 'update', accessScope);
 
-    const canDoAnything = canUpdateApplications || canUpdateOverrides || canUpdateVolunteer;
+    const canDoAnything = canUpdateParticipation || canUpdateOverrides || canUpdateVolunteer;
 
-    const cancelFn = (canUpdateApplications && volunteer.status !== 'Cancelled')
+    const cancelFn = (canUpdateParticipation && volunteer.status !== 'Cancelled')
         ? actions.updateVolunteerStatus.bind(
             null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Cancelled)
         : undefined;
 
-    const reinstateFn = (canUpdateApplications && volunteer.status !== 'Accepted')
+    const reinstateFn = (canUpdateParticipation && volunteer.status !== 'Accepted')
         ? actions.updateVolunteerStatus.bind(
             null, volunteer.id, event.slug, team.slug, kRegistrationStatus.Accepted)
         : undefined;
 
-    const changeRoleFn = canUpdateVolunteer
+    const changeRoleFn = canUpdateParticipation
         ? actions.changeRole.bind(null, volunteer.id, event.slug, team.slug)
         : undefined;
 
-    const changeTeamFn = canUpdateVolunteer
+    const changeTeamFn = canUpdateParticipation
         ? actions.changeTeam.bind(null, volunteer.id, event.slug, team.slug)
         : undefined;
 

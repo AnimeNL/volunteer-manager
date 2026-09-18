@@ -37,7 +37,7 @@ export async function updateVendorSchedule(
     return executeServerAction(formData, kUpdateVendorSchedule, async (data, props) => {
         const { event } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.vendors',
+                permission: 'volunteers.vendor-teams',
                 operation: 'update',
             });
 

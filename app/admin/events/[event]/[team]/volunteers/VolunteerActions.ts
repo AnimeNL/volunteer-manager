@@ -58,7 +58,7 @@ export async function sendCommunicationToVolunteer(
         const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
 
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.volunteers.information',
+            permission: 'volunteers.participation',
             operation: 'update',
             scope: {
                 event: event.slug,

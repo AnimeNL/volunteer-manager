@@ -59,7 +59,7 @@ export default async function EventContentPage(
         event.acceptApplications === 'active' ||
         event.acceptApplications === 'override' ||
         event.teams.some(team =>
-            access.can('volunteers.applications', 'create', {
+            access.can('volunteers.participation', 'create', {
                 event: event.slug,
                 team: team.slug
             }));

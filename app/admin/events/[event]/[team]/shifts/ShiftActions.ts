@@ -32,7 +32,7 @@ export async function createShift(eventSlug: string, teamSlug: string, formData:
     return executeServerAction(formData, kCreateShiftData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.shifts',
+                permission: 'volunteers.shifts',
                 operation: 'create',
             });
 
@@ -122,8 +122,8 @@ export async function updateShift(
     return executeServerAction(formData, kUpdateShiftData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.shifts',
-                operation: 'create',
+                permission: 'volunteers.shifts',
+                operation: 'update',
             });
 
         if (data.type === 'program' && !data.activityId)
@@ -182,8 +182,8 @@ export async function updateShiftDemand(
     return executeServerAction(formData, kUpdateShiftDemandData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
-                permission: 'event.shifts',
-                operation: 'create',
+                permission: 'volunteers.shifts',
+                operation: 'update',
             });
 
         let validatedShiftDemand: z.infer<typeof kShiftDemand>;

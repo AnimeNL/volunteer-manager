@@ -90,7 +90,7 @@ const shiftsDataSource = createDataSource('event/team/shifts', withContext({
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.shifts',
+            permission: 'volunteers.shifts',
             operation,
             scope: {
                 event: context.event.slug,
@@ -182,7 +182,7 @@ export default async function EventTeamShiftsPage(
     props: PageProps<'/admin/events/[event]/[team]/shifts'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.shifts',
+        permission: 'volunteers.shifts',
         operation: 'read',
     });
 
@@ -291,9 +291,9 @@ export default async function EventTeamShiftsPage(
 
     const permissionScope = { event: event.slug, team: team.slug };
 
-    const canCreateShifts = access.can('event.shifts', 'create', permissionScope);
-    const canDeleteShifts = access.can('event.shifts', 'delete', permissionScope);
-    const canUpdateShifts = access.can('event.shifts', 'update', permissionScope);
+    const canCreateShifts = access.can('volunteers.shifts', 'create', permissionScope);
+    const canDeleteShifts = access.can('volunteers.shifts', 'delete', permissionScope);
+    const canUpdateShifts = access.can('volunteers.shifts', 'update', permissionScope);
 
     const createShiftFn = createShift.bind(null, event.slug, team.slug);
 

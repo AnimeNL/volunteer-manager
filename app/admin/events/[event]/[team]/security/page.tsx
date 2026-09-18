@@ -26,7 +26,7 @@ export default async function EventTeamSecurityPage(
     props: PageProps<'/admin/events/[event]/[team]/security'>)
 {
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.vendors',
+        permission: 'volunteers.vendor-teams',
         operation: 'read',
     });
 
@@ -60,7 +60,7 @@ export default async function EventTeamSecurityPage(
         .orderBy('name', 'asc')
         .executeSelectMany();
 
-    const canUpdateVendors = access.can('event.vendors', 'update', {
+    const canUpdateVendors = access.can('volunteers.vendor-teams', 'update', {
         event: event.slug,
         team: team.slug,
     });

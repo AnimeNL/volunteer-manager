@@ -47,7 +47,7 @@ export async function updateAvailabilityPreferences(
 
         if (props.user.id !== userId) {
             executeAccessCheck(props.authenticationContext, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
                 scope: {
                     event: event.slug,
@@ -230,7 +230,7 @@ export async function updateHotelPreferences(
 
         if (props.user.id !== userId) {
             executeAccessCheck(props.authenticationContext, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
                 scope: {
                     event: event.slug,
@@ -354,7 +354,7 @@ export async function updateParticipationPreferences(
 
         if (props.user.id !== userId) {
             executeAccessCheck(props.authenticationContext, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
                 scope: {
                     event: event.slug,
@@ -557,7 +557,7 @@ export async function updateTrainingPreferences(
 
         if (props.user.id !== userId) {
             executeAccessCheck(props.authenticationContext, {
-                permission: 'event.volunteers.information',
+                permission: 'volunteers.participation',
                 operation: 'update',
             }, {
                 event: event.slug,

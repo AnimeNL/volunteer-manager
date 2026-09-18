@@ -21,7 +21,7 @@ export default async function EventTeamVolunteerPreferencesTrainingPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/training'>)
 {
     const { event, team } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.volunteers.information',
+        permission: 'volunteers.participation',
         operation: 'read',
     });
 

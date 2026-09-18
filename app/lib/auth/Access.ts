@@ -43,6 +43,7 @@ export const kPermissions = {
         requireEvent: true,
     },
 
+    // TODO: Rename to volunteers.hotels when the hotels system has been migrated.
     'event.hotels': {
         type: 'boolean',
         requireEvent: true,
@@ -58,12 +59,6 @@ export const kPermissions = {
         requireEvent: true,
     },
 
-    'event.schedule.planning': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
     'event.settings': {
         type: 'boolean',
         requireEvent: true,
@@ -73,12 +68,7 @@ export const kPermissions = {
         type: 'boolean',
     },
 
-    'event.shifts': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
+    // TODO: Rename to volunteers.refunds when the refund system has been migrated.
     'event.refunds': {
         type: 'boolean',
         requireEvent: true,
@@ -89,35 +79,13 @@ export const kPermissions = {
         requireEvent: true,
     },
 
+    // TODO: Rename to volunteers.trainings when the training system has been migrated.
     'event.trainings': {
         type: 'boolean',
         requireEvent: true,
     },
 
-    'event.vendors': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
     'event.visible': {
-        type: 'boolean',
-        requireEvent: true,
-    },
-
-    'event.volunteers.information': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
-    'event.volunteers.overrides': {
-        type: 'boolean',
-        requireEvent: true,
-        requireTeam: true,
-    },
-
-    'event.volunteers.participation': {
         type: 'boolean',
         requireEvent: true,
     },
@@ -242,8 +210,14 @@ export const kPermissions = {
     // Volunteer-associated permissions
     // ---------------------------------------------------------------------------------------------
 
-    'volunteers.applications': {
+    'volunteers.participation': {
         type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
+    },
+
+    'volunteers.participation-overrides': {
+        type: 'boolean',
         requireEvent: true,
         requireTeam: true,
     },
@@ -259,9 +233,27 @@ export const kPermissions = {
         requireTeam: true,
     },
 
+    'volunteers.schedules': {
+        type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
+    },
+
+    'volunteers.shifts': {
+        type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
+    },
+
     'volunteers.tickets': {
         type: 'crud',
         requireEvent: true,
+    },
+
+    'volunteers.vendor-teams': {
+        type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
     },
 
     // ---------------------------------------------------------------------------------------------
