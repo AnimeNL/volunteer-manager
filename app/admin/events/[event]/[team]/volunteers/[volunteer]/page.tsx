@@ -5,6 +5,8 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
+import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
@@ -16,6 +18,7 @@ import { ActionBar } from '@app/admin/components/ActionBar';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
+import { StatusTile } from './StatusTile';
 import { VolunteerChangeRoleQuickAction } from './VolunteerChangeRoleQuickAction';
 import { VolunteerChangeTeamQuickAction } from './VolunteerChangeTeamQuickAction';
 import { VolunteerContactSection } from './VolunteerContactSection';
@@ -27,7 +30,7 @@ import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tRoles, tSchedule, tShifts, tStorage, tTeams, tTeamsRoles,
-    tUsers, tUsersEvents } from '@lib/database';
+    tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -125,6 +128,14 @@ export default async function EventTeamVolunteerPage(
 
     // ---------------------------------------------------------------------------------------------
 
+    const ticketStatus = event.tickets?.volunteerTicketId
+        ? <TicketStatusTile event={event.id} user={volunteer.id} />
+        : undefined;
+
+    const hasAnyStatusTile = !!ticketStatus;
+
+    // ---------------------------------------------------------------------------------------------
+
     return (
         <>
             <Section icon={ <PersonOutlinedIcon color="primary" /> } title={volunteer.name}
@@ -189,7 +200,16 @@ export default async function EventTeamVolunteerPage(
                 name: volunteer.name,
             }} />
 
-            { /* TODO: Status tiles */ }
+            { hasAnyStatusTile &&
+                <Grid container spacing={1.5}>
+                    { !!ticketStatus &&
+                        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                            <StatusTile href={`../../tickets/volunteers/${volunteer.id}`}
+                                        title="Festival ticket" type="ticket">
+                                {ticketStatus}
+                            </StatusTile>
+                        </Grid> }
+                </Grid> }
 
             <Suspense fallback={
                 <Section icon={ <ScheduleIcon /> } title="Schedule">
@@ -396,6 +416,26 @@ async function VolunteerScheduleSection(props: VolunteerScheduleSectionProps) {
             <VolunteerSchedule event={scheduleEvent} schedule={schedule} />
         </Section>
     );
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Tile that displays the status of a volunteer's ticket, which we intend to grant (automatically)
+ * before the festival starts.
+ */
+async function TicketStatusTile(props: { event: number; user: number; }) {
+    const ticket = await db.selectFrom(tUsersEventsTickets)
+        .where(tUsersEventsTickets.userId.equals(props.user))
+            .and(tUsersEventsTickets.eventId.equals(props.event))
+        .selectOneColumn(tUsersEventsTickets.ticketProviderPurchaseId.isNotNull())
+        .executeSelectNoneOrOne();
+
+    if (!!ticket) {
+        return <Chip color="success" label="Issued" size="small" />;
+    } else {
+        return <Chip color="warning" label="Pending" size="small" />;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
