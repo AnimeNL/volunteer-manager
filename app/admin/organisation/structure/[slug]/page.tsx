@@ -37,7 +37,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
     });
 
     const canDisableTeam = access.can('organisation.teams', 'delete');
-    const canResetInviteKey = access.can('organisation.teams', 'update');
+    const canUpdateTeam = access.can('organisation.teams', 'update');
 
     const teamsRolesDefaultJoin = tTeamsRoles.forUseInLeftJoinAs('trdj');
     const teamsRolesJoin = tTeamsRoles.forUseInLeftJoinAs('trj');
@@ -171,7 +171,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
     // ---------------------------------------------------------------------------------------------
 
-    const readOnly = false;  // should we support this?
+    const readOnly = !canUpdateTeam;
 
     const disableTeamFn = (canDisableTeam && !!team.enabled)
         ? actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ false)
@@ -181,7 +181,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
         ? actions.toggleTeamEnabled.bind(null, team.id, /* enabled= */ true)
         : undefined;
 
-    const resetTeamKeyFn = canResetInviteKey
+    const resetTeamKeyFn = canUpdateTeam
         ? actions.resetTeamKey.bind(null, team.id)
         : undefined;
 
@@ -191,7 +191,8 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
     return (
         <>
-            <Section icon={ <GroupsIcon color="primary" /> } title={team.title} breadcrumbs={[
+            <Section icon={ <GroupsIcon color="primary" /> } title={team.title}
+                     limited={!canDisableTeam || !canUpdateTeam} breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure', href: '/admin/organisation/structure' },
                 { label: team.title },
@@ -204,7 +205,7 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
             <FormGridSection noHeader tabs back="Back to teams"
                              action={updateTeamFn} defaultValues={team}>
-                { (canResetInviteKey || canDisableTeam) &&
+                { (canUpdateTeam || canDisableTeam) &&
                     <Grid size={{ xs: 12 }}>
                         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
                             <TeamQuickActions name={team.name}
@@ -283,7 +284,8 @@ export default async function TeamPage(props: PageProps<'/admin/organisation/str
 
                 <Grid size={{ xs: 12 }} sx={{ mt: -1, mb: -1 }}>
                     <List disablePadding>
-                        { kFlags.map(entry => <Flag key={entry.field} {...entry} /> )}
+                        { kFlags.map(entry =>
+                            <Flag key={entry.field} readOnly={readOnly} {...entry} /> )}
                     </List>
                 </Grid>
             </FormGridSection>

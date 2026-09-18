@@ -132,7 +132,8 @@ export default async function AccountsPage() {
 
     return (
         <>
-            <Section icon={ <PersonIcon color="primary" /> } title="Accounts" breadcrumbs={[
+            <Section icon={ <PersonIcon color="primary" /> } title="Accounts"
+                     limited={!canCreateAccounts} breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Accounts' },
             ]}>

@@ -161,7 +161,7 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
  * Volunteer Manager. Roles define what function people exercise within our organisation.
  */
 export default async function RolesPage() {
-    await requireAuthentication({
+    const { access } = await requireAuthentication({
         permission: 'organisation.roles',
         operation: 'read',
     });
@@ -248,9 +248,14 @@ export default async function RolesPage() {
         },
     ];
 
+    const canFullyMutateRoles =
+        access.can('organisation.roles', 'create') &&
+        access.can('organisation.roles', 'update');
+
     return (
         <>
             <Section icon={ <WorkOutlineOutlinedIcon color="primary" /> } title="Roles"
+                     limited={!canFullyMutateRoles}
                      documentation="organisation/structure" breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure', href: '/admin/organisation/structure' },

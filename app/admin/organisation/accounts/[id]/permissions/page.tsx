@@ -54,6 +54,7 @@ export default async function AccountPermissionsPage(
                          <AccountStatusButton activated={account.activated}
                                               restricted={account.restricted} />
                      }
+                     limited={readOnly}
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },

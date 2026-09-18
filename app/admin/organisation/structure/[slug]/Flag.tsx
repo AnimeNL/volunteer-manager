@@ -21,6 +21,11 @@ export interface FlagProps {
     field: string;
 
     /**
+     * Whether the flag should be displayed in read-only mode.
+     */
+    readOnly?: boolean;
+
+    /**
      * Title of the flag. What does it do?
      */
     title: string;
@@ -39,13 +44,16 @@ export function Flag(props: FlagProps) {
     const { getValues, setValue } = useFormContext();
 
     const handleClick = useCallback(() => {
-        setValue(props.field, !getValues(props.field), { shouldDirty: true });
-    }, [ getValues, props.field, setValue ]);
+        if (!props.readOnly)
+            setValue(props.field, !getValues(props.field), { shouldDirty: true });
+
+    }, [ getValues, props.field, props.readOnly, setValue ]);
 
     return (
         <ListItemButton onClick={handleClick} sx={{ py: 0 }}>
             <ListItemIcon sx={{ minWidth: 'auto' }}>
-                <CheckboxElement name={props.field} edge="start" disableRipple />
+                <CheckboxElement name={props.field} edge="start" disabled={props.readOnly}
+                                 disableRipple />
             </ListItemIcon>
             <ListItemText primary={props.title} secondary={props.description} />
         </ListItemButton>

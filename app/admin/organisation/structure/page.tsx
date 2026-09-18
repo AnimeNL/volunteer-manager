@@ -191,6 +191,7 @@ export default async function TeamsPage() {
     return (
         <>
             <Section icon={ <GroupsIcon color="primary" /> } title="Teams"
+                     limited={!canCreateTeams}
                      documentation="organisation/structure" breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure' },

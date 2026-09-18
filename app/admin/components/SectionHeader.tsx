@@ -79,8 +79,8 @@ export function SectionHeader(props: SectionHeaderProps) {
                 </Typography>
             </Stack>
             <Stack direction="row" spacing={0} sx={{ my: -0.5 }}>
-                {props.headerAction}
                 { !!props.limited && <SectionLimitedButton /> }
+                {props.headerAction}
                 { !!props.documentation &&
                     <DocumentationButton title={props.documentationTitle || String(props.title)}
                                          topic={props.documentation} /> }

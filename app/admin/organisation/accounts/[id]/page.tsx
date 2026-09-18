@@ -303,6 +303,7 @@ export default async function AccountInformationPage(
                         <AccountStatusButton activated={account.activated}
                                              restricted={account.restricted} />
                      }
+                     limited={!canUpdateAccounts || !canDeleteAccounts}
                      breadcrumbs={[
                          { label: 'Organisation', href: '/admin/organisation' },
                          { label: 'Accounts', href: '/admin/organisation/accounts' },

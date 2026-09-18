@@ -82,13 +82,16 @@ export default async function EnvironmentPage(
         label: v,
     }));
 
-    const readOnly = !access.can('organisation.environments', 'update');
+    const canDeleteEnvironments = access.can('organisation.environments', 'delete');
+    const canUpdateEnvironments = access.can('organisation.environments', 'update');
 
-    const deleteEnvironmentFn = access.can('organisation.environments', 'delete')
+    const readOnly = !canUpdateEnvironments;
+
+    const deleteEnvironmentFn = canDeleteEnvironments
         ? deleteEnvironment.bind(null, environment.id)
         : undefined!;
 
-    const updateEnvironmentFn = access.can('organisation.environments', 'update') ?
+    const updateEnvironmentFn = canUpdateEnvironments ?
         updateEnvironment.bind(null, environment.id)
         : undefined!;
 
@@ -97,11 +100,11 @@ export default async function EnvironmentPage(
             <Section icon={ <PublicIcon color="primary" /> } title={environment.domain}
                      headerAction={
                          <IconButton LinkComponent={Link} href={`https://${environment.domain}/`}
-                                     target="_blank" size="small">
-                             <OpenInNewIcon color="primary" fontSize="small" />
+                                     target="_blank">
+                             <OpenInNewIcon />
                          </IconButton>
                      }
-                     breadcrumbs={[
+                     limited={!canDeleteEnvironments || !canUpdateEnvironments} breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure', href: '/admin/organisation/structure' },
                 { label: 'Environments', href: '/admin/organisation/structure/environments' },

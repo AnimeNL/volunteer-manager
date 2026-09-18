@@ -110,7 +110,7 @@ const environmentsDataSource = createDataSource('organisation/structure/environm
  * reached, each having its own lightweight personalisation.
  */
 export default async function EnvironmentsPage() {
-    await requireAuthentication({
+    const { access } = await requireAuthentication({
         permission: 'organisation.environments',
         operation: 'read',
     });
@@ -140,6 +140,8 @@ export default async function EnvironmentsPage() {
         })
         .orderBy('label', 'asc')
         .executeSelectMany();
+
+    const canCreateEnvironment = access.can('organisation.environments', 'create');
 
     type Warning = {
         environment: string;
@@ -203,6 +205,7 @@ export default async function EnvironmentsPage() {
     return (
         <>
             <Section icon={ <PublicIcon color="primary" /> } title="Environments"
+                     limited={!canCreateEnvironment}
                      documentation="organisation/structure" breadcrumbs={[
                 { label: 'Organisation', href: '/admin/organisation' },
                 { label: 'Structure', href: '/admin/organisation/structure' },
@@ -232,14 +235,15 @@ export default async function EnvironmentsPage() {
                                linkTemplate: '/admin/organisation/structure/environments/{domain}',
                            }} />
             </Section>
-            <FormGridSection icon={ <AddCircleOutlineOutlinedIcon /> }
-                             title="Create a new environment"
-                             action={createEnvironment} callToAction="Create">
-                <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="domain" label="Domain" fullWidth size="small"
-                                      placeholder="example.com" required />
-                </Grid>
-            </FormGridSection>
+            { canCreateEnvironment &&
+                <FormGridSection icon={ <AddCircleOutlineOutlinedIcon /> }
+                                 title="Create a new environment"
+                                 action={createEnvironment} callToAction="Create">
+                    <Grid size={{ xs: 12 }}>
+                        <TextFieldElement name="domain" label="Domain" fullWidth size="small"
+                                          placeholder="example.com" required />
+                    </Grid>
+                </FormGridSection> }
         </>
     );
 }
