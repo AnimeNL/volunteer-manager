@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
@@ -79,21 +79,13 @@ const programRequestsDataSource = createDataSource('admin/event/program/requests
 
 }), {
     async authorize(operation, props, context) {
-        if (operation === 'update') {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.requests',
-                scope: {
-                    event: context.event.slug,
-                },
-            });
-        } else {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.visible',
-                scope: {
-                    event: context.event.slug,
-                },
-            });
-        }
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'volunteers.program-requests',
+            operation,
+            scope: {
+                event: context.event.slug,
+            },
+        });
     },
 
     async list(params, props, context) {
@@ -244,13 +236,17 @@ export default async function ProgramRequestsPage(
     if (!event.integrations?.anPlanFestivalId)
         notFound();
 
+    if (!access.can('volunteers.program-requests', 'read', { event: event.slug }))
+        redirect('./activities');
+
     const comprehensiveLeaders = await getLeadersForEvent(event.id);
     const leaders = comprehensiveLeaders.map(leader => ({
         value: leader.value,
         label: leader.label,
     }));
 
-    const canManageRequests = access.can('event.requests', { event: event.slug });
+    const canManageRequests =
+        access.can('volunteers.program-requests', 'update', { event: event.slug });
 
     const teams = await db.selectFrom(tEventsTeams)
         .innerJoin(tTeams)

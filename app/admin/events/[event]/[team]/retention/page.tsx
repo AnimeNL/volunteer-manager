@@ -126,7 +126,7 @@ const retentionDataSource = createDataSource('admin/event/retention', withContex
 }), kRetentionRowModel, {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.retention',
+            permission: 'volunteers.retention',
             operation,
             scope: {
                 event: context.event.slug,
@@ -336,7 +336,7 @@ export default async function EventTeamRetentionPage(
     props: PageProps<'/admin/events/[event]/[team]/retention'>)
 {
     const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
-        permission: 'event.retention',
+        permission: 'volunteers.retention',
         operation: 'read',
     });
 
@@ -366,7 +366,7 @@ export default async function EventTeamRetentionPage(
     const comprehensiveLeaders = await getLeadersForEvent(event.id);
     const leaders = comprehensiveLeaders.map(leader => leader.label);
 
-    const canUpdateRetention = access.can('event.retention', 'update', {
+    const canUpdateRetention = access.can('volunteers.retention', 'update', {
         event: event.slug,
         team: team.slug,
     });

@@ -14,6 +14,7 @@ import { PermissionSelectorTable } from './PermissionSelectorTable';
 import db, { tPermissions } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
+import { kPermissions } from '@lib/auth/Access';
 import { kSelfSuffix } from './toPermissionList';
 
 /**
@@ -131,6 +132,9 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
         .executeSelectMany();
 
     for (const permissionRecord of dbPermissions) {
+        if (!Object.hasOwn(kPermissions, permissionRecord.id))
+            continue;  // stale data in the database for a renamed permission
+
         const permissionChildren: PermissionSelectorStatus[] = [];
         const permission: PermissionSelectorStatus = {
             id: permissionRecord.id,

@@ -53,11 +53,6 @@ export const kPermissions = {
         requireEvent: true,
     },
 
-    'event.requests': {
-        type: 'boolean',
-        requireEvent: true,
-    },
-
     'event.schedule.access': {
         type: 'boolean',
         requireEvent: true,
@@ -87,12 +82,6 @@ export const kPermissions = {
     'event.refunds': {
         type: 'boolean',
         requireEvent: true,
-    },
-
-    'event.retention': {
-        type: 'crud',
-        requireEvent: true,
-        requireTeam: true,
     },
 
     'event.tickets': {
@@ -254,6 +243,17 @@ export const kPermissions = {
     // ---------------------------------------------------------------------------------------------
 
     'volunteers.applications': {
+        type: 'crud',
+        requireEvent: true,
+        requireTeam: true,
+    },
+
+    'volunteers.program-requests': {
+        type: 'crud',
+        requireEvent: true,
+    },
+
+    'volunteers.retention': {
         type: 'crud',
         requireEvent: true,
         requireTeam: true,

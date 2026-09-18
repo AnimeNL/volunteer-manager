@@ -198,7 +198,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     Icon: RepeatIcon,
                     label: 'Retention',
                     permission: {
-                        permission: 'event.retention',
+                        permission: 'volunteers.retention',
                         operation: 'read',
                         scope: eventAndTeamScope,
                     },

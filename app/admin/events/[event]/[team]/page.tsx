@@ -62,7 +62,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (access.can('event.retention', 'read', scope)) {
+    if (access.can('volunteers.retention', 'read', scope)) {
         tiles.push({
             Icon: RepeatIcon,
             href: `/admin/events/${event.slug}/${team.slug}/retention`,

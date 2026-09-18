@@ -64,7 +64,7 @@ export async function sendRetentionEmail(
 {
     return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(eventSlug, teamSlug, {
-            permission: 'event.retention',
+            permission: 'volunteers.retention',
             operation: 'update',
         });
 
@@ -123,7 +123,7 @@ export async function sendRetentionWhatsApp(
 {
     return executeServerAction(formData, kSendRetentionWhatsAppSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(eventSlug, teamSlug, {
-            permission: 'event.retention',
+            permission: 'volunteers.retention',
             operation: 'update',
         });
 

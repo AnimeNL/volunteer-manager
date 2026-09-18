@@ -25,6 +25,13 @@ export default async function ProgramLayout(props: LayoutProps<'/admin/events/[e
             {
                 Icon: NewReleasesIcon,
                 label: 'Requests',
+                permission: {
+                    permission: 'volunteers.program-requests',
+                    operation: 'read',
+                    scope: {
+                        event: event.slug,
+                    },
+                },
                 url: `/admin/events/${event.slug}/program/requests`,
             },
             {

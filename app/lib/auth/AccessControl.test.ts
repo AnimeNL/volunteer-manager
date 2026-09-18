@@ -410,17 +410,17 @@ describe('AccessControl', () => {
             expect(defaultAccessControl.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
                 .toBeTruthy();
 
-            expect(defaultAccessControl.can('event.requests', { event: kAnyEvent, team: kAnyTeam }))
+            expect(defaultAccessControl.can('event.settings', { event: kAnyEvent, team: kAnyTeam }))
                 .toBeFalsy();
-            expect(defaultAccessControl.can('event.requests', { event: '2024', team: kAnyTeam }))
+            expect(defaultAccessControl.can('event.settings', { event: '2024', team: kAnyTeam }))
                 .toBeFalsy();
-            expect(defaultAccessControl.can('event.requests', { event: kAnyEvent, team: 'name' }))
+            expect(defaultAccessControl.can('event.settings', { event: kAnyEvent, team: 'name' }))
                 .toBeFalsy();
-            expect(defaultAccessControl.can('event.requests', { event: '2025', team: 'stewards' }))
+            expect(defaultAccessControl.can('event.settings', { event: '2025', team: 'stewards' }))
                 .toBeFalsy();
-            expect(defaultAccessControl.can('event.requests', { event: '2025', team: 'hosts' }))
+            expect(defaultAccessControl.can('event.settings', { event: '2025', team: 'hosts' }))
                 .toBeFalsy();
-            expect(defaultAccessControl.can('event.requests', { event: '2026', team: kAnyTeam }))
+            expect(defaultAccessControl.can('event.settings', { event: '2026', team: kAnyTeam }))
                 .toBeFalsy();
         }
 
@@ -431,7 +431,7 @@ describe('AccessControl', () => {
                     event: '2025',
                     team: 'stewards',
                 },
-                'event.requests',  // <---
+                'event.settings',  // <---
             ],
             events: '2024',
             teams: 'name',
@@ -441,17 +441,17 @@ describe('AccessControl', () => {
             expect(grantedAccessControl.can('event.visible', { event: kAnyEvent, team: kAnyTeam }))
                 .toBeTruthy();
 
-            expect(grantedAccessControl.can('event.requests', { event: kAnyEvent, team: kAnyTeam }))
+            expect(grantedAccessControl.can('event.settings', { event: kAnyEvent, team: kAnyTeam }))
                 .toBeTruthy();
-            expect(grantedAccessControl.can('event.requests', { event: '2024', team: kAnyTeam }))
+            expect(grantedAccessControl.can('event.settings', { event: '2024', team: kAnyTeam }))
                 .toBeTruthy();  // global event access
-            expect(grantedAccessControl.can('event.requests', { event: kAnyEvent, team: 'name' }))
+            expect(grantedAccessControl.can('event.settings', { event: kAnyEvent, team: 'name' }))
                 .toBeTruthy();  // global team access
-            expect(grantedAccessControl.can('event.requests', { event: '2025', team: 'stewards' }))
+            expect(grantedAccessControl.can('event.settings', { event: '2025', team: 'stewards' }))
                 .toBeTruthy();  // specific request made global
-            expect(grantedAccessControl.can('event.requests', { event: '2025', team: 'hosts' }))
+            expect(grantedAccessControl.can('event.settings', { event: '2025', team: 'hosts' }))
                 .toBeTruthy();  // specific request made global
-            expect(grantedAccessControl.can('event.requests', { event: '2026', team: kAnyTeam }))
+            expect(grantedAccessControl.can('event.settings', { event: '2026', team: kAnyTeam }))
                 .toBeTruthy();  // specific request made global
         }
     });
