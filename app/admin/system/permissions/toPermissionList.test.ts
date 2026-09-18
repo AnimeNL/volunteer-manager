@@ -22,7 +22,7 @@ describe('toPermissionList', () => {
         expect(toPermissionList({ event: { visible: false } }, rootAccess, emptyAccess))
             .toBe(null);
         expect(toPermissionList({
-            event: { participation: true, visible: true }
+            volunteers: { participation: true }, event: { visible: true }
         }, rootAccess, emptyAccess)).toBe('volunteers.participation,event.visible');
         expect(toPermissionList({
             event: { visible: true }, test: { boolean: true }
@@ -34,24 +34,30 @@ describe('toPermissionList', () => {
 
     it('should be able to translate CRUD-based permissions to a list', () => {
         expect(toPermissionList({
-            event: { participation: { read: false } }
+            volunteers: { participation: { read: false } }
         }, rootAccess, emptyAccess)).toBe(null);
         expect(toPermissionList({
-            event: { participation: { read: true } }
+            volunteers: { participation: { read: true } }
         }, rootAccess, emptyAccess)).toBe('volunteers.participation:read');
         expect(toPermissionList({
-            event: { participation: { read: true, update: true } }
+            volunteers: { participation: { read: true, update: true } }
         }, rootAccess, emptyAccess)).toBe(
             'volunteers.participation:read,volunteers.participation:update');
         expect(toPermissionList({
-            event: { participation: { create: true, read: false, update: false, delete: true } }
+            volunteers: {
+                participation: { create: true, read: false, update: false, delete: true },
+            },
         }, rootAccess, emptyAccess)).toBe(
             'volunteers.participation:create,volunteers.participation:delete');
         expect(toPermissionList({
-            event: { participation: { create: true, read: true, update: true, delete: true } }
+            volunteers: {
+                participation: { create: true, read: true, update: true, delete: true },
+            },
         }, rootAccess, emptyAccess)).toBe('volunteers.participation');
         expect(toPermissionList({
-            event: { participation: { create: false, read: false, update: false, delete: false } }
+            volunteers: {
+                participation: { create: false, read: false, update: false, delete: false },
+            },
         }, rootAccess, emptyAccess)).toBe(null);
     });
 

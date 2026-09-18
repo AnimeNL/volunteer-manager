@@ -329,7 +329,7 @@ export default async function EventTeamShiftsPage(
             </Section>
             { canCreateShifts &&
                 <FormGridSection icon={ <AddBoxOutlinedIcon /> } title="Create a new shift"
-                                 action={createShiftFn} permission="event.shifts">
+                                 action={createShiftFn} permission="volunteers.shifts">
                     <ShiftSettingsForm activities={activities} categories={categories}
                                        locations={locations} />
                 </FormGridSection> }

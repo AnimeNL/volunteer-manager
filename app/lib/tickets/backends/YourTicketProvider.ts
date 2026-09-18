@@ -42,8 +42,8 @@ export class YourTicketProvider implements TicketService {
         if (!this.#client)
             throw new Error('Unable to execute cancelPurchase() without a valid client');
 
-        const cancelledPurchase = await this.#client.postCancelPurchase(Number(purchaseId));
-        // TODO: Figure out what to do with |cancelledPurchase|, if anything?
+        const _cancelledPurchase = await this.#client.postCancelPurchase(Number(purchaseId));
+        // TODO: Figure out what to do with |_cancelledPurchase|, if anything?
 
         const dbInstance = db;
 
