@@ -181,7 +181,7 @@ export default async function EventVolunteersPage(
             </Section>
             <Section noHeader>
                 <DataTable columns={columns} source={volunteerDataSource} search="prominent"
-                           context={{ eventId: event.id, teamId: team.id }} disableFooter
+                           context={{ event: event.slug, team: team.slug }} disableFooter
                            defaultSort={{ field: 'roleOrder', sort: 'asc' }} pageSize={100}
                            listViewProps={{
                                primaryField: 'name',

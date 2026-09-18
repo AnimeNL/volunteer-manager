@@ -4,14 +4,13 @@
 import { z } from 'zod/v4';
 
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
-import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
+import { createDataSource, kEventTransformer, kTeamTransformer, withContext, withRowModel }
+    from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
-import db, { tEvents, tRoles, tSchedule, tShifts, tShiftsCategories, tUsers,
-    tUsersCommunication, tUsersEvents, tUsersEventsTickets,
-    tYourTicketProviderPurchases } from '@lib/database';
+import db, { tEvents, tRoles, tSchedule, tShifts, tShiftsCategories, tUsers, tUsersCommunication,
+    tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
 
 /**
@@ -44,12 +43,12 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
     /**
      * Unique ID of the event to display volunteers for.
      */
-    eventId: z.number(),
+    event: kEventTransformer,
 
     /**
      * Unique ID of the team to display volunteers for.
      */
-    teamId: z.number(),
+    team: kTeamTransformer,
 
 }), withRowModel({
     /**
@@ -124,8 +123,8 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             permission: 'volunteers.participation',
             operation: 'read',
             scope: {
-                event: kAnyEvent,
-                team: kAnyTeam,
+                event: context.event.slug,
+                team: context.team.slug,
             },
         });
     },
@@ -135,7 +134,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
 
         const dbInstance = db;
         const currentEventStartTime = await dbInstance.selectFrom(tEvents)
-            .where(tEvents.eventId.equals(context.eventId))
+            .where(tEvents.eventId.equals(context.event.id))
             .selectOneColumn(tEvents.eventStartTime)
             .executeSelectOne();
 
@@ -194,8 +193,8 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                     .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
                     .and(yourTicketProviderPurchasesJoin.ytpPurchaseDateCancelled.isNull())
             .groupBy(tUsersEvents.userId)
-            .where(tUsersEvents.eventId.equals(context.eventId))
-                .and(tUsersEvents.teamId.equals(context.teamId))
+            .where(tUsersEvents.eventId.equals(context.event.id))
+                .and(tUsersEvents.teamId.equals(context.team.id))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
                     tRoles.roleName.containsInsensitiveIfValue(params.search)))
