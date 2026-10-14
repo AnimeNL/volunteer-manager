@@ -22,6 +22,7 @@ import { AnonymizeRefundsButton } from './AnonymizeRefundsButton';
 import { AnonymizeTicketsButton } from './AnonymizeTicketsButton';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
+import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
 import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { GridCollapse } from '@components/GridCollapse';
@@ -29,6 +30,7 @@ import { PublishQuickAction } from './PublishQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
+import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -130,11 +132,17 @@ export default async function EventSettingsConfigurationPage(
                 availabilityTearDown: tEvents.availabilityTearDown,
             },
             integrations: {
-                festivalId: tEvents.eventFestivalId,
-                hotelRoomForm: tEvents.eventHotelRoomForm,
-                yourTicketProviderEventId: tEvents.eventYtpEventId,
-                yourTicketProviderExternalEventId: tEvents.eventYtpExternalEventId,
+                // AnPlan:
+                anplanFestivalId: tEvents.eventFestivalId,
+                anplanHotelRoomForm: tEvents.eventHotelRoomForm,
+
+                // Weeztix:
                 weeztixEventGuid: tEvents.eventWeeztixGuid,
+                weeztixScannerGuid: tEvents.eventWeeztixScannerGuid,
+
+                // YourTicketProvider:
+                ytpEventId: tEvents.eventYtpEventId,
+                ytpExternalEventId: tEvents.eventYtpExternalEventId,
             },
             tickets: {
                 provider: tEvents.ticketsProvider,
@@ -243,7 +251,8 @@ export default async function EventSettingsConfigurationPage(
                                    fullWidth size="small" options={kServiceStatusOptions} />
                 </Grid>
             </FormGridSection>
-            <FormGridSection icon={ <ApiIcon />} title="Integrations" action={integrationsFn}
+            <FormGridSection icon={ <ApiIcon />} title="Integrations"
+                             action={integrationsFn.bind(null, 'anplan')}
                              defaultValues={defaultValues.integrations}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
@@ -251,29 +260,52 @@ export default async function EventSettingsConfigurationPage(
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="festivalId" label="AnPlan Festival ID" type="number"
-                                     fullWidth size="small" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="hotelRoomForm" label="Hotel room form URL"
-                                      fullWidth size="small" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="yourTicketProviderEventId"
-                                      label="YourTicketProvider Event ID"
+                    <TextFieldElement name="anplanFestivalId" label="AnPlan Festival ID"
                                       type="number" fullWidth size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="yourTicketProviderExternalEventId"
-                                      label="YourTicketProvider External Event ID"
+                    <TextFieldElement name="anplanHotelRoomForm" label="Hotel room form URL"
                                       fullWidth size="small" />
                 </Grid>
-                <Grid size={{ xs: 12 }}>
-                     <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID" fullWidth
-                                       size="small" />
-                </Grid>
             </FormGridSection>
-            { (!!defaultValues.integrations?.yourTicketProviderEventId ||
+            <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix"
+                                     action={integrationsFn.bind(null, 'weeztix')}
+                                     defaultValues={defaultValues.integrations}>
+                        <SectionIntroduction grid>
+                            Integration with Weeztix for ticketing.
+                        </SectionIntroduction>
+                        <Grid size={{ xs: 12 }}>
+                            <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID"
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <TextFieldElement name="weeztixScannerGuid" label="Weeztix Scanner GUID"
+                                              fullWidth size="small" />
+                        </Grid>
+                    </FormGridSection>
+                </Grid>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <FormGridSection icon={ <CmComIcon /> } title="YourTicketProvider"
+                                     action={integrationsFn.bind(null, 'ytp')}
+                                     defaultValues={defaultValues.integrations}>
+                        <SectionIntroduction grid>
+                            Integration with YourTicketProvider for ticketing.
+                        </SectionIntroduction>
+                        <Grid size={{ xs: 12 }}>
+                            <TextFieldElement name="ytpEventId" label="YourTicketProvider Event ID"
+                                              type="number" fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <TextFieldElement name="ytpExternalEventId"
+                                              label="YourTicketProvider External Event ID"
+                                              fullWidth size="small" />
+                        </Grid>
+                    </FormGridSection>
+                </Grid>
+            </Grid>
+            { (!!defaultValues.integrations?.ytpEventId ||
                    !!defaultValues.integrations?.weeztixEventGuid) &&
                 <FormGridSection icon={ <LocalActivityOutlinedIcon />} title="Ticketing"
                                  action={ticketingFn} defaultValues={defaultValues.tickets}>

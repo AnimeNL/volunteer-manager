@@ -22,6 +22,22 @@ export const kGetEventsResponse = z.array(z.object({
 export type GetEventsResponse = z.infer<typeof kGetEventsResponse>;
 
 /**
+ * Expected response for the /scanner/{type?} API.
+ * @see https://docs.weeztix.com/api/dashboard/get-scanners
+ */
+export const kGetScannerTypesResponse = z.array(z.object({
+    guid: z.string().nonempty(),
+    name: z.string().nonempty(),
+    event_id: z.string().nonempty(),
+}));
+
+/**
+ * Expected response for the /scanner/{type?} API.
+ * @see https://docs.weeztix.com/api/dashboard/get-scanners
+ */
+export type GetScannerTypesResponse = z.infer<typeof kGetScannerTypesResponse>;
+
+/**
  * Expected response for the /event/:guid/ticket/{type?} API.
  * @see https://docs.weeztix.com/api/dashboard/get-event-tickets
  */

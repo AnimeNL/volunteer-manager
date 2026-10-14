@@ -10,6 +10,8 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -20,6 +22,11 @@ import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weezt
 import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
+ * Callback signature for sequentially executing an operation against the `WeeztixClient`.
+ */
+type WeeztixClientFn = <T>(fn: (client: WeeztixClient) => Promise<T>) => Promise<T>;
+
+/**
  * Page that demonstrates some of Weeztix' APIs, primarily to test the implementation and provide
  * quick insight in values (such as event GUIDs) that may be repeatedly needed.
  */
@@ -28,7 +35,13 @@ export default async function WeeztixIntegrationPage() {
 
     const client = await createWeeztixClient();
 
-    // TODO: Figure out how to issue API calls sequentially.
+    let queue: Promise<unknown> = Promise.resolve();
+    const clientFn: WeeztixClientFn = fn => {
+        const result = queue.then(() => fn(client));
+        queue = result.catch(() => undefined);
+
+        return result;
+    };
 
     return (
         <>
@@ -45,7 +58,12 @@ export default async function WeeztixIntegrationPage() {
             </Section>
             <Section icon={ <EventNoteIcon />} title="Events">
                 <Suspense fallback={ <SectionLoading /> }>
-                    <WeeztixEventList clientFn={ async () => client } />
+                    <WeeztixEventList clientFn={clientFn} />
+                </Suspense>
+            </Section>
+            <Section icon={ <QrCodeScannerIcon /> } title="Scanners">
+                <Suspense fallback={ <SectionLoading /> }>
+                    <WeeztixScannerList clientFn={clientFn} />
                 </Suspense>
             </Section>
         </>
@@ -55,12 +73,8 @@ export default async function WeeztixIntegrationPage() {
 /**
  * Displays the event list using the Weeztix API.
  */
-async function WeeztixEventList(props: { clientFn: () => Promise<WeeztixClient> }) {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const client = await props.clientFn();
-    const events = await client.listEvents();
-
+async function WeeztixEventList(props: { clientFn: WeeztixClientFn }) {
+    const events = await props.clientFn(client => client.listEvents());
     return (
         <>
             { !events.length &&
@@ -78,6 +92,34 @@ async function WeeztixEventList(props: { clientFn: () => Promise<WeeztixClient> 
                             <ListItemText
                                 primary={event.name}
                                 secondary={`${event.location.name} / GUID: ${event.guid}`} />
+                        </ListItem> ) }
+                </List> }
+        </>
+    );
+}
+
+/**
+ * Displays the scanner list using the Weeztix API.
+ */
+async function WeeztixScannerList(props: { clientFn: WeeztixClientFn }) {
+    const scanners = await props.clientFn(client => client.listScannerTypes());
+    return (
+        <>
+            { !scanners.length &&
+                <Alert severity="warning" variant="outlined">
+                    No scanners could be obtained from Weeztix
+                </Alert> }
+            { !!scanners.length &&
+                <List dense disablePadding>
+                    { scanners.map((scanner, index) =>
+                        <ListItem key={scanner.guid} disableGutters
+                                  divider={ index !== scanners.length - 1 }>
+                            <ListItemIcon>
+                                <PhotoCameraOutlinedIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={scanner.name}
+                                secondary={`Event: ${scanner.event_id} / GUID: ${scanner.guid}`} />
                         </ListItem> ) }
                 </List> }
         </>

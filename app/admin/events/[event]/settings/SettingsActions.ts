@@ -3,6 +3,7 @@
 
 'use server';
 
+import type { UpdatableRow } from 'ts-sql-query';
 import { z } from 'zod/v4';
 
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -322,29 +323,58 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
  * Data that needs to be available to update an event's associated services.
  */
 const kEventIntegrationsData = z.object({
-    festivalId: z.number().nullish(),
-    hotelRoomForm: z.url().nullish(),
-    yourTicketProviderEventId: z.number().nullish(),
-    yourTicketProviderExternalEventId: z.string().nullish(),
+    // AnPlan:
+    anplanFestivalId: z.number().nullish(),
+    anplanHotelRoomForm: z.url().nullish(),
+
+    // Weeztix:
     weeztixEventGuid: z.string().nullish(),
+    weeztixScannerGuid: z.string().nullish(),
+
+    // YourTicketProvider:
+    ytpEventId: z.number().nullish(),
+    ytpExternalEventId: z.string().nullish(),
 });
 
 /**
  * Server Action through which an event's integrations can be updated.
  */
-export async function updateEventIntegrations(eventSlug: string, formData: unknown) {
+export async function updateEventIntegrations(
+    eventSlug: string, type: 'anplan' | 'weeztix' | 'ytp', formData: unknown)
+{
     return executeServerAction(formData, kEventIntegrationsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'event.settings');
 
+        let update: UpdatableRow<typeof tEvents>;
+        switch (type) {
+            case 'anplan':
+                update = {
+                    eventFestivalId: data.anplanFestivalId,
+                    eventHotelRoomForm: data.anplanHotelRoomForm,
+                };
+                break;
+
+            case 'weeztix':
+                update = {
+                    eventWeeztixGuid: data.weeztixEventGuid,
+                    eventWeeztixScannerGuid: data.weeztixScannerGuid,
+                };
+                break;
+
+            case 'ytp':
+                update = {
+                    eventYtpEventId: data.ytpEventId,
+                    eventYtpExternalEventId: data.ytpExternalEventId,
+                };
+                break;
+
+            default:
+                throw new Error(`Invalid integration selected: ${type}`);
+        }
+
         const affectedRows = await db.update(tEvents)
-            .set({
-                eventFestivalId: data.festivalId,
-                eventHotelRoomForm: data.hotelRoomForm,
-                eventYtpEventId: data.yourTicketProviderEventId,
-                eventYtpExternalEventId: data.yourTicketProviderExternalEventId,
-                eventWeeztixGuid: data.weeztixEventGuid,
-            })
+            .set(update)
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
