@@ -1,7 +1,6 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import CelebrationOutlinedIcon from '@mui/icons-material/CelebrationOutlined';
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
@@ -46,13 +45,7 @@ export default async function SettingsPage() {
                     description:
                         'User ID of the account that serves as the Volunteer Manager\'s role ' +
                         'account for e.g. automated outgoing communication.',
-                }
-            ],
-        },
-        'Admin settings': {
-            icon: <AdminPanelSettingsOutlinedIcon />,
-            description: 'Settings relevant to the administration area of the Volunteer Manager.',
-            settings: [
+                },
                 {
                     setting: 'admin-theme-color',
                     type: 'string',
