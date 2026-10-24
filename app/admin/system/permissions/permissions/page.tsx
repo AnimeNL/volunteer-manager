@@ -17,6 +17,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissions } from '@lib/database';
 
+import { kCrudOperations } from '../toPermissionList';
 import { kPermissions } from '@lib/auth/Access';
 
 /**
@@ -78,17 +79,12 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
             })
             .executeSelectMany();
 
-        const permissionMap = new Map<string, typeof permissions[number]>();
-        for (const row of permissions)
-            permissionMap.set(row.id, row);
+        const permissionMap = new Map(permissions.map(row => [ row.id, row ]));
 
         const rows: PermissionRow[] = [];
         for (const [ key, descriptor ] of Object.entries(kPermissions)) {
-            if (key === 'root')
-                continue;  // ignore the "root" permission
-
-            if (key.startsWith('test.'))
-                continue;  // ignore permissions internal to the system
+            if (key === 'root' || key.startsWith('test.'))
+                continue;  // ignore the "root" and test permissions
 
             const permission = permissionMap.get(key);
 
@@ -102,7 +98,7 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
             });
         }
 
-        rows.sort((a, b) => a.id.localeCompare(b.id));
+        rows.sort((lhs, rhs) => lhs.id.localeCompare(rhs.id));
 
         return {
             rowCount: rows.length,
@@ -111,16 +107,21 @@ const permissionsDataSource = createDataSource('admin/system/permissions', kPerm
     },
 
     async update(updatedRow, previousRow, props) {
-        if (updatedRow.id.startsWith('test.'))
+        if (updatedRow.id === 'root' || updatedRow.id.startsWith('test.') ||
+                !Object.hasOwn(kPermissions, updatedRow.id)) {
             forbidden();
+        }
+
+        const descriptor = kPermissions[updatedRow.id as keyof typeof kPermissions];
 
         const permissionName = updatedRow.name ?? '';
         const permissionDescription = updatedRow.description ?? '';
         const permissionWarning = updatedRow.warning ? 1 : 0;
 
-        const permissionOperations = updatedRow.operations && updatedRow.operations.length > 0
-            ? updatedRow.operations.join(',')
-            : null;
+        const permissionOperations =
+            descriptor.type === 'crud' && updatedRow.operations && updatedRow.operations.length > 0
+                ? updatedRow.operations.join(',')
+                : null;
 
         await db.insertInto(tPermissions)
             .set({
@@ -201,7 +202,7 @@ export default async function PermissionsPage() {
             flex: 2,
 
             type: 'multiSelect',
-            valueOptions: [ 'create', 'read', 'update', 'delete' ],
+            valueOptions: [ ...kCrudOperations ],
         },
         {
             field: 'warning',

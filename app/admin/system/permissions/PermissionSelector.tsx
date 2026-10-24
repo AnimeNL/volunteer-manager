@@ -4,13 +4,15 @@
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 
-import type { AccessControl, AccessResult } from '@lib/auth/AccessControl';
+import type { AccessDescriptor } from '@lib/auth/AccessDescriptor';
+import type { AccessResult } from '@lib/auth/AccessControl';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { PermissionSelectorStatus } from './PermissionSelectorTable';
 import type { ServerAction } from '@lib/serverAction';
-import { AccessControl as AccessControlImpl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/AccessControl';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { isRestricted } from './toPermissionList';
 import { PermissionSelectorTable } from './PermissionSelectorTable';
+import { isRestricted, parseCrudOperations } from './toPermissionList';
 import db, { tPermissions } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
@@ -18,9 +20,12 @@ import { kPermissions } from '@lib/auth/Access';
 import { kSelfSuffix } from './toPermissionList';
 
 /**
- * Supported operations for CRUD permissions, in canonical display order.
+ * Default scope used to query whether a permission is granted for any event and team.
  */
-const kOperations = [ 'create', 'read', 'update', 'delete' ] as const;
+const kAnyScope = {
+    event: kAnyEvent,
+    team: kAnyTeam,
+};
 
 /**
  * Helper function that lowercases the first letter of the given `text`.
@@ -110,13 +115,7 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
     const defaultValues: Record<string, any> = { ...props.defaultValues };
 
     const targetAccessControl = props.targetAccessControl;
-    const roleAccessControl =
-        props.roleAccessControl ?? new AccessControlImpl({ /* no grants */ });
-
-    const defaultOptions = {
-        event: kAnyEvent,
-        team: kAnyTeam,
-    };
+    const roleAccessControl = props.roleAccessControl ?? new AccessControl({ /* no grants */ });
 
     const permissions: PermissionSelectorStatus[] = [ /* empty */ ];
 
@@ -135,6 +134,9 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
         if (!Object.hasOwn(kPermissions, permissionRecord.id))
             continue;  // stale data in the database for a renamed permission
 
+        const descriptor: AccessDescriptor =
+            kPermissions[permissionRecord.id as keyof typeof kPermissions];
+
         const permissionChildren: PermissionSelectorStatus[] = [];
         const permission: PermissionSelectorStatus = {
             id: permissionRecord.id,
@@ -147,16 +149,13 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
             warning: permissionRecord.warning,
         };
 
-        if (permissionRecord.id === 'root')
-            permission.restricted = isRestricted('root', props.access);
+        if (typeof descriptor.restrict === 'string')
+            permission.restricted = isRestricted(descriptor.restrict, props.access);
 
-        const rawOperations = permissionRecord.operations
-            ? permissionRecord.operations.split(',').map(op => op.trim()).filter(Boolean)
-            : [];
+        if (descriptor.type === 'crud') {
+            const crudPermission = permissionRecord.id as CRUDPermission;
+            const operations = parseCrudOperations(permissionRecord.operations);
 
-        const operations = kOperations.filter(op => rawOperations.includes(op));
-
-        if (operations.length > 0) {
             permission.suffix = kSelfSuffix;  // avoids overwriting values when submitting the form
 
             for (const operation of operations) {
@@ -165,14 +164,17 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
                     name: `${uppercaseFirst(operation)} ${lowercaseFirst(permissionRecord.name)}`,
                     restricted: !!permission.restricted,
                     status: {
-                        account:
-                            targetAccessControl.query(
-                                permissionRecord.id as any, operation, defaultOptions),
-                        roles:
-                            roleAccessControl.query(
-                                permissionRecord.id as any, operation, defaultOptions),
+                        account: targetAccessControl.query(crudPermission, operation, kAnyScope),
+                        roles: roleAccessControl.query(crudPermission, operation, kAnyScope),
                     },
                 };
+
+                if (typeof descriptor.restrict === 'object' && operation in descriptor.restrict) {
+                    if (!!descriptor.restrict[operation]) {
+                        childPermission.restricted =
+                            isRestricted(descriptor.restrict[operation], props.access);
+                    }
+                }
 
                 permission.status.account = maybeUpgradePermissionStatus(
                     permission.status.account, childPermission.status.account);
@@ -180,37 +182,31 @@ export async function PermissionSelector(props: PermissionSelectorProps) {
                 permission.status.roles = maybeUpgradePermissionStatus(
                     permission.status.roles, childPermission.status.roles);
 
-                if (typeof childPermission.status.account === 'object' &&
-                        (childPermission.status.account.expanded === false ||
-                         childPermission.status.account.crud === false))
+                const accountStatus = childPermission.status.account;
+                if (typeof accountStatus === 'object' &&
+                        (accountStatus.expanded === false || accountStatus.crud === false))
                 {
-                    if (childPermission.status.account.result === 'granted') {
-                        if (childPermission.status.account.crud)
-                            defaultValues[`grants[${permissionRecord.id}.${operation}]`] = true;
-                        else
-                            defaultValues[`grants[${permissionRecord.id}${kSelfSuffix}]`] = true;
+                    const prefix = accountStatus.result === 'granted' ? 'grants' : 'revokes';
+                    const key = accountStatus.crud
+                        ? `${permissionRecord.id}.${operation}`
+                        : `${permissionRecord.id}${kSelfSuffix}`;
 
-                    } else {
-                        if (childPermission.status.account.crud)
-                            defaultValues[`revokes[${permissionRecord.id}.${operation}]`] = true;
-                        else
-                            defaultValues[`revokes[${permissionRecord.id}${kSelfSuffix}]`] = true;
-                    }
+                    defaultValues[`${prefix}[${key}]`] = true;
                 }
 
                 permissionChildren.push(childPermission);
             }
         } else {
-            permission.status.account =
-                targetAccessControl.query(permissionRecord.id as any, defaultOptions);
-            permission.status.roles =
-                roleAccessControl.query(permissionRecord.id as any, defaultOptions);
+            const booleanPermission = permissionRecord.id as BooleanPermission;
+
+            permission.status.account = targetAccessControl.query(booleanPermission, kAnyScope);
+            permission.status.roles = roleAccessControl.query(booleanPermission, kAnyScope);
 
             if (permission.status.account?.expanded === false) {
-                if (permission.status.account.result === 'granted')
-                    defaultValues[`grants[${permissionRecord.id}]`] = true;
-                else
-                    defaultValues[`revokes[${permissionRecord.id}]`] = true;
+                const prefix =
+                    permission.status.account.result === 'granted' ? 'grants' : 'revokes';
+
+                defaultValues[`${prefix}[${permissionRecord.id}]`] = true;
             }
         }
 

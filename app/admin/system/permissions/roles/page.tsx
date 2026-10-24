@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { Cache } from '@lib/cache';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
@@ -22,6 +23,58 @@ import { kRootRole } from '../Root';
  * Set of roles that should be protected from being removed.
  */
 const kProtectedRoles = new Set([ 'senior', 'staff' ]);
+
+/**
+ * Counts the number of distinct users granted each role, either globally on their account or via
+ * an accepted participation in a non-hidden event.
+ */
+async function countUsersPerRole(dbInstance: typeof db): Promise<Map<string, number>> {
+    const eventsJoin = tEvents.forUseInLeftJoin();
+    const rolesJoin = tRoles.forUseInLeftJoin();
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const users = await dbInstance.selectFrom(tUsers)
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.userId.equals(tUsers.userId))
+                .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .leftJoin(eventsJoin)
+            .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
+                .and(eventsJoin.eventHidden.equals(/* false= */ 0))
+        .leftJoin(rolesJoin)
+            .on(rolesJoin.roleId.equals(usersEventsJoin.roleId))
+                .and(rolesJoin.rolePermissionGrant.isNotNull())
+                .and(eventsJoin.eventId.isNotNull())
+        .where(tUsers.permissionsGrants.isNotNull()
+            .or(rolesJoin.roleId.isNotNull()))
+        .select({
+            grants: tUsers.permissionsGrants,
+            eventGrants: dbInstance.aggregateAsArrayOfOneColumn(rolesJoin.rolePermissionGrant),
+        })
+        .groupBy(tUsers.userId)
+        .executeSelectMany();
+
+    const counts = new Map<string, number>();
+    for (const user of users) {
+        const userRoles = new Set<string>();
+        if (user.grants) {
+            for (const grant of user.grants.split(',')) {
+                const trimmed = grant.trim();
+                if (trimmed)
+                    userRoles.add(trimmed);
+            }
+        }
+
+        for (const eventGrant of user.eventGrants) {
+            if (eventGrant)
+                userRoles.add(eventGrant);
+        }
+
+        for (const roleId of userRoles)
+            counts.set(roleId, (counts.get(roleId) ?? 0) + 1);
+    }
+
+    return counts;
+}
 
 /**
  * Data source through which the configured permission roles can be retrieved.
@@ -97,6 +150,13 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             })
             .executeInsert();
 
+        if (insertedRows) {
+            Cache.getInstance('PermissionRoles').set(roleId, {
+                grants: [ /* no grants */ ],
+                revokes: [ /* no revokes */ ],
+            });
+        }
+
         LogBuilder.for('CreatePermissionRole')
             .withCondition(!!insertedRows)
             .withInitiatorUser(props.user)
@@ -109,37 +169,20 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
     },
 
     async delete(row, props) {
-        if (row.id === 'root')
+        if (row.id === 'root' || kProtectedRoles.has(row.id))
             return false;
 
-        const eventsJoin = tEvents.forUseInLeftJoin();
-        const rolesJoin = tRoles.forUseInLeftJoin();
-        const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
-
         const dbInstance = db;
-        const userCount = await dbInstance.selectFrom(tUsers)
-            .leftJoin(usersEventsJoin)
-                .on(usersEventsJoin.userId.equals(tUsers.userId))
-                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .leftJoin(eventsJoin)
-                .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
-                    .and(eventsJoin.eventHidden.equals(/* false= */ 0))
-            .leftJoin(rolesJoin)
-                .on(rolesJoin.roleId.equals(usersEventsJoin.roleId))
-            .where(dbInstance.fragmentWithType('boolean', 'required').sql`
-                FIND_IN_SET(${dbInstance.const(row.id, 'string')} COLLATE utf8mb4_unicode_ci,
-                            ${tUsers.permissionsGrants}) > 0`
-                .or(eventsJoin.eventId.isNotNull().and(
-                    rolesJoin.rolePermissionGrant.equals(row.id))))
-            .selectOneColumn(dbInstance.countDistinct(tUsers.userId))
-            .executeSelectOne();
-
-        if (userCount > 0)
+        const roleCounts = await countUsersPerRole(dbInstance);
+        if ((roleCounts.get(row.id) ?? 0) > 0)
             return false;
 
         const affectedRows = await dbInstance.deleteFrom(tPermissionsRoles)
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
             .executeDelete();
+
+        if (affectedRows)
+            Cache.getInstance('PermissionRoles').delete(row.id);
 
         LogBuilder.for('DeletePermissionRole')
             .withCondition(!!affectedRows)
@@ -153,56 +196,35 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
     },
 
     async list() {
-        const eventsJoin = tEvents.forUseInLeftJoin();
-        const rolesJoin = tRoles.forUseInLeftJoin();
-        const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
-        const usersJoin = tUsers.forUseInLeftJoin();
-
         const dbInstance = db;
-        const rootUserCount = await dbInstance.selectFrom(tUsers)
-            .where(dbInstance.fragmentWithType('boolean', 'required').sql`
-                FIND_IN_SET('root', ${tUsers.permissionsGrants}) > 0`)
-            .selectCountAll()
-            .executeSelectOne();
+        const roleCounts = await countUsersPerRole(dbInstance);
 
         const dbRoles = await dbInstance.selectFrom(tPermissionsRoles)
-            .leftJoin(rolesJoin)
-                .on(rolesJoin.rolePermissionGrant.equals(tPermissionsRoles.permissionRoleId))
-            .leftJoin(usersEventsJoin)
-                .on(usersEventsJoin.roleId.equals(rolesJoin.roleId))
-                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .leftJoin(eventsJoin)
-                .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
-                    .and(eventsJoin.eventHidden.equals(/* false= */ 0))
-            .leftJoin(usersJoin)
-                .on(dbInstance.fragmentWithType('boolean', 'required').sql`
-                    FIND_IN_SET(${tPermissionsRoles.permissionRoleId} COLLATE utf8mb4_unicode_ci,
-                                ${usersJoin.permissionsGrants}) > 0`
-                    .or(eventsJoin.eventId.isNotNull().and(
-                        usersJoin.userId.equals(usersEventsJoin.userId))))
             .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
             .select({
                 id: tPermissionsRoles.permissionRoleId,
                 name: tPermissionsRoles.permissionRoleName,
                 description: tPermissionsRoles.permissionRoleDescription,
-                userCount: dbInstance.countDistinct(usersJoin.userId),
             })
-            .groupBy(tPermissionsRoles.permissionRoleId)
             .orderBy(tPermissionsRoles.permissionRoleName, 'asc')
             .executeSelectMany();
 
         const rows = [
             {
                 ...kRootRole,
-                userCount: rootUserCount,
+                userCount: roleCounts.get('root') ?? 0,
                 frozen: true,
                 protected: true,
             },
-            ...dbRoles.map(role => ({
-                ...role,
-                frozen: false,
-                protected: role.userCount > 0 || kProtectedRoles.has(role.id),
-            })),
+            ...dbRoles.map(role => {
+                const userCount = roleCounts.get(role.id) ?? 0;
+                return {
+                    ...role,
+                    userCount,
+                    frozen: false,
+                    protected: userCount > 0 || kProtectedRoles.has(role.id),
+                };
+            }),
         ].sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 
         return {

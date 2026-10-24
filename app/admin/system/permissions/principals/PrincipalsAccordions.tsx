@@ -22,46 +22,6 @@ import { Avatar } from '@components/Avatar';
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 /**
- * Information regarding a specific scope that a user has been granted access under.
- */
-export interface PrincipalUserScope {
-    /**
-     * Type of access granted.
-     */
-    type: 'global' | 'event';
-
-    /**
-     * Name of the event when type is 'event', e.g. "AnimeCon 2026".
-     */
-    event?: string;
-
-    /**
-     * Slug of the event when type is 'event', e.g. "2026".
-     */
-    eventSlug?: string;
-
-    /**
-     * Name of the team when type is 'event', e.g. "Bag Room Crew".
-     */
-    team?: string;
-
-    /**
-     * Optional custom scope label if access is restricted, e.g. "All events · care,crew".
-     */
-    customScope?: string;
-
-    /**
-     * Optional source that indicates how the permission was granted, e.g. "Administrator".
-     */
-    source?: string;
-
-    /**
-     * Specific CRUD operations granted, if applicable and not all operations.
-     */
-    operations?: string[];
-}
-
-/**
  * Information stored for a user who holds a role or permission.
  */
 export interface PrincipalUser {
@@ -79,11 +39,26 @@ export interface PrincipalUser {
      * URL to the avatar image that represents this person, if any.
      */
     avatar?: string;
+}
 
-    /**
-     * Scopes under which the user holds this role or permission.
-     */
-    scopes: PrincipalUserScope[];
+/**
+ * Represents a subgroup of users under a top-level scope group.
+ */
+export interface PrincipalSubgroup {
+    key: string;
+    title?: string;
+    operations?: string;
+    users: PrincipalUser[];
+}
+
+/**
+ * Represents a top-level scope group (Global access or an Event).
+ */
+export interface PrincipalScopeGroup {
+    key: string;
+    title: string;
+    type: 'global' | 'event';
+    subgroups: PrincipalSubgroup[];
 }
 
 /**
@@ -106,29 +81,14 @@ export interface PrincipalRecord {
     description: string;
 
     /**
-     * Users who hold this role or have been granted this permission.
+     * Total number of distinct accounts granted this role or permission.
      */
-    users: PrincipalUser[];
-}
+    accountCount: number;
 
-/**
- * Represents a subgroup of users under a top-level scope group.
- */
-interface Subgroup {
-    key: string;
-    title?: string;
-    operations?: string;
-    users: PrincipalUser[];
-}
-
-/**
- * Represents a top-level scope group (Global access or an Event).
- */
-interface ScopeGroup {
-    key: string;
-    title: string;
-    type: 'global' | 'event';
-    subgroups: Subgroup[];
+    /**
+     * Hierarchically grouped users who hold this role or permission.
+     */
+    groups: PrincipalScopeGroup[];
 }
 
 const PrincipalAccordion = styled(Accordion)(({ theme }) => ({
@@ -171,128 +131,6 @@ const OperationBadge = styled('span')<{ hasTitle?: boolean }>(({ theme, hasTitle
 }));
 
 /**
- * Formats partial CRUD operations into a readable string.
- */
-function formatOperations(operations?: string[]): string | undefined {
-    if (!operations || operations.length === 0)
-        return undefined;
-
-    if (operations.length === 1)
-        return `${operations[0]} only`;
-
-    return operations.join(', ');
-}
-
-/**
- * Resolves the human-readable subgroup title for a given user scope.
- */
-function resolveSubgroupTitle(scope: PrincipalUserScope): string | undefined {
-    if (scope.type === 'global') {
-        if (scope.customScope && scope.source)
-            return `${scope.customScope} (${scope.source})`;
-
-        return scope.customScope || scope.source;
-    }
-
-    const team = scope.team || 'Unknown team';
-    if (scope.source && scope.source !== team)
-        return `${team} (${scope.source})`;
-
-    return team;
-}
-
-/**
- * Groups a principal's users hierarchically by scope type (Global vs. Events),
- * then sub-grouped by team and source grant.
- */
-function groupUsersByScope(users: PrincipalUser[]): ScopeGroup[] {
-    const scopeGroupsMap = new Map<string, {
-        group: ScopeGroup;
-        subgroupsMap: Map<string, {
-            title?: string;
-            operations?: string;
-            users: PrincipalUser[];
-        }>;
-    }>();
-
-    for (const user of users) {
-        for (const scope of user.scopes) {
-            const groupKey =
-                scope.type === 'global' ? 'global' : `event:${scope.eventSlug || scope.event}`;
-            const groupTitle =
-                scope.type === 'global' ? 'Global access' : (scope.event || 'Unknown event');
-
-            let groupEntry = scopeGroupsMap.get(groupKey);
-            if (!groupEntry) {
-                groupEntry = {
-                    group: {
-                        key: groupKey,
-                        title: groupTitle,
-                        type: scope.type,
-                        subgroups: [],
-                    },
-                    subgroupsMap: new Map(),
-                };
-                scopeGroupsMap.set(groupKey, groupEntry);
-            }
-
-            const subTitle = resolveSubgroupTitle(scope);
-            const opsLabel = formatOperations(scope.operations);
-            const subKey = `${subTitle || ''}|${opsLabel || ''}`;
-
-            let subEntry = groupEntry.subgroupsMap.get(subKey);
-            if (!subEntry) {
-                subEntry = {
-                    title: subTitle,
-                    operations: opsLabel,
-                    users: [],
-                };
-                groupEntry.subgroupsMap.set(subKey, subEntry);
-            }
-
-            if (!subEntry.users.some(u => u.id === user.id))
-                subEntry.users.push(user);
-        }
-    }
-
-    const scopeGroups: ScopeGroup[] = [];
-    for (const { group, subgroupsMap } of scopeGroupsMap.values()) {
-        const subgroups: Subgroup[] = [];
-        for (const [ subKey, subEntry ] of subgroupsMap.entries()) {
-            subgroups.push({
-                key: subKey,
-                title: subEntry.title,
-                operations: subEntry.operations,
-                users: subEntry.users.sort((a, b) => a.name.localeCompare(b.name)),
-            });
-        }
-
-        subgroups.sort((a, b) => {
-            const titleA = a.title || '';
-            const titleB = b.title || '';
-
-            if (titleA !== titleB)
-                return titleA.localeCompare(titleB);
-
-            return (a.operations || '').localeCompare(b.operations || '');
-        });
-
-        group.subgroups = subgroups;
-
-        scopeGroups.push(group);
-    }
-
-    scopeGroups.sort((a, b) => {
-        if (a.type === 'global') return -1;
-        if (b.type === 'global') return 1;
-
-        return a.title.localeCompare(b.title);
-    });
-
-    return scopeGroups;
-}
-
-/**
  * Renders a stack of user avatars with tooltips.
  */
 function UserAvatarStack(props: { users: PrincipalUser[] }) {
@@ -313,7 +151,7 @@ function UserAvatarStack(props: { users: PrincipalUser[] }) {
 /**
  * Renders a subgroup of users with its title and operations badge.
  */
-function SubgroupSection(props: { subgroup: Subgroup }) {
+function SubgroupSection(props: { subgroup: PrincipalSubgroup }) {
     return (
         <Box>
             <Typography variant="caption"
@@ -349,9 +187,8 @@ function SubgroupSection(props: { subgroup: Subgroup }) {
 function PrincipalAccordionItem(props: { isMobile: boolean; item: PrincipalRecord }) {
     const { isMobile, item } = props;
 
-    const count = item.users.length;
+    const count = item.accountCount;
     const countLabel = count === 1 ? '1 account' : `${count} accounts`;
-    const scopeGroups = groupUsersByScope(item.users);
 
     return (
         <PrincipalAccordion disableGutters elevation={0}>
@@ -393,7 +230,7 @@ function PrincipalAccordionItem(props: { isMobile: boolean; item: PrincipalRecor
                     </Alert> }
                 { count > 0 &&
                     <Stack direction="column" spacing={1.5}>
-                        { scopeGroups.map(group => {
+                        { item.groups.map(group => {
                             const hasSingleUntitledSubgroup =
                                 group.subgroups.length === 1 &&
                                 !group.subgroups[0].title &&

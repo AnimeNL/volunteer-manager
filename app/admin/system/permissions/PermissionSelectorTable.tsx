@@ -3,11 +3,12 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { CheckboxElement } from '@components/proxy/react-hook-form-mui';
 
-import type { DataGridPremiumProps, GridColDef, GridGroupingColDefOverride } from '@mui/x-data-grid-premium';
+import type {
+    DataGridPremiumProps, GridColDef, GridGroupingColDefOverride } from '@mui/x-data-grid-premium';
 import { DataGridPremium } from '@mui/x-data-grid-premium';
 import BlockIcon from '@mui/icons-material/Block';
 import IconButton from '@mui/material/IconButton';
@@ -65,6 +66,37 @@ export interface PermissionSelectorStatus {
 }
 
 /**
+ * Grouping column configuration for the permission tree table.
+ */
+const kGroupingColumn: GridGroupingColDefOverride<PermissionSelectorStatus> = {
+    headerName: 'Permission',
+    hideDescendantCount: true,
+    width: 250,
+};
+
+/**
+ * Renders a grant or revoke checkbox cell for the given `row`.
+ */
+function renderPermissionCheckbox(
+    prefix: 'grants' | 'revokes', color: 'success' | 'error', row: PermissionSelectorStatus,
+    tableReadOnly?: boolean)
+{
+    if (!row.id)
+        return undefined;
+
+    const name = row.suffix ? `${row.id}${row.suffix}` : row.id;
+    const readOnly = tableReadOnly || row.restricted;
+
+    return (
+        <CheckboxElement name={`${prefix}[${name}]`} size="small" color={color} sx={{ ml: 1 }}
+                         labelProps={{
+                             // Workaround for MUI checkboxes not supporting the `readOnly` state.
+                             sx: { pointerEvents: readOnly ? 'none' : undefined },
+                         }} />
+    );
+}
+
+/**
  * Props accepted by the <PermissionSelectorTable> component.
  */
 interface PermissionSelectorTableProps {
@@ -97,13 +129,7 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
 
     }, [ /* no dependencies */ ]);
 
-    const grouping: GridGroupingColDefOverride<PermissionSelectorStatus> = {
-        headerName: 'Permission',
-        hideDescendantCount: true,
-        width: 250,
-    };
-
-    const columns: GridColDef<PermissionSelectorStatus>[] = [
+    const columns = useMemo<GridColDef<PermissionSelectorStatus>[]>(() => [
         {
             display: 'flex',
             field: 'description',
@@ -132,7 +158,7 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
 
                 return (
                     <Tooltip title="Learn more…">
-                        <IconButton size="small" onClick={() => openLearnMore(title, text) }>
+                        <IconButton size="small" onClick={() => openLearnMore(title, text)}>
                             <InfoOutlinedIcon color="info" fontSize="small" />
                         </IconButton>
                     </Tooltip>
@@ -237,26 +263,8 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
                     <ThumbUpOutlinedIcon color="primary" fontSize="small" />
                 </Tooltip>,
 
-            renderCell: params => {
-                if (!params.row.id)
-                    return undefined;
-
-                let name = params.row.id;
-                if (!!params.row.suffix)
-                    name += params.row.suffix;
-
-                const readOnly = props.readOnly || params.row.restricted;
-                return (
-                    <CheckboxElement name={`grants[${name}]`} size="small"
-                                     color="success" sx={{ ml: 1 }}
-                                     labelProps={{
-                                         // This is a workaround for the fact that checkboxes in
-                                         // MUI don't support the `readOnly` state, despite
-                                         // advertising in TypeScript definitions that they do.
-                                         sx: { pointerEvents: readOnly ? 'none' : undefined }
-                                     }} />
-                );
-            },
+            renderCell: params =>
+                renderPermissionCheckbox('grants', 'success', params.row, props.readOnly),
         },
         {
             display: 'flex',
@@ -272,28 +280,10 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
                     <ThumbDownOutlinedIcon color="primary" fontSize="small" />
                 </Tooltip>,
 
-            renderCell: params => {
-                if (!params.row.id)
-                    return undefined;
-
-                let name = params.row.id;
-                if (!!params.row.suffix)
-                    name += params.row.suffix;
-
-                const readOnly = props.readOnly || params.row.restricted;
-                return (
-                    <CheckboxElement name={`revokes[${name}]`} size="small"
-                                     color="error" sx={{ ml: 1 }}
-                                     labelProps={{
-                                         // This is a workaround for the fact that checkboxes in
-                                         // MUI don't support the `readOnly` state, despite
-                                         // advertising in TypeScript definitions that they do.
-                                         sx: { pointerEvents: readOnly ? 'none' : undefined }
-                                     }} />
-                );
-            },
-        }
-    ];
+            renderCell: params =>
+                renderPermissionCheckbox('revokes', 'error', params.row, props.readOnly),
+        },
+    ], [ openLearnMore, props.readOnly ]);
 
     const getTreeDataPath: DataGridPremiumProps['getTreeDataPath'] = useCallback((row: any) => {
         return row.id.split('.');
@@ -303,7 +293,8 @@ export function PermissionSelectorTable(props: PermissionSelectorTableProps) {
     return (
         <>
             <DataGridPremium columns={columns} rows={props.permissions}
-                             treeData getTreeDataPath={getTreeDataPath} groupingColDef={grouping}
+                             treeData getTreeDataPath={getTreeDataPath}
+                             groupingColDef={kGroupingColumn}
                              defaultGroupingExpansionDepth={ /* all= */ -1 }
                              initialState={{ density: 'compact' }}
                              autoHeight disableColumnMenu hideFooterSelectedRowCount

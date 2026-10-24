@@ -54,7 +54,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
         if (existingAccess.can('root') && !props.access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
-        if (!!data.roles?.includes('root') && !props.access.can('root') &&
+        if (data.roles.includes('root') && !props.access.can('root') &&
                 !existingAccess.can('root')) {
             return { success: false, error: 'You are not allowed to assign the "root" role…' };
         }
@@ -73,23 +73,19 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             return { success: false, error: error.message };
         }
 
-        let finalGrants: string | null = null;
-        {
-            const grantList = [
-                ...(data.roles ?? []),
-                ...(grants ? grants.split(',') : []),
-            ];
+        const grantList = new Set([
+            ...data.roles,
+            ...(grants ? grants.split(',') : []),
+        ]);
 
-            if (grantList.length > 0)
-                finalGrants = [ ...new Set(grantList) ].join(',');
-        }
+        const finalGrants = grantList.size > 0 ? [ ...grantList ].join(',') : null;
 
         let events: string | null = null;
-        if (!!data.events.length)
+        if (data.events.length > 0)
             events = data.events.includes(kAnyEvent) ? kAnyEvent : data.events.join(',');
 
         let teams: string | null = null;
-        if (!!data.teams.length)
+        if (data.teams.length > 0)
             teams = data.teams.includes(kAnyTeam) ? kAnyTeam : data.teams.join(',');
 
         const affectedRows = await dbInstance.update(tUsers)
@@ -190,9 +186,6 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
             })
             .where(tPermissionsRoles.permissionRoleId.equals(roleId))
             .executeUpdate();
-
-        if (!affectedRows)
-            return { success: false, error: 'Unable to update permissions in the database…' };
 
         Cache.getInstance('PermissionRoles').set(roleId, {
             grants: grants?.split(',') || [ /* no grants */ ],

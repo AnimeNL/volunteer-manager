@@ -9,112 +9,133 @@ import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import { kPermissions } from '@lib/auth/Access';
 
 /**
+ * Supported operations for CRUD permissions, in canonical order.
+ */
+export const kCrudOperations: readonly AccessOperation[] = [
+    'create',
+    'read',
+    'update',
+    'delete',
+];
+
+/**
  * Suffix to distinguish the root of nested permissions from its children. Forms are submitted in
  * declaration order, which means that "foo: true" will be overridden by "foo: { bar }".
  */
 export const kSelfSuffix = ':self';
 
 /**
+ * Parses a comma-separated list of CRUD operations into canonical order, falling back to all
+ * supported CRUD operations when none are specified.
+ */
+export function parseCrudOperations(operations?: string | null): readonly AccessOperation[] {
+    if (!operations)
+        return kCrudOperations;
+
+    const rawOperations = operations.split(',').map(op => op.trim());
+    const filtered = kCrudOperations.filter(op => rawOperations.includes(op));
+
+    return filtered.length > 0 ? filtered : kCrudOperations;
+}
+
+/**
+ * Recursively collects the enabled permission identifiers from the nested `input` object.
+ */
+function collectPermissions(
+    input: Record<string, unknown>, path: string, permissions: string[]): void
+{
+    for (const [ entry, value ] of Object.entries(input)) {
+        const permissionName = entry.endsWith(kSelfSuffix)
+            ? entry.slice(0, -kSelfSuffix.length)
+            : entry;
+
+        const permission = path ? `${path}.${permissionName}` : permissionName;
+        if (typeof value === 'boolean') {
+            if (value)
+                permissions.push(permission);
+
+        } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+            const record = value as Record<string, unknown>;
+            if (Object.hasOwn(kPermissions, permission)) {
+                const descriptor: AccessDescriptor =
+                    kPermissions[permission as keyof typeof kPermissions];
+
+                if (descriptor.type === 'crud') {
+                    const operations = kCrudOperations.filter(operation => !!record[operation]);
+                    if (operations.length === kCrudOperations.length) {
+                        permissions.push(permission);
+                    } else {
+                        for (const operation of operations)
+                            permissions.push(`${permission}:${operation}`);
+                    }
+                    continue;
+                }
+            }
+
+            collectPermissions(record, permission, permissions);
+        }
+    }
+}
+
+/**
  * Converts the given `input` to a list of permissions as a string. The input is expected to be
  * formatted in line with `kAccountPermissionData.grants`, which means a nested object with keys
  * indicating the permission status.
  *
- * The given `access` control object must represent access granted to the signed in user who is
+ * The given `userAccess` control object must represent access granted to the signed in user who is
  * making these changes. It's used to verify that permission restrictions are adhered to.
  *
  * @example input: { event: { applications: true, visible: false }, test: { boolean: true } }
  * @example output: event.applications,test.boolean
  */
 export function toPermissionList(
-    input: any, userAccess: AccessControl, existingAccess: AccessControl, path?: string,
-    permissions?: string[]): string | null
+    input: unknown, userAccess: AccessControl, existingAccess: AccessControl): string | null
 {
-    permissions ??= [ /* empty array */ ];
-
     if (!input || typeof input !== 'object' || Array.isArray(input))
         throw new Error(`Unexpected input type: "${typeof input}"`);
 
-    const isRoot = !path;
+    const permissions: string[] = [];
+    collectPermissions(input as Record<string, unknown>, /* path= */ '', permissions);
 
-    for (const entry of Object.keys(input)) {
-        let permissionName = entry;
-        if (permissionName.endsWith(kSelfSuffix))
-            permissionName = entry.substring(0, entry.length - kSelfSuffix.length);
+    if (!permissions.length)
+        return null;
 
-        const permission = isRoot ? permissionName : `${path}${permissionName}`;
-        if (typeof input[entry] === 'boolean') {
-            if (!!input[entry])
-                permissions.push(permission);
+    // Verify that assignment restrictions are adhered to across all assigned permissions,
+    // accounting for hierarchical inheritance.
+    for (const fullPermission of permissions) {
+        const [ permission, operation ] = fullPermission.split(':', 2);
 
-        } else if (typeof input[entry] === 'object') {
-            const typedPermission: BooleanPermission | CRUDPermission = permission as any;
-            if (Object.hasOwn(kPermissions, typedPermission)) {
-                const descriptor: AccessDescriptor = kPermissions[typedPermission];
-                if (descriptor.type === 'crud') {
-                    const operations: string[] = [ /* none */ ];
-                    for (const operation of [ 'create', 'read', 'update', 'delete' ]) {
-                        if (!!input[entry][operation])
-                            operations.push(operation);
-                    }
+        for (const [ verificationPermission, rawDescriptor ] of Object.entries(kPermissions)) {
+            const descriptor: AccessDescriptor = rawDescriptor;
+            if (!descriptor.restrict)
+                continue;  // the |verificationPermission| has no restrictions
 
-                    if (operations.length === /* all= */ 4) {
-                        permissions.push(permission);
-                    } else {
-                        for (const includedOperation of operations)
-                            permissions.push(`${permission}:${includedOperation}`);
-                    }
-
-                    continue;
-                }
+            if (verificationPermission !== permission &&
+                    !verificationPermission.startsWith(`${permission}.`)) {
+                continue;  // not relevant for the current |permission|
             }
 
-            toPermissionList(
-                input[entry], userAccess, existingAccess, `${permission}.`, permissions);
-        }
-    }
+            if (typeof descriptor.restrict === 'string') {
+                validateRestriction(
+                    verificationPermission, descriptor.restrict, userAccess, existingAccess);
+            } else {
+                for (const verificationOperation of kCrudOperations) {
+                    const restriction = descriptor.restrict[verificationOperation];
+                    if (!restriction)
+                        continue;  // the |verificationOperation| has no restrictions
 
-    if (isRoot && permissions.length > 0) {
-        // Do an O(kn) sweep op all assigned permissions to verify that assignment restrictions are
-        // adhered to. This is an expensive operation, but is most rigorous in light of inheritance.
-        for (const fullPermission of permissions) {
-            const [ permission, operation ] = fullPermission.split(':', 2);
+                    if (!!operation && operation !== verificationOperation)
+                        continue;  // the |verificationOperation| is not relevant
 
-            for (const [ verificationPermission, descriptor ] of Object.entries(kPermissions)) {
-                if (verificationPermission !== permission &&
-                        !verificationPermission.startsWith(`${permission}.`)) {
-                    continue;  // not relevant for the current |permission|
-                }
-
-                if (!('restrict' in descriptor))
-                    continue;  // the |verificationPermission| has no restrictions
-
-                if (typeof descriptor.restrict === 'string') {
                     validateRestriction(
-                        fullPermission, descriptor.restrict, userAccess, existingAccess);
-                } else {
-                    for (const verificationOperation of [ 'create', 'read', 'update', 'delete' ]) {
-                        if (!(verificationOperation in descriptor.restrict))
-                            continue;  // the |verificationOperation| has no restrictions
-
-                        if (!!operation && operation !== verificationOperation)
-                            continue;  // the |verificationOperation| is not relevant
-
-                        const typedVerificationOperation =
-                            verificationOperation as keyof typeof descriptor.restrict;
-
-                        validateRestriction(
-                            `${verificationPermission}:${verificationOperation}`,
-                            descriptor.restrict[typedVerificationOperation],
-                            userAccess, existingAccess);
-                    }
+                        `${verificationPermission}:${verificationOperation}`,
+                        restriction, userAccess, existingAccess);
                 }
             }
         }
-
-        return permissions.join(',');
     }
 
-    return null;
+    return permissions.join(',');
 }
 
 /**
@@ -142,16 +163,10 @@ function validateRestriction(
 
     const [ permission, operation ] = fullPermission.split(':');
     if (!operation) {
-        const booleanPermission = permission as BooleanPermission;
-
-        if (existingAccess.can(booleanPermission))
+        if (existingAccess.can(permission as BooleanPermission))
             return;  // this permission has already been granted
-
     } else {
-        const crudPermission = permission as CRUDPermission;
-        const crudOperation = operation as AccessOperation;
-
-        if (existingAccess.can(crudPermission, crudOperation))
+        if (existingAccess.can(permission as CRUDPermission, operation as AccessOperation))
             return;  // this permission has already been granted
     }
 

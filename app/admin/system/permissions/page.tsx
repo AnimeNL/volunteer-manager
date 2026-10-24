@@ -3,11 +3,11 @@
 
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for Permissions, providing links to each section contained therein.

@@ -8,11 +8,12 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { AccessControlParams } from '@lib/auth/AccessControl';
+import type { Grant } from '@lib/auth/AccessControl';
 import type { ServerAction } from '@lib/serverAction';
 import { AccessControl } from '@lib/auth/AccessControl';
 import { PermissionSelector } from './PermissionSelector';
-import db, { tEvents, tPermissionsRoles, tRoles, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import db, {
+    tEvents, tPermissionsRoles, tRoles, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -104,8 +105,11 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
                 .and(eventsJoin.eventHidden.equals(/* false= */ 0))
         .leftJoin(rolesJoin)
             .on(rolesJoin.roleId.equals(usersEventsJoin.roleId))
+                .and(rolesJoin.rolePermissionGrant.isNotNull())
+                .and(eventsJoin.eventId.isNotNull())
         .leftJoin(teamsJoin)
             .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
+                .and(rolesJoin.roleId.isNotNull())
         .where(tUsers.userId.equals(props.userId))
         .select({
             access: {
@@ -124,27 +128,19 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
         .groupBy(tUsers.userId)
         .executeSelectNoneOrOne();
 
-    if (!!userConfiguration?.events)
-        userConfiguration.events = userConfiguration.events.filter(event => !!event.event);
+    const grantedEvents =
+        userConfiguration?.events.filter(event => !!event.event && !!event.grant) ?? [];
 
     const targetAccessControl =
         new AccessControl(userConfiguration?.access ?? { /* no grants */ });
 
-    const roleGrants: AccessControlParams = { grants: [], revokes: [] };
-    if (!!userConfiguration) {
-        for (const { event, grant, team } of userConfiguration.events) {
-            if (!grant || !Array.isArray(roleGrants.grants))
-                continue;  // no grants are part of this participation
+    const roleGrants: Grant[] = grantedEvents.map(({ event, grant, team }) => ({
+        permission: grant!,
+        event,
+        team,
+    }));
 
-            roleGrants.grants.push({
-                permission: grant,
-                event,
-                team,
-            });
-        }
-    }
-
-    const roleAccessControl = new AccessControl(roleGrants);
+    const roleAccessControl = new AccessControl({ grants: roleGrants });
 
     const rolesOptions = [ ...roles ];
     if (props.access.can('root') || targetAccessControl.can('root'))
@@ -170,7 +166,9 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
     const outranks = targetAccessControl.can('root') && !props.access.can('root');
     const readOnly = props.readOnly || outranks;
 
-    const userConfigurationEvents = userConfiguration?.events;
+    const grantedEventLabels = [
+        ...new Set(grantedEvents.map(({ label }) => label).filter((l): l is string => !!l)),
+    ].sort();
 
     return (
         <PermissionSelector
@@ -181,7 +179,7 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
             roleAccessControl={roleAccessControl}
             targetAccessControl={targetAccessControl}
             footer={
-                !!userConfigurationEvents?.length &&
+                !!grantedEventLabels.length &&
                 <>
                     <Grid size={{ xs: 12 }}>
                         <Divider />
@@ -189,9 +187,7 @@ export async function AccountPermissionSelector(props: AccountPermissionSelector
                     <Grid size={{ xs: 12 }}>
                         <Alert variant="outlined" severity="info">
                             Additional role-based access has been granted based on their
-                            participation in{' '}
-                            {userConfigurationEvents.map(({ label }) => label)
-                                .filter((l): l is string => !!l).sort().join(', ')}.
+                            participation in {grantedEventLabels.join(', ')}.
                         </Alert>
                     </Grid>
                 </>
