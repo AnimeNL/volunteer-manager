@@ -370,6 +370,8 @@ function RefundStatusButton(props: RefundStatusButtonProps) {
     let primary: string | undefined = undefined;
     let secondary: string | undefined = undefined;
 
+    // TODO: Consider refund.confirmedBy in the user interface?
+
     if (!!refund) {
         // (1) The volunteer has been issued a refund.
         if (!!refund.confirmed) {

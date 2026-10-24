@@ -49,6 +49,7 @@ export default async function EventApplicationRefundPage(
         .executeSelectNoneOrOne();
 
     // TODO: Join the |request| with a decision or status update when that page has been redone.
+    // TODO: Join the tRefunds.refundConfirmedBy user ID with a users table entry.
 
     // ---------------------------------------------------------------------------------------------
     // Determine the state of the refund mechanism within the defined availability window.

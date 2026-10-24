@@ -2933,6 +2933,10 @@ tables:
     type: datetime
     nullable: true
     default: "NULL"
+  - name: refund_confirmed_by
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
   indexes:
   - name: PRIMARY
     def: PRIMARY KEY (user_id, event_id) USING BTREE
@@ -2957,6 +2961,7 @@ tables:
       `refund_account_name` text NOT NULL,
       `refund_requested` datetime NOT NULL DEFAULT current_timestamp(),
       `refund_confirmed` datetime DEFAULT NULL,
+      `refund_confirmed_by` int(4) unsigned DEFAULT NULL,
       PRIMARY KEY (`user_id`,`event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: users_events_tickets

@@ -15,11 +15,12 @@ import {
 export class RefundsTable extends Table<DBConnection, 'RefundsTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');
-    refundTicketNumber = this.optionalColumnWithDefaultValue('refund_ticket_number', 'string');
-    refundAccountIban = this.column('refund_account_iban', 'string');
-    refundAccountName = this.column('refund_account_name', 'string');
-    refundRequested = this.columnWithDefaultValue<Temporal.ZonedDateTime>('refund_requested', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    //refundTicketNumber = this.optionalColumnWithDefaultValue('refund_ticket_number', 'string');
+    //refundAccountIban = this.column('refund_account_iban', 'string');
+    //refundAccountName = this.column('refund_account_name', 'string');
+    //refundRequested = this.columnWithDefaultValue<Temporal.ZonedDateTime>('refund_requested', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     refundConfirmed = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('refund_confirmed', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    refundConfirmedBy = this.optionalColumnWithDefaultValue('refund_confirmed_by', 'int');
 
     constructor() {
         super('refunds');

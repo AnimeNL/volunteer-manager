@@ -3,7 +3,7 @@
 
 import db, { tEvents, tEventsTeams, tHotels, tHotelsAssignments, tHotelsBookings,
     tHotelsPreferences, tRefunds, tRoles, tTeams, tTrainings, tTrainingsAssignments, tUsers,
-    tUsersEvents } from '@lib/database';
+    tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 /**
  * Retrieves the registration associated with the given `userId` at the given `event`. When no such
@@ -13,6 +13,8 @@ export async function getRegistration(eventId: number, teamId: number, userId: n
     const hotelsJoin = tHotels.forUseInLeftJoin();
     const hotelsPreferencesJoin = tHotelsPreferences.forUseInLeftJoin();
     const refundsJoin = tRefunds.forUseInLeftJoin();
+    const refundsConfirmedUserJoin = tUsers.forUseInLeftJoinAs('rcu');
+    const refundsPreferencesJoin = tUsersEventsPreferencesRefunds.forUseInLeftJoin();
     const trainingsAssignedJoin = tTrainings.forUseInLeftJoinAs('t1');
     const trainingsPreferenceJoin = tTrainings.forUseInLeftJoinAs('t2');
     const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
@@ -34,9 +36,15 @@ export async function getRegistration(eventId: number, teamId: number, userId: n
                 .and(hotelsPreferencesJoin.teamId.equals(tUsersEvents.teamId))
         .leftJoin(hotelsJoin)
             .on(hotelsJoin.hotelId.equals(hotelsPreferencesJoin.hotelId))
+        .leftJoin(refundsPreferencesJoin)
+            .on(refundsPreferencesJoin.userId.equals(tUsersEvents.userId))
+                .and(refundsPreferencesJoin.eventId.equals(tUsersEvents.eventId))
+                .and(refundsPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .leftJoin(refundsJoin)
             .on(refundsJoin.userId.equals(tUsersEvents.userId))
                 .and(refundsJoin.eventId.equals(tUsersEvents.eventId))
+        .leftJoin(refundsConfirmedUserJoin)
+            .on(refundsConfirmedUserJoin.userId.equals(refundsJoin.refundConfirmedBy))
         .leftJoin(trainingsAssignmentsJoin)
             .on(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
             .and(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
@@ -82,11 +90,12 @@ export async function getRegistration(eventId: number, teamId: number, userId: n
                 end: tEvents.refundRequestsEnd,
             },
             refund: {
-                ticketNumber: refundsJoin.refundTicketNumber,
-                accountIban: refundsJoin.refundAccountIban,
-                accountName: refundsJoin.refundAccountName,
-                requested: dbInstance.dateTimeAsString(refundsJoin.refundRequested),
+                ticketNumber: refundsPreferencesJoin.refundTicketNumber,
+                accountIban: refundsPreferencesJoin.refundAccountIban,
+                accountName: refundsPreferencesJoin.refundAccountName,
+                requested: dbInstance.dateTimeAsString(refundsPreferencesJoin.preferenceVersion),
                 confirmed: dbInstance.dateTimeAsString(refundsJoin.refundConfirmed),
+                confirmedBy: refundsConfirmedUserJoin.name,
             },
 
             trainingInformationPublished:

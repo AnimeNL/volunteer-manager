@@ -12,9 +12,9 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { formatDate } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';
 
-import db, { tEvents, tExports, tExportsLogs, tRefunds, tRoles, tTeams, tTrainings,
-    tTrainingsAssignments, tTrainingsExtra, tUsers, tUsersEvents,
-    tUsersEventsPreferencesAvailability, tUsersEventsPreferencesParticipation, tVendors }
+import db, { tEvents, tExports, tExportsLogs, tRoles, tTeams, tTrainings, tTrainingsAssignments,
+    tTrainingsExtra, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
+    tUsersEventsPreferencesParticipation, tUsersEventsPreferencesRefunds, tVendors }
         from '@lib/database';
 
 import { kAvailabilityBuildUpTearDownScheme }
@@ -664,19 +664,21 @@ async function exports(request: Request, props: ActionProps): Promise<Response> 
         refunds = { requests: [] };
 
         const refundRequests = await db.selectFrom(tUsersEvents)
-            .innerJoin(tRefunds)
-                .on(tRefunds.eventId.equals(tUsersEvents.eventId))
-                .and(tRefunds.userId.equals(tUsersEvents.userId))
+            .innerJoin(tUsersEventsPreferencesRefunds)
+                .on(tUsersEventsPreferencesRefunds.eventId.equals(tUsersEvents.eventId))
+                    .and(tUsersEventsPreferencesRefunds.userId.equals(tUsersEvents.userId))
+                    .and(tUsersEventsPreferencesRefunds.preferenceVersionIsLatest.equals(
+                        /* true= */ 1))
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .where(tUsersEvents.eventId.equals(metadata.eventId))
                 .and(tUsersEvents.teamId.equalsIfValue(metadata.teamId))
             .select({
-                date: tRefunds.refundRequested,
+                date: tUsersEventsPreferencesRefunds.preferenceVersion,
                 name: tUsers.name,
-                ticketNumber: tRefunds.refundTicketNumber,
-                accountIban: tRefunds.refundAccountIban,
-                accountName: tRefunds.refundAccountName,
+                ticketNumber: tUsersEventsPreferencesRefunds.refundTicketNumber,
+                accountIban: tUsersEventsPreferencesRefunds.refundAccountIban,
+                accountName: tUsersEventsPreferencesRefunds.refundAccountName,
             })
             .orderBy('name', 'asc')
             .executeSelectMany();

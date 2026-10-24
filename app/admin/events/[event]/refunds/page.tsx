@@ -146,19 +146,20 @@ const eventRefundsDataSource = createDataSource('admin/event/refunds', withConte
             notFound();
 
         const dbInstance = db;
+
         const refundConfirmed = updatedRow.confirmed ? dbInstance.currentZonedDateTime() : null;
+        const refundConfirmedBy = updatedRow.confirmed ? props.user.id : null;
 
         const affectedRows = await dbInstance.insertInto(tRefunds)
             .set({
                 userId: updatedRow.id,
                 eventId: context.event.id,
-                refundTicketNumber: updatedRow.ticketNumber,
-                refundAccountIban: updatedRow.accountIban,
-                refundAccountName: updatedRow.accountName,
                 refundConfirmed,
+                refundConfirmedBy,
             })
             .onConflictDoUpdateSet({
                 refundConfirmed,
+                refundConfirmedBy,
             })
             .executeInsert();
 

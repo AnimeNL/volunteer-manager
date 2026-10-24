@@ -20,6 +20,7 @@ interface RefundConfirmationProps {
 
         requested: string;
         confirmed?: string;
+        confirmedBy?: string;  // TODO: hook this up in the user interface
     };
 }
 
