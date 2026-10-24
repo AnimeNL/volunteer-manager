@@ -12,6 +12,8 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissionsRoles } from '@lib/database';
 
+import { kRootRole } from '../../Root';
+
 import { updateRolePermissions } from '../../PermissionActions';
 
 /**
@@ -24,19 +26,28 @@ export default async function RoleDetailPage(
 
     const { id } = await props.params;
 
-    let role = await db.selectFrom(tPermissionsRoles)
-        .where(tPermissionsRoles.permissionRoleId.equals(id))
-        .select({
-            name: tPermissionsRoles.permissionRoleName,
-            description: tPermissionsRoles.permissionRoleDescription,
-        })
-        .executeSelectNoneOrOne();
+    let role: {
+        name: string;
+        description: string;
+        grants?: string;
+        revokes?: string;
+    } | null = null;
 
-    if (!role && id === 'root') {
+    if (id === 'root') {
         role = {
-            name: 'root',
-            description: 'Role granting all permissions in the system without exceptions.',
+            ...kRootRole,
+            grants: 'root',
         };
+    } else {
+        role = await db.selectFrom(tPermissionsRoles)
+            .where(tPermissionsRoles.permissionRoleId.equals(id))
+            .select({
+                name: tPermissionsRoles.permissionRoleName,
+                description: tPermissionsRoles.permissionRoleDescription,
+                grants: tPermissionsRoles.permissionRoleGrants,
+                revokes: tPermissionsRoles.permissionRoleRevokes,
+            })
+            .executeSelectNoneOrOne();
     }
 
     if (!role)
@@ -59,7 +70,8 @@ export default async function RoleDetailPage(
                 </SectionIntroduction>
             </Section>
             <Section back="Back to roles" tabs noHeader>
-                <RolePermissionSelector access={access} action={action} readOnly={ id === 'root' }
+                <RolePermissionSelector access={access} action={action} grants={role.grants}
+                                        readOnly={ id === 'root' } revokes={role.revokes}
                                         roleId={id} />
             </Section>
         </>

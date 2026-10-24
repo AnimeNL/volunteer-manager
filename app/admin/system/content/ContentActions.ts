@@ -34,7 +34,8 @@ export async function createContent(scope: ContentScope, linkPrefix: string, row
         if (!data.path || !data.title)
             return { success: false, error: 'The content title and path must be included' };
 
-        const existingContent = await db.selectFrom(tContent)
+        const dbInstance = db;
+        const existingContent = await dbInstance.selectFrom(tContent)
             .where(tContent.eventId.equals(scope.eventId))
                 .and(tContent.teamId.equals(scope.teamId))
                 .and(tContent.contentType.equals(scope.type))
@@ -46,7 +47,6 @@ export async function createContent(scope: ContentScope, linkPrefix: string, row
         if (!!existingContent)
             return { success: false, error: 'There already exists a page with that path' };
 
-        const dbInstance = db;
         const insertId = await dbInstance.insertInto(tContent)
             .set({
                 eventId: scope.eventId,
@@ -135,7 +135,8 @@ export async function updateContent(scope: ContentScope, id: number, row: unknow
     return executeServerAction(row, kUpdateContentData, async (data, props) => {
         await authorizeContentScope(props.authenticationContext, scope);
 
-        const existingContent = await db.selectFrom(tContent)
+        const dbInstance = db;
+        const existingContent = await dbInstance.selectFrom(tContent)
             .where(tContent.contentId.equals(id))
                 .and(tContent.eventId.equals(scope.eventId))
                 .and(tContent.teamId.equals(scope.teamId))
@@ -152,7 +153,7 @@ export async function updateContent(scope: ContentScope, id: number, row: unknow
             if (existingContent.protected)
                 return { success: false, error: 'You cannot change the path of protected content' };
 
-            const duplicatedContent = await db.selectFrom(tContent)
+            const duplicatedContent = await dbInstance.selectFrom(tContent)
                 .where(tContent.eventId.equals(scope.eventId))
                     .and(tContent.teamId.equals(scope.teamId))
                     .and(tContent.contentType.equals(scope.type))
@@ -165,14 +166,14 @@ export async function updateContent(scope: ContentScope, id: number, row: unknow
                 return { success: false, error: 'There already exists a page with that path' };
         }
 
-        const affectedRows = await db.update(tContent)
+        const affectedRows = await dbInstance.update(tContent)
             .set({
                 contentPath: contentPath,
                 contentCategoryId: data.categoryId ?? undefined,
                 contentTitle: data.title,
                 content: data.content ?? '',
                 revisionAuthorId: props.user!.id,
-                revisionDate: db.currentZonedDateTime(),
+                revisionDate: dbInstance.currentZonedDateTime(),
             })
             .where(tContent.contentId.equals(id))
                 .and(tContent.eventId.equals(scope.eventId))

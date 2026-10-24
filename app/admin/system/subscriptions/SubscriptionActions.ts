@@ -10,12 +10,15 @@ import MultipleStopIcon from '@mui/icons-material/MultipleStop';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
+import type { SubscriptionType } from '@lib/subscriptions';
 import { LogBuilder } from '@lib/log/index';
-import { Publish, kSubscriptionType, type SubscriptionType } from '@lib/subscriptions';
+import { Publish } from '@lib/subscriptions';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { kTargetToTypeId } from '@lib/subscriptions/drivers/HelpDriver';
 import db, { tSubscriptions, tTeams } from '@lib/database';
+
+import { kSubscriptionType } from '@lib/subscriptions';
+import { kTargetToTypeId } from '@lib/subscriptions/drivers/HelpDriver';
 
 /**
  * Server action that will publish a test notification to all users who have subscribed to test
@@ -59,7 +62,8 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
 
         const subscriptionTypes = await getSubscriptionTypes();
 
-        const activeSubscriptions = await db.selectFrom(tSubscriptions)
+        const dbInstance = db;
+        const activeSubscriptions = await dbInstance.selectFrom(tSubscriptions)
             .where(tSubscriptions.subscriptionUserId.equals(userId))
             .select({
                 id: tSubscriptions.subscriptionId,
@@ -71,7 +75,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
             })
             .executeSelectMany();
 
-        await db.transaction(async () => {
+        await dbInstance.transaction(async () => {
             const consultedActiveSubscriptions: Set<number> = new Set();
 
             for (const subscriptionType of subscriptionTypes) {
@@ -93,7 +97,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
 
                 if (email === 0 && sms === 0 && whatsapp === 0) {
                     if (existing) {
-                        await db.deleteFrom(tSubscriptions)
+                        await dbInstance.deleteFrom(tSubscriptions)
                             .where(tSubscriptions.subscriptionId.equals(existing.id))
                             .executeDelete();
                     }
@@ -102,7 +106,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                         if (existing.channelEmail !== email || existing.channelSms !== sms ||
                                 existing.channelWhatsapp !== whatsapp)
                         {
-                            await db.update(tSubscriptions)
+                            await dbInstance.update(tSubscriptions)
                                 .set({
                                     subscriptionChannelEmail: email,
                                     subscriptionChannelSms: sms,
@@ -112,7 +116,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                                 .executeUpdate();
                         }
                     } else {
-                        await db.insertInto(tSubscriptions)
+                        await dbInstance.insertInto(tSubscriptions)
                             .set({
                                 subscriptionUserId: userId,
                                 subscriptionType: subscriptionType.type,
@@ -131,7 +135,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
                 if (consultedActiveSubscriptions.has(subscription.id))
                     continue;
 
-                await db.deleteFrom(tSubscriptions)
+                await dbInstance.deleteFrom(tSubscriptions)
                     .where(tSubscriptions.subscriptionId.equals(subscription.id))
                     .executeDelete();
             }

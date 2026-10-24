@@ -41,8 +41,10 @@ export async function readExampleMessages(userId?: number): Promise<ExampleMessa
  */
 export async function writeExampleMessages(messages: ExampleMessage[]) {
     messages = messages.filter(message => kValidMessage.safeParse(message).success);
-    return writeSetting(
+    await writeSetting(
         'ai-example-messages', !!messages.length ? messages : undefined);
+
+    return messages;
 }
 
 /**

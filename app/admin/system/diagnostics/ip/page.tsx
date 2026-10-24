@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
+
 import HistoryIcon from '@mui/icons-material/History';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -9,7 +11,6 @@ import ListItemText from '@mui/material/ListItemText';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
-import Link from '@app/LinkProxy';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -27,14 +28,15 @@ export default async function IpOverviewPage() {
 
     const oneMonthAgo = Temporal.Now.zonedDateTimeISO().subtract({ months: 1 });
 
-    const activeIps = await db.selectFrom(tLogs)
+    const dbInstance = db;
+    const activeIps = await dbInstance.selectFrom(tLogs)
         .where(tLogs.logDate.greaterOrEqual(oneMonthAgo))
             .and(tLogs.logDeleted.isNull())
             .and(tLogs.logSourceIpAddress.isNotNull())
             .and(tLogs.logSourceIpAddress.notEquals('::1'))
         .select({
             ipAddress: tLogs.logSourceIpAddress,
-            count: db.count(tLogs.logId),
+            count: dbInstance.count(tLogs.logId),
         })
         .groupBy(tLogs.logSourceIpAddress)
             .orderBy('count', 'desc')

@@ -7,11 +7,11 @@ import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
@@ -46,9 +46,7 @@ export default async function CommunicationAiPage() {
     const settings = await readSettings([
         'ai-communication-personality-prompt',
         'ai-communication-system-prompt',
-        'ai-duty-book-summary-prompt',
         'ai-example-messages',
-        'ai-incident-summary-prompt',
     ]);
 
     const exampleMessages = settings['ai-example-messages'] || [ /* no example messages */ ];
@@ -70,7 +68,7 @@ export default async function CommunicationAiPage() {
     let defaultPersonalityAction: React.ReactNode;
     if (!!settings['ai-communication-personality-prompt']) {
         const personalityMarkdown =
-            <Markdown content={settings['ai-communication-personality-prompt']} variant="body2" />
+            <Markdown content={settings['ai-communication-personality-prompt']} variant="body2" />;
 
         defaultPersonalityAction =
             <PersonalityDialogAction personality={personalityMarkdown} />;

@@ -1,15 +1,12 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
-
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 
 import type { ServerAction } from '@lib/serverAction';
 import { AccessControl } from '@lib/auth/AccessControl';
 import { PermissionSelector } from './PermissionSelector';
-import db, { tPermissionsRoles } from '@lib/database';
 
 /**
  * Props accepted by the <RolePermissionSelector> component.
@@ -26,9 +23,19 @@ interface RolePermissionSelectorProps {
     action: ServerAction;
 
     /**
+     * Comma-separated list of permissions granted to this role.
+     */
+    grants?: string;
+
+    /**
      * Whether the permissions should be displayed as read-only.
      */
     readOnly?: boolean;
+
+    /**
+     * Comma-separated list of permissions revoked from this role.
+     */
+    revokes?: string;
 
     /**
      * Unique ID of the role whose permissions are being configured.
@@ -40,36 +47,13 @@ interface RolePermissionSelectorProps {
  * The <RolePermissionSelector> component displays the permissions that have been granted to the
  * given role, as indicated in the `props`. The settings can be updated in real time.
  */
-export async function RolePermissionSelector(props: RolePermissionSelectorProps) {
-    let roleConfiguration: {
-        grants?: string | null;
-        revokes?: string | null;
-    } | null = null;
-
-    if (props.roleId === 'root') {
-        roleConfiguration = {
-            grants: 'root',
-            revokes: null,
-        };
-    } else {
-        roleConfiguration = await db.selectFrom(tPermissionsRoles)
-            .where(tPermissionsRoles.permissionRoleId.equals(props.roleId))
-            .select({
-                grants: tPermissionsRoles.permissionRoleGrants,
-                revokes: tPermissionsRoles.permissionRoleRevokes,
-            })
-            .executeSelectNoneOrOne();
-
-        if (!roleConfiguration)
-            notFound();
-    }
+export function RolePermissionSelector(props: RolePermissionSelectorProps) {
+    const isRoot = props.roleId === 'root';
 
     const targetAccessControl = new AccessControl({
-        grants: roleConfiguration.grants ?? undefined,
-        revokes: roleConfiguration.revokes ?? undefined,
+        grants: isRoot ? 'root' : props.grants,
+        revokes: isRoot ? undefined : props.revokes,
     });
-
-    const isRoot = props.roleId === 'root';
 
     return (
         <PermissionSelector
@@ -80,7 +64,8 @@ export async function RolePermissionSelector(props: RolePermissionSelectorProps)
             { isRoot &&
                 <Grid size={{ xs: 12 }}>
                     <Alert severity="info" variant="outlined">
-                        <strong>root</strong> implicitly grants all permissions and cannot be modified.
+                        <strong>root</strong> implicitly grants all permissions and cannot be
+                        modified.
                     </Alert>
                 </Grid> }
         </PermissionSelector>

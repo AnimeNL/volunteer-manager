@@ -10,8 +10,8 @@ import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptValidator } from '@lib/ai/PromptValidator';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
-import { readExampleMessages, writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { requireAuthentication } from '@lib/requireAuthentication';
+import { writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
@@ -98,7 +98,7 @@ export async function updateExampleMessages(formData: unknown) {
     return executeServerAction(formData, kUpdateExampleMessagesData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
 
-        await writeExampleMessages(data.exampleMessages as string[]);
+        const exampleMessages = await writeExampleMessages(data.exampleMessages as string[]);
 
         const prompt = PromptFactory.createById('personality-description-prompt');
         if (!prompt)
@@ -106,7 +106,7 @@ export async function updateExampleMessages(formData: unknown) {
 
         const executor = PromptExecutor.forPrompt(prompt);
         const personality = await executor.execute({
-            input: JSON.stringify(await readExampleMessages()),
+            input: JSON.stringify(exampleMessages),
         });
 
         if (!personality.success)
