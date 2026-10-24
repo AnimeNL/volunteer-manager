@@ -1,11 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
+import HistoryIcon from '@mui/icons-material/History';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 import Link from '@app/LinkProxy';
@@ -52,7 +53,7 @@ export default async function IpOverviewPage() {
                     Insights into the IP addresses most active on the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
-            <Section title="Recent activity">
+            <Section icon={ <HistoryIcon /> } title="Recent activity">
                 <List dense disablePadding>
                     {activeIps.map(({ ipAddress, count }, index) => (
                         <ListItemButton key={ipAddress!} component={Link} disableGutters

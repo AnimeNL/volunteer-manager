@@ -41,7 +41,7 @@ interface KeyValueListProps {
         /**
          * Key, i.e. the label, to display explaining what the value is.
          */
-        key: string;
+        key: React.ReactNode;
 
         /**
          * Where to align the key, i.e. the label.
@@ -99,7 +99,8 @@ interface KeyValueListProps {
  */
 export function KeyValueList(props: KeyValueListProps) {
     const { isMobile } = useContext(AdminClientContext);
-    const [ activeItem, setActiveItem ] = useState<{ key: string; description: string } | null>(null);
+    const [ activeItem, setActiveItem ] =
+        useState<{ key: React.ReactNode; description: string } | null>(null);
 
     const handleCloseDialog = useCallback(() => setActiveItem(null), []);
 
@@ -113,7 +114,8 @@ export function KeyValueList(props: KeyValueListProps) {
                                 ? { display: 'flex', alignItems: 'center' }
                                 : undefined
                         }>
-                            <Typography variant="subtitle2" color="textSecondary" noWrap>
+                            <Typography component="div" variant="subtitle2" color="textSecondary"
+                                        noWrap>
                                 {item.key}
                                 { !!item.description && (
                                     isMobile ? (

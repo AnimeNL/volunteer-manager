@@ -11,7 +11,6 @@ import Tooltip from '@mui/material/Tooltip';
 import { LogsDataTable } from './LogsDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -52,8 +51,7 @@ export default async function SystemLogsPage() {
                     A chronologic record of actions committed within the Volunteer Manager.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
-                <SectionTabs />
+            <Section tabs noHeader>
                 <LogsDataTable />
             </Section>
         </>

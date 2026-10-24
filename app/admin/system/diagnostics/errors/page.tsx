@@ -10,10 +10,9 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
 import { IssueTypeCell, LocalBuildCell } from './IssueTypeCell';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { SectionTabs } from '@app/admin/components/SectionTabs';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
 import { kErrorSource } from '@lib/database/Types';
@@ -211,8 +210,7 @@ export default async function ErrorLogsPage() {
                     Issues observed by the Volunteer Manager, both client and server-side.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
-                <SectionTabs />
+            <Section tabs noHeader>
                 <DataTable columns={columns}
                            source={errorLogsDataSource}
                            defaultSort={{ field: 'date', sort: 'desc' }}

@@ -112,4 +112,5 @@ export default async function DatabaseErrorLogPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn('Database error', 'System logs', 'Diagnostics', 'System');
+    createGenerateMetadataFn(
+        { param: 'id', prefix: 'Database error #' }, 'System logs', 'Diagnostics', 'System');

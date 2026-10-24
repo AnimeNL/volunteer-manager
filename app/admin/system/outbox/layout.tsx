@@ -20,17 +20,20 @@ export default async function OutboxLayout(props: LayoutProps<'/admin/system/out
             {
                 Icon: MailOutlinedIcon,
                 label: 'E-mail',
-                url: '/admin/system/outbox/email'
+                url: '/admin/system/outbox/email',
+                urlMatchMode: 'prefix',
             },
             {
                 Icon: TextsmsOutlinedIcon,
                 label: 'SMS',
                 url: '/admin/system/outbox/sms',
+                urlMatchMode: 'prefix',
             },
             {
                 Icon: WhatsAppIcon,
                 label: 'WhatsApp',
-                url: '/admin/system/outbox/whatsapp'
+                url: '/admin/system/outbox/whatsapp',
+                urlMatchMode: 'prefix',
             },
         ]}>
             {props.children}

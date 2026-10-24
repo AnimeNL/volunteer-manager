@@ -5,19 +5,15 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { SelectElement } from 'react-hook-form-mui';
+import { SelectElement } from '@proxy/react-hook-form-mui';
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 
 import type { ServerAction } from '@lib/serverAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../GenerateButton';
 import { MarkdownContainer } from '@app/components/Markdown/MarkdownContainer';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Props accepted by the <PersonalisedAdviceExample> component.
@@ -99,20 +95,12 @@ export function PersonalisedAdviceExample(props: PersonalisedAdviceExampleProps)
                                    sx={{ backgroundColor: 'background.paper' }} />
                 </Grid>
             </FormGrid>
-            { !!generatedMessage &&
-                <Dialog open onClose={handleClose} fullWidth>
-                    <DialogTitle>
-                        Del a Rie Advies says…
-                    </DialogTitle>
-                    <DialogContent sx={{ whiteSpace: 'pre-line' }}>
-                        <MarkdownContainer variant="body2">
-                            {generatedMessage}
-                        </MarkdownContainer>
-                    </DialogContent>
-                    <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
-                        <Button onClick={handleClose} variant="text">Close</Button>
-                    </DialogActions>
-                </Dialog> }
+            <ResponsiveDialog open={!!generatedMessage} onClose={handleClose}
+                              title="Del a Rie Advies says…">
+                <MarkdownContainer variant="body2">
+                    {generatedMessage}
+                </MarkdownContainer>
+            </ResponsiveDialog>
         </>
     );
 }

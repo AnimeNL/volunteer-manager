@@ -5,11 +5,6 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 
 import type { ServerAction } from '@lib/serverAction';
@@ -17,6 +12,7 @@ import { FormGrid } from '@app/admin/components/FormGrid';
 import { GenerateButton } from '../../GenerateButton';
 import { HiddenInput } from '@components/HiddenInput';
 import { MarkdownContainer } from '@components/Markdown/MarkdownContainer';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Props accepted by the <Example> component.
@@ -63,20 +59,12 @@ export function Example(props: ExampleProps) {
                         </Grid> }>
                 <HiddenInput name="id" />
             </FormGrid>
-            { !!generatedText &&
-                <Dialog open onClose={handleClose} fullWidth>
-                    <DialogTitle>
-                        Generated text
-                    </DialogTitle>
-                    <DialogContent>
-                        <MarkdownContainer variant="body2">
-                            {generatedText}
-                        </MarkdownContainer>
-                    </DialogContent>
-                    <DialogActions sx={{ pt: 0, mr: 2, mb: 2 }}>
-                        <Button onClick={handleClose} variant="text">Close</Button>
-                    </DialogActions>
-                </Dialog> }
+            <ResponsiveDialog open={!!generatedText} onClose={handleClose}
+                              title="Generated text">
+                <MarkdownContainer variant="body2">
+                    {generatedText}
+                </MarkdownContainer>
+            </ResponsiveDialog>
         </>
     );
 }

@@ -8,10 +8,11 @@ import { ContentCreate } from './ContentCreate';
 import { ContentList } from './ContentList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
-import { createContent } from './ContentActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from './ContentScope';
 import { requireAuthentication } from '@lib/requireAuthentication';
+
+import { createContent } from './ContentActions';
 
 /**
  * The <ContentPage> component lists the global content, which then, in turn, may be edited and
@@ -49,4 +50,4 @@ export default async function ContentPage() {
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Content', 'System');
+export const generateMetadata = createGenerateMetadataFn('Content');

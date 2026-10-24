@@ -7,6 +7,7 @@ import { useContext } from 'react';
 
 import { SelectElement, TextFieldElement, useForm } from '@proxy/react-hook-form-mui';
 
+import AddTaskIcon from '@mui/icons-material/AddTask';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
@@ -15,6 +16,7 @@ import Stack from '@mui/material/Stack';
 
 import { FormProvider, FormProviderContext } from '@components/FormProvider';
 import { Section } from '@app/admin/components/Section';
+
 import { createSchedulerTask } from './SchedulerActions';
 
 /**
@@ -121,7 +123,7 @@ export function SchedulerCreateTaskPanel() {
     const selectedTask = form.watch('task');
 
     return (
-        <Section title="Schedule a new task">
+        <Section icon={ <AddTaskIcon /> } title="Schedule a new task">
             <FormProvider action={createSchedulerTask} form={form}>
                 <Grid container>
                     <Grid size={{ xs: 12 }}>
