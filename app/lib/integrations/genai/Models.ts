@@ -14,18 +14,36 @@ type PickStringLiterals<T> = T extends string
 /**
  * Type that lists all the models that are supported by the @google/genai library.
  */
-type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
-    | 'gemini-3.1-flash-lite-image';
+type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>;
 
 /**
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
-    'gemini-3.8-flash': {  // EOL: Not announced
+    'gemini-flash-latest': {
+        name: 'Gemini Flash (latest, non-enterprise only)',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/migrate',
+    },
+    'gemini-flash-lite-latest': {
+        name: 'Gemini Flash Lite (latest, non-enterprise only)',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/migrate',
+    },
+    'gemini-pro-latest': {
+        name: 'Gemini Pro (latest, non-enterprise only)',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/migrate',
+    },
+
+    // ---------------------------------------------------------------------------------------------
+
+    'gemini-4-argon': {  // EOL: October 13, 2027 or later
+        name: 'Gemini 4 Argon',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-argon',
+    },
+    'gemini-3.8-flash': {  // EOL: September 2, 2027 or later
         name: 'Gemini 3.8 Flash',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-8-flash',
     },
-    'gemini-3.7-flash': {  // EOL: Not announced
+    'gemini-3.7-flash': {  // EOL: January 28, 2027
         name: 'Gemini 3.7 Flash',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-7-flash',
     },
@@ -33,7 +51,7 @@ export const kAiSupportedModels = {
         name: 'Gemini 3.1 Flash (Nano Banana)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-image',
     },
-    'gemini-3.1-flash-lite-image': {  // EOL: Not announced
+    'gemini-3.1-flash-lite-image': {  // EOL: June 28, 2027 or later
         name: 'Gemini 3.1 Flash (Nano Banana Lite)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-lite-image',
     },
@@ -49,6 +67,11 @@ export const kAiSupportedModels = {
         name: 'Gemini 3 Pro (Nano Banana Pro)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-pro-image',
     },
+    'gemini-nano-banana-2.1': {  // EOL: Not announced
+        name: 'Gemini Nano Banana 2.1',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/nano-banana-2-1',
+    },
+
 } as const satisfies Partial<Record<LibrarySupportedAiModels, { name: string, url: string }>>;
 
 /**
