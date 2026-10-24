@@ -26,21 +26,22 @@ interface TestMessageButtonProps {
  * address of the signed in user.
  */
 export function TestMessageButton(props: TestMessageButtonProps) {
-    const [ state, setState ] = useState<'idle' | 'sending' | 'sent'>('idle');
+    const [ state, setState ] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
     const handleSendMessage = useCallback(async () => {
         setState('sending');
         try {
-            await props.action({ /* no arguments */ });
+            const result = await props.action({ /* no arguments */ });
+            setState(result.success ? 'sent' : 'error');
         } catch (error: any) {
             console.warn('Exception while sending a message:', error);
-        } finally {
-            setState('sent');
+            setState('error');
         }
     }, [ props.action ]);
 
     return (
         <Button startIcon={ state === 'sent' ? <MarkEmailReadOutlinedIcon /> : <SendIcon /> }
+                color={ state === 'error' ? 'error' : 'primary' }
                 size="small" variant="contained" loading={ state === 'sending' }
                 disabled={ state === 'sent' } onClick={handleSendMessage}>
             { state !== 'sent' && 'Send' }

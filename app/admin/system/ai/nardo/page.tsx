@@ -5,7 +5,6 @@ import { TextareaAutosizeElement } from '@components/proxy/react-hook-form-mui';
 
 import Grid from '@mui/material/Grid';
 import GroupsIcon from '@mui/icons-material/Groups';
-import Typography from '@mui/material/Typography';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { HiddenInput } from '@components/HiddenInput';
@@ -97,11 +96,6 @@ export default async function NardoAiPage() {
             </Section>
             <Section tabs noHeader>
                 <FormGrid action={actions.updatePrompt} defaultValues={defaultValues}>
-                     <Grid size={{ xs: 12 }} sx={{ my: -1 }}>
-                        <Typography variant="h6">
-                            Model selection
-                        </Typography>
-                    </Grid>
                     <Grid size={{ xs: 12 }}>
                         <TokenOverviewAlert prompt={personalisedAdvicePrompt} />
                         <HiddenInput name="id" />

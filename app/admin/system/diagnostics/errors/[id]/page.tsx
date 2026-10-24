@@ -41,6 +41,9 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     });
 
     const errorId = parseInt((await props.params).id, 10);
+    if (Number.isNaN(errorId))
+        notFound();
+
     const usersJoin = tUsers.forUseInLeftJoin();
 
     const dbInstance = db;
@@ -111,7 +114,8 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
             <Section tabs back="Back to errors" noHeader>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                      <Typography variant="h6" noWrap>
-                        <LocalDateTime dateTime={date} format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />
+                        <LocalDateTime dateTime={date}
+                                       format="dddd, MMMM Do, YYYY [at] HH:mm:ss" />
                      </Typography>
                      {severityChip}
                 </Stack>

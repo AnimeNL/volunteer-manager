@@ -41,12 +41,16 @@ export async function executeModelPlayground(formData: unknown) {
 
         switch (data.model) {
             case 'image': {
+                const attachments = data.attachment
+                    ? await Promise.all(data.attachment.map(async entry => ({
+                        bytes: await entry.bytes(),
+                        mimeType: entry.type,
+                    })))
+                    : undefined;
+
                 const response = await client.safeGenerateImage({
                     aspectRatio: '4:3',
-                    attachments: data.attachment?.map(entry => ({
-                        bytes: entry.bytes(),
-                        mimeType: entry.type,
-                    })),
+                    attachments,
                     prompt: data.prompt,
                 });
 

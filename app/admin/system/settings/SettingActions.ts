@@ -32,6 +32,7 @@ const kNumberSettings = new Set([
     'schedule-search-result-limit',
     'schedule-time-offset-seconds',
     'schedule-time-step-minutes',
+    'system-role-account-user-id',
 ]);
 
 /**

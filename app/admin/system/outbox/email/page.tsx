@@ -93,8 +93,10 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
             .where(
                 tOutboxEmail.outboxSender.containsInsensitiveIfValue(params.search).or(
                 tOutboxEmail.outboxTo.containsInsensitiveIfValue(params.search).or(
-                tOutboxEmail.outboxSubject.containsInsensitiveIfValue(params.search)
-            )))
+                tOutboxEmail.outboxSubject.containsInsensitiveIfValue(params.search).or(
+                usersJoinForRecipient.name.containsInsensitiveIfValue(params.search).or(
+                usersJoinForSender.name.containsInsensitiveIfValue(params.search)
+            )))))
             .select({
                 id: tOutboxEmail.outboxEmailId,
                 date: dbInstance.dateTimeAsString(tOutboxEmail.outboxTimestamp),

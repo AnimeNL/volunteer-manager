@@ -11,8 +11,8 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tLogsFormat } from '@lib/database';
 
 import * as cells from './MessageFormatCells';
@@ -20,7 +20,9 @@ import * as cells from './MessageFormatCells';
 /**
  * Data source through which the log message formatting configuration can be retrieved.
  */
-const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/messages', withRowModel({
+const logsFormatDataSource = createDataSource(
+    'admin/system/diagnostics/logs/messages', withRowModel(
+{
     /**
      * The unique identifier (log type) of this row.
      */
@@ -129,6 +131,10 @@ const logsFormatDataSource = createDataSource('admin/system/diagnostics/logs/mes
         LogBuilder.for('UpdateLogMessageFormat')
             .withInitiatorUser(props.user)
             .withDiff({
+                active: {
+                    before: previousRow.active,
+                    after: updatedRow.active,
+                },
                 format: {
                     before: previousRow.format!,
                     after: updatedRow.format!,
@@ -239,14 +245,13 @@ export default async function SystemLogsMessageFormattingPage() {
                            listViewProps={{
                                primaryField: 'id',
                                secondaryField: 'format',
-                               startComponent: cells.RecordingCell,
+                               startComponent: cells.VisibilityCell,
                                startComponentContext: { field: 'visible' },
                            }} />
             </Section>
         </>
     );
 }
-
 
 export const generateMetadata =
     createGenerateMetadataFn('Message formatting', 'System logs', 'Diagnostics', 'System');

@@ -12,9 +12,9 @@ import { DataTable, createDataSource, withContext, withRowModel, type Column, ty
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from '../formatBytes';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kProtectedCaches } from './../ProtectedCaches';
 
@@ -72,9 +72,14 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
     accessCount: z.number(),
 
     /**
-     * Time since last access.
+     * Time since last access, in milliseconds.
      */
-    lastAccess: z.string(),
+    lastAccess: z.number(),
+
+    /**
+     * Formatted time since last access.
+     */
+    lastAccessLabel: z.string(),
 
     /**
      * Size in bytes.
@@ -108,6 +113,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
     async list(params, props, context) {
         const cache = Cache.getInstance(context.cacheName as any);
         const rows: any[] = [];
+        const search = params.search?.toLowerCase();
 
         for (const entryParams of cache.params()) {
             const metadata = (cache as any).getMetadata(entryParams);
@@ -115,14 +121,19 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
                 continue;
 
             const serialized = serializeParams(entryParams);
+            const paramsLabel = serialized || '(no key)';
+            if (search && !paramsLabel.toLowerCase().includes(search))
+                continue;
+
             const timeSinceLastAccess = performance.now() - metadata.lastAccessTime;
 
             rows.push({
                 id: serialized || '__default__',
-                params: serialized || '(no key)',
+                params: paramsLabel,
                 rawParams: entryParams,
                 accessCount: metadata.accessCount,
-                lastAccess: formatTimeSince(timeSinceLastAccess),
+                lastAccess: timeSinceLastAccess,
+                lastAccessLabel: formatTimeSince(timeSinceLastAccess),
                 size: metadata.bytes,
                 sizeLabel: formatBytes(metadata.bytes),
                 protected: kProtectedCaches.has(context.cacheName),
@@ -188,6 +199,11 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
             field: 'lastAccess',
             headerName: 'Last accessed',
             width: 180,
+
+            template: 'text',
+            templateProps: {
+                field: 'lastAccessLabel',
+            },
         },
         {
             field: 'size',
@@ -223,7 +239,7 @@ export default async function CacheInspectionPage(props: PageProps<'/admin/syste
                            listViewProps={{
                                primaryField: 'params',
                                secondaryTemplate:
-                                   '{sizeLabel}, last access (x{accessCount}): {lastAccess}'
+                                   '{sizeLabel}, last access (x{accessCount}): {lastAccessLabel}'
                            }} />
             </Section>
         </>

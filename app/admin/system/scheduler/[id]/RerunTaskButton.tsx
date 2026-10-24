@@ -38,6 +38,7 @@ export function RerunTaskButton(props: RerunTaskButtonProps) {
     const handleRetry = useCallback(async () => {
         setChildTaskId(undefined);
         setDisabled(false);
+        setError(false);
         setLoading(true);
         try {
             const result = await props.repeatFn();

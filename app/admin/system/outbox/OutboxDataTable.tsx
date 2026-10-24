@@ -3,14 +3,14 @@
 
 import { z } from 'zod/v4';
 
+import type { DataSourceInterface } from '@app/admin/components/DataTable/DataSourceInterface';
 import { DataTable, createDataSource, withContext, withRowModel, type Column }
     from '@app/admin/components/DataTable';
-import type { DataSourceInterface } from '@app/admin/components/DataTable/DataSourceInterface';
+import { MessageDeliveredCell } from './OutboxRowComponents';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
 
-import { type TwilioOutboxType, kTwilioOutboxType } from '@lib/database/Types';
-import { MessageDeliveredCell } from './OutboxRowComponents';
+import { kTwilioOutboxType, type TwilioOutboxType } from '@lib/database/Types';
 
 /**
  * Data source through which the Twilio outbox lists can be populated.
@@ -37,8 +37,8 @@ const twilioDataSource = createDataSource('admin/system/outbox/twilio', withCont
      * when we haven't received acknowledgement from Twilio yet.
      */
     sender: z.object({
+        id: z.number().optional(),
         name: z.string(),
-        userId: z.number().optional(),
     }),
 
     /**

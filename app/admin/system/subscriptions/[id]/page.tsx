@@ -24,9 +24,10 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getSubscriptionTypes, updateSubscriptions } from '../SubscriptionActions';
-import { kSubscriptionType } from '@lib/database/Types';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tSubscriptions, tUsers } from '@lib/database';
+
+import { kSubscriptionType } from '@lib/database/Types';
 
 /**
  * Available channels for subscriptions to be delivered through.
@@ -56,13 +57,17 @@ export default async function AccountSubscriptionPage(
 
     const params = await props.params;
 
+    const userId = parseInt(params.id, /* radix= */ 10);
+    if (Number.isNaN(userId))
+        notFound();
+
     const subscriptionsJoin = tSubscriptions.forUseInLeftJoin();
 
     const dbInstance = db;
     const user = await dbInstance.selectFrom(tUsers)
         .leftJoin(subscriptionsJoin)
             .on(subscriptionsJoin.subscriptionUserId.equals(tUsers.userId))
-        .where(tUsers.userId.equals(parseInt(params.id, /* radix= */ 10)))
+        .where(tUsers.userId.equals(userId))
         .select({
             id: tUsers.userId,
             name: tUsers.name,
@@ -80,6 +85,7 @@ export default async function AccountSubscriptionPage(
                 },
             }),
         })
+        .groupBy(tUsers.userId)
         .executeSelectNoneOrOne();
 
     if (!user)

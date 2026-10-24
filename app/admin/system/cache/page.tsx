@@ -10,13 +10,12 @@ import { Cache } from '@lib/cache';
 import { CacheTypeCell, CacheTypeHeader } from './CacheCells';
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatBytes } from './formatBytes';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kProtectedCaches } from './ProtectedCaches';
 
@@ -73,24 +72,28 @@ const cacheDataSource = createDataSource('admin/system/cache', withRowModel({
     },
 
     async list(params, props) {
-        const rows = Cache.getAll().map(cache => {
-            let entriesCount = 0;
-            let sizeInBytes = 0;
+        const search = params.search?.toLowerCase();
 
-            for (const metadata of cache.metadata()) {
-                entriesCount++;
-                sizeInBytes += metadata.bytes;
-            }
-            return {
-                id: cache.descriptor.name,
-                name: cache.descriptor.name,
-                entries: entriesCount,
-                size: sizeInBytes,
-                sizeLabel: formatBytes(sizeInBytes),
-                type: cache.descriptor.type,
-                protected: kProtectedCaches.has(cache.descriptor.name),
-            };
-        });
+        const rows = Cache.getAll()
+            .filter(cache => !search || cache.descriptor.name.toLowerCase().includes(search))
+            .map(cache => {
+                let entriesCount = 0;
+                let sizeInBytes = 0;
+
+                for (const metadata of cache.metadata()) {
+                    entriesCount++;
+                    sizeInBytes += metadata.bytes;
+                }
+                return {
+                    id: cache.descriptor.name,
+                    name: cache.descriptor.name,
+                    entries: entriesCount,
+                    size: sizeInBytes,
+                    sizeLabel: formatBytes(sizeInBytes),
+                    type: cache.descriptor.type,
+                    protected: kProtectedCaches.has(cache.descriptor.name),
+                };
+            });
 
         const sortField = params.sort.field;
         const sortDirection = params.sort.direction;

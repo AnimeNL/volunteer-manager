@@ -48,7 +48,7 @@ export default async function AiFeaturesPromptPage(
 
     const promptInstances = Object.values(prompts).map(promptConstructor => new promptConstructor);
     const prompt = promptInstances.find(promptInstance => promptInstance.metadata.id === promptId);
-    if (!prompt || 'hidden' in prompt.metadata)
+    if (!prompt || 'hidden' in prompt.metadata || prompt.metadata.type !== 'Feature')
         notFound();
 
     let settingComplexity: Setting | undefined;
@@ -60,7 +60,7 @@ export default async function AiFeaturesPromptPage(
         'ai-setting-text-model-low',
         'ai-setting-text-model-medium',
         prompt.metadata.settings.prompt,
-        settingComplexity!,
+        ...(settingComplexity ? [ settingComplexity ] : [ ]),
     ]);
 
     const complexityOptions: { id: TextGenerationComplexity, label: string }[] = [
@@ -81,7 +81,7 @@ export default async function AiFeaturesPromptPage(
     const defaultValues = {
         id: prompt.metadata.id,
         prompt: settings[prompt.metadata.settings.prompt],
-        complexity: settings[settingComplexity!],
+        complexity: settingComplexity ? settings[settingComplexity] : undefined,
     };
 
     return (

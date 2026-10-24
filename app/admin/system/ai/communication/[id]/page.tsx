@@ -35,7 +35,7 @@ export default async function CommunicationPromptAiPage(
 
     const promptInstances = Object.values(prompts).map(promptConstructor => new promptConstructor);
     const prompt = promptInstances.find(promptInstance => promptInstance.metadata.id === promptId);
-    if (!prompt || 'hidden' in prompt.metadata)
+    if (!prompt || 'hidden' in prompt.metadata || prompt.metadata.type !== 'Communication')
         notFound();
 
     const settings = await readSettings([

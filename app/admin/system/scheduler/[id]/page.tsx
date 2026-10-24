@@ -1,13 +1,16 @@
+// Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
+// Use of this source code is governed by a MIT license that can be found in the LICENSE file.
+
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import LoopIcon from '@mui/icons-material/Loop';
 import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
+import Stack from '@mui/material/Stack';
 import TaskOutlinedIcon from '@mui/icons-material/TaskOutlined';
+import Typography from '@mui/material/Typography';
 
 import { DetailedLogs } from '../../outbox/email/[id]/DetailedLogs';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
@@ -17,24 +20,24 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tTasks } from '@lib/database';
-
 import { rerunSchedulerTask } from '../SchedulerActions';
+import db, { tTasks } from '@lib/database';
 
 /**
  * The task page gives details about the execution of an individual task, including all logs, timing
  * and exception information. It allows system administrators to inspect what went wrong.
  */
 export default async function TaskPage(props: PageProps<'/admin/system/scheduler/[id]'>) {
-    const params = await props.params;
-
-    if (!params.id)
-        notFound();
-
     await requireAuthentication('system.internals.scheduler');
 
+    const params = await props.params;
+
+    const taskId = parseInt(params.id, 10);
+    if (Number.isNaN(taskId))
+        notFound();
+
     const dbInstance = db;
-    const task = await db.selectFrom(tTasks)
+    const task = await dbInstance.selectFrom(tTasks)
         .select({
             taskId: tTasks.taskId,
             taskDate: dbInstance.dateTimeAsString(tTasks.taskScheduledDate),
@@ -47,7 +50,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
             resultLogs: tTasks.taskInvocationLogs,
             resultTimeMs: tTasks.taskInvocationTimeMs,
         })
-        .where(tTasks.taskId.equals(parseInt(params.id, 10)))
+        .where(tTasks.taskId.equals(taskId))
         .executeSelectNoneOrOne();
 
     if (!task)
@@ -64,7 +67,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
 
     const repeatFn = rerunSchedulerTask.bind(null, task.taskId, task.taskName);
 
-    const taskParamsObject = JSON.parse(task.taskParams);
+    const taskParamsObject = !!task.taskParams ? JSON.parse(task.taskParams) : undefined;
     const taskParamsFormatted = JSON.stringify(taskParamsObject, undefined, /* space= */ 4);
 
     const taskLogs = !!task.resultLogs ? JSON.parse(task.resultLogs)

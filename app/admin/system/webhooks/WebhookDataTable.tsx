@@ -5,11 +5,10 @@ import { z } from 'zod/v4';
 
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import db, { tTwilioWebhookCalls } from '@lib/database';
-
 import { WebhookAuthenticatedCell, WebhookAuthenticatedHeader, WebhookServiceCell, WebhookSizeCell }
     from './WebhookRowComponents';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import db, { tTwilioWebhookCalls } from '@lib/database';
 
 /**
  * Data source through which received webhook calls can be retrieved.
@@ -75,11 +74,15 @@ const webhookDataSource = createDataSource('admin/system/webhooks', withContext(
 
         const dbInstance = db;
         const data = await dbInstance.selectFrom(tTwilioWebhookCalls)
-            .where(tTwilioWebhookCalls.webhookMessageSid.equalsIfValue(context.twilioMessageSid))
-                .or(tTwilioWebhookCalls.webhookMessageOriginalSid.equalsIfValue(
-                    context.twilioMessageSid))
-                .or(tTwilioWebhookCalls.webhookRequestSource.containsInsensitiveIfValue(params.search))
-                .or(tTwilioWebhookCalls.webhookRequestUrl.containsInsensitiveIfValue(params.search))
+            .where(
+                tTwilioWebhookCalls.webhookMessageSid.equalsIfValue(context.twilioMessageSid).or(
+                tTwilioWebhookCalls.webhookMessageOriginalSid.equalsIfValue(
+                    context.twilioMessageSid)))
+                .and(
+                    tTwilioWebhookCalls.webhookRequestSource.containsInsensitiveIfValue(
+                        params.search).or(
+                    tTwilioWebhookCalls.webhookRequestUrl.containsInsensitiveIfValue(
+                        params.search)))
             .select({
                 id: tTwilioWebhookCalls.webhookCallId,
                 date: dbInstance.dateTimeAsString(tTwilioWebhookCalls.webhookCallDate),
@@ -98,7 +101,9 @@ const webhookDataSource = createDataSource('admin/system/webhooks', withContext(
             rowCount: data.count,
             rows: data.data.map(row => ({
                 ...row,
-                destination: new URL(row.destination).pathname,
+                destination: URL.canParse(row.destination)
+                    ? new URL(row.destination).pathname
+                    : row.destination,
             })),
         };
     },

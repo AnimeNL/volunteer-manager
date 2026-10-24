@@ -7,7 +7,6 @@ import { notFound } from 'next/navigation';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-
 import CodeIcon from '@mui/icons-material/Code';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
@@ -43,6 +42,10 @@ export default async function TwilioWebhooksPage(
 
     const params = await props.params;
 
+    const webhookId = parseInt(params.id, 10);
+    if (Number.isNaN(webhookId))
+        notFound();
+
     const messageJoin = tOutboxTwilio.forUseInLeftJoinAs('mj');
     const originalMessageJoin = tOutboxTwilio.forUseInLeftJoinAs('omj');
 
@@ -52,7 +55,7 @@ export default async function TwilioWebhooksPage(
         .leftJoin(originalMessageJoin)
             .on(originalMessageJoin.outboxResultSid.equals(
                 tTwilioWebhookCalls.webhookMessageOriginalSid))
-        .where(tTwilioWebhookCalls.webhookCallId.equals(parseInt(params.id, 10)))
+        .where(tTwilioWebhookCalls.webhookCallId.equals(webhookId))
         .select({
             date: tTwilioWebhookCalls.webhookCallDate,
             endpoint: tTwilioWebhookCalls.webhookCallEndpoint,
@@ -163,7 +166,9 @@ export default async function TwilioWebhooksPage(
                     },
                     {
                         key: 'Request URL',
-                        value: new URL(webhook.requestUrl).pathname,
+                        value: URL.canParse(webhook.requestUrl)
+                            ? new URL(webhook.requestUrl).pathname
+                            : webhook.requestUrl,
                     }
                 ]} />
             </Section>

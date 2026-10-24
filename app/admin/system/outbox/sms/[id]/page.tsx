@@ -1,11 +1,13 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
+
 import TextsmsOutlinedIcon from '@mui/icons-material/TextsmsOutlined';
 
 import { Section } from '@app/admin/components/Section';
-import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TwilioDetailsPage } from '../../TwilioDetailsPage';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
@@ -22,6 +24,10 @@ export default async function OutboxSmsDetailsPage(
 
     const params = await props.params;
 
+    const id = parseInt(params.id, 10);
+    if (Number.isNaN(id))
+        notFound();
+
     return (
         <>
             <Section icon={ <TextsmsOutlinedIcon color="primary" /> }
@@ -36,7 +42,7 @@ export default async function OutboxSmsDetailsPage(
                     Detailed information about a message we sent through SMS.
                 </SectionIntroduction>
             </Section>
-            <TwilioDetailsPage type={kTwilioOutboxType.SMS} id={parseInt(params.id, 10)} />
+            <TwilioDetailsPage type={kTwilioOutboxType.SMS} id={id} />
         </>
     );
 }

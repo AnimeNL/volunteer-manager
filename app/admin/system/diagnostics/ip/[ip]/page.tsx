@@ -1,8 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense } from 'react';
 import Link from '@app/LinkProxy';
+import { Suspense } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
@@ -26,7 +26,7 @@ export default async function IpPage(props: PageProps<'/admin/system/diagnostics
         operation: 'read',
     });
 
-    const ip = (await props.params).ip;
+    const ip = decodeURIComponent((await props.params).ip);
 
     return (
         <>

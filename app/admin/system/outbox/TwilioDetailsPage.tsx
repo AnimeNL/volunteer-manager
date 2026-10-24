@@ -10,9 +10,10 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
-import { type TwilioOutboxType, kTwilioOutboxType } from '@lib/database/Types';
 import { WebhookDataTable } from '../webhooks/WebhookDataTable';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
+
+import { kTwilioOutboxType, type TwilioOutboxType } from '@lib/database/Types';
 
 /**
  * Props accepted by the <TwilioDetailsPage> component.
@@ -93,9 +94,9 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                         valueTemplate: 'localDateTime',
                     },
                     {
-                        condition: !message.sender?.name,
+                        condition: !message.sender?.user,
                         key: 'Sender',
-                        value: 'Unknown',
+                        value: message.sender?.name || 'Unknown',
                     },
                     {
                         condition: !!message.sender?.user,
@@ -104,7 +105,7 @@ export async function TwilioDetailsPage(props: TwilioDetailsPageProps) {
                         valueTemplate: 'account',
                     },
                     {
-                        condition: !!message.sender?.name,
+                        condition: !!message.sender?.user && !!message.sender?.name,
                         key: '⤷ phone number',
                         value: message.sender?.name,
                     },

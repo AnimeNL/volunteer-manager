@@ -32,9 +32,13 @@ export default async function DatabaseErrorLogPage(
 
     const { id } = await props.params;
 
+    const logId = parseInt(id, /* radix= */ 10);
+    if (Number.isNaN(logId))
+        return notFound();
+
     const dbInstance = db;
     const entry = await dbInstance.selectFrom(tLogs)
-        .where(tLogs.logId.equals(parseInt(id, /* radix= */ 10)))
+        .where(tLogs.logId.equals(logId))
             .and(tLogs.logType.equals(kLogType.DatabaseError))
             .and(tLogs.logDeleted.isNull())
         .select({
@@ -71,15 +75,16 @@ export default async function DatabaseErrorLogPage(
                 <Alert severity="warning">
                     {message}
                 </Alert>
-                <Typography variant="body2" sx={{
-                    fontFamily: 'monospace',
-                    whiteSpace: 'pre-wrap',
-                    overflowWrap: 'anywhere'
-                }}>
-                    { query.split(/(\?)/g).map((part: string, index: number) =>
-                        part === '?' ? <mark key={index}>{part}</mark>
-                                        : <span key={index}>{part}</span> )}
-                </Typography>
+                { !!query &&
+                    <Typography variant="body2" sx={{
+                        fontFamily: 'monospace',
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere'
+                    }}>
+                        { query.split(/(\?)/g).map((part: string, index: number) =>
+                            part === '?' ? <mark key={index}>{part}</mark>
+                                         : <span key={index}>{part}</span> )}
+                    </Typography> }
                 { (params && Array.isArray(params)) &&
                     <>
                         <Divider />

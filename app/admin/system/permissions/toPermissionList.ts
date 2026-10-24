@@ -1,9 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 import type { AccessControl } from '@lib/auth/AccessControl';
-import type { AccessDescriptor, AccessOperation, AccessRestriction } from '@lib/auth/AccessDescriptor';
+import type { AccessDescriptor, AccessOperation, AccessRestriction }
+    from '@lib/auth/AccessDescriptor';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
 
 import { kPermissions } from '@lib/auth/Access';
 
@@ -79,8 +80,10 @@ export function toPermissionList(
             const [ permission, operation ] = fullPermission.split(':', 2);
 
             for (const [ verificationPermission, descriptor ] of Object.entries(kPermissions)) {
-                if (!verificationPermission.startsWith(permission))
+                if (verificationPermission !== permission &&
+                        !verificationPermission.startsWith(`${permission}.`)) {
                     continue;  // not relevant for the current |permission|
+                }
 
                 if (!('restrict' in descriptor))
                     continue;  // the |verificationPermission| has no restrictions

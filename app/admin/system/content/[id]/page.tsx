@@ -25,16 +25,22 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     const params = await props.params;
 
     const contentId = parseInt(params.id, /* radix= */ 10);
+    if (Number.isNaN(contentId))
+        notFound();
+
+    const scope = createGlobalScope();
+
     const contentTitle = await db.selectFrom(tContent)
         .where(tContent.contentId.equals(contentId))
+            .and(tContent.eventId.equals(scope.eventId))
+            .and(tContent.teamId.equals(scope.teamId))
+            .and(tContent.contentType.equals(scope.type))
             .and(tContent.revisionVisible.equals(/* true= */ 1))
         .selectOneColumn(tContent.contentTitle)
         .executeSelectNoneOrOne();
 
     if (!contentTitle)
         notFound();
-
-    const scope = createGlobalScope();
 
     const fetchFn = fetchContent.bind(null, scope, contentId);
     const updateFn = updateContent.bind(null, scope, contentId);

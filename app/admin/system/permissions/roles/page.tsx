@@ -6,15 +6,16 @@ import { z } from 'zod/v4';
 import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { LogBuilder } from '@lib/log/index';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import db, { tPermissionsRoles, tUsers } from '@lib/database';
+import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
+import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 
+import { kRegistrationStatus } from '@lib/database/Types';
 import { kRootRole } from '../Root';
 
 /**
@@ -111,12 +112,26 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
         if (row.id === 'root')
             return false;
 
+        const eventsJoin = tEvents.forUseInLeftJoin();
+        const rolesJoin = tRoles.forUseInLeftJoin();
+        const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
         const dbInstance = db;
         const userCount = await dbInstance.selectFrom(tUsers)
+            .leftJoin(usersEventsJoin)
+                .on(usersEventsJoin.userId.equals(tUsers.userId))
+                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .leftJoin(eventsJoin)
+                .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
+                    .and(eventsJoin.eventHidden.equals(/* false= */ 0))
+            .leftJoin(rolesJoin)
+                .on(rolesJoin.roleId.equals(usersEventsJoin.roleId))
             .where(dbInstance.fragmentWithType('boolean', 'required').sql`
                 FIND_IN_SET(${dbInstance.const(row.id, 'string')} COLLATE utf8mb4_unicode_ci,
-                            ${tUsers.permissionsGrants}) > 0`)
-            .selectCountAll()
+                            ${tUsers.permissionsGrants}) > 0`
+                .or(eventsJoin.eventId.isNotNull().and(
+                    rolesJoin.rolePermissionGrant.equals(row.id))))
+            .selectOneColumn(dbInstance.countDistinct(tUsers.userId))
             .executeSelectOne();
 
         if (userCount > 0)
@@ -138,6 +153,9 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
     },
 
     async list() {
+        const eventsJoin = tEvents.forUseInLeftJoin();
+        const rolesJoin = tRoles.forUseInLeftJoin();
+        const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
         const usersJoin = tUsers.forUseInLeftJoin();
 
         const dbInstance = db;
@@ -148,16 +166,26 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             .executeSelectOne();
 
         const dbRoles = await dbInstance.selectFrom(tPermissionsRoles)
+            .leftJoin(rolesJoin)
+                .on(rolesJoin.rolePermissionGrant.equals(tPermissionsRoles.permissionRoleId))
+            .leftJoin(usersEventsJoin)
+                .on(usersEventsJoin.roleId.equals(rolesJoin.roleId))
+                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .leftJoin(eventsJoin)
+                .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
+                    .and(eventsJoin.eventHidden.equals(/* false= */ 0))
             .leftJoin(usersJoin)
                 .on(dbInstance.fragmentWithType('boolean', 'required').sql`
                     FIND_IN_SET(${tPermissionsRoles.permissionRoleId} COLLATE utf8mb4_unicode_ci,
-                                ${usersJoin.permissionsGrants}) > 0`)
+                                ${usersJoin.permissionsGrants}) > 0`
+                    .or(eventsJoin.eventId.isNotNull().and(
+                        usersJoin.userId.equals(usersEventsJoin.userId))))
             .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
             .select({
                 id: tPermissionsRoles.permissionRoleId,
                 name: tPermissionsRoles.permissionRoleName,
                 description: tPermissionsRoles.permissionRoleDescription,
-                userCount: dbInstance.count(usersJoin.userId),
+                userCount: dbInstance.countDistinct(usersJoin.userId),
             })
             .groupBy(tPermissionsRoles.permissionRoleId)
             .orderBy(tPermissionsRoles.permissionRoleName, 'asc')
@@ -187,12 +215,17 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
         if (row.id === 'root')
             return false;
 
+        const name = row.name.trim();
+        if (!name)
+            return false;
+
         const description = row.description.trim();
-        if (description === previousRow.description?.trim())
+        if (name === previousRow.name.trim() && description === previousRow.description?.trim())
             return true;
 
         const affectedRows = await db.update(tPermissionsRoles)
             .set({
+                permissionRoleName: name,
                 permissionRoleDescription: description,
             })
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
@@ -202,6 +235,16 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .withSeverity('Warning')
+            .withDiff({
+                name: {
+                    before: previousRow.name,
+                    after: name,
+                },
+                description: {
+                    before: previousRow.description,
+                    after: description,
+                },
+            })
             .record({
                 role: row.id,
             });
