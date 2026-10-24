@@ -17,29 +17,26 @@ import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import type { EnvironmentContext } from '@lib/EnvironmentContext';
-import type { EventAvailabilityStatus } from '@lib/database/Types';
-import type { Registration } from './getRegistration';
+import type { EnvironmentContext, EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
+import type { RegistrationStatus } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
-import { formatDate, isBefore, isAfter } from '@lib/Temporal';
+import { formatDate, isAfter, isBefore } from '@lib/Temporal';
+import db, { tEvents, tHotels, tHotelsAssignments, tHotelsBookings, tRefunds, tRoles, tTrainings,
+    tTrainingsAssignments, tUsersEvents, tUsersEventsPreferencesHotel,
+    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kEventAvailabilityStatus, kRegistrationStatus } from '@lib/database/Types';
-
-type RegistrationData = Registration['registration'];
-type RegistrationRefund = NonNullable<RegistrationData['refund']>;
-type RegistrationTraining = NonNullable<RegistrationData['training']>;
 
 type WindowStatus =
     undefined | { enabled: boolean; status: 'pending' | 'missed'; secondary: string };
 
 /**
- * Determines the status of the given `availabilityWindow` in relation to the current time (`now`).
- * When the item is not available due to the availability window being closed, a message with as
- * many details as we can share will be shown instead.
+ * Determines the status of the given `availabilityWindow` in relation to the current time. When the
+ * item is not available due to the availability window being closed, a message with as many details
+ * as we can share will be shown instead.
  */
 function determineAvailabilityWindowStatus(
-    now: Temporal.Instant,
     availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime } | null)
         : WindowStatus
 {
@@ -51,6 +48,8 @@ function determineAvailabilityWindowStatus(
             secondary: 'We\'re not ready to note down your preferences yet…',
         };
     }
+
+    const now = Temporal.Now.instant();
 
     // Case (2a): The availability window's start date may be in the future.
     if (!!availabilityWindow.start) {
@@ -82,23 +81,98 @@ function determineAvailabilityWindowStatus(
 }
 
 /**
- * Props accepted by the <AvailabilityButton> component.
+ * Props accepted by the <StatusButton> layout component.
  */
-interface AvailabilityButtonProps {
+interface StatusButtonProps {
+    /**
+     * Whether interaction with the button should be disabled.
+     */
+    disabled?: boolean;
+
+    /**
+     * URL the button should link to when clicked.
+     */
+    href: string;
+
+    /**
+     * Warning message to show in a tooltip when access is granted through an override.
+     */
+    overrideWarning?: string;
+
+    /**
+     * Primary text to display on the button.
+     */
+    primary?: string;
+
+    /**
+     * Secondary text to display below the primary text.
+     */
+    secondary?: string;
+
+    /**
+     * Visual completion status of the step represented by the button.
+     */
+    status: 'confirmed' | 'submitted' | 'pending' | 'missed';
+}
+
+/**
+ * Renders a list item button with a status icon and an optional permission override indicator.
+ */
+function StatusButton(props: StatusButtonProps) {
+    const { disabled, href, overrideWarning, primary, secondary, status } = props;
+
+    return (
+        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }} disabled={disabled} href={href}>
+            <ListItemIcon>
+                { status === 'confirmed' && <TaskAltIcon color="success" /> }
+                { status === 'submitted' && <RadioButtonUncheckedIcon color="success" /> }
+                { status === 'pending' && <RadioButtonUncheckedIcon color="warning" /> }
+                { status === 'missed' && <RadioButtonUncheckedIcon color="error" /> }
+            </ListItemIcon>
+            <ListItemText primary={primary} secondary={secondary} />
+            { !!overrideWarning &&
+                <Tooltip title={overrideWarning}>
+                    <TooltipIconWrapper>
+                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
+                    </TooltipIconWrapper>
+                </Tooltip> }
+        </ListItemButton>
+    );
+}
+
+/**
+ * Props shared by the individual application status button components.
+ */
+interface ApplicationStatusButtonProps {
     /**
      * Base URL for linking the button to an appropriate location.
      */
     baseUrl: string;
 
     /**
-     * What the status of the availability page is.
+     * Context about the environment for which this page is being displayed.
      */
-    status: EventAvailabilityStatus;
+    context: EnvironmentContext;
 
     /**
-     * Whether the volunteer has the ability to override normal access restrictions.
+     * Event for which this page is being displayed.
      */
-    override: boolean;
+    event: EnvironmentContextEventAccess;
+
+    /**
+     * Unique ID of the team the volunteer has joined.
+     */
+    teamId: number;
+
+    /**
+     * URL-safe slug that represents the team for this application.
+     */
+    teamSlug: string;
+
+    /**
+     * The user who is currently signed in.
+     */
+    user: User;
 }
 
 /**
@@ -110,26 +184,35 @@ interface AvailabilityButtonProps {
  *   (2) The volunteer is able to indicate their preferences.
  *   (3) The volunteer is not able to indicate their preferences yet.
  */
-function AvailabilityButton(props: AvailabilityButtonProps) {
-    const { status, override } = props;
+async function AvailabilityButton(props: ApplicationStatusButtonProps) {
+    const { context, event, teamSlug } = props;
+
+    const status = await db.selectFrom(tEvents)
+        .where(tEvents.eventId.equals(event.id))
+        .selectOneColumn(tEvents.eventAvailabilityStatus)
+        .executeSelectNoneOrOne();
 
     const enabled =
         status === kEventAvailabilityStatus.Available || status === kEventAvailabilityStatus.Locked;
+    const override = context.access.can('event.visible', {
+        event: event.slug,
+        team: teamSlug,
+    });
 
-    let buttonStatus: 'pending' | 'available' | 'locked';
-    let primary: string | undefined = undefined;
-    let secondary: string | undefined = undefined;
+    let buttonStatus: StatusButtonProps['status'];
+    let primary: string;
+    let secondary: string;
 
     if (status === kEventAvailabilityStatus.Locked) {
         // (1) The volunteer is able to see their preferences, but can't change them.
         primary = 'When will you be around during the festival?';
         secondary = 'Your preferences have been noted!';
-        buttonStatus = 'locked';
+        buttonStatus = 'confirmed';
     } else if (status === kEventAvailabilityStatus.Available) {
         // (2) The volunteer is able to indicate their preferences.
         primary = 'When will you be around during the festival?';
         secondary = 'Please share your preferences at your convenience!';
-        buttonStatus = 'available';
+        buttonStatus = 'submitted';
     } else {
         // (3) The volunteer is not able to indicate their preferences yet.
         primary = 'When will you be around during the festival?';
@@ -138,67 +221,12 @@ function AvailabilityButton(props: AvailabilityButtonProps) {
     }
 
     return (
-        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
-                        disabled={!enabled && !override}
-                        href={`${props.baseUrl}/availability`}>
-
-            <ListItemIcon>
-                { buttonStatus === 'locked' && <TaskAltIcon color="success" /> }
-                { buttonStatus === 'available' && <RadioButtonUncheckedIcon color="success" /> }
-                { buttonStatus === 'pending' && <RadioButtonUncheckedIcon color="warning" /> }
-            </ListItemIcon>
-
-            <ListItemText primary={primary} secondary={secondary} />
-
-            { (!enabled && override) &&
-                <Tooltip title="Access is limited to event managers">
-                    <TooltipIconWrapper>
-                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
-                    </TooltipIconWrapper>
-                </Tooltip> }
-
-        </ListItemButton>
+        <StatusButton disabled={!enabled && !override} href={`${props.baseUrl}/availability`}
+                      overrideWarning={
+                          (!enabled && override) ? 'Access is limited to event managers' : undefined
+                      }
+                      primary={primary} secondary={secondary} status={buttonStatus} />
     );
-}
-
-/**
- * Props accepted by the <HotelStatusButton> component.
- */
-interface HotelStatusButtonProps {
-    /**
-     * Availability window during which volunteers can indicate their hotel preferences.
-     */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-
-    /**
-     * Base URL for linking the button to an appropriate location.
-     */
-    baseUrl: string;
-
-    /**
-     * Bookings that were created on behalf of the volunteer.
-     */
-    bookings: Registration['hotelBookings'];
-
-    /**
-     * Whether the button should be enabled by default, i.e. has information been published?
-     */
-    enabled: boolean;
-
-    /**
-     * Whether the volunteer has the ability to override normal access restrictions.
-     */
-    override: boolean;
-
-    /**
-     * Preferences the volunteer indicated regarding their hotel room bookings.
-     */
-    preferences: RegistrationData['hotelPreferences'];
-
-    /**
-     * The current time against which the `availabilityWindow` should be compared.
-     */
-    now: Temporal.Instant;
 }
 
 /**
@@ -216,14 +244,75 @@ interface HotelStatusButtonProps {
  * It's possible for a volunteer to have more than one hotel room booking, significant because there
  * might be a different booking for e.g. Thursday to Friday compared to Friday to Sunday.
  */
-function HotelStatusButton(props: HotelStatusButtonProps) {
-    const { availabilityWindow, bookings, now, override, preferences } = props;
+async function HotelStatusButton(props: ApplicationStatusButtonProps) {
+    const { context, event, teamId, user } = props;
 
-    let enabled = props.enabled;
+    const hotelAssignmentsJoin = tHotelsAssignments.forUseInLeftJoin();
+    const hotelBookingRoomJoin = tHotels.forUseInLeftJoinAs('hbr');
+    const hotelBookingsJoin = tHotelsBookings.forUseInLeftJoin();
+    const hotelPreferenceRoomJoin = tHotels.forUseInLeftJoinAs('hpr');
+    const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
 
-    let status: 'pending' | 'submitted' | 'confirmed' | 'missed' = 'pending';
-    let primary: string | undefined = undefined;
-    let secondary: string | undefined = undefined;
+    const dbInstance = db;
+    const data = await dbInstance.selectFrom(tUsersEvents)
+        .innerJoin(tEvents)
+            .on(tEvents.eventId.equals(tUsersEvents.eventId))
+                .and(tEvents.hotelEnabled.equals(/* true= */ 1))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tUsersEvents.roleId))
+        .leftJoin(preferencesHotelJoin)
+            .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+        .leftJoin(hotelPreferenceRoomJoin)
+            .on(hotelPreferenceRoomJoin.hotelId.equals(preferencesHotelJoin.hotelRoomId))
+        .leftJoin(hotelAssignmentsJoin)
+            .on(hotelAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+                .and(hotelAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
+        .leftJoin(hotelBookingsJoin)
+            .on(hotelBookingsJoin.bookingId.equals(hotelAssignmentsJoin.bookingId))
+                .and(hotelBookingsJoin.bookingConfirmed.equals(/* true= */ 1))
+                .and(hotelBookingsJoin.bookingVisible.equals(/* true= */ 1))
+        .leftJoin(hotelBookingRoomJoin)
+            .on(hotelBookingRoomJoin.hotelId.equals(hotelBookingsJoin.bookingHotelId))
+        .where(tUsersEvents.userId.equals(user.id))
+            .and(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.teamId.equals(teamId))
+        .select({
+            availabilityWindow: {
+                start: tEvents.hotelPreferencesStart,
+                end: tEvents.hotelPreferencesEnd,
+            },
+            bookings: dbInstance.aggregateAsArray({
+                checkIn: hotelBookingsJoin.bookingCheckIn,
+                checkOut: hotelBookingsJoin.bookingCheckOut,
+                hotelName: hotelBookingRoomJoin.hotelName,
+            }),
+            eligible: tUsersEvents.hotelEligible.valueWhenNull(
+                tRoles.roleHotelEligible).equals(/* true= */ 1),
+            informationPublished: tEvents.hotelInformationPublished.equals(/* true= */ 1),
+            preferences: {
+                hotelName: hotelPreferenceRoomJoin.hotelName,
+                updated: preferencesHotelJoin.preferenceVersion,
+            },
+        })
+        .groupBy(tUsersEvents.userId)
+        .executeSelectNoneOrOne();
+
+    if (!data)
+        return undefined;
+
+    const { availabilityWindow, bookings, preferences } = data;
+    if (!data.eligible && !preferences && !bookings.length)
+        return undefined;
+
+    const override = context.access.can('event.hotels', { event: event.slug });
+
+    let enabled = data.informationPublished;
+
+    let status: StatusButtonProps['status'] = 'pending';
+    let primary: string | undefined;
+    let secondary: string | undefined;
 
     // (1) The volunteer has one or more confirmed hotel room bookings.
     if (bookings.length > 0) {
@@ -235,7 +324,7 @@ function HotelStatusButton(props: HotelStatusButtonProps) {
             hotel = ` ${bookings.length} different rooms`;
             primary = `You've got ${bookings.length} confirmed hotel room bookings`;
         } else {
-            hotel = ` the ${bookings[0].hotel.name}`;
+            hotel = ` the ${bookings[0].hotelName}`;
             primary = 'Your hotel room has been confirmed!';
         }
 
@@ -243,13 +332,13 @@ function HotelStatusButton(props: HotelStatusButtonProps) {
         let latestCheckOut = Temporal.PlainDate.from('1999-01-01');
 
         for (const booking of bookings) {
-            const checkIn = Temporal.PlainDate.from(booking.checkIn);
-            const checkOut = Temporal.PlainDate.from(booking.checkOut);
+            if (!booking.checkIn || !booking.checkOut)
+                continue;
 
-            if (isAfter(earliestCheckIn, checkIn))
-                earliestCheckIn = checkIn;
-            if (isBefore(latestCheckOut, checkOut))
-                latestCheckOut = checkOut;
+            if (isAfter(earliestCheckIn, booking.checkIn))
+                earliestCheckIn = booking.checkIn;
+            if (isBefore(latestCheckOut, booking.checkOut))
+                latestCheckOut = booking.checkOut;
         }
 
         secondary  = `${formatDate(earliestCheckIn, 'dddd')} until `;
@@ -268,7 +357,7 @@ function HotelStatusButton(props: HotelStatusButtonProps) {
             primary = 'You don\'t need a hotel room booking';
         }
     } else {
-        const availabilityWindowStatus = determineAvailabilityWindowStatus(now, availabilityWindow);
+        const availabilityWindowStatus = determineAvailabilityWindowStatus(availabilityWindow);
 
         // (4) The volunteer is able to indicate their preferences, but has not done so yet.
         primary = 'Do you want to reserve a hotel room?';
@@ -286,68 +375,14 @@ function HotelStatusButton(props: HotelStatusButtonProps) {
     }
 
     return (
-        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
-                        disabled={!enabled && !override}
-                        href={`${props.baseUrl}/hotel`}>
-
-            <ListItemIcon>
-                { status === 'confirmed' && <TaskAltIcon color="success" /> }
-                { status === 'submitted' && <RadioButtonUncheckedIcon color="success" /> }
-                { status === 'pending' && <RadioButtonUncheckedIcon color="warning" /> }
-                { status === 'missed' && <RadioButtonUncheckedIcon color="error" /> }
-            </ListItemIcon>
-
-            <ListItemText primary={primary} secondary={secondary} />
-
-            { (!enabled && override) &&
-                <Tooltip title="Access is limited to hotel booking managers">
-                    <TooltipIconWrapper>
-                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
-                    </TooltipIconWrapper>
-                </Tooltip> }
-
-        </ListItemButton>
+        <StatusButton disabled={!enabled && !override} href={`${props.baseUrl}/hotel`}
+                      overrideWarning={
+                          (!enabled && override)
+                              ? 'Access is limited to hotel booking managers'
+                              : undefined
+                      }
+                      primary={primary} secondary={secondary} status={status} />
     );
-}
-
-/**
- * Props accepted by the <RefundStatusButton> component.
- */
-interface RefundStatusButtonProps {
-    /**
-     * Availability window during which volunteers can request their ticket refund.
-     */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-
-    /**
-     * Base URL for linking the button to an appropriate location.
-     */
-    baseUrl: string;
-
-    /**
-     * Whether the button should be enabled by default, i.e. has information been published?
-     */
-    enabled: boolean;
-
-    /**
-     * The current time against which the `availabilityWindow` should be compared.
-     */
-    now: Temporal.Instant;
-
-    /**
-     * Whether the volunteer has the ability to override normal access restrictions.
-     */
-    override: boolean;
-
-    /**
-     * Information about the volunteer's refund request, if any.
-     */
-    refund?: RegistrationRefund;
-
-    /**
-     * Timezone in which the event will be taking place.
-     */
-    timezone: string;
 }
 
 /**
@@ -359,26 +394,60 @@ interface RefundStatusButtonProps {
  *   (1) The volunteer has been issued a refund.
  *   (2) The volunteer has requested a refund.
  *   (3) The volunteer is able to request a refund.
- *   (3) The volunteer is able to request a refund because of an override.
+ *   (4) The volunteer is able to request a refund because of an override.
  */
-function RefundStatusButton(props: RefundStatusButtonProps) {
-    const { availabilityWindow, now, override, refund, timezone } = props;
+async function RefundStatusButton(props: ApplicationStatusButtonProps) {
+    const { context, event, user } = props;
 
-    let enabled = props.enabled;
+    const refundsJoin = tRefunds.forUseInLeftJoin();
+    const refundsPreferencesJoin = tUsersEventsPreferencesRefunds.forUseInLeftJoin();
 
-    let status: 'pending' | 'confirmed' | 'missed' = 'confirmed';
-    let primary: string | undefined = undefined;
-    let secondary: string | undefined = undefined;
+    const data = await db.selectFrom(tEvents)
+        .leftJoin(refundsPreferencesJoin)
+            .on(refundsPreferencesJoin.eventId.equals(tEvents.eventId))
+                .and(refundsPreferencesJoin.userId.equals(user.id))
+                .and(refundsPreferencesJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+        .leftJoin(refundsJoin)
+            .on(refundsJoin.eventId.equals(tEvents.eventId))
+                .and(refundsJoin.userId.equals(user.id))
+        .where(tEvents.eventId.equals(event.id))
+            .and(tEvents.refundEnabled.equals(/* true= */ 1))
+        .select({
+            availabilityWindow: {
+                start: tEvents.refundRequestsStart,
+                end: tEvents.refundRequestsEnd,
+            },
+            informationPublished: tEvents.refundInformationPublished.equals(/* true= */ 1),
+            refund: {
+                confirmed: refundsJoin.refundConfirmed,
+                requested: refundsPreferencesJoin.preferenceVersion,
+            },
+        })
+        .groupBy(tEvents.eventId)
+        .executeSelectNoneOrOne();
+
+    if (!data)
+        return undefined;
+
+    const { availabilityWindow, refund } = data;
+    const override = context.access.can('volunteers.refunds', { event: event.slug });
+
+    if (!refund && !data.informationPublished && !override)
+        return undefined;
+
+    let enabled = data.informationPublished;
+
+    let status: StatusButtonProps['status'] = 'confirmed';
+    let primary: string | undefined;
+    let secondary: string | undefined;
 
     // TODO: Consider refund.confirmedBy in the user interface?
 
     if (!!refund) {
         // (1) The volunteer has been issued a refund.
         if (!!refund.confirmed) {
-            const confirmationDate =
-                formatDate(
-                    Temporal.ZonedDateTime.from(refund.confirmed).withTimeZone(timezone),
-                    'dddd, MMMM D');
+            const confirmationDate = formatDate(
+                refund.confirmed.withTimeZone(event.timeZone), 'dddd, MMMM D');
 
             primary = 'Your ticket has been refunded!';
             secondary = `We issued your refund on ${confirmationDate}`;
@@ -390,7 +459,7 @@ function RefundStatusButton(props: RefundStatusButtonProps) {
             secondary = 'We\'ve received your request and will confirm it soon';
         }
     } else {
-        const availabilityWindowStatus = determineAvailabilityWindowStatus(now, availabilityWindow);
+        const availabilityWindowStatus = determineAvailabilityWindowStatus(availabilityWindow);
 
         // (3) The volunteer is able to request a refund.
         // (4) The volunteer is able to request a refund because of an override.
@@ -405,61 +474,14 @@ function RefundStatusButton(props: RefundStatusButtonProps) {
     }
 
     return (
-        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }} href={`${props.baseUrl}/refund`}>
-            <ListItemIcon>
-                { status === 'confirmed' && <TaskAltIcon color="success" /> }
-                { status === 'pending' && <RadioButtonUncheckedIcon color="warning" /> }
-                { status === 'missed' && <RadioButtonUncheckedIcon color="error" /> }
-            </ListItemIcon>
-            <ListItemText primary={primary} secondary={secondary} />
-            { (!enabled && override) &&
-                <Tooltip title="Visibility is limited to refund managers">
-                    <TooltipIconWrapper>
-                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
-                    </TooltipIconWrapper>
-                </Tooltip> }
-        </ListItemButton>
+        <StatusButton href={`${props.baseUrl}/refund`}
+                      overrideWarning={
+                          (!enabled && override)
+                              ? 'Visibility is limited to refund managers'
+                              : undefined
+                      }
+                      primary={primary} secondary={secondary} status={status} />
     );
-}
-
-/**
- * Props accepted by the <TrainingStatusButton> component.
- */
-interface TrainingStatusButtonProps {
-    /**
-     * Availability window during which volunteers can indicate their training preferences.
-     */
-    availabilityWindow?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-
-    /**
-     * Base URL for linking the button to an appropriate location.
-     */
-    baseUrl: string;
-
-    /**
-     * Whether the button should be enabled by default, i.e. has information been published?
-     */
-    enabled: boolean;
-
-    /**
-     * The current time against which the `availabilityWindow` should be compared.
-     */
-    now: Temporal.Instant;
-
-    /**
-     * Whether the volunteer has the ability to override normal access restrictions.
-     */
-    override: boolean;
-
-    /**
-     * Timezone in which the event (& thus the training) will be taking place.
-     */
-    timezone: string;
-
-    /**
-     * Information about the volunteer's preferences regarding participating in the training.
-     */
-    training?: RegistrationTraining;
 }
 
 /**
@@ -478,20 +500,74 @@ interface TrainingStatusButtonProps {
  * Volunteers can only join a single training session. It's possible for seniors to join multiple
  * training sessions, but we'll handle those out-of-bounds.
  */
-function TrainingStatusButton(props: TrainingStatusButtonProps) {
-    const { availabilityWindow, now, override, timezone, training } = props;
+async function TrainingStatusButton(props: ApplicationStatusButtonProps) {
+    const { context, event, teamId, user } = props;
 
-    let enabled = props.enabled;
+    const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+    const trainingsAssignedJoin = tTrainings.forUseInLeftJoinAs('ta');
+    const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
+    const trainingsPreferenceJoin = tTrainings.forUseInLeftJoinAs('tp');
 
-    let status: 'pending' | 'submitted' | 'confirmed' | 'missed' = 'pending';
-    let primary: string | undefined = undefined;
-    let secondary: string | undefined = undefined;
+    const data = await db.selectFrom(tUsersEvents)
+        .innerJoin(tEvents)
+            .on(tEvents.eventId.equals(tUsersEvents.eventId))
+                .and(tEvents.trainingEnabled.equals(/* true= */ 1))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tUsersEvents.roleId))
+        .leftJoin(preferencesTrainingJoin)
+            .on(preferencesTrainingJoin.userId.equals(tUsersEvents.userId))
+                .and(preferencesTrainingJoin.eventId.equals(tUsersEvents.eventId))
+                .and(preferencesTrainingJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+        .leftJoin(trainingsPreferenceJoin)
+            .on(trainingsPreferenceJoin.trainingId.equals(preferencesTrainingJoin.trainingId))
+        .leftJoin(trainingsAssignmentsJoin)
+            .on(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+                .and(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
+        .leftJoin(trainingsAssignedJoin)
+            .on(trainingsAssignedJoin.trainingId.equals(
+                trainingsAssignmentsJoin.assignmentTrainingId))
+        .where(tUsersEvents.userId.equals(user.id))
+            .and(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.teamId.equals(teamId))
+        .select({
+            availabilityWindow: {
+                start: tEvents.trainingPreferencesStart,
+                end: tEvents.trainingPreferencesEnd,
+            },
+            eligible: tUsersEvents.trainingEligible.valueWhenNull(
+                tRoles.roleTrainingEligible).equals(/* true= */ 1),
+            informationPublished: tEvents.trainingInformationPublished.equals(/* true= */ 1),
+            training: {
+                assignedDate: trainingsAssignedJoin.trainingStart,
+                confirmed: trainingsAssignmentsJoin.assignmentConfirmed.equals(/* true= */ 1),
+                preferenceDate: trainingsPreferenceJoin.trainingStart,
+                updated: preferencesTrainingJoin.preferenceVersion,
+            },
+        })
+        .groupBy(tUsersEvents.userId)
+        .executeSelectNoneOrOne();
 
-    if (!!training && (training.confirmed || training.updated)) {
+    if (!data)
+        return undefined;
+
+    const { availabilityWindow, training } = data;
+    const hasTraining = !!training && (training.confirmed || !!training.updated);
+
+    if (!data.eligible && !hasTraining)
+        return undefined;
+
+    const override = context.access.can('event.trainings', { event: event.slug });
+
+    let enabled = data.informationPublished;
+
+    let status: StatusButtonProps['status'] = 'pending';
+    let primary: string | undefined;
+    let secondary: string | undefined;
+
+    if (hasTraining) {
         // (1) The volunteer has a confirmed spot in one of the sessions.
         if (!!training.assignedDate && training.confirmed) {
-            const assignedDateTime =
-                Temporal.ZonedDateTime.from(training.assignedDate).withTimeZone(timezone);
+            const assignedDateTime = training.assignedDate.withTimeZone(event.timeZone);
 
             const assignedDate = formatDate(assignedDateTime, 'dddd, MMMM D');
             const assignedTime = formatDate(assignedDateTime, 'H:mm');
@@ -504,15 +580,13 @@ function TrainingStatusButton(props: TrainingStatusButtonProps) {
         // (2) The volunteer indicated their preferences and is confirmed to not to participate.
         else if (!training.assignedDate && training.confirmed) {
             status = 'confirmed';
-            primary = 'You\'ll skip the professional training this year'
+            primary = 'You\'ll skip the professional training this year';
         }
 
         // (3) The volunteer indicated their preferences, wants to join and waits for confirmation.
         else if (!!training.preferenceDate) {
-            const preferenceDate =
-                formatDate(
-                    Temporal.ZonedDateTime.from(training.preferenceDate).withTimeZone(timezone),
-                    'dddd, MMMM D');
+            const preferenceDate = formatDate(
+                training.preferenceDate.withTimeZone(event.timeZone), 'dddd, MMMM D');
 
             status = 'submitted';
             primary = `You'd like to join the training on ${preferenceDate}`;
@@ -526,7 +600,7 @@ function TrainingStatusButton(props: TrainingStatusButtonProps) {
             secondary = 'This will be confirmed by a senior closer to the festival…';
         }
     } else {
-        const availabilityWindowStatus = determineAvailabilityWindowStatus(now, availabilityWindow);
+        const availabilityWindowStatus = determineAvailabilityWindowStatus(availabilityWindow);
 
         // (5) The volunteer is able to indicate their preferences, but has not done so yet.
         primary = 'Do you want to join our professional training?';
@@ -544,27 +618,13 @@ function TrainingStatusButton(props: TrainingStatusButtonProps) {
     }
 
     return (
-        <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
-                        disabled={!enabled && !override}
-                        href={`${props.baseUrl}/training`}>
-
-            <ListItemIcon>
-                { status === 'confirmed' && <TaskAltIcon color="success" /> }
-                { status === 'submitted' && <RadioButtonUncheckedIcon color="success" /> }
-                { status === 'pending' && <RadioButtonUncheckedIcon color="warning" /> }
-                { status === 'missed' && <RadioButtonUncheckedIcon color="error" /> }
-            </ListItemIcon>
-
-            <ListItemText primary={primary} secondary={secondary} />
-
-            { (!enabled && override) &&
-                <Tooltip title="Access is limited to training managers">
-                    <TooltipIconWrapper>
-                        <VisibilityOffIcon color="warning" sx={{ mr: 2 }} />
-                    </TooltipIconWrapper>
-                </Tooltip> }
-
-        </ListItemButton>
+        <StatusButton disabled={!enabled && !override} href={`${props.baseUrl}/training`}
+                      overrideWarning={
+                          (!enabled && override)
+                              ? 'Access is limited to training managers'
+                              : undefined
+                      }
+                      primary={primary} secondary={secondary} status={status} />
     );
 }
 
@@ -573,48 +633,27 @@ function TrainingStatusButton(props: TrainingStatusButtonProps) {
  */
 export interface EventApplicationPageProps {
     /**
-     * Availability windows that apply for this event, as configured by volunteering leadership.
-     */
-    availabilityWindows: {
-        hotelPreferences?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-        refundRequests?: { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-        trainingPreferences?:
-            { start?: Temporal.ZonedDateTime; end?: Temporal.ZonedDateTime; } | null;
-    };
-
-    /**
      * Context about the environment for which this page is being displayed.
      */
     context: EnvironmentContext;
 
     /**
-     * Information that needs to be known about the event in order to render this page.
+     * Information about the event for which this page is being displayed.
      */
-    event: {
-        enableSchedule: boolean;
-        hotelEnabled: boolean;
-        refundEnabled: boolean;
-        shortName: string;
-        slug: string;
-        timezone: string;
-        trainingEnabled: boolean;
-        whatsAppLink?: string;
-    };
+    event: EnvironmentContextEventAccess;
 
     /**
      * Information about the user's existing registration.
      */
-    registration: Registration;
-
-    /**
-     * URL-safe slug that represents the team for this application.
-     */
-    team: string;
-
-    /**
-     * Title of the team that the volunteer has joined.
-     */
-    teamTitle: string;
+    registration: {
+        status: RegistrationStatus;
+        team: {
+            id: number;
+            slug: string;
+            title: string;
+        };
+        whatsAppLink?: string;
+    };
 
     /**
      * The user who is currently signed in. We require someone to be signed in when applying, as
@@ -628,22 +667,8 @@ export interface EventApplicationPageProps {
  * retrieved by the team's leads and the status of its consideration.
  */
 export function EventApplicationPage(props: EventApplicationPageProps) {
-    const { availabilityWindows: aw, event, team, teamTitle, user } = props;
-
-    const { access } = props.context;
-
-    const eventAccessScope = { event: event.slug };
-    const teamAccessScope = { event: event.slug, team: team };
-
-    const canAccessAvailability = access.can('event.visible', teamAccessScope);
-    const canAccessHotels = access.can('event.hotels', eventAccessScope);
-    const canAccessRefunds = access.can('volunteers.refunds', eventAccessScope);
-    const canAccessSchedule = access.can('volunteers.schedules', 'read', teamAccessScope);
-    const canAccessTrainings = access.can('event.trainings', eventAccessScope);
-
-    const { hotelBookings, registration } = props.registration;
-
-    // ---------------------------------------------------------------------------------------------
+    const { context, event, registration, user } = props;
+    const { team } = registration;
 
     let label: string;
     let explanation: string;
@@ -672,25 +697,22 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
             break;
     }
 
-    // Display and enablement of hotel booking preferences.
-    const displayHotel = registration.hotelEligible || !!registration.hotelPreferences ||
-                         hotelBookings.length > 0;
+    const enableSchedule = event.publishPortal === 'active' || event.publishPortal === 'override';
+    const enableScheduleWithOverride =
+        enableSchedule || context.access.can('volunteers.schedules', 'read', {
+            event: event.slug,
+            team: team.slug,
+        });
 
-    // Display and enablement of the ticket refund option.
-    const displayRefundWithOverride =
-        registration.refund || registration.refundInformationPublished || canAccessRefunds;
-
-    // Display and enablement of training preferences.
-    const displayTraining = registration.trainingEligible || !!registration.training;
-
-    const enableSchedule = event.enableSchedule;
-    const enableScheduleWithOverride = enableSchedule || canAccessSchedule;
-
-    // Base URL for links to more detailed registration pages.
-    const baseUrl = `/registration/${event.slug}/application/${team}`;
-
-    // The current moment in time as an instant, at the time of the component being mounted.
-    const now = Temporal.Now.instant();
+    const baseUrl = `/registration/${event.slug}/application/${team.slug}`;
+    const buttonProps: ApplicationStatusButtonProps = {
+        baseUrl,
+        context,
+        event,
+        teamId: team.id,
+        teamSlug: team.slug,
+        user,
+    };
 
     const sp = ' ';  // thanks React
     return (
@@ -719,40 +741,19 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
                             <ListItemText primary="Your application has been accepted!" />
                         </ListItemButton>
 
-                        <AvailabilityButton status={registration.availabilityStatus}
-                                            override={canAccessAvailability} baseUrl={baseUrl} />
+                        <AvailabilityButton {...buttonProps} />
+                        <HotelStatusButton {...buttonProps} />
+                        <TrainingStatusButton {...buttonProps} />
+                        <RefundStatusButton {...buttonProps} />
 
-                        { (event.hotelEnabled && displayHotel) &&
-                            <HotelStatusButton availabilityWindow={aw.hotelPreferences}
-                                               bookings={hotelBookings} now={now}
-                                               enabled={registration.hotelInformationPublished}
-                                               override={canAccessHotels}
-                                               preferences={registration.hotelPreferences}
-                                               baseUrl={baseUrl} /> }
-
-                        { (event.trainingEnabled && displayTraining) &&
-                            <TrainingStatusButton availabilityWindow={aw.trainingPreferences}
-                                                  enabled={
-                                                      registration.trainingInformationPublished}
-                                                  override={canAccessTrainings} baseUrl={baseUrl}
-                                                  timezone={event.timezone} now={now}
-                                                  training={registration.training} /> }
-
-                        { (event.refundEnabled && displayRefundWithOverride) &&
-                            <RefundStatusButton availabilityWindow={aw.refundRequests} now={now}
-                                                enabled={registration.refundInformationPublished}
-                                                override={canAccessRefunds}
-                                                refund={registration.refund}
-                                                baseUrl={baseUrl} timezone={event.timezone} /> }
-
-                        { !!event.whatsAppLink &&
+                        { !!registration.whatsAppLink &&
                             <ListItemButton LinkComponent={Link} sx={{ pl: 4 }}
-                                            href={event.whatsAppLink}>
+                                            href={registration.whatsAppLink}>
                                 <ListItemIcon>
                                     <WhatsAppIcon />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary={`Join the ${teamTitle} WhatsApp group!`}
+                                    primary={`Join the ${team.title} WhatsApp group!`}
                                     secondary="You're duly invited to meet your fellow volunteers" />
                             </ListItemButton> }
 

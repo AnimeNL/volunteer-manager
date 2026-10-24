@@ -6,8 +6,7 @@ import { notFound, unauthorized } from 'next/navigation';
 import type { Environment } from '@lib/Environment';
 import type { EnvironmentContext, EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
 import { EventApplicationPage } from './EventApplicationPage';
-import { getRegistration } from './getRegistration';
-import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
+import db, { tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 /**
  * Props accepted by the <EventApplicationStatus> component.
@@ -44,76 +43,31 @@ export async function EventApplicationStatus(props: EventApplicationStatusProps)
     if (!context.user)
         unauthorized();
 
-    // ---------------------------------------------------------------------------------------------
-    // Load and compose information about the event for which status has to be shown. This includes
-    // the availability windows for individual fields.
-    // ---------------------------------------------------------------------------------------------
-
-    const info = await db.selectFrom(tEvents)
+    const registration = await db.selectFrom(tUsersEvents)
         .innerJoin(tTeams)
-            .on(tTeams.teamSlug.equals(team))
+            .on(tTeams.teamId.equals(tUsersEvents.teamId))
+                .and(tTeams.teamSlug.equals(team))
         .innerJoin(tEventsTeams)
-            .on(tEventsTeams.eventId.equals(tEvents.eventId))
-                .and(tEventsTeams.teamId.equals(tTeams.teamId))
-        .where(tEvents.eventId.equals(event.id))
+            .on(tEventsTeams.eventId.equals(tUsersEvents.eventId))
+                .and(tEventsTeams.teamId.equals(tUsersEvents.teamId))
+        .where(tUsersEvents.userId.equals(context.user.id))
+            .and(tUsersEvents.eventId.equals(event.id))
         .select({
-            teamId: tTeams.teamId,
-            teamTitle: tTeams.teamTitle,
-
-            event: {
-                hotelEnabled: tEvents.hotelEnabled.equals(/* true= */ 1),
-                refundEnabled: tEvents.refundEnabled.equals(/* true= */ 1),
-                timezone: tEvents.eventTimezone,
-                trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
-                whatsAppLink: tEventsTeams.whatsappLink,
+            status: tUsersEvents.registrationStatus,
+            team: {
+                id: tTeams.teamId,
+                slug: tTeams.teamSlug,
+                title: tTeams.teamTitle,
             },
-            availabilityWindows: {
-                hotelPreferences: {
-                    start: tEvents.hotelPreferencesStart,
-                    end: tEvents.hotelPreferencesEnd,
-                },
-                refundRequests: {
-                    start: tEvents.refundRequestsStart,
-                    end: tEvents.refundRequestsEnd,
-                },
-                trainingPreferences: {
-                    start: tEvents.trainingPreferencesStart,
-                    end: tEvents.trainingPreferencesEnd,
-                },
-            },
+            whatsAppLink: tEventsTeams.whatsappLink,
         })
         .executeSelectNoneOrOne();
 
-    if (!info)
-        notFound();
-
-    // ---------------------------------------------------------------------------------------------
-
-    const publishPortal = event.publishPortal === 'active' || event.publishPortal === 'override';
-
-    const eventInfo = {
-        ...info.event,
-        enableSchedule: publishPortal,
-        shortName: event.shortName,
-        slug: event.slug,
-    };
-
-    // ---------------------------------------------------------------------------------------------
-    // Load information about the application. This needs to be substantially more detailed than
-    // the |applications| contained within the environment context so far.
-    // ---------------------------------------------------------------------------------------------
-
-    const registration = await getRegistration(event.id, info.teamId, context.user.id);
     if (!registration)
         notFound();
 
-    // ---------------------------------------------------------------------------------------------
-
     return (
-        <EventApplicationPage availabilityWindows={info.availabilityWindows || {}} context={context}
-                              event={eventInfo} registration={registration} team={team}
-                              teamTitle={info.teamTitle} user={context.user!} />
+        <EventApplicationPage context={context} event={event} registration={registration}
+                              user={context.user} />
     );
 }
-
-
