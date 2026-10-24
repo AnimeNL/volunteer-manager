@@ -158,7 +158,7 @@ export default async function EventTeamVolunteerPreferencesPage(
 
     // ---------------------------------------------------------------------------------------------
 
-    const canUpdateRefunds = access.can('event.refunds', { event: event.slug });
+    const canUpdateRefunds = access.can('volunteers.refunds', { event: event.slug });
     const canUpdatePreferences =
         access.can('volunteers.participation', 'update', { event: event.slug, team: team.slug });
 

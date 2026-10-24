@@ -68,12 +68,6 @@ export const kPermissions = {
         type: 'boolean',
     },
 
-    // TODO: Rename to volunteers.refunds when the refund system has been migrated.
-    'event.refunds': {
-        type: 'boolean',
-        requireEvent: true,
-    },
-
     'event.tickets': {
         type: 'crud',
         requireEvent: true,
@@ -224,6 +218,11 @@ export const kPermissions = {
 
     'volunteers.program-requests': {
         type: 'crud',
+        requireEvent: true,
+    },
+
+    'volunteers.refunds': {
+        type: 'boolean',
         requireEvent: true,
     },
 

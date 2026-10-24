@@ -463,7 +463,7 @@ export async function updateRefundPreferences(
             notFound();
 
         if (props.user.id !== userId) {
-            executeAccessCheck(props.authenticationContext, 'event.refunds', {
+            executeAccessCheck(props.authenticationContext, 'volunteers.refunds', {
                 event: event.slug,
                 team: team.slug,
             });

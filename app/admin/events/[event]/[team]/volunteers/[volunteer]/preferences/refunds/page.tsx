@@ -19,7 +19,8 @@ import db, { tUsers, tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/d
 export default async function EventTeamVolunteerPreferencesRefundsPage(
     props: PageProps<'/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/refunds'>)
 {
-    const { event, team } = await requireAuthenticationWithEventAndTeam(props, 'event.refunds');
+    const { event, team } = await requireAuthenticationWithEventAndTeam(
+        props, 'volunteers.refunds');
 
     if (!event.flags.enableRefunds)
         notFound();

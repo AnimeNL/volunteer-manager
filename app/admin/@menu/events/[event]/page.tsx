@@ -108,11 +108,10 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: MonetizationOnIcon,
-            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableRefunds,
             label: 'Refunds',
             permission: {
-                permission: 'event.refunds',
+                permission: 'volunteers.refunds',
                 scope: eventScope,
             },
             url: `/admin/events/${event.slug}/refunds`,

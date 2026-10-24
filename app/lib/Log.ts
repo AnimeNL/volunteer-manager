@@ -56,7 +56,6 @@ export const kLogType = {
     AdminHotelAssignVolunteer: 'admin-hotel-assign-volunteer',
     AdminHotelAssignVolunteerDelete: 'admin-hotel-assign-volunteer-delete',
     AdminHotelBookingMutation: 'admin-hotel-booking-mutation',
-    AdminRefundMutation: 'admin-refund-mutation',
     AdminSendCommunication: 'admin-send-communication',
     AdminUpdateAvailabilityPreferences: 'admin-update-availability-preferences',
     AdminUpdateEvent: 'admin-update-event',

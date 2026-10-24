@@ -322,6 +322,12 @@ interface LogTypeParameterMap {
         status: 'Published' | 'Suspended';
     };
 
+    UpdateEventPublishedInformation: {
+        event: string;  // short name
+        published: boolean;
+        type: 'hotel' | 'refund' | 'training';
+    };
+
     UpdateEventSettings: {
         event: string;  // short name
         type: 'basic' | 'feature' | 'integration' | 'ticketing';
@@ -358,6 +364,10 @@ interface LogTypeParameterMap {
     UpdateProgramRequest: {
         event: string;  // short name
         activity: string;
+    };
+
+    UpdateRefundRequest: {
+        event: string;  // short name
     };
 
     UpdateShiftCategory: {
@@ -670,6 +680,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventKeyDate: 'UpdateEventKeyDate',
     UpdateEventProductAssociation: 'UpdateEventProductAssociation',
     UpdateEventPublicationStatus: 'UpdateEventPublicationStatus',
+    UpdateEventPublishedInformation: 'UpdateEventPublishedInformation',
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
@@ -677,6 +688,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
     UpdateProgramEntity: 'UpdateProgramEntity',
     UpdateProgramRequest: 'UpdateProgramRequest',
+    UpdateRefundRequest: 'UpdateRefundRequest',
     UpdateShiftCategory: 'UpdateShiftCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
 

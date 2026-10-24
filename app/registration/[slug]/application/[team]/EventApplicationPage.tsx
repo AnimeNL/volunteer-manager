@@ -635,7 +635,7 @@ export function EventApplicationPage(props: EventApplicationPageProps) {
 
     const canAccessAvailability = access.can('event.visible', teamAccessScope);
     const canAccessHotels = access.can('event.hotels', eventAccessScope);
-    const canAccessRefunds = access.can('event.refunds', eventAccessScope);
+    const canAccessRefunds = access.can('volunteers.refunds', eventAccessScope);
     const canAccessSchedule = access.can('volunteers.schedules', 'read', teamAccessScope);
     const canAccessTrainings = access.can('event.trainings', eventAccessScope);
 
