@@ -8,8 +8,9 @@ import { z } from 'zod/v4';
 
 import { AccessControl } from '@lib/auth/AccessControl';
 import { Cache } from '@lib/cache';
-import { executeServerAction } from '@lib/serverAction';
 import { LogBuilder } from '@lib/log/index';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeServerAction } from '@lib/serverAction';
 import { toPermissionList } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
 
@@ -31,8 +32,7 @@ const kAccountPermissionData = z.object({
  */
 export async function updateAccountPermissions(userId: number, formData: unknown) {
     return executeServerAction(formData, kAccountPermissionData, async (data, props) => {
-        if (!props.access.can('system.permissions'))
-            return { success: false, error: 'You are not able to update permissions' };
+        executeAccessCheck(props.authenticationContext, 'system.permissions');
 
         const dbInstance = db;
         const existingAccessInfo = await dbInstance.selectFrom(tUsers)
@@ -54,8 +54,10 @@ export async function updateAccountPermissions(userId: number, formData: unknown
         if (existingAccess.can('root') && !props.access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
-        if (!!data.roles?.includes('root') && !props.access.can('root') && !existingAccess.can('root'))
+        if (!!data.roles?.includes('root') && !props.access.can('root') &&
+                !existingAccess.can('root')) {
             return { success: false, error: 'You are not allowed to assign the "root" role…' };
+        }
 
         let grants: string | null = null;
         let revokes: string | null = null;
@@ -145,8 +147,7 @@ const kRolePermissionData = z.object({
  */
 export async function updateRolePermissions(roleId: string, formData: unknown) {
     return executeServerAction(formData, kRolePermissionData, async (data, props) => {
-        if (!props.access.can('system.permissions'))
-            return { success: false, error: 'You are not able to update permissions' };
+        executeAccessCheck(props.authenticationContext, 'system.permissions');
 
         if (roleId === 'root')
             return { success: false, error: 'The root role cannot be modified' };

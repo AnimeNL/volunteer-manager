@@ -1,19 +1,20 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import TableChartIcon from '@mui/icons-material/TableChart';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { DataTable, createDataSource, withContext, withRowModel, kEventTransformer }
+import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tEvents } from '@lib/database';
+
+import { kEventTransformer } from '@app/admin/components/DataTable';
 
 /**
  * Data source for the example <DataTable> component. Provides the data.
@@ -26,8 +27,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     location: z.string().optional(),
 }), {
     async authorize(operation, props, context) {
-        if (!props.access.can('system.internals.debug'))
-            forbidden();
+        executeAccessCheck(props.authenticationContext, 'system.internals.debug');
     },
 
     async delete(params, props, context) {

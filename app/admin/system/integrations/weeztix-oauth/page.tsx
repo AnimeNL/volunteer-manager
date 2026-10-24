@@ -53,7 +53,7 @@ export default async function WeeztixOAuthCallback(
     if (!code || typeof code !== 'string' || !state)
         notFound();
 
-    const { user } = await requireAuthentication('system.internals.settings');
+    const { user } = await requireAuthentication('system.integrations');
 
     const expectedState = await generateWeeztixState(user.id);
     if (expectedState !== state)

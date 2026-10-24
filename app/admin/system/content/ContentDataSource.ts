@@ -1,19 +1,47 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { ContentScope } from './ContentScope';
+import type { ContentType } from '@lib/database/Types';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import type { User } from '@lib/auth/User';
 import { Cache } from '@lib/cache/Cache';
-import { type ContentType, kContentType } from '@lib/database/Types';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { getEvent } from '@lib/cache';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/AccessList';
+import { kContentType } from '@lib/database/Types';
+
+/**
+ * Authorizes access to content within the given `scope`.
+ */
+export async function authorizeContentScope(
+    authenticationContext: AuthenticationContext, scope: ContentScope)
+{
+    if (scope.eventId === 0) {
+        executeAccessCheck(authenticationContext, 'system.content');
+    } else {
+        const event = await getEvent(scope.eventId);
+        if (!event)
+            notFound();
+
+        executeAccessCheck(authenticationContext, {
+            permission: 'event.visible',
+            scope: {
+                event: event.slug,
+                team: kAnyTeam,
+            },
+        });
+    }
+}
 
 /**
  * Clears all content caches for the given `eventId` and `type`.
@@ -159,22 +187,7 @@ export const contentDataSource = createDataSource('admin/system/content', withCo
 
 }), {
     async authorize(operation, props, context) {
-        if (context.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, 'system.content');
-        } else {
-            const eventSlug = await db.selectFrom(tEvents)
-                .where(tEvents.eventId.equals(context.eventId))
-                .selectOneColumn(tEvents.eventSlug)
-                .executeSelectOne();
-
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.visible',
-                scope: {
-                    event: eventSlug,
-                    team: kAnyTeam,
-                },
-            });
-        }
+        await authorizeContentScope(props.authenticationContext, context);
     },
 
     async delete(params, props, context) {

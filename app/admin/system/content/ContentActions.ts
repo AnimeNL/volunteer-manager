@@ -3,18 +3,14 @@
 
 'use server';
 
-import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { ContentScope } from './ContentScope';
-import { clearContentCacheForEventAndType, writeContentLog } from './ContentDataSource';
+import { authorizeContentScope, clearContentCacheForEventAndType, writeContentLog }
+    from './ContentDataSource';
 import { executeServerAction } from '@lib/serverAction';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { getEvent } from '@lib/cache';
 import { nanoid } from '@lib/nanoid';
 import db, { tContent, tContentCategories, tUsers } from '@lib/database';
-
-import { kAnyTeam } from '@lib/auth/AccessList';
 
 /**
  * Server action schema for creating a new content item.
@@ -30,21 +26,7 @@ const kCreateContentData = z.object({
  */
 export async function createContent(scope: ContentScope, linkPrefix: string, row: unknown) {
     return executeServerAction(row, kCreateContentData, async (data, props) => {
-        if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, 'system.content');
-        } else {
-            const event = await getEvent(scope.eventId);
-            if (!event)
-                notFound();
-
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.visible',
-                scope: {
-                    event: event.slug,
-                    team: kAnyTeam,
-                },
-            });
-        }
+        await authorizeContentScope(props.authenticationContext, scope);
 
         if (!data.path && scope.type === 'FAQ')
             data.path = nanoid(8);
@@ -97,21 +79,7 @@ export async function createContent(scope: ContentScope, linkPrefix: string, row
  */
 export async function fetchContent(scope: ContentScope, id: number) {
     return executeServerAction({ /* no data */ }, z.object(), async (data, props) => {
-        if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, 'system.content');
-        } else {
-            const event = await getEvent(scope.eventId);
-            if (!event)
-                notFound();
-
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.visible',
-                scope: {
-                    event: event.slug,
-                    team: kAnyTeam,
-                },
-            });
-        }
+        await authorizeContentScope(props.authenticationContext, scope);
 
         const contentCategoriesJoin = tContentCategories.forUseInLeftJoin();
 
@@ -165,21 +133,7 @@ const kUpdateContentData = z.object({
  */
 export async function updateContent(scope: ContentScope, id: number, row: unknown) {
     return executeServerAction(row, kUpdateContentData, async (data, props) => {
-        if (scope.eventId === 0) {
-            executeAccessCheck(props.authenticationContext, 'system.content');
-        } else {
-            const event = await getEvent(scope.eventId);
-            if (!event)
-                notFound();
-
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'event.visible',
-                scope: {
-                    event: event.slug,
-                    team: kAnyTeam,
-                },
-            });
-        }
+        await authorizeContentScope(props.authenticationContext, scope);
 
         const existingContent = await db.selectFrom(tContent)
             .where(tContent.contentId.equals(id))

@@ -94,7 +94,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
     if (!message)
         notFound();
 
-    const canManageEmailAccounts = access.can('system.internals.settings');
+    const canManageEmailAccounts = access.can('system.integrations');
 
     const logs = !!message.logs ? JSON.parse(message.logs) : [];
 
