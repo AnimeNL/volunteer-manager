@@ -44,7 +44,7 @@ interface CategoryCellProps {
      * The row model for the financial setting item.
      */
     row: {
-        category?: EventTicketCategory | 'null' | null;
+        category?: EventTicketCategory | '' | 'null' | null;
     };
 }
 

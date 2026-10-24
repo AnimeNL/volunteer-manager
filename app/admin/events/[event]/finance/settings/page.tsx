@@ -52,7 +52,12 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     /**
      * Category of tickets that this row model details.
      */
-    category: z.enum(kEventTicketCategory).or(z.literal('null')).nullish(),
+    category: z.enum(kEventTicketCategory).or(z.literal('')).or(z.literal('null')).nullish(),
+
+    /**
+     * Label to assign to the category of tickets that the row model details.
+     */
+    categoryLabel: z.string().nullish(),
 
     /**
      * Price of the ticket, when known.
@@ -103,6 +108,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 product: type.name,
                 productLimit: type.amount,
                 category: association?.ticketCategory,
+                categoryLabel: association?.ticketCategory || '(unassigned)',
                 price: type.price / 100,
                 activityId: association?.ticketActivityId,
             };
@@ -165,7 +171,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 product: row.product,
             });
 
-        return !!affectedRows;
+        return !!affectedRows ? { ...row, categoryLabel: row.category || '(unassigned)' } : false;
     },
 });
 
@@ -259,7 +265,7 @@ export default async function EventFinanceSettingsPage(
                            pageSize={100}
                            listViewProps={{
                                primaryField: 'product',
-                               secondaryTemplate: '€{price} · {category}',
+                               secondaryTemplate: '€{price} · {categoryLabel}',
                            }} />
             </Section>
         </>

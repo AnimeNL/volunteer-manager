@@ -230,7 +230,7 @@ export default async function EventTicketsVisitorTicketTypePage(
                            subject="ticket"
                            listViewProps={{
                                primaryField: 'holder',
-                               secondaryTemplate: '{purchaseIdFormatted} • Ticket #{id}',
+                               secondaryTemplate: '{order} • Ticket #{id}',
                                startComponent: ValidityCell,
                                linkTemplate: `/admin/events/${event.slug}/tickets/visitors/` +
                                    `${ticket.id}/{purchaseId}`,

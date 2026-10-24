@@ -389,7 +389,7 @@ export default async function ProgramLocationsPage(
                            protectedColumn="isProtected" subject="location"
                            search="prominent" disableFooter pageSize={100}
                            listViewProps={{
-                               primaryField: 'displayName',
+                               primaryField: 'name',
                                secondaryField: 'area',
                            }} />
             </Section>

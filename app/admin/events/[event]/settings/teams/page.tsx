@@ -24,6 +24,11 @@ import { kContentType } from '@lib/database/Types';
 import { kEventTransformer } from '@app/admin/components/DataTable';
 
 /**
+ * Default target size for teams participating in the event.
+ */
+const kDefaultTargetTeamSize = 0;
+
+/**
  * Data source for the team settings of an event.
  */
 const eventTeamsDataSource = createDataSource('admin/event/settings/teams', withContext({
@@ -95,7 +100,11 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
 
         const filteredTeams =
             teams.filter(team => team.participating || !team.hasTeamBeenDeleted)
-                 .map(team => ({ ...team, participating: !!team.participating }));
+                 .map(team => ({
+                    ...team,
+                    targetSize: team.targetSize ?? kDefaultTargetTeamSize,
+                    participating: !!team.participating
+                }));
 
         return {
             rowCount: filteredTeams.length,
@@ -116,12 +125,12 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
                 .set({
                     eventId: event.id,
                     teamId: updatedRow.id,
-                    teamTargetSize: updatedRow.targetSize || /* default= */ 100,
+                    teamTargetSize: updatedRow.targetSize || kDefaultTargetTeamSize,
                     enableTeam: updatedRow.participating ? 1 : 0,
                     whatsappLink: updatedRow.whatsappLink,
                 })
                 .onConflictDoUpdateSet({
-                    teamTargetSize: updatedRow.targetSize || /* default= */ 100,
+                    teamTargetSize: updatedRow.targetSize || kDefaultTargetTeamSize,
                     enableTeam: updatedRow.participating ? 1 : 0,
                     whatsappLink: updatedRow.whatsappLink,
                 })
