@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider/YourTicketProviderClient';
+import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
 import { TaskContext } from '../TaskContext';
 import { createYourTicketProviderClient } from '@lib/integrations/yourticketprovider';
@@ -148,6 +149,7 @@ export class YourTicketProviderImportTask extends Task {
                 .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
                 .and(tEvents.eventYtpEventId.isNotNull())
             .select({
+                slug: tEvents.eventSlug,
                 name: tEvents.eventShortName,
                 endTime: tEvents.eventEndTime,
                 context: {
@@ -187,6 +189,10 @@ export class YourTicketProviderImportTask extends Task {
             }
 
             this.updateTaskIntervalForFestivalDate(event.endTime);
+
+            // Revalidate the financial cache, ensuring that all metrics and dashboards show the
+            // most recently updated data.
+            await FinanceProcessor.revalidateForEvent(event.slug);
         }
 
         return true;
