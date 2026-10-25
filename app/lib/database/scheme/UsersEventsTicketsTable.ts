@@ -12,6 +12,13 @@ import {
     EventTicketProvider,
 } from "../Types";
 
+export const kTicketProvider = {
+    Weeztix: "Weeztix",
+    YourTicketProvider: "YourTicketProvider",
+} as const;
+
+export type TicketProvider = keyof typeof kTicketProvider;
+
 export class UsersEventsTicketsTable extends Table<DBConnection, 'UsersEventsTicketsTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');

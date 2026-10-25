@@ -12,6 +12,14 @@ import {
     AuthType,
 } from "../Types";
 
+export const kAuthType = {
+    code: "code",
+    password: "password",
+    passkey: "passkey",
+} as const;
+
+export type AuthType = keyof typeof kAuthType;
+
 export class UsersAuthTable extends Table<DBConnection, 'UsersAuthTable'> {
     userId = this.column('user_id', 'int');
     authType = this.column<AuthType>('auth_type', 'enum', 'AuthType');

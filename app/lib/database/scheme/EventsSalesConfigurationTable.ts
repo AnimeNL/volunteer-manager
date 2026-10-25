@@ -12,6 +12,22 @@ import {
     EventTicketCategory,
 } from "../Types";
 
+export const kSaleCategory = {
+    Event: "Event",
+    Hidden: "Hidden",
+    Locker: "Locker",
+    LockerFriday: "LockerFriday",
+    LockerSaturday: "LockerSaturday",
+    LockerSunday: "LockerSunday",
+    LockerWeekend: "LockerWeekend",
+    TicketFriday: "TicketFriday",
+    TicketSaturday: "TicketSaturday",
+    TicketSunday: "TicketSunday",
+    TicketWeekend: "TicketWeekend",
+} as const;
+
+export type SaleCategory = keyof typeof kSaleCategory;
+
 export class EventsSalesConfigurationTable extends Table<DBConnection, 'EventsSalesConfigurationTable'> {
     eventId = this.column('event_id', 'int');
     saleId = this.column('sale_id', 'int');

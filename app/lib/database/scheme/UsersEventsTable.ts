@@ -15,6 +15,15 @@ import {
     RegistrationStatus,
 } from "../Types";
 
+export const kRegistrationStatus = {
+    Registered: "Registered",
+    Cancelled: "Cancelled",
+    Accepted: "Accepted",
+    Rejected: "Rejected",
+} as const;
+
+export type RegistrationStatus = keyof typeof kRegistrationStatus;
+
 export class UsersEventsTable extends Table<DBConnection, 'UsersEventsTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');

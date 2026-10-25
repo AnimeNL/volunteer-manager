@@ -16,6 +16,26 @@ import {
     ShirtSize,
 } from "../Types";
 
+export const kParticipationTshirtFit = {
+    Regular: "Regular",
+    Girly: "Girly",
+} as const;
+
+export type ParticipationTshirtFit = keyof typeof kParticipationTshirtFit;
+
+export const kParticipationTshirtSize = {
+    XS: "XS",
+    S: "S",
+    M: "M",
+    L: "L",
+    XL: "XL",
+    XXL: "XXL",
+    "3XL": "3XL",
+    "4XL": "4XL",
+} as const;
+
+export type ParticipationTshirtSize = keyof typeof kParticipationTshirtSize;
+
 export class UsersEventsPreferencesParticipationTable extends Table<DBConnection, 'UsersEventsPreferencesParticipationTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');

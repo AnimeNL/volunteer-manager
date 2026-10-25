@@ -12,6 +12,13 @@ import {
     RetentionStatus,
 } from "../Types";
 
+export const kRetentionStatus = {
+    Contacting: "Contacting",
+    Declined: "Declined",
+} as const;
+
+export type RetentionStatus = keyof typeof kRetentionStatus;
+
 export class RetentionTable extends Table<DBConnection, 'RetentionTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');

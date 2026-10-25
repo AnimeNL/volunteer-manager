@@ -298,6 +298,11 @@ do {
 
         export: {
             tableInstances: true,
+            enums: true,
+        },
+
+        naming: {
+            enumUseQualifiedName: false,
         },
 
         rawContent: {

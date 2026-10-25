@@ -15,6 +15,13 @@ import {
     ActivityType,
 } from "../Types";
 
+export const kLocationType = {
+    Program: "Program",
+    Internal: "Internal",
+} as const;
+
+export type LocationType = keyof typeof kLocationType;
+
 export class ActivitiesLocationsTable extends Table<DBConnection, 'ActivitiesLocationsTable'> {
     locationId = this.column('location_id', 'int');
     locationFestivalId = this.column('location_festival_id', 'int');

@@ -15,6 +15,13 @@ import {
     ActivityType,
 } from "../Types";
 
+export const kTimeslotType = {
+    Program: "Program",
+    Internal: "Internal",
+} as const;
+
+export type TimeslotType = keyof typeof kTimeslotType;
+
 export class ActivitiesTimeslotsTable extends Table<DBConnection, 'ActivitiesTimeslotsTable'> {
     activityId = this.column('activity_id', 'int');
     timeslotId = this.column('timeslot_id', 'int');
