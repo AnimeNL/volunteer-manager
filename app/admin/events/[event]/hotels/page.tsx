@@ -4,7 +4,6 @@
 import { notFound } from 'next/navigation';
 
 import { HotelAssignment } from './HotelAssignment';
-import { HotelConfiguration } from './HotelConfiguration';
 import { HotelPendingAssignment } from './HotelPendingAssignment';
 import { HotelProcessor } from './HotelProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -43,7 +42,6 @@ export default async function EventHotelsPage(props: PageProps<'/admin/events/[e
         <>
             <HotelAssignment event={event} requests={requests} rooms={rooms} warnings={warnings} />
             <HotelPendingAssignment event={event.slug} />
-            <HotelConfiguration event={event} />
         </>
     );
 }

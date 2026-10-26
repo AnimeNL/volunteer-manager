@@ -44,7 +44,6 @@ export const kLogType = {
     AdminClearRefundRequest: 'admin-clear-refund-request',
     AdminClearTrainingPreferences: 'admin-clear-training-preferences',
     AdminEventCreate: 'admin-event-create',
-    AdminEventHotelMutation: 'admin-event-hotel',
     AdminEventPublishInfo: 'admin-event-publish-info',
     AdminEventRoleUpdate: 'admin-event-role-update',
     AdminEventShiftMutation: 'admin-event-shift-mutation',

@@ -253,6 +253,12 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    CreateHotelRoom: {
+        event: string;  // short name
+        hotelName: string;
+        roomName: string;
+    };
+
     CreateKnowledgeBaseCategory: {
         event: string;  // short name
         category: string;
@@ -271,6 +277,12 @@ interface LogTypeParameterMap {
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
+    };
+
+    DeleteHotelRoom: {
+        event: string;  // short name
+        hotelName: string;
+        roomName: string;
     };
 
     DeleteKnowledgeBaseCategory: {
@@ -342,6 +354,12 @@ interface LogTypeParameterMap {
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
+    };
+
+    UpdateHotelRoom: {
+        event: string;  // short name
+        hotelName: string;
+        roomName: string;
     };
 
     UpdateKnowledgeBase: {
@@ -666,10 +684,12 @@ export const kLogType: { [k in LogType]: k } = {
     CancelVolunteerTicket: 'CancelVolunteerTicket',
     CreateAssociateTicket: 'CreateAssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
+    CreateHotelRoom: 'CreateHotelRoom',
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     CreateProgramEntity: 'CreateProgramEntity',
     CreateShiftCategory: 'CreateShiftCategory',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
+    DeleteHotelRoom: 'DeleteHotelRoom',
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DeleteProgramEntity: 'DeleteProgramEntity',
     DeleteShiftCategory: 'DeleteShiftCategory',
@@ -684,6 +704,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
+    UpdateHotelRoom: 'UpdateHotelRoom',
     UpdateKnowledgeBase: 'UpdateKnowledgeBase',
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
     UpdateProgramEntity: 'UpdateProgramEntity',
