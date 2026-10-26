@@ -1,6 +1,13 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import db, { tHotelsBookings, tTeams, tUsers, tUsersEvents } from '@lib/database';
+
+import { kRegistrationStatus } from '@lib/database/Types';
+
+/**
+ * Row model for a hotel booking and its assigned occupants.
+ */
 export interface HotelsAssignmentsRowModel {
     id: number;
     firstName?: string;
@@ -17,9 +24,6 @@ export interface HotelsAssignmentsRowModel {
     checkOut: string;
     confirmed: boolean;
 }
-import db, { tHotelsAssignments, tHotelsBookings, tHotels, tTeams, tUsersEvents, tUsers } from '@lib/database';
-
-import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Retrieves the hotel bookings for the given `eventId` in line with the row model of hotel
@@ -29,89 +33,73 @@ import { kRegistrationStatus } from '@lib/database/Types';
 export async function getHotelBookings(eventId: number, bookingId?: number)
     : Promise<HotelsAssignmentsRowModel[]>
 {
-    const teamsJoin = tTeams.forUseInLeftJoin();
-    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
-    const usersJoin = tUsers.forUseInLeftJoin();
+    const firstTeamJoin = tTeams.forUseInLeftJoinAs('ft');
+    const firstUserEventJoin = tUsersEvents.forUseInLeftJoinAs('fue');
+    const firstUserJoin = tUsers.forUseInLeftJoinAs('fu');
 
-    const assignments = await db.selectFrom(tHotelsAssignments)
-        .innerJoin(tHotelsBookings)
-            .on(tHotelsBookings.bookingId.equals(tHotelsAssignments.bookingId))
-            .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
-        .leftJoin(usersJoin)
-            .on(usersJoin.userId.equals(tHotelsAssignments.assignmentUserId))
-        .leftJoin(usersEventsJoin)
-            .on(usersEventsJoin.eventId.equals(tHotelsAssignments.eventId))
-            .and(usersEventsJoin.userId.equals(tHotelsAssignments.assignmentUserId))
-            .and(usersEventsJoin.registrationStatus.in(
-                [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
-        .leftJoin(teamsJoin)
-            .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
-        .where(tHotelsAssignments.eventId.equals(eventId))
-            .and(tHotelsAssignments.bookingId.equalsIfValue(bookingId))
-        .select({
-            bookingId: tHotelsAssignments.bookingId,
-            name: tHotelsAssignments.assignmentName.valueWhenNull(
-                usersJoin.name),
+    const secondTeamJoin = tTeams.forUseInLeftJoinAs('st');
+    const secondUserEventJoin = tUsersEvents.forUseInLeftJoinAs('sue');
+    const secondUserJoin = tUsers.forUseInLeftJoinAs('su');
 
-            userId: tHotelsAssignments.assignmentUserId,
-            team: teamsJoin.teamSlug,
-        })
-        .orderBy(tHotelsAssignments.assignmentPrimary, 'desc')
-            .orderBy('name', 'asc')
-        .executeSelectMany();
-
-    const assignmentsByBookingId = new Map<number, typeof assignments[number][]>();
-    for (const assignment of assignments) {
-        if (!assignmentsByBookingId.has(assignment.bookingId))
-            assignmentsByBookingId.set(assignment.bookingId, [ assignment ]);
-        else
-            assignmentsByBookingId.get(assignment.bookingId)!.push(assignment);
-    }
-
-    const hotelsJoin = tHotels.forUseInLeftJoin();
+    const thirdTeamJoin = tTeams.forUseInLeftJoinAs('tt');
+    const thirdUserEventJoin = tUsersEvents.forUseInLeftJoinAs('tue');
+    const thirdUserJoin = tUsers.forUseInLeftJoinAs('tu');
 
     const dbInstance = db;
-    const bookings = await dbInstance.selectFrom(tHotelsBookings)
-        .leftJoin(hotelsJoin)
-            .on(hotelsJoin.hotelId.equals(tHotelsBookings.bookingHotelId))
+    return await dbInstance.selectFrom(tHotelsBookings)
+        .leftJoin(firstUserJoin)
+            .on(firstUserJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
+        .leftJoin(firstUserEventJoin)
+            .on(firstUserEventJoin.eventId.equals(tHotelsBookings.eventId))
+                .and(firstUserEventJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
+                .and(firstUserEventJoin.registrationStatus.in(
+                    [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+        .leftJoin(firstTeamJoin)
+            .on(firstTeamJoin.teamId.equals(firstUserEventJoin.teamId))
+        .leftJoin(secondUserJoin)
+            .on(secondUserJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
+        .leftJoin(secondUserEventJoin)
+            .on(secondUserEventJoin.eventId.equals(tHotelsBookings.eventId))
+                .and(secondUserEventJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
+                .and(secondUserEventJoin.registrationStatus.in(
+                    [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+        .leftJoin(secondTeamJoin)
+            .on(secondTeamJoin.teamId.equals(secondUserEventJoin.teamId))
+        .leftJoin(thirdUserJoin)
+            .on(thirdUserJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
+        .leftJoin(thirdUserEventJoin)
+            .on(thirdUserEventJoin.eventId.equals(tHotelsBookings.eventId))
+                .and(thirdUserEventJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
+                .and(thirdUserEventJoin.registrationStatus.in(
+                    [ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]))
+        .leftJoin(thirdTeamJoin)
+            .on(thirdTeamJoin.teamId.equals(thirdUserEventJoin.teamId))
         .where(tHotelsBookings.eventId.equals(eventId))
             .and(tHotelsBookings.bookingId.equalsIfValue(bookingId))
-            .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
+            .and(tHotelsBookings.bookingDeleted.isNull())
         .select({
             id: tHotelsBookings.bookingId,
 
-            hotelId: tHotelsBookings.bookingHotelId,
-            hotelName: hotelsJoin.hotelName,
-            hotelRoomName: hotelsJoin.hotelRoomName,
-            hotelVisible: hotelsJoin.hotelRoomVisible,
+            firstName: tHotelsBookings.bookingFirstName.valueWhenNull(firstUserJoin.name),
+            firstUserId: tHotelsBookings.bookingFirstUserId,
+            firstTeam: firstTeamJoin.teamSlug,
 
+            secondName: tHotelsBookings.bookingSecondName.valueWhenNull(secondUserJoin.name),
+            secondUserId: tHotelsBookings.bookingSecondUserId,
+            secondTeam: secondTeamJoin.teamSlug,
+
+            thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
+            thirdUserId: tHotelsBookings.bookingThirdUserId,
+            thirdTeam: thirdTeamJoin.teamSlug,
+
+            hotelId: tHotelsBookings.bookingHotelId,
             checkIn: dbInstance.dateAsString(tHotelsBookings.bookingCheckIn),
             checkOut: dbInstance.dateAsString(tHotelsBookings.bookingCheckOut),
-            confirmed: tHotelsBookings.bookingConfirmed,
+            confirmed: tHotelsBookings.bookingConfirmed.isNotNull(),
         })
         .orderBy('confirmed', 'desc')
             .orderBy('checkIn', 'asc')
             .orderBy('checkOut', 'asc')
             .orderBy('id', 'asc')
         .executeSelectMany();
-
-    return bookings.map(booking => {
-        const assignments = assignmentsByBookingId.get(booking.id) ?? [];
-        return {
-            id: booking.id,
-            firstName: assignments[0]?.name,
-            firstUserId: assignments[0]?.userId,
-            firstTeam: assignments[0]?.team,
-            secondName: assignments[1]?.name,
-            secondUserId: assignments[1]?.userId,
-            secondTeam: assignments[1]?.team,
-            thirdName: assignments[2]?.name,
-            thirdUserId: assignments[2]?.userId,
-            thirdTeam: assignments[2]?.team,
-            hotelId: booking.hotelId,
-            checkIn: booking.checkIn,
-            checkOut: booking.checkOut,
-            confirmed: !!booking.confirmed,
-        };
-    });
 }

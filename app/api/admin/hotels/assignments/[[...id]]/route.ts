@@ -9,7 +9,7 @@ import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEventBySlug } from '@lib/EventLoader';
 import { getHotelBookings, type HotelsAssignmentsRowModel } from './getHotelBookings';
-import db, { tHotelsAssignments, tHotelsBookings, tUsers, tUsersEvents } from '@lib/database';
+import db, { tHotelsBookings, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -17,7 +17,7 @@ import { kRegistrationStatus } from '@lib/database/Types';
  * Row model for an hotel assignment, as can be shown and modified in the administration area.
  */
 const kHotelAssignmentRowModel = z.object({
-/**
+    /**
      * Unique ID of this entry in the configuration.
      */
     id: z.number(),
@@ -176,8 +176,7 @@ createDataTableApi(kHotelAssignmentRowModel, kHotelAssignmentContext, {
                 bookingHotelId: null,
                 bookingCheckIn,
                 bookingCheckOut,
-                bookingConfirmed: /* false= */ 0,
-                bookingVisible: /* true= */ 1,
+                bookingConfirmed: null,
             })
             .returningLastInsertedId()
             .executeInsert();
@@ -204,12 +203,14 @@ createDataTableApi(kHotelAssignmentRowModel, kHotelAssignmentContext, {
 
         const booking = bookings[0];
 
-        const affectedRows = await db.update(tHotelsBookings)
+        const dbInstance = db;
+        const affectedRows = await dbInstance.update(tHotelsBookings)
             .set({
-                bookingVisible: /* false= */ 0
+                bookingDeleted: dbInstance.currentZonedDateTime(),
             })
             .where(tHotelsBookings.bookingId.equals(id))
                 .and(tHotelsBookings.eventId.equals(event.id))
+                .and(tHotelsBookings.bookingDeleted.isNull())
             .executeUpdate();
 
         if (!!affectedRows) {
@@ -255,17 +256,6 @@ createDataTableApi(kHotelAssignmentRowModel, kHotelAssignmentContext, {
 
         const booking = bookings[0];
 
-        const affectedRows = await db.update(tHotelsBookings)
-            .set({
-                bookingHotelId: row.hotelId,
-                bookingCheckIn: Temporal.PlainDate.from(row.checkIn),
-                bookingCheckOut: Temporal.PlainDate.from(row.checkOut),
-                bookingConfirmed: row.confirmed ? 1 : 0,
-            })
-            .where(tHotelsBookings.bookingId.equals(id))
-                .and(tHotelsBookings.eventId.equals(event.id))
-            .executeUpdate();
-
         const existingAssignments: HotelAssignment[] = [];
         if (!!booking.firstName)
             existingAssignments.push(booking.firstUserId ?? booking.firstName);
@@ -277,30 +267,44 @@ createDataTableApi(kHotelAssignmentRowModel, kHotelAssignmentContext, {
         const updatedAssignments: HotelAssignment[] =
             await determineAssignmentsFromRow(event.id, row);
 
+        const dbInstance = db;
+        const affectedRows = await dbInstance.update(tHotelsBookings)
+            .set({
+                bookingHotelId: row.hotelId ?? null,
+                bookingCheckIn: Temporal.PlainDate.from(row.checkIn),
+                bookingCheckOut: Temporal.PlainDate.from(row.checkOut),
+
+                bookingFirstUserId:
+                    typeof updatedAssignments[0] === 'number' ? updatedAssignments[0] : null,
+                bookingFirstName:
+                    typeof updatedAssignments[0] === 'string' ? updatedAssignments[0] : null,
+
+                bookingSecondUserId:
+                    typeof updatedAssignments[1] === 'number' ? updatedAssignments[1] : null,
+                bookingSecondName:
+                    typeof updatedAssignments[1] === 'string' ? updatedAssignments[1] : null,
+
+                bookingThirdUserId:
+                    typeof updatedAssignments[2] === 'number' ? updatedAssignments[2] : null,
+                bookingThirdName:
+                    typeof updatedAssignments[2] === 'string' ? updatedAssignments[2] : null,
+
+                bookingConfirmed:
+                    booking.confirmed !== row.confirmed
+                        ? (row.confirmed ? dbInstance.currentZonedDateTime() : null)
+                        : undefined,
+            })
+            .where(tHotelsBookings.bookingId.equals(id))
+                .and(tHotelsBookings.eventId.equals(event.id))
+                .and(tHotelsBookings.bookingDeleted.isNull())
+            .executeUpdate();
+
         const assignmentsUpdated =
             existingAssignments[0] !== updatedAssignments[0] ||
             existingAssignments[1] !== updatedAssignments[1] ||
             existingAssignments[2] !== updatedAssignments[2];
 
         if (assignmentsUpdated) {
-            const dbInstance = db;
-            await dbInstance.transaction(async () => {
-                await dbInstance.deleteFrom(tHotelsAssignments)
-                    .where(tHotelsAssignments.bookingId.equals(id))
-                        .and(tHotelsAssignments.eventId.equals(event.id))
-                    .executeDelete();
-
-                await dbInstance.insertInto(tHotelsAssignments)
-                    .values(updatedAssignments.map((assignment, index) => ({
-                        bookingId: id,
-                        eventId: event.id,
-                        assignmentUserId: typeof assignment === 'number' ? assignment : null,
-                        assignmentName: typeof assignment === 'string' ? assignment : null,
-                        assignmentPrimary: index === 0 ? /* true= */ 1 : /* false= */ 0,
-                    })))
-                    .executeInsert();
-            });
-
             const existingAssignmentSet = new Set([ ...existingAssignments ]);
             const updatedAssignmentSet = new Set([ ...updatedAssignments ]);
 

@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 
 import { ConfirmationBox } from './ConfirmationBox';
 import { formatDate } from '@lib/Temporal';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tUsers } from '@lib/database';
+import db, { tHotels, tHotelsBookings, tUsers } from '@lib/database';
 
 /**
  * Props accepted by the <HotelConfirmation> component.
@@ -30,39 +30,41 @@ interface HotelConfirmationProps {
 export async function HotelConfirmation(props: HotelConfirmationProps) {
     const dbInstance = db;
 
-    const assignmentsJoin = tHotelsAssignments.forUseInLeftJoinAs('aj');
-    const usersJoin = tUsers.forUseInLeftJoin();
+    const firstUserJoin = tUsers.forUseInLeftJoinAs('fu');
+    const secondUserJoin = tUsers.forUseInLeftJoinAs('su');
+    const thirdUserJoin = tUsers.forUseInLeftJoinAs('tu');
 
-    const bookings = await dbInstance.selectFrom(tHotelsAssignments)
-        .innerJoin(tHotelsBookings)
-            .on(tHotelsBookings.bookingId.equals(tHotelsAssignments.bookingId))
-                .and(tHotelsBookings.bookingConfirmed.equals(/* true= */ 1))
-                .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
+    const bookings = await dbInstance.selectFrom(tHotelsBookings)
         .innerJoin(tHotels)
             .on(tHotels.hotelId.equals(tHotelsBookings.bookingHotelId))
                 .and(tHotels.hotelRoomDeleted.isNull())
-        .leftJoin(assignmentsJoin)
-            .on(assignmentsJoin.bookingId.equals(tHotelsBookings.bookingId))
-        .leftJoin(usersJoin)
-            .on(usersJoin.userId.equals(assignmentsJoin.assignmentUserId))
-        .where(tHotelsAssignments.eventId.equals(props.eventId))
-            .and(tHotelsAssignments.assignmentUserId.equals(props.userId))
+        .leftJoin(firstUserJoin)
+            .on(firstUserJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
+        .leftJoin(secondUserJoin)
+            .on(secondUserJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
+        .leftJoin(thirdUserJoin)
+            .on(thirdUserJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
+        .where(tHotelsBookings.eventId.equals(props.eventId))
+            .and(tHotelsBookings.bookingConfirmed.isNotNull())
+            .and(tHotelsBookings.bookingDeleted.isNull())
+            .and(tHotelsBookings.bookingFirstUserId.equals(props.userId).or(
+                tHotelsBookings.bookingSecondUserId.equals(props.userId)).or(
+                tHotelsBookings.bookingThirdUserId.equals(props.userId)))
         .select({
-            booking: {
-                checkIn: tHotelsBookings.bookingCheckIn,
-                checkOut: tHotelsBookings.bookingCheckOut,
-                hotel: {
-                    name: tHotels.hotelName,
-                    room: tHotels.hotelRoomName,
-                },
+            checkIn: tHotelsBookings.bookingCheckIn,
+            checkOut: tHotelsBookings.bookingCheckOut,
+            hotel: {
+                name: tHotels.hotelName,
+                room: tHotels.hotelRoomName,
             },
-            sharing: db.aggregateAsArray({
-                userId: assignmentsJoin.assignmentUserId,
-                name: assignmentsJoin.assignmentName.valueWhenNull(usersJoin.name),
-            }),
+            firstUserId: tHotelsBookings.bookingFirstUserId,
+            firstName: tHotelsBookings.bookingFirstName.valueWhenNull(firstUserJoin.name),
+            secondUserId: tHotelsBookings.bookingSecondUserId,
+            secondName: tHotelsBookings.bookingSecondName.valueWhenNull(secondUserJoin.name),
+            thirdUserId: tHotelsBookings.bookingThirdUserId,
+            thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
         })
-        .groupBy(tHotelsAssignments.bookingId)
-        .orderBy('booking.checkIn', 'asc')
+        .orderBy('checkIn', 'asc')
         .executeSelectMany();
 
     return (
@@ -70,14 +72,19 @@ export async function HotelConfirmation(props: HotelConfirmationProps) {
             <Typography variant="h5">
                 Your confirmed booking{ bookings.length > 1 ? 's' : '' }
             </Typography>
-            { bookings.map(({ booking, sharing }, index) => {
+            { bookings.map((booking, index) => {
                 const primary = `${booking.hotel.name} (${booking.hotel.room})`;
                 const secondary =
                     `Check in on ${formatDate(booking.checkIn, 'dddd, MMMM D')}, check out on ` +
                     `${formatDate(booking.checkOut, ' dddd, MMMM D')}`;
 
-                const others = sharing.filter(v => v.userId !== props.userId);
-                const otherNames = others.map(v => v.name);
+                const otherNames: string[] = [];
+                if (booking.firstUserId !== props.userId && !!booking.firstName)
+                    otherNames.push(booking.firstName);
+                if (booking.secondUserId !== props.userId && !!booking.secondName)
+                    otherNames.push(booking.secondName);
+                if (booking.thirdUserId !== props.userId && !!booking.thirdName)
+                    otherNames.push(booking.thirdName);
 
                 const tertiary =
                     !!otherNames.length

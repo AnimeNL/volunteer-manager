@@ -22,7 +22,7 @@ import type { RegistrationStatus } from '@lib/database/Types';
 import type { User } from '@lib/auth/User';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { formatDate, isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tHotels, tHotelsAssignments, tHotelsBookings, tRefunds, tRoles, tTrainings,
+import db, { tEvents, tHotels, tHotelsBookings, tRefunds, tRoles, tTrainings,
     tTrainingsAssignments, tUsersEvents, tUsersEventsPreferencesHotel,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
@@ -247,7 +247,6 @@ async function AvailabilityButton(props: ApplicationStatusButtonProps) {
 async function HotelStatusButton(props: ApplicationStatusButtonProps) {
     const { context, event, teamId, user } = props;
 
-    const hotelAssignmentsJoin = tHotelsAssignments.forUseInLeftJoin();
     const hotelBookingRoomJoin = tHotels.forUseInLeftJoinAs('hbr');
     const hotelBookingsJoin = tHotelsBookings.forUseInLeftJoin();
     const hotelPreferenceRoomJoin = tHotels.forUseInLeftJoinAs('hpr');
@@ -266,13 +265,13 @@ async function HotelStatusButton(props: ApplicationStatusButtonProps) {
                 .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
         .leftJoin(hotelPreferenceRoomJoin)
             .on(hotelPreferenceRoomJoin.hotelId.equals(preferencesHotelJoin.hotelRoomId))
-        .leftJoin(hotelAssignmentsJoin)
-            .on(hotelAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
-                .and(hotelAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
         .leftJoin(hotelBookingsJoin)
-            .on(hotelBookingsJoin.bookingId.equals(hotelAssignmentsJoin.bookingId))
-                .and(hotelBookingsJoin.bookingConfirmed.equals(/* true= */ 1))
-                .and(hotelBookingsJoin.bookingVisible.equals(/* true= */ 1))
+            .on(hotelBookingsJoin.eventId.equals(tUsersEvents.eventId))
+                .and(hotelBookingsJoin.bookingConfirmed.isNotNull())
+                .and(hotelBookingsJoin.bookingDeleted.isNull())
+                .and(hotelBookingsJoin.bookingFirstUserId.equals(tUsersEvents.userId).or(
+                    hotelBookingsJoin.bookingSecondUserId.equals(tUsersEvents.userId)).or(
+                    hotelBookingsJoin.bookingThirdUserId.equals(tUsersEvents.userId)))
         .leftJoin(hotelBookingRoomJoin)
             .on(hotelBookingRoomJoin.hotelId.equals(hotelBookingsJoin.bookingHotelId))
         .where(tUsersEvents.userId.equals(user.id))

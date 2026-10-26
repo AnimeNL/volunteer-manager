@@ -128,7 +128,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
         const dbInstance = db;
         const activeBookings = await dbInstance.selectFrom(tHotelsBookings)
             .where(tHotelsBookings.bookingHotelId.equals(row.id))
-                .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
+                .and(tHotelsBookings.bookingDeleted.isNull())
             .selectCountAll()
             .executeSelectOne();
 
@@ -168,7 +168,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
         const hotels = await dbInstance.selectFrom(tHotels)
             .leftJoin(hotelsBookingsJoin)
                 .on(hotelsBookingsJoin.bookingHotelId.equals(tHotels.hotelId))
-                    .and(hotelsBookingsJoin.bookingVisible.equals(/* true= */ 1))
+                    .and(hotelsBookingsJoin.bookingDeleted.isNull())
             .where(tHotels.eventId.equals(context.event.id))
                 .and(tHotels.hotelRoomVisible.equals(/* true= */ 1))
                 .and(tHotels.hotelRoomDeleted.isNull())

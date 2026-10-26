@@ -2,17 +2,15 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { formatDate, isBefore } from '@lib/Temporal';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tTeams, tUsers, tUsersEvents,
+import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesHotel } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
- * Record detailing the information stored about an assignment. Roughly maps to the
- * `hotels_assignments` table.
+ * Record detailing the information stored about an occupant assignment on a booking.
  */
 interface AssignmentRecord {
-    id: number;
     userId?: number;
     name?: string;
     bookingHotelId?: number;
@@ -57,43 +55,63 @@ type Warning = { volunteer: string, warning: string };
 export class HotelProcessor {
     #eventId: number;
 
-    #assignments: Map</* assignmentId= */ number, AssignmentRecord> = new Map;
+    #assignments: AssignmentRecord[] = [];
     #hotels: Map</* hotelId= */ number, HotelRecord> = new Map;
     #preferences: Map</* userId= */ number, PreferenceRecord> = new Map;
-
-    #assignmentsForUsers: Set</* userId= */ number> = new Set;
 
     constructor(eventId: number) {
         this.#eventId = eventId;
     }
 
     async initialise() {
-        const usersJoin = tUsers.forUseInLeftJoin();
+        const firstUserJoin = tUsers.forUseInLeftJoinAs('fu');
+        const secondUserJoin = tUsers.forUseInLeftJoinAs('su');
+        const thirdUserJoin = tUsers.forUseInLeftJoinAs('tu');
 
-        const assignments = await db.selectFrom(tHotelsAssignments)
-            .innerJoin(tHotelsBookings)
-                .on(tHotelsBookings.bookingId.equals(tHotelsAssignments.bookingId))
-                    .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
-            .leftJoin(usersJoin)
-                .on(usersJoin.userId.equals(tHotelsAssignments.assignmentUserId))
-            .where(tHotelsAssignments.eventId.equals(this.#eventId))
+        const bookings = await db.selectFrom(tHotelsBookings)
+            .leftJoin(firstUserJoin)
+                .on(firstUserJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
+            .leftJoin(secondUserJoin)
+                .on(secondUserJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
+            .leftJoin(thirdUserJoin)
+                .on(thirdUserJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
+            .where(tHotelsBookings.eventId.equals(this.#eventId))
+                .and(tHotelsBookings.bookingDeleted.isNull())
             .select({
-                id: tHotelsAssignments.assignmentId,
-                userId: tHotelsAssignments.assignmentUserId,
-                name: tHotelsAssignments.assignmentName.valueWhenNull(
-                    usersJoin.name),
-
                 bookingHotelId: tHotelsBookings.bookingHotelId,
                 bookingCheckIn: tHotelsBookings.bookingCheckIn,
                 bookingCheckOut: tHotelsBookings.bookingCheckOut,
+
+                firstUserId: tHotelsBookings.bookingFirstUserId,
+                firstName: tHotelsBookings.bookingFirstName.valueWhenNull(firstUserJoin.name),
+
+                secondUserId: tHotelsBookings.bookingSecondUserId,
+                secondName: tHotelsBookings.bookingSecondName.valueWhenNull(secondUserJoin.name),
+
+                thirdUserId: tHotelsBookings.bookingThirdUserId,
+                thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
             })
             .executeSelectMany();
 
-        for (const assignment of assignments) {
-            this.#assignments.set(assignment.id, assignment);
+        for (const booking of bookings) {
+            const occupants = [
+                { userId: booking.firstUserId, name: booking.firstName },
+                { userId: booking.secondUserId, name: booking.secondName },
+                { userId: booking.thirdUserId, name: booking.thirdName },
+            ];
 
-            if (!!assignment.userId)
-                this.#assignmentsForUsers.add(assignment.userId);
+            for (const { userId, name } of occupants) {
+                if (!userId && !name)
+                    continue;
+
+                this.#assignments.push({
+                    userId,
+                    name,
+                    bookingHotelId: booking.bookingHotelId,
+                    bookingCheckIn: booking.bookingCheckIn,
+                    bookingCheckOut: booking.bookingCheckOut,
+                });
+            }
         }
 
         const hotels = await db.selectFrom(tHotels)
@@ -148,7 +166,7 @@ export class HotelProcessor {
         const warnings: Warning[] = [];
         const volunteers = new Map<number, AssignmentRecord[]>;
 
-        for (const assignment of this.#assignments.values()) {
+        for (const assignment of this.#assignments) {
             if (!!assignment.bookingHotelId && !this.#hotels.has(assignment.bookingHotelId)) {
                 warnings.push({
                     volunteer: assignment.name!,
@@ -254,7 +272,7 @@ export class HotelProcessor {
                     volunteer: name!,
                     warning:
                         `requested a room on ${format(missingDays)} that hasn't been booked.`,
-                })
+                });
             }
         }
 

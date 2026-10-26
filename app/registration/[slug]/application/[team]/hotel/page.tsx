@@ -17,8 +17,8 @@ import { getApplicationContext } from '../getApplicationContext';
 import { getHotelRooms } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/getHotelRooms';
 import { getStaticContent } from '@lib/Content';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tUsersEvents, tRoles, tHotelsAssignments, tHotelsBookings,
-    tUsersEventsPreferencesHotel} from '@lib/database';
+import db, { tEvents, tHotelsBookings, tRoles, tUsersEvents, tUsersEventsPreferencesHotel }
+    from '@lib/database';
 
 import { updateHotelPreferences } from '@app/admin/events/[event]/[team]/volunteers/[volunteer]/preferences/PreferenceActions';
 
@@ -40,9 +40,7 @@ export default async function EventApplicationHotelsPage(
     // context of hotel allocation, and whether the user has an existing reservation (request).
     // ---------------------------------------------------------------------------------------------
 
-    const hotelAssignmentsJoin = tHotelsAssignments.forUseInLeftJoin();
     const hotelBookingsJoin = tHotelsBookings.forUseInLeftJoin();
-
     const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
 
     const data = await dbInstance.selectFrom(tUsersEvents)
@@ -54,13 +52,13 @@ export default async function EventApplicationHotelsPage(
             .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
                 .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
                 .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
-        .leftJoin(hotelAssignmentsJoin)
-            .on(hotelAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
-                .and(hotelAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
         .leftJoin(hotelBookingsJoin)
-            .on(hotelBookingsJoin.bookingId.equals(hotelAssignmentsJoin.bookingId))
-                .and(hotelBookingsJoin.bookingConfirmed.equals(/* true= */ 1))
-                .and(hotelBookingsJoin.bookingVisible.equals(/* true= */ 1))
+            .on(hotelBookingsJoin.eventId.equals(tUsersEvents.eventId))
+                .and(hotelBookingsJoin.bookingConfirmed.isNotNull())
+                .and(hotelBookingsJoin.bookingDeleted.isNull())
+                .and(hotelBookingsJoin.bookingFirstUserId.equals(tUsersEvents.userId).or(
+                    hotelBookingsJoin.bookingSecondUserId.equals(tUsersEvents.userId)).or(
+                    hotelBookingsJoin.bookingThirdUserId.equals(tUsersEvents.userId)))
         .where(tUsersEvents.userId.equals(user.id))
             .and(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))

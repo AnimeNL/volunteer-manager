@@ -10,7 +10,7 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tTeams, tUsers, tUsersEvents,
+import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesHotel } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';
@@ -116,18 +116,25 @@ const pendingAssignmentDataSource = createDataSource('admin/events/hotels/pendin
     async list(params, props, context) {
         const dbInstance = db;
 
-        const assignments = await dbInstance.selectFrom(tHotelsAssignments)
-            .innerJoin(tHotelsBookings)
-                .on(tHotelsBookings.bookingId.equals(tHotelsAssignments.bookingId))
-                    .and(tHotelsBookings.bookingVisible.equals(/* true= */ 1))
-            .where(tHotelsAssignments.eventId.equals(context.event.id))
-                .and(tHotelsAssignments.assignmentUserId.isNotNull())
+        const bookings = await dbInstance.selectFrom(tHotelsBookings)
+            .where(tHotelsBookings.eventId.equals(context.event.id))
+                .and(tHotelsBookings.bookingDeleted.isNull())
             .select({
-                userId: tHotelsAssignments.assignmentUserId,
+                firstUserId: tHotelsBookings.bookingFirstUserId,
+                secondUserId: tHotelsBookings.bookingSecondUserId,
+                thirdUserId: tHotelsBookings.bookingThirdUserId,
             })
             .executeSelectMany();
 
-        const assignedUserIds = new Set(assignments.map(a => a.userId!));
+        const assignedUserIds = new Set<number>();
+        for (const booking of bookings) {
+            if (!!booking.firstUserId)
+                assignedUserIds.add(booking.firstUserId);
+            if (!!booking.secondUserId)
+                assignedUserIds.add(booking.secondUserId);
+            if (!!booking.thirdUserId)
+                assignedUserIds.add(booking.thirdUserId);
+        }
 
         const hotels = await dbInstance.selectFrom(tHotels)
             .where(tHotels.eventId.equals(context.event.id))
