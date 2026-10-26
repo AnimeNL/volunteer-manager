@@ -15,6 +15,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { markdownToJsx } from '@components/Markdown';
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
+import { queryHotelBookingContext } from './prompts/context/HotelBookingContextParameters';
 import { queryRecipientContext } from './prompts/context/RecipientContextParameters';
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
@@ -40,6 +41,11 @@ const kCommunicationPromptData = {
     'event-dates-announced': z.object({ eventId: z.number(), teamId: z.number() }),
     'event-hotels-announced': z.object({ eventId: z.number(), teamId: z.number() }),
     'event-trainings-announced': z.object({ eventId: z.number(), teamId: z.number() }),
+    'hotel-confirmation': z.object({
+        bookingId: z.number(),
+        eventId: z.number(),
+        teamId: z.number(),
+    }),
     'participation-cancelled': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reinstated': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reminder': z.object({ eventId: z.number(), teamId: z.number() }),
@@ -48,9 +54,6 @@ const kCommunicationPromptData = {
         oldTeamId: z.number(),
         newTeamId: z.number(),
     }),
-
-    // TODO:
-    'hotel-confirmation': z.object({ /* not supported */ }),
 
 } as const satisfies { [K in CommunicationPromptId]: z.ZodObject };
 
@@ -111,6 +114,19 @@ export async function executeCommunicationPrompt(
                     recipient,
                     team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationCancelledPrompt>;
+
+                break;
+            }
+
+            case 'hotel-confirmation': {
+                const data = inputData as TypedPromptData<'hotel-confirmation'>;
+                parameters = {
+                    author,
+                    event: await queryEventContext(dbInstance, data.eventId),
+                    hotel: await queryHotelBookingContext(dbInstance, data.bookingId, recipientId),
+                    recipient,
+                    team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
+                } satisfies GetPromptParameters<prompts.HotelConfirmationPrompt>;
 
                 break;
             }

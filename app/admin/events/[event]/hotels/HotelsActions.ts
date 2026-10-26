@@ -9,7 +9,8 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEvents } from '@lib/database';
+import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
+import db, { tEvents, tHotelsBookings, tUsersEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
@@ -32,6 +33,63 @@ const kHotelConfigurationData = z.object({
      */
     hotelPreferencesEnd: kTemporalZonedDateTime.nullish(),
 });
+
+/**
+ * Server Action that will be invoked by the <CommunicationDialog> component when a hotel
+ * confirmation message should be sent on the user's behalf.
+ */
+export async function sendHotelConfirmationCommunication(
+    eventSlug: string, bookingId: number, recipientId: number, teamId: number, subject?: string,
+    message?: string)
+{
+    return executeServerAction(new FormData(), z.object({ /* none */ }), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.hotels');
+
+        if (!event.flags.enableHotel || !recipientId || !teamId)
+            notFound();
+
+        const booking = await db.selectFrom(tHotelsBookings)
+            .innerJoin(tUsersEvents)
+                .on(tUsersEvents.eventId.equals(tHotelsBookings.eventId))
+                    .and(tUsersEvents.userId.equals(recipientId))
+                    .and(tUsersEvents.teamId.equals(teamId))
+            .where(tHotelsBookings.bookingId.equals(bookingId))
+                .and(tHotelsBookings.eventId.equals(event.id))
+                .and(tHotelsBookings.bookingDeleted.isNull())
+                .and(tHotelsBookings.bookingFirstUserId.equals(recipientId).or(
+                    tHotelsBookings.bookingSecondUserId.equals(recipientId)).or(
+                    tHotelsBookings.bookingThirdUserId.equals(recipientId)))
+            .select({
+                teamId: tUsersEvents.teamId,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!booking)
+            notFound();
+
+        if (!subject || !message)
+            return { success: false, error: 'Subject and/or message are missing from the request' };
+
+        await sendCommunication({
+            sender: props.user,
+            recipient: recipientId,
+            subject,
+            message,
+            metadata: {
+                eventId: event.id,
+                teamId: booking.teamId,
+                promptId: 'hotel-confirmation',
+            },
+        });
+
+        return {
+            success: true,
+            refresh: true,
+            message: 'The e-mail has been sent, thank you for keeping them in the loop!',
+        };
+    });
+}
 
 /**
  * Server Action that will be invoked when the hotel configuration is being updated by a senior

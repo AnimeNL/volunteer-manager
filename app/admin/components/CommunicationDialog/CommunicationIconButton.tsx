@@ -32,7 +32,7 @@ type CommunicationIconButtonProps<T extends CommunicationPromptId = Communicatio
      *
      * @default "primary"
      */
-    color?: 'inherit' | 'primary';
+    color?: 'inherit' | 'disabled' | 'primary';
 
     /**
      * Whether the button should be disabled. No description or tooltip will be available.
@@ -68,7 +68,7 @@ export function CommunicationIconButton<T extends CommunicationPromptId = Commun
     let { badge, color, disabled, size, tooltip, ...communicationDialogProps } = props;
 
     badge ??= 'none';
-    color ??= 'primary';
+    color ??= disabled ? 'disabled' : 'primary';
     size ??= 'small';
 
     const [ openCounter, setOpenCounter ] = useState<number>(0);

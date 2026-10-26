@@ -1,6 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Language } from '../Language';
 import { type AuthorContextParameters, kAuthorContextExampleParameters } from './context/AuthorContextParameters';
 import { type EventContextParameters, kEventContextExampleParameters } from './context/EventContextParameters';
 import { type HotelBookingContextParameters, kHotelBookingContextExampleParameters } from './context/HotelBookingContextParameters';
@@ -16,8 +17,7 @@ type HotelConfirmationPromptParameters =
     RecipientContextParameters & TeamContextParameters;
 
 /**
- * This prompt will be used when reminding people who volunteered in past years, but haven't yet
- * applied ot participate in the latest event, to apply again in case they're still interested.
+ * This prompt will be used when confirming a hotel reservation to a volunteer.
  */
 export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParameters> {
     override get metadata() {
@@ -42,5 +42,15 @@ export class HotelConfirmationPrompt extends Prompt<HotelConfirmationPromptParam
             recipient: kRecipientContextExampleParameters,
             team: kTeamContextExampleParameters,
         };
+    }
+
+    override getSubject(params: HotelConfirmationPromptParameters, language: Language) {
+        switch (language) {
+            case 'Dutch':
+                return `Hotelreservering voor ${params.event.shortName}`;
+
+            case 'English':
+                return `Hotel reservation for ${params.event.shortName}`;
+        }
     }
 }

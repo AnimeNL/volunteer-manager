@@ -11,10 +11,12 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import type { HotelCommunicationCellContext } from './HotelAssignmentCells';
 import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { HotelOccupantCell } from './HotelAssignmentCells';
+import { HotelCommunicationCell, HotelCommunicationHeaderCell, HotelOccupantCell }
+    from './HotelAssignmentCells';
 import { LogBuilder } from '@lib/log/index';
 import { PendingAssignmentsSection } from './PendingAssignmentsSection';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
@@ -24,10 +26,13 @@ import { compileDateWarnings } from './compileDateWarnings';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents } from '@lib/database';
+import db, { tHotels, tHotelsBookings, tRoles, tTeams, tUsers, tUsersCommunication, tUsersEvents }
+    from '@lib/database';
 
+import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
 import { kEventTransformer } from '@app/admin/components/DataTable';
-import { kRegistrationStatus } from '@lib/database/Types';
+
+import { sendHotelConfirmationCommunication } from '../HotelsActions';
 
 /**
  * Individual hotel assignment, either as a volunteer (`number`) or as an invitee (`string`).
@@ -89,25 +94,34 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
     id: z.number(),
 
     /**
-     * Name, user ID and team slug of the booking's first occupant.
+     * Name, user ID, team and communication metadata of the booking's first occupant.
      */
     firstName: z.string().nullish(),
     firstUserId: z.number().nullish(),
     firstTeam: z.string().nullish(),
+    firstTeamId: z.number().nullish(),
+    firstLanguage: z.enum(kCommunicationLanguage).nullish(),
+    firstCommunication: z.string().nullish(),
 
     /**
-     * Name, user ID and team slug of the booking's second occupant.
+     * Name, user ID, team and communication metadata of the booking's second occupant.
      */
     secondName: z.string().nullish(),
     secondUserId: z.number().nullish(),
     secondTeam: z.string().nullish(),
+    secondTeamId: z.number().nullish(),
+    secondLanguage: z.enum(kCommunicationLanguage).nullish(),
+    secondCommunication: z.string().nullish(),
 
     /**
-     * Name, user ID and team slug of the booking's third occupant.
+     * Name, user ID, team and communication metadata of the booking's third occupant.
      */
     thirdName: z.string().nullish(),
     thirdUserId: z.number().nullish(),
     thirdTeam: z.string().nullish(),
+    thirdTeamId: z.number().nullish(),
+    thirdLanguage: z.enum(kCommunicationLanguage).nullish(),
+    thirdCommunication: z.string().nullish(),
 
     /**
      * ID and formatted label of the hotel room option associated with this booking.
@@ -213,16 +227,8 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
         if (!context.event.flags.enableHotel)
             notFound();
 
-        const firstTeamJoin = tTeams.forUseInLeftJoinAs('ft');
-        const firstUserEventJoin = tUsersEvents.forUseInLeftJoinAs('fue');
         const firstUserJoin = tUsers.forUseInLeftJoinAs('fu');
-
-        const secondTeamJoin = tTeams.forUseInLeftJoinAs('st');
-        const secondUserEventJoin = tUsersEvents.forUseInLeftJoinAs('sue');
         const secondUserJoin = tUsers.forUseInLeftJoinAs('su');
-
-        const thirdTeamJoin = tTeams.forUseInLeftJoinAs('tt');
-        const thirdUserEventJoin = tUsersEvents.forUseInLeftJoinAs('tue');
         const thirdUserJoin = tUsers.forUseInLeftJoinAs('tu');
 
         const hotelsJoin = tHotels.forUseInLeftJoin();
@@ -236,25 +242,10 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
                 .on(hotelsJoin.hotelId.equals(tHotelsBookings.bookingHotelId))
             .leftJoin(firstUserJoin)
                 .on(firstUserJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
-            .leftJoin(firstUserEventJoin)
-                .on(firstUserEventJoin.eventId.equals(tHotelsBookings.eventId))
-                    .and(firstUserEventJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
-            .leftJoin(firstTeamJoin)
-                .on(firstTeamJoin.teamId.equals(firstUserEventJoin.teamId))
             .leftJoin(secondUserJoin)
                 .on(secondUserJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
-            .leftJoin(secondUserEventJoin)
-                .on(secondUserEventJoin.eventId.equals(tHotelsBookings.eventId))
-                    .and(secondUserEventJoin.userId.equals(tHotelsBookings.bookingSecondUserId))
-            .leftJoin(secondTeamJoin)
-                .on(secondTeamJoin.teamId.equals(secondUserEventJoin.teamId))
             .leftJoin(thirdUserJoin)
                 .on(thirdUserJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
-            .leftJoin(thirdUserEventJoin)
-                .on(thirdUserEventJoin.eventId.equals(tHotelsBookings.eventId))
-                    .and(thirdUserEventJoin.userId.equals(tHotelsBookings.bookingThirdUserId))
-            .leftJoin(thirdTeamJoin)
-                .on(thirdTeamJoin.teamId.equals(thirdUserEventJoin.teamId))
             .where(tHotelsBookings.eventId.equals(context.event.id))
                 .and(tHotelsBookings.bookingDeleted.isNull())
             .select({
@@ -262,15 +253,15 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
 
                 firstName: tHotelsBookings.bookingFirstName.valueWhenNull(firstUserJoin.name),
                 firstUserId: tHotelsBookings.bookingFirstUserId,
-                firstTeam: firstTeamJoin.teamSlug,
+                firstLanguage: firstUserJoin.language,
 
                 secondName: tHotelsBookings.bookingSecondName.valueWhenNull(secondUserJoin.name),
                 secondUserId: tHotelsBookings.bookingSecondUserId,
-                secondTeam: secondTeamJoin.teamSlug,
+                secondLanguage: secondUserJoin.language,
 
                 thirdName: tHotelsBookings.bookingThirdName.valueWhenNull(thirdUserJoin.name),
                 thirdUserId: tHotelsBookings.bookingThirdUserId,
-                thirdTeam: thirdTeamJoin.teamSlug,
+                thirdLanguage: thirdUserJoin.language,
 
                 hotelId: tHotelsBookings.bookingHotelId,
                 hotelName: hotelsJoin.hotelName,
@@ -280,7 +271,6 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
                 checkOut: dbInstance.dateAsString(tHotelsBookings.bookingCheckOut),
                 confirmed: tHotelsBookings.bookingConfirmed.isNotNull(),
             })
-            .groupBy(tHotelsBookings.bookingId)
             .orderBy('confirmed', 'desc')
                 .orderBy(sortField as any, params.sort.direction)
                 .orderBy('checkIn', 'asc')
@@ -290,16 +280,91 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
                 .offset(params.page.offset)
             .executeSelectPage();
 
+        const userIds = new Set<number>();
+        for (const booking of bookings.data) {
+            if (booking.firstUserId)
+                userIds.add(booking.firstUserId);
+            if (booking.secondUserId)
+                userIds.add(booking.secondUserId);
+            if (booking.thirdUserId)
+                userIds.add(booking.thirdUserId);
+        }
+
+        const volunteers = new Map<number, {
+            communication?: string;
+            team: string;
+            teamId: number;
+        }>();
+
+        if (userIds.size > 0) {
+            const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
+
+            const volunteerData = await dbInstance.selectFrom(tUsersEvents)
+                .innerJoin(tRoles)
+                    .on(tRoles.roleId.equals(tUsersEvents.roleId))
+                .innerJoin(tTeams)
+                    .on(tTeams.teamId.equals(tUsersEvents.teamId))
+                .leftJoin(usersCommunicationJoin)
+                    .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                        .and(usersCommunicationJoin.communicationEventId.equals(
+                            tUsersEvents.eventId))
+                        .and(usersCommunicationJoin.communicationPromptId.equals(
+                            'hotel-confirmation'))
+                .where(tUsersEvents.eventId.equals(context.event.id))
+                    .and(tUsersEvents.userId.in([ ...userIds ]))
+                    .and(tUsersEvents.registrationStatus.in([
+                        kRegistrationStatus.Accepted,
+                        kRegistrationStatus.Cancelled,
+                    ]))
+                .select({
+                    userId: tUsersEvents.userId,
+                    team: tTeams.teamSlug,
+                    teamId: tTeams.teamId,
+                    accepted: tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted),
+                    eligible: tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
+                    communication: dbInstance.dateTimeAsString(
+                        dbInstance.max(usersCommunicationJoin.communicationDate)),
+                })
+                .groupBy(tUsersEvents.userId, tUsersEvents.teamId)
+                .orderBy('accepted', 'asc')
+                    .orderBy('eligible', 'asc')
+                .executeSelectMany();
+
+            for (const volunteer of volunteerData)
+                volunteers.set(volunteer.userId, volunteer);
+        }
+
         return {
             rowCount: bookings.count,
-            rows: bookings.data.map(booking => ({
-                ...booking,
-                hotelDescription:
-                    booking.hotelName && booking.roomName
-                        ? `${booking.hotelName} (${booking.roomName})`
-                        : 'Unassigned',
-                confirmed: !!booking.confirmed,
-            })),
+            rows: bookings.data.map(booking => {
+                const firstVolunteer =
+                    booking.firstUserId ? volunteers.get(booking.firstUserId) : undefined;
+                const secondVolunteer =
+                    booking.secondUserId ? volunteers.get(booking.secondUserId) : undefined;
+                const thirdVolunteer =
+                    booking.thirdUserId ? volunteers.get(booking.thirdUserId) : undefined;
+
+                return {
+                    ...booking,
+                    firstTeam: firstVolunteer?.team,
+                    firstTeamId: firstVolunteer?.teamId,
+                    firstCommunication: firstVolunteer?.communication,
+
+                    secondTeam: secondVolunteer?.team,
+                    secondTeamId: secondVolunteer?.teamId,
+                    secondCommunication: secondVolunteer?.communication,
+
+                    thirdTeam: thirdVolunteer?.team,
+                    thirdTeamId: thirdVolunteer?.teamId,
+                    thirdCommunication: thirdVolunteer?.communication,
+
+                    hotelDescription:
+                        booking.hotelName && booking.roomName
+                            ? `${booking.hotelName} (${booking.roomName})`
+                            : 'Unassigned',
+                    confirmed: !!booking.confirmed,
+                };
+            }),
         };
     },
 
@@ -505,6 +570,25 @@ export default async function EventHotelAssignmentsPage(
                     },
                 },
                 headerComponent: BooleanHeader,
+            },
+        },
+        {
+            field: 'hotelDescription',  // unrelated
+            headerName: '',
+            align: 'center',
+            headerAlign: 'center',
+            editable: false,
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                component: HotelCommunicationCell,
+                componentContext: {
+                    action: sendHotelConfirmationCommunication.bind(null, event.slug),
+                    eventId: event.id,
+                } satisfies HotelCommunicationCellContext,
+                headerComponent: HotelCommunicationHeaderCell,
             },
         },
     ];
