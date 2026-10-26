@@ -336,7 +336,7 @@ interface LogTypeParameterMap {
 
     UpdateEventPublishedInformation: {
         event: string;  // short name
-        published: boolean;
+        published: 'Published' | 'Unpublished';
         type: 'hotel' | 'refund' | 'training';
     };
 

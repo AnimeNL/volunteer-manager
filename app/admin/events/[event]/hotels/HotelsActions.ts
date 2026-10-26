@@ -60,7 +60,7 @@ export async function updateHotelConfiguration(eventSlug: string, formData: unkn
             .withSeverity('Warning')
             .record({
                 event: event.shortName,
-                published: !!data.hotelInformationPublished,
+                published: !!data.hotelInformationPublished ? 'Published' : 'Unpublished',
                 type: 'hotel',
             });
 

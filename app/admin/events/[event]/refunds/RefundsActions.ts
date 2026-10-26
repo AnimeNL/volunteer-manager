@@ -60,7 +60,7 @@ export async function updateRefundConfiguration(eventSlug: string, formData: unk
             .withSeverity('Warning')
             .record({
                 event: event.shortName,
-                published: !!data.refundInformationPublished,
+                published: !!data.refundInformationPublished ? 'Published' : 'Unpublished',
                 type: 'refund',
             });
 
