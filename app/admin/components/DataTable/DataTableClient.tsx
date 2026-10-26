@@ -43,7 +43,7 @@ const kPageSizeDefault = 50;
 /**
  * Options that are available for page size selection of data tables.
  */
-const kPageSizeOptions = [ 10, 25, 50, 100 ] as const;
+const kPageSizeOptions = [ 5, 10, 25, 50, 100 ] as const;
 
 /**
  * Props accepted by the <DataTableClient> component.

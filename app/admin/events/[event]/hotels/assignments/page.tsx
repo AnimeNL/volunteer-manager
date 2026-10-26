@@ -12,6 +12,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { PendingAssignmentsSection } from './PendingAssignmentsSection';
+import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -506,6 +507,7 @@ export default async function EventHotelAssignmentsPage(
                            }} />
             </Section>
             <PendingAssignmentsSection event={event} userId={user.id} />
+            <PreferenceHistorySection event={event.slug} userId={user.id} />
         </>
     );
 }
