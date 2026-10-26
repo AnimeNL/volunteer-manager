@@ -4,7 +4,11 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
 import HotelIcon from '@mui/icons-material/Hotel';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
@@ -15,6 +19,7 @@ import { PendingAssignmentsSection } from './PendingAssignmentsSection';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { compileDateWarnings } from './compileDateWarnings';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -482,6 +487,8 @@ export default async function EventHotelAssignmentsPage(
         },
     ];
 
+    const warnings = await compileDateWarnings(event.id);
+
     return (
         <>
             <Section icon={ <HotelIcon color="primary" /> } title="Hotel assignments"
@@ -498,13 +505,23 @@ export default async function EventHotelAssignmentsPage(
                 <DataTable columns={columns} source={assignmentsDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'firstName', sort: 'asc' }}
-                           disableFooter pageSize={100} subject="hotel booking"
+                           disableFooter pageSize={100} refreshOnMutation subject="hotel booking"
                            listViewProps={{
                                primaryField: 'firstName',
                                secondaryTemplate: '{hotelDescription} ({checkIn} – {checkOut})',
                                startComponent: BooleanCell,
                                startComponentContext: { field: 'confirmed' },
                            }} />
+                <Collapse in={warnings.length > 0}>
+                    <Alert severity="warning" variant="outlined">
+                        <Stack direction="column" spacing={0} sx={{ maxWidth: '100%' }}>
+                            { warnings.map(({ volunteer, warning }, index) =>
+                                <Typography key={index} variant="body2">
+                                    <strong>{volunteer}</strong> {warning}
+                                </Typography> )}
+                        </Stack>
+                    </Alert>
+                </Collapse>
             </Section>
             <PendingAssignmentsSection event={event} userId={user.id} />
             <PreferenceHistorySection event={event.slug} userId={user.id} />
