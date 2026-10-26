@@ -90,14 +90,14 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: HotelIcon,
-            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableHotel,
             label: 'Hotels',
             permission: {
                 permission: 'event.hotels',
                 scope: eventScope,
             },
-            url: `/admin/events/${event.slug}/hotels`,
+            url: `/admin/events/${event.slug}/hotels/assignments`,
+            urlPrefix: `/admin/events/${event.slug}/hotels`,
         },
         {
             Icon: EventNoteIcon,

@@ -35,7 +35,6 @@ import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes'
 import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedule/updateScheduleEntry';
 
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
-import type { HotelsAssignmentsEndpoints } from '@app/api/admin/hotels/assignments/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
 import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
@@ -56,7 +55,6 @@ export type ApiEndpoints = {
     'get': {
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
-        '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['list'],
         '/api/admin/trainings': TrainingsEndpoints['list'],
         '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
@@ -65,7 +63,6 @@ export type ApiEndpoints = {
     },
     'post': {
         '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
-        '/api/admin/hotels/assignments': HotelsAssignmentsEndpoints['create'],
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,
@@ -94,14 +91,12 @@ export type ApiEndpoints = {
     'delete': {
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
-        '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['delete'],
         '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
         '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
-        '/api/admin/hotels/assignments/:id': HotelsAssignmentsEndpoints['update'],
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],

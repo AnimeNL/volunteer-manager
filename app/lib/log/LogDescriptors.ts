@@ -253,6 +253,11 @@ interface LogTypeParameterMap {
         event: string;  // short name
     };
 
+    CreateHotelBooking: {
+        event: string;  // short name
+        owner: string;
+    };
+
     CreateHotelRoom: {
         event: string;  // short name
         hotelName: string;
@@ -277,6 +282,11 @@ interface LogTypeParameterMap {
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
+    };
+
+    DeleteHotelBooking: {
+        event: string;  // short name
+        owner: string;
     };
 
     DeleteHotelRoom: {
@@ -354,6 +364,11 @@ interface LogTypeParameterMap {
     UpdateEventTeamParticipation: {
         event: string;  // short name
         team: string;  // name
+    };
+
+    UpdateHotelBooking: {
+        event: string;  // short name
+        owner: string;
     };
 
     UpdateHotelRoom: {
@@ -684,11 +699,13 @@ export const kLogType: { [k in LogType]: k } = {
     CancelVolunteerTicket: 'CancelVolunteerTicket',
     CreateAssociateTicket: 'CreateAssociateTicket',
     CreateEventKeyDate: 'CreateEventKeyDate',
+    CreateHotelBooking: 'CreateHotelBooking',
     CreateHotelRoom: 'CreateHotelRoom',
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     CreateProgramEntity: 'CreateProgramEntity',
     CreateShiftCategory: 'CreateShiftCategory',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
+    DeleteHotelBooking: 'DeleteHotelBooking',
     DeleteHotelRoom: 'DeleteHotelRoom',
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DeleteProgramEntity: 'DeleteProgramEntity',
@@ -704,6 +721,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSettings: 'UpdateEventSettings',
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
+    UpdateHotelBooking: 'UpdateHotelBooking',
     UpdateHotelRoom: 'UpdateHotelRoom',
     UpdateKnowledgeBase: 'UpdateKnowledgeBase',
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',
