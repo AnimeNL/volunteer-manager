@@ -2063,72 +2063,6 @@ tables:
       `role_training_eligible` tinyint(1) NOT NULL DEFAULT 0,
       PRIMARY KEY (`role_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: hotels_preferences
-  type: BASE TABLE
-  columns:
-  - name: user_id
-    type: int(8) unsigned
-    nullable: false
-  - name: event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: team_id
-    type: int(8) unsigned
-    nullable: false
-  - name: hotel_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: hotel_date_check_in
-    type: date
-    nullable: true
-    default: "NULL"
-  - name: hotel_date_check_out
-    type: date
-    nullable: true
-    default: "NULL"
-  - name: hotel_sharing_people
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: hotel_sharing_preferences
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: hotel_preferences_updated
-    type: datetime
-    nullable: false
-    default: current_timestamp()
-  indexes:
-  - name: user_id
-    def: UNIQUE KEY user_id (user_id, event_id, team_id) USING BTREE
-    table: hotels_preferences
-    columns:
-    - user_id
-    - event_id
-    - team_id
-  constraints:
-  - name: user_id
-    type: UNIQUE
-    def: UNIQUE KEY user_id (user_id, event_id, team_id)
-    table: hotels_preferences
-    columns:
-    - user_id
-    - event_id
-    - team_id
-  def: |-
-    CREATE TABLE `hotels_preferences` (
-      `user_id` int(8) unsigned NOT NULL,
-      `event_id` int(8) unsigned NOT NULL,
-      `team_id` int(8) unsigned NOT NULL,
-      `hotel_id` int(8) unsigned DEFAULT NULL,
-      `hotel_date_check_in` date DEFAULT NULL,
-      `hotel_date_check_out` date DEFAULT NULL,
-      `hotel_sharing_people` int(8) unsigned DEFAULT NULL,
-      `hotel_sharing_preferences` text DEFAULT NULL,
-      `hotel_preferences_updated` datetime NOT NULL DEFAULT current_timestamp(),
-      UNIQUE KEY `user_id` (`user_id`,`event_id`,`team_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: events_tickets_configuration
   type: BASE TABLE
   columns:
@@ -2338,66 +2272,6 @@ tables:
       CONSTRAINT `events_teams_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
       CONSTRAINT `events_teams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: hotels_bookings_bak
-  type: BASE TABLE
-  columns:
-  - name: booking_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: booking_hotel_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: booking_check_in
-    type: date
-    nullable: false
-    default: current_timestamp()
-  - name: booking_check_out
-    type: date
-    nullable: false
-    default: current_timestamp()
-  - name: booking_confirmed
-    type: tinyint(1)
-    nullable: false
-    default: "0"
-  - name: booking_visible
-    type: tinyint(1)
-    nullable: false
-    default: "1"
-  indexes:
-  - name: event_id
-    def: KEY event_id (event_id) USING BTREE
-    table: hotels_bookings_bak
-    columns:
-    - event_id
-  - name: PRIMARY
-    def: PRIMARY KEY (booking_id) USING BTREE
-    table: hotels_bookings_bak
-    columns:
-    - booking_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (booking_id)
-    table: hotels_bookings_bak
-    columns:
-    - booking_id
-  def: |-
-    CREATE TABLE `hotels_bookings_bak` (
-      `booking_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `event_id` int(8) unsigned NOT NULL,
-      `booking_hotel_id` int(8) unsigned DEFAULT NULL,
-      `booking_check_in` date NOT NULL DEFAULT current_timestamp(),
-      `booking_check_out` date NOT NULL DEFAULT current_timestamp(),
-      `booking_confirmed` tinyint(1) NOT NULL DEFAULT 0,
-      `booking_visible` tinyint(1) NOT NULL DEFAULT 1,
-      PRIMARY KEY (`booking_id`),
-      KEY `event_id` (`event_id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: permissions
   type: BASE TABLE
   columns:
@@ -2908,20 +2782,6 @@ tables:
   - name: event_id
     type: int(8) unsigned
     nullable: false
-  - name: refund_ticket_number
-    type: text
-    nullable: true
-    default: "NULL"
-  - name: refund_account_iban
-    type: text
-    nullable: false
-  - name: refund_account_name
-    type: text
-    nullable: false
-  - name: refund_requested
-    type: datetime
-    nullable: false
-    default: current_timestamp()
   - name: refund_confirmed
     type: datetime
     nullable: true
@@ -2949,10 +2809,6 @@ tables:
     CREATE TABLE `refunds` (
       `user_id` int(8) unsigned NOT NULL,
       `event_id` int(8) unsigned NOT NULL,
-      `refund_ticket_number` text DEFAULT NULL,
-      `refund_account_iban` text NOT NULL,
-      `refund_account_name` text NOT NULL,
-      `refund_requested` datetime NOT NULL DEFAULT current_timestamp(),
       `refund_confirmed` datetime DEFAULT NULL,
       `refund_confirmed_by` int(4) unsigned DEFAULT NULL,
       PRIMARY KEY (`user_id`,`event_id`)
@@ -4097,77 +3953,6 @@ tables:
       `environment_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`environment_id`),
       KEY `environment_domain` (`environment_domain`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-- name: hotels_assignments_bak
-  type: BASE TABLE
-  columns:
-  - name: assignment_id
-    type: int(8) unsigned
-    nullable: false
-    extraDef: auto_increment
-  - name: booking_id
-    type: int(8) unsigned
-    nullable: false
-  - name: event_id
-    type: int(8) unsigned
-    nullable: false
-  - name: assignment_user_id
-    type: int(8) unsigned
-    nullable: true
-    default: "NULL"
-  - name: assignment_name
-    type: varchar(64)
-    nullable: true
-    default: "NULL"
-  - name: assignment_primary
-    type: tinyint(1)
-    nullable: false
-    default: "0"
-  - name: assignment_created
-    type: datetime
-    nullable: false
-    default: current_timestamp()
-  indexes:
-  - name: assignment_user_id
-    def: KEY assignment_user_id (assignment_user_id) USING BTREE
-    table: hotels_assignments_bak
-    columns:
-    - assignment_user_id
-  - name: booking_id
-    def: KEY booking_id (booking_id) USING BTREE
-    table: hotels_assignments_bak
-    columns:
-    - booking_id
-  - name: event_id
-    def: KEY event_id (event_id) USING BTREE
-    table: hotels_assignments_bak
-    columns:
-    - event_id
-  - name: PRIMARY
-    def: PRIMARY KEY (assignment_id) USING BTREE
-    table: hotels_assignments_bak
-    columns:
-    - assignment_id
-  constraints:
-  - name: PRIMARY
-    type: PRIMARY KEY
-    def: PRIMARY KEY (assignment_id)
-    table: hotels_assignments_bak
-    columns:
-    - assignment_id
-  def: |-
-    CREATE TABLE `hotels_assignments_bak` (
-      `assignment_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
-      `booking_id` int(8) unsigned NOT NULL,
-      `event_id` int(8) unsigned NOT NULL,
-      `assignment_user_id` int(8) unsigned DEFAULT NULL,
-      `assignment_name` varchar(64) DEFAULT NULL,
-      `assignment_primary` tinyint(1) NOT NULL DEFAULT 0,
-      `assignment_created` datetime NOT NULL DEFAULT current_timestamp(),
-      PRIMARY KEY (`assignment_id`),
-      KEY `assignment_user_id` (`assignment_user_id`),
-      KEY `booking_id` (`booking_id`),
-      KEY `event_id` (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: events_dates
   type: BASE TABLE
