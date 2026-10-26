@@ -11,6 +11,7 @@ import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cell
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
+import { PendingAssignmentsSection } from './PendingAssignmentsSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -356,7 +357,7 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
 export default async function EventHotelAssignmentsPage(
     props: PageProps<'/admin/events/[event]/hotels/assignments'>)
 {
-    const { event } = await requireAuthenticationWithEvent(props, 'event.hotels');
+    const { event, user } = await requireAuthenticationWithEvent(props, 'event.hotels');
     if (!event.flags.enableHotel)
         notFound();
 
@@ -504,6 +505,7 @@ export default async function EventHotelAssignmentsPage(
                                startComponentContext: { field: 'confirmed' },
                            }} />
             </Section>
+            <PendingAssignmentsSection event={event} userId={user.id} />
         </>
     );
 }

@@ -53,6 +53,7 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
     const kAllowedUserSettings: { [k in keyof UserSettingsMap]: SettingStringType<k> | 'unknown' } =
     {
         'user-admin-event-finance-configuration': 'boolean',
+        'user-admin-hotels-expand-pending': 'boolean',
         'user-admin-knowledge-expand-categories': 'boolean',
         'user-admin-schedule-date': 'string',
         'user-admin-schedule-expand-sections': 'string',
