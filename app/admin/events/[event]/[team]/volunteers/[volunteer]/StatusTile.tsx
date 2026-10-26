@@ -6,6 +6,7 @@ import Link from '@app/LinkProxy';
 import Box from '@mui/material/Box';
 import CardActionArea from '@mui/material/CardActionArea';
 import Divider from '@mui/material/Divider';
+import HotelIcon from '@mui/icons-material/Hotel';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Paper from '@mui/material/Paper';
@@ -30,7 +31,7 @@ interface StatusTileProps {
     /**
      * Type of status that's represented by this tile.
      */
-    type: 'ticket';
+    type: 'hotel' | 'ticket';
 }
 
 /**
@@ -40,6 +41,8 @@ interface StatusTileProps {
 export function StatusTile(props: React.PropsWithChildren<StatusTileProps>) {
     const content = (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', p: 1.5 }}>
+            { props.type === 'hotel' &&
+                <HotelIcon color="action" fontSize="large" sx={{ m: 1 }} /> }
             { props.type === 'ticket' &&
                 <LocalActivityOutlinedIcon color="action" fontSize="large" sx={{ m: 1 }} /> }
             <Divider flexItem orientation="vertical" />

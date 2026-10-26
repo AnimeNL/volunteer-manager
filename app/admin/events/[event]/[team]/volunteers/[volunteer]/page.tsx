@@ -29,8 +29,9 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
-import db, { tEvents, tEventsTeams, tRoles, tSchedule, tShifts, tStorage, tTeams, tTeamsRoles,
-    tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tEvents, tEventsTeams, tHotelsBookings, tRoles, tSchedule, tShifts, tStorage, tTeams,
+    tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsTickets }
+    from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -74,6 +75,7 @@ export default async function EventTeamVolunteerPage(
             notes: tUsersEvents.registrationNotes,
             phoneNumber: tUsers.phoneNumber,
             role: tRoles.roleName,
+            roleHotelEligible: tRoles.roleHotelEligible,
             roleId: tUsersEvents.roleId,
             status: tUsersEvents.registrationStatus,
 
@@ -127,11 +129,19 @@ export default async function EventTeamVolunteerPage(
 
     // ---------------------------------------------------------------------------------------------
 
+    const canManageHotels = access.can('event.hotels', { event: event.slug });
+    const hotelEligible =
+        event.flags.enableHotel &&
+        !!(volunteer.overrides?.hotelEligible ?? volunteer.roleHotelEligible);
+
+    const hotelStatus = (
+        <HotelStatusTile canManageHotels={canManageHotels} eligible={hotelEligible}
+                         event={event.id} user={volunteer.id} />
+    );
+
     const ticketStatus = event.tickets?.volunteerTicketId
         ? <TicketStatusTile event={event.id} user={volunteer.id} />
         : undefined;
-
-    const hasAnyStatusTile = !!ticketStatus;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -200,17 +210,23 @@ export default async function EventTeamVolunteerPage(
                 name: volunteer.name,
             }} />
 
-            { hasAnyStatusTile &&
-                <Grid container spacing={1.5}>
-                    { !!ticketStatus &&
-                        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                            <Suspense fallback={
-                                <StatusTile title="Festival ticket" type="ticket" />
-                            }>
-                                {ticketStatus}
-                            </Suspense>
-                        </Grid> }
-                </Grid> }
+            <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                    <Suspense fallback={
+                        <StatusTile title="Hotel booking" type="hotel" />
+                    }>
+                        {hotelStatus}
+                    </Suspense>
+                </Grid>
+                { !!ticketStatus &&
+                    <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                        <Suspense fallback={
+                            <StatusTile title="Festival ticket" type="ticket" />
+                        }>
+                            {ticketStatus}
+                        </Suspense>
+                    </Grid> }
+            </Grid>
 
             <Suspense fallback={
                 <Section icon={ <ScheduleIcon /> } title="Schedule">
@@ -420,6 +436,83 @@ async function VolunteerScheduleSection(props: VolunteerScheduleSectionProps) {
 }
 
 // -------------------------------------------------------------------------------------------------
+
+/**
+ * Props accepted by the <HotelStatusTile> component.
+ */
+interface HotelStatusTileProps {
+    /**
+     * Whether the signed-in user has permission to manage hotel assignments.
+     */
+    canManageHotels: boolean;
+
+    /**
+     * Whether the volunteer is eligible for a hotel room during this event.
+     */
+    eligible: boolean;
+
+    /**
+     * Unique ID of the event.
+     */
+    event: number;
+
+    /**
+     * Unique ID of the volunteer.
+     */
+    user: number;
+}
+
+/**
+ * Tile that displays the status of a volunteer's hotel booking preferences and assignments.
+ */
+async function HotelStatusTile(props: HotelStatusTileProps) {
+    const [ bookings, interested ] = await Promise.all([
+        db.selectFrom(tHotelsBookings)
+            .where(tHotelsBookings.eventId.equals(props.event))
+                .and(tHotelsBookings.bookingDeleted.isNull())
+                .and(tHotelsBookings.bookingFirstUserId.equals(props.user).or(
+                    tHotelsBookings.bookingSecondUserId.equals(props.user)).or(
+                    tHotelsBookings.bookingThirdUserId.equals(props.user)))
+            .select({
+                confirmed: tHotelsBookings.bookingConfirmed.isNotNull(),
+            })
+            .executeSelectMany(),
+
+        db.selectFrom(tUsersEventsPreferencesHotel)
+            .where(tUsersEventsPreferencesHotel.userId.equals(props.user))
+                .and(tUsersEventsPreferencesHotel.eventId.equals(props.event))
+                .and(tUsersEventsPreferencesHotel.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .selectOneColumn(tUsersEventsPreferencesHotel.hotelInterested)
+            .executeSelectNoneOrOne(),
+    ]);
+
+    let statusChip: React.ReactNode;
+    let statusChipLink: boolean = false;
+
+    if (bookings.some(booking => booking.confirmed)) {
+        statusChip = <Chip color="success" label="Confirmed" size="small" />;
+        statusChipLink = true;
+    } else if (bookings.length > 0 || interested === 1) {
+        statusChip = <Chip color="warning" label="Requested" size="small" />;
+        statusChipLink = true;
+    } else if (interested === 0) {
+        statusChip = <Chip color="default" label="Declined" size="small" />;
+    } else if (props.eligible) {
+        statusChip = <Chip color="warning" label="Pending" size="small" />;
+    } else {
+        statusChip = <Chip color="default" label="Not applicable" size="small" />;
+    }
+
+    const href = (statusChipLink && props.canManageHotels)
+        ? '../../hotels/assignments'
+        : undefined;
+
+    return (
+        <StatusTile href={href} title="Hotel booking" type="hotel">
+            {statusChip}
+        </StatusTile>
+    );
+}
 
 /**
  * Tile that displays the status of a volunteer's ticket, which we intend to grant (automatically)
