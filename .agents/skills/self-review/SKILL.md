@@ -45,6 +45,9 @@ separated by an extra blank line:
 5. Imports that exclusively pull in constants that start with a "k"
 6. Imports that exclusively pull in Server Actions
 
+THERE IS ONE EXCEPTION: Imports of `Link` from `@app/LinkProxy` should be treated as if they are
+an import from `next/link`. This is a workaround caused by a Next.js issue. Consider them block 1.
+
 All entries within a block are strictly alphabetised, with two exceptions: first, type-only imports
 in a block come before all others, and second, the import from "@lib/database", when it includes the
 `db` symbol, comes last in the block.
