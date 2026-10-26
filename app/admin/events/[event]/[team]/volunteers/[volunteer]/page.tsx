@@ -204,10 +204,11 @@ export default async function EventTeamVolunteerPage(
                 <Grid container spacing={1.5}>
                     { !!ticketStatus &&
                         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-                            <StatusTile href={`../../tickets/volunteers/${volunteer.id}`}
-                                        title="Festival ticket" type="ticket">
+                            <Suspense fallback={
+                                <StatusTile title="Festival ticket" type="ticket" />
+                            }>
                                 {ticketStatus}
-                            </StatusTile>
+                            </Suspense>
                         </Grid> }
                 </Grid> }
 
@@ -431,11 +432,14 @@ async function TicketStatusTile(props: { event: number; user: number; }) {
         .selectOneColumn(tUsersEventsTickets.ticketProviderPurchaseId.isNotNull())
         .executeSelectNoneOrOne();
 
-    if (!!ticket) {
-        return <Chip color="success" label="Issued" size="small" />;
-    } else {
-        return <Chip color="warning" label="Pending" size="small" />;
-    }
+    const href = !!ticket ? `../../tickets/volunteers/${props.user}` : undefined;
+
+    return (
+        <StatusTile href={href} title="Festival ticket" type="ticket">
+            { !!ticket && <Chip color="success" label="Issued" size="small" /> }
+            { !ticket && <Chip color="warning" label="Pending" size="small" /> }
+        </StatusTile>
+    );
 }
 
 // -------------------------------------------------------------------------------------------------
