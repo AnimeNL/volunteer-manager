@@ -14,7 +14,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { LogBuilder } from '@lib/log/index';
-import { PriceCell } from './HotelSettingsCells';
+import { PriceCell, PrivateCell, PrivateHeader } from './HotelSettingsCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -67,6 +67,11 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
     roomPrice: z.number(),
 
     /**
+     * Whether this hotel room is private (only shown in the admin area unless assigned).
+     */
+    private: z.boolean(),
+
+    /**
      * Whether this hotel room is protected from deletion due to existing bookings.
      */
     protected: z.boolean(),
@@ -99,6 +104,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
                 hotelRoomName: partialRow.roomName,
                 hotelRoomPeople: partialRow.roomPeople,
                 hotelRoomPrice: partialRow.roomPrice,
+                hotelRoomPrivate: partialRow.private ? 1 : 0,
             })
             .returningLastInsertedId()
             .executeInsert();
@@ -173,6 +179,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
                 roomName: tHotels.hotelRoomName,
                 roomPeople: tHotels.hotelRoomPeople,
                 roomPrice: tHotels.hotelRoomPrice,
+                private: tHotels.hotelRoomPrivate.equals(/* true= */ 1),
                 bookings: dbInstance.count(hotelsBookingsJoin.bookingId),
             })
             .groupBy(tHotels.hotelId)
@@ -191,6 +198,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
                 roomName: hotel.roomName,
                 roomPeople: hotel.roomPeople,
                 roomPrice: hotel.roomPrice,
+                private: !!hotel.private,
                 protected: hotel.bookings > 0,
             })),
         };
@@ -207,6 +215,7 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
                 hotelRoomName: row.roomName,
                 hotelRoomPeople: row.roomPeople,
                 hotelRoomPrice: row.roomPrice,
+                hotelRoomPrivate: row.private ? 1 : 0,
             })
             .where(tHotels.hotelId.equals(row.id))
                 .and(tHotels.eventId.equals(context.event.id))
@@ -237,6 +246,10 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
                 'Room price': {
                     before: previousRow.roomPrice,
                     after: row.roomPrice,
+                },
+                'Room private': {
+                    before: previousRow.private,
+                    after: row.private,
                 },
             })
             .record({
@@ -334,6 +347,24 @@ export default async function EventHotelSettingsPage(
                 component: PriceCell,
             },
         },
+        {
+            field: 'private',
+            headerName: '',
+            align: 'center',
+            headerAlign: 'center',
+            description: 'Hide this room from the public?',
+            editable: true,
+            sortable: false,
+            width: 50,
+
+            type: 'boolean',
+
+            template: 'component',
+            templateProps: {
+                headerComponent: PrivateHeader,
+                component: PrivateCell,
+            },
+        },
     ];
 
     return (
@@ -358,6 +389,7 @@ export default async function EventHotelSettingsPage(
                            listViewProps={{
                                primaryField: 'hotelName',
                                secondaryTemplate: '{roomName} ({roomPeople}p)',
+                               startComponent: PrivateCell,
                                endComponent: PriceCell,
                            }} />
             </Section>

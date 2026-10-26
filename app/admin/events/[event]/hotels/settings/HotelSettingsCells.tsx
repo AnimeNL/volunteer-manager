@@ -3,7 +3,10 @@
 
 'use client';
 
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 /**
  * Helper function for formatting prices in the configuration data table.
@@ -41,4 +44,34 @@ export function PriceCell(props: PriceCellProps) {
     }
 
     return <>{formattedPrice}</>;
+}
+
+/**
+ * Header component for the private room column.
+ */
+export function PrivateHeader() {
+    return (
+        <Tooltip title="Is the room advertised?">
+            <VisibilityIcon color="primary" fontSize="small" />
+        </Tooltip>
+    );
+}
+
+/**
+ * Cell component for displaying whether a hotel room is kept private.
+ */
+export function PrivateCell(props: { row: { private: boolean } }) {
+    if (props.row.private) {
+        return (
+            <Tooltip title="This room is hidden from volunteers">
+                <VisibilityOffIcon color="error" fontSize="small" />
+            </Tooltip>
+        );
+    }
+
+    return (
+        <Tooltip title="This room is publicly advertised">
+            <VisibilityIcon color="disabled" fontSize="small" />
+        </Tooltip>
+    );
 }

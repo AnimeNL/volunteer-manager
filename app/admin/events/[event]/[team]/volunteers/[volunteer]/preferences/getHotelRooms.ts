@@ -14,6 +14,7 @@ export async function getHotelRooms(eventId: number) {
         .select({
             id: tHotels.hotelId,
             label: tHotels.hotelName.concat(' - ').concat(tHotels.hotelRoomName),
+            private: tHotels.hotelRoomPrivate.equals(/* true= */ 1),
         })
         .orderBy('label', 'asc')
         .executeSelectMany();

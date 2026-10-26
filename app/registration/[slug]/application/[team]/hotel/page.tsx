@@ -66,6 +66,7 @@ export default async function EventApplicationHotelsPage(
             .and(tUsersEvents.teamId.equals(team.id))
         .select({
             bookings: dbInstance.countDistinct(hotelBookingsJoin.bookingId),
+            bookedRoomIds: dbInstance.aggregateAsArrayOfOneColumn(hotelBookingsJoin.bookingHotelId),
             preferences: {
                 interested: preferencesHotelJoin.hotelInterested,
                 roomId: preferencesHotelJoin.hotelRoomId,
@@ -90,7 +91,7 @@ export default async function EventApplicationHotelsPage(
     if (!data || !data.settings.enabled)
         notFound();
 
-    const { bookings, preferences, settings } = data;
+    const { bookings, bookedRoomIds, preferences, settings } = data;
 
     // ---------------------------------------------------------------------------------------------
     // Decide whether the volunteer has the ability to access the hotel preferences page, and
@@ -120,7 +121,13 @@ export default async function EventApplicationHotelsPage(
 
     const action = updateHotelPreferences.bind(null, user.id, event.slug, team.slug);
 
-    const rooms = await getHotelRooms(event.id);
+    const availableRooms = await getHotelRooms(event.id);
+    const rooms = availableRooms.filter(room => {
+        if (!room.private)
+            return true;
+
+        return room.id === preferences?.roomId || bookedRoomIds.includes(room.id);
+    });
 
     return (
         <Stack spacing={2} sx={{ p: 2 }}>

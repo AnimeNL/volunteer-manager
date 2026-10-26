@@ -20,6 +20,7 @@ export class HotelsTable extends Table<DBConnection, 'HotelsTable'> {
     hotelRoomName = this.columnWithDefaultValue('hotel_room_name', 'string');
     hotelRoomPeople = this.columnWithDefaultValue('hotel_room_people', 'int');
     hotelRoomPrice = this.columnWithDefaultValue('hotel_room_price', 'int');
+    hotelRoomPrivate = this.column('hotel_room_private', 'int');
     hotelRoomVisible = this.columnWithDefaultValue('hotel_room_visible', 'int');
     hotelRoomCreated = this.columnWithDefaultValue<Temporal.ZonedDateTime>('hotel_room_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     hotelRoomDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('hotel_room_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);

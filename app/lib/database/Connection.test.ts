@@ -42,6 +42,7 @@ describe('Connection', () => {
                 hotelRoomName: 'Fancy Room',
                 hotelRoomPeople: 2,
                 hotelRoomPrice: 18000,
+                hotelRoomPrivate: 0,
             }).returningLastInsertedId().executeInsert();
 
             expect(result).toEqual(42);

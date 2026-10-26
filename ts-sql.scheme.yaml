@@ -735,6 +735,9 @@ tables:
     type: int(8)
     nullable: false
     default: "0"
+  - name: hotel_room_private
+    type: tinyint(1)
+    nullable: false
   - name: hotel_room_visible
     type: tinyint(1)
     nullable: false
@@ -783,6 +786,7 @@ tables:
       `hotel_room_name` varchar(64) NOT NULL DEFAULT '',
       `hotel_room_people` int(8) NOT NULL DEFAULT 1,
       `hotel_room_price` int(8) NOT NULL DEFAULT 0,
+      `hotel_room_private` tinyint(1) NOT NULL,
       `hotel_room_visible` tinyint(1) NOT NULL DEFAULT 1,
       `hotel_room_created` datetime NOT NULL DEFAULT current_timestamp(),
       `hotel_room_deleted` datetime DEFAULT NULL,
