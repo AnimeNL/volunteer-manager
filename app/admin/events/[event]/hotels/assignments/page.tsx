@@ -14,6 +14,7 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
+import { HotelOccupantCell } from './HotelAssignmentCells';
 import { LogBuilder } from '@lib/log/index';
 import { PendingAssignmentsSection } from './PendingAssignmentsSection';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
@@ -393,7 +394,14 @@ export default async function EventHotelAssignmentsPage(
             sortable: true,
             flex: 1,
 
-            template: 'text',
+            template: 'component',
+            templateProps: {
+                component: HotelOccupantCell,
+                componentContext: {
+                    event: event.slug,
+                    occupant: 'first',
+                },
+            },
 
             editorProps: {
                 required: true,
@@ -406,7 +414,14 @@ export default async function EventHotelAssignmentsPage(
             sortable: false,
             flex: 1,
 
-            template: 'text',
+            template: 'component',
+            templateProps: {
+                component: HotelOccupantCell,
+                componentContext: {
+                    event: event.slug,
+                    occupant: 'second',
+                },
+            },
         },
         {
             field: 'thirdName',
@@ -415,7 +430,14 @@ export default async function EventHotelAssignmentsPage(
             sortable: false,
             flex: 1,
 
-            template: 'text',
+            template: 'component',
+            templateProps: {
+                component: HotelOccupantCell,
+                componentContext: {
+                    event: event.slug,
+                    occupant: 'third',
+                },
+            },
         },
         {
             field: 'hotelId',
