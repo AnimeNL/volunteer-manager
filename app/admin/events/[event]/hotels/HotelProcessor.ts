@@ -2,8 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { formatDate, isBefore } from '@lib/Temporal';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tTeams, tUsers,
-    tUsersEvents } from '@lib/database';
+import db, { tHotels, tHotelsAssignments, tHotelsBookings, tTeams, tUsers, tUsersEvents,
+    tUsersEventsPreferencesHotel } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
 
@@ -33,7 +33,7 @@ interface HotelRecord {
 
 /**
  * Record detailing the information stored about hotel preferences. Roughly maps to the
- * `hotels_preferences` table, and includes anyone who has expressed their preferences.
+ * `users_events_preferences_hotel` table, and includes anyone who has expressed their preferences.
  */
 interface PreferenceRecord {
     userId: number;
@@ -113,25 +113,26 @@ export class HotelProcessor {
         for (const hotel of hotels)
             this.#hotels.set(hotel.id, hotel);
 
-        const preferences = await db.selectFrom(tHotelsPreferences)
+        const preferences = await db.selectFrom(tUsersEventsPreferencesHotel)
             .innerJoin(tUsers)
-                .on(tUsers.userId.equals(tHotelsPreferences.userId))
+                .on(tUsers.userId.equals(tUsersEventsPreferencesHotel.userId))
             .innerJoin(tUsersEvents)
-                .on(tUsersEvents.userId.equals(tHotelsPreferences.userId))
-                    .and(tUsersEvents.eventId.equals(tHotelsPreferences.eventId))
+                .on(tUsersEvents.userId.equals(tUsersEventsPreferencesHotel.userId))
+                    .and(tUsersEvents.eventId.equals(tUsersEventsPreferencesHotel.eventId))
                     .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
             .innerJoin(tTeams)
-                .on(tTeams.teamId.equals(tHotelsPreferences.teamId))
-            .where(tHotelsPreferences.eventId.equals(this.#eventId))
-                .and(tHotelsPreferences.hotelId.isNotNull())
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .where(tUsersEventsPreferencesHotel.eventId.equals(this.#eventId))
+                .and(tUsersEventsPreferencesHotel.preferenceVersionIsLatest.equals(/* true= */ 1))
+                .and(tUsersEventsPreferencesHotel.hotelRoomId.isNotNull())
             .select({
-                userId: tHotelsPreferences.userId,
+                userId: tUsersEventsPreferencesHotel.userId,
                 name: tUsers.name,
                 team: tTeams.teamSlug,
-                hotelId: tHotelsPreferences.hotelId,
-                checkIn: tHotelsPreferences.hotelDateCheckIn,
-                checkOut: tHotelsPreferences.hotelDateCheckOut,
-                updated: tHotelsPreferences.hotelPreferencesUpdated,
+                hotelId: tUsersEventsPreferencesHotel.hotelRoomId,
+                checkIn: tUsersEventsPreferencesHotel.hotelCheckIn,
+                checkOut: tUsersEventsPreferencesHotel.hotelCheckOut,
+                updated: tUsersEventsPreferencesHotel.preferenceVersion,
             })
             .orderBy('name', 'asc')
             .executeSelectMany();

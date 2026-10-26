@@ -30,7 +30,6 @@ export { tFeedback } from './scheme/FeedbackTable';
 export { tHotels } from './scheme/HotelsTable';
 export { tHotelsAssignments } from './scheme/HotelsAssignmentsTable';
 export { tHotelsBookings } from './scheme/HotelsBookingsTable';
-export { tHotelsPreferences } from './scheme/HotelsPreferencesTable';
 export { tLogs } from './scheme/LogsTable';
 export { tLogsFormat } from './scheme/LogsFormatTable';
 export { tNardo } from './scheme/NardoTable';

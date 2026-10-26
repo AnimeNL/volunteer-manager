@@ -10,8 +10,8 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import db, { tHotels, tHotelsAssignments, tHotelsBookings, tHotelsPreferences, tTeams, tUsers,
-    tUsersEvents } from '@lib/database';
+import db, { tHotels, tHotelsAssignments, tHotelsBookings, tTeams, tUsers, tUsersEvents,
+    tUsersEventsPreferencesHotel } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -141,28 +141,29 @@ const pendingAssignmentDataSource = createDataSource('admin/events/hotels/pendin
 
         const hotelMap = new Map(hotels.map(h => [ h.id, `${h.hotelName} (${h.roomName})` ]));
 
-        const preferences = await dbInstance.selectFrom(tHotelsPreferences)
+        const preferences = await dbInstance.selectFrom(tUsersEventsPreferencesHotel)
             .innerJoin(tUsers)
-                .on(tUsers.userId.equals(tHotelsPreferences.userId))
+                .on(tUsers.userId.equals(tUsersEventsPreferencesHotel.userId))
             .innerJoin(tUsersEvents)
-                .on(tUsersEvents.userId.equals(tHotelsPreferences.userId))
-                    .and(tUsersEvents.eventId.equals(tHotelsPreferences.eventId))
+                .on(tUsersEvents.userId.equals(tUsersEventsPreferencesHotel.userId))
+                    .and(tUsersEvents.eventId.equals(tUsersEventsPreferencesHotel.eventId))
                     .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
             .innerJoin(tTeams)
-                .on(tTeams.teamId.equals(tHotelsPreferences.teamId))
-            .where(tHotelsPreferences.eventId.equals(context.event.id))
-                .and(tHotelsPreferences.hotelId.isNotNull())
-                .and(tHotelsPreferences.hotelDateCheckIn.isNotNull())
-                .and(tHotelsPreferences.hotelDateCheckOut.isNotNull())
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .where(tUsersEventsPreferencesHotel.eventId.equals(context.event.id))
+                .and(tUsersEventsPreferencesHotel.preferenceVersionIsLatest.equals(/* true= */ 1))
+                .and(tUsersEventsPreferencesHotel.hotelRoomId.isNotNull())
+                .and(tUsersEventsPreferencesHotel.hotelCheckIn.isNotNull())
+                .and(tUsersEventsPreferencesHotel.hotelCheckOut.isNotNull())
             .select({
-                id: tHotelsPreferences.userId,
+                id: tUsersEventsPreferencesHotel.userId,
                 name: tUsers.name,
                 team: tTeams.teamSlug,
-                hotelId: tHotelsPreferences.hotelId,
-                checkIn: tHotelsPreferences.hotelDateCheckIn,
-                checkOut: tHotelsPreferences.hotelDateCheckOut,
+                hotelId: tUsersEventsPreferencesHotel.hotelRoomId,
+                checkIn: tUsersEventsPreferencesHotel.hotelCheckIn,
+                checkOut: tUsersEventsPreferencesHotel.hotelCheckOut,
                 requested:
-                    dbInstance.dateTimeAsString(tHotelsPreferences.hotelPreferencesUpdated),
+                    dbInstance.dateTimeAsString(tUsersEventsPreferencesHotel.preferenceVersion),
             })
             .executeSelectMany();
 
