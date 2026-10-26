@@ -223,7 +223,7 @@ export async function PendingAssignmentsSection(props: PendingAssignmentsSection
             field: 'checkIn',
             headerName: 'Check in',
             sortable: true,
-            width: 185,
+            width: 125,
 
             template: 'date',
         },
@@ -231,7 +231,7 @@ export async function PendingAssignmentsSection(props: PendingAssignmentsSection
             field: 'checkOut',
             headerName: 'Check out',
             sortable: true,
-            width: 185,
+            width: 125,
 
             template: 'date',
         },
@@ -242,6 +242,9 @@ export async function PendingAssignmentsSection(props: PendingAssignmentsSection
             width: 185,
 
             template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+            },
         },
     ];
 

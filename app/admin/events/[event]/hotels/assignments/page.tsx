@@ -431,7 +431,7 @@ export default async function EventHotelAssignmentsPage(
             headerName: 'Check in',
             editable: true,
             sortable: true,
-            width: 185,
+            width: 125,
 
             template: 'date',
 
@@ -445,7 +445,7 @@ export default async function EventHotelAssignmentsPage(
             headerName: 'Check out',
             editable: true,
             sortable: true,
-            width: 185,
+            width: 125,
 
             template: 'date',
 

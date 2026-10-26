@@ -189,7 +189,7 @@ export async function PreferenceHistorySection(props: PreferenceHistorySectionPr
             field: 'hotel',
             headerName: 'Hotel room',
             sortable: false,
-            flex: 2,
+            flex: 3,
 
             template: 'text',
         },
@@ -197,7 +197,7 @@ export async function PreferenceHistorySection(props: PreferenceHistorySectionPr
             field: 'checkIn',
             headerName: 'Check in',
             sortable: false,
-            width: 185,
+            width: 125,
 
             template: 'date',
         },
@@ -205,7 +205,7 @@ export async function PreferenceHistorySection(props: PreferenceHistorySectionPr
             field: 'checkOut',
             headerName: 'Check out',
             sortable: false,
-            width: 185,
+            width: 125,
 
             template: 'date',
         },
