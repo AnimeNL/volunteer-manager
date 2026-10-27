@@ -356,6 +356,7 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
             amountFormatted: kPriceFormatter.format(paymentAmount / 100),
             responsible: paymentResponsible,
             responsibleLabel: paymentResponsible,
+            confirmed: !!row.confirmed,
         } : false;
     },
 });
