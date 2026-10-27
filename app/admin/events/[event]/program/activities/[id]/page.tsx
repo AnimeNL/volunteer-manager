@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import { HistorySection } from '../../HistorySection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
+import { ProgramContactSection } from './ProgramContactSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
@@ -56,6 +57,9 @@ export default async function ProgramActivityPage(
             price: tActivities.activityPrice,
             maxVisitors: tActivities.activityMaxVisitors,
             url: tActivities.activityUrl,
+
+            reportToEmail: tActivities.activityReportToEmail,
+            reportToName: tActivities.activityReportToName,
 
             visible: tActivities.activityVisible,
             visibleReason: tActivities.activityVisibleReason,
@@ -113,6 +117,12 @@ export default async function ProgramActivityPage(
                 .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(activityId))
             .selectOneColumn(tEventsTicketsConfiguration.eventTicketYtpId)
             .executeSelectMany();
+    }
+
+    let canContactOwner: boolean = false;
+    if (!!activity.reportToName && !!activity.reportToEmail) {
+        canContactOwner =
+            access.can('volunteers.program-requests', 'update', { event: event.slug });
     }
 
     return (
@@ -206,6 +216,11 @@ export default async function ProgramActivityPage(
                     },
                 ]} />
             </Section>
+            { canContactOwner &&
+                <ProgramContactSection
+                    activity={{ id: activityId, title: activity.title }}
+                    event={{ id: event.id, shortName: event.shortName }}
+                    name={activity.reportToName!} /> }
             { timeslots.length > 0 &&
                 <Section title="Timeslots" icon={ <ScheduleIcon /> }>
                     <List dense disablePadding>
