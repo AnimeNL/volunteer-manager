@@ -1,15 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense } from 'react';
-
-import CircularProgress from '@mui/material/CircularProgress';
-import Divider from '@mui/material/Divider';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-
 import { CommunicationCell } from '../CommunicationCell';
+import { ContactSection } from '@app/admin/components/ContactSection';
 import { getEvent, getTeam } from '@lib/cache';
 import { processVolunteerCommunication } from '../dataSource';
 import db, { tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
@@ -44,22 +37,9 @@ interface VolunteerContactSectionProps {
  */
 export async function VolunteerContactSection(props: VolunteerContactSectionProps) {
     return (
-        <Paper sx={{
-            backgroundColor: 'backgroundHighlight',
-            paddingX: 2,
-            paddingY: 1
-        }}>
-            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                    You're most welcome to send {props.user.name} an e-mail—use this action to get
-                    started.
-                </Typography>
-                <Divider flexItem orientation="vertical" />
-                <Suspense fallback={ <CircularProgress color="inherit" size="24px" /> }>
-                    <ContactVolunteerAction {...props} />
-                </Suspense>
-            </Stack>
-        </Paper>
+        <ContactSection name={props.user.name}>
+            <ContactVolunteerAction {...props} />
+        </ContactSection>
     );
 }
 
