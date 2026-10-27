@@ -13,6 +13,7 @@ import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { markdownToJsx } from '@components/Markdown';
+import { queryActivityContext } from './prompts/context/ActivityContextParameters';
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
 import { queryHotelBookingContext } from './prompts/context/HotelBookingContextParameters';
@@ -49,6 +50,14 @@ const kCommunicationPromptData = {
     'participation-cancelled': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reinstated': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reminder': z.object({ eventId: z.number(), teamId: z.number() }),
+    'program-activity-general-check-in': z.object({
+        activityId: z.number(),
+        eventId: z.number(),
+    }),
+    'program-activity-help-request-check-in': z.object({
+        activityId: z.number(),
+        eventId: z.number(),
+    }),
     'team-change': z.object({
         eventId: z.number(),
         oldTeamId: z.number(),
@@ -143,6 +152,19 @@ export async function executeCommunicationPrompt(
                     teamInviteKey:
                         await queryTeamInviteKeyContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationReminderPrompt>;
+
+                break;
+            }
+
+            case 'program-activity-general-check-in':
+            case 'program-activity-help-request-check-in': {
+                const data = inputData as TypedPromptData<'program-activity-general-check-in'>;
+                parameters = {
+                    activity: await queryActivityContext(dbInstance, data.activityId),
+                    author,
+                    event: await queryEventContext(dbInstance, data.eventId),
+                    recipient,
+                } satisfies GetPromptParameters<prompts.ProgramActivityGeneralCheckInPrompt>;
 
                 break;
             }

@@ -6,10 +6,12 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
 import DrawIcon from '@mui/icons-material/Draw';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
 import HelpIcon from '@mui/icons-material/Help';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
@@ -54,6 +56,12 @@ export function PromptIcon(props: { id: PromptIdByType<any> }) {
 
         case 'participation-reminder':
             return <RepeatIcon color="primary" />;
+
+        case 'program-activity-general-check-in':
+            return <EventNoteIcon color="primary" />;
+
+        case 'program-activity-help-request-check-in':
+            return <NewReleasesIcon color="primary" />;
 
         case 'team-change':
             return <ChangeCircleOutlinedIcon color="primary" />;
