@@ -77,8 +77,7 @@ const kHotelPaymentRowModel = withRowModel({
     /**
      * Party responsible for settling the payment.
      */
-    responsible:
-        z.enum(kHotelPaymentResponsible).or(z.literal(' ')).or(z.literal('null')).nullish(),
+    responsible: z.enum(kHotelPaymentResponsible).or(z.literal('')).nullish(),
 
     /**
      * Formatted responsible party label for mobile display.
@@ -105,7 +104,7 @@ interface GuestBookingSummary {
     bookings: number;
     checkIn: string;
     checkOut: string;
-    defaultAmount: number | null;
+    defaultAmount?: number;
 }
 
 /**
@@ -245,7 +244,7 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
             const nights = Math.max(0, booking.checkOut.since(booking.checkIn).days);
             const bookingShare = booking.roomPrice !== undefined
                 ? Math.round((booking.roomPrice * nights) / validOccupants.length)
-                : null;
+                : undefined;
 
             const checkIn = booking.checkIn.toString();
             const checkOut = booking.checkOut.toString();
@@ -269,7 +268,7 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
                         existing.checkIn = checkIn;
                     if (checkOut > existing.checkOut)
                         existing.checkOut = checkOut;
-                    if (bookingShare !== null)
+                    if (bookingShare !== undefined)
                         existing.defaultAmount = (existing.defaultAmount ?? 0) + bookingShare;
                 }
             }
@@ -281,7 +280,7 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
             const payment = payments.get(guest.name);
             const hasSavedAmount = payment?.amount !== undefined && payment?.amount !== null;
             const amount = hasSavedAmount ? payment.amount : guest.defaultAmount;
-            const responsible = payment?.responsible ?? null;
+            const responsible = payment?.responsible ?? '';
 
             rows.push({
                 id: guest.name,
@@ -294,9 +293,7 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
                 amount,
                 amountIsDefault: !hasSavedAmount,
                 amountFormatted:
-                    amount !== null && amount !== undefined
-                        ? kPriceFormatter.format(amount / 100)
-                        : 'Unknown',
+                    amount !== undefined ? kPriceFormatter.format(amount / 100) : 'Unknown',
                 responsible,
                 responsibleLabel: responsible || 'Unassigned',
                 confirmed: !!payment?.confirmed,
@@ -317,11 +314,9 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
 
         const dbInstance = db;
 
-        const paymentAmount = row.amount ?? null;
+        const paymentAmount = row.amount ?? 0;
         const paymentResponsible =
-            (!row.responsible || row.responsible === ' ' || row.responsible === 'null')
-                ? null
-                : row.responsible;
+            !row.responsible ? kHotelPaymentResponsible.Self : row.responsible;
         const paymentConfirmed =
             previousRow.confirmed !== row.confirmed
                 ? (row.confirmed ? dbInstance.currentZonedDateTime() : null)
@@ -358,10 +353,9 @@ const paymentsDataSource = createDataSource('admin/event/hotels/payments', withC
             ...row,
             amount: paymentAmount,
             amountIsDefault: false,
-            amountFormatted:
-                paymentAmount !== null ? kPriceFormatter.format(paymentAmount / 100) : 'Unknown',
+            amountFormatted: kPriceFormatter.format(paymentAmount / 100),
             responsible: paymentResponsible,
-            responsibleLabel: paymentResponsible || 'Unassigned',
+            responsibleLabel: paymentResponsible,
         } : false;
     },
 });
@@ -433,7 +427,10 @@ export default async function EventHotelPaymentsPage(
             flex: 1,
 
             type: 'singleSelect',
-            valueOptions: [ ' ', ...Object.values(kHotelPaymentResponsible) ],
+            valueOptions: [
+                { value: '', label: 'Unassigned' },
+                ...Object.values(kHotelPaymentResponsible).map(value => ({ value, label: value })),
+            ],
 
             template: 'text',
             templateProps: {
