@@ -19,9 +19,9 @@ interface SendCommunicationParams {
     sender: User | number;
 
     /**
-     * Identity of the person who will receive this communication.
+     * Identity or e-mail address of the person who will receive this communication.
      */
-    recipient: User | number;
+    recipient: User | number | string;
 
     /**
      * Subject of the message. Must not be empty.
@@ -43,9 +43,9 @@ interface SendCommunicationParams {
         eventId: number;
 
         /**
-         * Unique ID of the team the communication is in scope of.
+         * Unique ID of the team the communication is in scope of, when applicable.
          */
-        teamId: number;
+        teamId?: number;
 
         /**
          * Prompt that was used to generate the communication.
@@ -69,14 +69,22 @@ export async function sendCommunication(params: SendCommunicationParams): Promis
 
     const senderUserId =
         typeof params.sender === 'number' ? params.sender : params.sender.id;
-    const recipientUserId =
-        typeof params.recipient === 'number' ? params.recipient : params.recipient.id;
 
-    const usersForRecipient = tUsers.as('ufr');
+    let recipientUserId: number | undefined;
+    let recipientEmail: string | undefined;
+
+    if (typeof params.recipient === 'string') {
+        recipientEmail = params.recipient;
+    } else {
+        recipientUserId =
+            typeof params.recipient === 'number' ? params.recipient : params.recipient.id;
+    }
+
+    const usersForRecipient = tUsers.forUseInLeftJoinAs('ufr');
 
     const { sender, recipient } = await dbInstance.selectFrom(tUsers)
-        .innerJoin(usersForRecipient)
-            .on(usersForRecipient.userId.equals(recipientUserId))
+        .leftJoin(usersForRecipient)
+            .on(usersForRecipient.userId.equals(recipientUserId ?? -1))
         .where(tUsers.userId.equals(senderUserId))
         .select({
             sender: {
@@ -88,33 +96,42 @@ export async function sendCommunication(params: SendCommunicationParams): Promis
         })
         .executeSelectOne();
 
-    if (!recipient?.email)
+    const toEmail = recipientEmail ?? recipient?.email;
+    if (!toEmail)
         throw new Error(`The recipient (${recipientUserId}) does not have a known e-mail address.`);
 
-    const team = await getTeam(params.metadata.teamId);
-    if (!team)
-        throw new Error(`The team (${params.metadata.teamId}) does not exist.`);
+    let accountId: number | undefined;
+    if (params.metadata.teamId) {
+        const team = await getTeam(params.metadata.teamId);
+        if (!team)
+            throw new Error(`The team (${params.metadata.teamId}) does not exist.`);
+
+        accountId = team.integrations.emailAccountId;
+    }
 
     const senderNameSuffix = await readSetting('communication-name-suffix');
 
-    const communicationId = await dbInstance.insertInto(tUsersCommunication)
-        .values({
-            userId: recipientUserId,
-            communicationEventId: params.metadata.eventId,
-            communicationTeamId: params.metadata.teamId,
-            communicationPromptId: params.metadata.promptId,
-            communicationSenderId: senderUserId,
-            communicationDate: dbInstance.currentZonedDateTime(),
-        })
-        .returningLastInsertedId()
-        .executeInsert();
+    let communicationId: number | undefined;
+    if (!!recipientUserId && !!params.metadata.teamId) {
+        communicationId = await dbInstance.insertInto(tUsersCommunication)
+            .values({
+                userId: recipientUserId,
+                communicationEventId: params.metadata.eventId,
+                communicationTeamId: params.metadata.teamId,
+                communicationPromptId: params.metadata.promptId,
+                communicationSenderId: senderUserId,
+                communicationDate: dbInstance.currentZonedDateTime(),
+            })
+            .returningLastInsertedId()
+            .executeInsert();
+    }
 
     const taskId = await SendEmailTask.Schedule({
-        accountId: team.integrations.emailAccountId,
+        accountId,
         sender: `${sender.name}${senderNameSuffix || ''}`,
 
         message: {
-            to: recipient.email,
+            to: toEmail,
             subject: params.subject,
             markdown: params.message,
         },

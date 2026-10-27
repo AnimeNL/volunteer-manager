@@ -60,7 +60,7 @@ const kSendEmailTaskParamScheme = z.object({
         /**
          * User Id of the user who will receive this message.
          */
-        targetUserId: z.number(),
+        targetUserId: z.number().optional(),
     }),
 });
 

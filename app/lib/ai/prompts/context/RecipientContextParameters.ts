@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { DBConnection } from '@lib/database/Connection';
-import { tUsers } from '@lib/database';
+import { tActivities, tUsers } from '@lib/database';
 
 /**
  * Parameters relaying context about the recipient of the message that's been generated.
@@ -34,4 +34,21 @@ export async function queryRecipientContext(db: DBConnection, userId: number)
         .executeSelectOne();
 
     return { name };
+}
+
+/**
+ * Queries the recipient context for the owner of the given `activityId`. Will throw an exception
+ * when the given `activityId` does not exist, has been deleted, or has no known owner.
+ */
+export async function queryActivityRecipientContext(db: DBConnection, activityId: number)
+    : Promise<RecipientContextParameters['recipient']>
+{
+    const name = await db.selectFrom(tActivities)
+        .where(tActivities.activityId.equals(activityId))
+            .and(tActivities.activityDeleted.isNull())
+            .and(tActivities.activityReportToName.isNotNull())
+        .selectOneColumn(tActivities.activityReportToName)
+        .executeSelectOne();
+
+    return { name: name! };
 }

@@ -17,16 +17,14 @@ import { queryActivityContext } from './prompts/context/ActivityContextParameter
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
 import { queryHotelBookingContext } from './prompts/context/HotelBookingContextParameters';
-import { queryRecipientContext } from './prompts/context/RecipientContextParameters';
+import { queryActivityRecipientContext, queryRecipientContext } from './prompts/context/RecipientContextParameters';
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEvents, tNardo, tUsers, tUsersEvents } from '@lib/database';
+import db from '@lib/database';
 
-import { kRegistrationStatus } from '@lib/database/Types';
-
-import * as prompts from './prompts';
+import type * as prompts from './prompts';
 
 /**
  * Zod types that describe the information required to execute a communication prompt.
@@ -84,7 +82,7 @@ export type TypedPromptData<K extends keyof typeof kCommunicationPromptData> =
  * @param params Free form (but validated) data required in order to execute the prompt.
  */
 export async function executeCommunicationPrompt(
-    id: CommunicationPromptId, recipientId: number, language: Language, params: unknown)
+    id: CommunicationPromptId, recipientId: number | undefined, language: Language, params: unknown)
 {
     'use server';
 
@@ -97,7 +95,22 @@ export async function executeCommunicationPrompt(
         const dbInstance = db;
 
         const author = await queryAuthorContext(dbInstance, props.user.id);
-        const recipient = await queryRecipientContext(dbInstance, recipientId);
+
+        let recipient: Awaited<ReturnType<typeof queryRecipientContext>>;
+        switch (id) {
+            case 'program-activity-check-in': {
+                const data = inputData as TypedPromptData<'program-activity-check-in'>;
+                recipient = await queryActivityRecipientContext(dbInstance, data.activityId);
+                break;
+            }
+
+            default:
+                if (!recipientId)
+                    notFound();
+
+                recipient = await queryRecipientContext(dbInstance, recipientId);
+                break;
+        }
 
         const prompt = PromptFactory.createById(id);
         const executor = PromptExecutor.forPrompt(prompt);
@@ -128,7 +141,7 @@ export async function executeCommunicationPrompt(
                 parameters = {
                     author,
                     event: await queryEventContext(dbInstance, data.eventId),
-                    hotel: await queryHotelBookingContext(dbInstance, data.bookingId, recipientId),
+                    hotel: await queryHotelBookingContext(dbInstance, data.bookingId, recipientId!),
                     recipient,
                     team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.HotelConfirmationPrompt>;
@@ -192,79 +205,6 @@ export async function executeCommunicationPrompt(
 
             subject: prompt.getSubject(parameters as any, language),
             message: response.text,
-        };
-    });
-}
-
-/**
- * Zod type that describes information required in order to execute a model.
- */
-const kNardoPersonalisedAdviceData = z.object({
-    advice: z.number(),
-    event: z.string(),
-    volunteer: z.number(),
-});
-
-/**
- * Server action to execute NardoPersonalisedAdvicePrompt.
- */
-export async function executeNardoPersonalisedAdvicePrompt(formData: unknown) {
-    'use server';
-
-    return executeServerAction(formData, kNardoPersonalisedAdviceData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals.ai');
-
-        // TODO: All this manual work doesn't scale for an example tool. This action either has to
-        // move elsewhere, or we should find a scalable machanism to approach this.
-
-        const dbInstance = db;
-
-        const advice = await dbInstance.selectFrom(tNardo)
-            .where(tNardo.nardoId.equals(data.advice))
-            .selectOneColumn(tNardo.nardoAdvice)
-            .executeSelectOne();
-
-        const audience = await dbInstance.selectFrom(tUsers)
-            .innerJoin(tUsersEvents)
-                .on(tUsersEvents.userId.equals(tUsers.userId))
-                    .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .where(tUsers.userId.equals(data.volunteer))
-            .select({
-                name: tUsers.firstName,
-                tenure: dbInstance.count(tUsersEvents.eventId),
-            })
-            .executeSelectOne();
-
-        const event = await dbInstance.selectFrom(tEvents)
-            .where(tEvents.eventSlug.equals(data.event))
-            .select({
-                name: tEvents.eventName,
-                location: tEvents.eventLocation,
-                startDate: tEvents.eventStartTime,
-                endDate: tEvents.eventEndTime,
-            })
-            .executeSelectOne();
-
-        const executor = PromptExecutor.forPrompt(new prompts.NardoPersonalisedAdvicePrompt());
-        const response = await executor.execute({
-            additionalContext: 'This is their last shift.',
-            advice,
-            audience,
-            date: event.endDate.toPlainDate.toString(),
-            event: {
-                name: event.name,
-                location: event.location || 'The Netherlands',
-                startDate: event.startDate.toPlainDate().toString(),
-                endDate: event.endDate.toPlainDate().toString(),
-            },
-        });
-
-        if (!response.success)
-            return response;
-
-        return {
-            success: true,
-            markdown: markdownToJsx(response.text),
         };
     });
 }

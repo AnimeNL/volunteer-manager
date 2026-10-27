@@ -64,7 +64,7 @@ interface BaseCommunicationDialogProps {
     /**
      * Unique ID of the user who this communication will be directed to.
      */
-    recipientId: number;
+    recipientId?: number;
 
     /**
      * Dialog title.
