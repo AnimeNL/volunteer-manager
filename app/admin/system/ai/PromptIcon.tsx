@@ -12,6 +12,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import HelpIcon from '@mui/icons-material/Help';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
+import PaidIcon from '@mui/icons-material/Paid';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
@@ -47,6 +48,9 @@ export function PromptIcon(props: { id: PromptIdByType<any> }) {
 
         case 'hotel-confirmation':
             return <BedIcon color="primary" />;
+
+        case 'hotel-payment-reminder':
+            return <PaidIcon color="primary" />;
 
         case 'participation-cancelled':
             return <CancelOutlinedIcon color="primary" />;

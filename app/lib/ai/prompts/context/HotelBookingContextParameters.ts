@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { DBConnection } from '@lib/database/Connection';
-import { tHotels, tHotelsBookings, tUsers } from '@lib/database';
+import { tHotels, tHotelsBookings, tHotelsPayments, tUsers } from '@lib/database';
 
 /**
  * Parameters relaying context about a hotel room booking.
@@ -52,6 +52,8 @@ export async function queryHotelBookingContext(
         .innerJoin(tHotels)
             .on(tHotels.hotelId.equals(tHotelsBookings.bookingHotelId))
                 .and(tHotels.hotelRoomDeleted.isNull())
+        .innerJoin(tUsers)
+            .on(tUsers.userId.equals(recipientId))
         .leftJoin(firstUserJoin)
             .on(firstUserJoin.userId.equals(tHotelsBookings.bookingFirstUserId))
         .leftJoin(secondUserJoin)
@@ -64,6 +66,9 @@ export async function queryHotelBookingContext(
                 tHotelsBookings.bookingSecondUserId.equals(recipientId)).or(
                 tHotelsBookings.bookingThirdUserId.equals(recipientId)))
         .select({
+            eventId: tHotelsBookings.eventId,
+            recipientName: tUsers.name,
+
             checkInDate: db.dateAsString(tHotelsBookings.bookingCheckIn),
             checkOutDate: db.dateAsString(tHotelsBookings.bookingCheckOut),
 
@@ -85,6 +90,12 @@ export async function queryHotelBookingContext(
         })
         .executeSelectOne();
 
+    const paymentAmount = await db.selectFrom(tHotelsPayments)
+        .where(tHotelsPayments.eventId.equals(booking.eventId))
+            .and(tHotelsPayments.paymentName.equals(booking.recipientName))
+        .selectOneColumn(tHotelsPayments.paymentAmount)
+        .executeSelectNoneOrOne();
+
     const otherOccupants: string[] = [];
     if (booking.firstUserId !== recipientId && !!booking.firstName)
         otherOccupants.push(booking.firstName);
@@ -102,6 +113,6 @@ export async function queryHotelBookingContext(
 
         name: booking.name,
         roomName: booking.roomName,
-        roomPrice: Math.round(booking.roomPrice / 100),
+        roomPrice: Math.round((paymentAmount ?? booking.roomPrice) / 100),
     };
 }

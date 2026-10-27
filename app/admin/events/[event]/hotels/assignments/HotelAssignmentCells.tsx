@@ -19,6 +19,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { CommunicationLanguage } from '@lib/database/Types';
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import type { ServerActionResult } from '@lib/serverAction';
 import { CommunicationDialog, CommunicationIconButton }
     from '@app/admin/components/CommunicationDialog';
@@ -115,8 +116,8 @@ export interface HotelCommunicationCellContext {
      * Server Action to be invoked when a hotel confirmation communication is due to be sent.
      */
     action: (
-        bookingId: number, recipientId: number, teamId: number, subject?: string, message?: string)
-        => Promise<ServerActionResult>;
+        bookingId: number, recipientId: number, teamId: number, promptId: CommunicationPromptId,
+        subject?: string, message?: string) => Promise<ServerActionResult>;
 
     /**
      * Unique ID of the event for which hotel assignments are being managed.
@@ -147,19 +148,19 @@ interface HotelCommunicationCellProps {
         firstUserId?: number | null;
         firstTeamId?: number | null;
         firstLanguage?: CommunicationLanguage | null;
-        firstCommunication?: string | null;
+        firstCommunication?: Record<string, string> | null;
 
         secondName?: string | null;
         secondUserId?: number | null;
         secondTeamId?: number | null;
         secondLanguage?: CommunicationLanguage | null;
-        secondCommunication?: string | null;
+        secondCommunication?: Record<string, string> | null;
 
         thirdName?: string | null;
         thirdUserId?: number | null;
         thirdTeamId?: number | null;
         thirdLanguage?: CommunicationLanguage | null;
-        thirdCommunication?: string | null;
+        thirdCommunication?: Record<string, string> | null;
     };
 }
 
@@ -167,7 +168,7 @@ interface HotelCommunicationCellProps {
  * Information about an individual volunteer recipient in a hotel booking.
  */
 interface HotelBookingRecipient {
-    communication?: string;
+    communication: Record<string, string>;
     language?: CommunicationLanguage;
     name: string;
     teamId: number;
@@ -221,7 +222,7 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
                 continue;
 
             recipients.push({
-                communication: communication ?? undefined,
+                communication: communication ?? {},
                 language: language ?? undefined,
                 name,
                 teamId,
@@ -232,30 +233,45 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
 
     if (recipients.length <= 1) {
         const recipient = recipients[0];
+        const promptParams = {
+            bookingId: props.row.id,
+            eventId,
+            teamId: recipient?.teamId ?? 0,
+        };
+
         return (
             <CommunicationIconButton
-                title={`Confirm ${recipient?.name}'s hotel booking`}
+                title={`Update ${recipient?.name} about their hotel booking?`}
                 action={action.bind(
                     null, props.row.id, recipient?.userId ?? 0, recipient?.teamId ?? 0)}
-                badge={recipient?.communication ? 'check' : 'none'}
+                badge={recipient?.communication['hotel-confirmation'] ? 'check' : 'none'}
                 disabled={!recipient}
                 disableSilent
                 language={recipient?.language}
-                promptId="hotel-confirmation"
-                promptParams={{
-                    bookingId: props.row.id,
-                    eventId,
-                    teamId: recipient?.teamId ?? 0,
-                }}
+                prompts={[
+                    {
+                        promptId: 'hotel-confirmation',
+                        promptParams,
+                        title: 'Confirm hotel booking',
+                        mostRecentCommunication: recipient?.communication['hotel-confirmation'],
+                    },
+                    {
+                        promptId: 'hotel-payment-reminder',
+                        promptParams,
+                        title: 'Send payment reminder',
+                        mostRecentCommunication: recipient?.communication['hotel-payment-reminder'],
+                    },
+                ]}
                 recipientId={recipient?.userId ?? 0}>
 
-                Send <strong>{recipient?.name}</strong> a confirmation e-mail for their booking.
+                Send <strong>{recipient?.name}</strong> an e-mail regarding their booking.
 
             </CommunicationIconButton>
         );
     }
 
-    const communicatedCount = recipients.filter(r => !!r.communication).length;
+    const communicatedCount =
+        recipients.filter(r => !!r.communication['hotel-confirmation']).length;
     const badge =
         communicatedCount === recipients.length
             ? 'check'
@@ -280,7 +296,7 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
                     <MenuItem key={recipient.userId} dense
                               onClick={ () => handleSelectRecipient(recipient) }>
                         <ListItemIcon>
-                            { recipient.communication
+                            { recipient.communication['hotel-confirmation']
                                 ? <MarkEmailReadIcon color="success" fontSize="small" />
                                 : <EmailIcon color="primary" fontSize="small" /> }
                         </ListItemIcon>
@@ -290,22 +306,40 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
             { (!!openCounter && !!selectedRecipient) &&
                 <CommunicationDialog
                     key={`${selectedRecipient.userId}-${openCounter}`}
-                    title={`Confirm ${selectedRecipient.name}'s hotel booking`}
+                    title={`Update ${selectedRecipient.name} about their hotel booking?`}
                     action={action.bind(
                         null, props.row.id, selectedRecipient.userId, selectedRecipient.teamId)}
                     disableSilent
                     language={selectedRecipient.language}
                     onClose={handleCloseDialog}
                     open={dialogOpen}
-                    promptId="hotel-confirmation"
-                    promptParams={{
-                        bookingId: props.row.id,
-                        eventId,
-                        teamId: selectedRecipient.teamId,
-                    }}
+                    prompts={[
+                        {
+                            promptId: 'hotel-confirmation',
+                            promptParams: {
+                                bookingId: props.row.id,
+                                eventId,
+                                teamId: selectedRecipient.teamId,
+                            },
+                            title: 'Confirm hotel booking',
+                            mostRecentCommunication:
+                                selectedRecipient.communication['hotel-confirmation'],
+                        },
+                        {
+                            promptId: 'hotel-payment-reminder',
+                            promptParams: {
+                                bookingId: props.row.id,
+                                eventId,
+                                teamId: selectedRecipient.teamId,
+                            },
+                            title: 'Send payment reminder',
+                            mostRecentCommunication:
+                                selectedRecipient.communication['hotel-payment-reminder'],
+                        },
+                    ]}
                     recipientId={selectedRecipient.userId}>
 
-                    Send <strong>{selectedRecipient.name}</strong> a confirmation e-mail for their
+                    Send <strong>{selectedRecipient.name}</strong> an e-mail regarding their
                     booking.
 
                 </CommunicationDialog> }

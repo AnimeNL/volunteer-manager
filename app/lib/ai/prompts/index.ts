@@ -8,6 +8,7 @@ export { EventDatesAnnouncedPrompt } from './EventDatesAnnouncedPrompt';
 export { EventHotelsAnnouncedPrompt } from './EventHotelsAnnouncedPrompt';
 export { EventTrainingsAnnouncedPrompt } from './EventTrainingsAnnouncedPrompt';
 export { HotelConfirmationPrompt } from './HotelConfirmationPrompt';
+export { HotelPaymentReminderPrompt } from './HotelPaymentReminderPrompt';
 export { IncidentSummaryPrompt } from './IncidentSummaryPrompt';
 export { NardoPersonalisedAdvicePrompt } from './NardoPersonalisedAdvicePrompt';
 export { ParticipationCancelledPrompt } from './ParticipationCancelledPrompt';

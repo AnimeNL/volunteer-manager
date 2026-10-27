@@ -25,6 +25,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { compileDateWarnings } from './compileDateWarnings';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tHotels, tHotelsBookings, tRoles, tTeams, tUsers, tUsersCommunication, tUsersEvents }
     from '@lib/database';
@@ -101,7 +102,7 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
     firstTeam: z.string().nullish(),
     firstTeamId: z.number().nullish(),
     firstLanguage: z.enum(kCommunicationLanguage).nullish(),
-    firstCommunication: z.string().nullish(),
+    firstCommunication: z.record(z.string(), z.string()).optional(),
 
     /**
      * Name, user ID, team and communication metadata of the booking's second occupant.
@@ -111,7 +112,7 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
     secondTeam: z.string().nullish(),
     secondTeamId: z.number().nullish(),
     secondLanguage: z.enum(kCommunicationLanguage).nullish(),
-    secondCommunication: z.string().nullish(),
+    secondCommunication: z.record(z.string(), z.string()).optional(),
 
     /**
      * Name, user ID, team and communication metadata of the booking's third occupant.
@@ -121,7 +122,7 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
     thirdTeam: z.string().nullish(),
     thirdTeamId: z.number().nullish(),
     thirdLanguage: z.enum(kCommunicationLanguage).nullish(),
-    thirdCommunication: z.string().nullish(),
+    thirdCommunication: z.record(z.string(), z.string()).optional(),
 
     /**
      * ID and formatted label of the hotel room option associated with this booking.
@@ -291,7 +292,7 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
         }
 
         const volunteers = new Map<number, {
-            communication?: string;
+            communication: Record<string, string>;
             team: string;
             teamId: number;
         }>();
@@ -308,8 +309,10 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
                     .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
                         .and(usersCommunicationJoin.communicationEventId.equals(
                             tUsersEvents.eventId))
-                        .and(usersCommunicationJoin.communicationPromptId.equals(
-                            'hotel-confirmation'))
+                        .and(usersCommunicationJoin.communicationPromptId.in([
+                            'hotel-confirmation',
+                            'hotel-payment-reminder',
+                        ]))
                 .where(tUsersEvents.eventId.equals(context.event.id))
                     .and(tUsersEvents.userId.in([ ...userIds ]))
                     .and(tUsersEvents.registrationStatus.in([
@@ -322,16 +325,22 @@ const assignmentsDataSource = createDataSource('admin/event/hotels/assignments',
                     teamId: tTeams.teamId,
                     accepted: tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted),
                     eligible: tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
-                    communication: dbInstance.dateTimeAsString(
-                        dbInstance.max(usersCommunicationJoin.communicationDate)),
+                    communication: dbInstance.aggregateAsArray({
+                        promptId: usersCommunicationJoin.communicationPromptId,
+                        date: usersCommunicationJoin.communicationDate,
+                    }),
                 })
                 .groupBy(tUsersEvents.userId, tUsersEvents.teamId)
                 .orderBy('accepted', 'asc')
                     .orderBy('eligible', 'asc')
                 .executeSelectMany();
 
-            for (const volunteer of volunteerData)
-                volunteers.set(volunteer.userId, volunteer);
+            for (const volunteer of volunteerData) {
+                volunteers.set(volunteer.userId, {
+                    ...volunteer,
+                    communication: processVolunteerCommunication(volunteer.communication),
+                });
+            }
         }
 
         return {

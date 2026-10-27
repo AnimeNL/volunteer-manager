@@ -45,6 +45,11 @@ const kCommunicationPromptData = {
         eventId: z.number(),
         teamId: z.number(),
     }),
+    'hotel-payment-reminder': z.object({
+        bookingId: z.number(),
+        eventId: z.number(),
+        teamId: z.number(),
+    }),
     'participation-cancelled': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reinstated': z.object({ eventId: z.number(), teamId: z.number() }),
     'participation-reminder': z.object({ eventId: z.number(), teamId: z.number() }),
@@ -136,7 +141,8 @@ export async function executeCommunicationPrompt(
                 break;
             }
 
-            case 'hotel-confirmation': {
+            case 'hotel-confirmation':
+            case 'hotel-payment-reminder': {
                 const data = inputData as TypedPromptData<'hotel-confirmation'>;
                 parameters = {
                     author,

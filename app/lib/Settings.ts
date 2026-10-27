@@ -83,6 +83,7 @@ export type Settings = {
     'ai-communication-type-event-hotels-announced': string;
     'ai-communication-type-event-trainings-announced': string;
     'ai-communication-type-hotel-confirmation': string;
+    'ai-communication-type-hotel-payment-reminder': string;
     'ai-communication-type-participation-cancelled': string;
     'ai-communication-type-participation-reinstated': string;
     'ai-communication-type-participation-reminder': string;

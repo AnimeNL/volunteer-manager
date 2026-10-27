@@ -6,6 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -39,8 +40,8 @@ const kHotelConfigurationData = z.object({
  * confirmation message should be sent on the user's behalf.
  */
 export async function sendHotelConfirmationCommunication(
-    eventSlug: string, bookingId: number, recipientId: number, teamId: number, subject?: string,
-    message?: string)
+    eventSlug: string, bookingId: number, recipientId: number, teamId: number,
+    promptId: CommunicationPromptId, subject?: string, message?: string)
 {
     return executeServerAction(new FormData(), z.object({ /* none */ }), async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
@@ -79,7 +80,7 @@ export async function sendHotelConfirmationCommunication(
             metadata: {
                 eventId: event.id,
                 teamId: booking.teamId,
-                promptId: 'hotel-confirmation',
+                promptId,
             },
         });
 
