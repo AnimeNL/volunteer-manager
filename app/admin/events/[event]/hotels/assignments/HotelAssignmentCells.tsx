@@ -249,9 +249,7 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
                 }}
                 recipientId={recipient?.userId ?? 0}>
 
-                Send <strong>{recipient?.name}</strong> a confirmation e-mail for their booking at{' '}
-                <strong>{props.row.hotelDescription}</strong> ({props.row.checkIn} to{' '}
-                {props.row.checkOut}).
+                Send <strong>{recipient?.name}</strong> a confirmation e-mail for their booking.
 
             </CommunicationIconButton>
         );
@@ -308,8 +306,7 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
                     recipientId={selectedRecipient.userId}>
 
                     Send <strong>{selectedRecipient.name}</strong> a confirmation e-mail for their
-                    booking at <strong>{props.row.hotelDescription}</strong> ({props.row.checkIn}{' '}
-                    to {props.row.checkOut}).
+                    booking.
 
                 </CommunicationDialog> }
         </>
