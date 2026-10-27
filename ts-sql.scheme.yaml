@@ -1810,7 +1810,7 @@ tables:
     nullable: true
     default: "NULL"
   - name: mutation
-    type: enum('Created','Updated','Deleted')
+    type: enum('Created','Contacted','Updated','Deleted')
     nullable: false
   - name: mutation_fields
     type: text
@@ -1872,7 +1872,7 @@ tables:
       `area_id` int(8) unsigned DEFAULT NULL,
       `timeslot_id` int(8) unsigned DEFAULT NULL,
       `location_id` int(8) unsigned DEFAULT NULL,
-      `mutation` enum('Created','Updated','Deleted') NOT NULL,
+      `mutation` enum('Created','Contacted','Updated','Deleted') NOT NULL,
       `mutation_fields` text DEFAULT NULL,
       `mutation_severity` enum('Low','Moderate','Important') NOT NULL,
       `mutation_user_id` int(8) unsigned DEFAULT NULL,

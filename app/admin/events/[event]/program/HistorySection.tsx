@@ -165,8 +165,20 @@ const programHistoryDataSource = createDataSource('admin/event/program/history',
                 }
 
                 let mutation = String(log.mutation);
-                if (log.mutation === 'Updated' && !!log.mutationFields)
-                    mutation = `Updated (${log.mutationFields})`;
+                if (!!log.mutationFields) {
+                    switch (log.mutation) {
+                        case 'Contacted':
+                            mutation = `Contacted the activity owner (${log.mutationFields})`;
+                            break;
+
+                        case 'Updated':
+                            mutation = `${log.mutation} (${log.mutationFields})`;
+                            break;
+
+                        default:
+                            throw new Error('Mutation fields unexpectedly present');
+                    }
+                }
 
                 const user = (log.mutationUserId && log.mutationUserName) ? {
                     id: log.mutationUserId,

@@ -72,7 +72,7 @@ export async function sendCommunicationToActivityOwner(
             },
         });
 
-        let mutationFields = 'contacted owner';
+        let mutationFields: string | undefined;
 
         // Auto-assign the help requested field to the |props.user| given that they've reached out
         // to the event owner. This optimises yet another human step away from the process.
@@ -85,14 +85,14 @@ export async function sendCommunicationToActivityOwner(
                     .and(tActivities.activityFestivalId.equals(context.event.festivalId))
                 .executeUpdate();
 
-            mutationFields = 'contacted owner, assignee';
+            mutationFields = 'assignee';
         }
 
         await dbInstance.insertInto(tActivitiesLogs)
             .set({
                 festivalId: context.event.festivalId,
                 activityId: context.activity.id,
-                mutation: kMutation.Updated,  // TODO: kMutation.Contacted
+                mutation: kMutation.Contacted,
                 mutationFields,
                 mutationSeverity: kMutationSeverity.Important,
                 mutationUserId: props.user.id,

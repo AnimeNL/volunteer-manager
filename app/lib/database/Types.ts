@@ -228,6 +228,7 @@ export const kLogUserIdConfidence = {
 export type Mutation = Values<typeof kMutation>;
 export const kMutation = {
     Created: 'Created',
+    Contacted: 'Contacted',
     Updated: 'Updated',
     Deleted: 'Deleted',
 } as const;
