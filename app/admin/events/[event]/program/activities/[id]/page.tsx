@@ -191,6 +191,11 @@ export default async function ProgramActivityPage(
                         ),
                     },
                     {
+                        condition: !!activity.reportToName,
+                        key: 'Activity owner',
+                        value: activity.reportToName,
+                    },
+                    {
                         key: 'Help requested',
                         value: activity.helpRequested ? 'Yes' : 'No',
                     },
