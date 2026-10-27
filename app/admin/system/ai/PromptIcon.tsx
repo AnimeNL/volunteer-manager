@@ -8,6 +8,7 @@ import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
 import DrawIcon from '@mui/icons-material/Draw';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import GroupsIcon from '@mui/icons-material/Groups';
 import HelpIcon from '@mui/icons-material/Help';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -72,6 +73,9 @@ export function PromptIcon(props: { id: PromptIdByType<any> }) {
         case 'incident-summary-prompt':
             return <FlagOutlinedIcon color="primary" />;
 
+        case 'nardo-personalised-advice':
+            return <GroupsIcon color="primary" />;
+
         case 'personality-description-prompt':
             return <DrawIcon color="primary" />;
 
@@ -79,7 +83,6 @@ export function PromptIcon(props: { id: PromptIdByType<any> }) {
         // Internal:
         // -----------------------------------------------------------------------------------------
 
-        case 'nardo-personalised-advice':
         case 'system-prompt':
             break;
     }

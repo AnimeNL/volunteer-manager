@@ -91,6 +91,7 @@ export type Settings = {
 
     // Del a Rie Advies:
     'ai-nardo-personalised-advice': string;
+    'ai-nardo-personalised-advice-complexity': TextGenerationComplexity;
 
     // Duty Book summaries:
     'ai-duty-book-summary-prompt': string;

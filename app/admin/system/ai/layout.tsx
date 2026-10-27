@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type SvgIcon from '@mui/material/SvgIcon';
-import GroupsIcon from '@mui/icons-material/Groups';
 import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
@@ -35,12 +34,6 @@ export default async function ArtificialIntelligenceLayout(props: LayoutProps<'/
                 Icon: QuestionAnswerOutlinedIcon,
                 label: 'Communication',
                 url: '/admin/system/ai/communication',
-                urlMatchMode: 'prefix',
-            },
-            {
-                Icon: GroupsIcon,
-                label: 'Del a Rie Advies',
-                url: '/admin/system/ai/nardo',
                 urlMatchMode: 'prefix',
             },
         ]}>

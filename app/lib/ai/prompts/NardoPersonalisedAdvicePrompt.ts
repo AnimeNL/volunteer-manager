@@ -29,10 +29,11 @@ export class NardoPersonalisedAdvicePrompt extends Prompt<NardoPersonalisedAdvic
     override get metadata() {
         return {
             id: 'nardo-personalised-advice',
-            type: 'Internal',
+            type: 'Feature',
             label: 'Personalised Advice (Del a Rie Advies)',
             description: 'Generated personal advice from the Del a Rie Advies consultancy firm.',
             settings: {
+                complexity: 'ai-nardo-personalised-advice-complexity',
                 prompt: 'ai-nardo-personalised-advice',
             },
         } as const;
