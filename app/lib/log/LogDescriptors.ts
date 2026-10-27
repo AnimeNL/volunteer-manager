@@ -371,6 +371,11 @@ interface LogTypeParameterMap {
         owner: string;
     };
 
+    UpdateHotelPayment: {
+        event: string;  // short name
+        occupant: string;
+    };
+
     UpdateHotelRoom: {
         event: string;  // short name
         hotelName: string;
@@ -722,6 +727,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateEventSlug: 'UpdateEventSlug',
     UpdateEventTeamParticipation: 'UpdateEventTeamParticipation',
     UpdateHotelBooking: 'UpdateHotelBooking',
+    UpdateHotelPayment: 'UpdateHotelPayment',
     UpdateHotelRoom: 'UpdateHotelRoom',
     UpdateKnowledgeBase: 'UpdateKnowledgeBase',
     UpdateKnowledgeBaseCategory: 'UpdateKnowledgeBaseCategory',

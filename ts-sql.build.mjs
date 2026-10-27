@@ -240,6 +240,10 @@ do {
                 },
                 { field: [ 'exports', 'export_type' ], type: 'ExportType' },
                 { field: [ 'feedback', 'feedback_response' ], type: 'FeedbackResponse' },
+                {
+                    field: [ 'hotels_payments', 'payment_responsible' ],
+                    type: 'HotelPaymentResponsible',
+                },
                 { field: [ 'logs', 'log_severity' ], type: 'LogSeverity' },
                 { field: [ 'outbox_twilio', 'outbox_type' ], type: 'TwilioOutboxType' },
                 { field: [ 'permissions', 'permission_type' ], type: 'PermissionType' },

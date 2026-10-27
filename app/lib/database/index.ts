@@ -29,6 +29,7 @@ export { tExportsLogs } from './scheme/ExportsLogsTable';
 export { tFeedback } from './scheme/FeedbackTable';
 export { tHotels } from './scheme/HotelsTable';
 export { tHotelsBookings } from './scheme/HotelsBookingsTable';
+export { tHotelsPayments } from './scheme/HotelsPaymentsTable';
 export { tLogs } from './scheme/LogsTable';
 export { tLogsFormat } from './scheme/LogsFormatTable';
 export { tNardo } from './scheme/NardoTable';

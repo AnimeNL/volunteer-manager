@@ -1092,6 +1092,49 @@ tables:
       CONSTRAINT `logs_log_source_user_id` FOREIGN KEY (`log_source_user_id`) REFERENCES `users` (`user_id`),
       CONSTRAINT `logs_log_target_user_id` FOREIGN KEY (`log_target_user_id`) REFERENCES `users` (`user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: hotels_payments
+  type: BASE TABLE
+  columns:
+  - name: event_id
+    type: int(4) unsigned
+    nullable: false
+  - name: payment_name
+    type: varchar(128)
+    nullable: false
+  - name: payment_amount
+    type: int(4) unsigned
+    nullable: false
+  - name: payment_responsible
+    type: enum('Self','J-POP','Other')
+    nullable: false
+  - name: payment_confirmed
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (event_id, payment_name) USING BTREE
+    table: hotels_payments
+    columns:
+    - event_id
+    - payment_name
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (event_id, payment_name)
+    table: hotels_payments
+    columns:
+    - event_id
+    - payment_name
+  def: |-
+    CREATE TABLE `hotels_payments` (
+      `event_id` int(4) unsigned NOT NULL,
+      `payment_name` varchar(128) NOT NULL,
+      `payment_amount` int(4) unsigned NOT NULL,
+      `payment_responsible` enum('Self','J-POP','Other') NOT NULL,
+      `payment_confirmed` datetime DEFAULT NULL,
+      PRIMARY KEY (`event_id`,`payment_name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: activities_locations
   type: BASE TABLE
   columns:

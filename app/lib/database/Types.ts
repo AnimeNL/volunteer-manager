@@ -198,6 +198,17 @@ export const kFileType = {
 } as const;
 
 /**
+ * Party responsible for settling a hotel room payment.
+ * @see Table `hotels_payments`
+ */
+export type HotelPaymentResponsible = Values<typeof kHotelPaymentResponsible>;
+export const kHotelPaymentResponsible = {
+    Self: 'Self',
+    'J-POP': 'J-POP',
+    Other: 'Other',
+} as const;
+
+/**
  * Certainty we have in the user ID associated with a log entry, which can be guessed after the
  * entry has been written to the database.
  * @see Table `error_logs`

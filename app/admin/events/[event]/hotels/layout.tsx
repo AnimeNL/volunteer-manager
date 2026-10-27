@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 
 import HotelIcon from '@mui/icons-material/Hotel';
+import PaidIcon from '@mui/icons-material/Paid';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
@@ -24,6 +25,11 @@ export default async function EventHotelsLayout(props: LayoutProps<'/admin/event
                 Icon: HotelIcon,
                 label: 'Assignments',
                 url: `/admin/events/${event.slug}/hotels/assignments`,
+            },
+            {
+                Icon: PaidIcon,
+                label: 'Payments',
+                url: `/admin/events/${event.slug}/hotels/payments`,
             },
             {
                 Icon: SettingsSuggestIcon,
