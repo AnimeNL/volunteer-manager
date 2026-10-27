@@ -31,6 +31,8 @@ export class ActivitiesTable extends Table<DBConnection, 'ActivitiesTable'> {
      * Only for internal activities
      */
     activityLocationId = this.optionalColumnWithDefaultValue('activity_location_id', 'int');
+    activityReportToEmail = this.optionalColumnWithDefaultValue('activity_report_to_email', 'string');
+    activityReportToName = this.optionalColumnWithDefaultValue('activity_report_to_name', 'string');
     activityTypeAdultsOnly = this.column('activity_type_adults_only', 'int');
     activityTypeCompetition = this.column('activity_type_competition', 'int');
     activityTypeCosplay = this.column('activity_type_cosplay', 'int');

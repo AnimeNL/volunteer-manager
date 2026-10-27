@@ -139,6 +139,8 @@ export const kActivityDefinition = z.object({
     financeInfo: z.string().optional(/* gated on access */).nullable(),
     ticketsInfo: z.string().optional(/* gated on access */).nullable(),
     helpNeeded: z.boolean(),
+    reportToEmail: z.string().optional(/* gated on access */).nullable(),
+    reportToName: z.string().optional(/* gated on access */).nullable(),
     largeImage: z.string().nullable(),
     smallImage: z.string().nullable(),
     activityType: kActivityTypeDefinition.nullable(),

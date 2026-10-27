@@ -27,6 +27,8 @@ describe('ImportActivitiesTask', () => {
             price: undefined,
             helpNeeded: 0,
             maxVisitors: undefined,
+            reportToEmail: undefined,
+            reportToName: undefined,
             visible: 1,
             visibleReason: undefined,
 
@@ -110,6 +112,8 @@ describe('ImportActivitiesTask', () => {
             financeInfo: /* accessible but empty= */ null,
             ticketsInfo: /* accessible but empty= */ null,
             helpNeeded: false,
+            reportToEmail: null,
+            reportToName: null,
             largeImage: null,
             smallImage: null,
             activityType: null, // ...
@@ -449,6 +453,8 @@ describe('ImportActivitiesTask', () => {
                 price: null,
                 helpNeeded: true,
                 maxVisitors: 25,
+                reportToEmail: 'owner@example.com',
+                reportToName: 'Example Owner',
                 activityType: {
                     adultsOnly: false,
                     competition: false,
@@ -459,6 +465,11 @@ describe('ImportActivitiesTask', () => {
                 } as any,
                 visible: false,
                 reasonInvisible: 'Cancelled',
+            }),
+            createSimpleActivity({
+                id: 101,
+                reportToEmail: 'updated@example.com',
+                timeslots: [ createSimpleTimeslot({ id: 1101 }) ],
             }),
         ], [
             createStoredActivity({
@@ -480,10 +491,14 @@ describe('ImportActivitiesTask', () => {
                 visible: 1,
                 visibleReason: undefined,
             }, /* timeslots= */ [ { id: 1100 } ]),
+            createStoredActivity({
+                id: 101,
+                reportToEmail: 'original@example.com',
+            }, /* timeslots= */ [ { id: 1101 } ]),
         ], /* festivalId= */ 625);
 
         expect(mutations.created).toHaveLength(0);
-        expect(mutations.updated).toHaveLength(1);
+        expect(mutations.updated).toHaveLength(2);
         expect(mutations.deleted).toHaveLength(0);
 
         expect(mutations.mutations).toHaveLength(1);
@@ -498,6 +513,8 @@ describe('ImportActivitiesTask', () => {
                 'price',
                 'help needed flag',
                 'max visitors',
+                'report to (e-mail)',
+                'report to',
                 '18+ flag',
                 'event flag',
                 'visibility',

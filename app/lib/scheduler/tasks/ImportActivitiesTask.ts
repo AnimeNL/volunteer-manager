@@ -188,10 +188,13 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
         this.log.info(`Updated program entries: ${mutations.updated.length}`);
         this.log.info(`Deleted program entries: ${mutations.deleted.length}`);
 
+        const totalUpdates =
+            mutations.created.length + mutations.updated.length + mutations.deleted.length;
+
         // When there is at least one mutation, update the database with all mutations in a single
         // transaction. The mutation logs will be written to the database as well.
-        if (mutations.mutations.length > 0) {
-            this.log.info(`Total updates: ${mutations.mutations.length}`);
+        if (totalUpdates > 0) {
+            this.log.info(`Total updates: ${totalUpdates}`);
 
             await dbInstance.transaction(async () => {
                 for (const createQuery of mutations.created)
@@ -201,7 +204,7 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                 for (const deleteQuery of mutations.deleted)
                     await deleteQuery.executeUpdate();
 
-                if (!params.skipMutationLogs) {
+                if (!params.skipMutationLogs && mutations.mutations.length > 0) {
                     await dbInstance.insertInto(tActivitiesLogs)
                         .values(mutations.mutations.map(mutation => ({
                             festivalId: festivalId!,
@@ -337,6 +340,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                         activityPrice: currentActivity.price,
                         activityHelpNeeded: currentActivity.helpNeeded ? 1 : 0,
                         activityMaxVisitors: currentActivity.maxVisitors,
+                        activityReportToEmail: currentActivity.reportToEmail,
+                        activityReportToName: currentActivity.reportToName,
                         activityTypeAdultsOnly: currentActivity.activityType?.adultsOnly ? 1 : 0,
                         activityTypeCompetition: currentActivity.activityType?.competition ? 1 : 0,
                         activityTypeCosplay: currentActivity.activityType?.cosplay ? 1 : 0,
@@ -584,6 +589,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     activityPrice: currentActivity.price,
                     activityHelpNeeded: currentActivity.helpNeeded ? 1 : 0,
                     activityMaxVisitors: currentActivity.maxVisitors,
+                    activityReportToEmail: currentActivity.reportToEmail,
+                    activityReportToName: currentActivity.reportToName,
                     activityTypeAdultsOnly: currentActivity.activityType?.adultsOnly ? 1 : 0,
                     activityTypeCompetition: currentActivity.activityType?.competition ? 1 : 0,
                     activityTypeCosplay: currentActivity.activityType?.cosplay ? 1 : 0,
@@ -597,6 +604,9 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                 })
                 .where(tActivities.activityId.equals(storedActivity.id))
                     .and(tActivities.activityFestivalId.equals(festivalId)));
+
+            if (update.fields.length === 1 && update.fields[0] === 'report to (e-mail)')
+                continue;  // do not write a changelog entry when only the e-mail address changed
 
             mutations.mutations.push({
                 activityId: storedActivity.id,
@@ -748,6 +758,20 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                 stored: storedActivity.maxVisitors,
                 current: currentActivity.maxVisitors,
                 comparison: 'number',
+            },
+            {
+                name: 'report to (e-mail)',
+                weight: kUpdateSeverityLevel.Low,
+                stored: storedActivity.reportToEmail,
+                current: currentActivity.reportToEmail,
+                comparison: 'string',
+            },
+            {
+                name: 'report to',
+                weight: kUpdateSeverityLevel.Low,
+                stored: storedActivity.reportToName,
+                current: currentActivity.reportToName,
+                comparison: 'string',
             },
             {
                 name: '18+ flag',
@@ -963,6 +987,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                 price: tActivities.activityPrice,
                 helpNeeded: tActivities.activityHelpNeeded,
                 maxVisitors: tActivities.activityMaxVisitors,
+                reportToEmail: tActivities.activityReportToEmail,
+                reportToName: tActivities.activityReportToName,
                 visible: tActivities.activityVisible,
                 visibleReason: tActivities.activityVisibleReason,
 
