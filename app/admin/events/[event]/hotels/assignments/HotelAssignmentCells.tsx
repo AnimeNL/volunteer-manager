@@ -21,8 +21,28 @@ import Typography from '@mui/material/Typography';
 import type { CommunicationLanguage } from '@lib/database/Types';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import type { ServerActionResult } from '@lib/serverAction';
-import { CommunicationDialog, CommunicationIconButton }
-    from '@app/admin/components/CommunicationDialog';
+import { CommunicationDialog } from '@app/admin/components/CommunicationDialog';
+
+/**
+ * Occupant slots supported for a hotel room booking.
+ */
+const kOccupantSlots = [ 'first', 'second', 'third' ] as const;
+
+/**
+ * Type representing one of the occupant slots of a hotel room booking.
+ */
+type OccupantSlot = (typeof kOccupantSlots)[number];
+
+/**
+ * Row model fields describing the occupants of a hotel room booking.
+ */
+type HotelOccupantRow =
+    & Partial<Record<`${OccupantSlot}Name`, string | null>>
+    & Partial<Record<`${OccupantSlot}UserId`, number | null>>
+    & Partial<Record<`${OccupantSlot}Team`, string | null>>
+    & Partial<Record<`${OccupantSlot}TeamId`, number | null>>
+    & Partial<Record<`${OccupantSlot}Language`, CommunicationLanguage | null>>
+    & Partial<Record<`${OccupantSlot}Communication`, Record<string, string> | null>>;
 
 /**
  * Context passed to the <HotelOccupantCell> component.
@@ -36,7 +56,7 @@ interface HotelOccupantCellContext {
     /**
      * Which occupant slot of the hotel room is being rendered.
      */
-    occupant: 'first' | 'second' | 'third';
+    occupant: OccupantSlot;
 }
 
 /**
@@ -51,19 +71,7 @@ interface HotelOccupantCellProps {
     /**
      * The hotel booking row model being rendered.
      */
-    row: {
-        firstName?: string | null;
-        firstUserId?: number | null;
-        firstTeam?: string | null;
-
-        secondName?: string | null;
-        secondUserId?: number | null;
-        secondTeam?: string | null;
-
-        thirdName?: string | null;
-        thirdUserId?: number | null;
-        thirdTeam?: string | null;
-    };
+    row: HotelOccupantRow;
 }
 
 /**
@@ -137,30 +145,9 @@ interface HotelCommunicationCellProps {
     /**
      * Row model containing booking details and occupant identities.
      */
-    row: {
+    row: HotelOccupantRow & {
         id: number;
         hotelId?: number | null;
-        hotelDescription?: string | null;
-        checkIn: string;
-        checkOut: string;
-
-        firstName?: string | null;
-        firstUserId?: number | null;
-        firstTeamId?: number | null;
-        firstLanguage?: CommunicationLanguage | null;
-        firstCommunication?: Record<string, string> | null;
-
-        secondName?: string | null;
-        secondUserId?: number | null;
-        secondTeamId?: number | null;
-        secondLanguage?: CommunicationLanguage | null;
-        secondCommunication?: Record<string, string> | null;
-
-        thirdName?: string | null;
-        thirdUserId?: number | null;
-        thirdTeamId?: number | null;
-        thirdLanguage?: CommunicationLanguage | null;
-        thirdCommunication?: Record<string, string> | null;
     };
 }
 
@@ -188,42 +175,29 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
     const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
     const [ openCounter, setOpenCounter ] = useState<number>(0);
 
-    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>) => {
-        setMenuAnchor(event.currentTarget);
-    }, []);
-
-    const handleCloseMenu = useCallback(() => {
-        setMenuAnchor(null);
-    }, []);
+    const handleCloseMenu = useCallback(() => setMenuAnchor(null), [ /* no deps */ ]);
+    const handleCloseDialog = useCallback(() => setDialogOpen(false), [ /* no deps */ ]);
 
     const handleSelectRecipient = useCallback((recipient: HotelBookingRecipient) => {
         setMenuAnchor(null);
         setSelectedRecipient(recipient);
         setOpenCounter(n => n + 1);
         setDialogOpen(true);
-    }, []);
+    }, [ /* no deps */ ]);
 
-    const handleCloseDialog = useCallback(() => {
-        setDialogOpen(false);
-    }, []);
-
-    const slots = [ 'first', 'second', 'third' ] as const;
     const recipients: HotelBookingRecipient[] = [];
-
     if (props.row.hotelId) {
-        for (const slot of slots) {
+        for (const slot of kOccupantSlots) {
             const name = props.row[`${slot}Name`];
             const userId = props.row[`${slot}UserId`];
             const teamId = props.row[`${slot}TeamId`];
-            const language = props.row[`${slot}Language`];
-            const communication = props.row[`${slot}Communication`];
 
             if (!name || !userId || !teamId)
                 continue;
 
             recipients.push({
-                communication: communication ?? {},
-                language: language ?? undefined,
+                communication: props.row[`${slot}Communication`] ?? {},
+                language: props.row[`${slot}Language`] ?? undefined,
                 name,
                 teamId,
                 userId,
@@ -231,64 +205,46 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
         }
     }
 
-    if (recipients.length <= 1) {
-        const recipient = recipients[0];
-        const promptParams = {
-            bookingId: props.row.id,
-            eventId,
-            teamId: recipient?.teamId ?? 0,
-        };
-
+    if (!recipients.length) {
         return (
-            <CommunicationIconButton
-                title={`Update ${recipient?.name} about their hotel booking?`}
-                action={action.bind(
-                    null, props.row.id, recipient?.userId ?? 0, recipient?.teamId ?? 0)}
-                badge={recipient?.communication['hotel-confirmation'] ? 'check' : 'none'}
-                disabled={!recipient}
-                disableSilent
-                language={recipient?.language}
-                prompts={[
-                    {
-                        promptId: 'hotel-confirmation',
-                        promptParams,
-                        title: 'Confirm hotel booking',
-                        mostRecentCommunication: recipient?.communication['hotel-confirmation'],
-                    },
-                    {
-                        promptId: 'hotel-payment-reminder',
-                        promptParams,
-                        title: 'Send payment reminder',
-                        mostRecentCommunication: recipient?.communication['hotel-payment-reminder'],
-                    },
-                ]}
-                recipientId={recipient?.userId ?? 0}>
-
-                Send <strong>{recipient?.name}</strong> an e-mail regarding their booking.
-
-            </CommunicationIconButton>
+            <IconButton disabled size="small">
+                <EmailIcon color="disabled" fontSize="small" />
+            </IconButton>
         );
     }
 
+    const handleActivate = (event: React.MouseEvent<HTMLElement>) => {
+        if (recipients.length === 1)
+            handleSelectRecipient(recipients[0]);
+        else
+            setMenuAnchor(event.currentTarget);
+    };
+
     const communicatedCount =
         recipients.filter(r => !!r.communication['hotel-confirmation']).length;
-    const badge =
-        communicatedCount === recipients.length
-            ? 'check'
-            : communicatedCount > 0 ? 'warning' : 'none';
+
+    let icon = <EmailIcon color="primary" fontSize="small" />;
+    if (communicatedCount === recipients.length) {
+        icon = <MarkEmailReadIcon color="primary" fontSize="small" />;
+    } else if (communicatedCount > 0) {
+        icon = (
+            <Badge color="warning" variant="dot">
+                {icon}
+            </Badge>
+        );
+    }
+
+    const promptParams = {
+        bookingId: props.row.id,
+        eventId,
+        teamId: selectedRecipient?.teamId ?? 0,
+    };
 
     return (
         <>
             <Tooltip title="Send an e-mail…">
-                <IconButton onClick={handleOpenMenu} size="small">
-                    { badge === 'check' &&
-                        <MarkEmailReadIcon color="primary" fontSize="small" /> }
-                    { badge === 'none' &&
-                        <EmailIcon color="primary" fontSize="small" /> }
-                    { badge === 'warning' &&
-                        <Badge color="warning" variant="dot">
-                            <EmailIcon color="primary" fontSize="small" />
-                        </Badge> }
+                <IconButton onClick={handleActivate} size="small">
+                    {icon}
                 </IconButton>
             </Tooltip>
             <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={handleCloseMenu}>
@@ -316,22 +272,14 @@ export function HotelCommunicationCell(props: HotelCommunicationCellProps) {
                     prompts={[
                         {
                             promptId: 'hotel-confirmation',
-                            promptParams: {
-                                bookingId: props.row.id,
-                                eventId,
-                                teamId: selectedRecipient.teamId,
-                            },
+                            promptParams,
                             title: 'Confirm hotel booking',
                             mostRecentCommunication:
                                 selectedRecipient.communication['hotel-confirmation'],
                         },
                         {
                             promptId: 'hotel-payment-reminder',
-                            promptParams: {
-                                bookingId: props.row.id,
-                                eventId,
-                                teamId: selectedRecipient.teamId,
-                            },
+                            promptParams,
                             title: 'Send payment reminder',
                             mostRecentCommunication:
                                 selectedRecipient.communication['hotel-payment-reminder'],
