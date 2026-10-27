@@ -11,28 +11,26 @@ import { type RecipientContextParameters, kRecipientContextExampleParameters } f
 /**
  * Parameters accepted by this prompt.
  */
-type ProgramActivityGeneralCheckInPromptParameters =
+type ProgramActivityCheckInPromptParameters =
     ActivityContextParameters & AuthorContextParameters & EventContextParameters &
     RecipientContextParameters;
 
 /**
- * This prompt generates an e-mail message to reach out to an activity owner with general questions,
- * or to double check whether anything is necessary.
+ * This prompt generates an e-mail message to check in with an activity owner regarding their
+ * program entry or help request.
  */
-export class ProgramActivityGeneralCheckInPrompt
-    extends Prompt<ProgramActivityGeneralCheckInPromptParameters>
-{
+export class ProgramActivityCheckInPrompt extends Prompt<ProgramActivityCheckInPromptParameters> {
     override get metadata() {
         return {
-            id: 'program-activity-general-check-in',
+            id: 'program-activity-check-in',
             type: 'Communication',
-            label: 'Program activity general check-in',
+            label: 'Program activity check-in',
             regarding: 'their program activity',
             description:
-                'Message to reach out to an activity owner with general questions, or double ' +
-                'checking whether anything is necessary.',
+                'Message to check in with an activity owner regarding their program entry or ' +
+                'help request.',
             settings: {
-                prompt: 'ai-communication-type-program-activity-general-check-in',
+                prompt: 'ai-communication-type-program-activity-check-in',
             },
         } as const;
     }
@@ -46,7 +44,7 @@ export class ProgramActivityGeneralCheckInPrompt
         };
     }
 
-    override getSubject(params: ProgramActivityGeneralCheckInPromptParameters, language: Language) {
+    override getSubject(params: ProgramActivityCheckInPromptParameters, language: Language) {
         switch (language) {
             case 'Dutch':
                 return `${params.activity.title} op ${params.event.shortName}`;

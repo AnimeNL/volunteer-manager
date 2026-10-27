@@ -14,7 +14,6 @@ export { ParticipationCancelledPrompt } from './ParticipationCancelledPrompt';
 export { ParticipationReinstatedPrompt } from './ParticipationReinstatedPrompt';
 export { ParticipationReminderPrompt } from './ParticipationReminderPrompt';
 export { PersonalityDescriptionPrompt } from './PersonalityDescriptionPrompt';
-export { ProgramActivityGeneralCheckInPrompt } from './ProgramActivityGeneralCheckInPrompt';
-export { ProgramActivityHelpRequestCheckInPrompt } from './ProgramActivityHelpRequestCheckInPrompt';
+export { ProgramActivityCheckInPrompt } from './ProgramActivityCheckInPrompt';
 export { SystemPrompt } from './SystemPrompt';
 export { TeamChangePrompt } from './TeamChangePrompt';

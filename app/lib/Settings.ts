@@ -86,8 +86,7 @@ export type Settings = {
     'ai-communication-type-participation-cancelled': string;
     'ai-communication-type-participation-reinstated': string;
     'ai-communication-type-participation-reminder': string;
-    'ai-communication-type-program-activity-general-check-in': string;
-    'ai-communication-type-program-activity-help-request-check-in': string;
+    'ai-communication-type-program-activity-check-in': string;
     'ai-communication-type-team-change': string;
 
     // Del a Rie Advies:
