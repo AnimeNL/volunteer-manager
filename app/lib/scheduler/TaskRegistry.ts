@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { CleanUpIntegrationLogsTask } from './tasks/CleanUpIntegrationLogsTask';
 import { DutyBookSummaryTask } from './tasks/DutyBookSummaryTask';
 import { ImportActivitiesTask } from './tasks/ImportActivitiesTask';
 import { NoopComplexTask } from './tasks/NoopComplexTask';
@@ -17,6 +18,7 @@ import { YourTicketProviderImportTask } from './tasks/YourTicketProviderImportTa
  * the registry is the `TaskRunner`, which is responsible for execution.
  */
 export const kTaskRegistry = {
+    CleanUpIntegrationLogsTask,
     DutyBookSummaryTask,
     ImportActivitiesTask,
     NoopComplexTask,
@@ -47,6 +49,7 @@ type TaskFormatFn = (params: any) => string;
  * Registry of of the known tasks, each with a function that enables formatting their purpose.
  */
 export const kTaskFormatFn: { [k in RegisteredTasks | DeprecatedTasks]: TaskFormatFn } = {
+    CleanUpIntegrationLogsTask: () => 'Clean up old integration logs',
     DutyBookSummaryTask: params => `Generate AI summary for a Duty Book entry (id: ${params.id})`,
     ImportActivitiesTask: () => 'Import activities from AnPlan',
     NoopComplexTask: () => 'No-op task (complex)',
