@@ -4,8 +4,13 @@
 import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
+import ApiIcon from '@mui/icons-material/Api';
 import Button from '@mui/material/Button';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import LoopIcon from '@mui/icons-material/Loop';
 import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
 import Stack from '@mui/material/Stack';
@@ -17,11 +22,12 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { RerunTaskButton } from './RerunTaskButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { StatusCell } from '../../diagnostics/integrations/IntegrationLogsCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { rerunSchedulerTask } from '../SchedulerActions';
-import db, { tTasks } from '@lib/database';
+import db, { tIntegrationsLogs, tTasks } from '@lib/database';
 
 /**
  * The task page gives details about the execution of an individual task, including all logs, timing
@@ -36,8 +42,12 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
     if (Number.isNaN(taskId))
         notFound();
 
+    const integrationsLogsJoin = tIntegrationsLogs.forUseInLeftJoin();
+
     const dbInstance = db;
     const task = await dbInstance.selectFrom(tTasks)
+        .leftJoin(integrationsLogsJoin)
+            .on(integrationsLogsJoin.logTaskId.equals(tTasks.taskId))
         .select({
             taskId: tTasks.taskId,
             taskDate: dbInstance.dateTimeAsString(tTasks.taskScheduledDate),
@@ -49,12 +59,23 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
             result: tTasks.taskInvocationResult,
             resultLogs: tTasks.taskInvocationLogs,
             resultTimeMs: tTasks.taskInvocationTimeMs,
+
+            apiCalls: dbInstance.aggregateAsArray({
+                id: integrationsLogsJoin.logId,
+                integration: integrationsLogsJoin.logIntegration,
+                operation: integrationsLogsJoin.logOperation,
+                status: integrationsLogsJoin.logStatus,
+                durationMs: integrationsLogsJoin.logDurationMs,
+            }),
         })
         .where(tTasks.taskId.equals(taskId))
+        .groupBy(tTasks.taskId)
         .executeSelectNoneOrOne();
 
     if (!task)
         notFound();
+
+    task.apiCalls.sort((lhs, rhs) => lhs.id - rhs.id);
 
     let taskInterval: string | undefined;
     if (!!task.taskInterval) {
@@ -147,6 +168,31 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
                             value: `${Math.round((task.resultTimeMs ?? 0) * 10) / 10}ms`,
                         },
                     ]} />
+                </Section> }
+            { !!task.apiCalls.length &&
+                <Section icon={ <ApiIcon /> } title="API calls">
+                    <List dense disablePadding sx={{
+                        mx: '-16px !important',
+                        mb: '-8px !important'
+                    }}>
+                        { task.apiCalls.map((call, index) =>
+                            <ListItemButton
+                                key={call.id} component={Link} disableGutters
+                                href={`/admin/system/diagnostics/integrations/${call.id}`}
+                                divider={ index < task.apiCalls.length - 1 } sx={{ px: 2 }}>
+                                <ListItemIcon>
+                                    <StatusCell row={call} />
+                                </ListItemIcon>
+                                <ListItemText primary={call.operation}
+                                              secondary={call.integration}
+                                              sx={{ my: '4px !important' }} />
+                                { call.durationMs !== undefined &&
+                                    <Typography variant="body2" color="textDisabled" noWrap
+                                                sx={{ ml: 2 }}>
+                                        {Math.round(call.durationMs * 10) / 10}ms
+                                    </Typography> }
+                            </ListItemButton> ) }
+                    </List>
                 </Section> }
             { !!taskLogs.length && <DetailedLogs logs={taskLogs} /> }
         </>
