@@ -8,6 +8,7 @@ import { kActivityDefinition, kActivityTypeDefinition, kFloorApiDefinition, kTim
     from './AnimeConTypes';
 
 import { AnimeConAuth, type AnimeConAuthSettings } from './AnimeConAuth';
+import { Instrumentation } from '../Instrumentation';
 
 /**
  * Settings that must be provided to the AnimeCon Client. These are required towards making any
@@ -122,7 +123,12 @@ export class AnimeConClient {
         }
 
         const url = `${this.#apiEndpoint}/${relativePath}?${urlParameters.toString()}`;
-        const response = await fetch(url, {
+        const instrumentation = Instrumentation.withContext({
+            integration: 'AnimeCon',
+            operation: url,
+        });
+
+        const response = await instrumentation.instrumentedFetch(url, {
             method: 'GET',
             headers: [
                 [ 'Authorization', `Bearer ${authenticationToken.token}`],

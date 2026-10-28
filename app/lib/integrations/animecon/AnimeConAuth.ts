@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Instrumentation } from '../Instrumentation';
 import { revalidateTag } from 'next/cache';
 
 /**
@@ -116,7 +117,12 @@ export class AnimeConAuth {
         requestPayload.set('password', this.#password);
         requestPayload.set('scopes', this.#scopes);
 
-        const response = await fetch(this.#authEndpoint, {
+        const instrumentation = Instrumentation.withContext({
+            integration: 'AnimeCon',
+            operation: 'Authentication',
+        });
+
+        const response = await instrumentation.instrumentedFetch(this.#authEndpoint, {
             method: 'POST',
             headers: [
                 [ 'Accept', '*/*' ],

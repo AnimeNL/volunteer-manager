@@ -3,9 +3,11 @@
 
 import { ZodError } from 'zod/v4';
 
+import { runWithTaskContext } from '@lib/integrations/Instrumentation';
+
 import type { Scheduler, TaskIdentifier } from './Scheduler';
-import { TaskContext } from './TaskContext';
 import type { TaskResult, TaskWithParams } from './Task';
+import { TaskContext } from './TaskContext';
 import { kTaskRegistry } from './TaskRegistry';
 
 import { kTaskResult } from '@lib/database/Types';
@@ -52,7 +54,7 @@ export class TaskRunner {
             return kTaskResult.InvalidTaskId;
 
         context.markTaskExecutionStart();
-        const result = await this.executeNamedTask(context);
+        const result = await runWithTaskContext(task.taskId, () => this.executeNamedTask(context));
         context.markTaskExecutionFinished();
 
         await context.finalize(this.#scheduler, result);
