@@ -62,12 +62,14 @@ type GetTimeslotsFilters = {
 export class AnimeConClient {
     #apiEndpoint: string;
     #auth: AnimeConAuth;
+    #userId?: number;
 
     constructor(settings: AnimeConClientSettings) {
         const { apiEndpoint, ...authSettings } = settings;
 
         this.#apiEndpoint = apiEndpoint;
         this.#auth = new AnimeConAuth(authSettings);
+        this.#userId = settings.userId;
     }
 
     /**
@@ -126,6 +128,7 @@ export class AnimeConClient {
         const instrumentation = Instrumentation.withContext({
             integration: 'AnimeCon',
             operation: url,
+            userId: this.#userId,
         });
 
         const response = await instrumentation.instrumentedFetch(url, {

@@ -19,9 +19,9 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * purposes. The API call responses are displayed in text areas for manual consumption.
  */
 export default async function AnimeConIntegrationPage() {
-    await requireAuthentication('system.integrations');
+    const { user } = await requireAuthentication('system.integrations');
 
-    const client = await createAnimeConClient();
+    const client = await createAnimeConClient({ userId: user.id });
     return (
         <>
             <Section icon={ <AttractionsIcon color="primary" /> } title="AnimeCon API"
