@@ -202,6 +202,11 @@ export default async function IntegrationLogDetailsPage(
                     View performance metrics…
                 </Button>
             </Section>
+            { (!formattedInput && !formattedOutput) &&
+                <Alert severity="info" variant="filled">
+                    The input and output payloads for this integration call have been pruned in
+                    accordance with our data retention policy.
+                </Alert> }
             { !!formattedInput &&
                 <Section icon={ <InputIcon /> } title="Input">
                     <Typography variant="body2" sx={{
