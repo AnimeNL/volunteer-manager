@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import Typography from '@mui/material/Typography';
 
+import { Instrumentation } from '@lib/integrations/Instrumentation';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
@@ -74,7 +75,7 @@ export default async function WeeztixOAuthCallback(
             </Section>
             <Section noHeader>
                 <Suspense fallback={ <SectionLoading disablePadding /> }>
-                    <Authorization code={code} />
+                    <Authorization code={code} userId={user.id} />
                 </Suspense>
             </Section>
         </>
@@ -87,7 +88,7 @@ export default async function WeeztixOAuthCallback(
  *
  * @see https://docs.weeztix.com/docs/introduction/authentication/request-token
  */
-async function Authorization(props: { code: string }) {
+async function Authorization(props: { code: string; userId: number }) {
     const settings = await readSettings([
         'integration-weeztix-client-id',
         'integration-weeztix-client-secret',
@@ -107,9 +108,15 @@ async function Authorization(props: { code: string }) {
     // (1) Request a new token from the Weeztix server
     // ---------------------------------------------------------------------------------------------
 
+    const instrumentation = Instrumentation.withContext({
+        integration: 'Weeztix',
+        operation: kWeeztixTokensEndpoint,
+        userId: props.userId,
+    });
+
     let response: Response;
     try {
-        response = await fetch(kWeeztixTokensEndpoint, {
+        response = await instrumentation.instrumentedFetch(kWeeztixTokensEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

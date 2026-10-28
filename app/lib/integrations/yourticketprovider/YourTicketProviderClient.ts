@@ -3,6 +3,8 @@
 
 import type { z } from 'zod/v4';
 
+import { Instrumentation } from '../Instrumentation';
+
 import * as ytp from './YourTicketProviderTypes';
 
 /**
@@ -398,9 +400,15 @@ export class YourTicketProviderClient {
         }
 
         const endpointBaseUrl = 'https://www.yourticketprovider.nl/api/integration/products';
-        const endpoint = `${endpointBaseUrl}/${externalEventId}/purchases?${endpointParams}`;
+        const operation = `${endpointBaseUrl}/${externalEventId}/purchases`;
+        const endpoint = `${operation}?${endpointParams}`;
 
-        const response = await fetch(endpoint, {
+        const instrumentation = Instrumentation.withContext({
+            integration: 'YourTicketProvider',
+            operation,
+        });
+
+        const response = await instrumentation.instrumentedFetch(endpoint, {
             method: 'GET',
             headers: [
                 [ 'Accept', 'application/json' ],
@@ -478,10 +486,14 @@ export class YourTicketProviderClient {
         }
 
         const endpoint = request.endpoint || composedEndpoint;
+        const operation = request.endpoint || `${this.#settings.endpoint}${request.api}`;
 
-        console.log('--', endpoint);
+        const instrumentation = Instrumentation.withContext({
+            integration: 'YourTicketProvider',
+            operation,
+        });
 
-        const response = await fetch(endpoint, {
+        const response = await instrumentation.instrumentedFetch(endpoint, {
             method: request.method,
             headers,
             body,

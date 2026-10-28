@@ -3,6 +3,7 @@
 
 import type { z } from 'zod/v4';
 
+import { Instrumentation } from '../Instrumentation';
 import { writeSettings } from '@lib/Settings';
 
 import * as weeztix from './WeeztixTypes';
@@ -193,7 +194,12 @@ export class WeeztixClient {
             return this.refreshToken(schema, request);
 
         const endpoint = `${kWeeztixApiEndpoint}${request.api}`;
-        const response = await fetch(endpoint, {
+        const instrumentation = Instrumentation.withContext({
+            integration: 'Weeztix',
+            operation: endpoint,
+        });
+
+        const response = await instrumentation.instrumentedFetch(endpoint, {
             method: request.method,
             headers: {
                 Authorization: `Bearer ${this.#settings.accessToken.token}`,
@@ -232,8 +238,13 @@ export class WeeztixClient {
         if (request.retry)
             throw new Error(`Multiple token refresh attempts for ${request.api}, aborting`);
 
+        const instrumentation = Instrumentation.withContext({
+            integration: 'Weeztix',
+            operation: kWeeztixTokenRefreshEndpoint,
+        });
+
         // Issue a token refresh attempt to the Weeztix endpoint.
-        const response = await fetch(kWeeztixTokenRefreshEndpoint, {
+        const response = await instrumentation.instrumentedFetch(kWeeztixTokenRefreshEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

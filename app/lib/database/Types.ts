@@ -226,6 +226,8 @@ export const kIntegrationLogStatus = {
 export type IntegrationLogTarget = Values<typeof kIntegrationLogTarget>;
 export const kIntegrationLogTarget = {
     AnimeCon: 'AnimeCon',
+    Weeztix: 'Weeztix',
+    YourTicketProvider: 'YourTicketProvider',
 } as const;
 
 /**

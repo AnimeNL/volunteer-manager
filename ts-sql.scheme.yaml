@@ -3310,7 +3310,7 @@ tables:
     type: datetime
     nullable: false
   - name: log_integration
-    type: enum('AnimeCon')
+    type: enum('AnimeCon','Weeztix','YourTicketProvider')
     nullable: false
   - name: log_operation
     type: varchar(128)
@@ -3375,7 +3375,7 @@ tables:
     CREATE TABLE `integrations_logs` (
       `log_id` int(4) NOT NULL AUTO_INCREMENT,
       `log_date` datetime NOT NULL,
-      `log_integration` enum('AnimeCon') NOT NULL,
+      `log_integration` enum('AnimeCon','Weeztix','YourTicketProvider') NOT NULL,
       `log_operation` varchar(128) NOT NULL,
       `log_user_id` int(4) unsigned DEFAULT NULL,
       `log_task_id` int(4) unsigned DEFAULT NULL,
