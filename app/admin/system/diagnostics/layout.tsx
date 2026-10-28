@@ -1,6 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import ApiIcon from '@mui/icons-material/Api';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 
@@ -26,11 +27,17 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
                 urlMatchMode: 'prefix',
             },
             {
+                Icon: ApiIcon,
+                label: 'Integration logs',
+                url: '/admin/system/diagnostics/integrations',
+                urlMatchMode: 'prefix',
+            },
+            {
                 Icon: InfoOutlinedIcon,
                 label: 'System logs',
                 url: '/admin/system/diagnostics/logs',
                 urlMatchMode: 'prefix',
-            }
+            },
         ]}>
             {props.children}
         </SectionTabContext>
