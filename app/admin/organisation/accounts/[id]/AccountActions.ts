@@ -627,7 +627,7 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
             if (!prompt)
                 notFound();
 
-            const executor = PromptExecutor.forPrompt(prompt);
+            const executor = PromptExecutor.forPrompt(prompt, props.user.id);
             const personality = await executor.execute({
                 input: JSON.stringify(await readExampleMessages(userId)),
             });

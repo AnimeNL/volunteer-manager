@@ -93,7 +93,7 @@ export class DutyBookSummaryTask extends TaskWithParams<TaskParams> {
             incident: incident.text,
         });
 
-        const client = await createAiClient();
+        const client = await createAiClient({ userId: incident.user.id });
         const summary = await client.safeGenerateText({
             complexity: 'low',
             prompt

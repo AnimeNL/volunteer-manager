@@ -34,7 +34,7 @@ export async function executeModelPlayground(formData: unknown) {
     return executeServerAction(formData, kExecuteModelPlaygroundData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
 
-        const client = await createAiClient();
+        const client = await createAiClient({ userId: props.user.id });
 
         let generatedImage: string | undefined;
         let generatedText: string | undefined;
@@ -104,7 +104,7 @@ export async function updateExampleMessages(formData: unknown) {
         if (!prompt)
             notFound();
 
-        const executor = PromptExecutor.forPrompt(prompt);
+        const executor = PromptExecutor.forPrompt(prompt, props.user.id);
         const personality = await executor.execute({
             input: JSON.stringify(exampleMessages),
         });

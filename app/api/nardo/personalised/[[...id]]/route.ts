@@ -158,7 +158,7 @@ createDataTableApi(kNardoPersonalisedRowModel, kNardoPersonalisedContext, {
         // -----------------------------------------------------------------------------------------
 
         const prompt = PromptFactory.createById('nardo-personalised-advice');
-        const executor = PromptExecutor.forPrompt(prompt);
+        const executor = PromptExecutor.forPrompt(prompt, props.user.id);
 
         const parameters: Parameters<typeof executor.execute>[0] = {
             additionalContext: request.row.context.join('\n'),

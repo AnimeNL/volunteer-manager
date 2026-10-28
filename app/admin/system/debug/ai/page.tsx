@@ -16,11 +16,14 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createAiClient } from '@lib/integrations/genai';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * The <SystemDebugAiPage> contains a collection of AI-related test cases.
  */
-export default function SystemDebugAiPage() {
+export default async function SystemDebugAiPage() {
+    const { user } = await requireAuthentication('system.internals.debug');
+
     return (
         <>
             <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
@@ -36,12 +39,12 @@ export default function SystemDebugAiPage() {
             </Section>
             <Section icon={ <StreamIcon /> } title="Text generation" subtitle="Streaming">
                 <Suspense fallback={ <Skeleton height={8} /> }>
-                    <StreamTextResponse />
+                    <StreamTextResponse userId={user.id} />
                 </Suspense>
             </Section>
             <Section icon={ <ModelTrainingIcon /> } title="Models">
                 <Suspense fallback={ <Skeleton height={8} /> }>
-                    <ListAvailableModels />
+                    <ListAvailableModels userId={user.id} />
                 </Suspense>
             </Section>
         </>
@@ -51,8 +54,8 @@ export default function SystemDebugAiPage() {
 /**
  * Asynchronous component that queries the list of models available through our AI client.
  */
-async function ListAvailableModels() {
-    const client = await createAiClient();
+async function ListAvailableModels(props: { userId: number }) {
+    const client = await createAiClient({ userId: props.userId });
     const models = await client.listModels();
 
     return (
@@ -72,8 +75,8 @@ async function ListAvailableModels() {
 /**
  * Asynchronous component that streams a text generation query back to the client.
  */
-async function StreamTextResponse() {
-    const client = await createAiClient();
+async function StreamTextResponse(props: { userId: number }) {
+    const client = await createAiClient({ userId: props.userId });
     const stream = await client.generateTextStream({
         complexity: 'low',
         prompt: 'Tell me an original story about a rabbit in at least 50 words.',

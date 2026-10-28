@@ -23,17 +23,19 @@ export class PromptExecutor<T extends Prompt<any>> {
     /**
      * Creates a new executor for the given |prompt|.
      */
-    static forPrompt<T extends Prompt<any>>(prompt: T): PromptExecutor<T> {
-        return new PromptExecutor(prompt);
+    static forPrompt<T extends Prompt<any>>(prompt: T, userId?: number): PromptExecutor<T> {
+        return new PromptExecutor(prompt, userId);
     }
 
     // ---------------------------------------------------------------------------------------------
 
     #systemPrompt: string | undefined;
     #prompt: T;
+    #userId?: number;
 
-    private constructor(prompt: T) {
+    private constructor(prompt: T, userId?: number) {
         this.#prompt = prompt;
+        this.#userId = userId;
     }
 
     /**
@@ -45,6 +47,8 @@ export class PromptExecutor<T extends Prompt<any>> {
      * @param parameters (Partial) parameters made available to the system prompt.
      */
     async addSystemPrompt(userId: number, parameters: Partial<GetPromptParameters<SystemPrompt>>) {
+        this.#userId ??= userId;
+
         const personalityPrompt =
             parameters.personalityPrompt ??
                 await readUserSetting(userId, 'ai-communication-personality-prompt');
@@ -78,7 +82,7 @@ export class PromptExecutor<T extends Prompt<any>> {
 
         const prompt = await this.#prompt.evaluate(parameters);
 
-        const client = await createAiClient();
+        const client = await createAiClient({ userId: this.#userId });
         return await client.safeGenerateText({
             complexity: this.#prompt.complexity,
             prompt,
