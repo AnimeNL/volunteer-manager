@@ -1,6 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { vi } from 'vitest';
+
 import { AnimeConClient, type AnimeConClientSettings } from './AnimeConClient';
 
 describe('Client', () => {
@@ -10,7 +12,13 @@ describe('Client', () => {
     beforeEach(() => {
         fetches = [];
         responses = [];
-    })
+
+        vi.spyOn(globalThis, 'fetch').mockImplementation(mockFetch);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
 
     async function mockFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
         expect(responses.length).toBeGreaterThan(0);
@@ -51,7 +59,7 @@ describe('Client', () => {
         responses.push(kMockAuthenticationResponse);
         responses.push({ status: 200, payload: [ /* empty floors */ ] });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getFloors();
 
         expect(response).toEqual([]);
@@ -81,7 +89,7 @@ describe('Client', () => {
         responses.push(kMockAuthenticationResponse);
         responses.push({ status: 200, payload: [ /* empty floors */ ] });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getFloors();
 
         expect(response).toEqual([]);
@@ -102,7 +110,7 @@ describe('Client', () => {
         responses.push(kMockAuthenticationResponse);
         responses.push({ status: 200, payload: [ /* empty timeslots */ ] });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getTimeslots({
             'dateStartsAt[after]': '2023-06-01',
             'dateEndsAt[before]': '2023-06-30',
@@ -198,7 +206,7 @@ describe('Client', () => {
             ]
         });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getActivities();
 
         expect(response).toHaveLength(1);
@@ -232,7 +240,7 @@ describe('Client', () => {
             ]
         });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getActivityTypes();
 
         expect(response).toHaveLength(1);
@@ -250,7 +258,7 @@ describe('Client', () => {
             ]
         });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getFloors();
 
         expect(response).toHaveLength(1);
@@ -323,7 +331,7 @@ describe('Client', () => {
             ]
         });
 
-        const client = new AnimeConClient(kMockClientSettings, mockFetch);
+        const client = new AnimeConClient(kMockClientSettings);
         const response = await client.getTimeslots();
 
         expect(response).toHaveLength(1);

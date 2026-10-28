@@ -53,8 +53,7 @@ type GetTimeslotsFilters = {
 };
 
 /**
- * Client for the AnimeCon Integration, loosely based on the official REST API Client. Tests can
- * inject an alternative to `globalThis.fetch()` to the constructor in order to mock network access.
+ * Client for the AnimeCon Integration, loosely based on the official REST API Client.
  *
  * @see https://github.com/AnimeNL/php-rest-api-client
  * @see https://github.com/AnimeNL/php-rest-api-client/blob/master/src/AnimeConClient.php
@@ -62,15 +61,12 @@ type GetTimeslotsFilters = {
 export class AnimeConClient {
     #apiEndpoint: string;
     #auth: AnimeConAuth;
-    #fetch: typeof globalThis.fetch;
 
-    constructor(settings: AnimeConClientSettings, injectedFetch?: typeof globalThis.fetch) {
+    constructor(settings: AnimeConClientSettings) {
         const { apiEndpoint, ...authSettings } = settings;
 
-        this.#fetch = injectedFetch ?? globalThis.fetch;
-
         this.#apiEndpoint = apiEndpoint;
-        this.#auth = new AnimeConAuth(this.#fetch, authSettings);
+        this.#auth = new AnimeConAuth(authSettings);
     }
 
     /**
@@ -126,7 +122,7 @@ export class AnimeConClient {
         }
 
         const url = `${this.#apiEndpoint}/${relativePath}?${urlParameters.toString()}`;
-        const response = await this.#fetch(url, {
+        const response = await fetch(url, {
             method: 'GET',
             headers: [
                 [ 'Authorization', `Bearer ${authenticationToken.token}`],

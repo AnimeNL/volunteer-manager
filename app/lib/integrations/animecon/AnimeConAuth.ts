@@ -83,8 +83,6 @@ const kNextRevalidationToken = 'animecon-api';
  * to obtain a JWT token, which in turn can be used to authenticate further requests.
  */
 export class AnimeConAuth {
-    #fetch: typeof globalThis.fetch;
-
     #authEndpoint: string;
     #clientId: string;
     #clientSecret: string;
@@ -92,9 +90,7 @@ export class AnimeConAuth {
     #password: string;
     #scopes: string;
 
-    constructor(fetch: typeof globalThis.fetch, settings: AnimeConAuthSettings) {
-        this.#fetch = fetch;
-
+    constructor(settings: AnimeConAuthSettings) {
         this.#authEndpoint = settings.authEndpoint;
         this.#clientId = settings.clientId;
         this.#clientSecret = settings.clientSecret;
@@ -120,7 +116,7 @@ export class AnimeConAuth {
         requestPayload.set('password', this.#password);
         requestPayload.set('scopes', this.#scopes);
 
-        const response = await this.#fetch(this.#authEndpoint, {
+        const response = await fetch(this.#authEndpoint, {
             method: 'POST',
             headers: [
                 [ 'Accept', '*/*' ],
