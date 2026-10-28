@@ -244,6 +244,8 @@ do {
                     field: [ 'hotels_payments', 'payment_responsible' ],
                     type: 'HotelPaymentResponsible',
                 },
+                { field: [ 'integrations_logs', 'log_integration' ], type: 'IntegrationLogTarget' },
+                { field: [ 'integrations_logs', 'log_status' ], type: 'IntegrationLogStatus' },
                 { field: [ 'logs', 'log_severity' ], type: 'LogSeverity' },
                 { field: [ 'outbox_twilio', 'outbox_type' ], type: 'TwilioOutboxType' },
                 { field: [ 'permissions', 'permission_type' ], type: 'PermissionType' },

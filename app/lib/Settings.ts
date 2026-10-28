@@ -16,6 +16,7 @@ export type Settings = {
     // General settings
     // ---------------------------------------------------------------------------------------------
 
+    'integration-logs-retention-days': number;
     'system-role-account-user-id': number;
 
     // ---------------------------------------------------------------------------------------------
@@ -310,4 +311,3 @@ export async function writeSettings<T extends keyof Settings>(
     for (const [ setting, value ] of Object.entries(settings))
         cache.set(setting, { value });
 }
-

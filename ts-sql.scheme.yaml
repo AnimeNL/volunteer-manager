@@ -1810,7 +1810,7 @@ tables:
     nullable: true
     default: "NULL"
   - name: mutation
-    type: enum('Created','Contacted','Updated','Deleted')
+    type: enum('Created','Updated','Deleted','Contacted')
     nullable: false
   - name: mutation_fields
     type: text
@@ -1872,7 +1872,7 @@ tables:
       `area_id` int(8) unsigned DEFAULT NULL,
       `timeslot_id` int(8) unsigned DEFAULT NULL,
       `location_id` int(8) unsigned DEFAULT NULL,
-      `mutation` enum('Created','Contacted','Updated','Deleted') NOT NULL,
+      `mutation` enum('Created','Updated','Deleted','Contacted') NOT NULL,
       `mutation_fields` text DEFAULT NULL,
       `mutation_severity` enum('Low','Moderate','Important') NOT NULL,
       `mutation_user_id` int(8) unsigned DEFAULT NULL,
@@ -3299,6 +3299,97 @@ tables:
       PRIMARY KEY (`team_id`),
       KEY `team_slug` (`team_slug`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: integrations_logs
+  type: BASE TABLE
+  columns:
+  - name: log_id
+    type: int(4)
+    nullable: false
+    extraDef: auto_increment
+  - name: log_date
+    type: datetime
+    nullable: false
+  - name: log_integration
+    type: enum('AnimeCon')
+    nullable: false
+  - name: log_operation
+    type: varchar(128)
+    nullable: false
+  - name: log_user_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
+  - name: log_task_id
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
+  - name: log_status
+    type: enum('Success','Failure','Exception')
+    nullable: false
+  - name: log_input
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_output
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_duration_ms
+    type: double
+    nullable: true
+    default: "NULL"
+  - name: log_duration_ttfb_ms
+    type: double
+    nullable: true
+    default: "NULL"
+  - name: log_error_name
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_error_message
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_error_cause
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: log_error_stack
+    type: text
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (log_id) USING BTREE
+    table: integrations_logs
+    columns:
+    - log_id
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (log_id)
+    table: integrations_logs
+    columns:
+    - log_id
+  def: |-
+    CREATE TABLE `integrations_logs` (
+      `log_id` int(4) NOT NULL AUTO_INCREMENT,
+      `log_date` datetime NOT NULL,
+      `log_integration` enum('AnimeCon') NOT NULL,
+      `log_operation` varchar(128) NOT NULL,
+      `log_user_id` int(4) unsigned DEFAULT NULL,
+      `log_task_id` int(4) unsigned DEFAULT NULL,
+      `log_status` enum('Success','Failure','Exception') NOT NULL,
+      `log_input` text DEFAULT NULL,
+      `log_output` text DEFAULT NULL,
+      `log_duration_ms` double DEFAULT NULL,
+      `log_duration_ttfb_ms` double DEFAULT NULL,
+      `log_error_name` text DEFAULT NULL,
+      `log_error_message` text DEFAULT NULL,
+      `log_error_cause` text DEFAULT NULL,
+      `log_error_stack` text DEFAULT NULL,
+      PRIMARY KEY (`log_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_events_favourites
   type: BASE TABLE
   columns:

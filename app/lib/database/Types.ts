@@ -209,6 +209,26 @@ export const kHotelPaymentResponsible = {
 } as const;
 
 /**
+ * Outcome status of an instrumented integration call.
+ * @see Table `integrations_logs`
+ */
+export type IntegrationLogStatus = Values<typeof kIntegrationLogStatus>;
+export const kIntegrationLogStatus = {
+    Success: 'Success',
+    Failure: 'Failure',
+    Exception: 'Exception',
+} as const;
+
+/**
+ * External integration target being instrumented.
+ * @see Table `integrations_logs`
+ */
+export type IntegrationLogTarget = Values<typeof kIntegrationLogTarget>;
+export const kIntegrationLogTarget = {
+    AnimeCon: 'AnimeCon',
+} as const;
+
+/**
  * Certainty we have in the user ID associated with a log entry, which can be guessed after the
  * entry has been written to the database.
  * @see Table `error_logs`
