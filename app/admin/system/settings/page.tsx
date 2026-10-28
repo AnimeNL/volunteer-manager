@@ -37,6 +37,16 @@ export default async function SettingsPage() {
             description: 'Settings relevant to the entire AnimeCon Volunteer Manager system.',
             settings: [
                 {
+                    setting: 'integration-logs-retention-days',
+                    type: 'number',
+                    defaultValue: 0,
+
+                    label: 'Integration logs retention',
+                    description:
+                        'Number of days for which integration call input and output payloads ' +
+                        'should be retained. Set to 0 to disable cleanup.',
+                },
+                {
                     setting: 'system-role-account-user-id',
                     type: 'number',
                     defaultValue: 1,
