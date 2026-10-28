@@ -94,10 +94,12 @@ export class YourTicketProviderImportTask extends Task {
      * Executes a one-off import of the given `purchaseId` in context of the given `eventId`. This
      * will issue two API calls to the YourTicketProvider API.
      */
-    static async importPurchase(eventId: number, purchaseId: number): Promise<boolean> {
+    static async importPurchase(eventId: number, purchaseId: number, userId?: number)
+        : Promise<boolean>
+    {
         const taskContext = TaskContext.forEphemeralTask('YourTicketProviderImportTask', null);
         const task = new YourTicketProviderImportTask(taskContext);
-        await task.initialise();
+        await task.initialise(userId);
 
         // When manually importing a purchase, it's important to provide a last updated time well in
         // the past to avoid interfering with the synchronisation mechanism in this class that is
@@ -114,8 +116,8 @@ export class YourTicketProviderImportTask extends Task {
     /**
      * Initialises the `YourTicketProviderImportTask` infrastructure.
      */
-    private async initialise(): Promise<void> {
-        this.#client = await createYourTicketProviderClient();
+    private async initialise(userId?: number): Promise<void> {
+        this.#client = await createYourTicketProviderClient({ userId });
         this.#configuration = {
             delayBetweenPurchaseImportsMs: 1000,
             maximumPurchaseImportsPerExecution: 10,

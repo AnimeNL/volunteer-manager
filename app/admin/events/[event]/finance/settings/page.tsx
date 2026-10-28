@@ -80,7 +80,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     },
 
     async list(params, props, context) {
-        const service = await createTicketService(context.event.id);
+        const service = await createTicketService(context.event.id, props.user?.id);
         if (!service)
             return notFound();
 
@@ -181,9 +181,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 export default async function EventFinanceSettingsPage(
     props: PageProps<'/admin/events/[event]/finance/settings'>)
 {
-    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
+    const { event, user } = await requireAuthenticationWithEvent(props, 'event.settings');
 
-    const service = await createTicketService(event.id);
+    const service = await createTicketService(event.id, user.id);
     if (!service)
         notFound();
 

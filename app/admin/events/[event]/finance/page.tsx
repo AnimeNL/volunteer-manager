@@ -24,9 +24,10 @@ import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases, tYourTic
  * Page that displays the financial dashboard for the given event.
  */
 export default async function EventFinancePage(props: PageProps<'/admin/events/[event]/finance'>) {
-    const { access, event } = await requireAuthenticationWithEvent(props, 'statistics.finances');
+    const { access, event, user } =
+        await requireAuthenticationWithEvent(props, 'statistics.finances');
 
-    const service = await createTicketService(event.id);
+    const service = await createTicketService(event.id, user.id);
     if (!service)
         notFound();
 

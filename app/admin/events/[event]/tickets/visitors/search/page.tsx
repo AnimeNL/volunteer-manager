@@ -91,7 +91,7 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
     },
 
     async list(params, props, context) {
-        const service = await createTicketService(context.event.slug);
+        const service = await createTicketService(context.event.slug, props.user?.id);
         if (!service || service.id !== 'YourTicketProvider')
             return { rowCount: 0, rows: [] };
 
@@ -148,12 +148,12 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
 export default async function EventTicketsVisitorSearchPage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/search'>)
 {
-    const { event } = await requireAuthenticationWithEvent(props, {
+    const { event, user } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });
 
-    const service = await createTicketService(event.slug);
+    const service = await createTicketService(event.slug, user.id);
     if (!service)
         notFound();
 

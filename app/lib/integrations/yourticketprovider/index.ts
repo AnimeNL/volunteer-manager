@@ -10,35 +10,36 @@ export type { YourTicketProviderClient };
  * Gets an instance of the YourTicketProvider client with either the `settings` when given, or
  * default configuration loaded from the database when omitted.
  */
-export async function createYourTicketProviderClient(settings?: YourTicketProviderClientSettings)
-    : Promise<YourTicketProviderClient>
+export async function createYourTicketProviderClient(
+    settings?: Partial<YourTicketProviderClientSettings>): Promise<YourTicketProviderClient>
 {
-    if (!settings) {
-        const configuration = await readSettings([
-            // YourTicketProvider:
-            'integration-ytp-ticketing-api-key',
-            'integration-ytp-visitor-api-key',
-            'integration-ytp-endpoint',
-            'integration-ytp-queue-endpoint',
-        ]);
+    const configuration = await readSettings([
+        // YourTicketProvider:
+        'integration-ytp-ticketing-api-key',
+        'integration-ytp-visitor-api-key',
+        'integration-ytp-endpoint',
+        'integration-ytp-queue-endpoint',
+    ]);
 
-        for (const [ key, value ] of Object.entries(configuration)) {
-            if (value !== undefined)
-                continue;
+    for (const [ key, value ] of Object.entries(configuration)) {
+        if (value !== undefined)
+            continue;
 
-            if (key === 'integration-ytp-queue-endpoint')
-                continue;  // undefined value allowed
+        if (key === 'integration-ytp-queue-endpoint')
+            continue;  // undefined value allowed
 
-            throw new Error(`Unable to instantiate the YTP client, missing setting ${key}`);
-        }
-
-        settings = {
-            ticketingApiKey: configuration['integration-ytp-ticketing-api-key']!,
-            visitorApiKey: configuration['integration-ytp-visitor-api-key']!,
-            endpoint: configuration['integration-ytp-endpoint']!,
-            queueEndpoint: configuration['integration-ytp-queue-endpoint'],
-        };
+        throw new Error(`Unable to instantiate the YTP client, missing setting ${key}`);
     }
 
-    return new YourTicketProviderClient(settings);
+    const defaultSettings = {
+        ticketingApiKey: configuration['integration-ytp-ticketing-api-key']!,
+        visitorApiKey: configuration['integration-ytp-visitor-api-key']!,
+        endpoint: configuration['integration-ytp-endpoint']!,
+        queueEndpoint: configuration['integration-ytp-queue-endpoint'],
+    };
+
+    return new YourTicketProviderClient({
+        ...defaultSettings,
+        ...settings,
+    });
 }

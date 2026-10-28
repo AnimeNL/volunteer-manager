@@ -51,6 +51,11 @@ export interface WeeztixClientSettings {
      * Secret used to authenticate our client.
      */
     clientSecret: string;
+
+    /**
+     * Unique ID of the user on whose behalf API calls are being made, if any.
+     */
+    userId?: number;
 }
 
 /**
@@ -197,6 +202,7 @@ export class WeeztixClient {
         const instrumentation = Instrumentation.withContext({
             integration: 'Weeztix',
             operation: endpoint,
+            userId: this.#settings.userId,
         });
 
         const response = await instrumentation.instrumentedFetch(endpoint, {
@@ -241,6 +247,7 @@ export class WeeztixClient {
         const instrumentation = Instrumentation.withContext({
             integration: 'Weeztix',
             operation: kWeeztixTokenRefreshEndpoint,
+            userId: this.#settings.userId,
         });
 
         // Issue a token refresh attempt to the Weeztix endpoint.

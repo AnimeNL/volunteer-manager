@@ -75,7 +75,7 @@ async function generateSummary(event: string, team: string) {
             team: dutyBookContents.team,
         });
 
-        const client = await createAiClient();
+        const client = await createAiClient({ userId: props.user.id });
         const summary = await client.safeGenerateText({ prompt });
 
         if (!summary.success)

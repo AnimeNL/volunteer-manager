@@ -31,7 +31,7 @@ import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '.
 export default async function EventTicketsAssociatesPage(
     props: PageProps<'/admin/events/[event]/tickets/associates/[id]'>)
 {
-    const { access, event } = await requireAuthenticationWithEvent(props, {
+    const { access, event, user } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });
@@ -39,7 +39,7 @@ export default async function EventTicketsAssociatesPage(
     const dbInstance = db;
     const params = await props.params;
 
-    const service = await createTicketService(event.slug);
+    const service = await createTicketService(event.slug, user.id);
 
     const purchase = await service?.fetchPurchase(params.id);
     if (!purchase || !service)

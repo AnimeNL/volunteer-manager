@@ -29,9 +29,9 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * provide quick insight in values (such as event IDs) that may be repeatedly needed.
  */
 export default async function YourTicketProviderIntegrationPage() {
-    await requireAuthentication('system.integrations');
+    const { user } = await requireAuthentication('system.integrations');
 
-    const client = await createYourTicketProviderClient();
+    const client = await createYourTicketProviderClient({ userId: user.id });
 
     const { promise: organiserPromise, resolve: organiserResolver } =
         Promise.withResolvers<number | undefined>();

@@ -16,9 +16,11 @@ import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@l
 export class YourTicketProvider implements TicketService {
     #client: YourTicketProviderClient | undefined;
     #eventId: number;
+    #userId?: number;
 
-    constructor(eventId: number) {
+    constructor(eventId: number, userId?: number) {
         this.#eventId = eventId;
+        this.#userId = userId;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -30,7 +32,7 @@ export class YourTicketProvider implements TicketService {
     get client(): unknown { return this.#client; }
 
     async initialise(): Promise<void> {
-        this.#client = await createYourTicketProviderClient();
+        this.#client = await createYourTicketProviderClient({ userId: this.#userId });
     }
 
     createPurchaseLink(purchaseId: number | string): string | undefined {
