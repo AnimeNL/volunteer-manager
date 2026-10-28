@@ -4,6 +4,7 @@
 import { type GenerateContentParameters, type GoogleGenAIOptions, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 import type { AiSupportedModel } from './Models';
+import { Instrumentation } from '../Instrumentation';
 
 /**
  * Variant of the Gemini API to use when interacting with the service.
@@ -235,6 +236,10 @@ export class Client {
                 break;
         }
 
+        options.httpOptions = {
+            fetch: (input, init) => this.instrumentedFetch(input, init),
+        };
+
         this.#ai = new GoogleGenAI(options);
         this.#settings = settings;
     }
@@ -279,6 +284,10 @@ export class Client {
                 systemInstruction: request.systemPrompt,
                 imageConfig: {
                     aspectRatio: request.aspectRatio,
+                },
+                httpOptions: {
+                    fetch: (input, init) =>
+                        this.instrumentedFetch(input, init, /* isImage= */ true),
                 },
             },
         });
@@ -447,6 +456,23 @@ export class Client {
                 ...attachments,
             ],
             ...parameters,
+        });
+    }
+
+    /**
+     * Executes an instrumented `fetch()` call on behalf of the Google GenAI SDK.
+     */
+    private instrumentedFetch(input: RequestInfo | URL, init?: RequestInit, isImage?: boolean) {
+        const rawUrl = input instanceof Request ? input.url : String(input);
+        const operation = rawUrl.split('?')[0];
+
+        const instrumentation = Instrumentation.withContext({
+            integration: 'GenAI',
+            operation,
+        });
+
+        return instrumentation.instrumentedFetch(input, init, {
+            omitResponseBody: isImage,
         });
     }
 

@@ -256,4 +256,37 @@ describe('Instrumentation', () => {
             instrumentation.instrumentedFetch('https://example.com/second')
         ).rejects.toThrow('This Instrumentation instance has already been consumed.');
     });
+
+    it('omits the response body when omitResponseBody is set', async () => {
+        fetchSpy.mockResolvedValueOnce(new Response('large-binary-payload', {
+            status: 200,
+            statusText: 'OK',
+            headers: { 'Content-Type': 'application/octet-stream' },
+        }));
+
+        const instrumentation = Instrumentation.withContext({
+            integration: 'GenAI',
+            operation: 'https://example.com/generateImage',
+        });
+
+        const response = await instrumentation.instrumentedFetch(
+            'https://example.com/generateImage',
+            { method: 'POST' },
+            { omitResponseBody: true });
+
+        expect(await response.text()).toBe('large-binary-payload');
+        await instrumentation.completionPromise;
+
+        expect(recordSpy).toHaveBeenCalledTimes(1);
+
+        const status = instrumentation.statusForTesting;
+        expect(status.status).toBe('Success');
+        expect(status.durationTimeToFirstByteMs).toBeGreaterThanOrEqual(0);
+        expect(status.durationMs).toBeGreaterThanOrEqual(status.durationTimeToFirstByteMs!);
+        expect(JSON.parse(status.output!)).toEqual({
+            status: 200,
+            statusText: 'OK',
+            headers: { 'content-type': 'application/octet-stream' },
+        });
+    });
 });

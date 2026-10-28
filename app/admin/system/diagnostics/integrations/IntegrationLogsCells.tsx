@@ -17,6 +17,7 @@ import { kIntegrationLogStatus, kIntegrationLogTarget } from '@lib/database/Type
  */
 const kIntegrationColours: { [k in IntegrationLogTarget]: string } = {
     [kIntegrationLogTarget.AnimeCon]: '#00796b',
+    [kIntegrationLogTarget.GenAI]: '#3186ff',
     [kIntegrationLogTarget.Weeztix]: '#006aff',
     [kIntegrationLogTarget.YourTicketProvider]: '#101e1e',
 };

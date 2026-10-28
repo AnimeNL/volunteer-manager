@@ -80,6 +80,16 @@ interface InstrumentationStatus {
 }
 
 /**
+ * Options that may be passed to `instrumentedFetch()` to customize how the call is recorded.
+ */
+interface InstrumentedFetchOptions {
+    /**
+     * Whether the response body should be omitted from the recorded output.
+     */
+    omitResponseBody?: boolean;
+}
+
+/**
  * Class responsible for instrumenting API calls made as part of our external integrations.
  */
 export class Instrumentation {
@@ -127,7 +137,10 @@ export class Instrumentation {
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch
      */
-    async instrumentedFetch(...args: Parameters<typeof fetch>): Promise<Response> {
+    async instrumentedFetch(
+        input: RequestInfo | URL, init?: RequestInit, options?: InstrumentedFetchOptions)
+        : Promise<Response>
+    {
         if (!!this.#completionPromise)
             throw new Error('This Instrumentation instance has already been consumed.');
 
@@ -135,12 +148,12 @@ export class Instrumentation {
 
         this.#status = {
             status: 'Exception',
-            input: this.serializeInput(...args),
+            input: this.serializeInput(input, init),
         };
 
         let response: Response;
         try {
-            response = await fetch(...args);
+            response = await fetch(input, init);
         } catch (error: unknown) {
             this.#status.status = 'Exception';
             this.#status.durationMs = performance.now() - startTime;
@@ -154,7 +167,7 @@ export class Instrumentation {
         this.#status.durationTimeToFirstByteMs = performance.now() - startTime;
 
         this.#completionPromise =
-            this.consumeResponse(response.clone(), startTime).finally(() => this.record());
+            this.consumeResponse(response.clone(), startTime, options).finally(() => this.record());
 
         return response;
     }
@@ -165,7 +178,9 @@ export class Instrumentation {
      * Consumes the cloned response stream in the background to populate `output`, refine
      * `durationTimeToFirstByteMs`, and record `durationMs` without blocking the caller.
      */
-    private async consumeResponse(response: Response, startTime: number): Promise<void> {
+    private async consumeResponse(
+        response: Response, startTime: number, options?: InstrumentedFetchOptions): Promise<void>
+    {
         try {
             const chunks: Uint8Array[] = [];
             let receivedFirstByte = false;
@@ -181,7 +196,7 @@ export class Instrumentation {
                     if (done)
                         break;
 
-                    if (value)
+                    if (value && !options?.omitResponseBody)
                         chunks.push(value);
                 }
             }
