@@ -1,15 +1,20 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
 import { z } from 'zod/v4';
 
 import ApiIcon from '@mui/icons-material/Api';
+import IconButton from '@mui/material/IconButton';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import Tooltip from '@mui/material/Tooltip';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { IntegrationCell, StatusCell, StatusHeader } from './IntegrationLogsCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck, and } from '@lib/auth/AuthenticationContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -196,10 +201,20 @@ export default async function IntegrationLogsPage() {
         },
     ];
 
+    const headerAction = (
+        <IconButton component={Link} href="./integrations/performance" size="small">
+            <Tooltip title="Performance metrics…">
+                <TooltipIconWrapper>
+                    <ShowChartIcon color="action" fontSize="small" />
+                </TooltipIconWrapper>
+            </Tooltip>
+        </IconButton>
+    );
+
     return (
         <>
             <Section icon={ <ApiIcon color="primary" /> } title="Integration logs"
-                     breadcrumbs={[
+                     headerAction={headerAction} breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Diagnostics', href: '/admin/system/diagnostics' },
                          { label: 'Integration logs' },
