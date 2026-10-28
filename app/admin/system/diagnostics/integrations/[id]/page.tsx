@@ -7,10 +7,12 @@ import { notFound } from 'next/navigation';
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import ApiIcon from '@mui/icons-material/Api';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import InputIcon from '@mui/icons-material/Input';
 import OutputIcon from '@mui/icons-material/Output';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Typography from '@mui/material/Typography';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
@@ -106,6 +108,11 @@ export default async function IntegrationLogDetailsPage(
     const formattedInput = formatPayload(entry.input);
     const formattedOutput = formatPayload(entry.output);
 
+    const performanceUrl =
+        `/admin/system/diagnostics/integrations/performance` +
+        `?integration=${encodeURIComponent(entry.integration)}` +
+        `&operation=${encodeURIComponent(entry.operation)}`;
+
     return (
         <>
             <Section icon={ <ApiIcon color="primary" /> }
@@ -190,6 +197,10 @@ export default async function IntegrationLogDetailsPage(
                         value: `${Math.round((entry.durationMs ?? 0) * 10) / 10}ms`,
                     },
                 ]} />
+                <Button LinkComponent={Link} href={performanceUrl} size="small" variant="outlined"
+                        startIcon={ <ShowChartIcon /> }>
+                    View performance metrics…
+                </Button>
             </Section>
             { !!formattedInput &&
                 <Section icon={ <InputIcon /> } title="Input">

@@ -4,6 +4,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryState } from 'nuqs';
 
 import Alert from '@mui/material/Alert';
 import FormControl from '@mui/material/FormControl';
@@ -89,20 +90,42 @@ function formatDurationMs(value: number | null): string {
  * displays a line graph mapping TTFB and total response times over the past three months.
  */
 export function IntegrationPerformanceGraph(props: IntegrationPerformanceGraphProps) {
-    const [ selectedKey, setSelectedKey ] = useState<string>(() =>
-        props.operations.length > 0 ? encodePairKey(props.operations[0]) : '');
+    const [ queryIntegration, setQueryIntegration ] = useQueryState('integration');
+    const [ queryOperation, setQueryOperation ] = useQueryState('operation');
 
     const [ error, setError ] = useState<string | undefined>();
     const [ loading, setLoading ] = useState<boolean>(props.operations.length > 0);
     const [ points, setPoints ] = useState<IntegrationPerformancePoint[]>([ /* empty */ ]);
 
     const selectedPair = useMemo(() => {
-        return props.operations.find(pair => encodePairKey(pair) === selectedKey);
-    }, [ props.operations, selectedKey ]);
+        if (!!queryIntegration && !!queryOperation) {
+            const match = props.operations.find(
+                pair => pair.integration === queryIntegration && pair.operation === queryOperation);
+
+            if (match)
+                return match;
+        }
+
+        return props.operations[0];
+    }, [ props.operations, queryIntegration, queryOperation ]);
+
+    const selectedKey = selectedPair ? encodePairKey(selectedPair) : '';
 
     const handleSelectionChange = useCallback((event: SelectChangeEvent<string>) => {
-        setSelectedKey(event.target.value);
-    }, [ /* no dependencies */ ]);
+        const pair =
+            props.operations.find(candidate => encodePairKey(candidate) === event.target.value);
+
+        if (!pair)
+            return;
+
+        const isDefault =
+            props.operations.length > 0 &&
+            encodePairKey(pair) === encodePairKey(props.operations[0]);
+
+        setQueryIntegration(isDefault ? null : pair.integration);
+        setQueryOperation(isDefault ? null : pair.operation);
+
+    }, [ props.operations, setQueryIntegration, setQueryOperation ]);
 
     useEffect(() => {
         if (!selectedPair)
