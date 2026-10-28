@@ -100,6 +100,7 @@ export class Instrumentation {
     public static withContext(context: Omit<InstrumentationContext, 'taskId'>): Instrumentation {
         return new Instrumentation({
             ...context,
+            operation: context.operation.substring(0, 255),
             taskId: kTaskContextStorage.getStore(),
         });
     }

@@ -46,6 +46,15 @@ describe('Instrumentation', () => {
         });
     });
 
+    it('truncates operations exceeding 255 characters', () => {
+        const instrumentation = Instrumentation.withContext({
+            integration: 'AnimeCon',
+            operation: 'a'.repeat(300),
+        });
+
+        expect(instrumentation.contextForTesting.operation).toHaveLength(255);
+    });
+
     it('populates status and calls record() on a successful fetch', async () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), {
             status: 200,
