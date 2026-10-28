@@ -16,10 +16,10 @@ import { kIntegrationLogStatus, kIntegrationLogTarget } from '@lib/database/Type
  * Colours assigned to chips for each integration target.
  */
 const kIntegrationColours: { [k in IntegrationLogTarget]: string } = {
-    [kIntegrationLogTarget.AnimeCon]: '#00796b',
-    [kIntegrationLogTarget.GenAI]: '#3186ff',
-    [kIntegrationLogTarget.Weeztix]: '#006aff',
-    [kIntegrationLogTarget.YourTicketProvider]: '#101e1e',
+    [kIntegrationLogTarget.AnimeCon]: '#00897b',
+    [kIntegrationLogTarget.GenAI]: '#8e24aa',
+    [kIntegrationLogTarget.Weeztix]: '#1e88e5',
+    [kIntegrationLogTarget.YourTicketProvider]: '#d81b60',
 };
 
 /**
