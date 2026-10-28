@@ -370,6 +370,7 @@ export default async function EventHotelSettingsPage(
     return (
         <>
             <Section icon={ <SettingsSuggestIcon color="primary" /> } title="Hotel settings"
+                     documentation="event/hotels"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Hotels', href: `/admin/events/${event.slug}/hotels` },

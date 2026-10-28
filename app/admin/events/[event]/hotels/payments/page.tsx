@@ -461,6 +461,7 @@ export default async function EventHotelPaymentsPage(
     return (
         <>
             <Section icon={ <PaidIcon color="primary" /> } title="Hotel payments"
+                     documentation="event/hotels"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Hotels', href: `/admin/events/${event.slug}/hotels` },

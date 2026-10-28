@@ -22,6 +22,7 @@ export default async function EventHotelsPage(props: PageProps<'/admin/events/[e
     return (
         <>
             <Section icon={ <HotelIcon color="primary" /> } title="Hotels"
+                     documentation="event/hotels"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Hotels' },
