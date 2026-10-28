@@ -5,9 +5,8 @@ import Alert from '@mui/material/Alert';
 
 import type { Activity, ActivityType, FloorApi, Timeslot }
     from '@lib/integrations/animecon/AnimeConTypes';
+import type { AnimeConClient } from '@lib/integrations/animecon/AnimeConClient';
 
-import type { AnimeConClientSettings } from '@lib/integrations/animecon/AnimeConClient';
-import { createAnimeConClient } from '@lib/integrations/animecon';
 import TextField from '@mui/material/TextField';
 
 /**
@@ -31,14 +30,14 @@ const kFilterForTestResults = true;
  */
 interface AnimeConStreamingApiResultProps {
     /**
+     * The client through which the API can be accessed.
+     */
+    client: AnimeConClient;
+
+    /**
      * Endpoint of the API call to issue to the AnimeCon API.
      */
     endpoint: 'activities.json' | 'activity-types.json' | 'floors.json' | 'timeslots.json';
-
-    /**
-     * Client settings to use when querying the AnimeCon client.
-     */
-    settings?: AnimeConClientSettings;
 }
 
 /**
@@ -46,12 +45,12 @@ interface AnimeConStreamingApiResultProps {
  * display the API's results in an autosizing textarea.
  */
 export async function AnimeConStreamingApiResult(props: AnimeConStreamingApiResultProps) {
-    const client = await createAnimeConClient(props.settings);
-    let stringifiedResult: string | undefined;
+    const { client, endpoint } = props;
 
+    let stringifiedResult: string | undefined;
     try {
         let result: Activity[] | ActivityType[] | FloorApi[] | Timeslot[];
-        switch (props.endpoint) {
+        switch (endpoint) {
             case 'activities.json':
                 result = await client.getActivities({
                     festivalId: kActivitiesFestivalIdFilter,

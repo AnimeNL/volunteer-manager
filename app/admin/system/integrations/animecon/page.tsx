@@ -10,6 +10,7 @@ import { AnimeConStreamingApiPlaceholder } from './AnimeConStreamingApiPlacehold
 import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { createAnimeConClient } from '@lib/integrations/animecon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
@@ -20,6 +21,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 export default async function AnimeConIntegrationPage() {
     await requireAuthentication('system.integrations');
 
+    const client = await createAnimeConClient();
     return (
         <>
             <Section icon={ <AttractionsIcon color="primary" /> } title="AnimeCon API"
@@ -35,22 +37,22 @@ export default async function AnimeConIntegrationPage() {
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="activities.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult endpoint="activities.json" />
+                    <AnimeConStreamingApiResult client={client} endpoint="activities.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="activity-types.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult endpoint="activity-types.json" />
+                    <AnimeConStreamingApiResult client={client} endpoint="activity-types.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="floors.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult endpoint="floors.json" />
+                    <AnimeConStreamingApiResult client={client} endpoint="floors.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="timeslots.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult endpoint="timeslots.json" />
+                    <AnimeConStreamingApiResult client={client} endpoint="timeslots.json" />
                 </Suspense>
             </Section>
         </>

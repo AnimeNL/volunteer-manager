@@ -119,7 +119,7 @@ export class AnimeConAuth {
 
         const instrumentation = Instrumentation.withContext({
             integration: 'AnimeCon',
-            operation: 'Authentication',
+            operation: this.#authEndpoint,
         });
 
         const response = await instrumentation.instrumentedFetch(this.#authEndpoint, {
