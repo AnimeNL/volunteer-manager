@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AccessControl } from '@lib/auth/AccessControl';
-import { checkPermission, type PermissionAccessCheck } from '@lib/auth/AuthenticationContext';
+import { checkPermission, type PermissionAccessCheck, type PermissionSet }
+    from '@lib/auth/AuthenticationContext';
 
 import { type SectionTabContextClientProps, SectionTabContextClient } from './SectionTabContextClient';
 
@@ -27,7 +28,7 @@ interface SectionTabContextProps {
         /**
          * Permission that must be granted to the signed in user for this tab to be considered.
          */
-        permission?: PermissionAccessCheck;
+        permission?: PermissionAccessCheck | PermissionSet;
 
     })[];
 }

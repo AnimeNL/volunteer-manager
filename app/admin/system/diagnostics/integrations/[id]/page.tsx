@@ -17,7 +17,7 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication, and } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs, tTasks, tUsers } from '@lib/database';
 
 import { kIntegrationLogStatus } from '@lib/database/Types';
@@ -44,10 +44,14 @@ function formatPayload(payload?: string): string | undefined {
 export default async function IntegrationLogDetailsPage(
     props: PageProps<'/admin/system/diagnostics/integrations/[id]'>)
 {
-    const { access } = await requireAuthentication({
-        permission: 'system.logs',
-        operation: 'read',
-    });
+    const { access } = await requireAuthentication(and(
+        {
+            permission: 'system.integrations',
+        },
+        {
+            permission: 'system.logs',
+            operation: 'read',
+        }));
 
     const params = await props.params;
 
@@ -135,7 +139,7 @@ export default async function IntegrationLogDetailsPage(
                                     <Chip label="success" size="small" color="success"
                                           component="span" /> }
                                 { entry.status === kIntegrationLogStatus.Failure &&
-                                    <Chip label="failure" size="small" color="warning"
+                                    <Chip label="failure" size="small" color="error"
                                           component="span" /> }
                                 { entry.status === kIntegrationLogStatus.Exception &&
                                     <Chip label="exception" size="small" color="error"

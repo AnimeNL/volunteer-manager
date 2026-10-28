@@ -6,7 +6,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication, and } from '@lib/requireAuthentication';
 
 /**
  * The <DiagnosticsLayout> is the core layout through which different log types will be made
@@ -29,6 +29,14 @@ export default async function DiagnosticsLayout(props: LayoutProps<'/admin/syste
             {
                 Icon: ApiIcon,
                 label: 'Integration logs',
+                permission: and(
+                    {
+                        permission: 'system.integrations',
+                    },
+                    {
+                        permission: 'system.logs',
+                        operation: 'read',
+                    }),
                 url: '/admin/system/diagnostics/integrations',
                 urlMatchMode: 'prefix',
             },

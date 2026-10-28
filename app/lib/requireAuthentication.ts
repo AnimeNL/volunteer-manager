@@ -11,6 +11,11 @@ import { type CachedEvent, type CachedTeam, getEvent, getTeam } from '@lib/cache
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 
 /**
+ * Re-export the and() and or() helpers for permission sets.
+ */
+export { and, or } from '@lib/auth/AuthenticationContext';
+
+/**
  * Type representing an event identifier (either numeric database ID or string slug).
  */
 type EventIdentifier = number | string;

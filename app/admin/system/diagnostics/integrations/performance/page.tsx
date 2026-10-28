@@ -12,7 +12,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication, and } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs } from '@lib/database';
 
 import { kIntegrationLogTarget } from '@lib/database/Types';
@@ -32,10 +32,14 @@ const kFetchPerformanceDataSchema = z.object({
 async function fetchIntegrationPerformance(input: unknown) {
     'use server';
     return executeServerAction(input, kFetchPerformanceDataSchema, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'system.logs',
-            operation: 'read',
-        });
+        executeAccessCheck(props.authenticationContext, and(
+            {
+                permission: 'system.integrations',
+            },
+            {
+                permission: 'system.logs',
+                operation: 'read',
+            }));
 
         const cutoffDate = Temporal.Now.zonedDateTimeISO('UTC').subtract({ months: 3 });
 
@@ -80,10 +84,14 @@ async function fetchIntegrationPerformance(input: unknown) {
  * times of external integration operations over the past three months.
  */
 export default async function IntegrationPerformancePage() {
-    await requireAuthentication({
-        permission: 'system.logs',
-        operation: 'read',
-    });
+    await requireAuthentication(and(
+        {
+            permission: 'system.integrations',
+        },
+        {
+            permission: 'system.logs',
+            operation: 'read',
+        }));
 
     const operations = await db.selectDistinctFrom(tIntegrationsLogs)
         .select({
