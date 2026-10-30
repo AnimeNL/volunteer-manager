@@ -333,7 +333,10 @@ export async function deactivateAccount(userId: number, formData: unknown) {
 export async function deleteAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext);
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
+        });
 
         const dbInstance = db;
 
@@ -384,7 +387,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
 export async function impersonate(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext);
+        await requireAuthentication(props.authenticationContext, 'organisation.impersonation');
 
         const { user: impersonatedUser } = await authenticateUser({ type: 'userId', userId });
 
@@ -460,7 +463,20 @@ export async function resetPassword(userId: number, formData: unknown) {
 export async function setDefaultAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext);
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'organisation.accounts',
+            operation: 'update',
+        });
+
+        const existingAvatar = await db.selectFrom(tStorage)
+            .where(tStorage.fileId.equals(fileId))
+                .and(tStorage.userId.equals(userId))
+                .and(tStorage.fileType.equals(kFileType.Avatar))
+            .selectOneColumn(tStorage.fileId)
+            .executeSelectNoneOrOne();
+
+        if (!existingAvatar)
+            return { success: false, error: 'The avatar could not be updated in the database' };
 
         const affectedRows = await db.update(tUsers)
             .set({
