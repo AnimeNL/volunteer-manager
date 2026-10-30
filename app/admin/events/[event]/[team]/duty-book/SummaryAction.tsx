@@ -6,18 +6,14 @@
 import { useEffect, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import SummarizeIcon from '@mui/icons-material/Summarize';
 import Skeleton from '@mui/material/Skeleton';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerActionResult } from '@lib/serverAction';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Props accepted by the <SummaryAction> component.
@@ -67,29 +63,21 @@ export function SummaryAction(props: SummaryActionProps) {
                 </IconButton>
             </Tooltip>
             { !!dialogOpen &&
-                <Dialog fullWidth maxWidth="md" onClose={ () => setDialogOpen(false) } open
-                        scroll="paper">
-                    <DialogContent>
-                        <Collapse in={!!error}>
-                            <Alert severity="error">{error}</Alert>
-                        </Collapse>
-                        { summary !== undefined && summary }
-                        { summary === undefined &&
-                            <>
-                                <Skeleton variant="text" animation="wave" width="85%" height={8} />
-                                <Skeleton variant="text" animation="wave" width="65%" height={8} />
-                                <Skeleton variant="text" animation="wave" width="80%" height={8} />
-                                <Skeleton variant="text" animation="wave" width="75%" height={8} />
-                                <Skeleton variant="text" animation="wave" width="55%" height={8} />
-                            </> }
-                    </DialogContent>
-                    <Divider />
-                    <DialogActions sx={{ pt: 1, mr: 1, mb: 0 }}>
-                        <Button onClick={ () => setDialogOpen(false) } variant="text">
-                            Close
-                        </Button>
-                    </DialogActions>
-                </Dialog> }
+                <ResponsiveDialog open onClose={ () => setDialogOpen(false) }
+                                  title="Duty Book summary">
+                    <Collapse in={!!error} unmountOnExit>
+                        <Alert severity="error">{error}</Alert>
+                    </Collapse>
+                    { summary !== undefined && summary }
+                    { summary === undefined &&
+                        <>
+                            <Skeleton variant="text" animation="wave" width="85%" height={8} />
+                            <Skeleton variant="text" animation="wave" width="65%" height={8} />
+                            <Skeleton variant="text" animation="wave" width="80%" height={8} />
+                            <Skeleton variant="text" animation="wave" width="75%" height={8} />
+                            <Skeleton variant="text" animation="wave" width="55%" height={8} />
+                        </> }
+                </ResponsiveDialog> }
         </>
     );
 }
