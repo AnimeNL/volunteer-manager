@@ -10,6 +10,12 @@ import { ClientProviders } from './ClientProviders';
 import { determineEnvironment } from '@lib/Environment';
 
 /**
+ * The root layout depends on the request's Host header to resolve the active environment, so all
+ * routes inheriting from it must be rendered dynamically on demand.
+ */
+export const dynamic = 'force-dynamic';
+
+/**
  * Default metadata for the application. Any server-side page can override these values, and they
  * will be swapped out in the <head> section of the <RootLayout /> component.
  */
