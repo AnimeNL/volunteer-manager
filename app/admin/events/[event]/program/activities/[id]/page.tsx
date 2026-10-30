@@ -283,10 +283,15 @@ export default async function ProgramActivityPage(
 export async function generateMetadata(
     props: PageProps<'/admin/events/[event]/program/activities/[id]'>)
 {
-    const activityTitle = await db.selectFrom(tActivities)
-        .where(tActivities.activityId.equals(parseInt((await props.params).id, 10)))
-        .selectOneColumn(tActivities.activityTitle)
-        .executeSelectNoneOrOne() ?? undefined;
+    let activityTitle: string | undefined;
+
+    const activityId = parseInt((await props.params).id, 10);
+    if (Number.isSafeInteger(activityId)) {
+        activityTitle = await db.selectFrom(tActivities)
+            .where(tActivities.activityId.equals(activityId))
+            .selectOneColumn(tActivities.activityTitle)
+            .executeSelectNoneOrOne() ?? undefined;
+    }
 
     return createGenerateMetadataFn(
         activityTitle ?? 'Activity', 'Activities', 'Program', { event: 'event' })(props);

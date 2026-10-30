@@ -46,6 +46,8 @@ export default async function EventTeamVolunteerPreferencesPage(
     });
 
     const id = parseInt((await props.params).volunteer, /* radix= */ 10);
+    if (!Number.isSafeInteger(id))
+        notFound();
 
     const dbInstance = db;
     const volunteerTeamCount = await dbInstance.selectFrom(tUsersEvents)

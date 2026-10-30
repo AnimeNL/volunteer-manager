@@ -25,7 +25,7 @@ export default async function OutboxWhatsAppDetailsPage(
     const params = await props.params;
 
     const id = parseInt(params.id, 10);
-    if (Number.isNaN(id))
+    if (!Number.isSafeInteger(id))
         notFound();
 
     return (

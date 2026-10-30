@@ -30,6 +30,10 @@ export default async function DisplayRequestPage(
 
     const { id } = await props.params;
 
+    const requestId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(requestId))
+        notFound();
+
     const request = await db.selectFrom(tDisplaysRequests)
         .innerJoin(tDisplays)
             .on(tDisplays.displayId.equals(tDisplaysRequests.displayId))
@@ -39,7 +43,7 @@ export default async function DisplayRequestPage(
             .on(acknowledgedUserJoin.userId.equals(tDisplaysRequests.requestAcknowledgedBy))
         .leftJoin(closedUserJoin)
             .on(closedUserJoin.userId.equals(tDisplaysRequests.requestClosedBy))
-        .where(tDisplaysRequests.requestId.equals(parseInt(id, /* radix= */ 10)))
+        .where(tDisplaysRequests.requestId.equals(requestId))
         .select({
             id: tDisplaysRequests.requestId,
             date: tDisplaysRequests.requestReceivedDate,

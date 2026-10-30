@@ -43,7 +43,7 @@ export default async function TwilioWebhooksPage(
     const params = await props.params;
 
     const webhookId = parseInt(params.id, 10);
-    if (Number.isNaN(webhookId))
+    if (!Number.isSafeInteger(webhookId))
         notFound();
 
     const messageJoin = tOutboxTwilio.forUseInLeftJoinAs('mj');

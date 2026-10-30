@@ -32,6 +32,10 @@ export default async function EventTicketsVolunteerPage(
         operation: 'read',
     });
 
+    const userId = parseInt(params.id, /* radix= */ 10);
+    if (!Number.isSafeInteger(userId))
+        notFound();
+
     const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
     const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
 
@@ -50,7 +54,7 @@ export default async function EventTicketsVolunteerPage(
             .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
                 .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
         .where(tUsersEvents.eventId.equals(event.id))
-            .and(tUsersEvents.userId.equals(parseInt(params.id, /* radix= */ 10)))
+            .and(tUsersEvents.userId.equals(userId))
         .select({
             events: dbInstance.aggregateAsArray({
 

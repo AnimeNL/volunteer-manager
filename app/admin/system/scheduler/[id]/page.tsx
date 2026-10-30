@@ -39,7 +39,7 @@ export default async function TaskPage(props: PageProps<'/admin/system/scheduler
     const params = await props.params;
 
     const taskId = parseInt(params.id, 10);
-    if (Number.isNaN(taskId))
+    if (!Number.isSafeInteger(taskId))
         notFound();
 
     const integrationsLogsJoin = tIntegrationsLogs.forUseInLeftJoin();

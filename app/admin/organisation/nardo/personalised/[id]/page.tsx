@@ -26,11 +26,15 @@ export default async function NardoPersonalisedAdvicePage(
 
     await requireAuthentication('organisation.nardo');
 
+    const adviceId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(adviceId))
+        notFound();
+
     const dbInstance = db;
     const advice = await dbInstance.selectFrom(tNardoPersonalised)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tNardoPersonalised.nardoPersonalisedUserId))
-        .where(tNardoPersonalised.nardoPersonalisedId.equals(parseInt(id, /* radix= */ 10)))
+        .where(tNardoPersonalised.nardoPersonalisedId.equals(adviceId))
         .select({
             date: dbInstance.dateTimeAsString(tNardoPersonalised.nardoPersonalisedDate),
             user: {

@@ -32,6 +32,9 @@ export default async function EventWebsiteContentPage(
     const pathPrefix = `/registration/${event.slug}/`;
 
     const contentId = parseInt(params.id, /* radix= */ 10);
+    if (!Number.isSafeInteger(contentId))
+        notFound();
+
     const scope = createEventScope(event.id, team.id);
 
     // ---------------------------------------------------------------------------------------------

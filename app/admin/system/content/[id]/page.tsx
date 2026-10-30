@@ -25,7 +25,7 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
     const params = await props.params;
 
     const contentId = parseInt(params.id, /* radix= */ 10);
-    if (Number.isNaN(contentId))
+    if (!Number.isSafeInteger(contentId))
         notFound();
 
     const scope = createGlobalScope();

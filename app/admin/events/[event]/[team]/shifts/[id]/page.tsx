@@ -100,6 +100,10 @@ export default async function EventTeamShiftInformationPage(
     const dbInstance = db;
     const params = await props.params;
 
+    const shiftId = parseInt(params.id, /* radix= */ 10);
+    if (!Number.isSafeInteger(shiftId))
+        notFound();
+
     // ---------------------------------------------------------------------------------------------
 
     const shift = await dbInstance.selectFrom(tShifts)
@@ -107,7 +111,7 @@ export default async function EventTeamShiftInformationPage(
             .on(tShiftsCategories.shiftCategoryId.equals(tShifts.shiftCategoryId))
         .innerJoin(tTeams)
             .on(tTeams.teamId.equals(tShifts.teamId))
-        .where(tShifts.shiftId.equals(parseInt(params.id, /* radix= */ 10)))
+        .where(tShifts.shiftId.equals(shiftId))
             .and(tShifts.eventId.equals(event.id))
             .and(tShifts.shiftDeleted.isNull())
         .select({

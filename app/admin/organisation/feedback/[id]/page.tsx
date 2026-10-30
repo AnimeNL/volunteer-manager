@@ -82,6 +82,10 @@ export default async function FeedbackDetailPage(
 
     await requireAuthentication('organisation.feedback');
 
+    const feedbackId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(feedbackId))
+        notFound();
+
     const usersJoin = tUsers.forUseInLeftJoinAs('uj');
     const usersResponseJoin = tUsers.forUseInLeftJoinAs('urj');
 
@@ -91,7 +95,7 @@ export default async function FeedbackDetailPage(
             .on(usersJoin.userId.equals(tFeedback.userId))
         .leftJoin(usersResponseJoin)
             .on(usersResponseJoin.userId.equals(tFeedback.feedbackResponseUserId))
-        .where(tFeedback.feedbackId.equals(parseInt(id, /* radix= */ 10)))
+        .where(tFeedback.feedbackId.equals(feedbackId))
         .select({
             id: tFeedback.feedbackId,
             date: dbInstance.dateTimeAsString(tFeedback.feedbackDate),

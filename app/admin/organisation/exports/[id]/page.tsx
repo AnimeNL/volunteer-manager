@@ -118,6 +118,10 @@ export default async function OrganisationExportsLogPage(
 
     const { id } = await props.params;
 
+    const exportId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(exportId))
+        notFound();
+
     const exportsLogsJoin = tExportsLogs.forUseInLeftJoin();
 
     const dbInstance = db;
@@ -128,7 +132,7 @@ export default async function OrganisationExportsLogPage(
             .on(tUsers.userId.equals(tExports.exportCreatedUserId))
         .leftJoin(exportsLogsJoin)
             .on(exportsLogsJoin.exportId.equals(tExports.exportId))
-        .where(tExports.exportId.equals(parseInt(id, /* radix= */ 10)))
+        .where(tExports.exportId.equals(exportId))
         .select({
             id: tExports.exportId,
             date: dbInstance.dateTimeAsString(tExports.exportCreatedDate),

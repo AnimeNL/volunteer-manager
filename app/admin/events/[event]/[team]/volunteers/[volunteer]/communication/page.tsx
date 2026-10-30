@@ -131,14 +131,16 @@ export default async function EventTeamVolunteerCommunicationPage(
         operation: 'read',
     });
 
-    const id = (await props.params).volunteer;
+    const id = parseInt((await props.params).volunteer, /* radix= */ 10);
+    if (!Number.isSafeInteger(id))
+        notFound();
 
     const volunteer = await db.selectFrom(tUsersEvents)
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.teamId.equals(team.id))
-            .and(tUsersEvents.userId.equals(parseInt(id, /* radix= */ 10)))
+            .and(tUsersEvents.userId.equals(id))
             .and(tUsersEvents.registrationStatus.in([ 'Accepted', 'Cancelled' ]))
         .select({
             id: tUsers.userId,

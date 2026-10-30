@@ -49,6 +49,8 @@ export default async function EventTeamVolunteerPage(
     });
 
     const id = parseInt((await props.params).volunteer, /* radix= */ 10);
+    if (!Number.isSafeInteger(id))
+        notFound();
 
     // ---------------------------------------------------------------------------------------------
 

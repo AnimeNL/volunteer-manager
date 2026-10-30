@@ -43,8 +43,12 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
     },
 
     user: async (value: string) => {
+        const userId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(userId))
+            return undefined;
+
         return await db.selectFrom(tUsers)
-            .where(tUsers.userId.equals(parseInt(value, /* radix= */ 10)))
+            .where(tUsers.userId.equals(userId))
             .selectOneColumn(tUsers.name)
             .executeSelectNoneOrOne() ?? undefined;
     },
@@ -145,9 +149,10 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
                 kSpecialValueCache[typedKey].get(paramValue) ||
                 await fetcher(paramValue);
 
-            kSpecialValueCache[typedKey].set(paramValue, specialValue!);
-
-            resolvedPath.push(specialValue);
+            if (specialValue !== undefined) {
+                kSpecialValueCache[typedKey].set(paramValue, specialValue);
+                resolvedPath.push(specialValue);
+            }
         }
     }
 

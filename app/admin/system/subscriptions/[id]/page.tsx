@@ -58,7 +58,7 @@ export default async function AccountSubscriptionPage(
     const params = await props.params;
 
     const userId = parseInt(params.id, /* radix= */ 10);
-    if (Number.isNaN(userId))
+    if (!Number.isSafeInteger(userId))
         notFound();
 
     const subscriptionsJoin = tSubscriptions.forUseInLeftJoin();

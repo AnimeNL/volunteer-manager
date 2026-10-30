@@ -58,7 +58,7 @@ export default async function IntegrationLogDetailsPage(
     const params = await props.params;
 
     const logId = parseInt(params.id, /* radix= */ 10);
-    if (Number.isNaN(logId))
+    if (!Number.isSafeInteger(logId))
         notFound();
 
     const tasksJoin = tTasks.forUseInLeftJoin();

@@ -29,7 +29,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
 
     const params = await props.params;
     const id = parseInt(params.id, 10);
-    if (isNaN(id))
+    if (!Number.isSafeInteger(id))
         notFound();
 
     const fromUserJoin = tUsers.forUseInLeftJoinAs('fuj');

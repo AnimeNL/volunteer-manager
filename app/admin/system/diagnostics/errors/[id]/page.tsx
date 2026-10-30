@@ -41,7 +41,7 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     });
 
     const errorId = parseInt((await props.params).id, 10);
-    if (Number.isNaN(errorId))
+    if (!Number.isSafeInteger(errorId))
         notFound();
 
     const usersJoin = tUsers.forUseInLeftJoin();

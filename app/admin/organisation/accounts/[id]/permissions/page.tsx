@@ -29,8 +29,12 @@ export default async function AccountPermissionsPage(
 
     const { id } = await props.params;
 
+    const userId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(userId))
+        notFound();
+
     const account = await db.selectFrom(tUsers)
-        .where(tUsers.userId.equals(parseInt(id, /* radix= */ 10) || 0))
+        .where(tUsers.userId.equals(userId))
             .and(tUsers.anonymized.isNull())
         .select({
             id: tUsers.userId,

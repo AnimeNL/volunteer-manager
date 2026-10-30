@@ -24,8 +24,12 @@ export default async function AccountInformationLayout(
     const { access } = await requireAuthentication();
     const { id } = await props.params;
 
+    const userId = parseInt(id, /* radix= */ 10);
+    if (!Number.isSafeInteger(userId))
+        notFound();
+
     const anonimized = await db.selectFrom(tUsers)
-        .where(tUsers.userId.equals(Number(id)))
+        .where(tUsers.userId.equals(userId))
         .selectOneColumn(tUsers.anonymized.isNotNull())
         .executeSelectNoneOrOne();
 

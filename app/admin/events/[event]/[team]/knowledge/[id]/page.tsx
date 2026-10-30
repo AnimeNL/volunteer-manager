@@ -28,6 +28,9 @@ export default async function EventFaqEntryPage(
 
     const params = await props.params;
     const contentId = parseInt(params.id, /* radix= */ 10);
+    if (!Number.isSafeInteger(contentId))
+        notFound();
+
     const scope = createKnowledgeBaseScope(event.id);
 
     // ---------------------------------------------------------------------------------------------

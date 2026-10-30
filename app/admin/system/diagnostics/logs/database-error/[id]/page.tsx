@@ -33,8 +33,8 @@ export default async function DatabaseErrorLogPage(
     const { id } = await props.params;
 
     const logId = parseInt(id, /* radix= */ 10);
-    if (Number.isNaN(logId))
-        return notFound();
+    if (!Number.isSafeInteger(logId))
+        notFound();
 
     const dbInstance = db;
     const entry = await dbInstance.selectFrom(tLogs)
