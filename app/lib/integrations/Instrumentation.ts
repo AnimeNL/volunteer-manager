@@ -4,6 +4,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import type { IntegrationLogStatus, IntegrationLogTarget } from '@lib/database/Types';
+import { isMockConnection } from '@lib/database/Connection';
 import db, { tIntegrationsLogs } from '@lib/database';
 
 /**
@@ -289,6 +290,9 @@ export class Instrumentation {
      * cannot rely on Next.js being on the call path for use of e.g. `after()`.
      */
     private async record() {
+        if (process.env.VITEST_POOL_ID && !isMockConnection())
+            return;
+
         try {
             const dbInstance = db;
             await dbInstance.insertInto(tIntegrationsLogs)

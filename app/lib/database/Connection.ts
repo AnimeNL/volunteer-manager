@@ -159,6 +159,13 @@ export function getQueryLog() {
 }
 
 /**
+ * Returns whether a mock database connection is currently active for testing.
+ */
+export function isMockConnection() {
+    return !!globalThis.animeConMockConnection;
+}
+
+/**
  * The global connection that should be used by the Volunteer Manager. The connection pool is lazily
  * initialized on first use, whereas a new `DBConnection` instance will be returned for each query
  * that is being executed. This allows us to run multiple queries in parallel, pool limits allowing.
