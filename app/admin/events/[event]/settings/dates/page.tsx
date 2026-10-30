@@ -7,10 +7,11 @@ import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import type { DateType } from '@lib/database/Types';
-import { CompletedCell, CompletedHeader, OwnerCell } from './DatesCells';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
+import { OwnerCell } from './DatesCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -291,18 +292,18 @@ export default async function EventSettingsDatesPage(
         },
         {
             field: 'completed',
-            headerAlign: 'center',
             headerName: 'Completed',
-            align: 'center',
             editable: true,
             sortable: false,
             type: 'boolean',
-            width: 50,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: CompletedCell,
-                headerComponent: CompletedHeader,
+                tooltips: {
+                    header: 'Has the task been completed?',
+                    falsyValue: 'Task has not been completed',
+                    truthyValue: 'Task has been completed',
+                },
             },
         },
     ];
@@ -328,7 +329,8 @@ export default async function EventSettingsDatesPage(
                                primaryField: 'title',
                                secondaryTemplate: '{description}',
                                dateField: 'date',
-                               startComponent: CompletedCell,
+                               startComponent: BooleanCell,
+                               startComponentContext: { field: 'completed' },
                            }} />
             </Section>
         </>

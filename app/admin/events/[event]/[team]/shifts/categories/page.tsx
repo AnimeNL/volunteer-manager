@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import CategoryIcon from '@mui/icons-material/Category';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { ColourRangeCell, ContributionCell, ContributionHeader } from './ShiftCategoryCells';
+import { ColourRangeCell } from './ShiftCategoryCells';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { ExcitementCell, ExcitementHeader } from '../ShiftCells';
 import { LogBuilder } from '@lib/log/index';
@@ -261,19 +261,18 @@ export default async function EventTeamShiftCategoriesPage(
         },
         {
             field: 'countContribution',
-            headerAlign: 'center',
-            headerName: /* no header= */ '',
             description: 'Consider this a contribution?',
-            align: 'center',
             editable: true,
             sortable: false,
             type: 'boolean',
-            width: 50,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: ContributionCell,
-                headerComponent: ContributionHeader,
+                tooltips: {
+                    header: 'Will shifts count as contributions?',
+                    falsyValue: 'Shifts do not count as contributions',
+                    truthyValue: 'Shifts count as contributions',
+                },
             },
         },
     ];

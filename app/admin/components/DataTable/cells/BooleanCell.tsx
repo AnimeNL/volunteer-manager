@@ -9,11 +9,13 @@ import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
+import { resolveRowModelField } from '../Utilities';
+
 /**
  * Context that can be given to the <BooleanHeader> and <BooleanCell> components, used to indicate
  * which fields from the row model should be consulted, and what the value is for.
  */
-interface BooleanCellContext {
+export interface BooleanCellContext {
     /**
      * Field for which the truthiness should be tested.
      */
@@ -26,7 +28,7 @@ interface BooleanCellContext {
         /**
          * Tooltip to display in the table's header, what is this column about?
          */
-        header: string;
+        header?: string;
 
         /**
          * Tooltip to display for rows that have a falsy value.
@@ -48,28 +50,29 @@ interface BooleanCellContext {
          * @default "Undecided"
          */
         undefinedValue?: string;
-    },
+    };
 }
 
 /**
- * Header component for the severity column.
+ * Header component for a boolean column.
  */
 export function BooleanHeader(props: { context?: BooleanCellContext }) {
     if (typeof props.context?.tooltips?.header !== 'string')
         throw new Error('Component context must be given for the <Boolean{Cell,Header} />');
 
     return (
-        <Tooltip title={props.context?.tooltips.header}>
-            <CircleOutlinedIcon fontSize="small" />
+        <Tooltip title={props.context.tooltips.header}>
+            <CircleOutlinedIcon color="primary" fontSize="small" />
         </Tooltip>
     );
 }
+
 /**
  * Props accepted by the <BooleanCell> component.
  */
-interface SeverityCellProps {
+export interface BooleanCellProps {
     /**
-     * The context 
+     * The context configuring the field and tooltips for this cell.
      */
     context?: BooleanCellContext;
 
@@ -82,8 +85,8 @@ interface SeverityCellProps {
 /**
  * Component to display the true / false / undefined status of a value.
  */
-export function BooleanCell(props: SeverityCellProps) {
-    const value = props.row[props.context?.field || 'id'];
+export function BooleanCell(props: BooleanCellProps) {
+    const value = resolveRowModelField(props.row, props.context?.field || 'id');
     if (value === null || value === undefined) {
         return (
             <Tooltip title={ props.context?.tooltips?.undefinedValue || 'Undecided' }>

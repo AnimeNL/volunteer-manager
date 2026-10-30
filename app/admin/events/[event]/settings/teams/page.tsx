@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import GroupsIcon from '@mui/icons-material/Groups';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { Cache, getTeam } from '@lib/cache';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
@@ -189,26 +189,18 @@ export default async function EventSettingsTeamsPage(
     const columns: Column<ExtractRowModel<typeof eventTeamsDataSource>>[] = [
         {
             field: 'participating',
-            headerAlign: 'center',
             headerName: 'Participating',
-            align: 'center',
             editable: true,
             sortable: false,
             type: 'boolean',
-            width: 50,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: BooleanCell,
-                componentContext: {
-                    field: 'participating',
-                    tooltips: {
-                        header: 'Participating team?',
-                        falsyValue: 'Team does not participate',
-                        truthyValue: 'Team participates',
-                    },
+                tooltips: {
+                    header: 'Participating team?',
+                    falsyValue: 'Team does not participate',
+                    truthyValue: 'Team participates',
                 },
-                headerComponent: BooleanHeader,
             },
         },
         {

@@ -4,9 +4,9 @@
 import { z } from 'zod/v4';
 
 import type { DataSourceInterface } from '@app/admin/components/DataTable/DataSourceInterface';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel, type Column }
     from '@app/admin/components/DataTable';
-import { MessageDeliveredCell } from './OutboxRowComponents';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
 
@@ -183,17 +183,16 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
         },
         {
             field: 'delivered',
-            display: 'flex',
             headerName: props.type === 'Email' ? 'Accepted' : 'Delivered',
-            headerAlign: 'center',
-            align: 'center',
             description: 'Whether the message was successfully delivered',
             sortable: true,
-            width: 100,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: MessageDeliveredCell,
+                tooltips: {
+                    falsyValue: 'Delivery has not completed (yet)',
+                    truthyValue: 'Message has been delivered',
+                },
             },
         },
     ];
@@ -208,7 +207,8 @@ export function OutboxDataTable(props: OutboxDataTableProps) {
                        secondaryField: 'message',
                        dateField: 'date',
                        dateFieldFormat: 'YYYY-MM-DD',
-                       startComponent: MessageDeliveredCell,
+                       startComponent: BooleanCell,
+                       startComponentContext: { field: 'delivered' },
                        linkTemplate: `/admin/system/outbox/${typeLower}/{id}`,
                    }} />
     );

@@ -37,6 +37,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
          * Available values include:
          *
          * * `account`          Flexible column for displaying a(n optionally linked) user account.
+         * * `boolean`          Fixed-width column for an icon-based boolean status indication.
          * * `component`        Flexible column for which a the templateProps.component will be shown.
          * * `date`             Flexible column for a Temporal ZDT date in the local timezone.
          * * `number`           Flexible column that displays a number with a variety of options.
@@ -49,6 +50,20 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
         template: 'account';
         templateProps?: {
             noAccountLabel?: string;
+        };
+    } |
+    {
+        template: 'boolean';
+        templateProps?: {
+            /**
+             * Tooltips to display for the header and cell states.
+             */
+            tooltips?: {
+                header?: string;
+                falsyValue?: string;
+                truthyValue?: string;
+                undefinedValue?: string;
+            };
         };
     } |
     {

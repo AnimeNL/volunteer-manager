@@ -3,10 +3,10 @@
 
 import { z } from 'zod/v4';
 
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { WebhookAuthenticatedCell, WebhookAuthenticatedHeader, WebhookServiceCell, WebhookSizeCell }
-    from './WebhookRowComponents';
+import { WebhookServiceCell, WebhookSizeCell } from './WebhookRowComponents';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tTwilioWebhookCalls } from '@lib/database';
 
@@ -167,18 +167,17 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
             },
         },
         {
-            display: 'flex',
             field: 'authenticated',
-            headerAlign: 'center',
-            headerName: '',
             sortable: false,
-            align: 'center',
-            width: 50,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                headerComponent: WebhookAuthenticatedHeader,
-                component: WebhookAuthenticatedCell,
+                tooltips: {
+                    header: 'Could the call be authenticated?',
+                    falsyValue: 'The call could not be authenticated',
+                    truthyValue: 'Authentication was successful',
+                    undefinedValue: 'No authentication was attempted',
+                },
             },
         },
     ];
@@ -197,7 +196,8 @@ export function WebhookDataTable(props: WebhookDataTableProps) {
                 secondaryField: 'source',
                 dateField: 'date',
                 dateFieldFormat: 'YYYY-MM-DD',
-                startComponent: WebhookAuthenticatedCell,
+                startComponent: BooleanCell,
+                startComponentContext: { field: 'authenticated' },
                 linkTemplate: '/admin/system/webhooks/{service}/{id}',
             }}
         />

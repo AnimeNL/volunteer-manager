@@ -9,6 +9,7 @@ import type { GridColDef } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
+import { BooleanCell, BooleanHeader } from './cells/BooleanCell';
 import { InlineAccountLink } from '../InlineAccountLink';
 import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { SeverityCell, SeverityHeader } from './cells/SeverityCell';
@@ -42,6 +43,49 @@ export const kColumnTemplates = {
 
         ...column,
     }),
+
+    // ---------------------------------------------------------------------------------------------
+
+    boolean: column => {
+        const headerTooltip = column.templateProps?.tooltips?.header ?? column.description;
+
+        return {
+            display: 'flex',
+
+            disableColumnMenu: true,
+            headerAlign: 'center',
+            headerName: '',
+
+            align: 'center',
+            type: 'boolean',
+
+            width: 50,
+
+            renderHeader: headerTooltip
+                ? () => (
+                      <BooleanHeader
+                          context={{
+                              field: column.field,
+                              tooltips: {
+                                  ...column.templateProps?.tooltips,
+                                  header: headerTooltip,
+                              },
+                          }} />
+                  )
+                : undefined,
+
+            renderCell: params => (
+                <BooleanCell
+                    context={{
+                        field: column.field,
+                        tooltips: column.templateProps?.tooltips,
+                    }}
+                    row={params.row} />
+            ),
+
+            ...column,
+        };
+    },
 
     // ---------------------------------------------------------------------------------------------
 

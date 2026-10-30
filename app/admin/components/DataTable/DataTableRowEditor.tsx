@@ -122,7 +122,7 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                             );
                         }
 
-                        if (column.type === 'boolean') {
+                        if (column.type === 'boolean' || column.template === 'boolean') {
                             return (
                                 <CheckboxElement key={column.field} name={column.field}
                                                  label={label} size="small" required={required}

@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import type { HotelCommunicationCellContext } from './HotelAssignmentCells';
-import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { HotelCommunicationCell, HotelCommunicationHeaderCell, HotelOccupantCell }
@@ -557,28 +557,18 @@ export default async function EventHotelAssignmentsPage(
         },
         {
             field: 'confirmed',
-            headerName: '',
-            align: 'center',
-            headerAlign: 'center',
             description: 'Has this room been booked?',
             editable: true,
             sortable: true,
-            width: 50,
-
             type: 'boolean',
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: BooleanCell,
-                componentContext: {
-                    field: 'confirmed',
-                    tooltips: {
-                        header: 'Has the hotel room been booked?',
-                        falsyValue: 'Booking has not been confirmed',
-                        truthyValue: 'Booking has been confirmed',
-                    },
+                tooltips: {
+                    header: 'Has the hotel room been booked?',
+                    falsyValue: 'Booking has not been confirmed',
+                    truthyValue: 'Booking has been confirmed',
                 },
-                headerComponent: BooleanHeader,
             },
         },
         {

@@ -4,10 +4,6 @@
 'use client';
 
 import type { ValueOptions } from '@mui/x-data-grid-premium';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 /**
@@ -46,32 +42,5 @@ export function OwnerCell(props: OwnerCellProps) {
         <Typography variant="body2" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
             Unassigned
         </Typography>
-    );
-}
-
-/**
- * The <CompletedHeader> component displays the icon representing the header of the completed status.
- */
-export function CompletedHeader() {
-    return (
-        <Tooltip title="Has the task been completed?">
-            <RadioButtonCheckedIcon fontSize="small" color="primary" />
-        </Tooltip>
-    );
-}
-
-/**
- * The <CompletedCell> component displays the icon representing whether the date has been completed.
- */
-export function CompletedCell(props: { row: { completed: boolean } }) {
-    const tooltipTitle = props.row.completed
-        ? 'Task has been completed'
-        : 'Task has not been completed';
-
-    return (
-        <Tooltip title={tooltipTitle}>
-            {props.row.completed ? <TaskAltIcon fontSize="small" color="success" />
-                                 : <RadioButtonUncheckedIcon fontSize="small" color="error" />}
-        </Tooltip>
     );
 }

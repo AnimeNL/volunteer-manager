@@ -15,7 +15,7 @@ import Tooltip from '@mui/material/Tooltip';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { AvailabilityToggle } from '@app/admin/components/AvailabilityToggle';
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
-import { BooleanCell, BooleanHeader } from '@app/admin/components/DataTable/cells/BooleanCell';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { LogBuilder } from '@lib/log/index';
@@ -253,25 +253,17 @@ export default async function EventRefundsPage(props: PageProps<'/admin/events/[
         {
             field: 'confirmed',
             headerName: 'Confirmed',
-            headerAlign: 'center',
-            align: 'center',
             sortable: false,
             editable: true,
             type: 'boolean',
-            width: 50,
 
-            template: 'component',
+            template: 'boolean',
             templateProps: {
-                component: BooleanCell,
-                componentContext: {
-                    field: 'confirmed',
-                    tooltips: {
-                        header: 'Has the refund been confirmed?',
-                        falsyValue: 'Refund has not been confirmed',
-                        truthyValue: 'Refund has been confirmed',
-                    },
+                tooltips: {
+                    header: 'Has the refund been confirmed?',
+                    falsyValue: 'Refund has not been confirmed',
+                    truthyValue: 'Refund has been confirmed',
                 },
-                headerComponent: BooleanHeader,
             },
         },
     ];

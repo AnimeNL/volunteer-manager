@@ -4,11 +4,6 @@
 'use client';
 
 import Chip from '@mui/material/Chip';
-import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import Tooltip from '@mui/material/Tooltip';
-import VerifiedIcon from '@mui/icons-material/Verified';
 
 /**
  * Colours assigned to chips for particular services.
@@ -51,40 +46,4 @@ export function WebhookSizeCell({ row }: { row: { size: number } }) {
     }
 
     return `${Math.round(size * 100) / 100} ${ kMessageSizeUnit[unitIndex] ?? 'TiB' }`;
-}
-
-/**
- * Header component for the authenticated column.
- */
-export function WebhookAuthenticatedHeader() {
-    return (
-        <Tooltip title="Could the call be authenticated?">
-            <VerifiedIcon color="primary" fontSize="small" />
-        </Tooltip>
-    );
-}
-
-/**
- * Cell that renders an icon indicating authentication status.
- */
-export function WebhookAuthenticatedCell({ row }: { row: { authenticated?: boolean | null } }) {
-    if (!!row.authenticated) {
-        return (
-            <Tooltip title="Authentication was successful">
-                <TaskAltIcon color="success" fontSize="small" />
-            </Tooltip>
-        );
-    } else if (row.authenticated === null || row.authenticated === undefined) {
-        return (
-            <Tooltip title="No authentication was attempted">
-                <RadioButtonUncheckedIcon color="disabled" fontSize="small" />
-            </Tooltip>
-        );
-    } else {
-        return (
-            <Tooltip title="The call could not be authenticated">
-                <ErrorOutlinedIcon color="error" fontSize="small" />
-            </Tooltip>
-        );
-    }
 }
