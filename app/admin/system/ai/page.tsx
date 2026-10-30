@@ -7,11 +7,14 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for Artificial Intelligence, providing links to each section contained therein.
  */
 export default async function ArtificialIntelligencePage() {
+    await requireAuthentication('system.internals.ai');
+
     return (
         <>
             <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"

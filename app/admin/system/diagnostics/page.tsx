@@ -8,11 +8,17 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for the Diagnostics, providing links to each section contained therein.
  */
 export default async function DiagnosticsPage() {
+    await requireAuthentication({
+        permission: 'system.logs',
+        operation: 'read',
+    });
+
     return (
         <>
             <Section icon={ <QueryStatsIcon color="primary" /> } title="Diagnostics"

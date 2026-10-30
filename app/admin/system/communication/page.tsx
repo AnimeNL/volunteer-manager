@@ -10,12 +10,18 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { or, requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for the Communication pages. Displays a set of tiles that link through to the
  * individual sections. Made available to enable linkability in breadcrumbs.
  */
 export default async function CommunicationPage() {
+    await requireAuthentication(or(
+        'system.internals.outbox',
+        'system.subscriptions.management',
+    ));
+
     return (
         <>
             <Section icon={ <AppsIcon color="primary" /> } title="Communication"

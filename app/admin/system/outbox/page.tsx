@@ -7,12 +7,15 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for the Outbox, providing an alternative to the tab switcher on each page. Primary
  * reason for existence is to enable linkability in breadcrumbs.
  */
 export default async function OutboxPage() {
+    await requireAuthentication('system.internals.outbox');
+
     return (
         <>
             <Section icon={ <OutboxOutlinedIcon color="primary" /> } title="Outbox"

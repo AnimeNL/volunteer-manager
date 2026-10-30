@@ -15,12 +15,27 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../lib/generatePageMetadata';
+import { or, requireAuthentication } from '@lib/requireAuthentication';
 
 /**
  * Overview page for the System pages. Displays a set of tiles that link through to the individual
  * sections. Made available to enable linkability in breadcrumbs.
  */
 export default async function SystemPage() {
+    await requireAuthentication(or(
+        'system.integrations',
+        'system.internals.ai',
+        'system.internals.cache',
+        'system.internals.debug',
+        'system.internals.scheduler',
+        'system.internals.settings',
+        {
+            permission: 'system.logs',
+            operation: 'read',
+        },
+        'system.permissions',
+    ));
+
     return (
         <>
             <Section icon={ <AppsIcon color="primary" /> } title="System"
