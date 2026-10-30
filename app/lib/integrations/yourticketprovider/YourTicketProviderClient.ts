@@ -424,7 +424,7 @@ export class YourTicketProviderClient {
 
         if (!response.ok) {
             throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
-                cause: await response.json(),
+                cause: await response.text(),
             });
         }
 
@@ -507,14 +507,12 @@ export class YourTicketProviderClient {
         });
 
         if (!response.ok) {
-            console.log('--x', await response.json());
             throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
-                cause: await response.json(),
+                cause: await response.text(),
             });
         }
 
         const unverifiedResponseJson = await response.json();
-        console.log('--', unverifiedResponseJson);
 
         // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
         // method. Exceptions are considered fatal, and it's up to the caller to recover.
