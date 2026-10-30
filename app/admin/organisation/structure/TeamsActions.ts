@@ -41,7 +41,7 @@ const kCreateEnvironmentData = z.object({
 export async function createEnvironment(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateEnvironmentData, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
             operation: 'create',
         });
@@ -103,7 +103,7 @@ const kCreateTeamData = z.object({
 export async function createTeam(formData: unknown) {
     'use server';
     return executeServerAction(formData, kCreateTeamData, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
             operation: 'create',
         });
@@ -185,7 +185,7 @@ export async function createTeam(formData: unknown) {
 export async function deleteEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
             operation: 'delete',
         });
@@ -247,7 +247,7 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
 export async function resetTeamKey(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
             operation: 'update',
         });
@@ -291,7 +291,7 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
 export async function toggleTeamEnabled(teamId: number, enabled: boolean, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
             operation: 'update',
         });
@@ -357,7 +357,7 @@ const kUpdateEnvironmentData = z.object({
 export async function updateEnvironment(environmentId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateEnvironmentData, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
             operation: 'update',
         });
@@ -434,7 +434,7 @@ const kUpdateTeamData = z.object({
 export async function updateTeam(teamId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateTeamData, async (data, props) => {
-        await requireAuthentication({
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
             operation: 'update',
         });
@@ -496,6 +496,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
         LogBuilder.for('UpdateTeam')
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
+            .withSeverity('Warning')
             .record({
                 team: data.title,
             });
