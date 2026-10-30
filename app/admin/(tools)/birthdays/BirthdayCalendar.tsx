@@ -131,6 +131,11 @@ export function BirthdayCalendar(props: BirthdayCalendarProps) {
                         <StandaloneAgendaViewPremium
                             events={events}
                             readOnly
+                            viewConfig={{
+                                agenda: {
+                                    dayCount: 'month',
+                                },
+                            }}
                             visibleDate={visibleDate}
                             onVisibleDateChange={handleDateChange} /> }
                     { !isMobile &&
