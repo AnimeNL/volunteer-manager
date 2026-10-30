@@ -233,13 +233,8 @@ export default async function IntegrationLogDetailsPage(
                 </Section> }
             { !!entry.errorName &&
                 <Section icon={ <ErrorOutlinedIcon /> } title="Error">
-                    <Alert
-                        severity={
-                            entry.status === kIntegrationLogStatus.Failure ? 'warning' : 'error'
-                        }>
-                        { entry.status === kIntegrationLogStatus.Failure
-                            ? 'The integration call returned a failure response.'
-                            : 'An exception occurred when executing this integration call.' }
+                    <Alert severity="error">
+                        An exception occurred when executing this integration call.
                     </Alert>
                     <KeyValueList items={[
                         {

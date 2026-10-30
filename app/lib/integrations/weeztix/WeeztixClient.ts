@@ -220,7 +220,7 @@ export class WeeztixClient {
                 return this.refreshToken(schema, request);
 
             throw new Error(`Received HTTP ${response.status} response from ${endpoint}`, {
-                cause: await response.json(),
+                cause: await response.text(),
             });
         }
 
@@ -268,7 +268,7 @@ export class WeeztixClient {
         // This is fatal, and we will not retry either the refresh or the API.
         if (!response.ok) {
             throw new Error(`Received HTTP ${response.status} response during token refresh`, {
-                cause: await response.json(),
+                cause: await response.text(),
             });
         }
 

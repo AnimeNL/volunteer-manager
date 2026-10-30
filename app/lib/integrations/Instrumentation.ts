@@ -282,7 +282,14 @@ export class Instrumentation {
                 logDurationTtfbMs: this.#status.durationTimeToFirstByteMs,
                 logErrorName: this.#status.exception?.name,
                 logErrorMessage: this.#status.exception?.message,
-                logErrorCause: String(this.#status.exception?.cause),
+                logErrorCause:
+                    this.#status.exception?.cause
+                        ? (this.#status.exception.cause instanceof Error
+                              ? String(this.#status.exception.cause)
+                              : (typeof this.#status.exception.cause === 'object'
+                                     ? JSON.stringify(this.#status.exception.cause)
+                                     : String(this.#status.exception.cause)))
+                        : undefined,
                 logErrorStack: this.#status.exception?.stack,
             })
             .executeInsert();
