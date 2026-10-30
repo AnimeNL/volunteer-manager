@@ -58,6 +58,14 @@ const nextConfig: NextConfig = {
             permanent: true,
         },
     ]),
+    serverExternalPackages: [
+        '@google/genai',
+        '@simplewebauthn/server',
+        'mariadb',
+        'nodemailer',
+        'ts-sql-query',
+        'twilio',
+    ],
     typedRoutes: false,
     typescript: {
         tsconfigPath: './tsconfig.build.json',
