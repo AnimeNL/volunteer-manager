@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
 
+        cpus: 8,
+        workerThreads: true,
+
         serverActions: {
             bodySizeLimit: '5mb',
         },
