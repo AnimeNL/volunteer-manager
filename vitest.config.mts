@@ -25,7 +25,21 @@ export default defineConfig({
         tsconfigPaths: true,
     },
     test: {
-        environment: 'jsdom',
+        deps: {
+            optimizer: {
+                client: {
+                    enabled: true,
+                    include: [
+                        '@mui/material',
+                        '@mui/x-data-grid-premium',
+                        '@mui/x-date-pickers',
+                        '@testing-library/react',
+                        'nuqs/adapters/testing',
+                        'react-hook-form-mui',
+                    ],
+                },
+            },
+        },
         env: {
             APP_COOKIE_PASSWORD: '3P72PZv>)v42[GUS%(st[%<(o.^f58Vy',
             APP_PASSRESET_PASSWORD: 'kf205;e8.F*=AS9ItS(aQ$s;z&PM>6u?',
@@ -36,6 +50,7 @@ export default defineConfig({
             APP_SMTP_PASSWORD: 'password',
 
             // Used for the <DataTable> tests, which rely on MUI X DataGrid Premium:
+            MUI_X_TELEMETRY_DISABLED: 'true',
             NEXT_PUBLIC_MUI_LICENSE_KEY: await attemptToExtractMuiLicenseFromEnvFiles(),
 
             // TODO: Remove this once Next.js auth interrupts are stable.
@@ -46,6 +61,24 @@ export default defineConfig({
             '**/node_modules/**',
         ],
         globals: true,
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: 'node',
+                    environment: 'node',
+                    include: [ '**/*.test.ts' ],
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: 'jsdom',
+                    environment: 'jsdom',
+                    include: [ '**/*.test.tsx' ],
+                },
+            },
+        ],
         setupFiles: [ './vitest.setup.ts' ],
     },
 });
