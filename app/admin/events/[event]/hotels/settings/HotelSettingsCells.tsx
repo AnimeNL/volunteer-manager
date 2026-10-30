@@ -11,7 +11,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 /**
  * Helper function for formatting prices in the configuration data table.
  */
-const kPriceFormatter = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+const kPriceFormatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR' });
 
 /**
  * Props accepted by the <PriceCell> component.

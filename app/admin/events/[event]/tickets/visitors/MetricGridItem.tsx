@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 /**
  * Formatter to display a number in a readable manner.
  */
-const kNumberFormatter = new Intl.NumberFormat('en-UK', {
+const kNumberFormatter = new Intl.NumberFormat('en-GB', {
     style: 'decimal',
 });
 

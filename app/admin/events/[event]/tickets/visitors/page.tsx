@@ -25,7 +25,7 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 /**
  * Formatter to display a price in euros.
  */
-const kPriceFormatter = new Intl.NumberFormat('en-UK', {
+const kPriceFormatter = new Intl.NumberFormat('en-GB', {
     style: 'currency',
     currency: 'EUR',
 });

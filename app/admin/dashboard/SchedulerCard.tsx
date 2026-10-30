@@ -25,7 +25,7 @@ import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 /**
  * Helper to format numbers in a human readable manner.
  */
-const kNumberFormatter = Intl.NumberFormat('en-UK');
+const kNumberFormatter = new Intl.NumberFormat('en-GB');
 
 /**
  * The <SchedulerCard> displays state of the internal task scheduler. This is not of interest to

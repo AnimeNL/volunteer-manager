@@ -18,7 +18,7 @@ import { getConnectionPool, getQueryCount } from '@lib/database/Connection';
 /**
  * Helper to format numbers in a human readable manner.
  */
-const kNumberFormatter = Intl.NumberFormat('en-UK');
+const kNumberFormatter = new Intl.NumberFormat('en-GB');
 
 /**
  * The <DatabaseCard> displays state of the database connection owned by the Volunteer Manager. This

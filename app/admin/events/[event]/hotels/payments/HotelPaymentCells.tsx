@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 /**
  * Helper function for formatting payment amounts in the data table.
  */
-const kPriceFormatter = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+const kPriceFormatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR' });
 
 /**
  * Props accepted by the <HotelPaymentGuestCell> component.

@@ -26,7 +26,7 @@ import { kHotelPaymentResponsible } from '@lib/database/Types';
 /**
  * Helper function for formatting payment amounts in mobile list views.
  */
-const kPriceFormatter = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+const kPriceFormatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR' });
 
 /**
  * Row model for the hotel payments data table.
