@@ -5,11 +5,6 @@
 
 import { useCallback, useState } from 'react';
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
@@ -17,6 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { RemoteGraph } from './RemoteGraph';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Props accepted by the <RemoteGraphDialog> component.
@@ -52,34 +48,25 @@ export function RemoteGraphDialog(props: RemoteGraphDialogProps) {
 
     const handleChangeCumulative = useCallback(() => setCumulative(v => !v), [ /* no deps */ ]);
 
+    const title = (
+        <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+            <Typography variant="inherit">
+                {props.title}
+            </Typography>
+            <FormControlLabel value="cumulative"
+                              control={
+                                  <Switch checked={cumulative} color="primary"
+                                          onChange={handleChangeCumulative} /> }
+                              label="Cumulative"
+                              labelPlacement="start"
+                              slotProps={{ typography: { variant: 'caption' } }} />
+        </Stack>
+    );
+
     return (
-        <Dialog open onClose={props.onClose} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ pb: !!props.description ? 0 : undefined }}>
-                <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                    <Typography variant="inherit">
-                        {props.title}
-                    </Typography>
-                    <FormControlLabel value="cumulative"
-                                      control={
-                                          <Switch checked={cumulative} color="primary"
-                                                  onChange={handleChangeCumulative} /> }
-                                      label="Cumulative"
-                                      labelPlacement="start"
-                                      slotProps={{ typography: { variant: 'caption' } }} />
-                </Stack>
-            </DialogTitle>
-            <DialogContent>
-                { !!props.description &&
-                    <Typography variant="body2" color="primary" sx={{ pb: 1 }}>
-                        {props.description}
-                    </Typography> }
-                <RemoteGraph cumulative={cumulative} fetchDataFn={props.fetchDataFn} />
-            </DialogContent>
-            <DialogActions sx={{ pt: 0, mr: 1, mb: 0, pl: 2 }}>
-                <Button onClick={props.onClose} variant="text">
-                    Close
-                </Button>
-            </DialogActions>
-        </Dialog>
+        <ResponsiveDialog open onClose={props.onClose} title={title}
+                          description={props.description}>
+            <RemoteGraph cumulative={cumulative} fetchDataFn={props.fetchDataFn} />
+        </ResponsiveDialog>
     );
 }
