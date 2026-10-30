@@ -3,9 +3,13 @@
 
 import { unauthorized } from 'next/navigation';
 
+import { requireAuthentication } from '@lib/requireAuthentication';
+
 /**
- * Debugging page that triggers the HTTP 401 Unauthorized page. 
+ * Debugging page that triggers the HTTP 401 Unauthorized page.
  */
-export default function DebugUnauthorizedPage() {
+export default async function DebugUnauthorizedPage() {
+    await requireAuthentication('system.internals.debug');
+
     unauthorized();
 }

@@ -1,9 +1,8 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { z } from 'zod/v4';
-
 import { cookies, headers } from 'next/headers';
+import { z } from 'zod/v4';
 
 import { DateTimePickerElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
@@ -58,6 +57,8 @@ let globalRefreshCounter = 0;
 async function debugAction(formData: unknown) {
     'use server';
     return executeServerAction(formData, kDebugActionScheme, async (data, props) => {
+        await requireAuthentication(props.authenticationContext, 'system.internals.debug');
+
         await new Promise(resolve => setTimeout(resolve, 1500));
         return { success: true, refresh: true };
     });

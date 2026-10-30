@@ -13,21 +13,30 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TaskContext } from '@lib/scheduler/TaskContext';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthentication } from '@lib/requireAuthentication';
+
+/**
+ * Zod schema describing the task execution request.
+ */
+const kExecuteSchedulerTaskData = z.object({
+    taskName: z.enum([ 'YourTicketProviderImportTask' ]),
+});
 
 /**
  * Server Action through which the given `taskName` can be scheduled.
  */
 async function executeSchedulerTask(taskName: string) {
     'use server';
-    await executeServerAction({ /* no data */ }, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'root');
+    await executeServerAction(
+        { taskName }, kExecuteSchedulerTaskData, async (data, props) =>
+    {
+        await requireAuthentication(props.authenticationContext, 'system.internals.debug');
 
-        switch (taskName) {
+        switch (data.taskName) {
             case 'YourTicketProviderImportTask': {
-                const taskContext = TaskContext.forEphemeralTask(taskName, { /* no params */ });
+                const taskContext =
+                    TaskContext.forEphemeralTask(data.taskName, { /* no params */ });
                 const task = new YourTicketProviderImportTask(taskContext);
                 try {
                     await task.execute();
@@ -39,10 +48,9 @@ async function executeSchedulerTask(taskName: string) {
 
                 break;
             }
-
-            default:
-                throw new Error(`Unrecognised task name: ${taskName}`);
         }
+
+        return { success: true };
     });
 }
 
@@ -50,7 +58,7 @@ async function executeSchedulerTask(taskName: string) {
  * Page that allows individual tasks to be executed directly without depending on the scheduler.
  */
 export default async function SchedulerDebugPage() {
-    await requireAuthentication('root');
+    await requireAuthentication('system.internals.debug');
 
     const yourTicketProviderImportTaskFn =
         executeSchedulerTask.bind(null, 'YourTicketProviderImportTask');

@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { z } from 'zod/v4';
+
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -11,7 +13,17 @@ import PodcastsIcon from '@mui/icons-material/Podcasts';
 import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication } from '@lib/requireAuthentication';
+
+/**
+ * Zod schema describing the data accepted by the `commit` debug action.
+ */
+const kCommitData = z.object({
+    scenario: z.enum([ 'close', 'failure', 'refresh', 'success' ]),
+    subject: z.string().optional(),
+    message: z.string().optional(),
+});
 
 /**
  * Server Action that can be used with <CommunicationIconButton> to indicate a successful response.
@@ -20,34 +32,37 @@ async function commit(
     scenario: 'close' | 'failure' | 'refresh' | 'success', subject?: string, message?: string)
 {
     'use server';
+    return executeServerAction({ scenario, subject, message }, kCommitData, async (data, props) => {
+        await requireAuthentication(props.authenticationContext, 'system.internals.debug');
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    switch (scenario) {
-        case 'close':
-            return {
-                success: true,
-                close: true,
-            };
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        switch (data.scenario) {
+            case 'close':
+                return {
+                    success: true,
+                    close: true,
+                };
 
-        case 'failure':
-            return {
-                success: false,
-                error: 'Something has gone terribly wrong',
-            };
+            case 'failure':
+                return {
+                    success: false,
+                    error: 'Something has gone terribly wrong',
+                };
 
-        case 'refresh':
-            return {
-                success: true,
-                message: 'The page state has been refreshed',
-                refresh: true,
-            };
+            case 'refresh':
+                return {
+                    success: true,
+                    message: 'The page state has been refreshed',
+                    refresh: true,
+                };
 
-        case 'success':
-            return {
-                success: true,
-                message: 'This is a successful message',
-            };
-    }
+            case 'success':
+                return {
+                    success: true,
+                    message: 'This is a successful message',
+                };
+        }
+    });
 }
 
 /**

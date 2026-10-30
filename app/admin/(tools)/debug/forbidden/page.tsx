@@ -3,9 +3,13 @@
 
 import { forbidden } from 'next/navigation';
 
+import { requireAuthentication } from '@lib/requireAuthentication';
+
 /**
- * Debugging page that triggers the HTTP 403 Forbidden page. 
+ * Debugging page that triggers the HTTP 403 Forbidden page.
  */
-export default function DebugForbiddenPage() {
+export default async function DebugForbiddenPage() {
+    await requireAuthentication('system.internals.debug');
+
     forbidden();
 }

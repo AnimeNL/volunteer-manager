@@ -12,6 +12,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';
@@ -57,7 +58,9 @@ type RowModel = ExtractRowModel<typeof dataSource>;
 /**
  * Page that displays a <DataTable> component.
  */
-export default function DataTablePage() {
+export default async function DataTablePage() {
+    await requireAuthentication('system.internals.debug');
+
     const columns: Column<RowModel>[] = [
         {
             field: 'name',
