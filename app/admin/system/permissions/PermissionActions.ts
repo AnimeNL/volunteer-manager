@@ -11,7 +11,7 @@ import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
-import { toPermissionList } from './toPermissionList';
+import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
@@ -54,9 +54,46 @@ export async function updateAccountPermissions(userId: number, formData: unknown
         if (existingAccess.can('root') && !props.access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
-        if (data.roles.includes('root') && !props.access.can('root') &&
-                !existingAccess.can('root')) {
-            return { success: false, error: 'You are not allowed to assign the "root" role…' };
+        const availableRoles = await dbInstance.selectFrom(tPermissionsRoles)
+            .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
+            .select({
+                id: tPermissionsRoles.permissionRoleId,
+                grants: tPermissionsRoles.permissionRoleGrants,
+            })
+            .executeSelectMany();
+
+        const knownRoles = new Map<string, string[]>();
+        for (const role of availableRoles) {
+            knownRoles.set(
+                role.id,
+                role.grants ? role.grants.split(',').map(g => g.trim()).filter(Boolean) : []);
+        }
+        knownRoles.set('root', [ 'root' ]);
+
+        const existingGrants = new Set(
+            existingAccessInfo.grants
+                ? existingAccessInfo.grants.split(',').map(g => g.trim()).filter(Boolean)
+                : []);
+
+        for (const role of data.roles) {
+            const roleGrants = knownRoles.get(role);
+            if (!roleGrants)
+                return { success: false, error: `Unknown permission role: "${role}"` };
+
+            if (!props.access.can('root') && !existingGrants.has(role)) {
+                if (role === 'root' && !existingAccess.can('root')) {
+                    return {
+                        success: false,
+                        error: 'You are not allowed to assign the "root" role…',
+                    };
+                }
+
+                try {
+                    validatePermissionRestrictions(roleGrants, props.access, existingAccess);
+                } catch (error: any) {
+                    return { success: false, error: error.message };
+                }
+            }
         }
 
         let grants: string | null = null;

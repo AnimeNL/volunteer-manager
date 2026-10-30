@@ -102,6 +102,19 @@ export function toPermissionList(
 
     // Verify that assignment restrictions are adhered to across all assigned permissions,
     // accounting for hierarchical inheritance.
+    validatePermissionRestrictions(permissions, userAccess, existingAccess);
+
+    return permissions.join(',');
+}
+
+/**
+ * Verifies that assignment restrictions are adhered to across all `permissions`, accounting for
+ * hierarchical inheritance. Throws an Error when a restricted permission cannot be assigned.
+ */
+export function validatePermissionRestrictions(
+    permissions: Iterable<string>, userAccess: AccessControl, existingAccess: AccessControl)
+    : void | never
+{
     for (const fullPermission of permissions) {
         const [ permission, operation ] = fullPermission.split(':', 2);
 
@@ -134,8 +147,6 @@ export function toPermissionList(
             }
         }
     }
-
-    return permissions.join(',');
 }
 
 /**

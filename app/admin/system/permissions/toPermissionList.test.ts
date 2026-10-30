@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { AccessControl } from '@lib/auth/AccessControl';
-import { toPermissionList } from './toPermissionList';
+import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
 
 describe('toPermissionList', () => {
     const adminAccess = new AccessControl({ grants: [ 'admin' ] });
@@ -96,5 +96,12 @@ describe('toPermissionList', () => {
             .toBe('system.logs');  // the restricted permission has already been granted
         expect(() => toPermissionList({ system: { logs: true } }, adminAccess, emptyAccess))
             .toThrow();
+
+        expect(() =>
+            validatePermissionRestrictions([ 'organisation' ], adminAccess, emptyAccess))
+                .toThrow();
+        expect(() =>
+            validatePermissionRestrictions([ 'organisation' ], rootAccess, emptyAccess))
+                .not.toThrow();
     });
 });
