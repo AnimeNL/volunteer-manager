@@ -172,6 +172,7 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
         // Active events in the navigation area now has to consider that the |event|'s slug, and
         // thus URL, may have changed.
         Cache.getInstance('AdminNavigationActiveEvents').clear();
+        Cache.getInstance('AdminNavigationMenuCache').clear();
 
         LogBuilder.for('UpdateEventSlug')
             .withCondition(!!affectedRows)
