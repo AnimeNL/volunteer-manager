@@ -30,7 +30,7 @@ export default async function EventTeamSecurityPage(
         operation: 'read',
     });
 
-    if (!team.flags.managesFirstAid)
+    if (!team.flags.managesSecurity)
         notFound();
 
     const roleSetting = await readSetting('vendor-security-roles') ?? 'Security';
