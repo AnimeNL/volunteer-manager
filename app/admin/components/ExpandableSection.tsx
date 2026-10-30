@@ -12,10 +12,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
-import type { UserSetting } from '@lib/UserSettings';
+import type { ExpandableSectionSetting } from './ExpandableSectionActions';
 import { AdminClientContext } from '../AdminClientContext';
 import { SectionHeader, type SectionHeaderProps } from './SectionHeader';
-import { callApi } from '@lib/callApi';
+
+import { updateExpandableSectionSetting } from './ExpandableSectionActions';
 
 /**
  * Props accepted by the <ExpandableSection> component, that are directly owned by the component.
@@ -29,7 +30,7 @@ export type ExpandableSectionProps = SectionHeaderProps & {
     /**
      * The setting that should be updated when expandable state changes.
      */
-    setting?: UserSetting;
+    setting?: ExpandableSectionSetting;
 }
 
 /**
@@ -43,7 +44,7 @@ export function ExpandableSection(props: React.PropsWithChildren<ExpandableSecti
         if (!props.setting)
             return;  // no setting to update
 
-        callApi('post', '/api/auth/settings', { [props.setting]: expanded }).catch(error =>
+        updateExpandableSectionSetting(props.setting, expanded).catch(error =>
             console.warn(`Unable to store a user setting (${props.setting}): ${error}`));
 
     }, [ props.setting ]);
