@@ -115,10 +115,10 @@ export default async function EventTicketsVolunteerPage(
                 </SectionIntroduction>
             </Section>
             <Section noHeader back tabs>
-                { !participation.yourTicketProvider &&
+                { !participation.yourTicketProvider?.purchaseId &&
                     <Alert severity="warning" variant="outlined">
                         {participation.user.firstName} has not been issued a ticket for{' '}
-                        {event.shortName}{ canUpdateTickets ? '—you can issue one below' : '' }.
+                        {event.shortName} yet.
                     </Alert> }
                 { !!participation.yourTicketProvider?.purchaseCancelled &&
                     <Alert severity="error" variant="outlined">

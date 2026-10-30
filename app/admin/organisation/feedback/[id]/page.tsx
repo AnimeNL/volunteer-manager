@@ -140,12 +140,12 @@ export default async function FeedbackDetailPage(
             <Section title={`${author} says…`}>
                 <KeyValueList items={[
                     {
-                        condition: !feedback.user,
+                        condition: !feedback.user?.id,
                         key: 'Author',
                         value: feedback.name,
                     },
                     {
-                        condition: !!feedback.user,
+                        condition: !!feedback.user?.id,
                         key: 'Author',
                         value: feedback.user!,
                         valueTemplate: 'account',
@@ -172,7 +172,7 @@ export default async function FeedbackDetailPage(
                 <Grid size={{ xs: 12 }}>
                     <KeyValueList items={[
                         {
-                            condition: !!feedback.responseUser,
+                            condition: !!feedback.responseUser?.id,
                             key: 'Volunteer',
                             value: feedback.responseUser!,
                             valueTemplate: 'account',
