@@ -10,7 +10,7 @@ import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { AccessControl } from '@lib/auth/AccessControl';
 import { DataSourceWrapper } from './DataSourceWrapper';
 import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
-import { withContext, withRowModel } from './';
+import { withContext, withRowModel } from './Types';
 
 const mocks = vi.hoisted(() => ({
     authenticationContext: vi.fn(),

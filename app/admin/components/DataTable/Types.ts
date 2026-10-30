@@ -1,9 +1,15 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { z } from 'zod/v4';
+import { z } from 'zod/v4';
 
 import type { DataSourceInterface } from './DataSourceInterface';
+
+/**
+ * Helpers for defining the context and row model of a DataSource.
+ */
+export const withContext = z.object;
+export const withRowModel = z.object;
 
 /**
  * Utility type to extract the Context from a DataSourceInterface.

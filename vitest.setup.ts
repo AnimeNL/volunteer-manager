@@ -96,10 +96,6 @@ vi.mock('server-only', () => {
     return {};
 });
 
-vi.mock('@components/Markdown', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@components/Markdown')>();
-    return {
-        ...actual,
-        Markdown: (props: any) => props.content,
-    };
-});
+vi.mock('@components/Markdown', () => ({
+    Markdown: (props: any) => props.content,
+}));

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SendMailOptions } from 'nodemailer';
-import { markdownToHtml } from '@components/Markdown';
+import { markdownToHtml } from '@components/Markdown/markdownToHtml';
 
 /**
  * Class that encapsulates an e-mail that should be send to a specific address. The constructor
