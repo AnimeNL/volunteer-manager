@@ -31,6 +31,8 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tEventsTicketsConfiguration,
     tShifts, tTeams } from '@lib/database';
 
+import { kActivityType } from '@lib/database/Types';
+
 /**
  * Detail page for a specific activity part of an event's program.
  */
@@ -52,6 +54,7 @@ export default async function ProgramActivityPage(
         .select({
             title: tActivities.activityTitle,
             description: tActivities.activityDescription,
+            type: tActivities.activityType,
 
             helpRequested: tActivities.activityHelpNeeded,
             price: tActivities.activityPrice,
@@ -72,7 +75,8 @@ export default async function ProgramActivityPage(
     if (!activity)
         notFound();
 
-    const anplanLink = getAnPlanActivityUrl(activityId);
+    const anplanLink =
+        activity.type === kActivityType.Program ? getAnPlanActivityUrl(activityId) : undefined;
     const portalLink = `/schedule/${event.slug}/events/${activityId}`;
 
     const timeslots = await dbInstance.selectFrom(tActivitiesTimeslots)
@@ -152,7 +156,7 @@ export default async function ProgramActivityPage(
                         key: 'AnPlan link',
                         valueTemplate: 'component',
                         value: (
-                            <MuiLink component={Link} target="_blank" href={anplanLink}>
+                            <MuiLink component={Link} target="_blank" href={anplanLink!}>
                                 <Typography variant="body2">click</Typography>
                             </MuiLink>
                         ),
@@ -217,7 +221,7 @@ export default async function ProgramActivityPage(
                     {
                         key: 'Updated on',
                         valueTemplate: 'localDateTime',
-                        value: activity.created.toString(),
+                        value: activity.updated.toString(),
                     },
                 ]} />
             </Section>
@@ -289,6 +293,7 @@ export async function generateMetadata(
     if (Number.isSafeInteger(activityId)) {
         activityTitle = await db.selectFrom(tActivities)
             .where(tActivities.activityId.equals(activityId))
+                .and(tActivities.activityDeleted.isNull())
             .selectOneColumn(tActivities.activityTitle)
             .executeSelectNoneOrOne() ?? undefined;
     }
