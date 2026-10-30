@@ -170,6 +170,7 @@ export async function createTeam(formData: unknown) {
                 team: data.title,
             });
 
+        Cache.getInstance('AdminNavigationMenuCache').clear();
         Cache.getInstance('Environments').clear();
 
         return {
@@ -322,6 +323,8 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
             return { success: false, error: 'Unable to update the team state in the database…' };
 
         await invalidateTeamCache(teamId);
+
+        Cache.getInstance('AdminNavigationMenuCache').clear();
 
         LogBuilder.for('UpdateTeamEnabled')
             .withCondition(!!affectedRows)
@@ -489,6 +492,7 @@ export async function updateTeam(teamId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to update the team in the database…' };
 
+        Cache.getInstance('AdminNavigationMenuCache').clear();
         Cache.getInstance('Environments').clear();
 
         await invalidateTeamCache(teamId);

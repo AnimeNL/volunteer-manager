@@ -163,6 +163,9 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
             return !!affectedRows;
         });
 
+        Cache.getInstance('AdminNavigationMenuCache').delete(event.slug);
+        Cache.getInstance('AdminNavigationActiveEvents').clear();
+
         LogBuilder.for('UpdateEventTeamParticipation')
             .withCondition(success)
             .withInitiatorUser(props.user)

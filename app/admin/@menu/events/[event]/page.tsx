@@ -23,6 +23,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
+import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
@@ -34,37 +35,49 @@ import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 export default async function EventMenu(props: PageProps<'/admin/events/[event]'>) {
     const { access, event, user } = await requireAuthenticationWithEvent(props);
 
-    const eventsTeamsJoin = tEventsTeams.forUseInLeftJoin();
-    const teamsJoin = tTeams.forUseInLeftJoin();
-
-    // TODO: Cache this query, or reuse the getEvent()/getTeam() caches somehow
     // TODO: Badge for "settings" when dates have not been published yet
 
-    const dbInstance = db;
-    const context = await dbInstance.selectFrom(tEvents)
-        .leftJoin(eventsTeamsJoin)
-            .on(eventsTeamsJoin.eventId.equals(tEvents.eventId))
-            .and(eventsTeamsJoin.enableTeam.equals(/* true= */ 1))
-        .leftJoin(teamsJoin)
-            .on(teamsJoin.teamId.equals(eventsTeamsJoin.teamId))
-        .where(tEvents.eventSlug.equals(event.slug))
-        .select({
-            teams: dbInstance.aggregateAsArray({
-                id: teamsJoin.teamId,
-                name: teamsJoin.teamName,
-                slug: teamsJoin.teamSlug,
-                color: teamsJoin.teamColourLightTheme,
+    const cache = Cache.getInstance('AdminNavigationMenuCache');
+    const context = await cache.getOrInsert(event.slug, async () => {
+        const eventsTeamsJoin = tEventsTeams.forUseInLeftJoin();
+        const teamsJoin = tTeams.forUseInLeftJoin();
 
-                flagEnableDutyBook: teamsJoin.teamFlagEnableDutyBook.equals(/* true= */ 1),
-                flagEnableScheduling: teamsJoin.teamFlagEnableScheduling.equals(/* true= */ 1),
-                flagManagesContent: teamsJoin.teamFlagManagesContent.equals(/* true= */ 1),
-                flagManagesFaq: teamsJoin.teamFlagManagesFaq.equals(/* true= */ 1),
-                flagManagesFirstAid: teamsJoin.teamFlagManagesFirstAid.equals(/* true= */ 1),
-                flagManagesSecurity: teamsJoin.teamFlagManagesSecurity.equals(/* true= */ 1),
-            }),
-        })
-        .groupBy(tEvents.eventId)
-        .executeSelectNoneOrOne();
+        const dbInstance = db;
+        const result = await dbInstance.selectFrom(tEvents)
+            .leftJoin(eventsTeamsJoin)
+                .on(eventsTeamsJoin.eventId.equals(tEvents.eventId))
+                    .and(eventsTeamsJoin.enableTeam.equals(/* true= */ 1))
+            .leftJoin(teamsJoin)
+                .on(teamsJoin.teamId.equals(eventsTeamsJoin.teamId))
+                    .and(teamsJoin.teamDeleted.isNull())
+            .where(tEvents.eventSlug.equals(event.slug))
+            .select({
+                teams: dbInstance.aggregateAsArray({
+                    id: teamsJoin.teamId,
+                    name: teamsJoin.teamName,
+                    slug: teamsJoin.teamSlug,
+                    color: teamsJoin.teamColourLightTheme,
+
+                    flagEnableDutyBook: teamsJoin.teamFlagEnableDutyBook.equals(/* true= */ 1),
+                    flagEnableScheduling: teamsJoin.teamFlagEnableScheduling.equals(/* true= */ 1),
+                    flagManagesContent: teamsJoin.teamFlagManagesContent.equals(/* true= */ 1),
+                    flagManagesFaq: teamsJoin.teamFlagManagesFaq.equals(/* true= */ 1),
+                    flagManagesFirstAid: teamsJoin.teamFlagManagesFirstAid.equals(/* true= */ 1),
+                    flagManagesSecurity: teamsJoin.teamFlagManagesSecurity.equals(/* true= */ 1),
+                }),
+            })
+            .groupBy(tEvents.eventId)
+            .executeSelectNoneOrOne();
+
+        if (!result)
+            return null;
+
+        return {
+            teams: result.teams
+                .filter(team => !!team.id && !!team.name && !!team.slug)
+                .sort((lhs, rhs) => lhs.name!.localeCompare(rhs.name!)),
+        };
+    });
 
     if (!context)
         notFound();
@@ -151,9 +164,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
     ];
 
-    const sortedTeams = context.teams.sort((lhs, rhs) => lhs.name!.localeCompare(rhs.name!));
-
-    for (const team of sortedTeams) {
+    for (const team of context.teams) {
         const eventAndTeamScope = { event: event.slug, team: team.slug };
         items.push({
             color: team.color,
