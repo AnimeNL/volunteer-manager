@@ -14,7 +14,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { formatBytes } from './formatBytes';
+import { formatBytes } from '@app/admin/lib/formatBytes';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kProtectedCaches } from './ProtectedCaches';

@@ -5,6 +5,8 @@
 
 import Chip from '@mui/material/Chip';
 
+import { formatBytes } from '@app/admin/lib/formatBytes';
+
 /**
  * Colours assigned to chips for particular services.
  */
@@ -29,21 +31,8 @@ export function WebhookServiceCell({ row }: { row: { service: string } }) {
 }
 
 /**
- * Size units used to display the size of a received message.
- */
-const kMessageSizeUnit = [ 'bytes', 'KiB', 'MiB', 'GiB' ];
-
-/**
  * Cell that renders the size of the webhook payload in human-readable units.
  */
 export function WebhookSizeCell({ row }: { row: { size: number } }) {
-    let size = row.size;
-    let unitIndex = 0;
-
-    while (size >= 1024) {
-        size /= 1024;
-        unitIndex++;
-    }
-
-    return `${Math.round(size * 100) / 100} ${ kMessageSizeUnit[unitIndex] ?? 'TiB' }`;
+    return formatBytes(row.size);
 }
