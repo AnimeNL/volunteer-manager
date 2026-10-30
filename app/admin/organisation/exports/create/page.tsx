@@ -14,7 +14,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import Stack from '@mui/material/Stack';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import { DiscordIcon } from '../../dashboard/DiscordIcon';
+import { DiscordIcon } from '@app/admin/components/icons/DiscordIcon';
 import { ExportTile } from './ExportTile';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
