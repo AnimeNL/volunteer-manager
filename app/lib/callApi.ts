@@ -3,9 +3,7 @@
 
 import type { ConfirmIdentityDefinition } from '@app/api/auth/confirmIdentity';
 import type { CreateChallengeDefinition } from '@app/api/auth/passkeys/createChallenge';
-import type { CreateScheduleEntryDefinition } from '@app/api/admin/event/schedule/createScheduleEntry';
 import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePasskey';
-import type { DeleteScheduleEntryDefinition } from '@app/api/admin/event/schedule/deleteScheduleEntry';
 import type { DisplayDefinition } from '@app/api/display/route';
 import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyBookMarkAsRead';
 import type { DutyBookReportDefinition } from '@app/api/event/schedule/dutyBookReport';
@@ -32,7 +30,6 @@ import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
-import type { UpdateScheduleEntryDefinition } from '@app/api/admin/event/schedule/updateScheduleEntry';
 
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
@@ -62,7 +59,6 @@ export type ApiEndpoints = {
         '/api/display': DisplayDefinition,
     },
     'post': {
-        '/api/admin/event/schedule/:event/:team': CreateScheduleEntryDefinition,
         '/api/admin/trainings': TrainingsEndpoints['create'],
         '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,
@@ -90,13 +86,11 @@ export type ApiEndpoints = {
     },
     'delete': {
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
-        '/api/admin/event/schedule/:event/:team/:id': DeleteScheduleEntryDefinition,
         '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
-        '/api/admin/event/schedule/:event/:team/:id': UpdateScheduleEntryDefinition,
         '/api/admin/trainings/:id': TrainingsEndpoints['update'],
         '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
         '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],

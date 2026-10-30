@@ -31,8 +31,10 @@ import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPag
 import { DocumentationButton } from '@app/admin/components/Documentation';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
-import { callApi } from '@lib/callApi';
 import { formatDate } from '@lib/Temporal';
+
+import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, updateScheduleSettings }
+    from './ScheduleActions';
 
 /**
  * Information regarding the schedule context.
@@ -105,7 +107,7 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
 
         const availableDays: { date: string, label: string }[] = [];
 
-        if (Temporal.PlainDate.compare(firstDay, lastDay) >= 0)
+        if (Temporal.PlainDate.compare(firstDay, lastDay) > 0)
             throw new Error(`Cannot show available dates when ${firstDay} comes before ${lastDay}`);
 
         let currentDay = firstDay;
@@ -140,8 +142,8 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     // particular button has been selected, or `undefined` when all buttons have been unselected.
     const handleDateChange = useCallback((event: unknown, date?: string) => {
         setDate(date ?? undefined);
-        callApi('post', '/api/auth/settings', { 'user-admin-schedule-date': date || '' })
-            .catch(error => console.error(`Unable to save a setting: ${error}`))
+        updateScheduleSettings({ date: date || '' })
+            .catch(error => console.error(`Unable to save a setting: ${error}`));
 
     }, [ /* no dependencies */ ]);
 
@@ -149,9 +151,8 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     // can now be scheduled for volunteers in this team.
     const handleInclusiveShiftsChange = useCallback((event: unknown, inclusiveShifts: boolean) => {
         setInclusiveShifts(!!inclusiveShifts);
-        callApi('post', '/api/auth/settings', {
-            'user-admin-schedule-inclusive-shifts': inclusiveShifts
-        }).catch(error => console.error(`Unable to save a setting: ${error}`))
+        updateScheduleSettings({ inclusiveShifts })
+            .catch(error => console.error(`Unable to save a setting: ${error}`));
 
     }, [ /* no dependencies */ ]);
 
@@ -190,34 +191,23 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
         try {
             let response: { success: boolean; error?: string };
             if ('created' in change) {
-                response = await callApi('post', '/api/admin/event/schedule/:event/:team', {
-                    event: props.event.slug,
-                    team: props.team.slug,
-                    shift: {
-                        userId: change.created.resource! as number,
-                        shiftId: change.created.shiftId,
-                        start: change.created.start,
-                        end: change.created.end,
-                    },
+                response = await createScheduleEntry(props.event.slug, props.team.slug, {
+                    userId: change.created.resource! as number,
+                    shiftId: change.created.shiftId,
+                    start: change.created.start,
+                    end: change.created.end,
                 });
             } else if ('deleted' in change) {
-                response = await callApi('delete', '/api/admin/event/schedule/:event/:team/:id', {
-                    id: change.deleted.id as any as string[],
-                    event: props.event.slug,
-                    team: props.team.slug,
-                });
+                response = await deleteScheduleEntry(
+                    props.event.slug, props.team.slug, change.deleted.id);
             } else if ('updated' in change) {
-                response = await callApi('put', '/api/admin/event/schedule/:event/:team/:id', {
-                    id: change.updated.id as any as string[],
-                    event: props.event.slug,
-                    team: props.team.slug,
-                    shift: {
+                response = await updateScheduleEntry(
+                    props.event.slug, props.team.slug, change.updated.id, {
                         userId: change.updated.resource! as number,
                         shiftId: change.updated.shiftId,
                         start: change.updated.start,
                         end: change.updated.end,
-                    },
-                });
+                    });
             } else {
                 throw new Error(`Invalid change given: ${'' + change}`);
             }

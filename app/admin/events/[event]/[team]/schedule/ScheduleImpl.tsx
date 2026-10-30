@@ -27,17 +27,17 @@ import Paper from '@mui/material/Paper';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import Skeleton from '@mui/material/Skeleton';
 
+import type { EventScheduleHistoryContext } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { ScheduleEvent, ScheduleEventMutation, ScheduleMarker, ScheduleResource }
     from '@app/admin/components/Schedule';
-
-import type { EventScheduleHistoryContext } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 import { Schedule } from '@app/admin/components/Schedule';
 import { ScheduleContext } from './ScheduleContext';
 import { ScheduleHistoryTable } from './ScheduleHistoryTable';
-import { callApi } from '@lib/callApi';
 import { dayjs } from '@lib/DateTime';
 import { useWindowHeight } from '@app/admin/lib/useWindowHeight';
+
+import { updateScheduleSettings } from './ScheduleActions';
 
 /**
  * Background color to issue to markers on the schedule, depending on what they represent.
@@ -85,7 +85,9 @@ interface ScheduleImplProps {
  * order. Furthermore, it supports all filtering options elsewhere in the user interface.
  */
 export function ScheduleImpl(props: ScheduleImplProps) {
-    const { readOnly, sections } = props;
+    const { readOnly } = props;
+
+    const [ sections, setSections ] = useState<Record<string, boolean>>(props.sections);
 
     const context = useContext(ScheduleContext);
 
@@ -122,7 +124,7 @@ export function ScheduleImpl(props: ScheduleImplProps) {
 
         return { events, markers, resources };
 
-    }, [ context.schedule, sections ])
+    }, [ context.schedule, sections ]);
 
     const { recentShifts, shifts } = useMemo(() => {
         const recentShifts: { id: number; label: string; color: string }[] = [];
@@ -332,10 +334,10 @@ export function ScheduleImpl(props: ScheduleImplProps) {
     // ---------------------------------------------------------------------------------------------
 
     const handleExpansionChange = useCallback((resource: ScheduleResource, expanded: boolean) => {
-        sections[resource.originalName] = !expanded;
-        callApi('post', '/api/auth/settings', {
-            'user-admin-schedule-expand-sections': JSON.stringify(sections),
-        }).catch(error => {
+        const updatedSections = { ...sections, [resource.originalName]: !expanded };
+        setSections(updatedSections);
+
+        updateScheduleSettings({ expandSections: JSON.stringify(updatedSections) }).catch(error => {
             console.error(`Unable to store user settings: ${error}`);
         });
     }, [ sections ]);

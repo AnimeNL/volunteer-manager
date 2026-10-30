@@ -1,10 +1,10 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Event } from '@lib/EventLoader';
+import type { CachedEvent } from '@lib/cache';
+import { determineAvailability } from './determineAvailability';
 import { getTimeslots } from './getTimeslots';
 import { readSettings } from '@lib/Settings';
-import { determineAvailability } from './determineAvailability';
 import db, { tSchedule } from '@lib/database';
 
 /**
@@ -25,13 +25,13 @@ type VolunteerInfo = {
 
 /**
  * Determines whether the given `shift` is valid to schedule for the given `user`. This considers
- * both their existing shfits and their (un)availability, in relation to the current event.
+ * both their existing shifts and their (un)availability, in relation to the current event.
  */
 export async function isValidShift(
-    event: Event, volunteer: VolunteerInfo, shift: ShiftInfo, ignoreShift?: number)
+    event: CachedEvent, volunteer: VolunteerInfo, shift: ShiftInfo, ignoreShift?: number)
         : Promise<boolean>
 {
-    const timeslots = await getTimeslots(event.festivalId);
+    const timeslots = await getTimeslots(event.integrations?.anPlanFestivalId);
     const settings = await readSettings([
         'schedule-day-view-start-time',
         'schedule-event-view-start-hours',
@@ -41,9 +41,9 @@ export async function isValidShift(
     // biome-ignore lint/correctness/noUnusedVariables: not implemented yet
     const availability = determineAvailability({
         event: {
-            startTime: event.temporalStartTime,
-            endTime: event.temporalEndTime,
-            timezone: event.timezone,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            timezone: event.timeZone,
         },
         settings,
         timeslots,
