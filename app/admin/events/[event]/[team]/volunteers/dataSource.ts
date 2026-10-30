@@ -133,10 +133,6 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
         const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
 
         const dbInstance = db;
-        const currentEventStartTime = await dbInstance.selectFrom(tEvents)
-            .where(tEvents.eventId.equals(context.event.id))
-            .selectOneColumn(tEvents.eventStartTime)
-            .executeSelectOne();
 
         const priorEvent = tEvents.as('priorEvent');
         const priorRegistration = tUsersEvents.as('priorRegistration');
@@ -146,7 +142,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             .innerJoin(priorEvent)
                 .on(priorEvent.eventId.equals(priorRegistration.eventId))
             .where(priorRegistration.userId.equals(tUsersEvents.userId))
-                .and(priorEvent.eventStartTime.lessThan(currentEventStartTime))
+                .and(priorEvent.eventStartTime.lessThan(context.event.startTime))
                 .and(priorRegistration.registrationStatus.equals(kRegistrationStatus.Accepted))
             .selectOneColumn(dbInstance.count(priorRegistration.eventId))
             .forUseAsInlineQueryValue();
