@@ -211,7 +211,7 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
 
             await dbInstance.insertInto(tUsersEventsPreferencesAvailability)
                 .set({
-                    userId: props.user!.id,
+                    userId: data.userId,
                     eventId: event.id,
                     teamId: team.id,
                     preferenceVersion: dbInstance.currentZonedDateTime(),
