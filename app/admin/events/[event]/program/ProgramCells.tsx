@@ -53,12 +53,9 @@ export function AnPlanLinkCell(props: { row: { anplanLink?: string } }) {
 }
 
 /**
- * Cell component for displaying an activity title, linking to details for external activities.
+ * Cell component for displaying an activity title, linking to its detail page.
  */
-export function ActivityTitleCell(props: { row: { id: number; title: string; anplanLink?: string } }) {
-    if (!props.row.anplanLink)
-        return <>{props.row.title}</>;
-
+export function ActivityTitleCell(props: { row: { id: number; title: string } }) {
     return (
         <MuiLink component={Link} href={`./activities/${props.row.id}`}>
             {props.row.title}

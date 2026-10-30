@@ -281,6 +281,8 @@ export function SalesDataGrid(props: SalesDataGridProps) {
         }
 
         const productIds = new Set<number>();
+        const rows: SalesDataGridRow[] = [];
+
         for (const row of props.rows) {
             if (row.productIds.length > 1)
                 throw new Error('Expected only a single product ID to be set for a product row.');
@@ -294,8 +296,10 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                     (aggregate.complimentarySales ?? 0) + (row.complimentarySales ?? 0);
                 aggregate.totalRevenue += row.totalRevenue;
                 aggregate.totalSales += row.totalSales;
+
+                rows.push({ ...row });
             } else {
-                row.avoidCategoryAggregation = true;
+                rows.push({ ...row, avoidCategoryAggregation: true });
             }
 
             productIds.add(row.productIds[0]);
@@ -305,7 +309,7 @@ export function SalesDataGrid(props: SalesDataGridProps) {
             [ ...productIds ],
             [
                 ...categoryAggregates.values(),
-                ...props.rows,
+                ...rows,
             ].sort((lhs, rhs) => lhs.product.localeCompare(rhs.product)),
             /* requiresCategoryGrouping= */ categoryAggregates.size > 0
         ];

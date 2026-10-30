@@ -20,6 +20,8 @@ interface TicketSalesCardProps {
  */
 export function TicketSalesCard(props: TicketSalesCardProps) {
     const [ headline, ...historical ] = props.processor.ticketSalesView;
+    if (!headline)
+        return null;
 
     return (
         <KeyMetricCard title="Ticket sales" format="sales" headline={headline}

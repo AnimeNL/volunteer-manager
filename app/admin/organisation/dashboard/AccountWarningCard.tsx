@@ -16,7 +16,7 @@ import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled';
 import Typography from '@mui/material/Typography';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-import { DiscordIcon } from './DiscordIcon';
+import { DiscordIcon } from '@app/admin/components/icons/DiscordIcon';
 import db, { tUsers } from '@lib/database';
 
 /**
