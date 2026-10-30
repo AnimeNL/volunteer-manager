@@ -9,10 +9,6 @@ import Button from '@mui/material/Button';
 import CheckIcon from '@mui/icons-material/Check';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -24,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import type { GetScheduleResult } from '@app/api/admin/event/schedule/getSchedule';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**
  * Props accepted by the <ScheduleHighlightDialog> component.
@@ -114,75 +111,72 @@ export function ScheduleHighlightDialog(props: ScheduleHighlightDialogProps) {
 
     // ---------------------------------------------------------------------------------------------
 
+    const title = (
+        <Stack direction="row" spacing={2} sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        }}>
+            <Typography variant="inherit">
+                Shifts to highlight
+            </Typography>
+            { isUpdating && <CircularProgress color="error" size="1em" /> }
+        </Stack>
+    );
+
     return (
-        <Dialog open fullWidth onClose={props.onClose}>
-            <DialogTitle>
-                <Stack direction="row" spacing={2} sx={{
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                }}>
-                    <Typography variant="inherit">
-                        Shifts to highlight
-                    </Typography>
-                    { isUpdating && <CircularProgress color="error" size="1em" /> }
-                </Stack>
-            </DialogTitle>
-            <DialogContent sx={{ px: 0, '&>ul>*': { py: 0.5 } }}>
-                <List disablePadding>
-                    { props.shifts.map(shift => {
-                        if (!shift.localTeam && !props.inclusiveShifts) return undefined;
+        <ResponsiveDialog open onClose={props.onClose} title={title}
+                          additionalButtons={
+                              <Button onClick={handleClear} loading={isClearing} variant="text"
+                                      size="small">
+                                  Clear all
+                              </Button>
+                          }>
+            <List disablePadding sx={{ '& > *': { py: 0.5 } }}>
+                { props.shifts.map(shift => {
+                    if (!shift.localTeam && !props.inclusiveShifts) return undefined;
 
-                        const callback = handleUpdate.bind(null, shift.id);
-                        const checked = highlightedSet.has(shift.id);
-                        const color = props.teams[shift.team]?.color;
+                    const callback = handleUpdate.bind(null, shift.id);
+                    const checked = highlightedSet.has(shift.id);
+                    const color = props.teams[shift.team]?.color;
 
-                        return (
-                            <ListItemButton key={shift.id} onClick={callback}>
-                                <ListItemIcon>
-                                    <Switch edge="end" size="small" checked={checked} />
-                                </ListItemIcon>
-                                <ListItemText
-                                    slotProps={{
-                                        secondary: {
-                                            color: 'textSecondary',
-                                            sx: {
-                                                pt: !!props.inclusiveShifts ? 0.25 : 0,
-                                            },
-                                        }
-                                    }}
-                                    primary={
-                                        <Stack direction="row" spacing={1}>
-                                            <Typography variant="inherit">
-                                                {shift.label}
-                                            </Typography>
-                                            { !!props.inclusiveShifts &&
-                                                <Chip label={props.teams[shift.team].label}
-                                                      size="small" sx={{
-                                                          backgroundColor: color,
-                                                          color: 'white'
-                                                      }} /> }
-                                        </Stack>
+                    return (
+                        <ListItemButton key={shift.id} onClick={callback}>
+                            <ListItemIcon>
+                                <Switch edge="end" size="small" checked={checked} />
+                            </ListItemIcon>
+                            <ListItemText
+                                slotProps={{
+                                    secondary: {
+                                        color: 'textSecondary',
+                                        sx: {
+                                            pt: !!props.inclusiveShifts ? 0.25 : 0,
+                                        },
                                     }
-                                    secondary={shift.warning} />
-                                { shift.status === 'error' &&
-                                    <ErrorOutlinedIcon fontSize="small" color="error" /> }
-                                { shift.status === 'warning' &&
-                                    <WarningAmberIcon fontSize="small" color="warning" /> }
-                                { shift.status === 'complete' &&
-                                    <CheckIcon fontSize="small" color="success" /> }
-                            </ListItemButton>
-                        );
-                    } )}
-                </List>
-            </DialogContent>
-            <DialogActions sx={{ pt: 2, mr: 1, mb: 1 }}>
-                <Button onClick={handleClear} loading={isClearing} variant="text" size="small">
-                    Clear all
-                </Button>
-                <Button onClick={props.onClose} variant="contained" size="small">
-                    Close
-                </Button>
-            </DialogActions>
-        </Dialog>
+                                }}
+                                primary={
+                                    <Stack direction="row" spacing={1}>
+                                        <Typography variant="inherit">
+                                            {shift.label}
+                                        </Typography>
+                                        { !!props.inclusiveShifts &&
+                                            <Chip label={props.teams[shift.team]?.label}
+                                                  size="small" sx={{
+                                                      backgroundColor: color,
+                                                      color: 'white'
+                                                  }} /> }
+                                    </Stack>
+                                }
+                                secondary={shift.warning} />
+                            { shift.status === 'error' &&
+                                <ErrorOutlinedIcon fontSize="small" color="error" /> }
+                            { shift.status === 'warning' &&
+                                <WarningAmberIcon fontSize="small" color="warning" /> }
+                            { shift.status === 'complete' &&
+                                <CheckIcon fontSize="small" color="success" /> }
+                        </ListItemButton>
+                    );
+                } )}
+            </List>
+        </ResponsiveDialog>
     );
 }

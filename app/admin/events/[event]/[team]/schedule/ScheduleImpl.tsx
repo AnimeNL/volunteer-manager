@@ -12,10 +12,6 @@ import type { PopoverPosition } from '@mui/material/Popover';
 import Button from '@mui/material/Button';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import HistoryIcon from '@mui/icons-material/History';
@@ -30,6 +26,7 @@ import Skeleton from '@mui/material/Skeleton';
 import type { EventScheduleHistoryContext } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { ScheduleEvent, ScheduleEventMutation, ScheduleMarker, ScheduleResource }
     from '@app/admin/components/Schedule';
+import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 import { Schedule } from '@app/admin/components/Schedule';
 import { ScheduleContext } from './ScheduleContext';
@@ -427,23 +424,16 @@ export function ScheduleImpl(props: ScheduleImplProps) {
             </ResponsiveFormDialog>
 
             { !!historyDialogEvent &&
-                <Dialog open onClose={handleHistoryDialogClose} fullWidth maxWidth="md">
-                    <DialogTitle>{historyDialogEvent.title} shift history</DialogTitle>
-                    <DialogContent>
-                        <ScheduleHistoryTable
-                            enableDelete={props.enableHistoryDelete}
-                            enableProfileLinks={props.enableHistoryProfileLinks}
-                            context={{
-                                ...props.historyContext,
-                                scheduleId: `${historyDialogEvent.id}`,
-                            }} />
-                    </DialogContent>
-                    <DialogActions sx={{ pt: 0, mr: 1, mb: 0 }}>
-                        <Button onClick={handleHistoryDialogClose} variant="text">
-                            Close
-                        </Button>
-                    </DialogActions>
-                </Dialog> }
+                <ResponsiveDialog open onClose={handleHistoryDialogClose}
+                                  title={`${historyDialogEvent.title} shift history`}>
+                    <ScheduleHistoryTable
+                        enableDelete={props.enableHistoryDelete}
+                        enableProfileLinks={props.enableHistoryProfileLinks}
+                        context={{
+                            ...props.historyContext,
+                            scheduleId: `${historyDialogEvent.id}`,
+                        }} />
+                </ResponsiveDialog> }
 
             { !!contextMenuEvent &&
                 <Menu open onClose={handleRightClickMenuClose}
