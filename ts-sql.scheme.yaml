@@ -3310,7 +3310,7 @@ tables:
     type: datetime
     nullable: false
   - name: log_integration
-    type: enum('AnimeCon','Email','GenAI','Weeztix','YourTicketProvider')
+    type: enum('AnimeCon','GenAI','Weeztix','YourTicketProvider')
     nullable: false
   - name: log_operation
     type: varchar(256)
@@ -3359,12 +3359,22 @@ tables:
     nullable: true
     default: "NULL"
   indexes:
+  - name: log_date
+    def: KEY log_date (log_date) USING BTREE
+    table: integrations_logs
+    columns:
+    - log_date
   - name: log_integration
     def: KEY log_integration (log_integration, log_operation) USING BTREE
     table: integrations_logs
     columns:
     - log_integration
     - log_operation
+  - name: log_task_id
+    def: KEY log_task_id (log_task_id) USING BTREE
+    table: integrations_logs
+    columns:
+    - log_task_id
   - name: PRIMARY
     def: PRIMARY KEY (log_id) USING BTREE
     table: integrations_logs
@@ -3381,7 +3391,7 @@ tables:
     CREATE TABLE `integrations_logs` (
       `log_id` int(4) NOT NULL AUTO_INCREMENT,
       `log_date` datetime NOT NULL,
-      `log_integration` enum('AnimeCon','Email','GenAI','Weeztix','YourTicketProvider') NOT NULL,
+      `log_integration` enum('AnimeCon','GenAI','Weeztix','YourTicketProvider') NOT NULL,
       `log_operation` varchar(256) NOT NULL,
       `log_user_id` int(4) unsigned DEFAULT NULL,
       `log_task_id` int(4) unsigned DEFAULT NULL,
@@ -3395,7 +3405,9 @@ tables:
       `log_error_cause` text DEFAULT NULL,
       `log_error_stack` text DEFAULT NULL,
       PRIMARY KEY (`log_id`),
-      KEY `log_integration` (`log_integration`,`log_operation`)
+      KEY `log_date` (`log_date`),
+      KEY `log_integration` (`log_integration`,`log_operation`),
+      KEY `log_task_id` (`log_task_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_events_favourites
   type: BASE TABLE

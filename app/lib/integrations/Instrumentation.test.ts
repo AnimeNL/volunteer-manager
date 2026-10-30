@@ -55,6 +55,28 @@ describe('Instrumentation', () => {
         expect(instrumentation.contextForTesting.operation).toHaveLength(255);
     });
 
+    it('truncates input and output payloads exceeding 65,535 characters', async () => {
+        fetchSpy.mockResolvedValueOnce(new Response('b'.repeat(70000), {
+            status: 200,
+        }));
+
+        const instrumentation = Instrumentation.withContext({
+            integration: 'AnimeCon',
+            operation: 'LargePayload',
+        });
+
+        await instrumentation.instrumentedFetch('https://example.com/api', {
+            method: 'POST',
+            body: 'a'.repeat(70000),
+        });
+
+        await instrumentation.completionPromise;
+
+        const status = instrumentation.statusForTesting;
+        expect(status.input).toHaveLength(65535);
+        expect(status.output).toHaveLength(65535);
+    });
+
     it('populates status and calls record() on a successful fetch', async () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), {
             status: 200,

@@ -12,6 +12,11 @@ import db, { tIntegrationsLogs } from '@lib/database';
 const kTaskContextStorage = new AsyncLocalStorage<number>();
 
 /**
+ * Maximum length of a serialized input or output payload, matching MariaDB's `TEXT` column limit.
+ */
+const kMaxPayloadLength = 65535;
+
+/**
  * Runs the given `callback` with `taskId` bound in async-local storage so that any instrumented
  * external API calls made during the task are automatically attributed to `taskId`.
  */
@@ -238,7 +243,7 @@ export class Instrumentation {
             method,
             ...(Object.keys(headers).length > 0 ? { headers } : {}),
             ...(body !== undefined ? { body } : {}),
-        });
+        }).substring(0, kMaxPayloadLength);
     }
 
     /**
@@ -259,7 +264,7 @@ export class Instrumentation {
             ...(response.statusText ? { statusText: response.statusText } : {}),
             ...(Object.keys(headers).length > 0 ? { headers } : {}),
             ...(body !== undefined ? { body } : {}),
-        });
+        }).substring(0, kMaxPayloadLength);
     }
 
     /**
@@ -267,32 +272,36 @@ export class Instrumentation {
      * cannot rely on Next.js being on the call path for use of e.g. `after()`.
      */
     private async record() {
-        const dbInstance = db;
-        await dbInstance.insertInto(tIntegrationsLogs)
-            .set({
-                logDate: dbInstance.currentZonedDateTime(),
-                logIntegration: this.#context.integration,
-                logOperation: this.#context.operation,
-                logUserId: this.#context.userId,
-                logTaskId: this.#context.taskId,
-                logStatus: this.#status.status,
-                logInput: this.#status.input,
-                logOutput: this.#status.output,
-                logDurationMs: this.#status.durationMs,
-                logDurationTtfbMs: this.#status.durationTimeToFirstByteMs,
-                logErrorName: this.#status.exception?.name,
-                logErrorMessage: this.#status.exception?.message,
-                logErrorCause:
-                    this.#status.exception?.cause
-                        ? (this.#status.exception.cause instanceof Error
-                              ? String(this.#status.exception.cause)
-                              : (typeof this.#status.exception.cause === 'object'
-                                     ? JSON.stringify(this.#status.exception.cause)
-                                     : String(this.#status.exception.cause)))
-                        : undefined,
-                logErrorStack: this.#status.exception?.stack,
-            })
-            .executeInsert();
+        try {
+            const dbInstance = db;
+            await dbInstance.insertInto(tIntegrationsLogs)
+                .set({
+                    logDate: dbInstance.currentZonedDateTime(),
+                    logIntegration: this.#context.integration,
+                    logOperation: this.#context.operation,
+                    logUserId: this.#context.userId,
+                    logTaskId: this.#context.taskId,
+                    logStatus: this.#status.status,
+                    logInput: this.#status.input,
+                    logOutput: this.#status.output,
+                    logDurationMs: this.#status.durationMs,
+                    logDurationTtfbMs: this.#status.durationTimeToFirstByteMs,
+                    logErrorName: this.#status.exception?.name,
+                    logErrorMessage: this.#status.exception?.message,
+                    logErrorCause:
+                        this.#status.exception?.cause
+                            ? (this.#status.exception.cause instanceof Error
+                                  ? String(this.#status.exception.cause)
+                                  : (typeof this.#status.exception.cause === 'object'
+                                         ? JSON.stringify(this.#status.exception.cause)
+                                         : String(this.#status.exception.cause)))
+                            : undefined,
+                    logErrorStack: this.#status.exception?.stack,
+                })
+                .executeInsert();
+        } catch (error) {
+            console.error('Unable to record integration instrumentation log:', error);
+        }
     }
 }
 
