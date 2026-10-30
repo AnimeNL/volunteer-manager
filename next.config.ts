@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     devIndicators: {
         position: 'bottom-right',
     },
+    enablePrerenderSourceMaps: isProductionBuild,
     env: {
         // Information about the project, sourced from the package.json file:
         NEXT_PUBLIC_PROJECT_BUILD_DATE: new Date().toISOString(),
