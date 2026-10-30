@@ -55,7 +55,7 @@ export interface ResponsiveDialogProps<T extends React.JSXElementConstructor<any
     /**
      * Callback when the dialog/drawer is closed or cancelled.
      */
-    onClose: () => void;
+    onClose?: () => void;
 
     /**
      * Whether the dialog/drawer should be open.
@@ -65,7 +65,7 @@ export interface ResponsiveDialogProps<T extends React.JSXElementConstructor<any
     /**
      * Title of the action/dialog.
      */
-    title: string | undefined;
+    title?: React.ReactNode;
 }
 
 /**

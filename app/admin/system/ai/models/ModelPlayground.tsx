@@ -5,12 +5,12 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { TextareaAutosizeElement, useFormContext } from 'react-hook-form-mui';
+import { TextareaAutosizeElement, useFormContext } from '@components/proxy/react-hook-form-mui';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Collapse from '@mui/material/Collapse';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
@@ -60,10 +60,8 @@ export function ModelPlayground(props: ModelPlaygroundProps) {
         if (!result.success)
             return result;
 
-        if ('generatedImage' in result) {
+        if ('generatedImage' in result)
             setGeneratedImage(result.generatedImage);
-            console.log(result.generatedImage);
-        }
         if ('generatedText' in result)
             setGeneratedText(result.generatedText);
 

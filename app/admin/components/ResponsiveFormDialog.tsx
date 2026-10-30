@@ -6,8 +6,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { DefaultValues, FieldValues, FormContainerProps } from '@proxy/react-hook-form-mui';
-import { FormContainer, useForm } from '@proxy/react-hook-form-mui';
+import type { DefaultValues, FieldValues, SubmitHandler, UseFormReturn }
+    from '@proxy/react-hook-form-mui';
+import { FormProvider, useForm } from '@proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -108,7 +109,8 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
         setLoading(false);
 
         // Attempt to force focus on the submit button after a slight delay:
-        setTimeout(() => submitButtonRef.current?.focus(), 150);
+        const timer = setTimeout(() => submitButtonRef.current?.focus(), 150);
+        return () => clearTimeout(timer);
 
     }, [ defaultValues, formContextReset, props.open ]);
 
@@ -148,10 +150,9 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
     // ---------------------------------------------------------------------------------------------
 
     const ContainerProps = useMemo(() => ({
-        defaultValues: defaultValues,
         formContext: formContext,
         onSuccess: handleSuccess,
-    }), [ formContext, handleSuccess, defaultValues ]);
+    }), [ formContext, handleSuccess ]);
 
     return (
         <ResponsiveDialog closeLabel="Cancel"
@@ -184,13 +185,25 @@ export function ResponsiveFormDialog<T extends FieldValues = FieldValues>(
 }
 
 /**
- * Intercepting container that wraps `<FormContainer>` in a `<div>` that stops propagation of the
+ * Props accepted by the <InterceptingFormContainer> component.
+ */
+interface InterceptingFormContainerProps {
+    formContext: UseFormReturn<any>;
+    onSuccess: SubmitHandler<FieldValues>;
+}
+
+/**
+ * Intercepting container that wraps `<FormProvider>` in a `<div>` that stops propagation of the
  * `submit` event, preventing parent forms from being submitted when this dialog's form is submitted.
  */
-function InterceptingFormContainer(props: FormContainerProps) {
+function InterceptingFormContainer(props: React.PropsWithChildren<InterceptingFormContainerProps>) {
     return (
         <div onSubmit={event => event.stopPropagation()}>
-            <FormContainer {...props} />
+            <FormProvider {...props.formContext}>
+                <form noValidate onSubmit={props.formContext.handleSubmit(props.onSuccess)}>
+                    {props.children}
+                </form>
+            </FormProvider>
         </div>
     );
 }
