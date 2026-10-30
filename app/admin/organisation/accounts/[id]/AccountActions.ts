@@ -260,7 +260,7 @@ export async function createAccount(formData: unknown) {
             operation: 'create',
         });
 
-        if (!isUsernameAvailable(data.username))
+        if (!await isUsernameAvailable(data.username))
             return { success: false, error: 'This e-mail address already has an account…' };
 
         const userId = await db.insertInto(tUsers)
