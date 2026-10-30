@@ -37,6 +37,17 @@ const nextConfig: NextConfig = {
         // https://nextjs.org/blog/next-15-1#forbidden-and-unauthorized-experimental
         authInterrupts: true,
 
+        optimizePackageImports: [
+            '@mdxeditor/editor',
+            '@mui/x-charts',
+            '@mui/x-charts-premium',
+            '@mui/x-data-grid',
+            '@mui/x-data-grid-premium',
+            '@mui/x-date-pickers',
+            '@mui/x-scheduler-premium',
+            'react-hook-form-mui',
+        ],
+
         cpus: 8,
         workerThreads: true,
 
