@@ -3,22 +3,18 @@
 
 'use client';
 
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Grid, { gridClasses } from '@mui/material/Grid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
-import { AdminClientContext } from '../AdminClientContext';
 import { InlineAccountLink } from './InlineAccountLink';
 import { LocalDateTime } from './LocalDateTime';
+import { ResponsiveDialog } from './ResponsiveDialog';
+import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
 /**
  * Props accepted by the <KeyValueList> component.
@@ -98,7 +94,7 @@ interface KeyValueListProps {
  * components, in a consistent and responsive manner.
  */
 export function KeyValueList(props: KeyValueListProps) {
-    const { isMobile } = useContext(AdminClientContext);
+    const isMobile = useIsMobile();
     const [ activeItem, setActiveItem ] =
         useState<{ key: React.ReactNode; description: string } | null>(null);
 
@@ -158,17 +154,9 @@ export function KeyValueList(props: KeyValueListProps) {
                         </Grid>
                     </React.Fragment> )}
             </KeyValueListGrid>
-            { !!activeItem && (
-                <Dialog open={true} onClose={handleCloseDialog} fullWidth>
-                    <DialogTitle>{activeItem.key}</DialogTitle>
-                    <DialogContent>
-                        <Typography variant="body2">{activeItem.description}</Typography>
-                    </DialogContent>
-                    <DialogActions sx={{ pt: 0, mt: -1, mr: 1, ml: 1.5, mb: 0 }}>
-                        <Button onClick={handleCloseDialog}>Close</Button>
-                    </DialogActions>
-                </Dialog>
-            )}
+            { !!activeItem &&
+                <ResponsiveDialog open onClose={handleCloseDialog} title={activeItem.key}
+                                  description={activeItem.description} /> }
         </>
     );
 }
