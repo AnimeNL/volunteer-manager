@@ -48,6 +48,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
 ENV NODE_ENV=production
+ENV NEXT_BUILD_STANDALONE=1
 
 # Build Next.js application
 RUN --mount=type=cache,target=/app/.next/cache \

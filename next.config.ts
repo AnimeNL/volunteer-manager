@@ -10,6 +10,8 @@ import muiDataGridPremiumPackage from '@mui/x-data-grid-premium/package.json' wi
 import reactPackage from 'react/package.json' with { type: 'json' };
 import volunteerManagerPackage from './package.json' with { type: 'json' };
 
+const isProductionBuild = Boolean(process.env.SOURCE_COMMIT || process.env.NEXT_BUILD_STANDALONE);
+
 const nextConfig: NextConfig = {
     allowedDevOrigins: [ '192.168.19.96', 'localhost' ],
     devIndicators: {
@@ -38,7 +40,7 @@ const nextConfig: NextConfig = {
             bodySizeLimit: '5mb',
         },
     },
-    output: 'standalone',
+    output: isProductionBuild ? 'standalone' : undefined,
     reactStrictMode: true,
     redirects: async() => ([
         {
