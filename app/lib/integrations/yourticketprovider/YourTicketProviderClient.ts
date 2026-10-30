@@ -37,11 +37,6 @@ export interface YourTicketProviderClientSettings {
      * Endpoint through which we can check YourTicketProvider's sales queue load.
      */
     queueEndpoint?: string;
-
-    /**
-     * Unique ID of the user on whose behalf API calls are being made, if any.
-     */
-    userId?: number;
 }
 
 /**
@@ -411,7 +406,6 @@ export class YourTicketProviderClient {
         const instrumentation = Instrumentation.withContext({
             integration: 'YourTicketProvider',
             operation,
-            userId: this.#settings.userId,
         });
 
         const response = await instrumentation.instrumentedFetch(endpoint, {
@@ -497,7 +491,6 @@ export class YourTicketProviderClient {
         const instrumentation = Instrumentation.withContext({
             integration: 'YourTicketProvider',
             operation,
-            userId: this.#settings.userId,
         });
 
         const response = await instrumentation.instrumentedFetch(endpoint, {

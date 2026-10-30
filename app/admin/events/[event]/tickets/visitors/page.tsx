@@ -82,7 +82,7 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
     },
 
     async list(params, props, context) {
-        const service = await createTicketService(context.event.slug, props.user?.id);
+        const service = await createTicketService(context.event.slug);
         if (!service)
             return { rowCount: 0, rows: [] };
 
@@ -138,12 +138,12 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
 export default async function EventTicketsVisitorsPage(
     props: PageProps<'/admin/events/[event]/tickets/visitors'>)
 {
-    const { event, user } = await requireAuthenticationWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });
 
-    const service = await createTicketService(event.slug, user.id);
+    const service = await createTicketService(event.slug);
     if (!service)
         notFound();
 

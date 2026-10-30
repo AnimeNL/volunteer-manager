@@ -31,9 +31,9 @@ type WeeztixClientFn = <T>(fn: (client: WeeztixClient) => Promise<T>) => Promise
  * quick insight in values (such as event GUIDs) that may be repeatedly needed.
  */
 export default async function WeeztixIntegrationPage() {
-    const { user } = await requireAuthentication('system.integrations');
+    await requireAuthentication('system.integrations');
 
-    const client = await createWeeztixClient({ userId: user.id });
+    const client = await createWeeztixClient();
 
     let queue: Promise<unknown> = Promise.resolve();
     const clientFn: WeeztixClientFn = fn => {

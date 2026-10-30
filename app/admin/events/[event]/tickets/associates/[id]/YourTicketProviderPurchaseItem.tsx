@@ -53,12 +53,13 @@ interface YourTicketProviderPurchaseItemProps {
  * the editable properties associated with an individual ticket.
  */
 export async function YourTicketProviderPurchaseItem(props: YourTicketProviderPurchaseItemProps) {
-    const client = props.service.client as YourTicketProviderClient;
-
     const ticketId = Number(props.ticket.id);
 
     const cache = Cache.getInstance('EventTicketCache');
-    const ticket = cache.getOrInsert(ticketId, async () => client.getPurchaseItem(ticketId));
+    const ticket = cache.getOrInsert(ticketId, async () => {
+        const client = await props.service.getClient() as YourTicketProviderClient;
+        return client.getPurchaseItem(ticketId);
+    });
 
     const updateTicketFn =
         props.readOnly ? undefined

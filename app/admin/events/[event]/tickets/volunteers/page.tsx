@@ -58,7 +58,7 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
     },
 
     async list(params, props, context) {
-        const service = await createTicketService(context.event.slug, props.user?.id);
+        const service = await createTicketService(context.event.slug);
         if (!service)
             return { rowCount: 0, rows: [] };  // no service is available
 

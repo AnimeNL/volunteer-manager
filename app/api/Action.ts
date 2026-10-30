@@ -12,6 +12,7 @@ import type { User } from '@lib/auth/User';
 import { AccessControl } from '@lib/auth/AccessControl';
 import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { getAuthenticationContextFromHeaders } from '@lib/auth/AuthenticationContext';
+import { runWithUserContext } from '@lib/integrations/Instrumentation';
 
 import { kAuthType } from '@lib/database/Types';
 
@@ -210,15 +211,18 @@ export async function executeAction<T extends ActionZodObject>(
                 } : await getAuthenticationContextFromHeaders(request.headers);
 
         const responseHeaders = new Headers();
-        const response = await action((result.data as any).request, {
+        const props: ActionProps = {
             access: authenticationContext.access,
             authenticationContext,
             ip: request.headers.get('x-forwarded-for') ?? undefined,
             origin: request.headers.get('host') ?? 'animecon.team',
             requestHeaders: request.headers,
             responseHeaders,
-            user: authenticationContext.user
-        });
+            user: authenticationContext.user,
+        };
+
+        const response = await runWithUserContext(
+            authenticationContext.user?.id, () => action((result.data as any).request, props));
 
         const responseValidation = responseInterfaceDefinition.safeParse({ response });
         if (responseValidation.success) {

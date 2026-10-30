@@ -30,14 +30,14 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 export default async function EventTicketsVisitorPurchasePage(
     props: PageProps<'/admin/events/[event]/tickets/visitors/[type]/[id]'>)
 {
-    const { event, user } = await requireAuthenticationWithEvent(props, {
+    const { event } = await requireAuthenticationWithEvent(props, {
         permission: 'event.tickets',
         operation: 'read',
     });
 
     const { type, id: purchaseId } = await props.params;
 
-    const service = await createTicketService(event.slug, user.id);
+    const service = await createTicketService(event.slug);
     const tickets = await service?.listTicketTypes();
 
     const ticket = tickets?.find(ticket => ticket.id.toString() === type);

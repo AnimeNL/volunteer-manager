@@ -7,6 +7,7 @@ import { IncidentSummaryPrompt } from '@lib/ai/prompts';
 import { Publish } from '@lib/subscriptions';
 import { TaskWithParams } from '../Task';
 import { createAiClient } from '@lib/integrations/genai';
+import { runWithUserContext } from '@lib/integrations/Instrumentation';
 import { scheduleTask } from '@lib/scheduler';
 import db, { tDutyBook, tUsers } from '@lib/database';
 
@@ -93,10 +94,12 @@ export class DutyBookSummaryTask extends TaskWithParams<TaskParams> {
             incident: incident.text,
         });
 
-        const client = await createAiClient({ userId: incident.user.id });
-        const summary = await client.safeGenerateText({
-            complexity: 'low',
-            prompt
+        const summary = await runWithUserContext(incident.user.id, async () => {
+            const client = await createAiClient();
+            return client.safeGenerateText({
+                complexity: 'low',
+                prompt,
+            });
         });
 
         if (!summary.success) {

@@ -16,11 +16,9 @@ import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@l
 export class YourTicketProvider implements TicketService {
     #client: YourTicketProviderClient | undefined;
     #eventId: number;
-    #userId?: number;
 
-    constructor(eventId: number, userId?: number) {
+    constructor(eventId: number) {
         this.#eventId = eventId;
-        this.#userId = userId;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -29,10 +27,10 @@ export class YourTicketProvider implements TicketService {
 
     get id(): EventTicketProvider { return 'YourTicketProvider' };
     get eventId(): number | string { return this.#eventId; }
-    get client(): unknown { return this.#client; }
 
-    async initialise(): Promise<void> {
-        this.#client = await createYourTicketProviderClient({ userId: this.#userId });
+    async getClient(): Promise<YourTicketProviderClient> {
+        this.#client ??= await createYourTicketProviderClient();
+        return this.#client;
     }
 
     createPurchaseLink(purchaseId: number | string): string | undefined {
@@ -41,10 +39,8 @@ export class YourTicketProvider implements TicketService {
     }
 
     async cancelPurchase(purchaseId: number | string): Promise<void> {
-        if (!this.#client)
-            throw new Error('Unable to execute cancelPurchase() without a valid client');
-
-        const _cancelledPurchase = await this.#client.postCancelPurchase(Number(purchaseId));
+        const client = await this.getClient();
+        const _cancelledPurchase = await client.postCancelPurchase(Number(purchaseId));
         // TODO: Figure out what to do with |_cancelledPurchase|, if anything?
 
         const dbInstance = db;
@@ -60,10 +56,8 @@ export class YourTicketProvider implements TicketService {
     }
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
-        if (!this.#client)
-            throw new Error('Unable to execute createTicket() without a valid client');
-
-        const ticket = await this.#client.createTicket(this.#eventId, {
+        const client = await this.getClient();
+        const ticket = await client.createTicket(this.#eventId, {
             EventId: this.#eventId,
             Email: request.emailAddress,
             IncludeTicketGuarantee: false,
@@ -208,10 +202,8 @@ export class YourTicketProvider implements TicketService {
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
-        if (!this.#client)
-            throw new Error('Unable to execute sendPurchaseConfirmation() without a valid client');
-
-        await this.#client.postEmailPurchase(Number(purchaseId));
+        const client = await this.getClient();
+        await client.postEmailPurchase(Number(purchaseId));
 
         return true;
     }

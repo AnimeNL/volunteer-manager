@@ -98,7 +98,7 @@ const kTicketingProviderOptions = [
 export default async function EventSettingsConfigurationPage(
     props: PageProps<'/admin/events/[event]/settings/configuration'>)
 {
-    const { access, event, user } = await requireAuthenticationWithEvent(props, 'event.settings');
+    const { access, event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);
@@ -154,7 +154,7 @@ export default async function EventSettingsConfigurationPage(
         })
         .executeSelectOne();
 
-    const service = await createTicketService(event.slug, user.id);
+    const service = await createTicketService(event.slug);
 
     const anonymizeRefundsFn = access.can('root')
         ? actions.anonymizeRefundRequests.bind(null, event.slug)

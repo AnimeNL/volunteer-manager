@@ -118,7 +118,7 @@ export async function executeCommunicationPrompt(
         }
 
         const prompt = PromptFactory.createById(id);
-        const executor = PromptExecutor.forPrompt(prompt, props.user.id);
+        const executor = PromptExecutor.forPrompt(prompt);
 
         let parameters: Parameters<typeof executor['execute']>[0] | undefined;
 
@@ -241,7 +241,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
         if (!promptInstance)
             notFound();
 
-        const executor = PromptExecutor.forPrompt(promptInstance, props.user.id);
+        const executor = PromptExecutor.forPrompt(promptInstance);
 
         switch (promptInstance.metadata.type) {
             case 'Communication': {

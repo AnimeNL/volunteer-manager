@@ -20,14 +20,9 @@ export interface TicketService {
     get eventId(): number | string;
 
     /**
-     * Returns the client used by this ticket service.
+     * Lazily initializes and returns the underlying API client used by this ticket service.
      */
-    get client(): unknown;
-
-    /**
-     * One-time initialisation of the ticket backend. Guaranteed to be called before any other API.
-     */
-    initialise(): Promise<void>;
+    getClient(): Promise<unknown>;
 
     /**
      * Cancels the purchase identified by the given `purchaseId`.

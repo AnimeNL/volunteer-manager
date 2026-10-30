@@ -3,7 +3,7 @@
 
 import { vi } from 'vitest';
 
-import { Instrumentation, runWithTaskContext } from './Instrumentation';
+import { Instrumentation, runWithTaskContext, runWithUserContext } from './Instrumentation';
 
 describe('Instrumentation', () => {
     let fetchSpy: ReturnType<typeof vi.spyOn>;
@@ -42,6 +42,20 @@ describe('Instrumentation', () => {
                 integration: 'AnimeCon',
                 operation: 'SyncActivities',
                 taskId: 99,
+            });
+        });
+
+        await runWithUserContext(77, async () => {
+            const withinUser = Instrumentation.withContext({
+                integration: 'AnimeCon',
+                operation: 'GetFloors',
+            });
+
+            expect(withinUser.contextForTesting).toEqual({
+                integration: 'AnimeCon',
+                operation: 'GetFloors',
+                taskId: undefined,
+                userId: 77,
             });
         });
     });

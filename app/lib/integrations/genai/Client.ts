@@ -98,11 +98,6 @@ export interface ClientSettings {
          */
         thinkingLevel?: TextGenerationThinkingLevel;
     };
-
-    /**
-     * Unique ID of the user on whose behalf API calls are being made, if any.
-     */
-    userId?: number;
 };
 
 /**
@@ -474,7 +469,6 @@ export class Client {
         const instrumentation = Instrumentation.withContext({
             integration: 'GenAI',
             operation,
-            userId: this.#settings.userId,
         });
 
         return instrumentation.instrumentedFetch(input, init, {

@@ -76,7 +76,7 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
     },
 
     async list(params, props, context) {
-        const service = await createTicketService(context.event.slug, props.user?.id);
+        const service = await createTicketService(context.event.slug);
         if (!service)
             return { rowCount: 0, rows: [] };  // no service is available
 
@@ -144,12 +144,12 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
 export default async function EventTicketsAssociatesPage(
     props: PageProps<'/admin/events/[event]/tickets/associates'>)
 {
-    const { access, event, user } = await requireAuthenticationWithEvent(props, {
+    const { access, event } = await requireAuthenticationWithEvent(props, {
         permission: 'volunteers.tickets',
         operation: 'read',
     });
 
-    const service = await createTicketService(event.slug, user.id);
+    const service = await createTicketService(event.slug);
     const serviceCanCreateTickets =
         service && access.can('volunteers.tickets', 'create', { event: event.slug });
 

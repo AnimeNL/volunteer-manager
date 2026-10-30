@@ -12,6 +12,7 @@ import { AccessControl } from './auth/AccessControl';
 import { RecordErrorLog, kLogSeverity } from './Log';
 import { getAuthenticationContextFromHeaders, type AuthenticationContext }
     from './auth/AuthenticationContext';
+import { runWithUserContext } from './integrations/Instrumentation';
 
 import { kAuthType } from './database/Types';
 
@@ -328,7 +329,8 @@ export async function executeServerAction<T extends ZodType,
         // (3) Execute the actual server action with all validated and gathered data
         // -----------------------------------------------------------------------------------------
 
-        const result = await action(data.data, props);
+        const result = await runWithUserContext(
+            authenticationContext.user?.id, () => action(data.data, props));
         if (typeof result === 'object')
             return result;
 

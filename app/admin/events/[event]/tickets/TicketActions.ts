@@ -96,7 +96,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             };
         }
 
-        const service = await createTicketService(event.id, props.user.id);
+        const service = await createTicketService(event.id);
         if (!service || !event.tickets?.volunteerTicketId)
             notFound();
 
@@ -186,7 +186,7 @@ export async function createAssociateTicket(eventSlug: string, formData: unknown
                 operation: 'create',
             });
 
-        const service = await createTicketService(event.id, props.user.id);
+        const service = await createTicketService(event.id);
         if (!service || !event.tickets?.volunteerTicketId)
             notFound();
 
@@ -215,7 +215,7 @@ export async function createAssociateTicket(eventSlug: string, formData: unknown
             switch (service.id) {
                 case 'YourTicketProvider':
                     await YourTicketProviderImportTask.importPurchase(
-                        Number(service.eventId), Number(ticket.purchaseId), props.user.id);
+                        Number(service.eventId), Number(ticket.purchaseId));
                     break;
             }
         } catch (error) {
@@ -277,7 +277,7 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
                 operation: 'update',
             });
 
-        const service = await createTicketService(event.id, props.user.id);
+        const service = await createTicketService(event.id);
         if (!service || !event.tickets?.volunteerTicketId)
             notFound();
 
@@ -333,11 +333,11 @@ export async function updateYourTicketProviderPurchase(
             };
         }
 
-        const service = await createTicketService(event.id, props.user.id);
-        if (!service || !service.client)
+        const service = await createTicketService(event.id);
+        if (!service || service.id !== 'YourTicketProvider')
             notFound();
 
-        const client = service.client as YourTicketProviderClient;
+        const client = await service.getClient() as YourTicketProviderClient;
         await client.postUpdatePurchase(purchaseId, {
             Email: data.Email,
             IncludeTicketGuarantee: false,
@@ -386,11 +386,11 @@ export async function updateYourTicketProviderTicket(
                 operation: 'update',
             });
 
-        const service = await createTicketService(event.id, props.user.id);
-        if (!service || !service.client)
+        const service = await createTicketService(event.id);
+        if (!service || service.id !== 'YourTicketProvider')
             notFound();
 
-        const client = service.client as YourTicketProviderClient;
+        const client = await service.getClient() as YourTicketProviderClient;
         const ticket = await client.patchPurchaseItem(purchaseItemId, {
             TicketHolderFirstname: data.TicketHolderFirstname,
             TicketHolderLastname: data.TicketHolderLastname,

@@ -43,11 +43,6 @@ export interface AnimeConAuthSettings {
      * list, e.g. "foo, bar, baz".
      */
     scopes: string;
-
-    /**
-     * Unique ID of the user on whose behalf API calls are being made, if any.
-     */
-    userId?: number;
 }
 
 /**
@@ -95,7 +90,6 @@ export class AnimeConAuth {
     #username: string;
     #password: string;
     #scopes: string;
-    #userId?: number;
 
     constructor(settings: AnimeConAuthSettings) {
         this.#authEndpoint = settings.authEndpoint;
@@ -104,7 +98,6 @@ export class AnimeConAuth {
         this.#username = settings.username;
         this.#password = settings.password;
         this.#scopes = settings.scopes;
-        this.#userId = settings.userId;
 
         if (settings.revalidateCache)
             revalidateTag(kNextRevalidationToken, 'max');
@@ -127,7 +120,6 @@ export class AnimeConAuth {
         const instrumentation = Instrumentation.withContext({
             integration: 'AnimeCon',
             operation: this.#authEndpoint,
-            userId: this.#userId,
         });
 
         const response = await instrumentation.instrumentedFetch(this.#authEndpoint, {

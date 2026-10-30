@@ -12,6 +12,11 @@ import db, { tIntegrationsLogs } from '@lib/database';
 const kTaskContextStorage = new AsyncLocalStorage<number>();
 
 /**
+ * Async-local storage tracking the active `userId` on whose behalf API calls are being made.
+ */
+const kUserContextStorage = new AsyncLocalStorage<number>();
+
+/**
  * Maximum length of a serialized input or output payload, matching MariaDB's `TEXT` column limit.
  */
 const kMaxPayloadLength = 65535;
@@ -22,6 +27,17 @@ const kMaxPayloadLength = 65535;
  */
 export function runWithTaskContext<T>(taskId: number, callback: () => Promise<T>): Promise<T> {
     return kTaskContextStorage.run(taskId, callback);
+}
+
+/**
+ * Runs the given `callback` with `userId` bound in async-local storage so that any instrumented
+ * external API calls made during the callback are automatically attributed to `userId`.
+ */
+export function runWithUserContext<T>(
+    userId: number | undefined, callback: () => Promise<T>): Promise<T>
+{
+    return userId !== undefined ? kUserContextStorage.run(userId, callback)
+                                : callback();
 }
 
 /**
@@ -99,14 +115,15 @@ interface InstrumentedFetchOptions {
  */
 export class Instrumentation {
     /**
-     * Creates a new Instrumentation instance for the given `context`. The task ID will be injected
-     * automatically when this can be derived from the execution context.
+     * Creates a new Instrumentation instance for the given `context`. The task ID and user ID will
+     * be injected automatically when they can be derived from the execution context.
      */
     public static withContext(context: Omit<InstrumentationContext, 'taskId'>): Instrumentation {
         return new Instrumentation({
             ...context,
             operation: context.operation.substring(0, 255),
             taskId: kTaskContextStorage.getStore(),
+            userId: context.userId ?? kUserContextStorage.getStore(),
         });
     }
 

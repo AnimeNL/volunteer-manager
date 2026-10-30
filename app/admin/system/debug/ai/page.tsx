@@ -22,7 +22,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * The <SystemDebugAiPage> contains a collection of AI-related test cases.
  */
 export default async function SystemDebugAiPage() {
-    const { user } = await requireAuthentication('system.internals.debug');
+    await requireAuthentication('system.internals.debug');
 
     return (
         <>
@@ -39,12 +39,12 @@ export default async function SystemDebugAiPage() {
             </Section>
             <Section icon={ <StreamIcon /> } title="Text generation" subtitle="Streaming">
                 <Suspense fallback={ <Skeleton height={8} /> }>
-                    <StreamTextResponse userId={user.id} />
+                    <StreamTextResponse />
                 </Suspense>
             </Section>
             <Section icon={ <ModelTrainingIcon /> } title="Models">
                 <Suspense fallback={ <Skeleton height={8} /> }>
-                    <ListAvailableModels userId={user.id} />
+                    <ListAvailableModels />
                 </Suspense>
             </Section>
         </>
@@ -54,8 +54,8 @@ export default async function SystemDebugAiPage() {
 /**
  * Asynchronous component that queries the list of models available through our AI client.
  */
-async function ListAvailableModels(props: { userId: number }) {
-    const client = await createAiClient({ userId: props.userId });
+async function ListAvailableModels() {
+    const client = await createAiClient();
     const models = await client.listModels();
 
     return (
@@ -75,8 +75,8 @@ async function ListAvailableModels(props: { userId: number }) {
 /**
  * Asynchronous component that streams a text generation query back to the client.
  */
-async function StreamTextResponse(props: { userId: number }) {
-    const client = await createAiClient({ userId: props.userId });
+async function StreamTextResponse() {
+    const client = await createAiClient();
     const stream = await client.generateTextStream({
         complexity: 'low',
         prompt: 'Tell me an original story about a rabbit in at least 50 words.',

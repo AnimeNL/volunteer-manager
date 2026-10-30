@@ -11,7 +11,7 @@ import { getEvent } from '@lib/cache';
  * or an URL-safe event slug. An instance of the `TicketService` will be returned when successful,
  * whereas `undefined` will be returned when no ticket service is available.
  */
-export async function createTicketService(eventIdentifier: number | string, userId?: number)
+export async function createTicketService(eventIdentifier: number | string)
     : Promise<TicketService | undefined>
 {
     const event = await getEvent(eventIdentifier);
@@ -27,18 +27,11 @@ export async function createTicketService(eventIdentifier: number | string, user
             break;
 
         case 'YourTicketProvider':
-            if (!!event?.integrations?.yourTicketProviderEventId) {
-                service = new YourTicketProvider(
-                    event.integrations.yourTicketProviderEventId, userId);
-            }
+            if (!!event?.integrations?.yourTicketProviderEventId)
+                service = new YourTicketProvider(event.integrations.yourTicketProviderEventId);
 
             break;
     }
-
-    if (!service)
-        return undefined;
-
-    await service.initialise();
 
     return service;
 }
