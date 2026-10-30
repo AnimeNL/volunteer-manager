@@ -1,7 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { syncScrypt } from 'scrypt-js';
+import crypto from 'node:crypto';
 
 /**
  * Securely hashes the given |sha256Password|, considering the application's salt, so that it's
@@ -87,6 +87,9 @@ export function securePasswordHashWithRequest(request: SecurePasswordHashRequest
     const p = request.p ?? 5;
     const dkLen = request.dkLen ?? /* 32 bytes, or 64 bytes when HEX-encoded= */ 32;
 
-    const hash = syncScrypt(Buffer.from(sha256Password), Buffer.from(salt), N, r, p, dkLen);
-    return Buffer.from(hash).toString('hex');
+    const hash = crypto.scryptSync(sha256Password, salt, dkLen, {
+        N, r, p,
+        maxmem: Math.max(32 * 1024 * 1024, 256 * N * r),
+    });
+    return hash.toString('hex');
 }
