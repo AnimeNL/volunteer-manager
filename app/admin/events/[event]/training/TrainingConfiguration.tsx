@@ -10,12 +10,13 @@ import { AvailabilityToggle } from '@app/admin/components/AvailabilityToggle';
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingConfigurationTable } from './TrainingConfigurationTable';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/api/Types';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 
 /**
  * The data associated with a training session configuration update.
@@ -44,10 +45,8 @@ const kTrainingConfigurationData = z.object({
 async function updateTrainingConfiguration(eventId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kTrainingConfigurationData, async (data, props) => {
-        const eventName = await db.selectFrom(tEvents)
-            .where(tEvents.eventId.equals(eventId))
-            .selectOneColumn(tEvents.eventShortName)
-            .executeSelectOne();
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventId, 'event.trainings');
 
         await db.update(tEvents)
             .set({
@@ -55,7 +54,7 @@ async function updateTrainingConfiguration(eventId: number, formData: unknown) {
                 trainingPreferencesStart: data.trainingPreferencesStart,
                 trainingPreferencesEnd: data.trainingPreferencesEnd,
             })
-            .where(tEvents.eventId.equals(eventId))
+            .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
         RecordLog({
@@ -63,11 +62,13 @@ async function updateTrainingConfiguration(eventId: number, formData: unknown) {
             severity: kLogSeverity.Warning,
             sourceUser: props.user,
             data: {
-                event: eventName,
+                event: event.shortName,
                 published: !!data.trainingInformationPublished,
                 type: 'training',
             },
         });
+
+        return { success: true };
     });
 }
 
