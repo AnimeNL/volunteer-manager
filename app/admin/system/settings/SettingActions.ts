@@ -20,6 +20,7 @@ const kNumberSettings = new Set([
     'display-check-in-rate-seconds',
     'display-max-time-since-check-in-days',
     'display-time-offset-seconds',
+    'integration-logs-retention-days',
     'retention-number-of-events-to-consider',
     'schedule-activity-list-limit',
     'schedule-check-in-rate-seconds',
