@@ -18,6 +18,12 @@ interface LogTypeParameterMap {
 
     PublishSubscriptionTest: NoParameters;
 
+    SendCommunication: {
+        communicationId?: number;
+        regarding: string;
+        taskId: number;
+    };
+
     UpdateAccountSubscriptions: {
         added: string[];
         updated: string[];
@@ -247,6 +253,10 @@ interface LogTypeParameterMap {
         event: string;  // short name
         recipient: string;
         purchaseId: number | string;
+    };
+
+    CreateEvent: {
+        event: string;  // short name
     };
 
     CreateEventKeyDate: {
@@ -549,6 +559,11 @@ interface LogTypeParameterMap {
         targetTeam: string;  // name
     };
 
+    UpdateWebsiteSettings: {
+        domain: string;
+        eventName: string;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
@@ -611,6 +626,7 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     PublishSubscriptionTest: 'PublishSubscriptionTest',
+    SendCommunication: 'SendCommunication',
     UpdateAccountSubscriptions: 'UpdateAccountSubscriptions',
 
     // ---------------------------------------------------------------------------------------------
@@ -703,6 +719,7 @@ export const kLogType: { [k in LogType]: k } = {
     CancelAssociateTicket: 'CancelAssociateTicket',
     CancelVolunteerTicket: 'CancelVolunteerTicket',
     CreateAssociateTicket: 'CreateAssociateTicket',
+    CreateEvent: 'CreateEvent',
     CreateEventKeyDate: 'CreateEventKeyDate',
     CreateHotelBooking: 'CreateHotelBooking',
     CreateHotelRoom: 'CreateHotelRoom',
@@ -765,6 +782,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateVolunteerRole: 'UpdateVolunteerRole',
     UpdateVolunteerStatus: 'UpdateVolunteerStatus',
     UpdateVolunteerTeam: 'UpdateVolunteerTeam',
+    UpdateWebsiteSettings: 'UpdateWebsiteSettings',
 
     // ---------------------------------------------------------------------------------------------
     // Registration portal:
@@ -797,7 +815,7 @@ export const kLogType: { [k in LogType]: k } = {
  */
 type ValidateLogTypeParameterMap<T> = {
     [K in keyof T]: T[K] extends Record<string, any>
-        ? { [P in keyof T[K]]: T[K][P] extends LogPayloadAllowedTypes ? T[K][P] : never }
+        ? { [P in keyof T[K]]: T[K][P] extends LogPayloadAllowedTypes | undefined ? T[K][P] : never }
         : T[K];
 };
 

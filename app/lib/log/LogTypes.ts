@@ -23,7 +23,7 @@ export type LogPayloadAllowedTypes = z.infer<typeof kLogPayloadAllowedTypes>;
 /**
  * Zod schema representing the allowed payload to be stored with a log record.
  */
-export const kLogPayloadRecord = z.record(z.string(), kLogPayloadAllowedTypes);
+export const kLogPayloadRecord = z.record(z.string(), kLogPayloadAllowedTypes.optional());
 
 /**
  * Zod schema representing valid before/after pairs in difference determination.

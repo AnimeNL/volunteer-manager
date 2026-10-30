@@ -10,11 +10,12 @@ import { EventStatusCell, EventTeamsCell } from './EventRowComponents';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { createEvent } from './createEvent';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
+
+import { createEvent } from './EventsActions';
 
 /**
  * Data source through which the Events data table can be populated.

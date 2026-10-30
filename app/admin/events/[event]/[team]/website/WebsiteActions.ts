@@ -4,12 +4,12 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
-import { kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * The data associated with website settings for a particular environment and event.
@@ -70,7 +70,7 @@ export async function updateSettings(eventId: number, environmentId: number, for
         if (!metadata)
             notFound();
 
-        await db.insertInto(tEnvironmentsEvents)
+        await dbInstance.insertInto(tEnvironmentsEvents)
             .set({
                 environmentId, eventId,
                 environmentAcceptApplicationsStart: data.acceptApplicationsStart,
@@ -90,12 +90,10 @@ export async function updateSettings(eventId: number, environmentId: number, for
             })
             .executeInsert();
 
-        RecordLog({
-            type: kLogType.AdminEventWebsiteSettingsUpdate,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: metadata,
-        });
+        LogBuilder.for('UpdateWebsiteSettings')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record(metadata);
 
         return { success: true, refresh: true };
     });

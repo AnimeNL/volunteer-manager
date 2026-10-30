@@ -2,8 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { User } from '@lib/auth/User';
+import { LogBuilder } from '@lib/log/index';
 import { PromptFactory, type CommunicationPromptId } from '@lib/ai/PromptFactory';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { getTeam } from '@lib/cache';
 import { readSetting } from '@lib/Settings';
@@ -144,15 +144,13 @@ export async function sendCommunication(params: SendCommunicationParams): Promis
     });
 
     const prompt = PromptFactory.createById(params.metadata.promptId);
-    RecordLog({
-        type: kLogType.AdminSendCommunication,
-        severity: kLogSeverity.Info,
-        sourceUser: senderUserId,
-        targetUser: recipientUserId,
-        data: {
+
+    LogBuilder.for('SendCommunication')
+        .withInitiatorUser(senderUserId)
+        .withAffectedUser(recipientUserId)
+        .record({
             communicationId,
             regarding: prompt.metadata.regarding,
             taskId,
-        },
-    });
+        });
 }

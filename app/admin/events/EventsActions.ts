@@ -5,14 +5,14 @@
 
 import { z } from 'zod/v4';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
+import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { getEventBySlug } from '@lib/EventLoader';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kEventAvailabilityStatus } from '@lib/database/Types';
-import { kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * Zod type that describes the data required when creating an event.
@@ -29,9 +29,8 @@ const kCreateEventData = z.object({
  * Server action that creates an event with the given `formData`.
  */
 export async function createEvent(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateEventData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'event.settings');
+        await requireAuthentication(props.authenticationContext, 'event.settings');
 
         if (data.slug.length < 4 || data.slug.length > 12)
             return { success: false, error: 'The slug must be between 4 and 12 characters long.' };
@@ -39,11 +38,11 @@ export async function createEvent(formData: unknown) {
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))
             return { success: false, error: 'The slug may only contain (a-z), (0-9) and dashes.' };
 
-        const existingEvent = await getEventBySlug(data.slug);
+        const existingEvent = await getEvent(data.slug);
         if (existingEvent) {
             return {
                 success: false,
-                error: `That slug is already used by ${existingEvent.shortName}`
+                error: `That slug is already used by ${existingEvent.shortName}`,
             };
         }
 
@@ -61,16 +60,17 @@ export async function createEvent(formData: unknown) {
             })
             .executeInsert();
 
-        if (!!insertId) {
-            RecordLog({
-                type: kLogType.AdminEventCreate,
-                severity: kLogSeverity.Warning,
-                sourceUser: props.user,
-                data: {
-                    event: data.shortName,
-                }
+        await invalidateEventCache(data.slug);
+
+        Cache.getInstance('AdminNavigationActiveEvents').clear();
+
+        LogBuilder.for('CreateEvent')
+            .withCondition(!!insertId)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                event: data.shortName,
             });
-        }
 
         return {
             success: true,

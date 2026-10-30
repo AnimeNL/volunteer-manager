@@ -9,14 +9,14 @@ import Grid from '@mui/material/Grid';
 import { AvailabilityToggle } from '@app/admin/components/AvailabilityToggle';
 import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingConfigurationTable } from './TrainingConfigurationTable';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
-import { kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * The data associated with a training session configuration update.
@@ -48,7 +48,7 @@ async function updateTrainingConfiguration(eventId: number, formData: unknown) {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventId, 'event.trainings');
 
-        await db.update(tEvents)
+        const affectedRows = await db.update(tEvents)
             .set({
                 trainingInformationPublished: data.trainingInformationPublished,
                 trainingPreferencesStart: data.trainingPreferencesStart,
@@ -57,16 +57,15 @@ async function updateTrainingConfiguration(eventId: number, formData: unknown) {
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
-        RecordLog({
-            type: kLogType.AdminEventPublishInfo,
-            severity: kLogSeverity.Warning,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('UpdateEventPublishedInformation')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
                 event: event.shortName,
-                published: !!data.trainingInformationPublished,
+                published: !!data.trainingInformationPublished ? 'Published' : 'Unpublished',
                 type: 'training',
-            },
-        });
+            });
 
         return { success: true };
     });
