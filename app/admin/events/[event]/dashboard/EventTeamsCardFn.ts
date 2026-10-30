@@ -11,9 +11,9 @@ import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
 import type { RemoteGraphFnReturn } from '../finance/graphs/RemoteGraphFn';
 import { executeServerAction } from '@lib/serverAction';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tEventsDates, tUsersEvents } from '@lib/database';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import db, { tEvents, tEventsDates, tEventsTeams, tUsersEvents } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
 import { kDateType, kRegistrationStatus } from '@lib/database/Types';
 import { kProductHighlightColors } from '../finance/graphs/ProductHighlightColors';
 
@@ -34,22 +34,38 @@ const kComparisonEditionColours: string[] = [
 const kHistoricEventCount = kComparisonEditionColours.length - 1;
 
 /**
+ * Zod schema describing the parameters for `fetchTeamGrowth`.
+ */
+const kFetchTeamGrowthData = z.object({
+    eventSlug: z.string().min(1),
+    teamIds: z.array(z.number().int().positive()).min(1),
+    cumulative: z.boolean(),
+});
+
+/**
  * Server action used to fetch multi-year growth information for a one or more teams.
  */
 export async function fetchTeamGrowth(
-    eventId: number, eventSlug: string, teamIds: number[], cumulative: boolean)
+    _eventId: number, eventSlug: string, teamIds: number[], cumulative: boolean)
         : Promise<RemoteGraphFnReturn>
 {
-    return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
-        const permission = props.access.can('event.visible', {
-            event: eventSlug,
-            team: kAnyTeam,
-        });
+    return executeServerAction(
+        { eventSlug, teamIds, cumulative }, kFetchTeamGrowthData, async (data, props) =>
+    {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, data.eventSlug);
 
-        if (!permission)
+        const validTeamIds = await db.selectFrom(tEventsTeams)
+            .where(tEventsTeams.eventId.equals(event.id))
+                .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+                .and(tEventsTeams.teamId.in(data.teamIds))
+            .selectOneColumn(tEventsTeams.teamId)
+            .executeSelectMany();
+
+        if (!validTeamIds.length)
             return { success: false, error: 'No access to team information…' };
 
-        return actuallyFetchTeamGrowth(eventId, teamIds, cumulative);
+        return actuallyFetchTeamGrowth(event.id, validTeamIds, data.cumulative);
 
     }) as Promise<RemoteGraphFnReturn>;
 }

@@ -25,7 +25,7 @@ export default async function AdminPage() {
         user.id, [ 'ai-example-messages' ], /* disableFallback= */ true);
 
     const cards: React.ReactNode[] = [
-        <EventCard key="event-card" />,
+        <EventCard key="event-card" access={access} />,
         <BirthdayCard key="birthday-card" access={access} />,
     ];
 

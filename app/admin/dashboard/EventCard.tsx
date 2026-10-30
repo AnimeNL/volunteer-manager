@@ -14,6 +14,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import type { AccessControl } from '@lib/auth/AccessControl';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
 import { EventCardHighlight } from './EventCardHighlight';
@@ -21,10 +22,22 @@ import { formatDate } from '@lib/Temporal';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import db, { tEvents, tStorage } from '@lib/database';
 
+import { kAnyTeam } from '@lib/auth/AccessList';
+
 /**
  * Number of days for which the previous event highlight should remain visible on the card.
  */
 const kPreviousEventHighlightCutoffDays = /* ~two months= */ 60;
+
+/**
+ * Props accepted by the <EventCard> component.
+ */
+interface EventCardProps {
+    /**
+     * Access control manager for the signed-in user.
+     */
+    access: AccessControl;
+}
 
 /**
  * The <EventCard> displays the upcoming event's logo, together with the ability to click through to
@@ -34,7 +47,7 @@ const kPreviousEventHighlightCutoffDays = /* ~two months= */ 60;
  * This card deals with multiple upcoming or recently concluded events by only selecting the nearest
  * future event, and the nearest concluded event. This filtering is done in this method.
  */
-export async function EventCard() {
+export async function EventCard(props: EventCardProps) {
     const previousEventCutoffDate = Temporal.Now.zonedDateTimeISO().subtract({
         days: kPreviousEventHighlightCutoffDays,
     });
@@ -67,6 +80,9 @@ export async function EventCard() {
     let recentEvent: typeof events[number] | undefined;
 
     for (const event of events) {
+        if (!props.access.can('event.visible', { event: event.slug, team: kAnyTeam }))
+            continue;
+
         if (event.concluded && !recentEvent) {
             recentEvent = event;
         } else if (!event.concluded) {
