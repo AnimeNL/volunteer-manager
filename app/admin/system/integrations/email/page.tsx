@@ -20,13 +20,18 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TestMessageButton } from './TestMessageButton';
+import { createEmailClient } from '@lib/integrations/email';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
-import { createEmailClient } from '@lib/integrations/email';
+
+/**
+ * Masked placeholder returned to the client instead of the plaintext SMTP password.
+ */
+const kMaskedPassword = '●●●●●●●●';
 
 /**
  * Server Action through which an e-mail connection check for the given `accountId` can be run.
@@ -164,6 +169,10 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
     },
 
     async delete(row, props) {
+        const defaultAccountId = await readSetting('integration-email-default-account-id') ?? 1;
+        if (row.id === defaultAccountId)
+            return false;
+
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tEmailAccounts)
             .set({
@@ -196,7 +205,6 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
                 smtpHostname: tEmailAccounts.emailAccountSmtpHostname,
                 smtpPort: tEmailAccounts.emailAccountSmtpPort,
                 smtpUsername: tEmailAccounts.emailAccountSmtpUsername,
-                smtpPassword: tEmailAccounts.emailAccountSmtpPassword,
             })
             .orderBy('address', 'asc')
             .limit(params.page.limit)
@@ -205,11 +213,17 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
 
         return {
             rowCount: accounts.count,
-            rows: accounts.data,
+            rows: accounts.data.map(row => ({
+                ...row,
+                smtpPassword: kMaskedPassword,
+            })),
         };
     },
 
     async update(row, previousRow, props) {
+        const passwordChanged =
+            !!row.smtpPassword && row.smtpPassword !== kMaskedPassword;
+
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tEmailAccounts)
             .set({
@@ -217,7 +231,7 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
                 emailAccountSmtpHostname: row.smtpHostname,
                 emailAccountSmtpPort: row.smtpPort,
                 emailAccountSmtpUsername: row.smtpUsername,
-                emailAccountSmtpPassword: row.smtpPassword,
+                ...(passwordChanged ? { emailAccountSmtpPassword: row.smtpPassword } : {}),
                 emailAccountUpdated: dbInstance.currentZonedDateTime(),
             })
             .where(tEmailAccounts.emailAccountId.equals(row.id))
@@ -318,7 +332,7 @@ export default async function EmailIntegrationPage() {
 
             template: 'text',
             templateProps: {
-                template: '●●●●●●●●',
+                template: kMaskedPassword,
             },
         },
     ];
