@@ -5,9 +5,8 @@ import type { AccessControl } from '@lib/auth/AccessControl';
 import type { NavigationItem, NavigationTopLevelItem } from './NavigationItem';
 import type { NavigationMenuId } from './NavigationMenuId';
 import { NavigationMenuClient } from './NavigationMenuClient';
-import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
-
 import { checkPermission, or } from '@lib/auth/AuthenticationContext';
+import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
 
 /**
  * Props accepted by the <NavigationMenu> component.
@@ -84,6 +83,5 @@ export async function NavigationMenu(props: NavigationMenuProps) {
 
     return <NavigationMenuClient items={filteredItems} title={props.title}
                                  state={ await fetchMenuStateFromDatabase(props.userId, props.id) }
-                                 updateStateFn={
-                                     updateMenuState.bind(null, props.userId, props.id) } />;
+                                 updateStateFn={updateMenuState.bind(null, props.id)} />;
 }

@@ -15,6 +15,15 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 const kMenuStateType = z.record(z.string(), z.boolean());
 
 /**
+ * Zod schema describing the data accepted by `updateMenuState`.
+ */
+const kUpdateMenuStateData = z.object({
+    menuId: z.enum([ 'events', 'organisation', 'dashboard' ]),
+    sectionId: z.string().min(1).max(64),
+    expanded: z.boolean(),
+});
+
+/**
  * Fetches the menu state for the given `menuId` from the database.
  */
 export async function fetchMenuStateFromDatabase(userId: number, menuId?: NavigationMenuId)
@@ -47,15 +56,20 @@ export async function fetchMenuStateFromDatabase(userId: number, menuId?: Naviga
  * Server Action through which the menu state for the given `menuId` can be updated.
  */
 export async function updateMenuState(
-    userId: number, menuId: NavigationMenuId, sectionId: string, expanded: boolean): Promise<void>
+    menuId: NavigationMenuId, sectionId: string, expanded: boolean): Promise<void>
 {
     'use server';
-    await executeServerAction({ /* no data */ }, z.object(), async (data, props) => {
+    await executeServerAction(
+        { menuId, sectionId, expanded }, kUpdateMenuStateData, async (data, props) =>
+    {
         await requireAuthentication(props.authenticationContext);
 
-        const existingState = await fetchMenuStateFromDatabase(userId);
-        existingState[`${menuId}/${sectionId}`] = !!expanded;
+        const existingState = await fetchMenuStateFromDatabase(props.user.id);
+        existingState[`${data.menuId}/${data.sectionId}`] = data.expanded;
 
-        await writeUserSetting(userId, 'user-admin-menu-state', JSON.stringify(existingState));
+        await writeUserSetting(
+            props.user.id, 'user-admin-menu-state', JSON.stringify(existingState));
+
+        return { success: true };
     });
 }
