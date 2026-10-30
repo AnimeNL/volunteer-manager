@@ -134,8 +134,8 @@ export async function changeEventImage(eventSlug: string, formData: unknown) {
  * Data that needs to be available to update an event's URL-safe slug.
  */
 const kChangeEventSlugData = z.object({
-    slug: z.string().nonempty().regex(/^[A-Za-z0-9\-_.~]+$/, {
-        message: 'The slug must only contain URL-safe characters.',
+    slug: z.string().min(4).max(12).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+        message: 'The slug may only contain (a-z), (0-9) and dashes.',
     }),
 });
 
@@ -146,6 +146,9 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
     return executeServerAction(formData, kChangeEventSlugData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, existingEventSlug, 'event.settings');
+
+        if (data.slug === event.slug)
+            return { success: true };
 
         const possibleDuplicatedSlugEvent = await getEvent(data.slug);
         if (!!possibleDuplicatedSlugEvent) {
@@ -258,7 +261,7 @@ export async function updateEventFeatures(eventSlug: string, formData: unknown) 
             .withInitiatorUser(props.user)
             .record({
                 event: event.shortName,
-                type: 'basic',
+                type: 'feature',
             });
 
         return {
@@ -309,7 +312,7 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
             .withInitiatorUser(props.user)
             .record({
                 event: event.shortName,
-                type: 'feature',
+                type: 'basic',
             });
 
         return {
