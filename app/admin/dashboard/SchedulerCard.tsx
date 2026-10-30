@@ -73,7 +73,7 @@ export async function SchedulerCard() {
     return (
         <DashboardCard>
             <DashboardCardHeader src="/images/admin/scheduler-header.jpg?v2"
-                                 title="Database" secondary />
+                                 title="Scheduler status" secondary />
             <Stack sx={{ px: 2, pb: 1 }}>
                 <Typography variant="h6" sx={{ mt: 1 }}>
                     Scheduler status

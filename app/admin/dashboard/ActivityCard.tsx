@@ -39,7 +39,7 @@ export async function ActivityCard() {
     return (
         <DashboardCard>
             <DashboardCardHeader src="/images/admin/activity-header.jpg?v2"
-                                 title="Database" secondary />
+                                 title="Recent activity" secondary />
             <Stack sx={{ px: 2, pb: 1 }}>
                 <Typography variant="h6" sx={{ mt: 1 }}>
                     Recent activity
