@@ -13,8 +13,8 @@ import { DataTable, createDataSource, kEventTransformer, kTeamTransformer, withC
     withRowModel, type Column, type ExtractRowModel } from '@app/admin/components/DataTable';
 import { DeleteIncidentAction } from './DeleteIncidentAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VisibilityToggle } from './VisibilityToggle';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
@@ -23,7 +23,6 @@ import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthenticatio
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
 
 import * as actions from '../DutyBookActions';
-
 
 /**
  * Data source through which the viewing history of an incident can be retrieved.
@@ -70,7 +69,7 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
             operation: 'read',
             scope: {
                 event: context.event.slug,
-                team: context.event.slug,
+                team: context.team.slug,
             },
         });
     },
@@ -78,6 +77,10 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
     async list(params, props, context) {
         const dbInstance = db;
         const results = await dbInstance.selectFrom(tDutyBookViewers)
+            .innerJoin(tDutyBook)
+                .on(tDutyBook.dutyBookId.equals(tDutyBookViewers.dutyBookId))
+                    .and(tDutyBook.dutyBookEventId.equals(context.event.id))
+                    .and(tDutyBook.dutyBookDeleted.isNull())
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tDutyBookViewers.dutyBookViewerUserId))
             .where(tDutyBookViewers.dutyBookId.equals(context.incidentId))
@@ -119,13 +122,18 @@ export default async function EventTeamDutyBookIncidentPage(
     if (!team.flags.enableDutyBook)
         notFound();
 
+    const incidentId = parseInt(params.id, /* radix= */ 10);
+    if (!Number.isSafeInteger(incidentId))
+        notFound();
+
     const dbInstance = db;
     const incident = await dbInstance.selectFrom(tDutyBook)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tDutyBook.dutyBookEventId))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
-        .where(tDutyBook.dutyBookId.equals(parseInt(params.id, /* radix= */ 10)))
+        .where(tDutyBook.dutyBookId.equals(incidentId))
+            .and(tDutyBook.dutyBookEventId.equals(event.id))
             .and(tDutyBook.dutyBookDeleted.isNull())
         .select({
             id: tDutyBook.dutyBookId,

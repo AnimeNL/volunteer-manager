@@ -33,6 +33,7 @@ export async function deleteIncident(
                 dutyBookDeleted: dbInstance.currentZonedDateTime(),
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
+                .and(tDutyBook.dutyBookEventId.equals(event.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
@@ -81,6 +82,7 @@ export async function updateDetails(
                 dutyBookIncident: data.incident,
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
+                .and(tDutyBook.dutyBookEventId.equals(event.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
@@ -130,6 +132,7 @@ export async function updateVisibility(
                                 : null,
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
+                .and(tDutyBook.dutyBookEventId.equals(event.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
