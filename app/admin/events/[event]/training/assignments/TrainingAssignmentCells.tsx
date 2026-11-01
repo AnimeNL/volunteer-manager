@@ -7,9 +7,122 @@ import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
+import EmailIcon from '@mui/icons-material/Email';
+import IconButton from '@mui/material/IconButton';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+
+import type { CommunicationLanguage } from '@lib/database/Types';
+import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
+import type { ServerActionResult } from '@lib/serverAction';
+import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
+
+/**
+ * Cell that serves as the header enabling training confirmation communication to be initiated.
+ */
+export function TrainingCommunicationHeaderCell() {
+    return (
+        <Tooltip title="Confirm their training participation?">
+            <EmailIcon color="action" fontSize="small" />
+        </Tooltip>
+    );
+}
+
+/**
+ * Context passed to the <TrainingCommunicationCell> component.
+ */
+export interface TrainingCommunicationCellContext {
+    /**
+     * Server Action to be invoked when a training communication is due to be sent.
+     */
+    action: (
+        recipientId: number, teamId: number, promptId: CommunicationPromptId, subject?: string,
+        message?: string) => Promise<ServerActionResult>;
+
+    /**
+     * Unique ID of the event for which training assignments are being managed.
+     */
+    eventId: number;
+}
+
+/**
+ * Props accepted by the <TrainingCommunicationCell> component.
+ */
+interface TrainingCommunicationCellProps {
+    /**
+     * Context passed to the communication cell.
+     */
+    context?: TrainingCommunicationCellContext;
+
+    /**
+     * Row model containing training assignment and volunteer identity details.
+     */
+    row: {
+        assignedTrainingId?: number;
+        communication?: Record<string, string>;
+        language?: CommunicationLanguage;
+        name?: string;
+        userId?: number;
+        team?: {
+            id: number;
+        };
+    };
+}
+
+/**
+ * Cell that contains a communication button through which a volunteer assigned to a training
+ * session can be sent a confirmation or reminder e-mail.
+ */
+export function TrainingCommunicationCell(props: TrainingCommunicationCellProps) {
+    const { action, eventId } = props.context!;
+    const { row } = props;
+
+    if (!row.userId || !row.team?.id || !row.name || !row.assignedTrainingId ||
+        row.assignedTrainingId <= 0)
+    {
+        return (
+            <IconButton disabled size="small">
+                <EmailIcon color="disabled" fontSize="small" />
+            </IconButton>
+        );
+    }
+
+    const communication = row.communication ?? {};
+    const promptParams = {
+        eventId,
+        teamId: row.team.id,
+        trainingId: row.assignedTrainingId,
+    };
+
+    return (
+        <CommunicationIconButton
+            badge={communication['training-confirmation'] ? 'check' : 'none'}
+            title={`Update ${row.name} about their training participation?`}
+            action={action.bind(null, row.userId, row.team.id)}
+            disableSilent
+            language={row.language}
+            recipientId={row.userId}
+            prompts={[
+                {
+                    promptId: 'training-confirmation',
+                    promptParams,
+                    title: 'Confirm training participation',
+                    mostRecentCommunication: communication['training-confirmation'],
+                },
+                {
+                    promptId: 'training-reminder',
+                    promptParams,
+                    title: 'Send training reminder',
+                    mostRecentCommunication: communication['training-reminder'],
+                },
+            ]}>
+
+            Send <strong>{row.name}</strong> an e-mail regarding their training participation.
+
+        </CommunicationIconButton>
+    );
+}
 
 /**
  * Context passed to the <TrainingParticipantCell> component.

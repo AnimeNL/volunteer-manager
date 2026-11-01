@@ -11,7 +11,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import type { TrainingParticipantCellContext, TrainingSessionCellContext }
+import type {
+    TrainingCommunicationCellContext, TrainingParticipantCellContext, TrainingSessionCellContext }
     from './TrainingAssignmentCells';
 import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { ConfirmedParticipationSection } from './ConfirmedParticipationSection';
@@ -22,16 +23,21 @@ import { LogBuilder } from '@lib/log/index';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TrainingParticipantCell, TrainingSessionCell } from './TrainingAssignmentCells';
+import {
+    TrainingCommunicationCell, TrainingCommunicationHeaderCell, TrainingParticipantCell,
+    TrainingSessionCell } from './TrainingAssignmentCells';
 import { TrainingProcessor } from '../TrainingProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tRoles, tTeams, tTrainingsAssignments, tTrainingsExtra, tUsers,
-    tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
+    tUsersCommunication, tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
+import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
 import { kEventTransformer } from '@app/admin/components/DataTable';
-import { kRegistrationStatus } from '@lib/database/Types';
+
+import { sendTrainingConfirmationCommunication } from '../TrainingActions';
 
 /**
  * Data source for managing training session assignments for volunteers and external participants.
@@ -69,9 +75,16 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
     extraId: z.number().optional(),
 
     /**
+     * Preferred language and communication history when the participant is a volunteer.
+     */
+    language: z.enum(kCommunicationLanguage).optional(),
+    communication: z.record(z.string(), z.string()).optional(),
+
+    /**
      * Team information when the participant is a volunteer.
      */
     team: z.object({
+        id: z.number(),
         color: z.string(),
         name: z.string(),
         slug: z.string(),
@@ -119,6 +132,7 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
 
         const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
         const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
+        const usersCommunicationJoin = tUsersCommunication.forUseInLeftJoin();
 
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tRoles)
@@ -134,6 +148,13 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
             .leftJoin(trainingsAssignmentsJoin)
                 .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
                     .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+            .leftJoin(usersCommunicationJoin)
+                .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
+                    .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
+                    .and(usersCommunicationJoin.communicationPromptId.in([
+                        'training-confirmation',
+                        'training-reminder',
+                    ]))
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
                 .and(
@@ -142,7 +163,9 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
             .select({
                 userId: tUsersEvents.userId,
                 name: tUsers.name,
+                language: tUsers.language,
                 team: {
+                    id: tTeams.teamId,
                     color: tTeams.teamColourLightTheme,
                     name: tTeams.teamName,
                     slug: tTeams.teamSlug,
@@ -151,6 +174,10 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
                 assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
                 assignedUpdated: trainingsAssignmentsJoin.assignmentUpdated.isNotNull(),
                 confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
+                communication: dbInstance.aggregateAsArray({
+                    promptId: usersCommunicationJoin.communicationPromptId,
+                    date: usersCommunicationJoin.communicationDate,
+                }),
             })
             .groupBy(tUsersEvents.userId)
             .orderBy('name', 'asc')
@@ -182,6 +209,8 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
                 new: !experiencedUsers.has(volunteer.userId),
                 userId: volunteer.userId,
                 extraId: undefined,
+                language: volunteer.language ?? undefined,
+                communication: processVolunteerCommunication(volunteer.communication),
                 team: volunteer.team,
                 preferredTrainingId: volunteer.preferredTrainingId ?? -1,
                 assignedTrainingId: volunteer.assignedUpdated
@@ -195,6 +224,8 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
                 new: false,
                 userId: undefined,
                 extraId: extra.extraId,
+                language: undefined,
+                communication: undefined,
                 team: undefined,
                 preferredTrainingId: extra.preferenceUpdated
                     ? (extra.preferenceTrainingId ?? 0)
@@ -364,6 +395,25 @@ export default async function EventTrainingAssignmentsPage(
                     falsyValue: 'Assignment has not been confirmed',
                     truthyValue: 'Assignment has been confirmed',
                 },
+            },
+        },
+        {
+            field: 'new',  // unrelated
+            headerName: '',
+            align: 'center',
+            headerAlign: 'center',
+            editable: false,
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                component: TrainingCommunicationCell,
+                componentContext: {
+                    action: sendTrainingConfirmationCommunication.bind(null, event.slug),
+                    eventId: event.id,
+                } satisfies TrainingCommunicationCellContext,
+                headerComponent: TrainingCommunicationHeaderCell,
             },
         },
     ];
