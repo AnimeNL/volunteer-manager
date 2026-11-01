@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AiSupportedModel } from './integrations/genai/Models';
@@ -90,6 +90,8 @@ export type Settings = {
     'ai-communication-type-participation-reminder': string;
     'ai-communication-type-program-activity-check-in': string;
     'ai-communication-type-team-change': string;
+    'ai-communication-type-training-confirmation': string;
+    'ai-communication-type-training-reminder': string;
 
     // Del a Rie Advies:
     'ai-nardo-personalised-advice': string;

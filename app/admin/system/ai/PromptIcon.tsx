@@ -1,4 +1,4 @@
-// Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import BedIcon from '@mui/icons-material/Bed';
@@ -6,12 +6,14 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
 import DrawIcon from '@mui/icons-material/Draw';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HelpIcon from '@mui/icons-material/Help';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import HotelIcon from '@mui/icons-material/Hotel';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import PaidIcon from '@mui/icons-material/Paid';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
@@ -66,6 +68,12 @@ export function PromptIcon(props: { id: PromptIdByType<any> }) {
 
         case 'team-change':
             return <ChangeCircleOutlinedIcon color="primary" />;
+
+        case 'training-confirmation':
+            return <EventAvailableIcon color="primary" />;
+
+        case 'training-reminder':
+            return <NotificationsActiveIcon color="primary" />;
 
         // -----------------------------------------------------------------------------------------
         // Features:

@@ -20,6 +20,7 @@ import { queryHotelBookingContext } from './prompts/context/HotelBookingContextP
 import { queryActivityRecipientContext, queryRecipientContext } from './prompts/context/RecipientContextParameters';
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
+import { queryTrainingContext } from './prompts/context/TrainingContextParameters';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db from '@lib/database';
@@ -61,6 +62,16 @@ const kCommunicationPromptData = {
         eventId: z.number(),
         oldTeamId: z.number(),
         newTeamId: z.number(),
+    }),
+    'training-confirmation': z.object({
+        eventId: z.number(),
+        teamId: z.number(),
+        trainingId: z.number(),
+    }),
+    'training-reminder': z.object({
+        eventId: z.number(),
+        teamId: z.number(),
+        trainingId: z.number(),
     }),
 
 } as const satisfies { [K in CommunicationPromptId]: z.ZodObject };
@@ -192,6 +203,20 @@ export async function executeCommunicationPrompt(
                     oldTeam: await queryTeamContext(dbInstance, data.eventId, data.oldTeamId),
                     newTeam: await queryTeamContext(dbInstance, data.eventId, data.newTeamId),
                 } satisfies GetPromptParameters<prompts.TeamChangePrompt>;
+
+                break;
+            }
+
+            case 'training-confirmation':
+            case 'training-reminder': {
+                const data = inputData as TypedPromptData<'training-confirmation'>;
+                parameters = {
+                    author,
+                    event: await queryEventContext(dbInstance, data.eventId),
+                    recipient,
+                    team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
+                    training: await queryTrainingContext(dbInstance, data.trainingId),
+                } satisfies GetPromptParameters<prompts.TrainingConfirmationPrompt>;
 
                 break;
             }
