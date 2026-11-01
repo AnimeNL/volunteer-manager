@@ -4,6 +4,7 @@
 import { vi } from 'vitest';
 
 import { AnimeConClient, type AnimeConClientSettings } from './AnimeConClient';
+import { Instrumentation } from '../Instrumentation';
 
 describe('Client', () => {
     let fetches: { input: string, init: RequestInit }[] = [];
@@ -111,6 +112,7 @@ describe('Client', () => {
         responses.push({ status: 200, payload: [ /* empty timeslots */ ] });
 
         const client = new AnimeConClient(kMockClientSettings);
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
         const response = await client.getTimeslots({
             'dateStartsAt[after]': '2023-06-01',
             'dateEndsAt[before]': '2023-06-30',
@@ -122,6 +124,10 @@ describe('Client', () => {
         expect(fetches[1].input).toEqual(
             `${kMockClientSettings.apiEndpoint}/timeslots.json?dateStartsAt%5Bafter%5D=2023-06-01` +
             '&dateEndsAt%5Bbefore%5D=2023-06-30');
+        expect(withContextSpy).toHaveBeenLastCalledWith({
+            integration: 'AnimeCon',
+            operation: `${kMockClientSettings.apiEndpoint}/timeslots.json`,
+        });
     });
 
     it('is able to fetch and validate activities (getActivities())', async () => {

@@ -66,6 +66,12 @@ type YourTicketProviderRequest = ({
 
 }) & {
     /**
+     * Generalised pathname or endpoint to record in instrumentation logs when `api` or `endpoint`
+     * contains dynamic IDs.
+     */
+    operation?: string;
+
+    /**
      * Request method using which the API should be called.
      */
     method: 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT';
@@ -189,6 +195,7 @@ export class YourTicketProviderClient {
         try {
             return (await this.issueRequest(ytp.kQueueNeededResponse, {
                 endpoint: `${this.#settings.queueEndpoint}/${eventId}`,
+                operation: `${this.#settings.queueEndpoint}/<Id>`,
                 method: 'GET',
             })).queueTimeInSeconds;
 
@@ -211,6 +218,7 @@ export class YourTicketProviderClient {
     async listEvents(organiserId: number): Promise<ytp.OrganiserEventResponse> {
         return (await this.issueRequest(ytp.kOrganiserEventResponse, {
             api: `/Organisers(${organiserId})/Events`,
+            operation: '/Organisers(<Id>)/Events',
             method: 'GET',
         })).value;
     }
@@ -237,6 +245,7 @@ export class YourTicketProviderClient {
     async listTicketsAndProducts(id: number): Promise<ytp.TicketsResponse> {
         return (await this.issueRequest(ytp.kTicketsResponse, {
             api: `/Events(${id})/Tickets`,
+            operation: '/Events(<Id>)/Tickets',
             method: 'GET',
         })).value;
     }
@@ -266,6 +275,7 @@ export class YourTicketProviderClient {
     async postCancelPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseCancelResponse> {
         return this.issueRequest(ytp.kTicketingPurchaseCancelResponse, {
             api: `/Purchases(${purchaseId})/YTP.CancelPurchase`,
+            operation: '/Purchases(<Id>)/YTP.CancelPurchase',
             method: 'POST',
             body: { /* no payload */ },
         });
@@ -281,6 +291,7 @@ export class YourTicketProviderClient {
     async postEmailPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseEmailResponse> {
         return this.issueRequest(ytp.kTicketingPurchaseEmailResponse, {
             api: `/Purchases(${purchaseId})/YTP.ResendPurchaseEmail`,
+            operation: '/Purchases(<Id>)/YTP.ResendPurchaseEmail',
             method: 'POST',
             body: { /* no payload */ },
         });
@@ -299,6 +310,7 @@ export class YourTicketProviderClient {
         const validatedRequest = ytp.kTicketingPurchaseUpdateRequest.parse(request);
         return this.issueRequest(ytp.kTicketingPurchaseUpdateResponse, {
             api: `/Purchases(${purchaseId})`,
+            operation: '/Purchases(<Id>)',
             method: 'PUT',
             body: validatedRequest,
         });
@@ -314,6 +326,7 @@ export class YourTicketProviderClient {
     async getPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseResponse> {
         return this.issueRequest(ytp.kTicketingPurchaseResponse, {
             api: `/Purchases(${purchaseId})`,
+            operation: '/Purchases(<Id>)',
             method: 'GET',
         });
     }
@@ -330,6 +343,7 @@ export class YourTicketProviderClient {
     {
         return (await this.issueRequest(ytp.kTicketingPurchasePurchaseItemsResponse, {
             api: `/Purchases(${purchaseId})/PurchaseItems`,
+            operation: '/Purchases(<Id>)/PurchaseItems',
             method: 'GET',
         })).value;
     }
@@ -344,6 +358,7 @@ export class YourTicketProviderClient {
     async getPurchaseItem(purchaseItemId: number): Promise<ytp.TicketingPurchaseItemResponse> {
         return this.issueRequest(ytp.kTicketingPurchaseItemResponse, {
             api: `/PurchaseItems(${purchaseItemId})`,
+            operation: '/PurchaseItems(<Id>)',
             method: 'GET',
         });
     }
@@ -361,6 +376,7 @@ export class YourTicketProviderClient {
         const validatedRequest = ytp.kTicketingPurchaseItemPatchRequest.parse(request);
         return this.issueRequest(ytp.kTicketingPurchaseItemPatchResponse, {
             api: `/PurchaseItems(${purchaseItemId})`,
+            operation: '/PurchaseItems(<Id>)',
             method: 'PATCH',
             body: validatedRequest,
         });
@@ -400,8 +416,8 @@ export class YourTicketProviderClient {
         }
 
         const endpointBaseUrl = 'https://www.yourticketprovider.nl/api/integration/products';
-        const operation = `${endpointBaseUrl}/${externalEventId}/purchases`;
-        const endpoint = `${operation}?${endpointParams}`;
+        const operation = `${endpointBaseUrl}/<Id>/purchases`;
+        const endpoint = `${endpointBaseUrl}/${externalEventId}/purchases?${endpointParams}`;
 
         const instrumentation = Instrumentation.withContext({
             integration: 'YourTicketProvider',
@@ -486,7 +502,10 @@ export class YourTicketProviderClient {
         }
 
         const endpoint = request.endpoint || composedEndpoint;
-        const operation = request.endpoint || `${this.#settings.endpoint}${request.api}`;
+        const operation =
+            request.endpoint
+                ? (request.operation ?? request.endpoint)
+                : `${this.#settings.endpoint}${request.operation ?? request.api}`;
 
         const instrumentation = Instrumentation.withContext({
             integration: 'YourTicketProvider',

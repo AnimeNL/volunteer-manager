@@ -87,6 +87,11 @@ describe('YourTicketProviderClient', () => {
                     HasAcceptedTermsAndAgreements: true,
                 }),
             }));
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'YourTicketProvider',
+            operation: 'https://api.yourticketprovider.nl/Purchases(<Id>)',
+        });
     });
 
     it('throws with the response body as cause when the Ticketing API returns non-2xx', async () => {
@@ -126,6 +131,10 @@ describe('YourTicketProviderClient', () => {
 
         expect(fetchSpy).toHaveBeenCalledTimes(1);
         expect(fetchSpy.mock.calls[0][0]).toBe('https://queue.yourticketprovider.nl/100');
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'YourTicketProvider',
+            operation: 'https://queue.yourticketprovider.nl/<Id>',
+        });
 
         // (2) Queue time is 0 -> proceeds to POST /Purchases.
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -203,7 +212,7 @@ describe('YourTicketProviderClient', () => {
         expect(withContextSpy).toHaveBeenCalledWith({
             integration: 'YourTicketProvider',
             operation:
-                'https://www.yourticketprovider.nl/api/integration/products/ext-event-1/purchases',
+                'https://www.yourticketprovider.nl/api/integration/products/<Id>/purchases',
         });
     });
 });

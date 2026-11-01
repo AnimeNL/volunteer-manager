@@ -3,6 +3,7 @@
 
 import { vi } from 'vitest';
 
+import { Instrumentation } from '../Instrumentation';
 import { WeeztixClient, type WeeztixClientSettings } from './WeeztixClient';
 import { writeSettings } from '@lib/Settings';
 
@@ -174,5 +175,32 @@ describe('WeeztixClient', () => {
 
         await expect(client.listEvents()).rejects.toThrow('Received HTTP 401 response');
         expect(fetchSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('generalises event GUIDs in instrumentation operations for listTicketTypes', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
+            {
+                guid: 'ticket-guid',
+                name: 'Weekend Ticket',
+                min_price: 50,
+                status: 'available',
+            },
+        ]), { status: 200 }));
+
+        const tickets = await client.listTicketTypes('event-guid-123');
+        expect(tickets).toHaveLength(1);
+
+        expect(fetchSpy).toHaveBeenCalledWith('https://api.weeztix.com/event/event-guid-123/ticket',
+            expect.objectContaining({
+                method: 'GET',
+            }));
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/event/<Id>/ticket',
+        });
     });
 });

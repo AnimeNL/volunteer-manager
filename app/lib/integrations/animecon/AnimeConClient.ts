@@ -125,7 +125,7 @@ export class AnimeConClient {
         const url = `${this.#apiEndpoint}/${relativePath}?${urlParameters.toString()}`;
         const instrumentation = Instrumentation.withContext({
             integration: 'AnimeCon',
-            operation: url,
+            operation: `${this.#apiEndpoint}/${relativePath}`,
         });
 
         const response = await instrumentation.instrumentedFetch(url, {

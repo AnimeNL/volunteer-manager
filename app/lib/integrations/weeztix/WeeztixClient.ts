@@ -63,6 +63,11 @@ interface WeeztixRequest {
     api: string;
 
     /**
+     * Generalised pathname to record in instrumentation logs when `api` contains dynamic IDs.
+     */
+    operation?: string;
+
+    /**
      * Request method using which the API should be called.
      */
     method: 'DELETE' | 'GET' | 'POST' | 'PUT';
@@ -151,6 +156,7 @@ export class WeeztixClient {
     async listTicketTypes(eventGuid: string): Promise<weeztix.GetTicketTypesResponse> {
         return this.issueRequest(weeztix.kGetTicketTypesResponse, {
             api: `/event/${eventGuid}/ticket`,
+            operation: '/event/<Id>/ticket',
             method: 'GET',
         });
     }
@@ -194,9 +200,10 @@ export class WeeztixClient {
             return this.refreshToken(schema, request);
 
         const endpoint = `${kWeeztixApiEndpoint}${request.api}`;
+        const operation = `${kWeeztixApiEndpoint}${request.operation ?? request.api}`;
         const instrumentation = Instrumentation.withContext({
             integration: 'Weeztix',
-            operation: endpoint,
+            operation,
         });
 
         const response = await instrumentation.instrumentedFetch(endpoint, {
