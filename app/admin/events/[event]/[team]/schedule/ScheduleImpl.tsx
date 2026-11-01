@@ -23,9 +23,10 @@ import Paper from '@mui/material/Paper';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import Skeleton from '@mui/material/Skeleton';
 
-import type { EventScheduleHistoryContext } from '@app/api/admin/event/schedule/history/[[...id]]/route';
+import type { ExtractContext } from '@app/admin/components/DataTable';
 import type { ScheduleEvent, ScheduleEventMutation, ScheduleMarker, ScheduleResource }
     from '@app/admin/components/Schedule';
+import type { ScheduleHistoryDataSource } from './page';
 import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
 import { Schedule } from '@app/admin/components/Schedule';
@@ -51,19 +52,14 @@ const kMarkerBackgroundColor = {
  */
 interface ScheduleImplProps {
     /**
-     * Whether the volunteer is able to delete history items.
-     */
-    enableHistoryDelete?: boolean;
-
-    /**
-     * Whether users should be linked through to their profile pages in the history dialog.
-     */
-    enableHistoryProfileLinks?: boolean;
-
-    /**
      * Context that should be provided to the history dialog.
      */
-    historyContext: EventScheduleHistoryContext['context'];
+    historyContext: ExtractContext<ScheduleHistoryDataSource>;
+
+    /**
+     * Data source that powers the schedule history table.
+     */
+    historySource: ScheduleHistoryDataSource;
 
     /**
      * Whether the schedule should be displayed in read-only mode.
@@ -427,11 +423,10 @@ export function ScheduleImpl(props: ScheduleImplProps) {
                 <ResponsiveDialog open onClose={handleHistoryDialogClose}
                                   title={`${historyDialogEvent.title} shift history`}>
                     <ScheduleHistoryTable
-                        enableDelete={props.enableHistoryDelete}
-                        enableProfileLinks={props.enableHistoryProfileLinks}
+                        source={props.historySource}
                         context={{
                             ...props.historyContext,
-                            scheduleId: `${historyDialogEvent.id}`,
+                            scheduleId: Number(historyDialogEvent.id),
                         }} />
                 </ResponsiveDialog> }
 

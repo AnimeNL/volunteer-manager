@@ -31,7 +31,6 @@ import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFa
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 
-import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
 
 /**
@@ -47,7 +46,6 @@ type ApiResponseType<T> = T extends { response: object } ? T['response'] : void;
  */
 export type ApiEndpoints = {
     'get': {
-        '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
         '/api/auth/passkeys/list': ListPasskeysDefinition,
         '/api/display': DisplayDefinition,
@@ -77,7 +75,6 @@ export type ApiEndpoints = {
         '/api/nardo/personalised': NardoPersonalisedEndpoints['create'],
     },
     'delete': {
-        '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
@@ -89,7 +86,7 @@ export type ApiEndpoints = {
 };
 
 /**
- * The `fetch` function that should be used by the `callApi` machinery. Can be overridden for tests.
+ * The `fetch` function that should be used by the `callApi` infrastructure. Can be overridden for tests.
  */
 let globalFetch = globalThis.fetch;
 

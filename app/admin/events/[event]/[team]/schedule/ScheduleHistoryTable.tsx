@@ -3,91 +3,68 @@
 
 'use client';
 
-import Link from '@app/LinkProxy';
-
-import { default as MuiLink } from '@mui/material/Link';
-
-import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
-import { formatDate } from '@lib/Temporal';
-
-import type { EventScheduleHistoryContext, EventScheduleHistoryRowModel }
-    from '@app/api/admin/event/schedule/history/[[...id]]/route';
+import type { Column, ExtractContext, ExtractRowModel } from '@app/admin/components/DataTable';
+import type { ScheduleHistoryDataSource } from './page';
+import { default as DataTableClient } from '@app/admin/components/DataTable/DataTableClient';
 
 /**
  * Props accepted by the <ScheduleHistoryTable> component.
  */
-interface ScheduleHistoryTableProps extends EventScheduleHistoryContext {
+interface ScheduleHistoryTableProps {
     /**
-     * Whether the volunteer is able to delete history items.
+     * Context for which the schedule history should be displayed.
      */
-    enableDelete?: boolean;
+    context: ExtractContext<ScheduleHistoryDataSource>;
 
     /**
-     * Whether users should be linked through to their profile pages.
+     * Server-side data source through which the schedule history will be acquired.
      */
-    enableProfileLinks?: boolean;
+    source: ScheduleHistoryDataSource;
 }
 
 /**
  * The <ScheduleHistoryTable> component displays the most recent changes to the schedule in a table,
- * to * provide some insight in which volunteers made which modifications. This is helpful to
+ * to provide some insight in which volunteers made which modifications. This is helpful to
  * understand the most recent changes that have been made.
  */
 export function ScheduleHistoryTable(props: ScheduleHistoryTableProps) {
-    const localTz = Temporal.Now.timeZoneId();
-
-    const columns: RemoteDataTableColumn<EventScheduleHistoryRowModel>[] = [
-        ...(
-            !!props.enableDelete ? [
-                {
-                    field: 'id',
-                    headerName: '',
-                    sortable: false,
-                    width: 50,
-                },
-            ] : []
-        ),
+    const columns: Column<ExtractRowModel<ScheduleHistoryDataSource>>[] = [
         {
-            field: 'userId',
+            field: 'user',
             headerName: 'User',
             sortable: false,
             flex: 1,
 
-            renderCell: params => {
-                if (!props.enableProfileLinks)
-                    return params.row.user;
-
-                return (
-                    <MuiLink component={Link}
-                             href={`/admin/organisation/accounts/${params.row.userId}`}>
-                        {params.row.user}
-                    </MuiLink>
-                );
-            },
+            template: 'account',
         },
         {
             field: 'date',
             headerName: 'Date',
             sortable: false,
-            flex: 1,
+            width: 185,
 
-            renderCell: params =>
-                formatDate(
-                    Temporal.ZonedDateTime.from(params.value).withTimeZone(localTz),
-                    'YYYY-MM-DD HH:mm:ss'),
+            template: 'date',
+            templateProps: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+            },
         },
         {
             field: 'mutation',
             headerName: 'Mutation',
             sortable: false,
             flex: 4,
-        }
+        },
     ];
 
     return (
-        <RemoteDataTable columns={columns} endpoint="/api/admin/event/schedule/history"
-                         enableDelete={!!props.enableDelete} context={props.context}
-                         defaultSort={{ field: 'id', sort: 'desc' }} pageSize={10}
-                         subject="log entry" />
+        <DataTableClient columns={columns} source={props.source} context={props.context}
+                         defaultSort={{ field: 'date', sort: 'desc' }}
+                         disableQueryParams disableSearch pageSize={10} subject="log entry"
+                         listViewProps={{
+                             primaryField: 'mutation',
+                             secondaryField: 'user.name',
+                             dateField: 'date',
+                             dateFieldFormat: 'YYYY-MM-DD HH:mm',
+                         }} />
     );
 }
