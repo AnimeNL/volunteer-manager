@@ -610,13 +610,13 @@ async function TrainingStatusTile(props: TrainingStatusTileProps) {
     if (assignment?.confirmed) {
         statusChip = <Chip color="success" label="Confirmed" size="small" />;
         statusChipLink = true;
+    } else if (!props.eligible) {
+        statusChip = <Chip color="default" label="Not applicable" size="small" />;
     } else if (assignment?.updated || preference !== undefined) {
         statusChip = <Chip color="warning" label="Requested" size="small" />;
         statusChipLink = true;
-    } else if (props.eligible) {
-        statusChip = <Chip color="warning" label="Pending" size="small" />;
     } else {
-        statusChip = <Chip color="default" label="Not applicable" size="small" />;
+        statusChip = <Chip color="warning" label="Pending" size="small" />;
     }
 
     const href = (statusChipLink && props.canManageTrainings)
