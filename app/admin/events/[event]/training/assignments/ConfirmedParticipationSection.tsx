@@ -4,9 +4,12 @@
 import Link from '@app/LinkProxy';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Divider from '@mui/material/Divider';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
 import ShareIcon from '@mui/icons-material/Share';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -208,7 +211,73 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
                            icon={ <EventAvailableIcon /> }
                            setting="user-admin-training-expand-confirmed" subtitle={`${totalCount}`}
                            title="Confirmed participation">
-            <Table size="small" sx={{ marginTop: '-8px' }}>
+            <Stack direction="column" spacing={1.5} sx={{ display: { xs: 'flex', md: 'none' } }}>
+                { confirmations.map((session, index) => {
+                    const overCapacity = session.participants.length > session.capacity;
+                    return (
+                        <Paper key={index} variant="outlined" sx={{ p: 1.5 }}>
+                            <Stack direction="row" spacing={1}
+                                   sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Typography variant="subtitle2">
+                                    { formatDate(session.date, 'dddd, MMMM D') }
+                                </Typography>
+                                <Typography variant="caption"
+                                            color={overCapacity ? 'warning.main' : 'text.secondary'}>
+                                    {session.participants.length} / {session.capacity}
+                                </Typography>
+                            </Stack>
+                            <Divider sx={{ my: 1 }} />
+                            { session.participants.length === 0 &&
+                                <Typography variant="body2" color="text.disabled"
+                                            sx={{ fontStyle: 'italic' }}>
+                                    No assigned participants
+                                </Typography> }
+                            { session.participants.length > 0 &&
+                                <Stack direction="column" spacing={0.5}>
+                                    { session.participants.map((participant, participantIndex) => {
+                                        const overflow = participantIndex >= session.capacity;
+                                        const href =
+                                            `/admin/events/${event.slug}/${participant.team}` +
+                                            `/volunteers/${participant.userId}`;
+
+                                        let color: string | undefined;
+                                        if (overflow)
+                                            color = 'warning.main';
+                                        else if (!participant.confirmed)
+                                            color = 'text.disabled';
+
+                                        return (
+                                            <Stack key={participantIndex} direction="row"
+                                                   spacing={1.5} sx={{ alignItems: 'baseline' }}>
+                                                <Typography variant="caption" color="text.disabled"
+                                                            sx={{
+                                                                minWidth: 20,
+                                                                textAlign: 'right',
+                                                            }}>
+                                                    {participantIndex + 1}
+                                                </Typography>
+                                                <Typography variant="body2" sx={{
+                                                    color,
+                                                    fontStyle: participant.confirmed
+                                                        ? undefined
+                                                        : 'italic',
+                                                    '& a': { color },
+                                                }}>
+                                                    { !participant.userId && participant.name }
+                                                    { !!participant.userId &&
+                                                        <MuiLink component={Link} href={href}>
+                                                            {participant.name}
+                                                        </MuiLink> }
+                                                </Typography>
+                                            </Stack>
+                                        );
+                                    }) }
+                                </Stack> }
+                        </Paper>
+                    );
+                }) }
+            </Stack>
+            <Table size="small" sx={{ display: { xs: 'none', md: 'table' }, marginTop: '-8px' }}>
                 <TableHead>
                     <TableRow>
                         <TableCell width="50" />
@@ -242,6 +311,7 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
                                 return (
                                     <TableCell key={index2} align="center">
                                         <Typography variant="body2" sx={{
+                                            color,
                                             fontStyle: participant.confirmed ? '' : 'italic',
                                             '& a': { color } }}>
 
