@@ -421,6 +421,7 @@ export default async function EventTrainingAssignmentsPage(
     return (
         <>
             <Section icon={ <HistoryEduIcon color="primary" /> } title="Training assignments"
+                     documentation="event/training"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Trainings', href: `/admin/events/${event.slug}/training` },

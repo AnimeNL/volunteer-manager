@@ -345,6 +345,7 @@ export default async function EventTrainingSettingsPage(
     return (
         <>
             <Section icon={ <SettingsSuggestIcon color="primary" /> } title="Training settings"
+                     documentation="event/training"
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: 'Trainings', href: `/admin/events/${event.slug}/training` },
