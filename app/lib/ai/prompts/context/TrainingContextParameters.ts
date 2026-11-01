@@ -11,9 +11,10 @@ import { tEvents, tTrainings } from '@lib/database';
 export type TrainingContextParameters<FieldName extends string = 'training'> = {
     [K in FieldName]: {
         address?: string;
-        date: string;
-        startTime: string;
-        endTime: string;
+        assigned: boolean;
+        date?: string;
+        startTime?: string;
+        endTime?: string;
     };
 };
 
@@ -22,18 +23,26 @@ export type TrainingContextParameters<FieldName extends string = 'training'> = {
  */
 export const kTrainingContextExampleParameters: TrainingContextParameters['training'] = {
     address: 'De Broodfabriek, Volmerlaan 12, 2288 GD Rijswijk',
+    assigned: true,
     date: '2026-04-04',
     startTime: '11:00',
     endTime: '17:00',
 };
 
 /**
- * Queries the training session context for the given `trainingId`. Will throw an exception when the
- * training session does not exist or has been hidden.
+ * Queries the training session context for the given `trainingId`. When `trainingId` is `0` (the
+ * volunteer has been exempted from participating), `assigned` will be `false`. Will throw an
+ * exception when a positive `trainingId` does not exist or has been hidden.
  */
 export async function queryTrainingContext(db: DBConnection, trainingId: number)
     : Promise<TrainingContextParameters['training']>
 {
+    if (!trainingId) {
+        return {
+            assigned: false,
+        };
+    }
+
     const training = await db.selectFrom(tTrainings)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tTrainings.eventId))
@@ -52,6 +61,7 @@ export async function queryTrainingContext(db: DBConnection, trainingId: number)
 
     return {
         address: training.address,
+        assigned: true,
         date: formatDate(start, 'YYYY-MM-DD'),
         startTime: formatDate(start, 'HH:mm'),
         endTime: formatDate(end, 'HH:mm'),

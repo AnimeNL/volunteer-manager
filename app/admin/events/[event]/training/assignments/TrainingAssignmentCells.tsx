@@ -61,6 +61,7 @@ interface TrainingCommunicationCellProps {
     row: {
         assignedTrainingId?: number;
         communication?: Record<string, string>;
+        confirmed?: boolean;
         language?: CommunicationLanguage;
         name?: string;
         userId?: number;
@@ -71,15 +72,15 @@ interface TrainingCommunicationCellProps {
 }
 
 /**
- * Cell that contains a communication button through which a volunteer assigned to a training
- * session can be sent a confirmation or reminder e-mail.
+ * Cell that contains a communication button through which a volunteer with a confirmed training
+ * assignment can be sent a confirmation or reminder e-mail.
  */
 export function TrainingCommunicationCell(props: TrainingCommunicationCellProps) {
     const { action, eventId } = props.context!;
     const { row } = props;
 
-    if (!row.userId || !row.team?.id || !row.name || !row.assignedTrainingId ||
-        row.assignedTrainingId <= 0)
+    if (!row.userId || !row.team?.id || !row.name || !row.confirmed ||
+        row.assignedTrainingId === undefined || row.assignedTrainingId < 0)
     {
         return (
             <IconButton disabled size="small">
@@ -95,6 +96,24 @@ export function TrainingCommunicationCell(props: TrainingCommunicationCellProps)
         trainingId: row.assignedTrainingId,
     };
 
+    const prompts: React.ComponentProps<typeof CommunicationIconButton>['prompts'] = [
+        {
+            promptId: 'training-confirmation',
+            promptParams,
+            title: 'Confirm training participation',
+            mostRecentCommunication: communication['training-confirmation'],
+        },
+    ];
+
+    if (row.assignedTrainingId > 0) {
+        prompts.push({
+            promptId: 'training-reminder',
+            promptParams,
+            title: 'Send training reminder',
+            mostRecentCommunication: communication['training-reminder'],
+        });
+    }
+
     return (
         <CommunicationIconButton
             badge={communication['training-confirmation'] ? 'check' : 'none'}
@@ -103,20 +122,7 @@ export function TrainingCommunicationCell(props: TrainingCommunicationCellProps)
             disableSilent
             language={row.language}
             recipientId={row.userId}
-            prompts={[
-                {
-                    promptId: 'training-confirmation',
-                    promptParams,
-                    title: 'Confirm training participation',
-                    mostRecentCommunication: communication['training-confirmation'],
-                },
-                {
-                    promptId: 'training-reminder',
-                    promptParams,
-                    title: 'Send training reminder',
-                    mostRecentCommunication: communication['training-reminder'],
-                },
-            ]}>
+            prompts={prompts}>
 
             Send <strong>{row.name}</strong> an e-mail regarding their training participation.
 

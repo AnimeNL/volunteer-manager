@@ -57,7 +57,8 @@ export async function sendTrainingConfirmationCommunication(
                     .and(tUsersEvents.teamId.equals(teamId))
             .where(tTrainingsAssignments.eventId.equals(event.id))
                 .and(tTrainingsAssignments.assignmentUserId.equals(recipientId))
-                .and(tTrainingsAssignments.assignmentTrainingId.isNotNull())
+                .and(tTrainingsAssignments.assignmentUpdated.isNotNull())
+                .and(tTrainingsAssignments.assignmentConfirmed.equals(/* true= */ 1))
             .select({
                 teamId: tUsersEvents.teamId,
             })

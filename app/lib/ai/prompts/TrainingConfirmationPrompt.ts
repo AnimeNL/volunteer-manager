@@ -32,7 +32,8 @@ export class TrainingConfirmationPrompt extends Prompt<TrainingConfirmationPromp
             label: 'Training participation confirmation',
             regarding: 'their training participation',
             description:
-                'Message to confirm to a volunteer which training session they will join.',
+                'Message to confirm to a volunteer whether and in which training session they ' +
+                'will participate.',
             settings: {
                 prompt: 'ai-communication-type-training-confirmation',
             },
