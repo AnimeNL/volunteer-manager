@@ -64,7 +64,6 @@ export const kLogType = {
     EventIncidentReported: 'event-incident-reported',
     EventVolunteerNotes: 'event-volunteer-notes',
     ExportDataAccess: 'export-data-access',
-    NardoPersonalisedAdvice: 'nardo-personalised-advice',
 } as const;
 
 /**

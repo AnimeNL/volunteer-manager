@@ -177,6 +177,10 @@ interface LogTypeParameterMap {
 
     CreateNardoAdvice: NoParameters;
 
+    CreateNardoPersonalisedAdvice: {
+        id: number;
+    };
+
     DeleteNardoAdvice: NoParameters;
 
     UpdateNardoAdvice: NoParameters;
@@ -727,6 +731,7 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     CreateNardoAdvice: 'CreateNardoAdvice',
+    CreateNardoPersonalisedAdvice: 'CreateNardoPersonalisedAdvice',
     DeleteNardoAdvice: 'DeleteNardoAdvice',
     UpdateNardoAdvice: 'UpdateNardoAdvice',
 

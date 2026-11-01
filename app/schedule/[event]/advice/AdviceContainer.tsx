@@ -15,33 +15,24 @@ import Typography from '@mui/material/Typography';
 
 import { Markdown } from '@app/schedule/Markdown';
 import { ScheduleContext } from '../ScheduleContext';
-import { callApi } from '@lib/callApi';
 import { currentTimestamp, toZonedDateTime } from '../CurrentTime';
 import { formatDate } from '@lib/Temporal';
+
+import { generateAdvice } from './AdviceActions';
 
 /**
  * Fetching function that retrieves advice from the network.
  */
 function adviceFetcherFn(advice?: string, context?: string[], event?: string) {
-    return async (url: string) => {
-        if (url !== '/api/nardo/personalised')
-            throw new Error('You forgot to update the advice endpoint');
-
+    return async () => {
         if (!advice || !context?.length || !event)
             return undefined;
 
-        const response = await callApi('post', '/api/nardo/personalised', {
-            row: {
-                context,
-                contextAdvice: advice,
-                contextEvent: event,
-            },
-        });
-
+        const response = await generateAdvice({ advice, context, event });
         if (!response.success)
             return 'Something went wrong';
 
-        return response.row.output;
+        return response.advice;
     };
 }
 
@@ -118,7 +109,7 @@ export function AdviceContainer() {
     }, [ schedule ]);
 
     const { data } = useSWR(
-        !!advice ? '/api/nardo/personalised' : null,
+        !!advice ? 'nardo-personalised-advice' : null,
         adviceFetcherFn(advice, context, event),
         {
             revalidateOnFocus: false,

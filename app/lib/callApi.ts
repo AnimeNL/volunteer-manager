@@ -31,8 +31,6 @@ import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFa
 import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 
-import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
-
 /**
  * Type helpers for deciding on the request and response types for API definitions. Because they are
  * generic zod objects without a base class, we infer typing rather than define it.
@@ -72,7 +70,6 @@ export type ApiEndpoints = {
         '/api/event/schedule/duty-book': DutyBookReportDefinition,
         '/api/event/schedule/feedback': SubmitFeedbackDefinition,
         '/api/exports': ExportsDefinition,
-        '/api/nardo/personalised': NardoPersonalisedEndpoints['create'],
     },
     'delete': {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
