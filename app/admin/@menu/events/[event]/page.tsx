@@ -26,7 +26,11 @@ import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
+import db, { tActivities, tEvents, tEventsTeams, tHotels, tHotelsBookings, tRoles, tShifts, tTeams,
+    tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsersEventsPreferencesHotel,
+    tUsersEventsPreferencesTraining } from '@lib/database';
+
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * This variant of the parallel route composes the menu for a particular event, including the teams
@@ -39,10 +43,86 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
 
     const cache = Cache.getInstance('AdminNavigationMenuCache');
     const context = await cache.getOrInsert(event.slug, async () => {
+        const dbInstance = db;
+
+        const hotelsBookingsJoin = tHotelsBookings.forUseInLeftJoin();
+        const shiftsJoin = tShifts.forUseInLeftJoin();
+        const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
+        const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+        const hotelsBadgeValue = dbInstance.selectFrom(tUsersEventsPreferencesHotel)
+            .innerJoin(tHotels)
+                .on(tHotels.hotelId.equals(tUsersEventsPreferencesHotel.hotelRoomId))
+                    .and(tHotels.hotelRoomDeleted.isNull())
+            .innerJoin(tUsersEvents)
+                .on(tUsersEvents.userId.equals(tUsersEventsPreferencesHotel.userId))
+                    .and(tUsersEvents.eventId.equals(tUsersEventsPreferencesHotel.eventId))
+                    .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .leftJoin(hotelsBookingsJoin)
+                .on(hotelsBookingsJoin.eventId.equals(tUsersEventsPreferencesHotel.eventId))
+                    .and(hotelsBookingsJoin.bookingDeleted.isNull())
+                    .and(hotelsBookingsJoin.bookingFirstUserId.equals(
+                        tUsersEventsPreferencesHotel.userId).or(
+                        hotelsBookingsJoin.bookingSecondUserId.equals(
+                            tUsersEventsPreferencesHotel.userId)).or(
+                        hotelsBookingsJoin.bookingThirdUserId.equals(
+                            tUsersEventsPreferencesHotel.userId)))
+            .where(tUsersEventsPreferencesHotel.eventId.equals(event.id))
+                .and(tUsersEventsPreferencesHotel.preferenceVersionIsLatest.equals(/* true= */ 1))
+                .and(tUsersEventsPreferencesHotel.hotelRoomId.isNotNull())
+                .and(tUsersEventsPreferencesHotel.hotelCheckIn.isNotNull())
+                .and(tUsersEventsPreferencesHotel.hotelCheckOut.isNotNull())
+                .and(hotelsBookingsJoin.bookingId.isNull())
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        const programBadgeValue = dbInstance.selectFrom(tActivities)
+            .leftJoin(shiftsJoin)
+                .on(shiftsJoin.shiftActivityId.equals(tActivities.activityId))
+                    .and(shiftsJoin.eventId.equals(event.id))
+                    .and(shiftsJoin.shiftDeleted.isNull())
+            .where(tActivities.activityFestivalId.equals(event.integrations?.anPlanFestivalId ?? 0))
+                .and(tActivities.activityHelpNeeded.equals(/* true= */ 1))
+                .and(tActivities.activityDeleted.isNull())
+                .and(tActivities.activityRequestAssignee.isNull())
+                .and(shiftsJoin.shiftId.isNull())
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
+        const volunteerTrainingsBadgeValue = dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .innerJoin(tUsersEventsPreferencesTraining)
+                .on(tUsersEventsPreferencesTraining.eventId.equals(tUsersEvents.eventId))
+                    .and(tUsersEventsPreferencesTraining.userId.equals(tUsersEvents.userId))
+                    .and(tUsersEventsPreferencesTraining.preferenceVersionIsLatest.equals(
+                        /* true= */ 1))
+            .leftJoin(trainingsAssignmentsJoin)
+                .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+            .where(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .and(tUsersEvents.trainingEligible.equals(/* true= */ 1).or(
+                    tRoles.roleTrainingEligible.equals(/* true= */ 1)))
+                .and(trainingsAssignmentsJoin.assignmentUpdated.isNull())
+            .selectOneColumn(dbInstance.countDistinct(tUsersEvents.userId))
+            .forUseAsInlineQueryValue();
+
+        const extraTrainingsBadgeValue = dbInstance.selectFrom(tTrainingsExtra)
+            .innerJoin(tTrainingsAssignments)
+                .on(tTrainingsAssignments.eventId.equals(tTrainingsExtra.eventId))
+                    .and(tTrainingsAssignments.assignmentExtraId.equals(
+                        tTrainingsExtra.trainingExtraId))
+            .where(tTrainingsExtra.eventId.equals(event.id))
+                .and(tTrainingsExtra.trainingExtraVisible.equals(/* true= */ 1))
+                .and(tTrainingsAssignments.preferenceUpdated.isNotNull())
+                .and(tTrainingsAssignments.assignmentUpdated.isNull())
+            .selectCountAll()
+            .forUseAsInlineQueryValue();
+
         const eventsTeamsJoin = tEventsTeams.forUseInLeftJoin();
         const teamsJoin = tTeams.forUseInLeftJoin();
 
-        const dbInstance = db;
         const result = await dbInstance.selectFrom(tEvents)
             .leftJoin(eventsTeamsJoin)
                 .on(eventsTeamsJoin.eventId.equals(tEvents.eventId))
@@ -50,13 +130,23 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
             .leftJoin(teamsJoin)
                 .on(teamsJoin.teamId.equals(eventsTeamsJoin.teamId))
                     .and(teamsJoin.teamDeleted.isNull())
-            .where(tEvents.eventSlug.equals(event.slug))
+            .leftJoin(usersEventsJoin)
+                .on(usersEventsJoin.eventId.equals(eventsTeamsJoin.eventId))
+                    .and(usersEventsJoin.teamId.equals(eventsTeamsJoin.teamId))
+                    .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Registered))
+            .where(tEvents.eventId.equals(event.id))
             .select({
-                teams: dbInstance.aggregateAsArray({
+                badges: {
+                    hotels: hotelsBadgeValue,
+                    program: programBadgeValue,
+                    trainings: volunteerTrainingsBadgeValue.add(extraTrainingsBadgeValue),
+                },
+                team: {
                     id: teamsJoin.teamId,
                     name: teamsJoin.teamName,
                     slug: teamsJoin.teamSlug,
                     color: teamsJoin.teamColourLightTheme,
+                    applications: dbInstance.count(usersEventsJoin.userId),
 
                     flagEnableDutyBook: teamsJoin.teamFlagEnableDutyBook.equals(/* true= */ 1),
                     flagEnableScheduling: teamsJoin.teamFlagEnableScheduling.equals(/* true= */ 1),
@@ -64,17 +154,20 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                     flagManagesFaq: teamsJoin.teamFlagManagesFaq.equals(/* true= */ 1),
                     flagManagesFirstAid: teamsJoin.teamFlagManagesFirstAid.equals(/* true= */ 1),
                     flagManagesSecurity: teamsJoin.teamFlagManagesSecurity.equals(/* true= */ 1),
-                }),
+                },
             })
-            .groupBy(tEvents.eventId)
-            .executeSelectNoneOrOne();
+            .groupBy(tEvents.eventId, teamsJoin.teamId)
+            .executeSelectMany();
 
-        if (!result)
+        if (!result.length)
             return null;
 
         return {
-            teams: result.teams
-                .filter(team => !!team.id && !!team.name && !!team.slug)
+            badges: result[0].badges,
+            teams: result
+                .map(entry => entry.team)
+                .filter((team): team is NonNullable<typeof result[number]['team']> =>
+                    !!team?.id && !!team.name && !!team.slug)
                 .sort((lhs, rhs) => lhs.name!.localeCompare(rhs.name!)),
         };
     });
@@ -103,6 +196,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: HotelIcon,
+            badge: { value: context.badges.hotels },
             condition: event.flags.enableHotel,
             label: 'Hotels',
             permission: {
@@ -114,6 +208,10 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: EventNoteIcon,
+            badge: {
+                severity: 'warning',
+                value: context.badges.program,
+            },
             condition: !!event.integrations?.anPlanFestivalId,
             label: 'Program',
             url: `/admin/events/${event.slug}/program/requests`,
@@ -143,6 +241,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: HistoryEduIcon,
+            badge: { value: context.badges.trainings },
             condition: event.flags.enableTraining,
             label: 'Trainings',
             permission: {
@@ -173,6 +272,10 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
             items: [
                 {
                     Icon: NewReleasesOutlinedIcon,
+                    badge: {
+                        severity: 'error',
+                        value: team.applications,
+                    },
                     label: 'Applications',
                     permission: {
                         permission: 'volunteers.participation',
