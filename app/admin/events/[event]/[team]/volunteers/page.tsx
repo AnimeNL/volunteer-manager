@@ -25,6 +25,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { volunteerDataSource } from './dataSource';
@@ -157,12 +158,14 @@ export default async function EventVolunteersPage(
     let headerAction: React.ReactNode;
     if (access.can('organisation.exports')) {
         headerAction = (
-            <Tooltip title="Export volunteer list">
-                <IconButton LinkComponent={Link} href="/admin/organisation/exports/create"
-                            size="small">
-                    <ShareIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
+            <IconButton LinkComponent={Link} href="/admin/organisation/exports/create"
+                        size="small">
+                <Tooltip title="Export volunteer list">
+                    <TooltipIconWrapper>
+                        <ShareIcon fontSize="small" />
+                    </TooltipIconWrapper>
+                </Tooltip>
+            </IconButton>
         );
     }
 

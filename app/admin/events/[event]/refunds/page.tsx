@@ -22,6 +22,7 @@ import { LogBuilder } from '@lib/log/index';
 import { PrivacyIconButton } from '../[team]/volunteers/[volunteer]/preferences/PrivacyIconButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -279,13 +280,15 @@ export default async function EventRefundsPage(props: PageProps<'/admin/events/[
                          <Stack direction="row" spacing={1}>
                              <PrivacyIconButton />
                              { access.can('organisation.exports') &&
-                                 <Tooltip title="Export refund requests">
-                                     <IconButton LinkComponent={Link}
-                                                 href="/admin/organisation/exports/create"
-                                                 size="small">
-                                         <ShareIcon fontSize="small" />
-                                     </IconButton>
-                                 </Tooltip> }
+                                 <IconButton LinkComponent={Link}
+                                             href="/admin/organisation/exports/create"
+                                             size="small">
+                                     <Tooltip title="Export refund requests">
+                                         <TooltipIconWrapper>
+                                             <ShareIcon fontSize="small" />
+                                         </TooltipIconWrapper>
+                                     </Tooltip>
+                                 </IconButton> }
                          </Stack>
                      }>
                 <SectionIntroduction>

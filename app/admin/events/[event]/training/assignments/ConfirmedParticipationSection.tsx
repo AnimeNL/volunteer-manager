@@ -22,6 +22,7 @@ import type { CachedEvent } from '@lib/cache';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { formatDate } from '@lib/Temporal';
 import { readUserSetting } from '@lib/UserSettings';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import db, { tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
     tUsersEvents } from '@lib/database';
 
@@ -228,12 +229,14 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
     let headerAction: React.ReactNode;
     if (enableExport) {
         headerAction = (
-            <Tooltip title="Export participation">
-                <IconButton LinkComponent={Link} href="/admin/organisation/exports/create"
-                            size="small">
-                    <ShareIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
+            <IconButton LinkComponent={Link} href="/admin/organisation/exports/create"
+                        size="small">
+                <Tooltip title="Export participation">
+                    <TooltipIconWrapper>
+                        <ShareIcon fontSize="small" />
+                    </TooltipIconWrapper>
+                </Tooltip>
+            </IconButton>
         );
     }
 
