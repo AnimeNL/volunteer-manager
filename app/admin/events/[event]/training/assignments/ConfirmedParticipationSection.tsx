@@ -28,17 +28,48 @@ import db, { tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra,
 import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
+ * Information about an individual participant assigned to a training session.
+ */
+interface TrainingParticipant {
+    name: string;
+    href?: string;
+    confirmed: boolean;
+    overflow: boolean;
+}
+
+/**
  * Information about an individual training session and its assigned participants.
  */
 interface TrainingSessionConfirmation {
     capacity: number;
     date: Temporal.ZonedDateTime;
-    participants: {
-        name: string;
-        userId?: number;
-        team?: string;
-        confirmed: boolean;
-    }[];
+    participants: TrainingParticipant[];
+}
+
+/**
+ * Renders the label or profile link for a training `participant`, styled according to confirmation
+ * and capacity status.
+ */
+function renderParticipant(participant: TrainingParticipant) {
+    let color: string | undefined;
+    if (participant.overflow)
+        color = 'warning.main';
+    else if (!participant.confirmed)
+        color = 'text.disabled';
+
+    return (
+        <Typography variant="body2" sx={{
+            color,
+            fontStyle: participant.confirmed ? undefined : 'italic',
+            '& a': { color },
+        }}>
+            { !participant.href && participant.name }
+            { !!participant.href &&
+                <MuiLink component={Link} href={participant.href}>
+                    {participant.name}
+                </MuiLink> }
+        </Typography>
+    );
 }
 
 /**
@@ -68,8 +99,6 @@ interface ConfirmedParticipationSectionProps {
 export async function ConfirmedParticipationSection(props: ConfirmedParticipationSectionProps) {
     const { enableExport, event, userId } = props;
 
-    const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
-
     const dbInstance = db;
     const assignments = await dbInstance.selectFrom(tUsersEvents)
         .innerJoin(tRoles)
@@ -78,9 +107,10 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
             .on(tTeams.teamId.equals(tUsersEvents.teamId))
         .innerJoin(tUsers)
             .on(tUsers.userId.equals(tUsersEvents.userId))
-        .leftJoin(trainingsAssignmentsJoin)
-            .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
-                .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+        .innerJoin(tTrainingsAssignments)
+            .on(tTrainingsAssignments.eventId.equals(tUsersEvents.eventId))
+                .and(tTrainingsAssignments.assignmentUserId.equals(tUsersEvents.userId))
+                .and(tTrainingsAssignments.assignmentTrainingId.isNotNull())
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
             .and(
@@ -90,26 +120,25 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
             userId: tUsersEvents.userId,
             name: tUsers.name,
             team: tTeams.teamSlug,
-            assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
+            assignedTrainingId: tTrainingsAssignments.assignmentTrainingId,
+            confirmed: tTrainingsAssignments.assignmentConfirmed,
         })
         .groupBy(tUsersEvents.userId)
-        .orderBy('name', 'asc')
         .executeSelectMany();
 
     const extraParticipants = await dbInstance.selectFrom(tTrainingsExtra)
-        .leftJoin(trainingsAssignmentsJoin)
-            .on(trainingsAssignmentsJoin.eventId.equals(tTrainingsExtra.eventId))
-                .and(trainingsAssignmentsJoin.assignmentExtraId.equals(
+        .innerJoin(tTrainingsAssignments)
+            .on(tTrainingsAssignments.eventId.equals(tTrainingsExtra.eventId))
+                .and(tTrainingsAssignments.assignmentExtraId.equals(
                     tTrainingsExtra.trainingExtraId))
+                .and(tTrainingsAssignments.assignmentTrainingId.isNotNull())
         .where(tTrainingsExtra.eventId.equals(event.id))
             .and(tTrainingsExtra.trainingExtraVisible.equals(/* true= */ 1))
         .select({
             name: tTrainingsExtra.trainingExtraName,
-            assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
+            assignedTrainingId: tTrainingsAssignments.assignmentTrainingId,
+            confirmed: tTrainingsAssignments.assignmentConfirmed,
         })
-        .orderBy(tTrainingsExtra.trainingExtraName, 'asc')
         .executeSelectMany();
 
     const trainings = await dbInstance.selectFrom(tTrainings)
@@ -123,42 +152,46 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
         .orderBy(tTrainings.trainingStart, 'asc')
         .executeSelectMany();
 
-    const trainingConfirmations: Record<number, TrainingSessionConfirmation> = {};
+    const trainingConfirmations = new Map<number, TrainingSessionConfirmation>();
     let totalCount = 0;
 
     for (const training of trainings) {
-        trainingConfirmations[training.id] = {
+        trainingConfirmations.set(training.id, {
             capacity: training.trainingCapacity,
             date: training.trainingStart.withTimeZone(event.timeZone),
             participants: [],
-        };
+        });
     }
 
     const allParticipants = [
-        ...assignments,
-        ...extraParticipants.map(extra => ({ ...extra, userId: undefined, team: undefined })),
+        ...assignments.map(assignment => ({
+            ...assignment,
+            href: `/admin/events/${event.slug}/${assignment.team}/volunteers/${assignment.userId}`,
+        })),
+        ...extraParticipants.map(extra => ({ ...extra, href: undefined })),
     ];
 
     for (const assignment of allParticipants) {
-        if (!assignment.assignedTrainingId)
-            continue;
-
-        if (!Object.hasOwn(trainingConfirmations, assignment.assignedTrainingId))
+        const session =
+            assignment.assignedTrainingId
+                ? trainingConfirmations.get(assignment.assignedTrainingId)
+                : undefined;
+        if (!session)
             continue;
 
         totalCount++;
-        trainingConfirmations[assignment.assignedTrainingId].participants.push({
+        session.participants.push({
             name: assignment.name,
-            userId: assignment.userId,
-            team: assignment.team,
+            href: assignment.href,
             confirmed: !!assignment.confirmed,
+            overflow: false,
         });
     }
 
     if (!totalCount)
         return null;
 
-    const confirmations = Object.values(trainingConfirmations);
+    const confirmations = [ ...trainingConfirmations.values() ];
     for (const confirmation of confirmations) {
         confirmation.participants.sort((lhs, rhs) => {
             if (lhs.confirmed !== rhs.confirmed)
@@ -166,23 +199,21 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
 
             return lhs.name.localeCompare(rhs.name);
         });
+
+        for (let index = confirmation.capacity; index < confirmation.participants.length; ++index)
+            confirmation.participants[index].overflow = true;
     }
 
-    confirmations.sort((lhs, rhs) => Temporal.ZonedDateTime.compare(lhs.date, rhs.date));
-
-    const rows = [];
+    const rows: (TrainingParticipant | undefined)[][] = [];
     for (let index = 0;; ++index) {
-        const row = [];
+        const row: (TrainingParticipant | undefined)[] = [];
 
         let count = 0;
         for (const session of confirmations) {
             if (session.participants.length > index)
                 count++;
 
-            row.push({
-                overflow: index >= session.capacity,
-                ...session.participants[index],
-            });
+            row.push(session.participants[index]);
         }
 
         if (!count)
@@ -207,7 +238,7 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
     }
 
     return (
-        <ExpandableSection defaultExpanded={!!defaultExpanded} headerAction={headerAction}
+        <ExpandableSection defaultExpanded={defaultExpanded} headerAction={headerAction}
                            icon={ <EventAvailableIcon /> }
                            setting="user-admin-training-expand-confirmed" subtitle={`${totalCount}`}
                            title="Confirmed participation">
@@ -234,44 +265,19 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
                                 </Typography> }
                             { session.participants.length > 0 &&
                                 <Stack direction="column" spacing={0.5}>
-                                    { session.participants.map((participant, participantIndex) => {
-                                        const overflow = participantIndex >= session.capacity;
-                                        const href =
-                                            `/admin/events/${event.slug}/${participant.team}` +
-                                            `/volunteers/${participant.userId}`;
-
-                                        let color: string | undefined;
-                                        if (overflow)
-                                            color = 'warning.main';
-                                        else if (!participant.confirmed)
-                                            color = 'text.disabled';
-
-                                        return (
-                                            <Stack key={participantIndex} direction="row"
-                                                   spacing={1.5} sx={{ alignItems: 'baseline' }}>
-                                                <Typography variant="caption" color="text.disabled"
-                                                            sx={{
-                                                                minWidth: 20,
-                                                                textAlign: 'right',
-                                                            }}>
-                                                    {participantIndex + 1}
-                                                </Typography>
-                                                <Typography variant="body2" sx={{
-                                                    color,
-                                                    fontStyle: participant.confirmed
-                                                        ? undefined
-                                                        : 'italic',
-                                                    '& a': { color },
-                                                }}>
-                                                    { !participant.userId && participant.name }
-                                                    { !!participant.userId &&
-                                                        <MuiLink component={Link} href={href}>
-                                                            {participant.name}
-                                                        </MuiLink> }
-                                                </Typography>
-                                            </Stack>
-                                        );
-                                    }) }
+                                    { session.participants.map((participant, participantIndex) => (
+                                        <Stack key={participantIndex} direction="row"
+                                               spacing={1.5} sx={{ alignItems: 'baseline' }}>
+                                            <Typography variant="caption" color="text.disabled"
+                                                        sx={{
+                                                            minWidth: 20,
+                                                            textAlign: 'right',
+                                                        }}>
+                                                {participantIndex + 1}
+                                            </Typography>
+                                            {renderParticipant(participant)}
+                                        </Stack>
+                                    )) }
                                 </Stack> }
                         </Paper>
                     );
@@ -294,37 +300,11 @@ export async function ConfirmedParticipationSection(props: ConfirmedParticipatio
                             <TableCell sx={{ color: 'text.disabled' }} align="left">
                                 {index + 1}
                             </TableCell>
-                            { row.map((participant, index2) => {
-                                if (!participant.name)
-                                    return <TableCell key={index2} />;
-
-                                const href =
-                                    `/admin/events/${event.slug}/${participant.team}/volunteers/` +
-                                    `${participant.userId}`;
-
-                                let color: string | undefined;
-                                if (participant.overflow)
-                                    color = 'warning.main';
-                                else if (!participant.confirmed)
-                                    color = 'text.disabled';
-
-                                return (
-                                    <TableCell key={index2} align="center">
-                                        <Typography variant="body2" sx={{
-                                            color,
-                                            fontStyle: participant.confirmed ? '' : 'italic',
-                                            '& a': { color } }}>
-
-                                            { !participant.userId && participant.name }
-                                            { !!participant.userId &&
-                                                <MuiLink component={Link} href={href}>
-                                                    {participant.name}
-                                                </MuiLink> }
-
-                                        </Typography>
-                                    </TableCell>
-                                );
-                            } )}
+                            { row.map((participant, index2) => (
+                                <TableCell key={index2} align="center">
+                                    { participant && renderParticipant(participant) }
+                                </TableCell>
+                            )) }
                             <TableCell sx={{ color: 'text.disabled' }} align="right">
                                 {index + 1}
                             </TableCell>

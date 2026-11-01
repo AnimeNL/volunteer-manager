@@ -4,11 +4,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import Alert from '@mui/material/Alert';
-import Collapse from '@mui/material/Collapse';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import type {
@@ -26,12 +22,12 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import {
     TrainingCommunicationCell, TrainingCommunicationHeaderCell, TrainingParticipantCell,
     TrainingSessionCell } from './TrainingAssignmentCells';
-import { TrainingProcessor } from '../TrainingProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { formatDate } from '@lib/Temporal';
 import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEvents, tRoles, tTeams, tTrainingsAssignments, tTrainingsExtra, tUsers,
+import db, { tEvents, tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
     tUsersCommunication, tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
@@ -180,7 +176,6 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
                 }),
             })
             .groupBy(tUsersEvents.userId)
-            .orderBy('name', 'asc')
             .executeSelectMany();
 
         const extraParticipants = await dbInstance.selectFrom(tTrainingsExtra)
@@ -199,7 +194,6 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
                 assignedUpdated: trainingsAssignmentsJoin.assignmentUpdated.isNotNull(),
                 confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
             })
-            .orderBy(tTrainingsExtra.trainingExtraName, 'asc')
             .executeSelectMany();
 
         const rows = [
@@ -320,11 +314,24 @@ export default async function EventTrainingAssignmentsPage(
     if (!event.flags.enableTraining)
         notFound();
 
-    const processor = new TrainingProcessor(event.id);
-    await processor.initialise();
+    const trainings = await db.selectFrom(tTrainings)
+        .where(tTrainings.eventId.equals(event.id))
+            .and(tTrainings.trainingVisible.equals(/* true= */ 1))
+        .select({
+            id: tTrainings.trainingId,
+            start: tTrainings.trainingStart,
+        })
+        .orderBy(tTrainings.trainingStart, 'asc')
+        .executeSelectMany();
 
-    const trainingOptions = processor.compileTrainingOptions();
-    const warnings = processor.compileWarnings();
+    const trainingOptions = [
+        { value: -1, label: ' ' },
+        { value:  0, label: 'Skip the training' },
+        ...trainings.map(training => ({
+            value: training.id,
+            label: formatDate(training.start.withTimeZone(event.timeZone), 'dddd, MMMM D'),
+        })),
+    ];
 
     const enableExport = access.can('organisation.exports');
 
@@ -444,16 +451,6 @@ export default async function EventTrainingAssignmentsPage(
                                startComponent: BooleanCell,
                                startComponentContext: { field: 'confirmed' },
                            }} />
-                <Collapse in={warnings.length > 0}>
-                    <Alert severity="warning" variant="outlined">
-                        <Stack direction="column" spacing={0} sx={{ maxWidth: '100%' }}>
-                            { warnings.map(({ volunteer, warning }, index) =>
-                                <Typography key={index} variant="body2">
-                                    <strong>{volunteer}</strong> {warning}
-                                </Typography> )}
-                        </Stack>
-                    </Alert>
-                </Collapse>
             </Section>
             <ConfirmedParticipationSection enableExport={enableExport} event={event}
                                            userId={user.id} />

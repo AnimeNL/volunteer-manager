@@ -91,7 +91,7 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
             partialRow.preferenceTrainingId >= 0)
         {
             const preferenceTrainingId =
-                partialRow.preferenceTrainingId === 0 ? null : partialRow.preferenceTrainingId;
+                partialRow.preferenceTrainingId > 0 ? partialRow.preferenceTrainingId : null;
 
             await dbInstance.insertInto(tTrainingsAssignments)
                 .set({
@@ -334,7 +334,7 @@ export async function ExtraParticipantsSection(props: ExtraParticipantsSectionPr
         : undefined;
 
     return (
-        <ExpandableSection defaultExpanded={!!defaultExpanded} icon={ <GroupAddIcon /> }
+        <ExpandableSection defaultExpanded={defaultExpanded} icon={ <GroupAddIcon /> }
                            setting="user-admin-training-expand-extra" subtitle={subtitle}
                            title="Extra participants">
             <SectionIntroduction>

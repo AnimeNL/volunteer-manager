@@ -211,7 +211,7 @@ export interface TrainingSessionCellContext {
      * Field on the row model containing the training session ID (`-1` = pending, `0` = skip,
      * `>0` = trainingId).
      */
-    field: string;
+    field: 'assignedTrainingId' | 'preferenceTrainingId' | 'preferredTrainingId';
 
     /**
      * Tooltip to display when the value is pending (`-1`).
@@ -236,7 +236,7 @@ interface TrainingSessionCellProps {
     /**
      * Row model being rendered.
      */
-    row: Record<string, any>;
+    row: Partial<Record<TrainingSessionCellContext['field'], number>>;
 }
 
 /**
@@ -244,8 +244,8 @@ interface TrainingSessionCellProps {
  * when no selection has been made yet or muted text when skipping the training.
  */
 export function TrainingSessionCell(props: TrainingSessionCellProps) {
-    const field = props.context?.field ?? '';
-    const value = props.row[field];
+    const field = props.context?.field;
+    const value = field ? props.row[field] : undefined;
 
     if (value === -1) {
         return (

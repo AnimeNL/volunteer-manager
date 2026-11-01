@@ -194,7 +194,7 @@ export async function PreferenceHistorySection(props: PreferenceHistorySectionPr
     ];
 
     return (
-        <ExpandableSection defaultExpanded={!!defaultExpanded} icon={ <HistoryIcon /> }
+        <ExpandableSection defaultExpanded={defaultExpanded} icon={ <HistoryIcon /> }
                            setting="user-admin-training-expand-history" title="Preference history">
             <DataTable columns={columns} source={historyDataSource}
                        context={{ event: props.event }}
