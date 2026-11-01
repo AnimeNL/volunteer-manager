@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use client';
@@ -9,7 +9,6 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { PageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import type { TrainingsExtraRowModel } from '@app/api/admin/trainings/extra/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
 
@@ -20,7 +19,9 @@ interface TrainingExternalProps {
     /**
      * Information about the event for which extra training participants are being shown.
      */
-    event: PageInfo['event'];
+    event: {
+        slug: string;
+    };
 
     /**
      * The trainings that are available for the external folks to participate in.

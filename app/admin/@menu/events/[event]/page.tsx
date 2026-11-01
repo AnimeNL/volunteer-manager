@@ -150,7 +150,8 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                 permission: 'event.trainings',
                 scope: eventScope,
             },
-            url: `/admin/events/${event.slug}/training`,
+            url: `/admin/events/${event.slug}/training/assignments`,
+            urlPrefix: `/admin/events/${event.slug}/training`,
         },
         {
             Icon: SettingsOutlinedIcon,

@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { z } from 'zod/v4';
@@ -81,7 +81,7 @@ interface TrainingConfigurationProps {
     event: {
         id: number;
         slug: string;
-        timezone: string;
+        timeZone: string;
     };
 }
 
@@ -104,8 +104,8 @@ export async function TrainingConfiguration(props: TrainingConfigurationProps) {
         .executeSelectNoneOrOne() ?? undefined;
 
     return (
-        <FormGridSection action={action} defaultValues={configuration}
-                         timezone={props.event.timezone} title="Training sessions">
+        <FormGridSection action={action} defaultValues={configuration} tabs
+                         timezone={props.event.timeZone} title="Training sessions">
             <Grid size={{ xs: 12 }}>
                 <SectionIntroduction>
                     This section allows you to specify which training sessions are available, and to
@@ -115,13 +115,13 @@ export async function TrainingConfiguration(props: TrainingConfigurationProps) {
             </Grid>
             <AvailabilityToggle label="Publish information" name="trainingInformationPublished" />
             <AvailabilityWindow label="Accept preferences" start="trainingPreferencesStart"
-                                end="trainingPreferencesEnd" timezone={props.event.timezone} />
+                                end="trainingPreferencesEnd" timezone={props.event.timeZone} />
             <Grid size={{ xs: 12 }}>
                 <Divider />
             </Grid>
             <Grid size={{ xs: 12 }}>
                 <TrainingConfigurationTable event={props.event.slug}
-                                            timezone={props.event.timezone} />
+                                            timezone={props.event.timeZone} />
             </Grid>
         </FormGridSection>
     );

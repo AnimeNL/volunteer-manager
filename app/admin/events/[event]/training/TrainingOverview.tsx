@@ -1,25 +1,25 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use client';
 
 import Link from '@app/LinkProxy';
-import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IconButton from '@mui/material/IconButton';
 import ShareIcon from '@mui/icons-material/Share';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Table from '@mui/material/Table';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -167,7 +167,7 @@ export function TrainingOverview(props: TrainingOverviewProps) {
                                         return <TableCell key={index2} />;
 
                                     const href =
-                                        `./${participant.team}/volunteers/${participant.userId}`;
+                                        `../${participant.team}/volunteers/${participant.userId}`;
 
                                     let color: string | undefined = undefined;
                                     if (participant.overflow)

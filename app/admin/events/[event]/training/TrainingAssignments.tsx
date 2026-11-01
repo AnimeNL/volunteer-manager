@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 'use client';
@@ -13,13 +13,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Collapse from '@mui/material/Collapse';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import type { TrainingsAssignmentsRowModel } from '@app/api/admin/trainings/assignments/[[...id]]/route';
 import { RemoteDataTable, type RemoteDataTableColumn } from '@app/admin/components/RemoteDataTable';
+import { Section } from '@app/admin/components/Section';
 
 /**
  * Props accepted by the <TrainingAssignments> component.
@@ -68,7 +68,9 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
                 if (!params.row.userId || !params.row.team)
                     return params.value;
 
-                const href = `./${params.row.team.slug}/volunteers/${params.row.userId}`;
+                const href =
+                    `/admin/events/${props.event}/${params.row.team.slug}` +
+                    `/volunteers/${params.row.userId}`;
                 return (
                     <>
                         { params.row.team &&
@@ -173,11 +175,8 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
     ];
 
     return (
-        <Paper sx={{ p: 2, mt: 2 }}>
-            <Typography variant="h5" sx={{ pb: 1 }}>
-                Training assignments
-            </Typography>
-            <Alert severity="info" sx={{ mb: 2 }}>
+        <Section noHeader tabs>
+            <Alert severity="info">
                 Preferences must be indicated by volunteers and cannot be updated here. Assignments
                 will not be communicated until confirmed. A blue dot indicates that they've not done
                 the training before.
@@ -186,7 +185,7 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
                              defaultSort={{ field: 'name', sort: 'asc' }} context={context}
                              enableUpdate pageSize={100} disableFooter refreshOnUpdate />
             <Collapse in={!!props.warnings.length}>
-                <Alert severity="warning" sx={{ mt: 2 }}>
+                <Alert severity="warning">
                     <Stack direction="column" spacing={0} sx={{ maxWidth: '100%' }}>
                         { props.warnings.map(({ volunteer, warning }, index) =>
                             <Typography key={index} variant="body2">
@@ -195,6 +194,6 @@ export function TrainingAssignments(props: TrainingAssignmentsProps) {
                     </Stack>
                 </Alert>
             </Collapse>
-        </Paper>
+        </Section>
     );
 }
