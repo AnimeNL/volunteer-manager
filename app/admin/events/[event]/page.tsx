@@ -2,12 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { DashboardGrid } from '@app/admin/dashboard/DashboardGrid';
+import { EventAvailabilityCard } from './dashboard/EventAvailabilityCard';
 import { EventDeadlinesCard } from './dashboard/EventDeadlinesCard';
 import { EventFinancesCard } from './dashboard/EventFinancesCard';
 import { EventHotelsCard } from './dashboard/EventHotelsCard';
 import { EventIdentityCard } from './dashboard/EventIdentityCard';
 import { EventRecentChangesCard } from './dashboard/EventRecentChangesCard';
 import { EventTeamsCard } from './dashboard/EventTeamsCard';
+import { EventTrainingsCard } from './dashboard/EventTrainingsCard';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
@@ -28,16 +30,23 @@ export default async function EventVolunteersDashboard(props: PageProps<'/admin/
     cards.push(<EventRecentChangesCard key="changes" event={event} />);
     cards.push(<EventDeadlinesCard key="deadlines" event={event} />);
 
+    const canManageSettings = access.can('event.settings', { event: event.slug });
+    cards.push(
+        <EventAvailabilityCard key="availability" canManageSettings={canManageSettings}
+                               event={event} />);
+
     if (event.flags.enableHotel) {
         const canManageHotels = access.can('event.hotels', { event: event.slug });
         cards.push(
             <EventHotelsCard key="hotels" canManageHotels={canManageHotels} event={event} />);
     }
 
-    // TODO: Hotel status
-    // TODO: Program requests
-    // TODO: Refund status
-    // TODO: Training status
+    if (event.flags.enableTraining) {
+        const canManageTrainings = access.can('event.trainings', { event: event.slug });
+        cards.push(
+            <EventTrainingsCard key="trainings" canManageTrainings={canManageTrainings}
+                                event={event} />);
+    }
 
     return <DashboardGrid cards={cards} />;
 }

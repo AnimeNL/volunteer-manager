@@ -1,17 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
-
-import Divider from '@mui/material/Divider';
 import HotelIcon from '@mui/icons-material/Hotel';
-import IconButton from '@mui/material/IconButton';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 import type { CachedEvent } from '@lib/cache';
-import { DashboardCard } from '@app/admin/dashboard/DashboardCard';
+import { EventWarningCard } from './EventWarningCard';
 import db, { tEvents } from '@lib/database';
 
 /**
@@ -45,31 +38,15 @@ export async function EventHotelsCard(props: EventHotelsCardProps) {
     if (published)
         return null;
 
+    const href = props.canManageHotels
+        ? `/admin/events/${props.event.slug}/hotels/settings`
+        : undefined;
+
     return (
-        <DashboardCard warning>
-            <Stack direction="row" spacing={1.5}
-                   divider={ <Divider flexItem orientation="vertical" /> }
-                   sx={{
-                       alignItems: 'center',
-                       px: 2,
-                       py: 1.5,
-                   }}>
-                <HotelIcon color="warning" fontSize="large" />
-                <Stack direction="column" sx={{ flexGrow: 1, minWidth: 0 }}>
-                    <Typography variant="subtitle2" noWrap>
-                        Hotel information has not been published yet
-                    </Typography>
-                    <Typography variant="body2">
-                        Volunteers cannot view hotel room options or submit their preferences until
-                        the information has been published.
-                    </Typography>
-                </Stack>
-                { !!props.canManageHotels &&
-                    <IconButton component={Link}
-                                href={`/admin/events/${props.event.slug}/hotels/settings`}>
-                        <NavigateNextIcon color="action" />
-                    </IconButton> }
-            </Stack>
-        </DashboardCard>
+        <EventWarningCard href={href} icon={ <HotelIcon color="warning" fontSize="large" /> }
+                          title="Hotel information has not been published yet">
+            Volunteers cannot view hotel room options or submit their preferences until the
+            information has been published.
+        </EventWarningCard>
     );
 }
