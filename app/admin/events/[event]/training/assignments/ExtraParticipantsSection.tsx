@@ -52,9 +52,9 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
     birthdate: z.string().regex(/^\d{4}\-\d{2}\-\d{2}$/).nullish(),
 
     /**
-     * Preferred training session (`0` = skip, `>0` = trainingId, `null`/`undefined` = pending).
+     * Preferred training session (`-1` = pending, `0` = skip, `>0` = trainingId).
      */
-    preferenceTrainingId: z.number().nullish(),
+    preferenceTrainingId: z.number(),
 
 }), {
     async authorize(operation, props, context) {
@@ -87,7 +87,9 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
             .returningLastInsertedId()
             .executeInsert();
 
-        if (insertId && typeof partialRow.preferenceTrainingId === 'number') {
+        if (insertId && typeof partialRow.preferenceTrainingId === 'number' &&
+            partialRow.preferenceTrainingId >= 0)
+        {
             const preferenceTrainingId =
                 partialRow.preferenceTrainingId === 0 ? null : partialRow.preferenceTrainingId;
 
@@ -173,7 +175,7 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
                 birthdate: participant.birthdate,
                 preferenceTrainingId: participant.preferenceUpdated
                     ? (participant.preferenceTrainingId ?? 0)
-                    : null,
+                    : -1,
             })),
         };
     },
@@ -198,22 +200,22 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
                 .executeUpdate();
 
             let updatedPreferenceRows = 0;
-            if (typeof row.preferenceTrainingId === 'number' &&
-                row.preferenceTrainingId !== previousRow.preferenceTrainingId)
-            {
+            if (row.preferenceTrainingId !== previousRow.preferenceTrainingId) {
                 const preferenceTrainingId =
-                    row.preferenceTrainingId === 0 ? null : row.preferenceTrainingId;
+                    row.preferenceTrainingId > 0 ? row.preferenceTrainingId : null;
+                const preferenceUpdated =
+                    row.preferenceTrainingId >= 0 ? dbInstance.currentZonedDateTime() : null;
 
                 updatedPreferenceRows = await dbInstance.insertInto(tTrainingsAssignments)
                     .set({
                         eventId: context.event.id,
                         assignmentExtraId: row.id,
                         preferenceTrainingId,
-                        preferenceUpdated: dbInstance.currentZonedDateTime(),
+                        preferenceUpdated,
                     })
                     .onConflictDoUpdateSet({
                         preferenceTrainingId,
-                        preferenceUpdated: dbInstance.currentZonedDateTime(),
+                        preferenceUpdated,
                     })
                     .executeInsert();
             }

@@ -447,6 +447,11 @@ interface LogTypeParameterMap {
         purchaseId: string;
     };
 
+    UpdateTrainingAssignment: {
+        event: string;  // short name
+        participant: string;
+    };
+
     UpdateTrainingExtraParticipant: {
         event: string;  // short name
         name: string;
@@ -787,6 +792,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateRefundRequest: 'UpdateRefundRequest',
     UpdateShiftCategory: 'UpdateShiftCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
+    UpdateTrainingAssignment: 'UpdateTrainingAssignment',
     UpdateTrainingExtraParticipant: 'UpdateTrainingExtraParticipant',
     UpdateTrainingSession: 'UpdateTrainingSession',
 

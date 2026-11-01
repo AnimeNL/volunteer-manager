@@ -2,23 +2,281 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
+import { z } from 'zod/v4';
 
+import Alert from '@mui/material/Alert';
 import Collapse from '@mui/material/Collapse';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
-import type { TrainingsAssignmentsRowModel } from '@app/api/admin/trainings/assignments/[[...id]]/route';
+import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import type { TrainingConfirmation } from '../TrainingOverview';
+import type { TrainingParticipantCellContext, TrainingSessionCellContext }
+    from './TrainingAssignmentCells';
+import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
+import { DataTable, createDataSource, withContext, withRowModel }
+    from '@app/admin/components/DataTable';
 import { ExtraParticipantsSection } from './ExtraParticipantsSection';
+import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TrainingAssignments } from '../TrainingAssignments';
-import { TrainingOverview, type TrainingConfirmation } from '../TrainingOverview';
+import { TrainingOverview } from '../TrainingOverview';
+import { TrainingParticipantCell, TrainingSessionCell } from './TrainingAssignmentCells';
 import { TrainingProcessor } from '../TrainingProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
-    tUsersEvents } from '@lib/database';
+import db, { tEvents, tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
+    tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
+import { kEventTransformer } from '@app/admin/components/DataTable';
 import { kRegistrationStatus } from '@lib/database/Types';
+
+/**
+ * Data source for managing training session assignments for volunteers and external participants.
+ */
+const assignmentsDataSource = createDataSource('admin/event/training/assignments', withContext({
+    /**
+     * Event for which training assignments are being managed.
+     */
+    event: kEventTransformer,
+
+}), withRowModel({
+    /**
+     * Unique row identifier (`user-${userId}` or `extra-${extraId}`).
+     */
+    id: z.string(),
+
+    /**
+     * Full name of the participant.
+     */
+    name: z.string(),
+
+    /**
+     * Whether this is the first time the volunteer might participate in the training.
+     */
+    new: z.boolean(),
+
+    /**
+     * Unique user ID when the participant is a volunteer.
+     */
+    userId: z.number().optional(),
+
+    /**
+     * Unique extra participant ID when the participant is external.
+     */
+    extraId: z.number().optional(),
+
+    /**
+     * Team information when the participant is a volunteer.
+     */
+    team: z.object({
+        color: z.string(),
+        name: z.string(),
+        slug: z.string(),
+    }).optional(),
+
+    /**
+     * Preferred training ID (`-1` = pending, `0` = skip, `>0` = trainingId).
+     */
+    preferredTrainingId: z.number(),
+
+    /**
+     * Assigned training ID (`-1` = pending, `0` = skip, `>0` = trainingId).
+     */
+    assignedTrainingId: z.number(),
+
+    /**
+     * Whether the assignment has been confirmed, and can be communicated.
+     */
+    confirmed: z.boolean(),
+
+}), {
+    async authorize(operation, props, context) {
+        executeAccessCheck(props.authenticationContext, {
+            permission: 'event.trainings',
+            scope: {
+                event: context.event.slug,
+            },
+        });
+    },
+
+    async list(params, props, context) {
+        if (!context.event.flags.enableTraining)
+            notFound();
+
+        const dbInstance = db;
+        const experiencedUsers = new Set(await dbInstance.selectDistinctFrom(tTrainingsAssignments)
+            .innerJoin(tEvents)
+                .on(tEvents.eventId.equals(tTrainingsAssignments.eventId))
+            .where(tTrainingsAssignments.assignmentUserId.isNotNull())
+                .and(tTrainingsAssignments.assignmentTrainingId.isNotNull())
+                .and(tTrainingsAssignments.assignmentConfirmed.isNotNull())
+                .and(tEvents.eventStartTime.lessThan(context.event.startTime))
+            .selectOneColumn(tTrainingsAssignments.assignmentUserId)
+            .executeSelectMany());
+
+        const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+        const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
+
+        const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .innerJoin(tTeams)
+                .on(tTeams.teamId.equals(tUsersEvents.teamId))
+            .innerJoin(tUsers)
+                .on(tUsers.userId.equals(tUsersEvents.userId))
+            .leftJoin(preferencesTrainingJoin)
+                .on(preferencesTrainingJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesTrainingJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesTrainingJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .leftJoin(trainingsAssignmentsJoin)
+                .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
+            .where(tUsersEvents.eventId.equals(context.event.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .and(
+                    tUsersEvents.trainingEligible.equals(/* true= */ 1).or(
+                        tRoles.roleTrainingEligible.equals(/* true= */ 1)))
+            .select({
+                userId: tUsersEvents.userId,
+                name: tUsers.name,
+                team: {
+                    color: tTeams.teamColourLightTheme,
+                    name: tTeams.teamName,
+                    slug: tTeams.teamSlug,
+                },
+                preferredTrainingId: preferencesTrainingJoin.trainingId,
+                assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
+                assignedUpdated: trainingsAssignmentsJoin.assignmentUpdated.isNotNull(),
+                confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
+            })
+            .groupBy(tUsersEvents.userId)
+            .orderBy('name', 'asc')
+            .executeSelectMany();
+
+        const extraParticipants = await dbInstance.selectFrom(tTrainingsExtra)
+            .leftJoin(trainingsAssignmentsJoin)
+                .on(trainingsAssignmentsJoin.eventId.equals(tTrainingsExtra.eventId))
+                    .and(trainingsAssignmentsJoin.assignmentExtraId.equals(
+                        tTrainingsExtra.trainingExtraId))
+            .where(tTrainingsExtra.eventId.equals(context.event.id))
+                .and(tTrainingsExtra.trainingExtraVisible.equals(/* true= */ 1))
+            .select({
+                extraId: tTrainingsExtra.trainingExtraId,
+                name: tTrainingsExtra.trainingExtraName,
+                preferenceTrainingId: trainingsAssignmentsJoin.preferenceTrainingId,
+                preferenceUpdated: trainingsAssignmentsJoin.preferenceUpdated.isNotNull(),
+                assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
+                assignedUpdated: trainingsAssignmentsJoin.assignmentUpdated.isNotNull(),
+                confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
+            })
+            .orderBy(tTrainingsExtra.trainingExtraName, 'asc')
+            .executeSelectMany();
+
+        const rows = [
+            ...volunteers.map(volunteer => ({
+                id: `user-${volunteer.userId}`,
+                name: volunteer.name,
+                new: !experiencedUsers.has(volunteer.userId),
+                userId: volunteer.userId,
+                extraId: undefined,
+                team: volunteer.team,
+                preferredTrainingId: volunteer.preferredTrainingId ?? -1,
+                assignedTrainingId: volunteer.assignedUpdated
+                    ? (volunteer.assignedTrainingId ?? 0)
+                    : -1,
+                confirmed: !!volunteer.confirmed,
+            })),
+            ...extraParticipants.map(extra => ({
+                id: `extra-${extra.extraId}`,
+                name: extra.name,
+                new: false,
+                userId: undefined,
+                extraId: extra.extraId,
+                team: undefined,
+                preferredTrainingId: extra.preferenceUpdated
+                    ? (extra.preferenceTrainingId ?? 0)
+                    : -1,
+                assignedTrainingId: extra.assignedUpdated
+                    ? (extra.assignedTrainingId ?? 0)
+                    : -1,
+                confirmed: !!extra.confirmed,
+            })),
+        ];
+
+        rows.sort((lhs, rhs) => {
+            let change = 0;
+            switch (params.sort.field ?? 'name') {
+                case 'assignedTrainingId':
+                    change = lhs.assignedTrainingId - rhs.assignedTrainingId;
+                    break;
+
+                case 'confirmed':
+                    if (lhs.confirmed !== rhs.confirmed)
+                        change = rhs.confirmed ? 1 : -1;
+                    break;
+
+                case 'preferredTrainingId':
+                    change = lhs.preferredTrainingId - rhs.preferredTrainingId;
+                    break;
+            }
+
+            if (change === 0)
+                change = lhs.name.localeCompare(rhs.name);
+
+            return change * (params.sort.direction === 'desc' ? -1 : 1);
+        });
+
+        return {
+            rowCount: rows.length,
+            rows,
+        };
+    },
+
+    async update(row, previousRow, props, context) {
+        if (!context.event.flags.enableTraining)
+            notFound();
+
+        if (!row.userId && !row.extraId)
+            return false;
+
+        const dbInstance = db;
+
+        const assignmentTrainingId = row.assignedTrainingId > 0 ? row.assignedTrainingId : null;
+        const assignmentUpdated =
+            row.assignedTrainingId >= 0 ? dbInstance.currentZonedDateTime() : null;
+
+        const affectedRows = await dbInstance.insertInto(tTrainingsAssignments)
+            .set({
+                eventId: context.event.id,
+                assignmentUserId: row.userId ?? null,
+                assignmentExtraId: row.extraId ?? null,
+                assignmentTrainingId,
+                assignmentUpdated,
+                assignmentConfirmed: row.confirmed ? 1 : 0,
+            })
+            .onConflictDoUpdateSet({
+                assignmentTrainingId,
+                assignmentUpdated,
+                assignmentConfirmed: row.confirmed ? 1 : 0,
+            })
+            .executeInsert();
+
+        LogBuilder.for('UpdateTrainingAssignment')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withAffectedUser(row.userId)
+            .withSeverity('Warning')
+            .record({
+                event: context.event.shortName,
+                participant: row.name,
+            });
+
+        return !!affectedRows;
+    },
+});
 
 /**
  * The <EventTrainingAssignmentsPage> page allows event administrators to view and manage training
@@ -54,23 +312,12 @@ export default async function EventTrainingAssignmentsPage(
                     tRoles.roleTrainingEligible.equals(/* true= */ 1)))
         .select({
             userId: tUsersEvents.userId,
-
             name: tUsers.name,
-            team: {
-                color: tTeams.teamColourLightTheme,
-                name: tTeams.teamName,
-                slug: tTeams.teamSlug,
-            },
-
-            preferenceTrainingId: trainingsAssignmentsJoin.preferenceTrainingId,
-            preferenceUpdated: trainingsAssignmentsJoin.preferenceUpdated,
-
+            team: tTeams.teamSlug,
             assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            assignedUpdated:
-                dbInstance.dateTimeAsString(trainingsAssignmentsJoin.assignmentUpdated),
-
             confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
         })
+        .groupBy(tUsersEvents.userId)
         .orderBy('name', 'asc')
         .executeSelectMany();
 
@@ -81,20 +328,8 @@ export default async function EventTrainingAssignmentsPage(
         .where(tTrainingsExtra.eventId.equals(event.id))
             .and(tTrainingsExtra.trainingExtraVisible.equals(/* true= */ 1))
         .select({
-            id: tTrainingsExtra.trainingExtraId,
-
-            trainingExtraName: tTrainingsExtra.trainingExtraName,
-            trainingExtraEmail: tTrainingsExtra.trainingExtraEmail,
-            trainingExtraBirthdate: dbInstance.dateAsString(tTrainingsExtra.trainingExtraBirthdate),
-
-            preferenceTrainingId: trainingsAssignmentsJoin.preferenceTrainingId,
-            preferenceUpdated:
-                dbInstance.dateTimeAsString(trainingsAssignmentsJoin.preferenceUpdated),
-
+            name: tTrainingsExtra.trainingExtraName,
             assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            assignedUpdated:
-                dbInstance.dateTimeAsString(trainingsAssignmentsJoin.assignmentUpdated),
-
             confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
         })
         .orderBy(tTrainingsExtra.trainingExtraName, 'asc')
@@ -105,61 +340,11 @@ export default async function EventTrainingAssignmentsPage(
             .and(tTrainings.trainingVisible.equals(/* true= */ 1))
         .select({
             id: tTrainings.trainingId,
-            trainingAddress: tTrainings.trainingAddress,
             trainingCapacity: tTrainings.trainingCapacity,
             trainingStart: tTrainings.trainingStart,
-            trainingEnd: tTrainings.trainingEnd,
         })
         .orderBy(tTrainings.trainingStart, 'asc')
         .executeSelectMany();
-
-    // ---------------------------------------------------------------------------------------------
-    // Combine the information to create a comprehensive assignment table
-    // ---------------------------------------------------------------------------------------------
-
-    const trainingAssignments: Omit<TrainingsAssignmentsRowModel, 'id'>[] = [];
-
-    for (const assignment of [ ...assignments, ...extraParticipants ]) {
-        let preferredTrainingId: number | null | undefined = undefined;
-        let assignedTrainingId: number | undefined = undefined;
-
-        if (!!assignment.preferenceUpdated)
-            preferredTrainingId = assignment.preferenceTrainingId ?? null;
-
-        if (!!assignment.assignedUpdated)
-            assignedTrainingId = assignment.assignedTrainingId ?? /* skip= */ 0;
-
-        if ('trainingExtraName' in assignment) {
-            trainingAssignments.push({
-                name: assignment.trainingExtraName,
-                new: false,  // unused
-
-                // userId: none
-                // team: none
-
-                preferredTrainingId, assignedTrainingId,
-                confirmed: !!assignment.confirmed,
-            });
-        } else {
-            trainingAssignments.push({
-                name: assignment.name,
-                new: false,  // unused
-
-                userId: assignment.userId,
-                team: assignment.team,
-
-                preferredTrainingId, assignedTrainingId,
-                confirmed: !!assignment.confirmed,
-            });
-        }
-    }
-
-    // Sort the training assignments alphabetically by name of the participant.
-    trainingAssignments.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
-
-    // ---------------------------------------------------------------------------------------------
-    // Then process it again towards the confirmation table, combined with training information
-    // ---------------------------------------------------------------------------------------------
 
     const trainingConfirmations: { [key: number]: TrainingConfirmation } = {};
     let trainingConfirmationCount = 0;
@@ -172,19 +357,24 @@ export default async function EventTrainingAssignmentsPage(
         };
     }
 
-    for (const assignment of trainingAssignments) {
+    const allParticipants = [
+        ...assignments,
+        ...extraParticipants.map(extra => ({ ...extra, userId: undefined, team: undefined })),
+    ];
+
+    for (const assignment of allParticipants) {
         if (!assignment.assignedTrainingId)
             continue;
 
-        if (!trainingConfirmations.hasOwnProperty(assignment.assignedTrainingId))
-            continue;  // this should not happen.. deleted trainings?
+        if (!Object.hasOwn(trainingConfirmations, assignment.assignedTrainingId))
+            continue;
 
         trainingConfirmationCount++;
         trainingConfirmations[assignment.assignedTrainingId].participants.push({
             name: assignment.name,
             userId: assignment.userId,
-            team: assignment.team?.slug,
-            confirmed: assignment.confirmed,
+            team: assignment.team,
+            confirmed: !!assignment.confirmed,
         });
     }
 
@@ -209,6 +399,77 @@ export default async function EventTrainingAssignmentsPage(
 
     const enableExport = access.can('organisation.exports');
 
+    const columns: Column<ExtractRowModel<typeof assignmentsDataSource>>[] = [
+        {
+            field: 'name',
+            headerName: 'Participant',
+            editable: false,
+            sortable: true,
+            flex: 1,
+
+            template: 'component',
+            templateProps: {
+                component: TrainingParticipantCell,
+                componentContext: {
+                    event: event.slug,
+                } satisfies TrainingParticipantCellContext,
+            },
+        },
+        {
+            field: 'preferredTrainingId',
+            headerName: 'Preference',
+            editable: false,
+            sortable: true,
+            flex: 1,
+
+            template: 'component',
+            templateProps: {
+                component: TrainingSessionCell,
+                componentContext: {
+                    field: 'preferredTrainingId',
+                    pendingTooltip: 'Pending volunteer preferences',
+                    trainings: trainingOptions,
+                } satisfies TrainingSessionCellContext,
+            },
+        },
+        {
+            field: 'assignedTrainingId',
+            headerName: 'Assignment',
+            editable: true,
+            sortable: true,
+            flex: 1,
+
+            type: 'singleSelect',
+            valueOptions: trainingOptions,
+
+            template: 'component',
+            templateProps: {
+                component: TrainingSessionCell,
+                componentContext: {
+                    field: 'assignedTrainingId',
+                    pendingTooltip: 'Pending approval',
+                    trainings: trainingOptions,
+                } satisfies TrainingSessionCellContext,
+            },
+        },
+        {
+            field: 'confirmed',
+            description: 'Has this assignment been confirmed?',
+            editable: true,
+            sortable: true,
+            type: 'boolean',
+
+            template: 'boolean',
+            templateProps: {
+                tooltips: {
+                    header: 'Has the training assignment been confirmed?',
+                    falsyValue: 'Assignment has not been confirmed',
+                    truthyValue: 'Assignment has been confirmed',
+                },
+            },
+        },
+    ];
+
     return (
         <>
             <Section icon={ <HistoryEduIcon color="primary" /> } title="Training assignments"
@@ -218,11 +479,33 @@ export default async function EventTrainingAssignmentsPage(
                          { label: 'Assignments' },
                      ]}>
                 <SectionIntroduction>
-                    Training session assignments and participation for {event.shortName} volunteers.
+                    Preferences must be indicated by volunteers and cannot be updated here.
+                    Assignments will not be communicated until confirmed. A blue dot indicates that
+                    they've not done the training before.
                 </SectionIntroduction>
             </Section>
-            <TrainingAssignments event={event.slug} trainings={trainingOptions}
-                                 warnings={warnings} />
+            <Section noHeader tabs>
+                <DataTable columns={columns} source={assignmentsDataSource}
+                           context={{ event: event.slug }}
+                           defaultSort={{ field: 'name', sort: 'asc' }}
+                           disableFooter pageSize={100} refreshOnMutation
+                           subject="training assignment"
+                           listViewProps={{
+                               primaryField: 'name',
+                               startComponent: BooleanCell,
+                               startComponentContext: { field: 'confirmed' },
+                           }} />
+                <Collapse in={warnings.length > 0}>
+                    <Alert severity="warning" variant="outlined">
+                        <Stack direction="column" spacing={0} sx={{ maxWidth: '100%' }}>
+                            { warnings.map(({ volunteer, warning }, index) =>
+                                <Typography key={index} variant="body2">
+                                    <strong>{volunteer}</strong> {warning}
+                                </Typography> )}
+                        </Stack>
+                    </Alert>
+                </Collapse>
+            </Section>
             <Collapse in={trainingConfirmationCount > 0} sx={{ mt: '-16px !important' }}>
                 <TrainingOverview confirmations={confirmations} enableExport={enableExport} />
             </Collapse>
