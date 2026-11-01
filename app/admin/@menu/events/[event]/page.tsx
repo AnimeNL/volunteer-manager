@@ -143,7 +143,6 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: HistoryEduIcon,
-            badge: { migration: true, value: true },  // migration not started
             condition: event.flags.enableTraining,
             label: 'Trainings',
             permission: {

@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { ConfirmIdentityDefinition } from '@app/api/auth/confirmIdentity';
@@ -33,9 +33,6 @@ import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes'
 
 import type { EventScheduleHistoryEndpoints } from '@app/api/admin/event/schedule/history/[[...id]]/route';
 import type { NardoPersonalisedEndpoints } from '@app/api/nardo/personalised/[[...id]]/route';
-import type { TrainingsAssignmentsEndpoints } from '@app/api/admin/trainings/assignments/[[...id]]/route';
-import type { TrainingsEndpoints } from '@app/api/admin/trainings/[[...id]]/route';
-import type { TrainingsExtraEndpoints } from '@app/api/admin/trainings/extra/[[...id]]/route';
 
 /**
  * Type helpers for deciding on the request and response types for API definitions. Because they are
@@ -52,15 +49,10 @@ export type ApiEndpoints = {
     'get': {
         '/api/admin/event/schedule/history': EventScheduleHistoryEndpoints['list'],
         '/api/admin/event/schedule/:event/:team': GetScheduleDefinition,
-        '/api/admin/trainings': TrainingsEndpoints['list'],
-        '/api/admin/trainings/assignments': TrainingsAssignmentsEndpoints['list'],
-        '/api/admin/trainings/extra': TrainingsExtraEndpoints['list'],
         '/api/auth/passkeys/list': ListPasskeysDefinition,
         '/api/display': DisplayDefinition,
     },
     'post': {
-        '/api/admin/trainings': TrainingsEndpoints['create'],
-        '/api/admin/trainings/extra': TrainingsExtraEndpoints['create'],
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,
         '/api/auth/passkeys/create-challenge': CreateChallengeDefinition,
         '/api/auth/passkeys/register': RegisterPasskeyDefinition,
@@ -86,14 +78,9 @@ export type ApiEndpoints = {
     },
     'delete': {
         '/api/admin/event/schedule/history/:id': EventScheduleHistoryEndpoints['delete'],
-        '/api/admin/trainings/:id': TrainingsEndpoints['delete'],
-        '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['delete'],
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
-        '/api/admin/trainings/:id': TrainingsEndpoints['update'],
-        '/api/admin/trainings/assignments/:id': TrainingsAssignmentsEndpoints['update'],
-        '/api/admin/trainings/extra/:id': TrainingsExtraEndpoints['update'],
         '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
         '/api/event/schedule/help-request': UpdateHelpRequestDefinition,

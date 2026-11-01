@@ -1,4 +1,4 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { after } from 'next/server';
@@ -46,9 +46,6 @@ export const kLogType = {
     AdminEventRoleUpdate: 'admin-event-role-update',
     AdminEventShiftMutation: 'admin-event-shift-mutation',
     AdminEventTeamUpdate: 'admin-event-team-update',
-    AdminEventTrainingAssignment: 'admin-event-training-assignment',
-    AdminEventTrainingMutation: 'admin-event-training',
-    AdminEventTrainingExtraMutation: 'admin-event-training-extra',
     AdminUpdateAvailabilityPreferences: 'admin-update-availability-preferences',
     AdminUpdateEvent: 'admin-update-event',
     AdminUpdateHotelPreferences: 'admin-update-hotel-preferences',
