@@ -29,6 +29,7 @@ export type UserSettingsMap = {
     'user-admin-schedule-highlight-shifts': string;
     'user-admin-schedule-inclusive-shifts': boolean;
     'user-admin-shifts-display-other-teams': boolean;
+    'user-admin-training-expand-confirmed': boolean;
     'user-admin-training-expand-extra': boolean;
     'user-admin-volunteers-expand-notes': boolean;
     'user-admin-volunteers-expand-shifts': boolean;

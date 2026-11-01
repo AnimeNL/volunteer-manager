@@ -330,7 +330,7 @@ export async function ExtraParticipantsSection(props: ExtraParticipantsSectionPr
     ];
 
     const subtitle = extraParticipantsCount > 0
-        ? `${extraParticipantsCount} participant${extraParticipantsCount === 1 ? '' : 's'}`
+        ? `${extraParticipantsCount}`
         : undefined;
 
     return (

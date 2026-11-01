@@ -62,7 +62,7 @@ export function ExpandableSection(props: React.PropsWithChildren<ExpandableSecti
                     }
                }}>
             <AccordionSummary expandIcon={ <ExpandMoreIcon /> }>
-                <SectionHeader {...sectionHeaderProps} sx={{ pb: 1 }} />
+                <SectionHeader {...sectionHeaderProps} sx={{ flexGrow: 1, mr: 1, pb: 1 }} />
             </AccordionSummary>
             <AccordionDetails sx={{ paddingTop: 0 }}>
                 <Stack direction="column" spacing={2}>

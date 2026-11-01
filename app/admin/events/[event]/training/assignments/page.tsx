@@ -11,23 +11,22 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import type { TrainingConfirmation } from '../TrainingOverview';
 import type { TrainingParticipantCellContext, TrainingSessionCellContext }
     from './TrainingAssignmentCells';
 import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
+import { ConfirmedParticipationSection } from './ConfirmedParticipationSection';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExtraParticipantsSection } from './ExtraParticipantsSection';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TrainingOverview } from '../TrainingOverview';
 import { TrainingParticipantCell, TrainingSessionCell } from './TrainingAssignmentCells';
 import { TrainingProcessor } from '../TrainingProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEvents, tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
+import db, { tEvents, tRoles, tTeams, tTrainingsAssignments, tTrainingsExtra, tUsers,
     tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';
@@ -292,108 +291,6 @@ export default async function EventTrainingAssignmentsPage(
     const processor = new TrainingProcessor(event.id);
     await processor.initialise();
 
-    const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
-
-    const dbInstance = db;
-    const assignments = await dbInstance.selectFrom(tUsersEvents)
-        .innerJoin(tRoles)
-            .on(tRoles.roleId.equals(tUsersEvents.roleId))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tUsersEvents.teamId))
-        .innerJoin(tUsers)
-            .on(tUsers.userId.equals(tUsersEvents.userId))
-        .leftJoin(trainingsAssignmentsJoin)
-            .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
-            .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
-        .where(tUsersEvents.eventId.equals(event.id))
-            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-            .and(
-                tUsersEvents.trainingEligible.equals(/* true= */ 1).or(
-                    tRoles.roleTrainingEligible.equals(/* true= */ 1)))
-        .select({
-            userId: tUsersEvents.userId,
-            name: tUsers.name,
-            team: tTeams.teamSlug,
-            assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
-        })
-        .groupBy(tUsersEvents.userId)
-        .orderBy('name', 'asc')
-        .executeSelectMany();
-
-    const extraParticipants = await dbInstance.selectFrom(tTrainingsExtra)
-        .leftJoin(trainingsAssignmentsJoin)
-            .on(trainingsAssignmentsJoin.eventId.equals(tTrainingsExtra.eventId))
-            .and(trainingsAssignmentsJoin.assignmentExtraId.equals(tTrainingsExtra.trainingExtraId))
-        .where(tTrainingsExtra.eventId.equals(event.id))
-            .and(tTrainingsExtra.trainingExtraVisible.equals(/* true= */ 1))
-        .select({
-            name: tTrainingsExtra.trainingExtraName,
-            assignedTrainingId: trainingsAssignmentsJoin.assignmentTrainingId,
-            confirmed: trainingsAssignmentsJoin.assignmentConfirmed,
-        })
-        .orderBy(tTrainingsExtra.trainingExtraName, 'asc')
-        .executeSelectMany();
-
-    const trainings = await db.selectFrom(tTrainings)
-        .where(tTrainings.eventId.equals(event.id))
-            .and(tTrainings.trainingVisible.equals(/* true= */ 1))
-        .select({
-            id: tTrainings.trainingId,
-            trainingCapacity: tTrainings.trainingCapacity,
-            trainingStart: tTrainings.trainingStart,
-        })
-        .orderBy(tTrainings.trainingStart, 'asc')
-        .executeSelectMany();
-
-    const trainingConfirmations: { [key: number]: TrainingConfirmation } = {};
-    let trainingConfirmationCount = 0;
-
-    for (const training of trainings) {
-        trainingConfirmations[training.id] = {
-            capacity: training.trainingCapacity,
-            date: training.trainingStart.toString(),
-            participants: [],
-        };
-    }
-
-    const allParticipants = [
-        ...assignments,
-        ...extraParticipants.map(extra => ({ ...extra, userId: undefined, team: undefined })),
-    ];
-
-    for (const assignment of allParticipants) {
-        if (!assignment.assignedTrainingId)
-            continue;
-
-        if (!Object.hasOwn(trainingConfirmations, assignment.assignedTrainingId))
-            continue;
-
-        trainingConfirmationCount++;
-        trainingConfirmations[assignment.assignedTrainingId].participants.push({
-            name: assignment.name,
-            userId: assignment.userId,
-            team: assignment.team,
-            confirmed: !!assignment.confirmed,
-        });
-    }
-
-    const confirmations = [ ...Object.values(trainingConfirmations) ];
-    for (let index = 0; index < confirmations.length; ++index) {
-        confirmations[index].participants.sort((lhs, rhs) => {
-            if (lhs.confirmed !== rhs.confirmed)
-                return lhs.confirmed ? -1 : 1;
-
-            return lhs.name.localeCompare(rhs.name);
-        });
-    }
-
-    confirmations.sort((lhs, rhs) => {
-        return Temporal.ZonedDateTime.compare(
-            Temporal.ZonedDateTime.from(lhs.date),
-            Temporal.ZonedDateTime.from(rhs.date));
-    });
-
     const trainingOptions = processor.compileTrainingOptions();
     const warnings = processor.compileWarnings();
 
@@ -506,9 +403,8 @@ export default async function EventTrainingAssignmentsPage(
                     </Alert>
                 </Collapse>
             </Section>
-            <Collapse in={trainingConfirmationCount > 0} sx={{ mt: '-16px !important' }}>
-                <TrainingOverview confirmations={confirmations} enableExport={enableExport} />
-            </Collapse>
+            <ConfirmedParticipationSection enableExport={enableExport} event={event}
+                                           userId={user.id} />
             <ExtraParticipantsSection event={event} trainings={trainingOptions} userId={user.id} />
         </>
     );

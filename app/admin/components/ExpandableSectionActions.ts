@@ -20,6 +20,7 @@ const kExpandableSectionSettings = [
     'user-admin-schedule-expand-history',
     'user-admin-schedule-expand-warnings',
     'user-admin-shifts-display-other-teams',
+    'user-admin-training-expand-confirmed',
     'user-admin-training-expand-extra',
     'user-admin-volunteers-expand-notes',
     'user-admin-volunteers-expand-shifts',
