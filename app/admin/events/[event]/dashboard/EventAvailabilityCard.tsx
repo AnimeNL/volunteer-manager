@@ -5,9 +5,6 @@ import EventBusyIcon from '@mui/icons-material/EventBusy';
 
 import type { CachedEvent } from '@lib/cache';
 import { EventWarningCard } from './EventWarningCard';
-import db, { tEvents } from '@lib/database';
-
-import { kEventAvailabilityStatus } from '@lib/database/Types';
 
 /**
  * Props accepted by the <EventAvailabilityCard> component.
@@ -22,31 +19,32 @@ interface EventAvailabilityCardProps {
      * Event for which the card is being displayed.
      */
     event: CachedEvent;
+
+    /**
+     * Whether availability information has been published to volunteers.
+     */
+    published?: boolean;
 }
 
 /**
- * Event dashboard card that displays a warning when availability information has not been published
- * yet for an event.
+ * Event dashboard card that displays availability status, or a warning when availability
+ * information has not been published yet.
  */
 export async function EventAvailabilityCard(props: EventAvailabilityCardProps) {
-    const published = await db.selectFrom(tEvents)
-        .where(tEvents.eventId.equals(props.event.id))
-        .selectOneColumn(
-            tEvents.eventAvailabilityStatus.notEquals(kEventAvailabilityStatus.Unavailable))
-        .executeSelectNoneOrOne();
+    if (!props.published) {
+        const href = props.canManageSettings
+            ? `/admin/events/${props.event.slug}/settings/configuration`
+            : undefined;
 
-    if (published)
-        return null;
+        return (
+            <EventWarningCard href={href}
+                              icon={ <EventBusyIcon color="warning" fontSize="large" /> }
+                              title="Availability information has not been published yet">
+                Volunteers cannot view the festival program or submit their availability preferences
+                until the information has been published.
+            </EventWarningCard>
+        );
+    }
 
-    const href = props.canManageSettings
-        ? `/admin/events/${props.event.slug}/settings/configuration`
-        : undefined;
-
-    return (
-        <EventWarningCard href={href} icon={ <EventBusyIcon color="warning" fontSize="large" /> }
-                          title="Availability information has not been published yet">
-            Volunteers cannot view the festival program or submit their availability preferences
-            until the information has been published.
-        </EventWarningCard>
-    );
+    return null;
 }

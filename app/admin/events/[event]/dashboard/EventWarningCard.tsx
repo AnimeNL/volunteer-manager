@@ -1,8 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
 import Link from '@app/LinkProxy';
 
 import Divider from '@mui/material/Divider';
@@ -40,13 +38,13 @@ export function EventWarningCard(props: React.PropsWithChildren<EventWarningCard
     return (
         <DashboardCard warning>
             <Stack direction="row" spacing={1.5}
-                   divider={ <Divider flexItem orientation="vertical" /> }
                    sx={{
                        alignItems: 'center',
                        px: 2,
                        py: 1.5,
                    }}>
                 {props.icon}
+                <Divider flexItem orientation="vertical" />
                 <Stack direction="column" sx={{ flexGrow: 1, minWidth: 0 }}>
                     <Typography variant="subtitle2" noWrap>
                         {props.title}
@@ -56,9 +54,12 @@ export function EventWarningCard(props: React.PropsWithChildren<EventWarningCard
                     </Typography>
                 </Stack>
                 { !!props.href &&
-                    <IconButton component={Link} href={props.href}>
-                        <NavigateNextIcon color="action" />
-                    </IconButton> }
+                    <>
+                        <Divider flexItem orientation="vertical" />
+                        <IconButton component={Link} href={props.href}>
+                            <NavigateNextIcon color="action" />
+                        </IconButton>
+                    </> }
             </Stack>
         </DashboardCard>
     );
