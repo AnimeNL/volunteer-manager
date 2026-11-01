@@ -289,6 +289,11 @@ interface LogTypeParameterMap {
         category: string;
     };
 
+    CreateTrainingExtraParticipant: {
+        event: string;  // short name
+        name: string;
+    };
+
     CreateTrainingSession: {
         event: string;  // short name
         date: string;
@@ -323,6 +328,11 @@ interface LogTypeParameterMap {
 
     DeleteShiftCategory: {
         category: string;
+    };
+
+    DeleteTrainingExtraParticipant: {
+        event: string;  // short name
+        name: string;
     };
 
     DeleteTrainingSession: {
@@ -435,6 +445,11 @@ interface LogTypeParameterMap {
     UpdateTicketPurchase: {
         event: string;  // short name
         purchaseId: string;
+    };
+
+    UpdateTrainingExtraParticipant: {
+        event: string;  // short name
+        name: string;
     };
 
     UpdateTrainingSession: {
@@ -741,6 +756,7 @@ export const kLogType: { [k in LogType]: k } = {
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     CreateProgramEntity: 'CreateProgramEntity',
     CreateShiftCategory: 'CreateShiftCategory',
+    CreateTrainingExtraParticipant: 'CreateTrainingExtraParticipant',
     CreateTrainingSession: 'CreateTrainingSession',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     DeleteHotelBooking: 'DeleteHotelBooking',
@@ -748,6 +764,7 @@ export const kLogType: { [k in LogType]: k } = {
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DeleteProgramEntity: 'DeleteProgramEntity',
     DeleteShiftCategory: 'DeleteShiftCategory',
+    DeleteTrainingExtraParticipant: 'DeleteTrainingExtraParticipant',
     DeleteTrainingSession: 'DeleteTrainingSession',
     DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
@@ -770,6 +787,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateRefundRequest: 'UpdateRefundRequest',
     UpdateShiftCategory: 'UpdateShiftCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
+    UpdateTrainingExtraParticipant: 'UpdateTrainingExtraParticipant',
     UpdateTrainingSession: 'UpdateTrainingSession',
 
     // ---------------------------------------------------------------------------------------------

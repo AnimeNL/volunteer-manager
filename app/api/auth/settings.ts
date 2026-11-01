@@ -1,4 +1,4 @@
-// Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { forbidden } from 'next/navigation';
@@ -63,6 +63,7 @@ export async function settings(request: Request, props: ActionProps): Promise<Re
         'user-admin-schedule-highlight-shifts': 'string',
         'user-admin-schedule-inclusive-shifts': 'boolean',
         'user-admin-shifts-display-other-teams': 'boolean',
+        'user-admin-training-expand-extra': 'boolean',
         'user-admin-volunteers-expand-notes': 'boolean',
         'user-admin-volunteers-expand-shifts': 'boolean',
         'user-ai-example-messages': 'string',

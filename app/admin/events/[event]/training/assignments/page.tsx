@@ -7,10 +7,10 @@ import Collapse from '@mui/material/Collapse';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 
 import type { TrainingsAssignmentsRowModel } from '@app/api/admin/trainings/assignments/[[...id]]/route';
+import { ExtraParticipantsSection } from './ExtraParticipantsSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingAssignments } from '../TrainingAssignments';
-import { TrainingExternal } from '../TrainingExternal';
 import { TrainingOverview, type TrainingConfirmation } from '../TrainingOverview';
 import { TrainingProcessor } from '../TrainingProcessor';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -27,7 +27,7 @@ import { kRegistrationStatus } from '@lib/database/Types';
 export default async function EventTrainingAssignmentsPage(
     props: PageProps<'/admin/events/[event]/training/assignments'>)
 {
-    const { access, event } = await requireAuthenticationWithEvent(props, 'event.trainings');
+    const { access, event, user } = await requireAuthenticationWithEvent(props, 'event.trainings');
     if (!event.flags.enableTraining)
         notFound();
 
@@ -226,7 +226,7 @@ export default async function EventTrainingAssignmentsPage(
             <Collapse in={trainingConfirmationCount > 0} sx={{ mt: '-16px !important' }}>
                 <TrainingOverview confirmations={confirmations} enableExport={enableExport} />
             </Collapse>
-            <TrainingExternal event={event} trainings={trainingOptions} />
+            <ExtraParticipantsSection event={event} trainings={trainingOptions} userId={user.id} />
         </>
     );
 }
