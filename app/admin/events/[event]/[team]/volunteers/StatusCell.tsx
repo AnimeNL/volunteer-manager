@@ -4,8 +4,8 @@
 'use client';
 
 import EventBusyIcon from '@mui/icons-material/EventBusy';
-import HotelIcon from '@mui/icons-material/Hotel';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
+import HotelIcon from '@mui/icons-material/Hotel';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import PaidIcon from '@mui/icons-material/Paid';
 import Stack from '@mui/material/Stack';
@@ -36,18 +36,56 @@ interface StatusCellProps {
 export function StatusCell(props: StatusCellProps) {
     const { status } = props.row;
 
-    // TODO: Availability [eligibility, preferences]
-    // TODO: Hotel room [preferences, confirmed]
-    // TODO: Training [preferences, confirmed]
-    // TODO: Refund [preferences, confirmed]
-
-    let hotelIcon: React.ReactNode;
-    if (!!status.hotelEligible) {
-        hotelIcon = (
-            <Tooltip title="Eligible for a room">
-                <HotelIcon color="action" fontSize="small" />
+    let availabilityIcon: React.ReactNode;
+    if (status.availabilityEligible) {
+        if (status.availabilityPreferences) {
+            availabilityIcon = (
+                <Tooltip title="Availability preferences shared">
+                    <EventBusyIcon color="success" fontSize="small" />
+                </Tooltip>
+            );
+        } else {
+            availabilityIcon = (
+                <Tooltip title="Waiting for availability preferences">
+                    <EventBusyIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        }
+    } else if (!props.listView) {
+        availabilityIcon = (
+            <Tooltip title="Not eligible to share availability">
+                <EventBusyIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
         );
+    }
+
+    let hotelIcon: React.ReactNode;
+    if (status.hotelConfirmed) {
+        hotelIcon = (
+            <Tooltip title="Confirmed for a hotel room">
+                <HotelIcon color="success" fontSize="small" />
+            </Tooltip>
+        );
+    } else if (status.hotelEligible) {
+        if (status.hotelPreferences === 0) {
+            hotelIcon = (
+                <Tooltip title="Declined a hotel room">
+                    <HotelIcon color="success" fontSize="small" />
+                </Tooltip>
+            );
+        } else if (status.hotelPreferences === 1) {
+            hotelIcon = (
+                <Tooltip title="Requested a hotel room">
+                    <HotelIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        } else {
+            hotelIcon = (
+                <Tooltip title="Waiting for hotel preferences">
+                    <HotelIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        }
     } else if (!props.listView) {
         hotelIcon = (
             <Tooltip title="Not eligible for a room">
@@ -57,12 +95,32 @@ export function StatusCell(props: StatusCellProps) {
     }
 
     let trainingIcon: React.ReactNode;
-    if (!!status.trainingEligible) {
+    if (status.trainingConfirmed) {
         trainingIcon = (
-            <Tooltip title="Eligible for training">
-                <HistoryEduIcon color="action" fontSize="small" />
+            <Tooltip title="Confirmed for training">
+                <HistoryEduIcon color="success" fontSize="small" />
             </Tooltip>
         );
+    } else if (status.trainingEligible) {
+        if (status.trainingPreferences === 0) {
+            trainingIcon = (
+                <Tooltip title="Skipped training participation">
+                    <HistoryEduIcon color="success" fontSize="small" />
+                </Tooltip>
+            );
+        } else if (status.trainingPreferences !== undefined) {
+            trainingIcon = (
+                <Tooltip title="Requested training participation">
+                    <HistoryEduIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        } else {
+            trainingIcon = (
+                <Tooltip title="Waiting for training preferences">
+                    <HistoryEduIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        }
     } else if (!props.listView) {
         trainingIcon = (
             <Tooltip title="Not eligible for training">
@@ -72,7 +130,7 @@ export function StatusCell(props: StatusCellProps) {
     }
 
     let ticketIcon: React.ReactNode;
-    if (!!status.ticketEligible) {
+    if (status.ticketEligible) {
         if (!props.row.ticket) {
             ticketIcon = (
                 <Tooltip title="Has not received a ticket">
@@ -86,12 +144,30 @@ export function StatusCell(props: StatusCellProps) {
                 </Tooltip>
             );
         }
+    } else if (!props.listView) {
+        ticketIcon = (
+            <Tooltip title="Not eligible for a ticket">
+                <LocalActivityOutlinedIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
+            </Tooltip>
+        );
     }
 
     let refundIcon: React.ReactNode;
-    if (!props.listView) {
+    if (status.refundConfirmed) {
         refundIcon = (
-            <Tooltip title="Refund status unknown">
+            <Tooltip title="Ticket refund issued">
+                <PaidIcon color="success" fontSize="small" />
+            </Tooltip>
+        );
+    } else if (status.refundPreferences) {
+        refundIcon = (
+            <Tooltip title="Ticket refund requested">
+                <PaidIcon color="warning" fontSize="small" />
+            </Tooltip>
+        );
+    } else if (!props.listView) {
+        refundIcon = (
+            <Tooltip title="Not eligible for a refund">
                 <PaidIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
             </Tooltip>
         );
@@ -99,9 +175,7 @@ export function StatusCell(props: StatusCellProps) {
 
     return (
         <Stack direction="row" spacing={1}>
-            <Tooltip title="Availability status unknown">
-                <EventBusyIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
-            </Tooltip>
+            {availabilityIcon}
             {hotelIcon}
             {trainingIcon}
             {ticketIcon}

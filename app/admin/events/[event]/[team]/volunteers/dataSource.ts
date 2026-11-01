@@ -8,10 +8,14 @@ import { createDataSource, kEventTransformer, kTeamTransformer, withContext, wit
     from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
-import db, { tEvents, tRoles, tSchedule, tShifts, tShiftsCategories, tUsers, tUsersCommunication,
-    tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
+import db, { tEvents, tHotelsBookings, tRefunds, tRoles, tSchedule, tShifts, tShiftsCategories,
+    tTrainingsAssignments, tUsers, tUsersCommunication, tUsersEvents,
+    tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
+    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining, tUsersEventsTickets,
+    tYourTicketProviderPurchases } from '@lib/database';
 
-import { kCommunicationLanguage, kRegistrationStatus } from '@lib/database/Types';
+import { kCommunicationLanguage, kEventAvailabilityStatus, kRegistrationStatus }
+    from '@lib/database/Types';
 
 /**
  * Processes volunteer communication records to extract the latest communication date per prompt.
@@ -96,9 +100,21 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
      * Status of their application across the different types of information they have to provide.
      */
     status: z.object({
-        hotelEligible: z.number(),
+        availabilityEligible: z.boolean(),
+        availabilityPreferences: z.boolean(),
+
+        hotelConfirmed: z.boolean(),
+        hotelEligible: z.boolean(),
+        hotelPreferences: z.number().optional(),
+
+        refundConfirmed: z.boolean(),
+        refundPreferences: z.boolean(),
+
         ticketEligible: z.boolean(),
-        trainingEligible: z.number(),
+
+        trainingConfirmed: z.boolean(),
+        trainingEligible: z.boolean(),
+        trainingPreferences: z.number().optional(),
     }),
 
     /**
@@ -163,6 +179,13 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             .selectOneColumn(dbInstance.sum(shiftSecondsFragment).valueWhenNull(0))
             .forUseAsInlineQueryValue();
 
+        const hotelsBookingsJoin = tHotelsBookings.forUseInLeftJoin();
+        const preferencesAvailabilityJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
+        const preferencesHotelJoin = tUsersEventsPreferencesHotel.forUseInLeftJoin();
+        const preferencesRefundsJoin = tUsersEventsPreferencesRefunds.forUseInLeftJoin();
+        const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
+        const refundsJoin = tRefunds.forUseInLeftJoin();
+        const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
         const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
         const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
 
@@ -176,6 +199,40 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .innerJoin(tRoles)
                 .on(tRoles.roleId.equals(tUsersEvents.roleId))
+            .leftJoin(preferencesAvailabilityJoin)
+                .on(preferencesAvailabilityJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesAvailabilityJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesAvailabilityJoin.teamId.equals(tUsersEvents.teamId))
+                    .and(preferencesAvailabilityJoin.preferenceVersionIsLatest.equals(
+                        /* true= */ 1))
+                    .and(tUsersEvents.registrationDate.isNull().or(
+                        preferencesAvailabilityJoin.preferenceVersion.notEquals(
+                            tUsersEvents.registrationDate as any)))
+            .leftJoin(preferencesHotelJoin)
+                .on(preferencesHotelJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesHotelJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesHotelJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .leftJoin(hotelsBookingsJoin)
+                .on(hotelsBookingsJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(hotelsBookingsJoin.bookingConfirmed.isNotNull())
+                    .and(hotelsBookingsJoin.bookingDeleted.isNull())
+                    .and(hotelsBookingsJoin.bookingFirstUserId.equals(tUsersEvents.userId).or(
+                        hotelsBookingsJoin.bookingSecondUserId.equals(tUsersEvents.userId)).or(
+                        hotelsBookingsJoin.bookingThirdUserId.equals(tUsersEvents.userId)))
+            .leftJoin(preferencesRefundsJoin)
+                .on(preferencesRefundsJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesRefundsJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesRefundsJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .leftJoin(refundsJoin)
+                .on(refundsJoin.userId.equals(tUsersEvents.userId))
+                    .and(refundsJoin.eventId.equals(tUsersEvents.eventId))
+            .leftJoin(preferencesTrainingJoin)
+                .on(preferencesTrainingJoin.userId.equals(tUsersEvents.userId))
+                    .and(preferencesTrainingJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(preferencesTrainingJoin.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .leftJoin(trainingsAssignmentsJoin)
+                .on(trainingsAssignmentsJoin.eventId.equals(tUsersEvents.eventId))
+                    .and(trainingsAssignmentsJoin.assignmentUserId.equals(tUsersEvents.userId))
             .leftJoin(usersCommunicationJoin)
                 .on(usersCommunicationJoin.userId.equals(tUsersEvents.userId))
                     .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
@@ -205,11 +262,39 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 priorParticipationCount: priorEventsSubSelect.valueWhenNull(0),
                 shiftSeconds: shiftSecondsSubSelect,
                 status: {
+                    availabilityEligible:
+                        tEvents.eventAvailabilityStatus.notEquals(
+                            kEventAvailabilityStatus.Unavailable),
+                    availabilityPreferences:
+                        preferencesAvailabilityJoin.preferenceVersion.isNotNull(),
+
+                    hotelConfirmed:
+                        tEvents.hotelEnabled.equals(/* true= */ 1).and(
+                            hotelsBookingsJoin.bookingConfirmed.isNotNull()),
                     hotelEligible:
-                        tUsersEvents.hotelEligible.valueWhenNull(tRoles.roleHotelEligible),
+                        tEvents.hotelEnabled.equals(/* true= */ 1).and(
+                            tUsersEvents.hotelEligible.valueWhenNull(
+                                tRoles.roleHotelEligible).equals(/* true= */ 1)),
+                    hotelPreferences: preferencesHotelJoin.hotelInterested,
+
+                    refundConfirmed:
+                        tEvents.refundEnabled.equals(/* true= */ 1).and(
+                            refundsJoin.refundConfirmed.isNotNull()),
+                    refundPreferences:
+                        tEvents.refundEnabled.equals(/* true= */ 1).and(
+                            preferencesRefundsJoin.preferenceVersion.isNotNull()),
+
                     ticketEligible: tEvents.ticketsAutoGrantTicketId.isNotNull(),
+
+                    trainingConfirmed:
+                        tEvents.trainingEnabled.equals(/* true= */ 1).and(
+                            trainingsAssignmentsJoin.assignmentConfirmed.equals(
+                                /* true= */ 1).valueWhenNull(/* false= */ false)),
                     trainingEligible:
-                        tUsersEvents.trainingEligible.valueWhenNull(tRoles.roleTrainingEligible),
+                        tEvents.trainingEnabled.equals(/* true= */ 1).and(
+                            tUsersEvents.trainingEligible.valueWhenNull(
+                                tRoles.roleTrainingEligible).equals(/* true= */ 1)),
+                    trainingPreferences: preferencesTrainingJoin.trainingId,
                 },
                 ticket: yourTicketProviderPurchasesJoin.ytpPurchaseItemId.isNotNull(),
                 communication: dbInstance.aggregateAsArray({
