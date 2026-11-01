@@ -19,6 +19,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExtraParticipantsSection } from './ExtraParticipantsSection';
 import { LogBuilder } from '@lib/log/index';
+import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingParticipantCell, TrainingSessionCell } from './TrainingAssignmentCells';
@@ -406,6 +407,7 @@ export default async function EventTrainingAssignmentsPage(
             <ConfirmedParticipationSection enableExport={enableExport} event={event}
                                            userId={user.id} />
             <ExtraParticipantsSection event={event} trainings={trainingOptions} userId={user.id} />
+            <PreferenceHistorySection event={event.slug} userId={user.id} />
         </>
     );
 }

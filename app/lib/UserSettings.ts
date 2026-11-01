@@ -31,6 +31,7 @@ export type UserSettingsMap = {
     'user-admin-shifts-display-other-teams': boolean;
     'user-admin-training-expand-confirmed': boolean;
     'user-admin-training-expand-extra': boolean;
+    'user-admin-training-expand-history': boolean;
     'user-admin-volunteers-expand-notes': boolean;
     'user-admin-volunteers-expand-shifts': boolean;
 
