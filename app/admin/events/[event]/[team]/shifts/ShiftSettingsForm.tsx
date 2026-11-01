@@ -22,7 +22,7 @@ const kShiftTypeOptions = [
 /**
  * Props accepted by the <ShiftSettingsForm> component.
  */
-export interface ShiftSettingsFormProps {
+interface ShiftSettingsFormProps {
     /**
      * The activities that can be selected when creating this shift.
      */

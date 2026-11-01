@@ -179,7 +179,7 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
 /**
  * Export the row model for use in the child components used by the data table.
  */
-export type DutyBookRowModel = ExtractRowModel<typeof dutyBookDataSource>;
+type DutyBookRowModel = ExtractRowModel<typeof dutyBookDataSource>;
 
 /**
  * The Duty Book is the place where volunteers log information about incidents that happens during

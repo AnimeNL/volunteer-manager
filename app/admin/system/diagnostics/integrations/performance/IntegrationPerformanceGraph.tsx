@@ -48,7 +48,7 @@ export interface IntegrationPerformancePoint {
 /**
  * Unique `{log_integration, log_operation}` pair that can be selected.
  */
-export interface IntegrationOperationPair {
+interface IntegrationOperationPair {
     integration: IntegrationLogTarget;
     operation: string;
 }

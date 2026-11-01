@@ -24,7 +24,7 @@ const kTemporalZonedDateTimeRegexp =
 /**
  * Type of the <FormProviderContext> details.
  */
-export interface TFormProviderContext {
+interface TFormProviderContext {
     /**
      * Whether the server action is actively being submitted.
      */

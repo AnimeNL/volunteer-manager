@@ -15,7 +15,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 import Box from '@mui/material/Box';
 
-export interface AdminPalette {
+interface AdminPalette {
     adminExampleBackground: string;
     adminHeaderBackground: string;
 };
@@ -49,7 +49,7 @@ type SchedulePaletteMode = PaletteMode | 'auto';
 /**
  * Data stored within the theme context.
  */
-export interface ScheduleThemeContextInfo {
+interface ScheduleThemeContextInfo {
     /**
      * Whether the schedule app should be in dark mode, light mode, or be inferred.
      */

@@ -32,7 +32,7 @@ export interface LineGraphData {
 /**
  * Props accepted by the <LineGraph> component.
  */
-export interface LineGraphProps {
+interface LineGraphProps {
     /**
      * Filters that should be honoured for this graph.
      */

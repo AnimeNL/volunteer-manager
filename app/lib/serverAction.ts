@@ -237,7 +237,7 @@ function coerceFormData(scheme: ZodType, formData: FormData) {
  * Function that takes a Zod-created `error` and formats it into a single string, that's slightly
  * more user readable than the `error`'s own message.
  */
-export function formatZodError(error: ZodError): string {
+function formatZodError(error: ZodError): string {
     const errors: string[] = [];
     for (const issue of error.issues)
         errors.push(`Field ${issue.path.join('.')}: ${issue.message}`);

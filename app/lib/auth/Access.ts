@@ -294,11 +294,6 @@ type PermissionListForType<Source, Type> =
     { [K in keyof Source]: Source[K] extends { type: Type } ? K : never }[keyof Source];
 
 /**
- * Type listing every permission known to the Volunteer Manager.
- */
-export type Permission = keyof typeof kPermissions;
-
-/**
  * Type listing every boolean permission known to the Volunteer Manager.
  */
 export type BooleanPermission = PermissionListForType<typeof kPermissions, 'boolean'>;

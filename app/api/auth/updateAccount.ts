@@ -15,7 +15,7 @@ import { kCommunicationLanguage } from '@lib/database/Types';
 /**
  * Fields that describe the identifyable information stored with a volunteer's profile.
  */
-export const kAccountFields = z.object({
+const kAccountFields = z.object({
     /**
      * The volunteer's first name.
      */

@@ -31,7 +31,7 @@ export const kPermissionPattern = /^[a-z][\w-]*(?:\.[\w-]+)*(?:\:(create|read|up
  * Parameters that can be passed to the `AccessControl` constructor, defining the input information
  * necessary to fully define the scope of access for a particular user.
  */
-export type AccessControlParams = {
+type AccessControlParams = {
     /**
      * Permissions that have been granted to the user, if any. These are in addition to implicit
      * grants based on event-level allocations, i.e. by being assigned to a Senior-level position.

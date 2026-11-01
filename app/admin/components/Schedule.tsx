@@ -22,7 +22,7 @@ export type {
 /**
  * Props accepted by the <Schedule> event.
  */
-export type ScheduleProps =
+type ScheduleProps =
     Omit<ScheduleInternalProps, 'dataTimezone' | 'onError' | 'temporal' | 'theme'> & {
         /**
          * Subject to identify what this timeline is dealing with. Defaults to "event".

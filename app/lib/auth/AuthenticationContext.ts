@@ -22,13 +22,11 @@ import { kPermissionGroups } from './Access';
 import type {
     AuthenticationContext,
     UserAuthenticationContext,
-    VisitorAuthenticationContext,
 } from './AuthenticationContextTypes';
 
 export type {
     AuthenticationContext,
     UserAuthenticationContext,
-    VisitorAuthenticationContext,
 };
 
 declare namespace globalThis {

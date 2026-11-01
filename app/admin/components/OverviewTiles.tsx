@@ -104,7 +104,7 @@ interface OverviewTileProps {
  * Tile to display on the overview page. Will link through to the actual page with an icon and a
  * descriptive text. Designed to be responsive.
  */
-export function OverviewTile(props: OverviewTileProps) {
+function OverviewTile(props: OverviewTileProps) {
     return (
         <Grid size={{ xs: 6, md: 4, lg: 3 }}>
             <Paper sx={{ p: 1 }}>

@@ -69,13 +69,13 @@ export const kLogType = {
 /**
  * Enumeration containing all the valid log types. Will be stored as a string, so keep alphabetized.
  */
-export type LogType = typeof kLogType[keyof typeof kLogType];
+type LogType = typeof kLogType[keyof typeof kLogType];
 
 /**
  * Information about what happened that should be logged for future inspection. Not all fields are
  * necessary, but a basic log entry has a severity and a type.
  */
-export interface LogEntry {
+interface LogEntry {
     /**
      * Data pertaining to the cause of the entry, if applicable. Will be stored as JSON.
      */

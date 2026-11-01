@@ -21,7 +21,7 @@ import { updateExpandableSectionSetting } from './ExpandableSectionActions';
 /**
  * Props accepted by the <ExpandableSection> component, that are directly owned by the component.
  */
-export type ExpandableSectionProps = SectionHeaderProps & {
+type ExpandableSectionProps = SectionHeaderProps & {
     /**
      * Whether the section should be expanded by default.
      */

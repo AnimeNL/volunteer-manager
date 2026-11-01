@@ -19,7 +19,7 @@ import { kAuthType } from '@lib/database/Types';
 /**
  * Route parameters that can be included in the action request payload, based on REST principles.
  */
-export type ActionRouteParams = {
+type ActionRouteParams = {
     [key: string]: string | string[];
 };
 
@@ -81,7 +81,7 @@ type ActionZodObject = ZodObject<{
  * Optionally, an action may consume the `props` object, which enables it to understand who is
  * making the request and alter their state (e.g. sign them out), among other things.
  */
-export type Action<T extends ActionZodObject> =
+type Action<T extends ActionZodObject> =
     (request: z.infer<T>['request'], props: ActionProps) => Promise<z.infer<T>['response']>;
 
 /**

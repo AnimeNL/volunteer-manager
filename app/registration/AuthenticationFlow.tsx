@@ -129,7 +129,7 @@ export interface AuthenticationFlowProps {
  * send to the server. The server will apply an additional hash over the password prior to storing
  * it, to make sure that the hashes cannot be reversed.
  */
-export function AuthenticationFlow(props: AuthenticationFlowProps) {
+function AuthenticationFlow(props: AuthenticationFlowProps) {
     const { onClose, open, passwordResetRequest, registrationRedirectUrl,
             registrationRequest, user } = props;
 

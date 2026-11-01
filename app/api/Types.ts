@@ -3,8 +3,8 @@
 
 import type { z } from 'zod/v4';
 
-import { kTemporalPlainDate, kTemporalPlainTime, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
-export { kTemporalPlainDate, kTemporalPlainTime, kTemporalZonedDateTime };
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+export { kTemporalPlainDate, kTemporalZonedDateTime };
 
 /**
  * Type that allows the correct API definition to be exported. From the client-side consumer point

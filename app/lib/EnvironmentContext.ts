@@ -15,7 +15,7 @@ import { kAnyTeam } from './auth/AccessList';
 /**
  * Status of an availability window within an event context.
  */
-export type EnvironmentContextEventAvailabilityStatus =
+type EnvironmentContextEventAvailabilityStatus =
     'future' |   // the window will open in the future
     'active' |   // the window is currently open
     'past' |     // the window has closed already

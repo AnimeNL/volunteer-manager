@@ -49,7 +49,7 @@ export interface AnimeConAuthSettings {
  * Details that will be returned when an authentication token has been obtained from the AnimeCon
  * Authentication service.
  */
-export interface ClientAuthToken {
+interface ClientAuthToken {
     /**
      * Type of token that has been returned from the authentication service.
      */

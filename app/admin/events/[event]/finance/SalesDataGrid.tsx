@@ -54,7 +54,7 @@ function getTreeDataPathForCategories(row: SalesDataGridRow): string[] {
 /**
  * Information that needs to be known about an individual sales.
  */
-export interface SalesDataGridRow {
+interface SalesDataGridRow {
     /**
      * Unique ID assigned to the product. Required by MUI.
      */

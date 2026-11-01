@@ -23,7 +23,7 @@ type EventProps = { params: Promise<{ event: string; [key: string]: any }> };
 /**
  * Data returned by the `requireAuthentication` method.
  */
-export interface UserAuthenticationContextWithEvent extends UserAuthenticationContext {
+interface UserAuthenticationContextWithEvent extends UserAuthenticationContext {
     /**
      * Information about the event that's contextual to the current request.
      */

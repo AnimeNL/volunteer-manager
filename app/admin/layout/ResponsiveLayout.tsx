@@ -18,7 +18,7 @@ import './ResponsiveLayout.css';
 /**
  * Props accepted by the responsive layout components.
  */
-export interface LayoutProps {
+interface LayoutProps {
     /**
      * Slot that contains that contents for the current page.
      */

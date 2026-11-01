@@ -39,7 +39,7 @@ export async function readBlobDataByHash(hash: string)
 /**
  * Parameters required when storing blobs in the database.
  */
-export interface BlobInfo {
+interface BlobInfo {
     /**
      * The bytes that should be stored in the database.
      */

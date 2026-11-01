@@ -120,7 +120,7 @@ type ModelResponse<T extends object> =
 /**
  * Information returned by the model upon execution of a image prompt.
  */
-export type ModelImageResponse = ModelResponse<{
+type ModelImageResponse = ModelResponse<{
     /**
      * Byte data returned by the model, as a base64-encoded PNG. Guaranteed to exist.
      */

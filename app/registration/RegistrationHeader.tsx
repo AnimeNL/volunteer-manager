@@ -18,7 +18,7 @@ import { determineInitials } from '@components/Avatar';
 /**
  * Manual styles that apply to the <RegistrationHeader> client component.
  */
-export const kStyles: { [key: string]: SxProps<Theme> } = {
+const kStyles: { [key: string]: SxProps<Theme> } = {
     avatar: {
         backgroundColor: 'primary.light',
         color: theme => theme.palette.getContrastText(theme.palette.primary.light),

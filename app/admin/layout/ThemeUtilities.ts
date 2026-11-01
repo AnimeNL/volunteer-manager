@@ -8,7 +8,7 @@ import { interpolateNumber } from 'd3-interpolate';
  * Hues that a color palette is expected to contain.
  * @see https://mui.com/material-ui/customization/color/#important-terms
  */
-export type ColorHue =
+type ColorHue =
     '50' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | '950';
 
 /**

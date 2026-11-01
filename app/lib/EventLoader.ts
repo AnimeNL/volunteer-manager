@@ -32,7 +32,3 @@ export async function getEventBySlug(slug: string) {
         .executeSelectNoneOrOne() ?? undefined;
 }
 
-/**
- * Derive the Event type from the getEventBySlug() helper.
- */
-export type Event = NonNullable<Awaited<ReturnType<typeof getEventBySlug>>>;

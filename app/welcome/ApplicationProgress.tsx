@@ -121,7 +121,7 @@ interface ApplicationProgressProps {
  * Specialisation of the <ApplicationProgress> component that will only be used when the application
  * was accepted by one of the volunteering leads. Details are shown on a more detailed page.
  */
-export function ApplicationProgressAccepted(props: ApplicationProgressProps) {
+function ApplicationProgressAccepted(props: ApplicationProgressProps) {
     const router = useRouter();
 
     const navigateToApplication = useCallback(() => {

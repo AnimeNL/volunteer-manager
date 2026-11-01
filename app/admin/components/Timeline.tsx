@@ -24,7 +24,7 @@ export type { TimelineEvent, TimelineEventMutation };
 /**
  * Props accepted by the <Timeline> event.
  */
-export type TimelineProps =
+type TimelineProps =
     Omit<TimelineInternalProps, 'dataTimezone' | 'onError' | 'temporal' | 'theme'> & {
         /**
          * Subject to identify what this timeline is dealing with. Defaults to "event".

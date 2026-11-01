@@ -101,11 +101,6 @@ export const kQueueNeededResponse = z.object({
 });
 
 /**
- * Interface describing the response expected from the sales queue API.
- */
-export type QueueNeededResponse = z.infer<typeof kOrganisersResponse>['value'];
-
-/**
  * Type definition that defines the response we expect when calling the Tickets API.
  */
 export const kTicketsResponse = z.object({

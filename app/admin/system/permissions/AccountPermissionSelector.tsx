@@ -22,7 +22,7 @@ import { kRootRole } from './Root';
 /**
  * Props accepted by the <AccountPermissionSelector> component.
  */
-export interface AccountPermissionSelectorProps {
+interface AccountPermissionSelectorProps {
     /**
      * Access control object representing the signed in user.
      */

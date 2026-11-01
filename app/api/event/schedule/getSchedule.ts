@@ -6,7 +6,7 @@ import { forbidden, notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
 import type { ActionProps } from '../../Action';
-import type { ApiDefinition, ApiRequest, ApiResponse } from '../../Types';
+import type { ApiRequest, ApiResponse } from '../../Types';
 import type { DBConnection } from '@lib/database/Connection';
 import { FavouriteCache } from './FavouriteCache';
 import { ScheduleCache } from './ScheduleCache';
@@ -37,8 +37,6 @@ export const kPublicScheduleDefinition = z.object({
     }),
     response: kPublicSchedule,
 });
-
-export type PublicScheduleDefinition = ApiDefinition<typeof kPublicScheduleDefinition>;
 
 type Request = ApiRequest<typeof kPublicScheduleDefinition>;
 type Response = ApiResponse<typeof kPublicScheduleDefinition>;

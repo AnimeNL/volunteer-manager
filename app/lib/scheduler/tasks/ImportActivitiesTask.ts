@@ -67,7 +67,7 @@ interface Mutations {
 /**
  * Type describing an individual stored area.
  */
-export interface StoredArea {
+interface StoredArea {
     id: number;
     name: string;
 }
@@ -81,7 +81,7 @@ type Area = StoredArea;
 /**
  * Type describing an individual stored location.
  */
-export interface StoredLocation {
+interface StoredLocation {
     id: number;
     name: string;
     areaId: number;

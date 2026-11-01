@@ -36,7 +36,7 @@ const kServiceHoursOptions: { [k in z.TypeOf<typeof kServiceHoursProperty>]: [nu
 /**
  * Type that describes the contents of a schedule as it will be consumed by the client.
  */
-export const kScheduleDefinition = z.object({
+const kScheduleDefinition = z.object({
     /**
      * Minimum time that should be displayed on the timeline.
      */

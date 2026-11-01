@@ -13,7 +13,7 @@ import { EmailMessage } from './EmailMessage';
  * Settings related to the e-mail client. An SMTP connection will be used to actually send e-mail,
  * and all messages will be stored in the "outbox" database table for tracking purposes.
  */
-export interface EmailClientSettings {
+interface EmailClientSettings {
     /**
      * The SMTP host to which a connection will be made.
      */

@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 /**
  * Zod schema representing valid types for usage with the LogBuilder.
  */
-export const kLogPayloadAllowedTypes = z.union([
+const kLogPayloadAllowedTypes = z.union([
     z.string(),
     z.array(z.string()),
     z.number(),

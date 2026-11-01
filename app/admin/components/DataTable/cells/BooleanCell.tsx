@@ -15,7 +15,7 @@ import { resolveRowModelField } from '../Utilities';
  * Context that can be given to the <BooleanHeader> and <BooleanCell> components, used to indicate
  * which fields from the row model should be consulted, and what the value is for.
  */
-export interface BooleanCellContext {
+interface BooleanCellContext {
     /**
      * Field for which the truthiness should be tested.
      */
@@ -70,7 +70,7 @@ export function BooleanHeader(props: { context?: BooleanCellContext }) {
 /**
  * Props accepted by the <BooleanCell> component.
  */
-export interface BooleanCellProps {
+interface BooleanCellProps {
     /**
      * The context configuring the field and tooltips for this cell.
      */

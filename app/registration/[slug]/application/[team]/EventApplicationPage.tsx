@@ -630,7 +630,7 @@ async function TrainingStatusButton(props: ApplicationStatusButtonProps) {
 /**
  * Props accepted by the <EventApplicationPage> page.
  */
-export interface EventApplicationPageProps {
+interface EventApplicationPageProps {
     /**
      * Context about the environment for which this page is being displayed.
      */

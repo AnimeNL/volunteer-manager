@@ -4,7 +4,7 @@
 /**
  * Types that are valid for parameters given to a prompt.
  */
-export type PromptParameter = boolean | number | string;
+type PromptParameter = boolean | number | string;
 
 /**
  * Nested variant of the |PromptParameter| set of types.

@@ -47,11 +47,6 @@ export type UserSettingsMap = {
 };
 
 /**
- * Type containing all setting names known to the system.
- */
-export type UserSetting = keyof UserSettingsMap;
-
-/**
  * Reads the user setting with the given `setting`, or `undefined` when it cannot be loaded and no
  * default has been configured. This function will end up issuing a database call.
  */

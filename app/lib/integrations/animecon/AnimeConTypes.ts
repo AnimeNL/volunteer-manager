@@ -40,7 +40,7 @@ export type ActivityType = z.infer<typeof kActivityTypeDefinition>;
  *
  * @see https://github.com/AnimeNL/rest-api/blob/master/src/Entity/Anplan/Floor.php
  */
-export const kFloorDefinition = z.object({
+const kFloorDefinition = z.object({
     id: z.number(),
     year: z.number(),
     name: z.string(),
@@ -74,7 +74,7 @@ export type FloorApi = z.infer<typeof kFloorApiDefinition>;
  *
  * @see https://github.com/AnimeNL/rest-api/blob/master/src/Entity/Anplan/Location.php
  */
-export const kLocationDefinition = z.object({
+const kLocationDefinition = z.object({
     id: z.number(),
     year: z.number(),
     name: z.string(),

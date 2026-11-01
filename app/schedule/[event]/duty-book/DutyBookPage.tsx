@@ -52,7 +52,7 @@ const kSummaryPendingMessage = 'We\'re still writing a brief summary of this inc
 /**
  * Props accepted by the <DutyBookPage> component.
  */
-export interface DutyBookPageProps {
+interface DutyBookPageProps {
     /**
      * The incidents that have been reported this year.
      */

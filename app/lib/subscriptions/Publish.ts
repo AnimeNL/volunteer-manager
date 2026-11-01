@@ -23,7 +23,7 @@ interface PublicationBase {
 /**
  * Interface describing a publication. Strongly typed based on the subscription type.
  */
-export type Publication = PublicationBase & (
+type Publication = PublicationBase & (
     { type: 'Application'; typeId: number; message: ApplicationMessage } |
     { type: 'Help'; typeId: number; message: HelpMessage } |
     { type: 'Incident', typeId?: number; message: IncidentMessage } |

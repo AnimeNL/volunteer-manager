@@ -9,7 +9,7 @@ import { Section } from './Section';
 /**
  * Props accepted by the <FormGridSection> component.
  */
-export type FormGridSectionProps =
+type FormGridSectionProps =
     FormGridProps & (Omit<SectionHeaderProps, 'sx'> | { noHeader: true }) & {
         back?: boolean | string;
         tabs?: boolean;

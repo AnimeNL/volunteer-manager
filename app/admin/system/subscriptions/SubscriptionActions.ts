@@ -154,7 +154,7 @@ export async function updateSubscriptions(userId: number, formData: unknown) {
 /**
  * Information that should be compiled for each subscription available in the system.
  */
-export interface SubscriptionTypeInfo {
+interface SubscriptionTypeInfo {
     /**
      * Unique ID of the subscription type.
      */

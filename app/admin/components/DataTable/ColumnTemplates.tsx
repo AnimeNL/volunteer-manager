@@ -237,7 +237,3 @@ export const kColumnTemplates = {
 
 } as const satisfies { [k: string]: (column: GridColDef & { templateProps?: any }) => GridColDef };
 
-/**
- * List of column templates that are predefined and available for generic use.
- */
-export type ColumnTemplate = keyof typeof kColumnTemplates;

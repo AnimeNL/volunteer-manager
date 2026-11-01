@@ -40,7 +40,7 @@ export function determineRpID(props: ActionProps): string {
 /**
  * Description of a credential within our system.
  */
-export interface Credential {
+interface Credential {
     /**
      * Unique ID of the credential as it has been stored in the database.
      */

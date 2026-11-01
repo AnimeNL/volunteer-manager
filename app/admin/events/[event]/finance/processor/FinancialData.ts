@@ -8,7 +8,7 @@ import db, { tActivities, tEvents, tEventsTicketsConfiguration, tYourTicketProvi
 /**
  * Information about sales on a specific day.
  */
-export interface DailySales {
+interface DailySales {
     /**
      * Number of paid tickets sold on this day.
      */
@@ -93,7 +93,7 @@ export interface FinancialProduct {
 /**
  * Interface defining the raw representation of financial data associated with a specific event.
  */
-export interface FinancialEventData {
+interface FinancialEventData {
     /**
      * Unique ID identifying this event.
      */

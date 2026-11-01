@@ -61,7 +61,7 @@ interface AccountCreationData {
 /**
  * Type of input that can be used to authenticate users. Used by `authenticateUser()`.
  */
-export type AuthenticateUserParams =
+type AuthenticateUserParams =
     { type: 'password', username: string, sha256Password: string } |
     { type: 'session' } & SessionData |
     { type: 'userId', userId: number };

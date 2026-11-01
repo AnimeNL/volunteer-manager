@@ -39,7 +39,7 @@ interface SectionOwnProps extends Partial<SectionBreadcrumbsProps> {
  * Props accepted by the <Section> component. The `SectionOwnProps` are included, and either a valid
  * header or an explicit, boolean indication that no header should be included.
  */
-export type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: true });
+type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: true });
 
 /**
  * The <Section> component represents a visually separated section of a page in the administration

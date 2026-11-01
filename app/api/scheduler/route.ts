@@ -47,7 +47,7 @@ const kSchedulerDefinition = z.object({
     }),
 });
 
-export type SchedulerDefinition = z.infer<typeof kSchedulerDefinition>;
+type SchedulerDefinition = z.infer<typeof kSchedulerDefinition>;
 
 /**
  * The scheduler password used for this build of the Volunteer Manager API.

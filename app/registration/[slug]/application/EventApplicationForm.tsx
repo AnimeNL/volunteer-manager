@@ -30,7 +30,7 @@ import * as options from '@components/SelectElementOptions';
 /**
  * Manual styles that apply to the <EventApplicationForm> client component.
  */
-export const kStyles: { [key: string]: SxProps<Theme> } = {
+const kStyles: { [key: string]: SxProps<Theme> } = {
     availabilityWarning: {
         borderLeft: (theme) => `3px solid ${theme.palette.warning.main}`,
         marginLeft: 3.5,

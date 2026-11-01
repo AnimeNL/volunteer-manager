@@ -39,7 +39,7 @@ import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, updateSc
 /**
  * Information regarding the schedule context.
  */
-export interface ScheduleInfo {
+interface ScheduleInfo {
     /**
      * Whether it should be possible to schedule shifts owned by the other teams.
      */
