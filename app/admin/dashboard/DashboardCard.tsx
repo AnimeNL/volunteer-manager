@@ -14,15 +14,23 @@ interface DashboardCardProps {
      * Whether this card should be highlighted with a slightly different background color.
      */
     highlight?: boolean;
+
+    /**
+     * Whether this card should be highlighted with a warning background color.
+     */
+    warning?: boolean;
 }
 
 /**
  * Responsive variant of the <Card> component that removes outer margins in mobile display.
  */
 export const DashboardCard = styled(Card, {
-    shouldForwardProp: (prop) => prop !== 'highlight',
-})<DashboardCardProps>(({ theme, highlight }) => ({
-    backgroundColor: !!highlight ? theme.vars?.palette.backgroundHighlight as any : undefined,
+    shouldForwardProp: (prop) => prop !== 'highlight' && prop !== 'warning',
+})<DashboardCardProps>(({ theme, highlight, warning }) => ({
+    backgroundColor:
+        !!warning ? theme.vars?.palette.backgroundWarning as any
+                  : !!highlight ? theme.vars?.palette.backgroundHighlight as any
+                                : undefined,
     display: 'flex',
     flexDirection: 'column',
 

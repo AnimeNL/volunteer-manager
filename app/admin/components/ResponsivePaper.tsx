@@ -17,6 +17,11 @@ interface ResponsivePaperProps extends PaperProps {
      * Whether this section should be highlighted with a slightly different background color.
      */
     highlight?: boolean;
+
+    /**
+     * Whether this section should be highlighted with a warning background color.
+     */
+    warning?: boolean;
 }
 
 /**
@@ -24,12 +29,18 @@ interface ResponsivePaperProps extends PaperProps {
  * mobile device, to ensure proper utilisation of the already restricted screen estate.
  */
 export function ResponsivePaper(props: ResponsivePaperProps) {
-    const { children, highlight, sx, ...otherProps } = props;
+    const { children, highlight, warning, sx, ...otherProps } = props;
+
+    let backgroundColor: string | undefined;
+    if (warning)
+        backgroundColor = 'var(--mui-palette-backgroundWarning)';
+    else if (highlight)
+        backgroundColor = 'var(--mui-palette-backgroundHighlight)';
 
     const { isMobile } = useContext(AdminClientContext);
     return (
         <Paper square={isMobile} {...otherProps} sx={{
-            backgroundColor: highlight ? 'var(--mui-palette-backgroundHighlight)' : undefined,
+            backgroundColor,
             marginLeft: isMobile ? '-8px !important' : undefined,
             marginRight: isMobile ? '-8px !important' : undefined,
             ...sx,

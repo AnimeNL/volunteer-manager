@@ -33,6 +33,11 @@ interface SectionOwnProps extends Partial<SectionBreadcrumbsProps> {
      * Whether a tab bar should be shown at the section's top.
      */
     tabs?: boolean;
+
+    /**
+     * Whether this section should be highlighted with a warning background color.
+     */
+    warning?: boolean;
 }
 
 /**
@@ -54,10 +59,10 @@ type SectionProps = SectionOwnProps & (SectionHeaderProps | { noHeader: true });
  * require them, to enable interaction such as a clear button.
  */
 export function Section(props: React.PropsWithChildren<SectionProps>) {
-    const { back, breadcrumbs, children, highlight, tabs, ...sectionHeaderProps } = props;
+    const { back, breadcrumbs, children, highlight, tabs, warning, ...sectionHeaderProps } = props;
 
     return (
-        <ResponsivePaper highlight={highlight} sx={{ p: 2 }}>
+        <ResponsivePaper highlight={highlight} warning={warning} sx={{ p: 2 }}>
             { !!tabs && <SectionTabs />}
             { !!breadcrumbs && <SectionBreadcrumbs breadcrumbs={breadcrumbs} /> }
             <Stack direction="column" spacing={2} sx={ !!tabs ? { mt: 2 } : undefined }>

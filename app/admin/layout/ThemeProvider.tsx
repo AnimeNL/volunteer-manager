@@ -30,11 +30,13 @@ declare module '@mui/material/styles' {
 
     interface Palette {
         backgroundHighlight: Color | string;
+        backgroundWarning: Color | string;
         primaryPalette: Color;
     }
 
     interface PaletteOptions {
         backgroundHighlight: Color | string;
+        backgroundWarning?: Color | string;
         primaryPalette: Color;
     }
 }
@@ -61,6 +63,7 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
                     primary: { main: props.palette[500] },
                     primaryPalette: props.palette,
                     backgroundHighlight: props.palette[900],
+                    backgroundWarning: '#5d2f00',
                     background: {
                         default: '#1e1e1e',
                         paper: '#272727',
@@ -73,6 +76,7 @@ export function ThemeProvider(props: React.PropsWithChildren<ThemeProviderProps>
                     primary: { main: props.palette[500] },
                     primaryPalette: props.palette,
                     backgroundHighlight: props.palette[50],
+                    backgroundWarning: '#fff3e0',
                     background: {
                         default: '#eff3f4',
                         paper: '#ffffff',

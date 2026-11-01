@@ -4,6 +4,7 @@
 import { DashboardGrid } from '@app/admin/dashboard/DashboardGrid';
 import { EventDeadlinesCard } from './dashboard/EventDeadlinesCard';
 import { EventFinancesCard } from './dashboard/EventFinancesCard';
+import { EventHotelsCard } from './dashboard/EventHotelsCard';
 import { EventIdentityCard } from './dashboard/EventIdentityCard';
 import { EventRecentChangesCard } from './dashboard/EventRecentChangesCard';
 import { EventTeamsCard } from './dashboard/EventTeamsCard';
@@ -26,6 +27,12 @@ export default async function EventVolunteersDashboard(props: PageProps<'/admin/
 
     cards.push(<EventRecentChangesCard key="changes" event={event} />);
     cards.push(<EventDeadlinesCard key="deadlines" event={event} />);
+
+    if (event.flags.enableHotel) {
+        const canManageHotels = access.can('event.hotels', { event: event.slug });
+        cards.push(
+            <EventHotelsCard key="hotels" canManageHotels={canManageHotels} event={event} />);
+    }
 
     // TODO: Hotel status
     // TODO: Program requests
