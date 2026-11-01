@@ -30,7 +30,8 @@ import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tHotelsBookings, tRoles, tSchedule, tShifts, tStorage, tTeams,
-    tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesHotel, tUsersEventsTickets }
+    tTeamsRoles, tTrainingsAssignments, tUsers, tUsersEvents, tUsersEventsPreferencesHotel,
+    tUsersEventsPreferencesTraining, tUsersEventsTickets }
     from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -79,6 +80,7 @@ export default async function EventTeamVolunteerPage(
             role: tRoles.roleName,
             roleHotelEligible: tRoles.roleHotelEligible,
             roleId: tUsersEvents.roleId,
+            roleTrainingEligible: tRoles.roleTrainingEligible,
             status: tUsersEvents.registrationStatus,
 
             overrides: {
@@ -143,6 +145,16 @@ export default async function EventTeamVolunteerPage(
 
     const ticketStatus = event.tickets?.volunteerTicketId
         ? <TicketStatusTile event={event.id} user={volunteer.id} />
+        : undefined;
+
+    const canManageTrainings = access.can('event.trainings', { event: event.slug });
+    const trainingEligible =
+        event.flags.enableTraining &&
+        !!(volunteer.overrides?.trainingEligible ?? volunteer.roleTrainingEligible);
+
+    const trainingStatus = event.flags.enableTraining
+        ? <TrainingStatusTile canManageTrainings={canManageTrainings} eligible={trainingEligible}
+                              event={event.id} user={volunteer.id} />
         : undefined;
 
     // ---------------------------------------------------------------------------------------------
@@ -226,6 +238,14 @@ export default async function EventTeamVolunteerPage(
                             <StatusTile title="Festival ticket" type="ticket" />
                         }>
                             {ticketStatus}
+                        </Suspense>
+                    </Grid> }
+                { !!trainingStatus &&
+                    <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                        <Suspense fallback={
+                            <StatusTile title="Training" type="training" />
+                        }>
+                            {trainingStatus}
                         </Suspense>
                     </Grid> }
             </Grid>
@@ -533,6 +553,79 @@ async function TicketStatusTile(props: { event: number; user: number; }) {
         <StatusTile href={href} title="Festival ticket" type="ticket">
             { !!ticket && <Chip color="success" label="Issued" size="small" /> }
             { !ticket && <Chip color="warning" label="Pending" size="small" /> }
+        </StatusTile>
+    );
+}
+
+/**
+ * Props accepted by the <TrainingStatusTile> component.
+ */
+interface TrainingStatusTileProps {
+    /**
+     * Whether the signed-in user has permission to manage training assignments.
+     */
+    canManageTrainings: boolean;
+
+    /**
+     * Whether the volunteer is eligible to participate in training for this event.
+     */
+    eligible: boolean;
+
+    /**
+     * Unique ID of the event.
+     */
+    event: number;
+
+    /**
+     * Unique ID of the volunteer.
+     */
+    user: number;
+}
+
+/**
+ * Tile that displays the status of a volunteer's training preferences and assignments.
+ */
+async function TrainingStatusTile(props: TrainingStatusTileProps) {
+    const [ assignment, preference ] = await Promise.all([
+        db.selectFrom(tTrainingsAssignments)
+            .where(tTrainingsAssignments.eventId.equals(props.event))
+                .and(tTrainingsAssignments.assignmentUserId.equals(props.user))
+            .select({
+                confirmed: tTrainingsAssignments.assignmentConfirmed.equals(/* true= */ 1),
+                updated: tTrainingsAssignments.assignmentUpdated.isNotNull(),
+            })
+            .executeSelectNoneOrOne(),
+
+        db.selectFrom(tUsersEventsPreferencesTraining)
+            .where(tUsersEventsPreferencesTraining.userId.equals(props.user))
+                .and(tUsersEventsPreferencesTraining.eventId.equals(props.event))
+                .and(tUsersEventsPreferencesTraining.preferenceVersionIsLatest.equals(/* true= */ 1))
+            .selectOneColumn(tUsersEventsPreferencesTraining.trainingId)
+            .executeSelectNoneOrOne(),
+    ]);
+
+    let statusChip: React.ReactNode;
+    let statusChipLink: boolean = false;
+
+    if (assignment?.confirmed) {
+        statusChip = <Chip color="success" label="Confirmed" size="small" />;
+        statusChipLink = true;
+    } else if (assignment?.updated || preference !== undefined) {
+        statusChip = <Chip color="warning" label="Requested" size="small" />;
+        statusChipLink = true;
+    } else if (props.eligible) {
+        statusChip = <Chip color="warning" label="Pending" size="small" />;
+    } else {
+        statusChip = <Chip color="default" label="Not applicable" size="small" />;
+    }
+
+    const href = (statusChipLink && props.canManageTrainings)
+        ? '../../training/assignments'
+        : undefined;
+
+    return (
+        <StatusTile href={href} title="Training" type="training">
+            {statusChip}
         </StatusTile>
     );
 }
