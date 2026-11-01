@@ -289,6 +289,11 @@ interface LogTypeParameterMap {
         category: string;
     };
 
+    CreateTrainingSession: {
+        event: string;  // short name
+        date: string;
+    };
+
     DeleteEventKeyDate: {
         event: string;  // short name
         title: string;
@@ -318,6 +323,11 @@ interface LogTypeParameterMap {
 
     DeleteShiftCategory: {
         category: string;
+    };
+
+    DeleteTrainingSession: {
+        event: string;  // short name
+        date: string;
     };
 
     DisassociateTicketFromVolunteer: {
@@ -425,6 +435,11 @@ interface LogTypeParameterMap {
     UpdateTicketPurchase: {
         event: string;  // short name
         purchaseId: string;
+    };
+
+    UpdateTrainingSession: {
+        event: string;  // short name
+        date: string;
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -726,12 +741,14 @@ export const kLogType: { [k in LogType]: k } = {
     CreateKnowledgeBaseCategory: 'CreateKnowledgeBaseCategory',
     CreateProgramEntity: 'CreateProgramEntity',
     CreateShiftCategory: 'CreateShiftCategory',
+    CreateTrainingSession: 'CreateTrainingSession',
     DeleteEventKeyDate: 'DeleteEventKeyDate',
     DeleteHotelBooking: 'DeleteHotelBooking',
     DeleteHotelRoom: 'DeleteHotelRoom',
     DeleteKnowledgeBaseCategory: 'DeleteKnowledgeBaseCategory',
     DeleteProgramEntity: 'DeleteProgramEntity',
     DeleteShiftCategory: 'DeleteShiftCategory',
+    DeleteTrainingSession: 'DeleteTrainingSession',
     DisassociateTicketFromVolunteer: 'DisassociateTicketFromVolunteer',
     ResendTicketConfirmation: 'ResendTicketConfirmation',
     UpdateAssociateTicket: 'UpdateAssociateTicket',
@@ -753,6 +770,7 @@ export const kLogType: { [k in LogType]: k } = {
     UpdateRefundRequest: 'UpdateRefundRequest',
     UpdateShiftCategory: 'UpdateShiftCategory',
     UpdateTicketPurchase: 'UpdateTicketPurchase',
+    UpdateTrainingSession: 'UpdateTrainingSession',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Volunteers > Team
