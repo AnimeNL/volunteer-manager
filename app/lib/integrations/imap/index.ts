@@ -10,6 +10,7 @@ export type {
     ImapAttachment,
     ImapMessage,
     ImapReadMessagesOptions,
+    ImapReadMessagesResult,
 } from './ImapTypes';
 
 /**

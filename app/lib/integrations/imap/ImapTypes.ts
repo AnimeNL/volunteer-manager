@@ -18,6 +18,13 @@ export interface ImapReadMessagesOptions {
     unseenOnly?: boolean;
 
     /**
+     * Expected `UIDVALIDITY` value of the mailbox for `sinceUid`. When provided and the server
+     * reports a different `UIDVALIDITY`, `sinceUid` is ignored so synchronization restarts from
+     * UID `1` under the new `UIDVALIDITY`.
+     */
+    uidValidity?: bigint;
+
+    /**
      * Exclusive lower UID bound: only messages with `uid > sinceUid` will be returned.
      */
     sinceUid?: number;
@@ -28,11 +35,42 @@ export interface ImapReadMessagesOptions {
     sinceDate?: Temporal.Instant;
 
     /**
+     * Maximum number of messages to download and return, ordered by ascending `uid`.
+     */
+    limit?: number;
+
+    /**
      * Whether returned messages should have the `\Seen` flag added once read. When `false` or
      * omitted, the mailbox is opened in read-only mode so server flags remain untouched.
      * @default false
      */
     markAsSeen?: boolean;
+}
+
+/**
+ * Result returned by `ImapClient.readMessages()`, pairing mailbox sync metadata with the downloaded
+ * messages.
+ */
+export interface ImapReadMessagesResult {
+    /**
+     * `UIDVALIDITY` reported by the server for the opened mailbox, when available.
+     */
+    uidValidity?: bigint;
+
+    /**
+     * Whether the server's `UIDVALIDITY` differed from `options.uidValidity`.
+     */
+    uidValidityReset: boolean;
+
+    /**
+     * Whether additional matching messages remain in the mailbox beyond `options.limit`.
+     */
+    hasMore: boolean;
+
+    /**
+     * Retrieved messages, ordered by ascending `uid`.
+     */
+    messages: ImapMessage[];
 }
 
 /**

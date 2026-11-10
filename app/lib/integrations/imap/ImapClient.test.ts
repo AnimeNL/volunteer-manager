@@ -144,7 +144,7 @@ describe('ImapClient', () => {
         expect(client).toBeInstanceOf(ImapClient);
     });
 
-    it('verifies configuration on implicit TLS (993) and STARTTLS (143) and logs calls', async () => {
+    it('verifies configuration on implicit TLS (993) and STARTTLS (143)', async () => {
         const loggedCalls: {
             integration: string;
             operation: string;
@@ -203,13 +203,13 @@ describe('ImapClient', () => {
         expect(loggedCalls).toHaveLength(2);
         expect(loggedCalls[0]).toMatchObject({
             integration: 'IMAP',
-            operation: 'imaps://imap.animecon.nl:993/connect',
+            operation: 'imaps://imap.animecon.nl:993/verifyConfiguration',
             status: 'Success',
         });
         expect(loggedCalls[0].input).not.toContain('top-secret-password');
         expect(loggedCalls[1]).toMatchObject({
             integration: 'IMAP',
-            operation: 'imap://imap.animecon.nl:143/connect',
+            operation: 'imap://imap.animecon.nl:143/verifyConfiguration',
             status: 'Success',
         });
     });
@@ -235,24 +235,22 @@ describe('ImapClient', () => {
         expect(insertedParams).toContain('Invalid credentials');
     });
 
-    it('hydrates multipart messages with text, HTML, attachments, and logs calls', async () => {
+    it('hydrates multipart messages and records one holistic integration log entry', async () => {
         const loggedRows: {
             operation: string;
             status: string;
             input?: string;
             output?: string;
         }[] = [];
-        for (let i = 0; i < 8; ++i) {
-            mockConnection.expect('insert', (_query, params) => {
-                loggedRows.push({
-                    operation: params[1],
-                    status: params[4],
-                    input: params[5],
-                    output: params[6],
-                });
-                return i + 1;
+        mockConnection.expect('insert', (_query, params) => {
+            loggedRows.push({
+                operation: params[1],
+                status: params[4],
+                input: params[5],
+                output: params[6],
             });
-        }
+            return 1;
+        });
 
         let lockReleaseSpy!: ReturnType<typeof vi.fn>;
         configureNextInstance = instance => {
@@ -346,28 +344,34 @@ describe('ImapClient', () => {
         };
 
         const client = new ImapClient(kDefaultSettings);
-        const messages = await client.readMessages();
+        const result = await client.readMessages();
 
-        expect(messages).toHaveLength(1);
-        expect(messages[0]).toEqual({
-            uid: 15,
-            messageId: '<msg-15@example.com>',
-            inReplyTo: '<msg-10@example.com>',
-            date: Temporal.Instant.from('2026-11-10T10:00:00Z'),
-            receivedDate: Temporal.Instant.from('2026-11-10T10:05:00Z'),
-            from: [ { name: 'Alice', address: 'alice@example.com' } ],
-            to: [ { address: 'volunteers@animecon.nl' } ],
-            cc: [ { name: 'Bob', address: 'bob@example.com' } ],
-            replyTo: [ { address: 'alice-reply@example.com' } ],
-            subject: 'Volunteer shift question',
-            flags: [ '\\Answered' ],
-            text: 'Hello plain world!',
-            html: '<p>Hello HTML world!</p>',
-            attachments: [
+        expect(result).toEqual({
+            uidValidity: 42n,
+            uidValidityReset: false,
+            hasMore: false,
+            messages: [
                 {
-                    filename: 'schedule-decoded.pdf',
-                    mimeType: 'application/pdf',
-                    bytes: new Uint8Array([ 0x25, 0x50, 0x44, 0x46 ]),
+                    uid: 15,
+                    messageId: '<msg-15@example.com>',
+                    inReplyTo: '<msg-10@example.com>',
+                    date: Temporal.Instant.from('2026-11-10T10:00:00Z'),
+                    receivedDate: Temporal.Instant.from('2026-11-10T10:05:00Z'),
+                    from: [ { name: 'Alice', address: 'alice@example.com' } ],
+                    to: [ { address: 'volunteers@animecon.nl' } ],
+                    cc: [ { name: 'Bob', address: 'bob@example.com' } ],
+                    replyTo: [ { address: 'alice-reply@example.com' } ],
+                    subject: 'Volunteer shift question',
+                    flags: [ '\\Answered' ],
+                    text: 'Hello plain world!',
+                    html: '<p>Hello HTML world!</p>',
+                    attachments: [
+                        {
+                            filename: 'schedule-decoded.pdf',
+                            mimeType: 'application/pdf',
+                            bytes: new Uint8Array([ 0x25, 0x50, 0x44, 0x46 ]),
+                        },
+                    ],
                 },
             ],
         });
@@ -378,17 +382,31 @@ describe('ImapClient', () => {
 
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(loggedRows.map(row => row.operation)).toEqual([
-            'imaps://imap.animecon.nl:993/connect',
-            'imaps://imap.animecon.nl:993/getMailboxLock',
-            'imaps://imap.animecon.nl:993/search',
-            'imaps://imap.animecon.nl:993/fetchAll',
-            'imaps://imap.animecon.nl:993/download',
-            'imaps://imap.animecon.nl:993/download',
-            'imaps://imap.animecon.nl:993/download',
-            'imaps://imap.animecon.nl:993/logout',
-        ]);
-        expect(loggedRows.every(row => row.status === 'Success')).toBe(true);
+        expect(loggedRows).toHaveLength(1);
+        expect(loggedRows[0].operation).toBe('imaps://imap.animecon.nl:993/readMessages');
+        expect(loggedRows[0].status).toBe('Success');
+
+        const parsedOutput = JSON.parse(loggedRows[0].output!);
+        expect(parsedOutput).toMatchObject({
+            matchedCount: 1,
+            fetchedCount: 1,
+            hasMore: false,
+            mailbox: {
+                path: 'INBOX',
+                uidValidity: '42',
+                uidNext: 20,
+                exists: 2,
+                readOnly: true,
+            },
+            messages: [
+                {
+                    uid: 15,
+                    size: 4096,
+                    downloadedBytes: 46,
+                    attachmentCount: 1,
+                },
+            ],
+        });
 
         const combinedLogs = JSON.stringify(loggedRows);
         expect(combinedLogs).not.toContain('top-secret-password');
@@ -438,7 +456,7 @@ describe('ImapClient', () => {
 
         const sinceDate = Temporal.Instant.from('2026-11-10T12:00:00Z');
         const client = new ImapClient(kDefaultSettings);
-        const messages = await client.readMessages({
+        const result = await client.readMessages({
             mailbox: 'Support',
             unseenOnly: true,
             sinceUid: 50,
@@ -462,36 +480,143 @@ describe('ImapClient', () => {
         expect(lastInstance?.messageFlagsAdd).toHaveBeenCalledWith(
             [ 52 ], [ '\\Seen' ], { uid: true });
 
-        expect(messages).toEqual([
-            {
-                uid: 52,
-                date: Temporal.Instant.from('2026-11-10T12:30:00Z'),
-                receivedDate: Temporal.Instant.from('2026-11-10T12:30:00Z'),
-                from: [ { address: 'sender@example.com' } ],
-                to: [],
-                cc: [],
-                replyTo: [],
-                subject: 'Single part message',
-                flags: [],
-                text: 'Body of UID 52',
-                attachments: [],
-            },
-        ]);
+        expect(result).toEqual({
+            uidValidity: 9001n,
+            uidValidityReset: false,
+            hasMore: false,
+            messages: [
+                {
+                    uid: 52,
+                    date: Temporal.Instant.from('2026-11-10T12:30:00Z'),
+                    receivedDate: Temporal.Instant.from('2026-11-10T12:30:00Z'),
+                    from: [ { address: 'sender@example.com' } ],
+                    to: [],
+                    cc: [],
+                    replyTo: [],
+                    subject: 'Single part message',
+                    flags: [],
+                    text: 'Body of UID 52',
+                    attachments: [],
+                },
+            ],
+        });
 
         await Promise.all(instrumentationInstances.map(i => i.completionPromise));
         expect(instrumentationInstances.map(i => i.contextForTesting.operation)).toEqual([
-            'imaps://imap.animecon.nl:993/connect',
-            'imaps://imap.animecon.nl:993/getMailboxLock',
-            'imaps://imap.animecon.nl:993/search',
-            'imaps://imap.animecon.nl:993/fetchAll',
-            'imaps://imap.animecon.nl:993/download',
-            'imaps://imap.animecon.nl:993/messageFlagsAdd',
-            'imaps://imap.animecon.nl:993/logout',
+            'imaps://imap.animecon.nl:993/readMessages',
         ]);
+        expect(instrumentationInstances[0].statusForTesting.durationTimeToFirstByteMs)
+            .toBeGreaterThanOrEqual(0);
+    });
+
+    it('supports batch limits and detects server UIDVALIDITY resets', async () => {
+        await expect(new ImapClient(kDefaultSettings).readMessages({ limit: 0 }))
+            .rejects.toThrow('The "limit" option must be a positive integer.');
+
+        for (let i = 0; i < 2; ++i)
+            mockConnection.expect('insert');
+
+        configureNextInstance = instance => {
+            instance.getMailboxLock.mockImplementationOnce(async (path: string) => {
+                instance.mailbox = {
+                    path,
+                    delimiter: '/',
+                    flags: new Set(),
+                    uidValidity: 9002n,
+                    uidNext: 4,
+                    exists: 3,
+                    readOnly: true,
+                };
+                return { path, release: vi.fn() };
+            });
+            instance.search.mockResolvedValueOnce([ 3, 1, 2 ]);
+            instance.fetchAll.mockResolvedValueOnce([
+                {
+                    seq: 1,
+                    uid: 1,
+                    internalDate: new Date('2026-11-10T10:00:00Z'),
+                    envelope: { subject: 'First' },
+                    bodyStructure: { type: 'text/plain' },
+                },
+                {
+                    seq: 2,
+                    uid: 2,
+                    internalDate: new Date('2026-11-10T10:01:00Z'),
+                    envelope: { subject: 'Second' },
+                    bodyStructure: { type: 'text/plain' },
+                },
+            ]);
+            instance.download
+                .mockResolvedValueOnce({
+                    meta: { contentType: 'text/plain' },
+                    content: Readable.from([ Buffer.from('One') ]),
+                })
+                .mockResolvedValueOnce({
+                    meta: { contentType: 'text/plain' },
+                    content: Readable.from([ Buffer.from('Two') ]),
+                });
+        };
+
+        const client = new ImapClient(kDefaultSettings);
+        const resetResult = await client.readMessages({
+            uidValidity: 9001n,
+            sinceUid: 500,
+            limit: 2,
+        });
+
+        // Stale `sinceUid: 500` must be ignored because `uidValidity` changed from 9001n to 9002n.
+        expect(lastInstance?.search).toHaveBeenCalledWith({ all: true }, { uid: true });
+        expect(lastInstance?.fetchAll).toHaveBeenCalledWith(
+            [ 1, 2 ], expect.any(Object), { uid: true });
+        expect(resetResult.uidValidity).toBe(9002n);
+        expect(resetResult.uidValidityReset).toBe(true);
+        expect(resetResult.hasMore).toBe(true);
+        expect(resetResult.messages.map(m => m.uid)).toEqual([ 1, 2 ]);
+
+        configureNextInstance = instance => {
+            instance.getMailboxLock.mockImplementationOnce(async (path: string) => {
+                instance.mailbox = {
+                    path,
+                    delimiter: '/',
+                    flags: new Set(),
+                    uidValidity: 9002n,
+                    uidNext: 4,
+                    exists: 3,
+                    readOnly: true,
+                };
+                return { path, release: vi.fn() };
+            });
+            instance.search.mockResolvedValueOnce([ 3 ]);
+            instance.fetchAll.mockResolvedValueOnce([
+                {
+                    seq: 3,
+                    uid: 3,
+                    internalDate: new Date('2026-11-10T10:02:00Z'),
+                    envelope: { subject: 'Third' },
+                    bodyStructure: { type: 'text/plain' },
+                },
+            ]);
+            instance.download.mockResolvedValueOnce({
+                meta: { contentType: 'text/plain' },
+                content: Readable.from([ Buffer.from('Three') ]),
+            });
+        };
+
+        const finalBatch = await client.readMessages({
+            uidValidity: 9002n,
+            sinceUid: 2,
+            limit: 2,
+        });
+
+        expect(finalBatch.uidValidityReset).toBe(false);
+        expect(finalBatch.hasMore).toBe(false);
+        expect(finalBatch.messages.map(m => m.uid)).toEqual([ 3 ]);
+
+        await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     it('short-circuits cleanly when the mailbox is empty or already caught up', async () => {
-        for (let i = 0; i < 6; ++i)
+        for (let i = 0; i < 2; ++i)
             mockConnection.expect('insert');
 
         configureNextInstance = instance => {
@@ -510,7 +635,12 @@ describe('ImapClient', () => {
         };
 
         const client = new ImapClient(kDefaultSettings);
-        await expect(client.readMessages()).resolves.toEqual([]);
+        await expect(client.readMessages()).resolves.toEqual({
+            uidValidity: 1n,
+            uidValidityReset: false,
+            hasMore: false,
+            messages: [],
+        });
         expect(lastInstance?.search).not.toHaveBeenCalled();
         expect(lastInstance?.logout).toHaveBeenCalledTimes(1);
 
@@ -529,7 +659,12 @@ describe('ImapClient', () => {
             });
         };
 
-        await expect(client.readMessages({ sinceUid: 25 })).resolves.toEqual([]);
+        await expect(client.readMessages({ uidValidity: 1n, sinceUid: 25 })).resolves.toEqual({
+            uidValidity: 1n,
+            uidValidityReset: false,
+            hasMore: false,
+            messages: [],
+        });
         expect(lastInstance?.search).not.toHaveBeenCalled();
         expect(lastInstance?.logout).toHaveBeenCalledTimes(1);
 
@@ -537,8 +672,7 @@ describe('ImapClient', () => {
     });
 
     it('preserves primary errors when logout also fails during teardown', async () => {
-        for (let i = 0; i < 4; ++i)
-            mockConnection.expect('insert');
+        mockConnection.expect('insert');
 
         configureNextInstance = instance => {
             instance.search.mockResolvedValueOnce(false);
