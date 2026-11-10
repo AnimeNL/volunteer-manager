@@ -20,16 +20,20 @@ import WebhookIcon from '@mui/icons-material/Webhook';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
+import { queryAccessibleInboxes } from '../system/inbox/InboxAccess';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEmailAccounts, tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
+import db, { tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls }
+    from '@lib/database';
 
 /**
  * By default, we display a loading menu as the real one cannot be determined yet. Intentionally
  * a lightweight component as it should rarely be displayed, if at all.
  */
 export default async function DefaultMenu() {
-    const { access, user } = await requireAuthentication();
+    const context = await requireAuthentication();
+
+    const { access, user } = context;
 
     let badges: Record<string, number> = {
         integrations: 0,
@@ -98,19 +102,14 @@ export default async function DefaultMenu() {
     }
 
     let emailAccounts: { id: number; address: string }[] = [];
-    if (access.can('system.integrations')) {
+    if (access.can('system.inbox.eligible')) {
         const cache = Cache.getInstance('AdminNavigationMenuCache');
-        emailAccounts = await cache.getOrInsert('email-accounts', async () => {
-            return await db.selectFrom(tEmailAccounts)
-                .where(tEmailAccounts.emailAccountDeleted.isNull())
-                    .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
-                    .and(tEmailAccounts.emailAccountImapHostname.notEquals(''))
-                .select({
-                    id: tEmailAccounts.emailAccountId,
-                    address: tEmailAccounts.emailAccountAddress,
-                })
-                .orderBy(tEmailAccounts.emailAccountAddress, 'asc')
-                .executeSelectMany();
+        emailAccounts = await cache.getOrInsert(`inbox/${user.id}`, async () => {
+            const inboxes = await queryAccessibleInboxes(context, 'read');
+            return inboxes.map(inbox => ({
+                id: inbox.id,
+                address: inbox.address,
+            }));
         }) ?? [];
     }
 
@@ -169,7 +168,7 @@ export default async function DefaultMenu() {
                 items: emailAccounts.map(account => ({
                     Icon: EmailOutlinedIcon,
                     label: account.address,
-                    permission: 'system.integrations',
+                    permission: 'system.inbox.eligible',
                     url: `/admin/system/inbox/${account.id}`,
                     urlMatchMode: 'strict',
                 })),

@@ -1,13 +1,14 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
+import { forbidden, notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { canAccessInbox } from '../InboxAccess';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
@@ -16,7 +17,7 @@ import db, { tEmailAccounts } from '@lib/database';
  * Page displaying the inbox for an individual inbound e-mail account.
  */
 export default async function EmailInboxPage(props: PageProps<'/admin/system/inbox/[id]'>) {
-    await requireAuthentication('system.integrations');
+    const context = await requireAuthentication('system.inbox.eligible');
 
     const params = await props.params;
 
@@ -37,6 +38,9 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
 
     if (!account)
         notFound();
+
+    if (!await canAccessInbox(context, account.id, 'read'))
+        forbidden();
 
     return (
         <>

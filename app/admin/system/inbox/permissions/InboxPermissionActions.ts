@@ -6,6 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
@@ -71,6 +72,8 @@ export async function updateInboxPermissions(userId: number, formData: unknown) 
             .withAffectedUser(userId)
             .withSeverity('Warning')
             .record();
+
+        Cache.getInstance('AdminNavigationMenuCache').delete(`inbox/${userId}`);
 
         return { success: true, refresh: true };
     });
