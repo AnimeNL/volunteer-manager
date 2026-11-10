@@ -122,6 +122,22 @@ tables:
   - name: email_account_smtp_password
     type: text
     nullable: false
+  - name: email_account_imap_hostname
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: email_account_imap_port
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
+  - name: email_account_imap_username
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: email_account_imap_password
+    type: text
+    nullable: true
+    default: "NULL"
   - name: email_account_created
     type: datetime
     nullable: false
@@ -153,6 +169,10 @@ tables:
       `email_account_smtp_port` int(4) unsigned NOT NULL,
       `email_account_smtp_username` text NOT NULL,
       `email_account_smtp_password` text NOT NULL,
+      `email_account_imap_hostname` text DEFAULT NULL,
+      `email_account_imap_port` int(4) unsigned DEFAULT NULL,
+      `email_account_imap_username` text DEFAULT NULL,
+      `email_account_imap_password` text DEFAULT NULL,
       `email_account_created` datetime NOT NULL,
       `email_account_updated` datetime NOT NULL,
       `email_account_deleted` datetime DEFAULT NULL,
@@ -3405,9 +3425,9 @@ tables:
       `log_error_cause` text DEFAULT NULL,
       `log_error_stack` text DEFAULT NULL,
       PRIMARY KEY (`log_id`),
-      KEY `log_date` (`log_date`),
       KEY `log_integration` (`log_integration`,`log_operation`),
-      KEY `log_task_id` (`log_task_id`)
+      KEY `log_task_id` (`log_task_id`),
+      KEY `log_date` (`log_date`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_events_favourites
   type: BASE TABLE
