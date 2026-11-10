@@ -9,7 +9,7 @@ import { markdownToHtml } from '@components/Markdown/markdownToHtml';
  * takes required information about the sender, after which a building pattern is enabled to create
  * the remainder of the e-mail.
  */
-export class EmailMessage {
+export class SmtpMessage {
     #headers: Array<{ key: string, value: string }>;
     #options: Omit<SendMailOptions, 'from' | 'headers' | 'sender'>;
 
@@ -32,27 +32,27 @@ export class EmailMessage {
 
     /**
      * Sets the `recipients` (either a string or an array of strings) as the people who should
-     * receive this message on the To: line. Returns this instance of MailMessage.
+     * receive this message on the To: line. Returns this instance of SmtpMessage.
      */
-    setTo(recipients: string | string[]): EmailMessage {
+    setTo(recipients: string | string[]): SmtpMessage {
         this.#options.to = recipients;
         return this;
     }
 
     /**
      * Sets the `recipients` (either a string or an array of strings) as the people who should
-     * receive this message on the Cc: line. Returns this instance of MailMessage.
+     * receive this message on the Cc: line. Returns this instance of SmtpMessage.
      */
-    setCc(recipients: string | string[]): EmailMessage {
+    setCc(recipients: string | string[]): SmtpMessage {
         this.#options.cc = recipients;
         return this;
     }
 
     /**
      * Sets the `recipients` (either a string or an array of strings) as the people who should
-     * receive this message on the Bcc: line. Returns this instance of MailMessage.
+     * receive this message on the Bcc: line. Returns this instance of SmtpMessage.
      */
-    setBcc(recipients: string | string[]): EmailMessage {
+    setBcc(recipients: string | string[]): SmtpMessage {
         this.#options.bcc = recipients;
         return this;
     }
@@ -63,18 +63,18 @@ export class EmailMessage {
 
     /**
      * Adds a header with the given `key` and `value` to the message. Custom headers should always
-     * start with "X-" to signal the intention. Returns this instance of MailMessage.
+     * start with "X-" to signal the intention. Returns this instance of SmtpMessage.
      */
-    addHeader(key: string, value: string): EmailMessage {
+    addHeader(key: string, value: string): SmtpMessage {
         this.#headers.push({ key, value });
         return this;
     }
 
     /**
      * Sets the subject of the message to the given `subject`. This line must appeal people to read
-     * the rest of the message. Returns this instance of MailMessage.
+     * the rest of the message. Returns this instance of SmtpMessage.
      */
-    setSubject(subject: string): EmailMessage {
+    setSubject(subject: string): SmtpMessage {
         this.#options.subject = subject;
         return this;
     }
@@ -85,18 +85,18 @@ export class EmailMessage {
 
     /**
      * Sets the HTML content of this message to the given `html` string. It is recommended to also
-     * include a text version of the message. Returns this instance of MailMessage.
+     * include a text version of the message. Returns this instance of SmtpMessage.
      */
-    setHtml(html: string): EmailMessage {
+    setHtml(html: string): SmtpMessage {
         this.#options.html = html;
         return this;
     }
 
     /**
      * Sets the plaintext content of this message to the given `text` string. It is recommended to
-     * also include an HTML version of the message. Returns this instance of MailMessage.
+     * also include an HTML version of the message. Returns this instance of SmtpMessage.
      */
-    setText(text: string): EmailMessage {
+    setText(text: string): SmtpMessage {
         this.#options.text = text;
         return this;
     }
@@ -105,9 +105,9 @@ export class EmailMessage {
 
     /**
      * Sets the Markdown content of this message to the given `markdown` string. Since Markdown is
-     * human readable, it will also be the text version. Returns this instance of MailMessage.
+     * human readable, it will also be the text version. Returns this instance of SmtpMessage.
      */
-    async asyncSetMarkdown(markdown: string): Promise<EmailMessage> {
+    async asyncSetMarkdown(markdown: string): Promise<SmtpMessage> {
         this.#options.html = await markdownToHtml(markdown);
 
         if (!Object.hasOwn(this.#options, 'text'))

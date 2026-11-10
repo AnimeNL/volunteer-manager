@@ -2,20 +2,21 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { Logger } from 'nodemailer/lib/shared';
-import type { EmailLogger } from './EmailLogger';
+
+import type { SmtpLogger } from './SmtpLogger';
 
 /**
- * The e-mail connection logger takes messages from nodemailer and proxies them to the EmailLogger
+ * The SMTP connection logger takes messages from nodemailer and proxies them to the SmtpLogger
  * instance when set. All log statements will be stored with in the outbox database table.
  */
-export class EmailConnectionLogger implements Logger {
-    #messageLogger: EmailLogger | undefined = undefined;
+export class SmtpConnectionLogger implements Logger {
+    #messageLogger: SmtpLogger | undefined = undefined;
 
     /**
      * Sets the local message logger to `messageLogger`. All received log statements will be sent
      * to that logger instead, to be stored in a message-associated manner.
      */
-    setMessageLogger(messageLogger?: EmailLogger): void {
+    setMessageLogger(messageLogger?: SmtpLogger): void {
         this.#messageLogger = messageLogger;
     }
 

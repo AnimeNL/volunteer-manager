@@ -1,14 +1,16 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { EmailClient } from './EmailClient';
+import { SmtpClient } from './SmtpClient';
 import db, { tEmailAccounts } from '@lib/database';
 
+export type { SmtpClient };
+
 /**
- * Gets an instance of the e-mail client infrastructure, which allows messages to be sent across
+ * Gets an instance of the SMTP client infrastructure, which allows messages to be sent across
  * the internet. Settings are stored in the Integration section.
  */
-export async function createEmailClient(emailAccountId: number): Promise<EmailClient> {
+export async function createSmtpClient(emailAccountId: number): Promise<SmtpClient> {
     const accountSettings = await db.selectFrom(tEmailAccounts)
         .where(tEmailAccounts.emailAccountId.equals(emailAccountId))
         .select({
@@ -20,7 +22,7 @@ export async function createEmailClient(emailAccountId: number): Promise<EmailCl
         .executeSelectNoneOrOne();
 
     if (!accountSettings)
-        throw new Error('Unable to instantiate the e-mail client, invalid account Id given.');
+        throw new Error('Unable to instantiate the SMTP client, invalid account Id given.');
 
-    return new EmailClient(emailAccountId, accountSettings);
+    return new SmtpClient(emailAccountId, accountSettings);
 }

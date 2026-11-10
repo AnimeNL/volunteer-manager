@@ -4,14 +4,14 @@
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { setImmediate } from 'node:timers';
 
-import { EmailClientMock } from './EmailClientMock';
-import { EmailMessage } from './EmailMessage';
+import { SmtpClientMock } from './SmtpClientMock';
+import { SmtpMessage } from './SmtpMessage';
 
 global.setImmediate = setImmediate;
 
-describe('EmailClient', () => {
+describe('SmtpClient', () => {
     it('it is able to verify connections while using the mock', async () => {
-        const client = new EmailClientMock();
+        const client = new SmtpClientMock();
         client.mock.setMockedVerify(true);
 
         const result = await client.verifyConfiguration();
@@ -19,7 +19,7 @@ describe('EmailClient', () => {
     });
 
     it('is able to build messages using a builder pattern', async () => {
-        const message = new EmailMessage()
+        const message = new SmtpMessage()
             .setTo('user@example.com')
             .setCc('another@example.com')
             .setBcc([ 'foo@bar.com', 'baz@qux.com' ])
@@ -47,7 +47,7 @@ describe('EmailClient', () => {
             text: 'Hello, world!',
         });
 
-        const client = new EmailClientMock();
+        const client = new SmtpClientMock();
         const info = await client.sendMessage({ sender: 'My Name', message });
         expect(info.messageId.length).toBeGreaterThan(16);
 
@@ -59,7 +59,7 @@ describe('EmailClient', () => {
     });
 
     it('is able to build messages using markdown', async () => {
-        const message = await new EmailMessage().asyncSetMarkdown('**Hello** world!');
+        const message = await new SmtpMessage().asyncSetMarkdown('**Hello** world!');
         expect(message.options).toEqual({
             // Defaults:
             disableFileAccess: true,
@@ -73,12 +73,12 @@ describe('EmailClient', () => {
     });
 
     it('is able to catch exceptions that occur when sending a message', async () => {
-        const message = new EmailMessage()
+        const message = new SmtpMessage()
             .setTo('user@example.com')
             .setSubject('This is a test')
             .setText('Hello, world!');
 
-        const client = new EmailClientMock();
+        const client = new SmtpClientMock();
         client.mock.setShouldFailOnce(true);
 
         expect(client.loggedInitialisations).toHaveLength(0);

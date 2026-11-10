@@ -18,7 +18,7 @@ import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
 import Typography from '@mui/material/Typography';
 import WarningOutlinedIcon from '@mui/icons-material/WarningOutlined';
 
-import type { EmailLoggerSeverity } from '@lib/integrations/email/EmailLogger';
+import type { SmtpLoggerSeverity } from '@lib/integrations/smtp/SmtpLogger';
 import type { TaskLogSeverity } from '@lib/scheduler/TaskContext';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 
@@ -26,7 +26,7 @@ import { ExpandableSection } from '@app/admin/components/ExpandableSection';
  * Detailed logs applicable to outbox messages.
  */
 interface DetailedOutboxLogEntry {
-    severity: EmailLoggerSeverity;
+    severity: SmtpLoggerSeverity;
     params: any[];
 };
 
@@ -49,7 +49,7 @@ type DetailedLogEntry = {
 /**
  * Displays an icon appropriate to the severity level of a log message.
  */
-function LogSeverity(props: { severity: EmailLoggerSeverity | TaskLogSeverity }) {
+function LogSeverity(props: { severity: SmtpLoggerSeverity | TaskLogSeverity }) {
     let icon: React.ReactNode = undefined;
 
     switch (props.severity) {

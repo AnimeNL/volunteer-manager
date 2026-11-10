@@ -4,14 +4,14 @@
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { default as nodemailermock } from 'nodemailer-mock';
 
-import type { EmailLogger, EmailLoggerSeverity } from './EmailLogger';
 import type { SendMessageRequest } from './SendMessageRequest';
-import { EmailClient } from './EmailClient';
+import type { SmtpLogger, SmtpLoggerSeverity } from './SmtpLogger';
+import { SmtpClient } from './SmtpClient';
 
 /**
- * Mock implementation of the MailClient that avoids using a real server.
+ * Mock implementation of the SmtpClient that avoids using a real server.
  */
-export class EmailClientMock extends EmailClient {
+export class SmtpClientMock extends SmtpClient {
     #loggedExceptions: Error[] = [];
     #loggedFinalisations: (SMTPTransport.SentMessageInfo | undefined)[] = [];
     #loggedInitialisations: SendMessageRequest[] = [];
@@ -42,10 +42,10 @@ export class EmailClientMock extends EmailClient {
     /**
      * Overrides the default logger with an empty instance that logs to the mocked instance.
      */
-    protected override createLogger(request: SendMessageRequest): EmailLogger {
+    protected override createLogger(request: SendMessageRequest): SmtpLogger {
         const parent = this;
 
-        return new class implements EmailLogger {
+        return new class implements SmtpLogger {
             async initialise(accountId: number, request: SendMessageRequest): Promise<void> {
                 parent.#loggedInitialisations.push(request);
             }
@@ -55,7 +55,7 @@ export class EmailClientMock extends EmailClient {
             reportException(error: Error): void {
                 parent.#loggedExceptions.push(error);
             }
-            reportLog(severity: EmailLoggerSeverity, ...params: any[]): void {
+            reportLog(severity: SmtpLoggerSeverity, ...params: any[]): void {
                 parent.#loggedLogMessages.push({ severity, params });
             }
         };

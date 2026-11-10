@@ -2,25 +2,25 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type Mail from 'nodemailer/lib/mailer';
+import type { MimeNodeAddressInput } from 'nodemailer/lib/mime-node';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { Readable } from 'node:stream';
 
 import type { SendMessageRequest } from './SendMessageRequest';
 import type { User } from '@lib/auth/User';
 import db, { tOutboxEmail } from '@lib/database';
-import type { MimeNodeAddressInput } from 'nodemailer/lib/mime-node';
 
 /**
- * Severity of messages that can be stored by the EmailLogger.
+ * Severity of messages that can be stored by the SmtpLogger.
  */
-export type EmailLoggerSeverity = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+export type SmtpLoggerSeverity = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 /**
- * Interface describing the e-mail logger.
+ * Interface describing the SMTP logger.
  */
-export interface EmailLogger {
+export interface SmtpLogger {
     /**
-     * Initialises the e-mail logger. Loggers may only be initialized once.
+     * Initialises the SMTP logger. Loggers may only be initialized once.
      */
     initialise(accountId: number, request: SendMessageRequest): Promise<void>;
 
@@ -37,16 +37,16 @@ export interface EmailLogger {
     /**
      * Reports that a log message has been issued by the underlying library.
      */
-    reportLog(severity: EmailLoggerSeverity, ...params: any[]): void;
+    reportLog(severity: SmtpLoggerSeverity, ...params: any[]): void;
 }
 
 /**
- * Actual implementation of the e-mail logger. Will be overridden for testing by the EmailClientMock
+ * Actual implementation of the SMTP logger. Will be overridden for testing by the SmtpClientMock
  * so that nothing is stored in the database.
  */
-export class EmailLoggerImpl implements EmailLogger {
+export class SmtpLoggerImpl implements SmtpLogger {
     #error?: Error;
-    #logs: { params: any[]; severity: EmailLoggerSeverity; time: number }[];
+    #logs: { params: any[]; severity: SmtpLoggerSeverity; time: number }[];
 
     #startTime?: bigint;
     #insertId?: number;
@@ -151,7 +151,7 @@ export class EmailLoggerImpl implements EmailLogger {
     /**
      * Reports that a log message has been issued by the underlying e-mail framework.
      */
-    reportLog(severity: EmailLoggerSeverity, ...params: any[]): void {
+    reportLog(severity: SmtpLoggerSeverity, ...params: any[]): void {
         if (!this.#startTime)
             throw new Error('E-mail loggers must be initialised before receiving logs');
 

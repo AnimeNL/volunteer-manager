@@ -5,15 +5,15 @@ import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { default as nodemailer, type Transporter } from 'nodemailer';
 
 import type { SendMessageRequest } from './SendMessageRequest';
-import { EmailConnectionLogger } from './EmailConnectionLogger';
-import { EmailLoggerImpl, type EmailLogger } from './EmailLogger';
-import { EmailMessage } from './EmailMessage';
+import { SmtpConnectionLogger } from './SmtpConnectionLogger';
+import { SmtpLoggerImpl, type SmtpLogger } from './SmtpLogger';
+import { SmtpMessage } from './SmtpMessage';
 
 /**
- * Settings related to the e-mail client. An SMTP connection will be used to actually send e-mail,
+ * Settings related to the SMTP client. An SMTP connection will be used to actually send e-mail,
  * and all messages will be stored in the "outbox" database table for tracking purposes.
  */
-interface EmailClientSettings {
+interface SmtpClientSettings {
     /**
      * The SMTP host to which a connection will be made.
      */
@@ -36,20 +36,20 @@ interface EmailClientSettings {
 }
 
 /**
- * The e-mail client is able to send messages to volunteers' e-mail addresses across the internet.
+ * The SMTP client is able to send messages to volunteers' e-mail addresses across the internet.
  * Messages will be logged in their entirety, which can be accessed through the "outbox" integration
  * configuration interface in the administrative area.
  */
-export class EmailClient {
+export class SmtpClient {
     #accountId: number;
     #configuration: SMTPTransport.Options;
-    #connectionLogger: EmailConnectionLogger;
-    #settings: EmailClientSettings;
+    #connectionLogger: SmtpConnectionLogger;
+    #settings: SmtpClientSettings;
     #transport?: Transporter<SMTPTransport.SentMessageInfo>;
 
-    constructor(accountId: number, settings: EmailClientSettings) {
+    constructor(accountId: number, settings: SmtpClientSettings) {
         this.#accountId = accountId;
-        this.#connectionLogger = new EmailConnectionLogger();
+        this.#connectionLogger = new SmtpConnectionLogger();
         this.#configuration = {
             host: settings.hostname,
             port: settings.port,
@@ -67,10 +67,10 @@ export class EmailClient {
     }
 
     /**
-     * Convenience manner to get an instance of the EmailMessage builder.
+     * Convenience manner to get an instance of the SmtpMessage builder.
      */
-    createMessage(): EmailMessage {
-        return new EmailMessage();
+    createMessage(): SmtpMessage {
+        return new SmtpMessage();
     }
 
     /**
@@ -140,10 +140,10 @@ export class EmailClient {
     }
 
     /**
-     * Creates a new instance of the e-mail logger. Can be overridden for testing purposes.
+     * Creates a new instance of the SMTP logger. Can be overridden for testing purposes.
      */
-    protected createLogger(request: SendMessageRequest): EmailLogger {
-        return new EmailLoggerImpl();
+    protected createLogger(request: SendMessageRequest): SmtpLogger {
+        return new SmtpLoggerImpl();
     }
 
     /**

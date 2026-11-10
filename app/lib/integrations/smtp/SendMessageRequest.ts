@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EmailMessage } from './EmailMessage';
+import type { SmtpMessage } from './SmtpMessage';
 import type { User } from '@lib/auth/User';
 
 /**
@@ -11,7 +11,7 @@ export interface SendMessageRequest {
     /**
      * The message that should be distributed. Includes the recipients.
      */
-    message: EmailMessage;
+    message: SmtpMessage;
 
     /**
      * Name of the sender. Will be completed with the e-mail address. ("John Doe")
