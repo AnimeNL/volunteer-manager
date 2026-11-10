@@ -7,7 +7,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -17,6 +17,7 @@ import StreamIcon from '@mui/icons-material/Stream';
 import TocIcon from '@mui/icons-material/Toc';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
+import type { NavigationItem } from '../layout/NavigationItem';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
@@ -132,12 +133,6 @@ export default async function DefaultMenu() {
                 id: 'communication',
                 items: [
                     {
-                        Icon: InboxOutlinedIcon,
-                        label: 'Inbox permissions',
-                        permission: 'system.inbox.management',
-                        url: '/admin/system/inbox/permissions',
-                    },
-                    {
                         Icon: OutboxOutlinedIcon,
                         badge: { value: badges.outbox },
                         label: 'Outbox',
@@ -165,13 +160,21 @@ export default async function DefaultMenu() {
                 defaultExpanded: true,
                 header: 'E-mail',
                 id: 'email',
-                items: emailAccounts.map(account => ({
-                    Icon: EmailOutlinedIcon,
-                    label: account.address,
-                    permission: 'system.inbox.eligible',
-                    url: `/admin/system/inbox/${account.id}`,
-                    urlMatchMode: 'strict',
-                })),
+                items: [
+                    ...emailAccounts.map((account): NavigationItem => ({
+                        Icon: EmailOutlinedIcon,
+                        label: account.address,
+                        permission: 'system.inbox.eligible',
+                        url: `/admin/system/inbox/${account.id}`,
+                        urlMatchMode: 'strict',
+                    })),
+                    {
+                        Icon: LockPersonOutlinedIcon,
+                        label: 'Inbox permissions',
+                        permission: 'system.inbox.management',
+                        url: '/admin/system/inbox/permissions',
+                    },
+                ],
             },
             {
                 defaultExpanded: true,

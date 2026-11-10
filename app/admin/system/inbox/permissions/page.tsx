@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
@@ -136,7 +136,7 @@ export default async function InboxPermissionsPage() {
 
     return (
         <>
-            <Section icon={ <InboxOutlinedIcon color="primary" /> }
+            <Section icon={ <LockPersonOutlinedIcon color="primary" /> }
                      title="Inbox permissions"
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },

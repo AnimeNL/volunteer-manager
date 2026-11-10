@@ -11,11 +11,11 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import Grid from '@mui/material/Grid';
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 import Tooltip from '@mui/material/Tooltip';
 
 import { FormGrid } from '@app/admin/components/FormGrid';
@@ -177,7 +177,7 @@ export default async function AccountInboxPermissionsPage(
 
     return (
         <>
-            <Section icon={ <InboxOutlinedIcon color="primary" /> }
+            <Section icon={ <LockPersonOutlinedIcon color="primary" /> }
                      title={`Inbox permissions for ${user.firstName}`}
                      breadcrumbs={[
                          { label: 'Communication', href: '/admin/system/communication' },
