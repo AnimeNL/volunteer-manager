@@ -127,11 +127,11 @@ export default async function EmailAccountPage(
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="smtpUsername" label="Username" fullWidth size="small"
-                                      required placeholder="apikey" />
+                                      required autoComplete="off" placeholder="apikey" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="smtpPassword" label="Password" type="password"
-                                      fullWidth size="small" required
+                                      fullWidth size="small" required autoComplete="new-password"
                                       placeholder="Password / API key" />
                 </Grid>
             </FormGridSection>
@@ -151,11 +151,11 @@ export default async function EmailAccountPage(
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="imapUsername" label="Username" fullWidth size="small"
-                                      placeholder="volunteer-manager@animecon.nl" />
+                                      autoComplete="off" placeholder="team@animecon.nl" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="imapPassword" label="Password" type="password"
-                                      fullWidth size="small"
+                                      fullWidth size="small" autoComplete="new-password"
                                       placeholder="Password / app password" />
                 </Grid>
             </FormGridSection>
