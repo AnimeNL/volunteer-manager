@@ -59,6 +59,179 @@ tables:
       `timeslot_deleted` datetime DEFAULT NULL,
       UNIQUE KEY `activity_id_2` (`activity_id`,`timeslot_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: inbox_email
+  type: BASE TABLE
+  columns:
+  - name: inbox_email_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: email_account_id
+    type: int(4) unsigned
+    nullable: false
+  - name: inbox_uid_validity
+    type: bigint(20) unsigned
+    nullable: false
+  - name: inbox_uid
+    type: int(8) unsigned
+    nullable: false
+  - name: inbox_message_id
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: inbox_in_reply_to
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: inbox_date
+    type: datetime
+    nullable: false
+  - name: inbox_received_date
+    type: datetime
+    nullable: false
+  - name: inbox_from_name
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: inbox_from_address
+    type: varchar(255)
+    nullable: false
+    default: "''"
+  - name: inbox_from_user_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: inbox_to
+    type: text
+    nullable: false
+  - name: inbox_cc
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: inbox_reply_to
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: inbox_subject
+    type: text
+    nullable: false
+  - name: inbox_body_text
+    type: mediumtext
+    nullable: true
+    default: "NULL"
+  - name: inbox_body_html
+    type: mediumtext
+    nullable: true
+    default: "NULL"
+  - name: inbox_flags
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: inbox_read
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: inbox_archived
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: inbox_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: inbox_account_received
+    def: KEY inbox_account_received (email_account_id, inbox_received_date) USING BTREE
+    table: inbox_email
+    columns:
+    - email_account_id
+    - inbox_received_date
+  - name: inbox_from_user_id
+    def: KEY inbox_from_user_id (inbox_from_user_id) USING BTREE
+    table: inbox_email
+    columns:
+    - inbox_from_user_id
+  - name: inbox_message_id
+    def: KEY inbox_message_id (inbox_message_id) USING BTREE
+    table: inbox_email
+    columns:
+    - inbox_message_id
+  - name: PRIMARY
+    def: PRIMARY KEY (inbox_email_id) USING BTREE
+    table: inbox_email
+    columns:
+    - inbox_email_id
+  - name: inbox_account_uid
+    def: UNIQUE KEY inbox_account_uid (email_account_id, inbox_uid_validity, inbox_uid) USING BTREE
+    table: inbox_email
+    columns:
+    - email_account_id
+    - inbox_uid_validity
+    - inbox_uid
+  constraints:
+  - name: inbox_account_uid
+    type: UNIQUE
+    def: UNIQUE KEY inbox_account_uid (email_account_id, inbox_uid_validity, inbox_uid)
+    table: inbox_email
+    columns:
+    - email_account_id
+    - inbox_uid_validity
+    - inbox_uid
+  - name: inbox_email_account_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+    table: inbox_email
+    referencedTable: email_accounts
+    columns:
+    - email_account_id
+    referencedColumns:
+    - email_account_id
+  - name: inbox_email_from_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (inbox_from_user_id) REFERENCES users (user_id)
+    table: inbox_email
+    referencedTable: users
+    columns:
+    - inbox_from_user_id
+    referencedColumns:
+    - user_id
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (inbox_email_id)
+    table: inbox_email
+    columns:
+    - inbox_email_id
+  def: |-
+    CREATE TABLE `inbox_email` (
+      `inbox_email_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `email_account_id` int(4) unsigned NOT NULL,
+      `inbox_uid_validity` bigint(20) unsigned NOT NULL,
+      `inbox_uid` int(8) unsigned NOT NULL,
+      `inbox_message_id` varchar(255) DEFAULT NULL,
+      `inbox_in_reply_to` varchar(255) DEFAULT NULL,
+      `inbox_date` datetime NOT NULL,
+      `inbox_received_date` datetime NOT NULL,
+      `inbox_from_name` varchar(255) DEFAULT NULL,
+      `inbox_from_address` varchar(255) NOT NULL DEFAULT '',
+      `inbox_from_user_id` int(8) unsigned DEFAULT NULL,
+      `inbox_to` text NOT NULL,
+      `inbox_cc` text DEFAULT NULL,
+      `inbox_reply_to` text DEFAULT NULL,
+      `inbox_subject` text NOT NULL,
+      `inbox_body_text` mediumtext DEFAULT NULL,
+      `inbox_body_html` mediumtext DEFAULT NULL,
+      `inbox_flags` text DEFAULT NULL,
+      `inbox_read` datetime DEFAULT NULL,
+      `inbox_archived` datetime DEFAULT NULL,
+      `inbox_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`inbox_email_id`),
+      UNIQUE KEY `inbox_account_uid` (`email_account_id`,`inbox_uid_validity`,`inbox_uid`),
+      KEY `inbox_account_received` (`email_account_id`,`inbox_received_date`),
+      KEY `inbox_message_id` (`inbox_message_id`),
+      KEY `inbox_from_user_id` (`inbox_from_user_id`),
+      CONSTRAINT `inbox_email_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
+      CONSTRAINT `inbox_email_from_user_id` FOREIGN KEY (`inbox_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: logs_format
   type: BASE TABLE
   columns:
@@ -138,6 +311,18 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: email_account_imap_uid_validity
+    type: bigint(20) unsigned
+    nullable: true
+    default: "NULL"
+  - name: email_account_imap_last_uid
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: email_account_imap_last_synced
+    type: datetime
+    nullable: true
+    default: "NULL"
   - name: email_account_created
     type: datetime
     nullable: false
@@ -173,6 +358,9 @@ tables:
       `email_account_imap_port` int(4) unsigned DEFAULT NULL,
       `email_account_imap_username` text DEFAULT NULL,
       `email_account_imap_password` text DEFAULT NULL,
+      `email_account_imap_uid_validity` bigint(20) unsigned DEFAULT NULL,
+      `email_account_imap_last_uid` int(8) unsigned DEFAULT NULL,
+      `email_account_imap_last_synced` datetime DEFAULT NULL,
       `email_account_created` datetime NOT NULL,
       `email_account_updated` datetime NOT NULL,
       `email_account_deleted` datetime DEFAULT NULL,
@@ -1552,6 +1740,69 @@ tables:
       CONSTRAINT `users_events_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`),
       CONSTRAINT `users_events_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: inbox_email_attachments
+  type: BASE TABLE
+  columns:
+  - name: inbox_attachment_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: inbox_email_id
+    type: int(8) unsigned
+    nullable: false
+  - name: attachment_filename
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: attachment_mime_type
+    type: varchar(128)
+    nullable: false
+  - name: attachment_size
+    type: int(8) unsigned
+    nullable: false
+  - name: attachment_data
+    type: mediumblob
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: inbox_email_id
+    def: KEY inbox_email_id (inbox_email_id) USING BTREE
+    table: inbox_email_attachments
+    columns:
+    - inbox_email_id
+  - name: PRIMARY
+    def: PRIMARY KEY (inbox_attachment_id) USING BTREE
+    table: inbox_email_attachments
+    columns:
+    - inbox_attachment_id
+  constraints:
+  - name: inbox_attachments_email_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (inbox_email_id) REFERENCES inbox_email (inbox_email_id)
+    table: inbox_email_attachments
+    referencedTable: inbox_email
+    columns:
+    - inbox_email_id
+    referencedColumns:
+    - inbox_email_id
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (inbox_attachment_id)
+    table: inbox_email_attachments
+    columns:
+    - inbox_attachment_id
+  def: |-
+    CREATE TABLE `inbox_email_attachments` (
+      `inbox_attachment_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `inbox_email_id` int(8) unsigned NOT NULL,
+      `attachment_filename` varchar(255) DEFAULT NULL,
+      `attachment_mime_type` varchar(128) NOT NULL,
+      `attachment_size` int(8) unsigned NOT NULL,
+      `attachment_data` mediumblob DEFAULT NULL,
+      PRIMARY KEY (`inbox_attachment_id`),
+      KEY `inbox_email_id` (`inbox_email_id`),
+      CONSTRAINT `inbox_attachments_email_id` FOREIGN KEY (`inbox_email_id`) REFERENCES `inbox_email` (`inbox_email_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: trainings_assignments
   type: BASE TABLE
   columns:
@@ -3406,7 +3657,7 @@ tables:
     type: datetime
     nullable: false
   - name: log_integration
-    type: enum('AnimeCon','GenAI','Weeztix','YourTicketProvider')
+    type: enum('AnimeCon','GenAI','IMAP','Weeztix','YourTicketProvider')
     nullable: false
   - name: log_operation
     type: varchar(256)
@@ -3487,7 +3738,7 @@ tables:
     CREATE TABLE `integrations_logs` (
       `log_id` int(4) NOT NULL AUTO_INCREMENT,
       `log_date` datetime NOT NULL,
-      `log_integration` enum('AnimeCon','GenAI','Weeztix','YourTicketProvider') NOT NULL,
+      `log_integration` enum('AnimeCon','GenAI','IMAP','Weeztix','YourTicketProvider') NOT NULL,
       `log_operation` varchar(256) NOT NULL,
       `log_user_id` int(4) unsigned DEFAULT NULL,
       `log_task_id` int(4) unsigned DEFAULT NULL,
@@ -5621,6 +5872,26 @@ tables:
       KEY `webhook_message_original_sid` (`webhook_message_original_sid`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 relations:
+- table: inbox_email
+  columns:
+  - email_account_id
+  cardinality: zero_or_more
+  parentTable: email_accounts
+  parentColumns:
+  - email_account_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+  virtual: false
+- table: inbox_email
+  columns:
+  - inbox_from_user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: zero_or_one
+  def: FOREIGN KEY (inbox_from_user_id) REFERENCES users (user_id)
+  virtual: false
 - table: teams_roles
   columns:
   - role_id
@@ -5710,6 +5981,16 @@ relations:
   - user_id
   parentCardinality: exactly_one
   def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+  virtual: false
+- table: inbox_email_attachments
+  columns:
+  - inbox_email_id
+  cardinality: zero_or_more
+  parentTable: inbox_email
+  parentColumns:
+  - inbox_email_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (inbox_email_id) REFERENCES inbox_email (inbox_email_id)
   virtual: false
 - table: users_settings
   columns:

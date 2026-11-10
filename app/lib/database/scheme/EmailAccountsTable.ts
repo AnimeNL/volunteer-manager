@@ -23,6 +23,9 @@ export class EmailAccountsTable extends Table<DBConnection, 'EmailAccountsTable'
     emailAccountImapPort = this.optionalColumnWithDefaultValue('email_account_imap_port', 'int');
     emailAccountImapUsername = this.optionalColumnWithDefaultValue('email_account_imap_username', 'string');
     emailAccountImapPassword = this.optionalColumnWithDefaultValue('email_account_imap_password', 'string');
+    emailAccountImapUidValidity = this.optionalColumnWithDefaultValue('email_account_imap_uid_validity', 'bigint');
+    emailAccountImapLastUid = this.optionalColumnWithDefaultValue('email_account_imap_last_uid', 'int');
+    emailAccountImapLastSynced = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('email_account_imap_last_synced', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     emailAccountCreated = this.column<Temporal.ZonedDateTime>('email_account_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     emailAccountUpdated = this.column<Temporal.ZonedDateTime>('email_account_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     emailAccountDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('email_account_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
