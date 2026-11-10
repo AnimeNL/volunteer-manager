@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import AppsIcon from '@mui/icons-material/Apps';
+import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import StreamIcon from '@mui/icons-material/Stream';
 import WebhookIcon from '@mui/icons-material/Webhook';
@@ -18,6 +19,7 @@ import { or, requireAuthentication } from '@lib/requireAuthentication';
  */
 export default async function CommunicationPage() {
     await requireAuthentication(or(
+        'system.inbox.management',
         'system.internals.outbox',
         'system.subscriptions.management',
     ));
@@ -34,6 +36,11 @@ export default async function CommunicationPage() {
                 </SectionIntroduction>
             </Section>
             <OverviewTiles tiles={[
+                {
+                    Icon: InboxOutlinedIcon,
+                    href: '/admin/system/inbox/permissions',
+                    label: 'Inbox permissions',
+                },
                 {
                     Icon: OutboxOutlinedIcon,
                     href: '/admin/system/outbox/email',

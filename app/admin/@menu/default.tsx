@@ -6,6 +6,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
+import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -113,6 +114,12 @@ export default async function DefaultMenu() {
                 header: 'Communication',
                 id: 'communication',
                 items: [
+                    {
+                        Icon: InboxOutlinedIcon,
+                        label: 'Inbox permissions',
+                        permission: 'system.inbox.management',
+                        url: '/admin/system/inbox/permissions',
+                    },
                     {
                         Icon: OutboxOutlinedIcon,
                         badge: { value: badges.outbox },

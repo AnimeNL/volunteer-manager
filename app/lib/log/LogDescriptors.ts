@@ -24,6 +24,8 @@ interface LogTypeParameterMap {
         taskId: number;
     };
 
+    UpdateAccountInboxPermissions: NoParameters;
+
     UpdateAccountSubscriptions: {
         added: string[];
         updated: string[];
@@ -666,6 +668,7 @@ export const kLogType: { [k in LogType]: k } = {
 
     PublishSubscriptionTest: 'PublishSubscriptionTest',
     SendCommunication: 'SendCommunication',
+    UpdateAccountInboxPermissions: 'UpdateAccountInboxPermissions',
     UpdateAccountSubscriptions: 'UpdateAccountSubscriptions',
 
     // ---------------------------------------------------------------------------------------------
