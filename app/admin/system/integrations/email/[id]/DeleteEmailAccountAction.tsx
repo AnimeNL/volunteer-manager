@@ -5,8 +5,9 @@
 
 import { useCallback, useState } from 'react';
 
-import Button from '@mui/material/Button';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerAction } from '@lib/serverAction';
 import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
@@ -39,16 +40,17 @@ export function DeleteEmailAccountAction(props: DeleteEmailAccountActionProps) {
 
     return (
         <>
-            <Button color="error" size="small" variant="outlined"
-                    startIcon={ <DeleteOutlinedIcon /> } onClick={handleDialogOpen}>
-                Delete this account…
-            </Button>
+            <Tooltip title="Delete this account…">
+                <IconButton onClick={handleDialogOpen} size="small">
+                    <DeleteIcon color="error" fontSize="small" />
+                </IconButton>
+            </Tooltip>
             <ResponsiveConfirmationDialog
                 open={dialogOpen}
                 onClose={handleDialogClose}
                 action={action}
                 confirmLabel="Delete"
-                title="Delete this e-mail account…">
+                title="Delete this e-mail account?">
                 Are you sure you want to delete <strong>{address}</strong>? It will no longer be
                 available for sending or receiving messages.
             </ResponsiveConfirmationDialog>

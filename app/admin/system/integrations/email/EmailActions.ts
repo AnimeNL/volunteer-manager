@@ -143,16 +143,71 @@ export async function deleteEmailAccount(accountId: number, formData: unknown) {
 }
 
 /**
- * Zod type that describes the configuration fields of an e-mail account.
+ * Zod type that describes the outgoing (SMTP) server configuration of an e-mail account.
  */
-const kUpdateEmailAccountData = z.object({
-    address: z.email(),
-
+const kUpdateEmailAccountSmtpData = z.object({
     smtpHostname: z.string().trim().nonempty(),
     smtpPort: z.coerce.number().int().min(1).max(65535),
     smtpUsername: z.string().trim().nonempty(),
     smtpPassword: z.string().nonempty(),
+});
 
+/**
+ * Server Action that updates the outgoing (SMTP) server configuration of the e-mail account
+ * identified by `accountId`.
+ */
+export async function updateEmailAccountSmtp(accountId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kUpdateEmailAccountSmtpData, async (data, props) => {
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
+
+        const dbInstance = db;
+        const existingAccount = await dbInstance.selectFrom(tEmailAccounts)
+            .where(tEmailAccounts.emailAccountId.equals(accountId))
+                .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .select({
+                address: tEmailAccounts.emailAccountAddress,
+                hasSmtpPassword: tEmailAccounts.emailAccountSmtpPassword.notEquals(''),
+            })
+            .executeSelectNoneOrOne();
+
+        if (!existingAccount)
+            notFound();
+
+        const smtpPasswordChanged = data.smtpPassword !== kMaskedPassword;
+        if (!smtpPasswordChanged && !existingAccount.hasSmtpPassword)
+            return { success: false, error: 'An outgoing (SMTP) password must be provided…' };
+
+        const affectedRows = await dbInstance.update(tEmailAccounts)
+            .set({
+                emailAccountSmtpHostname: data.smtpHostname,
+                emailAccountSmtpPort: data.smtpPort,
+                emailAccountSmtpUsername: data.smtpUsername,
+                ...(smtpPasswordChanged ? { emailAccountSmtpPassword: data.smtpPassword } : {}),
+                emailAccountUpdated: dbInstance.currentZonedDateTime(),
+            })
+            .where(tEmailAccounts.emailAccountId.equals(accountId))
+                .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .executeUpdate();
+
+        LogBuilder.for('UpdateEmailAddress')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                address: existingAccount.address,
+            });
+
+        Cache.getInstance('AdminNavigationMenuCache').clear();
+
+        return { success: true, refresh: true };
+    });
+}
+
+/**
+ * Zod type that describes the incoming (IMAP) server configuration of an e-mail account.
+ */
+const kUpdateEmailAccountImapData = z.object({
     imapHostname: z.string().trim().optional(),
     imapPort: z.union([
         z.literal(''),
@@ -163,11 +218,12 @@ const kUpdateEmailAccountData = z.object({
 });
 
 /**
- * Server Action that updates the configuration of the e-mail account identified by `accountId`.
+ * Server Action that updates the incoming (IMAP) server configuration of the e-mail account
+ * identified by `accountId`.
  */
-export async function updateEmailAccount(accountId: number, formData: unknown) {
+export async function updateEmailAccountImap(accountId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kUpdateEmailAccountData, async (data, props) => {
+    return executeServerAction(formData, kUpdateEmailAccountImapData, async (data, props) => {
         executeAccessCheck(props.authenticationContext, 'system.integrations');
 
         const dbInstance = db;
@@ -176,31 +232,12 @@ export async function updateEmailAccount(accountId: number, formData: unknown) {
                 .and(tEmailAccounts.emailAccountDeleted.isNull())
             .select({
                 address: tEmailAccounts.emailAccountAddress,
-                hasSmtpPassword: tEmailAccounts.emailAccountSmtpPassword.notEquals(''),
                 hasImapPassword: tEmailAccounts.emailAccountImapPassword.isNotNull(),
             })
             .executeSelectNoneOrOne();
 
         if (!existingAccount)
             notFound();
-
-        const duplicateAccount = await dbInstance.selectFrom(tEmailAccounts)
-            .where(tEmailAccounts.emailAccountAddress.equals(data.address))
-                .and(tEmailAccounts.emailAccountId.notEquals(accountId))
-                .and(tEmailAccounts.emailAccountDeleted.isNull())
-            .selectCountAll()
-            .executeSelectNoneOrOne();
-
-        if (!!duplicateAccount) {
-            return {
-                success: false,
-                error: 'Another account with that e-mail address already exists…',
-            };
-        }
-
-        const smtpPasswordChanged = data.smtpPassword !== kMaskedPassword;
-        if (!smtpPasswordChanged && !existingAccount.hasSmtpPassword)
-            return { success: false, error: 'An outgoing (SMTP) password must be provided…' };
 
         const imapHostname = data.imapHostname || '';
         const imapPort = typeof data.imapPort === 'number' ? data.imapPort : null;
@@ -249,11 +286,6 @@ export async function updateEmailAccount(accountId: number, formData: unknown) {
 
         const affectedRows = await dbInstance.update(tEmailAccounts)
             .set({
-                emailAccountAddress: data.address,
-                emailAccountSmtpHostname: data.smtpHostname,
-                emailAccountSmtpPort: data.smtpPort,
-                emailAccountSmtpUsername: data.smtpUsername,
-                ...(smtpPasswordChanged ? { emailAccountSmtpPassword: data.smtpPassword } : {}),
                 ...imapFields,
                 emailAccountUpdated: dbInstance.currentZonedDateTime(),
             })
@@ -266,7 +298,7 @@ export async function updateEmailAccount(accountId: number, formData: unknown) {
             .withInitiatorUser(props.user)
             .withSeverity('Warning')
             .record({
-                address: data.address,
+                address: existingAccount.address,
             });
 
         Cache.getInstance('AdminNavigationMenuCache').clear();

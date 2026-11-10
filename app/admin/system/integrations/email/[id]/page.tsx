@@ -5,21 +5,23 @@ import { notFound } from 'next/navigation';
 
 import { TextFieldElement } from '@proxy/react-hook-form-mui';
 
-import Divider from '@mui/material/Divider';
 import EmailIcon from '@mui/icons-material/Email';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
 import { DeleteEmailAccountAction } from './DeleteEmailAccountAction';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { deleteEmailAccount, kMaskedPassword, updateEmailAccount } from '../EmailActions';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';
+
+import { kMaskedPassword } from '../EmailActions';
+
+import { deleteEmailAccount, updateEmailAccountImap, updateEmailAccountSmtp } from '../EmailActions';
 
 /**
  * Page that allows administrators to configure both the outgoing (SMTP) and incoming (IMAP) server
@@ -66,27 +68,35 @@ export default async function EmailAccountPage(
 
     const isProtected = account.id === defaultAccountId || !!linkedTeamCount;
 
-    const defaultValues = {
-        address: account.address,
+    const smtpDefaultValues = {
         smtpHostname: account.smtpHostname,
         smtpPort: account.smtpPort,
         smtpUsername: account.smtpUsername,
         smtpPassword: account.hasSmtpPassword ? kMaskedPassword : '',
+    };
+
+    const imapDefaultValues = {
         imapHostname: account.imapHostname ?? '',
         imapPort: account.imapPort ?? '',
         imapUsername: account.imapUsername ?? '',
         imapPassword: account.hasImapPassword ? kMaskedPassword : '',
     };
 
-    const deleteAccountFn = !isProtected
-        ? deleteEmailAccount.bind(null, account.id)
-        : undefined;
+    let headerAction: React.ReactNode;
+    if (!isProtected) {
+        headerAction = (
+            <DeleteEmailAccountAction action={ deleteEmailAccount.bind(null, account.id) }
+                                      address={account.address} />
+        );
+    }
 
-    const updateAccountFn = updateEmailAccount.bind(null, account.id);
+    const updateSmtpFn = updateEmailAccountSmtp.bind(null, account.id);
+    const updateImapFn = updateEmailAccountImap.bind(null, account.id);
 
     return (
         <>
             <Section icon={ <EmailIcon color="primary" /> } title={account.address}
+                     headerAction={headerAction}
                      breadcrumbs={[
                          { label: 'System', href: '/admin/system' },
                          { label: 'Integrations', href: '/admin/system/integrations' },
@@ -98,33 +108,11 @@ export default async function EmailAccountPage(
                     <strong>{account.address}</strong> e-mail account.
                 </SectionIntroduction>
             </Section>
-            <FormGridSection noHeader back="Back to e-mail accounts"
-                             action={updateAccountFn} defaultValues={defaultValues}>
-                { !!deleteAccountFn &&
-                    <Grid size={{ xs: 12 }}>
-                        <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-                            <DeleteEmailAccountAction action={deleteAccountFn}
-                                                      address={account.address} />
-                        </Stack>
-                    </Grid> }
-
-                <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="address" label="E-mail address" fullWidth size="small"
-                                      required placeholder="volunteer-manager@animecon.nl" />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                    <Divider />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle2">
-                        Outgoing server (SMTP)
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        Required server details used for sending outbound e-mail messages.
-                    </Typography>
-                </Grid>
+            <FormGridSection icon={ <OutboxOutlinedIcon /> } title="Outgoing server (SMTP)"
+                             action={updateSmtpFn} defaultValues={smtpDefaultValues}>
+                <SectionIntroduction grid>
+                    Required server details used for sending outbound e-mail messages.
+                </SectionIntroduction>
                 <Grid size={{ xs: 12, md: 9 }}>
                     <TextFieldElement name="smtpHostname" label="SMTP hostname" fullWidth
                                       size="small" required placeholder="smtp.sendgrid.net" />
@@ -142,20 +130,13 @@ export default async function EmailAccountPage(
                                       fullWidth size="small" required
                                       placeholder="Password / API key" />
                 </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                    <Divider />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle2">
-                        Incoming server (IMAP)
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        Optional server details used for receiving inbound e-mail messages. Leave
-                        blank to disable incoming e-mail for this account.
-                    </Typography>
-                </Grid>
+            </FormGridSection>
+            <FormGridSection icon={ <InboxOutlinedIcon /> } title="Incoming server (IMAP)"
+                             action={updateImapFn} defaultValues={imapDefaultValues}>
+                <SectionIntroduction grid>
+                    Optional server details used for receiving inbound e-mail messages. Leave blank
+                    to disable incoming e-mail for this account.
+                </SectionIntroduction>
                 <Grid size={{ xs: 12, md: 9 }}>
                     <TextFieldElement name="imapHostname" label="IMAP hostname" fullWidth
                                       size="small" placeholder="imap.gmail.com" />
