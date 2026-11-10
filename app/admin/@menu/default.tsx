@@ -5,6 +5,7 @@ import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettin
 import ApiIcon from '@mui/icons-material/Api';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
@@ -21,7 +22,7 @@ import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tOutboxEmail, tOutboxTwilio, tLogs, tTwilioWebhookCalls, tLogsFormat } from '@lib/database';
+import db, { tEmailAccounts, tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls } from '@lib/database';
 
 /**
  * By default, we display a loading menu as the real one cannot be determined yet. Intentionally
@@ -96,6 +97,23 @@ export default async function DefaultMenu() {
         }
     }
 
+    let emailAccounts: { id: number; address: string }[] = [];
+    if (access.can('system.integrations')) {
+        const cache = Cache.getInstance('AdminNavigationMenuCache');
+        emailAccounts = await cache.getOrInsert('email-accounts', async () => {
+            return await db.selectFrom(tEmailAccounts)
+                .where(tEmailAccounts.emailAccountDeleted.isNull())
+                    .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
+                    .and(tEmailAccounts.emailAccountImapHostname.notEquals(''))
+                .select({
+                    id: tEmailAccounts.emailAccountId,
+                    address: tEmailAccounts.emailAccountAddress,
+                })
+                .orderBy(tEmailAccounts.emailAccountAddress, 'asc')
+                .executeSelectMany();
+        }) ?? [];
+    }
+
     return (
         <NavigationMenu access={access} id="dashboard" title="AnimeCon" items={[
             {
@@ -143,6 +161,18 @@ export default async function DefaultMenu() {
                         url: '/admin/system/webhooks',
                     },
                 ],
+            },
+            {
+                defaultExpanded: true,
+                header: 'E-mail',
+                id: 'email',
+                items: emailAccounts.map(account => ({
+                    Icon: EmailOutlinedIcon,
+                    label: account.address,
+                    permission: 'system.integrations',
+                    url: `/admin/system/inbox/${account.id}`,
+                    urlMatchMode: 'strict',
+                })),
             },
             {
                 defaultExpanded: true,
