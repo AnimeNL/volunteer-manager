@@ -2846,6 +2846,82 @@ tables:
       KEY `outbox_to_user_id` (`outbox_to_user_id`),
       KEY `outbox_sender_user_id` (`outbox_sender_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: email_accounts_permissions
+  type: BASE TABLE
+  columns:
+  - name: email_account_id
+    type: int(4) unsigned
+    nullable: false
+  - name: user_id
+    type: int(8) unsigned
+    nullable: false
+  - name: permission_create
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: permission_read
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: permission_update
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  - name: permission_delete
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
+  indexes:
+  - name: user_id
+    def: KEY user_id (user_id) USING BTREE
+    table: email_accounts_permissions
+    columns:
+    - user_id
+  - name: PRIMARY
+    def: PRIMARY KEY (email_account_id, user_id) USING BTREE
+    table: email_accounts_permissions
+    columns:
+    - email_account_id
+    - user_id
+  constraints:
+  - name: email_accounts_permissions_email_account_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+    table: email_accounts_permissions
+    referencedTable: email_accounts
+    columns:
+    - email_account_id
+    referencedColumns:
+    - email_account_id
+  - name: email_accounts_permissions_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+    table: email_accounts_permissions
+    referencedTable: users
+    columns:
+    - user_id
+    referencedColumns:
+    - user_id
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (email_account_id, user_id)
+    table: email_accounts_permissions
+    columns:
+    - email_account_id
+    - user_id
+  def: |-
+    CREATE TABLE `email_accounts_permissions` (
+      `email_account_id` int(4) unsigned NOT NULL,
+      `user_id` int(8) unsigned NOT NULL,
+      `permission_create` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `permission_read` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `permission_update` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      `permission_delete` tinyint(1) unsigned NOT NULL DEFAULT 0,
+      PRIMARY KEY (`email_account_id`,`user_id`),
+      KEY `user_id` (`user_id`),
+      CONSTRAINT `email_accounts_permissions_email_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
+      CONSTRAINT `email_accounts_permissions_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: refunds
   type: BASE TABLE
   columns:
@@ -5706,6 +5782,26 @@ relations:
   def: FOREIGN KEY (schedule_updated_by) REFERENCES users (user_id)
   virtual: false
 - table: schedule
+  columns:
+  - user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+  virtual: false
+- table: email_accounts_permissions
+  columns:
+  - email_account_id
+  cardinality: zero_or_more
+  parentTable: email_accounts
+  parentColumns:
+  - email_account_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+  virtual: false
+- table: email_accounts_permissions
   columns:
   - user_id
   cardinality: zero_or_more

@@ -15,6 +15,7 @@ export { tDisplaysRequests } from './scheme/DisplaysRequestsTable';
 export { tDutyBookViewers } from './scheme/DutyBookViewersTable';
 export { tDutyBook } from './scheme/DutyBookTable';
 export { tEmailAccounts } from './scheme/EmailAccountsTable';
+export { tEmailAccountsPermissions } from './scheme/EmailAccountsPermissionsTable';
 export { tEnvironments } from './scheme/EnvironmentsTable';
 export { tEnvironmentsEvents } from './scheme/EnvironmentsEventsTable';
 export { tErrorLogs } from './scheme/ErrorLogsTable';
