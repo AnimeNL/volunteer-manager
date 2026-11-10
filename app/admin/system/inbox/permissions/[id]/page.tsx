@@ -29,7 +29,7 @@ import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
-import { kInboxOperations } from '@lib/integrations/email';
+import { kInboxOperations } from '../../InboxAccess';
 
 import { updateInboxPermissions } from '../InboxPermissionActions';
 

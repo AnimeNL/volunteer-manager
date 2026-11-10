@@ -11,7 +11,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
-import { kInboxOperations } from '@lib/integrations/email';
+import { kInboxOperations } from '../InboxAccess';
 
 /**
  * Validation scheme for inbox permission updates, mapping `inbox-${id}` keys to selected
