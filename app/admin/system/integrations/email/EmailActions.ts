@@ -22,6 +22,64 @@ export const kMaskedPassword = '●●●●●●●●';
 const kNoDataRequired = z.object({ /* no parameters */ });
 
 /**
+ * Zod type that describes information required in order to create a new e-mail account.
+ */
+const kCreateEmailAccountData = z.object({
+    address: z.email(),
+});
+
+/**
+ * Server Action that creates a new e-mail account and redirects to its configuration page.
+ */
+export async function createEmailAccount(formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kCreateEmailAccountData, async (data, props) => {
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
+
+        const dbInstance = db;
+        const existingAccount = await dbInstance.selectFrom(tEmailAccounts)
+            .where(tEmailAccounts.emailAccountAddress.equals(data.address))
+                .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .selectCountAll()
+            .executeSelectNoneOrOne();
+
+        if (!!existingAccount)
+            return { success: false, error: 'An account with that e-mail address already exists…' };
+
+        const insertId = await dbInstance.insertInto(tEmailAccounts)
+            .set({
+                emailAccountAddress: data.address,
+                emailAccountSmtpHostname: '',
+                emailAccountSmtpPort: 587,
+                emailAccountSmtpUsername: '',
+                emailAccountSmtpPassword: '',
+                emailAccountCreated: dbInstance.currentZonedDateTime(),
+                emailAccountUpdated: dbInstance.currentZonedDateTime(),
+                emailAccountDeleted: null,
+            })
+            .returningLastInsertedId()
+            .executeInsert();
+
+        if (!insertId)
+            return { success: false, error: 'Unable to store the e-mail account in the database…' };
+
+        LogBuilder.for('CreateEmailAddress')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                address: data.address,
+            });
+
+        Cache.getInstance('AdminNavigationMenuCache').clear();
+
+        return {
+            success: true,
+            redirect: `/admin/system/integrations/email/${insertId}`,
+        };
+    });
+}
+
+/**
  * Server Action that soft-deletes the e-mail account identified by `accountId`.
  */
 export async function deleteEmailAccount(accountId: number, formData: unknown) {
