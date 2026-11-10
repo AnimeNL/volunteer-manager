@@ -189,7 +189,7 @@ export default async function AccountInboxPermissionsPage(
                     <InlineAccountLink user={user} />.
                 </SectionIntroduction>
             </Section>
-            <Section back="Back to inbox permissions" noHeader>
+            <Section noHeader>
                 { inboxes.length === 0 ? (
                     <Alert severity="info" variant="outlined">
                         No inbound e-mail accounts have been configured yet. Configure IMAP server
