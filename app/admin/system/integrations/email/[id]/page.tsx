@@ -21,7 +21,8 @@ import db, { tEmailAccounts, tTeams } from '@lib/database';
 
 import { kMaskedPassword } from '../EmailActions';
 
-import { deleteEmailAccount, updateEmailAccountImap, updateEmailAccountSmtp } from '../EmailActions';
+import { deleteEmailAccount, updateEmailAccountImap, updateEmailAccountSmtp }
+    from '../EmailActions';
 
 /**
  * Page that allows administrators to configure both the outgoing (SMTP) and incoming (IMAP) server
@@ -104,8 +105,7 @@ export default async function EmailAccountPage(
                          { label: account.address },
                      ]}>
                 <SectionIntroduction>
-                    Outgoing and incoming server configuration for the{' '}
-                    <strong>{account.address}</strong> e-mail account.
+                    E-mail server configuration for <strong>{account.address}</strong>.
                 </SectionIntroduction>
             </Section>
             <FormGridSection icon={ <OutboxOutlinedIcon /> } title="Outgoing server (SMTP)"
