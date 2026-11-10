@@ -153,6 +153,14 @@ export const kPermissions = {
         type: 'boolean',
     },
 
+    'system.inbox.eligible': {
+        type: 'boolean',
+    },
+
+    'system.inbox.management': {
+        type: 'boolean',
+    },
+
     'system.integrations': {
         type: 'boolean',
     },
