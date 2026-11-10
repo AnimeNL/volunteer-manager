@@ -102,6 +102,36 @@ interface InstrumentationStatus {
 }
 
 /**
+ * Runtime callbacks passed to `instrumentedCall()` executions.
+ */
+interface InstrumentedCallContext {
+    /**
+     * Marks that the first byte (or initial response frame) of a streaming call has arrived.
+     */
+    markFirstByte: () => void;
+}
+
+/**
+ * Options that may be passed to `instrumentedCall()` to customize how the call is recorded.
+ */
+interface InstrumentedCallOptions<T> {
+    /**
+     * Input given to the call, serialized as JSON when provided.
+     */
+    input?: unknown;
+
+    /**
+     * Derives the output payload to record from the resolved result of the call.
+     */
+    output?: (result: T) => unknown;
+
+    /**
+     * Determines the outcome status from the resolved result. Defaults to `"Success"`.
+     */
+    status?: (result: T) => IntegrationLogStatus;
+}
+
+/**
  * Options that may be passed to `instrumentedFetch()` to customize how the call is recorded.
  */
 interface InstrumentedFetchOptions {
@@ -152,6 +182,52 @@ export class Instrumentation {
      * Promise that will be resolved when the instrumentation run has fully completed.
      */
     get completionPromise() { return this.#completionPromise; }
+
+    /**
+     * Executes an instrumented asynchronous `callback` for non-HTTP integrations (such as IMAP).
+     * Records timing, input/output payloads, and any thrown exceptions in `integrations_logs`.
+     */
+    async instrumentedCall<T>(
+        callback: (context: InstrumentedCallContext) => Promise<T>,
+        options?: InstrumentedCallOptions<T>): Promise<T>
+    {
+        if (!!this.#completionPromise)
+            throw new Error('This Instrumentation instance has already been consumed.');
+
+        const startTime = performance.now();
+
+        this.#status = {
+            status: 'Exception',
+            input: this.serializeValue(options?.input),
+        };
+
+        const context: InstrumentedCallContext = {
+            markFirstByte: () => {
+                if (this.#status.durationTimeToFirstByteMs === undefined)
+                    this.#status.durationTimeToFirstByteMs = performance.now() - startTime;
+            },
+        };
+
+        let result: T;
+        try {
+            result = await callback(context);
+        } catch (error: unknown) {
+            this.#status.status = 'Exception';
+            this.#status.durationMs = performance.now() - startTime;
+            this.#status.exception = error instanceof Error ? error : new Error(String(error));
+
+            this.#completionPromise = this.record();
+            throw error;
+        }
+
+        this.#status.durationMs = performance.now() - startTime;
+        this.#status.status = options?.status ? options.status(result) : 'Success';
+        if (options?.output)
+            this.#status.output = this.serializeValue(options.output(result));
+
+        this.#completionPromise = this.record();
+        return result;
+    }
 
     /**
      * Executes an instrumented `fetch()`.
@@ -283,6 +359,29 @@ export class Instrumentation {
             ...(Object.keys(headers).length > 0 ? { headers } : {}),
             ...(body !== undefined ? { body } : {}),
         }).substring(0, kMaxPayloadLength);
+    }
+
+    /**
+     * Serializes an arbitrary `value` as JSON (supporting `bigint` and `Set`), truncated to
+     * `kMaxPayloadLength`. Returns `undefined` when `value` is `undefined`.
+     */
+    private serializeValue(value: unknown): string | undefined {
+        if (value === undefined)
+            return undefined;
+
+        if (typeof value === 'string')
+            return value.substring(0, kMaxPayloadLength);
+
+        const serialized = JSON.stringify(value, (_key, entry: unknown) => {
+            if (typeof entry === 'bigint')
+                return entry.toString();
+            if (entry instanceof Set)
+                return [ ...entry ];
+
+            return entry;
+        });
+
+        return serialized?.substring(0, kMaxPayloadLength);
     }
 
     /**

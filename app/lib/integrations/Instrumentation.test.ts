@@ -427,4 +427,96 @@ describe('Instrumentation', () => {
         await expect(instrumentation.completionPromise).resolves.toBeUndefined();
         expect(errorSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('records non-HTTP instrumentedCall() executions with bigint and Set payloads', async () => {
+        let insertedQuery = '';
+        let insertedParams: any[] = [];
+        mockConnection.expect('insert', (query, params) => {
+            insertedQuery = query;
+            insertedParams = params;
+            return 1;
+        });
+
+        await runWithTaskContext(55, async () => {
+            await runWithUserContext(88, async () => {
+                const instrumentation = Instrumentation.withContext({
+                    integration: 'IMAP',
+                    operation: 'imaps://imap.animecon.nl:993/getMailboxLock',
+                });
+
+                const result = await instrumentation.instrumentedCall(async ({ markFirstByte }) => {
+                    markFirstByte();
+                    return {
+                        uidValidity: 1234567890123456789n,
+                        flags: new Set([ '\\Seen', '\\Answered' ]),
+                    };
+                }, {
+                    input: { mailbox: 'INBOX', readOnly: true },
+                    output: value => value,
+                });
+
+                expect(result.uidValidity).toBe(1234567890123456789n);
+                await instrumentation.completionPromise;
+
+                const status = instrumentation.statusForTesting;
+                expect(status.status).toBe('Success');
+                expect(status.durationTimeToFirstByteMs).toBeGreaterThanOrEqual(0);
+                expect(status.durationMs).toBeGreaterThanOrEqual(status.durationTimeToFirstByteMs!);
+                expect(JSON.parse(status.input!)).toEqual({ mailbox: 'INBOX', readOnly: true });
+                expect(JSON.parse(status.output!)).toEqual({
+                    uidValidity: '1234567890123456789',
+                    flags: [ '\\Seen', '\\Answered' ],
+                });
+            });
+        });
+
+        expect(insertedQuery).toContain('insert into integrations_logs');
+        expect(insertedParams[0]).toBe('IMAP');
+        expect(insertedParams[1]).toBe('imaps://imap.animecon.nl:993/getMailboxLock');
+        expect(insertedParams[2]).toBe(88);
+        expect(insertedParams[3]).toBe(55);
+        expect(insertedParams[4]).toBe('Success');
+    });
+
+    it('supports custom Failure status and Exception recording in instrumentedCall()', async () => {
+        mockConnection.expect('insert');
+
+        const failedCall = Instrumentation.withContext({
+            integration: 'IMAP',
+            operation: 'imaps://imap.animecon.nl:993/search',
+        });
+
+        const searchResult = await failedCall.instrumentedCall(async () => false, {
+            input: { mailbox: 'INBOX' },
+            status: result => (result === false ? 'Failure' : 'Success'),
+            output: () => ({ rejected: true }),
+        });
+
+        expect(searchResult).toBe(false);
+        await failedCall.completionPromise;
+        expect(failedCall.statusForTesting.status).toBe('Failure');
+        expect(JSON.parse(failedCall.statusForTesting.output!)).toEqual({ rejected: true });
+
+        await expect(
+            failedCall.instrumentedCall(async () => true)
+        ).rejects.toThrow('This Instrumentation instance has already been consumed.');
+
+        mockConnection.expect('insert');
+
+        const authError = new Error('Authentication failed', { cause: 'AUTHENTICATIONFAILED' });
+        const throwingCall = Instrumentation.withContext({
+            integration: 'IMAP',
+            operation: 'imaps://imap.animecon.nl:993/connect',
+        });
+
+        await expect(
+            throwingCall.instrumentedCall(async () => {
+                throw authError;
+            }, { input: { host: 'imap.animecon.nl' } })
+        ).rejects.toThrow('Authentication failed');
+
+        await throwingCall.completionPromise;
+        expect(throwingCall.statusForTesting.status).toBe('Exception');
+        expect(throwingCall.statusForTesting.exception).toBe(authError);
+    });
 });
