@@ -4,6 +4,7 @@
 import { CleanUpIntegrationLogsTask } from './tasks/CleanUpIntegrationLogsTask';
 import { DutyBookSummaryTask } from './tasks/DutyBookSummaryTask';
 import { ImportActivitiesTask } from './tasks/ImportActivitiesTask';
+import { ImportEmailTask } from './tasks/ImportEmailTask';
 import { NoopComplexTask } from './tasks/NoopComplexTask';
 import { NoopTask } from './tasks/NoopTask';
 import { PopulateSchedulerTask } from './tasks/PopulateSchedulerTask';
@@ -21,6 +22,7 @@ export const kTaskRegistry = {
     CleanUpIntegrationLogsTask,
     DutyBookSummaryTask,
     ImportActivitiesTask,
+    ImportEmailTask,
     NoopComplexTask,
     NoopTask,
     PopulateSchedulerTask,
@@ -52,6 +54,7 @@ export const kTaskFormatFn: { [k in RegisteredTasks | DeprecatedTasks]: TaskForm
     CleanUpIntegrationLogsTask: () => 'Clean up old integration logs',
     DutyBookSummaryTask: params => `Generate AI summary for a Duty Book entry (id: ${params.id})`,
     ImportActivitiesTask: () => 'Import activities from AnPlan',
+    ImportEmailTask: () => 'Import inbound e-mail from IMAP',
     NoopComplexTask: () => 'No-op task (complex)',
     NoopTask: () => 'No-op task',
     PopulateSchedulerTask: () => 'Populate scheduler task',

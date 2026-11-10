@@ -81,6 +81,7 @@ const kTaskOptions = [
     { id: 'CleanUpIntegrationLogsTask', label: 'Clean Up Integration Logs' },
     { id: 'DutyBookSummaryTask', label: 'Generate Duty Book Summary' },
     { id: 'ImportActivitiesTask', label: 'Import Activities (AnPlan)' },
+    { id: 'ImportEmailTask', label: 'Import Inbound E-mail (IMAP)' },
     { id: 'YourTicketProviderImportTask', label: 'Import Sales (YourTicketProvider)' },
     { id: 'NoopComplexTask', label: 'No-op Task (Complex)' },
     { id: 'NoopTask', label: 'No-op Task' },
