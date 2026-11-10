@@ -9,11 +9,14 @@ import EmailIcon from '@mui/icons-material/Email';
 import Grid from '@mui/material/Grid';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
+import Stack from '@mui/material/Stack';
 
 import { DeleteEmailAccountAction } from './DeleteEmailAccountAction';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SmtpConnectionCheckButton } from './SmtpConnectionCheckButton';
+import { TestMessageButton } from './TestMessageButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -21,8 +24,8 @@ import db, { tEmailAccounts, tTeams } from '@lib/database';
 
 import { kMaskedPassword } from '../EmailActions';
 
-import { deleteEmailAccount, updateEmailAccountImap, updateEmailAccountSmtp }
-    from '../EmailActions';
+import { checkEmailAccountSmtp, deleteEmailAccount, sendEmailAccountTestMessage,
+    updateEmailAccountImap, updateEmailAccountSmtp } from '../EmailActions';
 
 /**
  * Page that allows administrators to configure both the outgoing (SMTP) and incoming (IMAP) server
@@ -90,6 +93,10 @@ export default async function EmailAccountPage(
 
     const updateSmtpFn = updateEmailAccountSmtp.bind(null, account.id);
     const updateImapFn = updateEmailAccountImap.bind(null, account.id);
+    const checkSmtpFn = checkEmailAccountSmtp.bind(null, account.id);
+    const sendTestMessageFn = sendEmailAccountTestMessage.bind(null, account.id);
+
+    const smtpConfigured = !!account.smtpHostname && account.hasSmtpPassword;
 
     return (
         <>
@@ -152,6 +159,12 @@ export default async function EmailAccountPage(
                                       placeholder="Password / app password" />
                 </Grid>
             </FormGridSection>
+            <Section noHeader>
+                <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                    <SmtpConnectionCheckButton action={checkSmtpFn} disabled={!smtpConfigured} />
+                    <TestMessageButton action={sendTestMessageFn} disabled={!smtpConfigured} />
+                </Stack>
+            </Section>
         </>
     );
 }

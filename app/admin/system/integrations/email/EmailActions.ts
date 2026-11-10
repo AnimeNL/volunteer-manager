@@ -6,6 +6,8 @@ import { z } from 'zod/v4';
 
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
+import { SmtpMessage } from '@lib/integrations/smtp/SmtpMessage';
+import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
@@ -232,6 +234,8 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
                 .and(tEmailAccounts.emailAccountDeleted.isNull())
             .select({
                 address: tEmailAccounts.emailAccountAddress,
+                imapHostname: tEmailAccounts.emailAccountImapHostname,
+                imapUsername: tEmailAccounts.emailAccountImapUsername,
                 hasImapPassword: tEmailAccounts.emailAccountImapPassword.isNotNull(),
             })
             .executeSelectNoneOrOne();
@@ -253,6 +257,9 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
             emailAccountImapPort: number | null;
             emailAccountImapUsername: string | null;
             emailAccountImapPassword?: string | null;
+            emailAccountImapUidValidity?: bigint | null;
+            emailAccountImapLastUid?: number | null;
+            emailAccountImapLastSynced?: Temporal.ZonedDateTime | null;
         };
 
         if (!hasAnyImapField) {
@@ -261,6 +268,9 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
                 emailAccountImapPort: null,
                 emailAccountImapUsername: null,
                 emailAccountImapPassword: null,
+                emailAccountImapUidValidity: null,
+                emailAccountImapLastUid: null,
+                emailAccountImapLastSynced: null,
             };
         } else {
             const hasValidImapPassword =
@@ -276,11 +286,20 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
                 };
             }
 
+            const mailboxChanged =
+                imapHostname !== existingAccount.imapHostname ||
+                imapUsername !== existingAccount.imapUsername;
+
             imapFields = {
                 emailAccountImapHostname: imapHostname,
                 emailAccountImapPort: imapPort,
                 emailAccountImapUsername: imapUsername,
                 ...(imapPasswordEntered ? { emailAccountImapPassword: imapPasswordRaw } : {}),
+                ...(mailboxChanged ? {
+                    emailAccountImapUidValidity: null,
+                    emailAccountImapLastUid: null,
+                    emailAccountImapLastSynced: null,
+                } : {}),
             };
         }
 
@@ -304,5 +323,50 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
         Cache.getInstance('AdminNavigationMenuCache').clear();
 
         return { success: true, refresh: true };
+    });
+}
+
+/**
+ * Server Action that verifies the outgoing (SMTP) server configuration of the e-mail account
+ * identified by `accountId`.
+ */
+export async function checkEmailAccountSmtp(accountId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
+
+        const client = await createSmtpClient(accountId);
+        await client.verifyConfiguration();
+
+        return { success: true };
+    });
+}
+
+/**
+ * Server Action that sends a test message from the e-mail account identified by `accountId` to the
+ * signed-in user's e-mail address.
+ */
+export async function sendEmailAccountTestMessage(accountId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
+
+        if (!props.user.username)
+            return { success: false, error: 'Your e-mail address is not known.' };
+
+        const message = new SmtpMessage()
+            .setTo(props.user.username)
+            .setSubject('Test message from the AnimeCon Volunteer Manager')
+            .setText(`This is a test message initiated by ${props.user.name}.`);
+
+        const client = await createSmtpClient(accountId);
+        await client.sendMessage({
+            sender: 'AnimeCon Volunteer Manager',
+            sourceUser: props.user.id,
+            targetUser: props.user.id,
+            message,
+        });
+
+        return { success: true };
     });
 }
