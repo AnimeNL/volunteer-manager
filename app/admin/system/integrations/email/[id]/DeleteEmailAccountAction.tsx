@@ -11,6 +11,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { ServerAction } from '@lib/serverAction';
 import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 
 /**
  * Props accepted by the <DeleteEmailAccountAction> component.
@@ -25,18 +26,35 @@ interface DeleteEmailAccountActionProps {
      * Address of the e-mail account, to contextualise the confirmation prompt.
      */
     address: string;
+
+    /**
+     * Whether deleting this e-mail account should be disabled.
+     */
+    disabled?: boolean;
 }
 
 /**
  * Action through which an e-mail account can be deleted, following user confirmation.
  */
 export function DeleteEmailAccountAction(props: DeleteEmailAccountActionProps) {
-    const { action, address } = props;
+    const { action, address, disabled } = props;
 
     const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
 
     const handleDialogOpen = useCallback(() => setDialogOpen(true), [ /* no deps */ ]);
     const handleDialogClose = useCallback(() => setDialogOpen(false), [ /* no deps */ ]);
+
+    if (disabled) {
+        return (
+            <Tooltip title="This account cannot be deleted">
+                <TooltipIconWrapper>
+                    <IconButton disabled size="small">
+                        <DeleteIcon color="disabled" fontSize="small" />
+                    </IconButton>
+                </TooltipIconWrapper>
+            </Tooltip>
+        );
+    }
 
     return (
         <>

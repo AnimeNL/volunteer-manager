@@ -83,13 +83,10 @@ export default async function EmailAccountPage(
         imapPassword: account.hasImapPassword ? kMaskedPassword : '',
     };
 
-    let headerAction: React.ReactNode;
-    if (!isProtected) {
-        headerAction = (
-            <DeleteEmailAccountAction action={ deleteEmailAccount.bind(null, account.id) }
-                                      address={account.address} />
-        );
-    }
+    const headerAction = (
+        <DeleteEmailAccountAction action={ deleteEmailAccount.bind(null, account.id) }
+                                  address={account.address} disabled={isProtected} />
+    );
 
     const updateSmtpFn = updateEmailAccountSmtp.bind(null, account.id);
     const updateImapFn = updateEmailAccountImap.bind(null, account.id);

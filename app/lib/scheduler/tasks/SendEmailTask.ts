@@ -4,9 +4,9 @@
 import { z } from 'zod/v4';
 
 import { TaskWithParams } from '../Task';
-import { createEmailClient } from '@lib/integrations/email';
-import { scheduleTask } from '@lib/scheduler';
+import { createSmtpClient } from '@lib/integrations/smtp';
 import { readSetting } from '@lib/Settings';
+import { scheduleTask } from '@lib/scheduler';
 
 /**
  * Parameter scheme applying to the `SendEmailTask`.
@@ -93,7 +93,7 @@ export class SendEmailTask extends TaskWithParams<TaskParams> {
         if (!params.accountId)
             params.accountId = await readSetting('integration-email-default-account-id') ?? 1;
 
-        const client = await createEmailClient(params.accountId);
+        const client = await createSmtpClient(params.accountId);
         const message = await client.createMessage()
             .setTo(params.message.to)
             .setSubject(params.message.subject)

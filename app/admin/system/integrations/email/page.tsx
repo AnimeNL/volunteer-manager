@@ -19,14 +19,14 @@ import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { ConnectionCheck } from './ConnectionCheck';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { EmailMessage } from '@lib/integrations/email/EmailMessage';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { OutgoingCell, OutgoingHeader } from './EmailCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SmtpMessage } from '@lib/integrations/smtp/SmtpMessage';
 import { TestMessageButton } from './TestMessageButton';
-import { createEmailClient } from '@lib/integrations/email';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import { readSetting } from '@lib/Settings';
@@ -46,7 +46,7 @@ async function executeConnectionCheck(input: unknown) {
         console.warn(`[Health check] Verifying configuration for e-mail account ${data.accountId}`);
 
         try {
-            const client = await createEmailClient(data.accountId);
+            const client = await createSmtpClient(data.accountId);
             await client.verifyConfiguration();
 
             return {
@@ -76,12 +76,12 @@ async function sendTestMessage(accountId: number, input: unknown) {
         // Wait for a second to at least give this a dramatic effect.
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const message = new EmailMessage()
+        const message = new SmtpMessage()
             .setTo(props.user.username)
             .setSubject('Test message from the AnimeCon Volunteer Manager')
             .setText(`This is a test message initiated by ${props.user.name}.`);
 
-        const client = await createEmailClient(accountId);
+        const client = await createSmtpClient(accountId);
         await client.sendMessage({
             sender: 'AnimeCon Volunteer Manager',
             sourceUser: props.user.id,
