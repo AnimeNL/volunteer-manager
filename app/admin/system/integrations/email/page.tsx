@@ -21,6 +21,7 @@ import { ConnectionCheck } from './ConnectionCheck';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { EmailMessage } from '@lib/integrations/email/EmailMessage';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { OutgoingCell, OutgoingHeader } from './EmailCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TestMessageButton } from './TestMessageButton';
@@ -28,8 +29,9 @@ import { createEmailClient } from '@lib/integrations/email';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
+import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEmailAccounts } from '@lib/database';
+import db, { tEmailAccounts, tTeams } from '@lib/database';
 
 import { createEmailAccount } from './EmailActions';
 
@@ -101,6 +103,16 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
     id: z.number(),
 
     /**
+     * Whether this is the default outgoing e-mail account for the system.
+     */
+    isDefault: z.boolean(),
+
+    /**
+     * Active teams that use this e-mail account for outgoing messages.
+     */
+    teams: z.array(z.string()),
+
+    /**
      * E-mail address associated with this account.
      */
     address: z.string(),
@@ -121,7 +133,15 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
     },
 
     async list(params) {
-        const accounts = await db.selectFrom(tEmailAccounts)
+        const defaultAccountId = await readSetting('integration-email-default-account-id') ?? 1;
+
+        const teamsJoin = tTeams.forUseInLeftJoin();
+
+        const dbInstance = db;
+        const accounts = await dbInstance.selectFrom(tEmailAccounts)
+            .leftJoin(teamsJoin)
+                .on(teamsJoin.teamEmailAccountId.equals(tEmailAccounts.emailAccountId))
+                    .and(teamsJoin.teamDeleted.isNull())
             .where(tEmailAccounts.emailAccountDeleted.isNull())
             .select({
                 id: tEmailAccounts.emailAccountId,
@@ -130,7 +150,9 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
                 smtpPort: tEmailAccounts.emailAccountSmtpPort,
                 imapHostname: tEmailAccounts.emailAccountImapHostname,
                 imapPort: tEmailAccounts.emailAccountImapPort,
+                teams: dbInstance.aggregateAsArrayOfOneColumn(teamsJoin.teamName),
             })
+            .groupBy(tEmailAccounts.emailAccountId)
             .orderBy('address', 'asc')
             .limit(params.page.limit)
                 .offset(params.page.offset)
@@ -140,6 +162,8 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
             rowCount: accounts.count,
             rows: accounts.data.map(row => ({
                 id: row.id,
+                isDefault: row.id === defaultAccountId,
+                teams: [ ...row.teams ].sort((lhs, rhs) => lhs.localeCompare(rhs)),
                 address: row.address,
                 outgoingServer: row.smtpHostname ? `${row.smtpHostname}:${row.smtpPort}` : null,
                 incomingServer: row.imapHostname && row.imapPort
@@ -168,6 +192,20 @@ export default async function EmailIntegrationPage() {
         .executeSelectMany();
 
     const columns: Column<ExtractRowModel<typeof emailAccountsDataSource>>[] = [
+        {
+            field: 'id',
+            headerAlign: 'center',
+            headerName: '',
+            align: 'center',
+            sortable: false,
+            width: 50,
+
+            template: 'component',
+            templateProps: {
+                headerComponent: OutgoingHeader,
+                component: OutgoingCell,
+            },
+        },
         {
             field: 'address',
             headerName: 'Address',
@@ -225,6 +263,7 @@ export default async function EmailIntegrationPage() {
                         primaryField: 'address',
                         secondaryField: 'outgoingServer',
                         linkTemplate: '/admin/system/integrations/email/{id}',
+                        startComponent: OutgoingCell,
                     }} />
             </Section>
             <FormGridSection icon={ <AddCircleOutlineOutlinedIcon /> }
