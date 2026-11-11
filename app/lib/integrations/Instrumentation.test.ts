@@ -519,4 +519,49 @@ describe('Instrumentation', () => {
         expect(throwingCall.statusForTesting.status).toBe('Exception');
         expect(throwingCall.statusForTesting.exception).toBe(authError);
     });
+
+    it('serializes JSON bodies from Request instances without consuming their stream', async () => {
+        let receivedBody = '';
+        fetchSpy.mockImplementationOnce(async input => {
+            if (input instanceof Request)
+                receivedBody = await input.text();
+
+            return new Response(JSON.stringify({ answers: {} }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        });
+
+        mockConnection.expect('insert');
+
+        const instrumentation = Instrumentation.withContext({
+            integration: 'GenAI',
+            operation: 'https://generativelanguage.googleapis.com/v1beta/decisions',
+        });
+
+        const request = new Request('https://generativelanguage.googleapis.com/v1beta/decisions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'gemini-decision-1', input: 'The horse is red' }),
+        });
+
+        const response = await instrumentation.instrumentedFetch(request);
+        expect(await response.json()).toEqual({ answers: {} });
+        await instrumentation.completionPromise;
+
+        expect(JSON.parse(receivedBody)).toEqual({
+            model: 'gemini-decision-1',
+            input: 'The horse is red',
+        });
+
+        expect(JSON.parse(instrumentation.statusForTesting.input!)).toEqual({
+            url: 'https://generativelanguage.googleapis.com/v1beta/decisions',
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: {
+                model: 'gemini-decision-1',
+                input: 'The horse is red',
+            },
+        });
+    });
 });

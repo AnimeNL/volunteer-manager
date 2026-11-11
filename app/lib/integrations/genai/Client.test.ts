@@ -2,11 +2,12 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { ThinkingLevel } from '@google/genai';
-import { vi } from 'vitest';
+import { expectTypeOf, vi } from 'vitest';
 
-import { Client, type ClientSettings } from './Client';
+import { type ClientSettings, Client } from './Client';
 import { Instrumentation } from '../Instrumentation';
 
+const mockCreateDecision = vi.fn();
 const mockGenerateContentStream = vi.fn();
 const mockListModels = vi.fn();
 let capturedOptions: any;
@@ -16,6 +17,9 @@ vi.mock('@google/genai', async importOriginal => {
     return {
         ...actual,
         GoogleGenAI: class {
+            decisions = {
+                create: mockCreateDecision,
+            };
             models = {
                 generateContentStream: mockGenerateContentStream,
                 list: mockListModels,
@@ -33,6 +37,7 @@ describe('GenAI Client', () => {
 
     beforeEach(() => {
         capturedOptions = undefined;
+        mockCreateDecision.mockReset();
         mockGenerateContentStream.mockReset();
         mockListModels.mockReset();
 
@@ -71,6 +76,7 @@ describe('GenAI Client', () => {
         new Client(kDefaultSettings);
         expect(capturedOptions).toEqual({
             apiKey: 'my-gemini-api-key',
+            apiVersion: 'v1beta',
             httpOptions: {
                 fetch: expect.any(Function),
             },
@@ -231,5 +237,232 @@ describe('GenAI Client', () => {
             { name: 'models/gemini-3.8-flash', version: '001' },
             { name: 'Undefined', version: 'default' },
         ]);
+    });
+
+    it('evaluates noul, choice, and score decisions with narrowed tuple types', async () => {
+        mockCreateDecision.mockResolvedValueOnce({
+            answers: {
+                '0': { type: 'noul', noul: 0.03, confidence: 0.97 },
+                '1': {
+                    type: 'choice',
+                    choice: 'dark',
+                    probabilities: { blue: 0.07, dark: 0.81, sparkling: 0.12 },
+                    confidence: 0.71,
+                },
+                '2': {
+                    type: 'score',
+                    score: 1.12,
+                    probabilities: { '0': 0.47, '1': 0.01, '2': 0.52 },
+                    legend: {
+                        '0': 'It is an animal',
+                        '1': 'It glows in the dark',
+                        '2': 'It is red',
+                    },
+                    confidence: 0.95,
+                },
+            },
+        });
+
+        const client = new Client(kDefaultSettings);
+        const results = await client.decide({
+            context: 'The horse is red',
+            decisions: [
+                {
+                    type: 'noul',
+                    instructions: 'Is the horse blue?',
+                    criteria: {
+                        truthy: 'The horse is blue',
+                        falsy: 'The horse is not blue',
+                    },
+                },
+                {
+                    type: 'choice',
+                    instructions: 'What colour does the horse have?',
+                    criteria: {
+                        blue: 'The horse is blue',
+                        dark: 'The horse has a dark colour',
+                        sparkling: 'The horse sparkles',
+                    },
+                },
+                {
+                    type: 'score',
+                    instructions: 'What can we say about this product?',
+                    criteria: [
+                        'It is an animal',
+                        'It glows in the dark',
+                        'It is red',
+                    ],
+                },
+            ],
+        });
+
+        expectTypeOf(results[0]).toEqualTypeOf<{
+            type: 'noul';
+            decision: boolean;
+            noul: number;
+            confidence: number;
+        }>();
+        expectTypeOf(results[1]).toEqualTypeOf<{
+            type: 'choice';
+            decision: 'blue' | 'dark' | 'sparkling';
+            probabilities: { blue: number; dark: number; sparkling: number };
+            confidence: number;
+        }>();
+        expectTypeOf(results[2]).toEqualTypeOf<{
+            type: 'score';
+            score: number;
+            probabilities: number[];
+            confidence: number;
+        }>();
+
+        expect(results).toEqual([
+            { type: 'noul', decision: false, noul: 0.03, confidence: 0.97 },
+            {
+                type: 'choice',
+                decision: 'dark',
+                probabilities: { blue: 0.07, dark: 0.81, sparkling: 0.12 },
+                confidence: 0.71,
+            },
+            {
+                type: 'score',
+                score: 1.12,
+                probabilities: [ 0.47, 0.01, 0.52 ],
+                confidence: 0.95,
+            },
+        ]);
+
+        expect(mockCreateDecision).toHaveBeenCalledWith({
+            model: 'gemini-decision-1',
+            input: 'The horse is red',
+            questions: {
+                '0': {
+                    type: 'noul',
+                    instructions: 'Is the horse blue?',
+                    criteria: {
+                        true_description: 'The horse is blue',
+                        false_description: 'The horse is not blue',
+                    },
+                },
+                '1': {
+                    type: 'choice',
+                    instructions: 'What colour does the horse have?',
+                    criteria: {
+                        blue: 'The horse is blue',
+                        dark: 'The horse has a dark colour',
+                        sparkling: 'The horse sparkles',
+                    },
+                },
+                '2': {
+                    type: 'score',
+                    instructions: 'What can we say about this product?',
+                    criteria: [
+                        'It is an animal',
+                        'It glows in the dark',
+                        'It is red',
+                    ],
+                },
+            },
+        });
+
+        expect(await client.decide({ context: 'Unused', decisions: [] })).toEqual([]);
+        expect(mockCreateDecision).toHaveBeenCalledTimes(1);
+    });
+
+    it('surfaces blocked and malformed decision responses as errors', async () => {
+        const client = new Client(kDefaultSettings);
+
+        mockCreateDecision.mockResolvedValueOnce({
+            prompt_feedback: {
+                block_reason: 'SAFETY',
+                block_reason_message: 'Blocked by safety policy',
+            },
+        });
+
+        await expect(client.decide({
+            context: 'Unsafe input',
+            decisions: [ { type: 'noul', instructions: 'Is this safe?' } ],
+        })).rejects.toThrow('Decision request was blocked: Blocked by safety policy');
+
+        mockCreateDecision.mockResolvedValueOnce({ answers: {} });
+
+        await expect(client.decide({
+            context: 'The horse is red',
+            decisions: [ { type: 'noul', instructions: 'Is the horse red?' } ],
+        })).rejects.toThrow('Missing or mismatched decision answer at index 0.');
+    });
+
+    it('instruments real @google/genai decision requests end-to-end', async () => {
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            answers: {
+                '0': { type: 'noul', noul: 0.91, confidence: 0.91 },
+            },
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        }));
+
+        const client = new Client(kDefaultSettings);
+        const { GoogleGenAI: ActualGoogleGenAI } =
+            await vi.importActual<typeof import('@google/genai')>('@google/genai');
+        const realAi = new ActualGoogleGenAI(capturedOptions);
+        mockCreateDecision.mockImplementationOnce(params => realAi.decisions.create(params));
+
+        const [ answer ] = await client.decide({
+            context: 'The horse is red',
+            decisions: [
+                {
+                    type: 'noul',
+                    instructions: 'Is the horse red?',
+                },
+            ],
+        });
+
+        expect(answer).toEqual({
+            type: 'noul',
+            decision: true,
+            noul: 0.91,
+            confidence: 0.91,
+        });
+
+        const recordedInstrumentation =
+            withContextSpy.mock.results.at(-1)?.value as Instrumentation | undefined;
+        expect(recordedInstrumentation).toBeDefined();
+        await recordedInstrumentation!.completionPromise;
+
+        expect(recordedInstrumentation!.contextForTesting).toEqual({
+            integration: 'GenAI',
+            operation: 'https://generativelanguage.googleapis.com/v1beta/decisions',
+            taskId: undefined,
+            userId: undefined,
+        });
+
+        expect(JSON.parse(recordedInstrumentation!.statusForTesting.input!)).toEqual({
+            url: 'https://generativelanguage.googleapis.com/v1beta/decisions',
+            method: 'POST',
+            headers: expect.objectContaining({
+                'content-type': 'application/json',
+                'x-goog-api-key': 'my-gemini-api-key',
+            }),
+            body: {
+                model: 'gemini-decision-1',
+                input: 'The horse is red',
+                questions: {
+                    '0': {
+                        type: 'noul',
+                        instructions: 'Is the horse red?',
+                    },
+                },
+            },
+        });
+
+        expect(JSON.parse(recordedInstrumentation!.statusForTesting.output!)).toEqual({
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            body: {
+                answers: {
+                    '0': { type: 'noul', noul: 0.91, confidence: 0.91 },
+                },
+            },
+        });
     });
 });

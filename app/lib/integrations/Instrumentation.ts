@@ -248,7 +248,7 @@ export class Instrumentation {
 
         this.#status = {
             status: 'Exception',
-            input: this.serializeInput(input, init),
+            input: await this.serializeInput(input, init),
         };
 
         let response: Response;
@@ -314,7 +314,7 @@ export class Instrumentation {
     /**
      * Serializes the input of a `fetch()` request, including the URL, method, headers, and body.
      */
-    private serializeInput(...[ input, init ]: Parameters<typeof fetch>): string {
+    private async serializeInput(...[ input, init ]: Parameters<typeof fetch>): Promise<string> {
         const request = input instanceof Request ? input : undefined;
         const url = request ? request.url : String(input);
         const method = (init?.method ?? request?.method ?? 'GET').toUpperCase();
@@ -330,6 +330,10 @@ export class Instrumentation {
             body = Object.fromEntries(rawBody.entries());
         } else if (rawBody !== undefined && rawBody !== null) {
             body = String(rawBody);
+        } else if (request?.body && !request.bodyUsed) {
+            const rawText = await request.clone().text();
+            if (rawText.length > 0)
+                body = tryParseJson(rawText);
         }
 
         return JSON.stringify({

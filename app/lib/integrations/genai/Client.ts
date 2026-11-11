@@ -1,7 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { type GenerateContentParameters, type GoogleGenAIOptions, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { type Decisions, type GenerateContentParameters, type GoogleGenAIOptions, type Part, GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 import type { AiSupportedModel } from './Models';
 import { Instrumentation } from '../Instrumentation';
@@ -143,6 +143,61 @@ export type ModelTextResponse = ModelResponse<{
 }>;
 
 /**
+ * Individual structured decision question that can be evaluated by `Client.decide()`.
+ */
+type DecisionQuestion =
+    {
+        type: 'noul';
+        instructions: string;
+        criteria?: {
+            truthy?: string;
+            falsy?: string;
+        };
+    } |
+    {
+        type: 'choice';
+        instructions: string;
+        criteria: Record<string, string>;
+    } |
+    {
+        type: 'score';
+        instructions: string;
+        criteria: string[];
+    };
+
+/**
+ * Calibrated answer returned by `Client.decide()` for a given `DecisionQuestion`.
+ */
+type DecisionAnswer<Question extends DecisionQuestion> =
+    Question extends { type: 'noul' }
+        ? { type: 'noul'; decision: boolean; noul: number; confidence: number }
+        : Question extends { type: 'choice'; criteria: infer C extends Record<string, string> }
+            ? {
+                type: 'choice';
+                decision: keyof C & string;
+                probabilities: { [K in keyof C & string]: number };
+                confidence: number;
+            }
+            : Question extends { type: 'score' }
+                ? { type: 'score'; score: number; probabilities: number[]; confidence: number }
+                : never;
+
+/**
+ * Parameters that can be passed when evaluating structured decisions against shared context.
+ */
+interface DecideRequest<T extends DecisionQuestion[]> {
+    /**
+     * Shared context evaluated once across all decisions in the request.
+     */
+    context: string;
+
+    /**
+     * Ordered list of decisions to evaluate against `context`.
+     */
+    decisions: T;
+}
+
+/**
  * Parameters that can be passed when requesting a model.
  */
 interface GenerateRequest {
@@ -205,6 +260,11 @@ interface GenerateTextRequest extends GenerateRequest {
 }
 
 /**
+ * Model identifier used when evaluating structured decisions through the Decisions API.
+ */
+const kDecisionModel = 'gemini-decision-1';
+
+/**
  * Client to the Google Gen AI SDK for TypeScript and JavaScript, through which new Gemini features
  * will consistently be exposed. Can switch between the Enterprise and regular Gemini backends.
  * 
@@ -221,6 +281,7 @@ export class Client {
             case 'Gemini':
                 options = {
                     apiKey: settings.apiKey,
+                    apiVersion: 'v1beta',
                 };
                 break;
 
@@ -242,6 +303,115 @@ export class Client {
 
         this.#ai = new GoogleGenAI(options);
         this.#settings = settings;
+    }
+
+    /**
+     * Evaluates one or more bounded, structured decisions (`noul`, `choice`, or `score`) against
+     * the shared `request.context` in a single pass using the Gemini Decisions API.
+     *
+     * @see https://aistudio.google.com/docs/decisions-api
+     * @throws Any exception issued by the Google GenAI APIs, or when the request is blocked.
+     */
+    async decide<const T extends DecisionQuestion[]>(
+        request: DecideRequest<T>): Promise<{ [K in keyof T]: DecisionAnswer<T[K]> }>
+    {
+        if (!request.decisions.length)
+            return [] as { [K in keyof T]: DecisionAnswer<T[K]> };
+
+        const questions: Record<string, Decisions.Question> = {};
+        for (let index = 0; index < request.decisions.length; ++index) {
+            const decision = request.decisions[index];
+            switch (decision.type) {
+                case 'noul':
+                    questions[String(index)] = {
+                        type: 'noul',
+                        instructions: decision.instructions,
+                        ...(decision.criteria ? {
+                            criteria: {
+                                true_description: decision.criteria.truthy,
+                                false_description: decision.criteria.falsy,
+                            },
+                        } : {}),
+                    };
+                    break;
+
+                case 'choice':
+                    questions[String(index)] = {
+                        type: 'choice',
+                        instructions: decision.instructions,
+                        criteria: decision.criteria,
+                    };
+                    break;
+
+                case 'score':
+                    questions[String(index)] = {
+                        type: 'score',
+                        instructions: decision.instructions,
+                        criteria: [ ...decision.criteria ],
+                    };
+                    break;
+            }
+        }
+
+        const response = await this.#ai.decisions.create({
+            model: kDecisionModel,
+            input: request.context,
+            questions,
+        });
+
+        if (response.prompt_feedback?.block_reason) {
+            const detail =
+                response.prompt_feedback.block_reason_message
+                    ?? response.prompt_feedback.block_reason;
+
+            throw new Error(`Decision request was blocked: ${detail}`);
+        }
+
+        const results: DecisionAnswer<DecisionQuestion>[] = [ /* none yet */ ];
+        for (let index = 0; index < request.decisions.length; ++index) {
+            const decision = request.decisions[index];
+            const answer = response.answers?.[String(index)];
+            switch (decision.type) {
+                case 'noul':
+                    if (answer?.type !== 'noul')
+                        throw new Error(`Missing or mismatched decision answer at index ${index}.`);
+
+                    results.push({
+                        type: 'noul',
+                        decision: answer.noul >= 0.5,
+                        noul: answer.noul,
+                        confidence: answer.confidence,
+                    });
+                    break;
+
+                case 'choice':
+                    if (answer?.type !== 'choice')
+                        throw new Error(`Missing or mismatched decision answer at index ${index}.`);
+
+                    results.push({
+                        type: 'choice',
+                        decision: answer.choice,
+                        probabilities: answer.probabilities,
+                        confidence: answer.confidence,
+                    });
+                    break;
+
+                case 'score':
+                    if (answer?.type !== 'score')
+                        throw new Error(`Missing or mismatched decision answer at index ${index}.`);
+
+                    results.push({
+                        type: 'score',
+                        score: answer.score,
+                        probabilities: decision.criteria.map(
+                            (_, level) => answer.probabilities[String(level)] ?? 0),
+                        confidence: answer.confidence,
+                    });
+                    break;
+            }
+        }
+
+        return results as { [K in keyof T]: DecisionAnswer<T[K]> };
     }
 
     /**
