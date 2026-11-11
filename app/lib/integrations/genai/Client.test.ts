@@ -58,6 +58,7 @@ describe('GenAI Client', () => {
             project: 'animecon-genai',
         },
         models: {
+            decision: 'gemini-decision-1',
             image: 'gemini-3.1-flash-image',
             text: {
                 low: 'gemini-3.1-flash-lite',
@@ -369,7 +370,10 @@ describe('GenAI Client', () => {
     });
 
     it('surfaces blocked and malformed decision responses as errors', async () => {
-        const client = new Client(kDefaultSettings);
+        const client = new Client({
+            ...kDefaultSettings,
+            models: { ...kDefaultSettings.models, decision: 'gemini-3.8-flash' },
+        });
 
         mockCreateDecision.mockResolvedValueOnce({
             prompt_feedback: {
@@ -382,6 +386,10 @@ describe('GenAI Client', () => {
             context: 'Unsafe input',
             decisions: [ { type: 'noul', instructions: 'Is this safe?' } ],
         })).rejects.toThrow('Decision request was blocked: Blocked by safety policy');
+
+        expect(mockCreateDecision).toHaveBeenCalledWith(expect.objectContaining({
+            model: 'gemini-3.8-flash',
+        }));
 
         mockCreateDecision.mockResolvedValueOnce({ answers: {} });
 

@@ -61,6 +61,11 @@ export interface ClientSettings {
      */
     models: {
         /**
+         * Model to use when evaluating structured decisions.
+         */
+        decision: AiSupportedModel;
+
+        /**
          * Model to use when generating images.
          */
         image: AiSupportedModel;
@@ -260,11 +265,6 @@ interface GenerateTextRequest extends GenerateRequest {
 }
 
 /**
- * Model identifier used when evaluating structured decisions through the Decisions API.
- */
-const kDecisionModel = 'gemini-decision-1';
-
-/**
  * Client to the Google Gen AI SDK for TypeScript and JavaScript, through which new Gemini features
  * will consistently be exposed. Can switch between the Enterprise and regular Gemini backends.
  * 
@@ -354,7 +354,7 @@ export class Client {
         }
 
         const response = await this.#ai.decisions.create({
-            model: kDecisionModel,
+            model: this.#settings.models.decision,
             input: request.context,
             questions,
         });

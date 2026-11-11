@@ -51,6 +51,7 @@ export default async function ModelsAiPage() {
     await requireAuthentication('system.internals.ai');
 
     const settings = await readSettings([
+        'ai-setting-decision-model',
         'ai-setting-gemini-api-key',
         'ai-setting-gemini-api',
         'ai-setting-image-model',
@@ -62,10 +63,12 @@ export default async function ModelsAiPage() {
         'ai-setting-top-p',
     ]);
 
+    const kDefaultDecisionModel = kAiSupportedModelIdentifiers['gemini-decision-1'];
     const kDefaultImageModel = kAiSupportedModelIdentifiers['gemini-3.1-flash-image'];
     const kDefaultTextModel = kAiSupportedModelIdentifiers['gemini-3.8-flash'];
 
     const defaultValues = {
+        decisionModel: settings['ai-setting-decision-model'] ?? kDefaultDecisionModel,
         imageModel: settings['ai-setting-image-model'] ?? kDefaultImageModel,
         textModelHigh: settings['ai-setting-text-model-high'] ?? kDefaultTextModel,
         textModelLow: settings['ai-setting-text-model-low'] ?? kDefaultTextModel,
@@ -97,6 +100,9 @@ export default async function ModelsAiPage() {
                         <Typography variant="h6">
                             Model selection
                         </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <GeminiModelSelect name="decisionModel" label="Decision API" />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <GeminiModelSelect name="imageModel" label="Image Generation Model" />

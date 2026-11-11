@@ -125,6 +125,7 @@ export async function updateExampleMessages(formData: unknown) {
  * Zod type that describes information required in ordr to upload model settings.
  */
 const kUpdateModelSettingsData = z.object({
+    decisionModel: z.enum(kAiSupportedModelIdentifiers),
     imageModel: z.enum(kAiSupportedModelIdentifiers),
     textModelHigh: z.enum(kAiSupportedModelIdentifiers),
     textModelLow: z.enum(kAiSupportedModelIdentifiers),
@@ -146,6 +147,7 @@ export async function updateModelSettings(formData: unknown) {
         await requireAuthentication('system.internals.ai');
 
         await writeSettings({
+            'ai-setting-decision-model': data.decisionModel,
             'ai-setting-gemini-api-key': data.geminiApiKey,
             'ai-setting-gemini-api': data.geminiApi,
             'ai-setting-image-model': data.imageModel,

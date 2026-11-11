@@ -110,6 +110,7 @@ export type Settings = {
     'ai-personality-description-prompt-complexity': TextGenerationComplexity;
 
     // Settings:
+    'ai-setting-decision-model': AiSupportedModel;
     'ai-setting-gemini-api-key': string;
     'ai-setting-gemini-api': GeminiApi;
     'ai-setting-image-model': AiSupportedModel;

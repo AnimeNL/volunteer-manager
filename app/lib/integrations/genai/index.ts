@@ -10,6 +10,7 @@ import { readSettings } from '@lib/Settings';
  */
 export async function createAiClient(partialSettings?: Partial<ClientSettings>) {
     const configuration = await readSettings([
+        'ai-setting-decision-model',
         'ai-setting-gemini-api-key',
         'ai-setting-gemini-api',
         'ai-setting-image-model',
@@ -40,6 +41,7 @@ export async function createAiClient(partialSettings?: Partial<ClientSettings>) 
             project: configuration['integration-google-project-id']!,
         },
         models: {
+            decision: configuration['ai-setting-decision-model']!,
             image: configuration['ai-setting-image-model']!,
             text: {
                 low: configuration['ai-setting-text-model-low']!,

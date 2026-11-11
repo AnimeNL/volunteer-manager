@@ -14,7 +14,8 @@ type PickStringLiterals<T> = T extends string
 /**
  * Type that lists all the models that are supported by the @google/genai library.
  */
-type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>;
+type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
+    | 'gemini-decision-1';
 
 /**
  * Enumeration of the models that are supported by the Gen AI API.
@@ -55,6 +56,10 @@ export const kAiSupportedModels = {
     'gemini-3-pro-image': {  // EOL: May 28, 2027 or later
         name: 'Gemini 3 Pro (Nano Banana Pro)',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-pro-image',
+    },
+    'gemini-decision-1': {  // EOL: Not announced
+        name: 'Gemini Decision 1',
+        url: 'https://aistudio.google.com/docs/decisions-api',
     },
     'gemini-nano-banana-2.1': {  // EOL: Not announced
         name: 'Gemini Nano Banana 2.1',
