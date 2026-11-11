@@ -195,11 +195,7 @@ export class Instrumentation {
             throw new Error('This Instrumentation instance has already been consumed.');
 
         const startTime = performance.now();
-
-        this.#status = {
-            status: 'Exception',
-            input: this.serializeValue(options?.input),
-        };
+        this.#status.input = this.serializeValue(options?.input);
 
         const context: InstrumentedCallContext = {
             markFirstByte: () => {
@@ -212,10 +208,7 @@ export class Instrumentation {
         try {
             result = await callback(context);
         } catch (error: unknown) {
-            this.#status.status = 'Exception';
-            this.#status.durationMs = performance.now() - startTime;
-            this.#status.exception = error instanceof Error ? error : new Error(String(error));
-
+            this.captureException(error, startTime);
             this.#completionPromise = this.record();
             throw error;
         }
@@ -245,20 +238,13 @@ export class Instrumentation {
             throw new Error('This Instrumentation instance has already been consumed.');
 
         const startTime = performance.now();
-
-        this.#status = {
-            status: 'Exception',
-            input: await this.serializeInput(input, init),
-        };
+        this.#status.input = await this.serializeInput(input, init);
 
         let response: Response;
         try {
             response = await fetch(input, init);
         } catch (error: unknown) {
-            this.#status.status = 'Exception';
-            this.#status.durationMs = performance.now() - startTime;
-            this.#status.exception = error instanceof Error ? error : new Error(String(error));
-
+            this.captureException(error, startTime);
             this.#completionPromise = this.record();
             throw error;
         }
@@ -305,16 +291,25 @@ export class Instrumentation {
             this.#status.output = this.serializeOutput(response, chunks);
 
         } catch (error: unknown) {
-            this.#status.status = 'Exception';
-            this.#status.durationMs = performance.now() - startTime;
-            this.#status.exception = error instanceof Error ? error : new Error(String(error));
+            this.captureException(error, startTime);
         }
+    }
+
+    /**
+     * Populates `#status` when an exception is thrown during an instrumented call or stream read.
+     */
+    private captureException(error: unknown, startTime: number) {
+        this.#status.status = 'Exception';
+        this.#status.durationMs = performance.now() - startTime;
+        this.#status.exception = error instanceof Error ? error : new Error(String(error));
     }
 
     /**
      * Serializes the input of a `fetch()` request, including the URL, method, headers, and body.
      */
-    private async serializeInput(...[ input, init ]: Parameters<typeof fetch>): Promise<string> {
+    private async serializeInput(
+        input: RequestInfo | URL, init?: RequestInit): Promise<string | undefined>
+    {
         const request = input instanceof Request ? input : undefined;
         const url = request ? request.url : String(input);
         const method = (init?.method ?? request?.method ?? 'GET').toUpperCase();
@@ -336,18 +331,18 @@ export class Instrumentation {
                 body = tryParseJson(rawText);
         }
 
-        return JSON.stringify({
+        return this.serializeValue({
             url,
             method,
             ...(Object.keys(headers).length > 0 ? { headers } : {}),
             ...(body !== undefined ? { body } : {}),
-        }).substring(0, kMaxPayloadLength);
+        });
     }
 
     /**
      * Serializes the output of a `fetch()` response, including the status, headers, and body.
      */
-    private serializeOutput(response: Response, chunks: Uint8Array[]): string {
+    private serializeOutput(response: Response, chunks: Uint8Array[]): string | undefined {
         const headers = Object.fromEntries(response.headers.entries());
 
         let body: unknown;
@@ -357,12 +352,12 @@ export class Instrumentation {
                 body = tryParseJson(text);
         }
 
-        return JSON.stringify({
+        return this.serializeValue({
             status: response.status,
             ...(response.statusText ? { statusText: response.statusText } : {}),
             ...(Object.keys(headers).length > 0 ? { headers } : {}),
             ...(body !== undefined ? { body } : {}),
-        }).substring(0, kMaxPayloadLength);
+        });
     }
 
     /**
@@ -397,6 +392,8 @@ export class Instrumentation {
             return;
 
         try {
+            const cause = this.#status.exception?.cause;
+
             const dbInstance = db;
             await dbInstance.insertInto(tIntegrationsLogs)
                 .set({
@@ -413,13 +410,8 @@ export class Instrumentation {
                     logErrorName: this.#status.exception?.name,
                     logErrorMessage: this.#status.exception?.message,
                     logErrorCause:
-                        this.#status.exception?.cause
-                            ? (this.#status.exception.cause instanceof Error
-                                  ? String(this.#status.exception.cause)
-                                  : (typeof this.#status.exception.cause === 'object'
-                                         ? JSON.stringify(this.#status.exception.cause)
-                                         : String(this.#status.exception.cause)))
-                            : undefined,
+                        cause ? this.serializeValue(cause instanceof Error ? String(cause) : cause)
+                              : undefined,
                     logErrorStack: this.#status.exception?.stack,
                 })
                 .executeInsert();
