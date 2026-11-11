@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { SmtpMessage } from '@lib/integrations/smtp/SmtpMessage';
+import { createImapClient } from '@lib/integrations/imap';
 import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
@@ -323,6 +324,22 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
         Cache.getInstance('AdminNavigationMenuCache').clear();
 
         return { success: true, refresh: true };
+    });
+}
+
+/**
+ * Server Action that verifies the incoming (IMAP) server configuration of the e-mail account
+ * identified by `accountId`.
+ */
+export async function checkEmailAccountImap(accountId: number, formData: unknown) {
+    'use server';
+    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
+        executeAccessCheck(props.authenticationContext, 'system.integrations');
+
+        const client = await createImapClient(accountId);
+        await client.verifyConfiguration();
+
+        return { success: true };
     });
 }
 

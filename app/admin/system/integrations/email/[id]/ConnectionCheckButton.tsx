@@ -15,26 +15,33 @@ import Snackbar from '@mui/material/Snackbar';
 import type { ServerAction } from '@lib/serverAction';
 
 /**
- * Props accepted by the <SmtpConnectionCheckButton> component.
+ * Props accepted by the <ConnectionCheckButton> component.
  */
-interface SmtpConnectionCheckButtonProps {
+interface ConnectionCheckButtonProps {
     /**
-     * Server Action through which the SMTP connection check can be executed.
+     * Server Action through which the connection check can be executed.
      */
     action: ServerAction;
 
     /**
-     * Whether the button should be disabled (e.g. when SMTP is not yet configured).
+     * Whether the button should be disabled (e.g. when the server is not yet configured).
      */
     disabled?: boolean;
+
+    /**
+     * Protocol name to include in the button label and fallback error message.
+     */
+    protocol: 'IMAP' | 'SMTP';
 }
 
 /**
- * Button that verifies the SMTP connection configuration of the e-mail account.
+ * Button that verifies the SMTP or IMAP connection configuration of the e-mail account.
  */
-export function SmtpConnectionCheckButton(props: SmtpConnectionCheckButtonProps) {
+export function ConnectionCheckButton(props: ConnectionCheckButtonProps) {
     const [ state, setState ] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [ errorMessage, setErrorMessage ] = useState<string | undefined>();
+
+    const fallbackError = `The ${props.protocol} connection check failed.`;
 
     const handleCloseError = useCallback(() => setErrorMessage(undefined), [ /* no deps */ ]);
     const handleCheck = useCallback(async () => {
@@ -47,25 +54,25 @@ export function SmtpConnectionCheckButton(props: SmtpConnectionCheckButtonProps)
                 setState('success');
             } else {
                 setState('error');
-                setErrorMessage(result.error ?? 'The SMTP connection check failed.');
+                setErrorMessage(result.error ?? fallbackError);
             }
         } catch (error: any) {
             setState('error');
-            setErrorMessage(error?.message || 'The SMTP connection check failed.');
+            setErrorMessage(error?.message || fallbackError);
         }
-    }, [ props.action ]);
+    }, [ fallbackError, props.action ]);
 
     let icon = <SettingsEthernetIcon />;
-    let label = 'Check SMTP connection';
+    let label = `Check ${props.protocol} connection`;
     let color: 'primary' | 'success' | 'error' = 'primary';
 
     if (state === 'success') {
         icon = <CheckCircleOutlinedIcon />;
-        label = 'SMTP connection verified';
+        label = `${props.protocol} connection verified`;
         color = 'success';
     } else if (state === 'error') {
         icon = <CancelOutlinedIcon />;
-        label = 'SMTP connection failed';
+        label = `${props.protocol} connection failed`;
         color = 'error';
     }
 
