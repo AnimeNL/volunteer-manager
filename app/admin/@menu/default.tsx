@@ -7,7 +7,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
-import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 import LoopIcon from '@mui/icons-material/Loop';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -159,22 +158,20 @@ export default async function DefaultMenu() {
             {
                 defaultExpanded: true,
                 header: 'E-mail',
+                headerAction: {
+                    Icon: SettingsOutlinedIcon,
+                    label: 'Inbox permissions',
+                    permission: 'system.inbox.management',
+                    url: '/admin/system/inbox/permissions',
+                },
                 id: 'email',
-                items: [
-                    ...emailAccounts.map((account): NavigationItem => ({
-                        Icon: EmailOutlinedIcon,
-                        label: account.address,
-                        permission: 'system.inbox.eligible',
-                        url: `/admin/system/inbox/${account.id}`,
-                        urlMatchMode: 'strict',
-                    })),
-                    {
-                        Icon: LockPersonOutlinedIcon,
-                        label: 'Inbox permissions',
-                        permission: 'system.inbox.management',
-                        url: '/admin/system/inbox/permissions',
-                    },
-                ],
+                items: emailAccounts.map((account): NavigationItem => ({
+                    Icon: EmailOutlinedIcon,
+                    label: account.address,
+                    permission: 'system.inbox.eligible',
+                    url: `/admin/system/inbox/${account.id}`,
+                    urlMatchMode: 'strict',
+                })),
             },
             {
                 defaultExpanded: true,

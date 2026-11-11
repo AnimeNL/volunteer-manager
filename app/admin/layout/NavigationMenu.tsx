@@ -41,7 +41,9 @@ interface NavigationMenuProps {
 /**
  * Helper function to determine whether an individual navigation item should be kept.
  */
-function shouldKeepNavigationItem(item: NavigationItem, access: AccessControl): boolean {
+function shouldKeepNavigationItem(
+    item: Omit<NavigationItem, 'badge'>, access: AccessControl): boolean
+{
     if (item.condition !== undefined && !item.condition)
         return false;
 
@@ -66,12 +68,18 @@ export async function NavigationMenu(props: NavigationMenuProps) {
 
     for (const item of props.items) {
         if ('items' in item) {
+            const headerAction =
+                item.headerAction && shouldKeepNavigationItem(item.headerAction, props.access)
+                    ? item.headerAction
+                    : undefined;
+
             const sectionItems = item.items.filter(subItem =>
                 shouldKeepNavigationItem(subItem, props.access));
 
-            if (sectionItems.length > 0) {
+            if (sectionItems.length > 0 || !!headerAction) {
                 filteredItems.push({
                     ...item,
+                    headerAction,
                     items: sectionItems,
                 });
             }

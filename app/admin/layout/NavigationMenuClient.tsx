@@ -11,6 +11,7 @@ import Badge from '@mui/material/Badge';
 import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
@@ -27,7 +28,7 @@ import type { NavigationItem, NavigationSection, NavigationTopLevelItem } from '
 /**
  * Function to help determine whether the given `item` is currently active.
  */
-function isNavigationItemActive(path: string, item: NavigationItem): boolean {
+function isNavigationItemActive(path: string, item: Omit<NavigationItem, 'badge'>): boolean {
     const matchMode = item.urlMatchMode ?? 'prefix';
     switch (matchMode) {
         case 'prefix':
@@ -251,6 +252,13 @@ function NavigationSectionClient(props: {
     const [ expanded, setExpanded ] = useState<boolean>(
         props.state[props.section.id] ?? props.section.defaultExpanded);
 
+    const hasItems = props.section.items.length > 0;
+    const headerAction = props.section.headerAction;
+
+    const handleHeaderActionClick = useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+    }, [ /* no deps */ ]);
+
     const handleToggleExpanded = useCallback(() => {
         startUpdate(async () => props.updateStateFn(props.section.id, !expanded));
         setExpanded(existingState => {
@@ -261,7 +269,8 @@ function NavigationSectionClient(props: {
     return (
         <>
             <NavigationSectionDivider />
-            <NavigationSectionHeader direction="row" onClick={handleToggleExpanded}>
+            <NavigationSectionHeader data-collapsible={ hasItems || undefined } direction="row"
+                                     onClick={ hasItems ? handleToggleExpanded : undefined }>
                 <NavigationSectionHeaderText
                     data-has-color={ !!props.section.color || undefined }
                     style={
@@ -270,15 +279,25 @@ function NavigationSectionClient(props: {
                             : undefined }>
                     {props.section.header}
                 </NavigationSectionHeaderText>
-                <ExpandMoreIcon className={ expanded ? '' : 'collapsed' } color="action"
-                                fontSize="small" />
+                { !!headerAction &&
+                    <Tooltip title={headerAction.label}>
+                        <NavigationSectionHeaderAction
+                            LinkComponent={Link} { ...{ href: headerAction.url } }
+                            onClick={handleHeaderActionClick} size="small">
+                            <headerAction.Icon color="disabled" fontSize="inherit" />
+                        </NavigationSectionHeaderAction>
+                    </Tooltip> }
+                { hasItems &&
+                    <ExpandMoreIcon className={ expanded ? '' : 'collapsed' } color="action"
+                                    fontSize="small" /> }
             </NavigationSectionHeader>
-            <Collapse in={expanded}>
-                <NavigationSectionContentAnimation>
-                    { props.section.items.map((item, index) =>
-                        <NavigationItemClient key={index} item={item} path={props.path} /> ) }
-                </NavigationSectionContentAnimation>
-            </Collapse>
+            { hasItems &&
+                <Collapse in={expanded}>
+                    <NavigationSectionContentAnimation>
+                        { props.section.items.map((item, index) =>
+                            <NavigationItemClient key={index} item={item} path={props.path} /> ) }
+                    </NavigationSectionContentAnimation>
+                </Collapse> }
         </>
     );
 }
@@ -312,12 +331,50 @@ const NavigationSectionDivider = styled(Divider)(({ theme }) => ({
  * Header to be displayed as part of a <NavigationSectionClient>.
  */
 const NavigationSectionHeader = styled(Stack)(({ theme }) => ({
-    cursor: 'pointer',
+    alignItems: 'center',
+    marginBottom: theme.spacing(1),
     paddingRight: theme.spacing(2),
+
+    '&[data-collapsible]': {
+        cursor: 'pointer',
+    },
 
     '& svg.collapsed': { transform: 'rotate(180deg)' },
     '& svg': { transition: theme.transitions.create('transform') },
 }));
+
+/**
+ * Action button to be displayed on the right-hand side of a <NavigationSectionHeader>.
+ */
+const NavigationSectionHeaderAction = styled(IconButton)(({ theme }) => ([
+    {
+        color: theme.vars?.palette.action.active,
+        fontSize: '1rem',
+        margin: theme.spacing(-0.5, 0.25, -0.5, -1),
+        padding: theme.spacing(0.5),
+
+        '&:last-child': {
+            marginRight: theme.spacing(-0.5),
+        },
+
+        transition: theme.transitions.create([ 'background-color', 'color' ], {
+            duration: kTransitionDuration,
+        }),
+    },
+    theme.applyStyles('light', {
+        '&:hover, &.active': {
+            backgroundColor: theme.vars?.palette.primaryPalette[100],
+            color: theme.vars?.palette.primaryPalette[800],
+        },
+    }),
+    theme.applyStyles('dark', {
+        '&:hover, &.active': {
+            backgroundColor:
+                `color-mix(in oklch, ${theme.vars?.palette.primaryPalette[100]} 45%, #000)`,
+            color: theme.vars?.palette.text.primary,
+        },
+    }),
+]));
 
 /**
  * Text on the header to be displayed as part of a <NavigationSectionClient>.
@@ -329,8 +386,6 @@ const NavigationSectionHeaderText = styled(ListSubheader)(({ theme }) => ([
         flexGrow: 1,
         fontWeight: 'normal',
         lineHeight: 'unset',
-
-        marginBottom: theme.spacing(1),
     },
     theme.applyStyles('light', {
         '&[data-has-color]': {

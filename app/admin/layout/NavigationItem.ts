@@ -87,6 +87,11 @@ export interface NavigationSection {
     header: string;
 
     /**
+     * Action to display in the section's header, next to the expand/collapse icon, if any.
+     */
+    headerAction?: Omit<NavigationItem, 'badge'>;
+
+    /**
      * Unique ID of this section with its parent menu. Used for state persistence.
      */
     id: string;

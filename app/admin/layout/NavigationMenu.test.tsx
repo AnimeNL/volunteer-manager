@@ -238,4 +238,111 @@ describe('NavigationMenu', () => {
         const passed = getPassedItems();
         expect(passed).toHaveLength(0);
     });
+
+    it('should filter section headerAction based on permissions and conditions', async () => {
+        const access = new AccessControl({
+            grants: [ 'organisation.accounts', 'system.inbox.management' ],
+        });
+
+        const items: NavigationTopLevelItem[] = [
+            {
+                header: 'Permitted Action Section',
+                headerAction: {
+                    Icon: DashboardOutlinedIcon,
+                    label: 'Inbox permissions',
+                    permission: 'system.inbox.management',
+                    url: '/admin/system/inbox/permissions',
+                },
+                id: 'permitted-action',
+                items: [
+                    {
+                        Icon: DashboardOutlinedIcon,
+                        label: 'Accounts',
+                        url: '/accounts',
+                        permission: {
+                            permission: 'organisation.accounts',
+                            operation: 'read',
+                        },
+                    },
+                ],
+            },
+            {
+                header: 'Denied Action Section',
+                headerAction: {
+                    Icon: DashboardOutlinedIcon,
+                    label: 'Exports',
+                    permission: 'organisation.exports',
+                    url: '/exports',
+                },
+                id: 'denied-action',
+                items: [
+                    {
+                        Icon: DashboardOutlinedIcon,
+                        label: 'Accounts',
+                        url: '/accounts',
+                        permission: {
+                            permission: 'organisation.accounts',
+                            operation: 'read',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        render(await NavigationMenu({
+            access, id: 'dashboard', title: 'Test Title', items, userId: 42 }));
+
+        const passed = getPassedItems();
+        expect(passed).toHaveLength(2);
+
+        if ('header' in passed[0])
+            expect(passed[0].headerAction?.label).toBe('Inbox permissions');
+        if ('header' in passed[1])
+            expect(passed[1].headerAction).toBeUndefined();
+    });
+
+    it('should keep an empty section only when its headerAction is permitted', async () => {
+        const access = new AccessControl({
+            grants: [ 'system.inbox.management' ],
+        });
+
+        const items: NavigationTopLevelItem[] = [
+            {
+                header: 'E-mail (Action Permitted)',
+                headerAction: {
+                    Icon: DashboardOutlinedIcon,
+                    label: 'Inbox permissions',
+                    permission: 'system.inbox.management',
+                    url: '/admin/system/inbox/permissions',
+                },
+                id: 'email-permitted',
+                items: [],
+            },
+            {
+                header: 'E-mail (Action Denied)',
+                headerAction: {
+                    Icon: DashboardOutlinedIcon,
+                    label: 'Exports',
+                    permission: 'organisation.exports',
+                    url: '/exports',
+                },
+                id: 'email-denied',
+                items: [],
+            },
+        ];
+
+        render(await NavigationMenu({
+            access, id: 'dashboard', title: 'Test Title', items, userId: 42 }));
+
+        const passed = getPassedItems();
+        expect(passed).toHaveLength(1);
+
+        const section = passed[0];
+        expect('header' in section).toBeTruthy();
+        if ('header' in section) {
+            expect(section.header).toBe('E-mail (Action Permitted)');
+            expect(section.items).toHaveLength(0);
+            expect(section.headerAction?.label).toBe('Inbox permissions');
+        }
+    });
 });
