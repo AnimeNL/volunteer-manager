@@ -17,6 +17,93 @@ import { writeSetting, writeSettings } from '@lib/Settings';
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
 
 /**
+ * Zod type that describes information required in order to execute a decision in the playground.
+ */
+const kExecuteDecisionPlaygroundData = z.object({
+    type: z.enum([ 'noul', 'score' ]),
+    context: z.string().nonempty(),
+    instructions: z.string().nonempty(),
+    truthy: z.string().optional(),
+    falsy: z.string().optional(),
+    criteria: z.string().optional(),
+});
+
+/**
+ * Server action to execute a structured decision from the Decision Playground.
+ */
+export async function executeDecisionPlayground(formData: unknown) {
+    'use server';
+
+    return executeServerAction(formData, kExecuteDecisionPlaygroundData, async data => {
+        await requireAuthentication('system.internals.ai');
+
+        try {
+            const client = await createAiClient();
+
+            switch (data.type) {
+                case 'noul': {
+                    const truthy = data.truthy?.trim();
+                    const falsy = data.falsy?.trim();
+
+                    const [ decisionResult ] = await client.decide({
+                        context: data.context,
+                        decisions: [
+                            {
+                                type: 'noul',
+                                instructions: data.instructions,
+                                ...((truthy || falsy) ? {
+                                    criteria: {
+                                        ...(truthy ? { truthy } : {}),
+                                        ...(falsy ? { falsy } : {}),
+                                    },
+                                } : {}),
+                            },
+                        ],
+                    });
+
+                    return {
+                        success: true,
+                        decisionResult,
+                    };
+                }
+
+                case 'score': {
+                    const criteria = (data.criteria ?? '')
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+
+                    if (criteria.length < 2)
+                        return { success: false, error: 'At least two criteria are required.' };
+
+                    const [ decisionResult ] = await client.decide({
+                        context: data.context,
+                        decisions: [
+                            {
+                                type: 'score',
+                                instructions: data.instructions,
+                                criteria,
+                            },
+                        ],
+                    });
+
+                    return {
+                        success: true,
+                        decisionCriteria: criteria,
+                        decisionResult,
+                    };
+                }
+            }
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    });
+}
+
+/**
  * Zod type that describes information required in order to execute a model.
  */
 const kExecuteModelPlaygroundData = z.object({

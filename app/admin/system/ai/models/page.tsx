@@ -10,6 +10,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import type { GeminiApi, TextGenerationThinkingLevel } from '@lib/integrations/genai/Client';
+import { DecisionPlayground } from './DecisionPlayground';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { GeminiModelSelect } from './GeminiModelSelect';
@@ -162,6 +163,18 @@ export default async function ModelsAiPage() {
                         <ModelPlayground label="Image generation prompt" model="image"
                                          enableAttachment
                                          serverAction={actions.executeModelPlayground} />
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper sx={{ padding: 2, height: '100%' }}>
+                        <DecisionPlayground title="Binary decision (noul)" type="noul"
+                                            serverAction={actions.executeDecisionPlayground} />
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper sx={{ padding: 2, height: '100%' }}>
+                        <DecisionPlayground title="Scored decision (score)" type="score"
+                                            serverAction={actions.executeDecisionPlayground} />
                     </Paper>
                 </Grid>
             </Grid>
