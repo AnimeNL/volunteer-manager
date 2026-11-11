@@ -23,10 +23,11 @@ import Typography from '@mui/material/Typography';
 
 import type { DisplayHelpRequestStatus, DisplayHelpRequestTarget } from '@lib/database/Types';
 import { DisplayContext } from '../DisplayContext';
-import { callApi } from '@lib/callApi';
 
 import { kDisplayHelpRequestStatus, kDisplayHelpRequestTarget } from '@lib/database/Types';
 import { kThemeImageVersion } from '@app/config';
+
+import { requestHelp } from '../DisplayActions';
 
 /**
  * Props accepted by the <RequestHelpButton> component.
@@ -123,8 +124,8 @@ export function RequestHelpCard(props: RequestHelpCardProps) {
         setError(undefined);
         setLoading(true);
         try {
-            const response = await callApi('post', '/api/display/help-request', { target });
-            if (!!response.success) {
+            const response = await requestHelp({ target });
+            if (response.success) {
                 if (!!display.refresh)
                     await display.refresh();
 
