@@ -35,7 +35,8 @@ import { currentTimestamp, toZonedDateTime } from '../../CurrentTime';
 import { NotesCard } from '../../components/NotesCard';
 
 import { kEnforceSingleLine } from '../../Constants';
-import { callApi } from '@lib/callApi';
+
+import { updateFavourite } from './EventActions';
 
 /**
  * Information cached for a shift description box on the event page.
@@ -335,7 +336,7 @@ export function EventPage(props: EventPageProps) {
             return;  // the feature is disabled
 
         try {
-            const response = await callApi('put', '/api/event/schedule/favourite', {
+            const response = await updateFavourite({
                 event: schedule.slug,
                 activityId: props.activityId,
             });

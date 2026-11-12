@@ -19,7 +19,6 @@ import type { SignInPasswordUpdateDefinition } from '@app/api/auth/signInPasswor
 import type { SignOutDefinition } from '@app/api/auth/signOut';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
-import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
 
 /**
  * Type helpers for deciding on the request and response types for API definitions. Because they are
@@ -56,9 +55,6 @@ export type ApiEndpoints = {
     },
     'delete': {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
-    },
-    'put': {
-        '/api/event/schedule/favourite': UpdateFavouriteDefinition,
     },
 };
 
