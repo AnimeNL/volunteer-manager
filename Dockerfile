@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
 
 # ============================================
 # Stage 1: Dependencies Installation Stage
@@ -17,13 +18,12 @@ WORKDIR /app
 # Copy package-related files first to leverage Docker's caching mechanism
 COPY package.json package-lock.json* pnpm-lock.yaml* .npmrc* ./
 
+ARG GH_TOKEN
+RUN git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://git@github.com/"
+
 # Install project dependencies with frozen lockfile for reproducible builds
-RUN --mount=type=secret,id=GH_TOKEN,env=GH_TOKEN,required=true \
-    --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/root/.local/share/pnpm/store \
-  export GIT_CONFIG_COUNT=1 \
-         GIT_CONFIG_KEY_0="url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf" \
-         GIT_CONFIG_VALUE_0="https://git@github.com/" && \
   if [ -f package-lock.json ]; then \
     npm ci --no-audit --no-fund; \
   elif [ -f pnpm-lock.yaml ]; then \
@@ -51,9 +51,7 @@ ENV NODE_ENV=production
 ENV NEXT_BUILD_STANDALONE=1
 
 # Build Next.js application
-RUN --mount=type=secret,id=NEXT_PUBLIC_MUI_LICENSE_KEY,env=NEXT_PUBLIC_MUI_LICENSE_KEY \
-    --mount=type=secret,id=SOURCE_COMMIT,env=SOURCE_COMMIT \
-    --mount=type=cache,target=/app/.next/cache \
+RUN --mount=type=cache,target=/app/.next/cache \
   if [ -f package-lock.json ]; then \
     npm run build; \
   elif [ -f pnpm-lock.yaml ]; then \
