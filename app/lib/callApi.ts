@@ -4,7 +4,6 @@
 import type { ConfirmIdentityDefinition } from '@app/api/auth/confirmIdentity';
 import type { CreateChallengeDefinition } from '@app/api/auth/passkeys/createChallenge';
 import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePasskey';
-import type { DisplayDefinition } from '@app/api/display/route';
 import type { ListPasskeysDefinition } from '@app/api/auth/passkeys/listPasskeys';
 import type { PasswordChangeDefinition } from '@app/api/auth/passwordChange';
 import type { PasswordResetDefinition } from '@app/api/auth/passwordReset';
@@ -36,7 +35,6 @@ type ApiResponseType<T> = T extends { response: object } ? T['response'] : void;
 export type ApiEndpoints = {
     'get': {
         '/api/auth/passkeys/list': ListPasskeysDefinition,
-        '/api/display': DisplayDefinition,
     },
     'post': {
         '/api/auth/confirm-identity': ConfirmIdentityDefinition,

@@ -1,7 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { parseCookie, stringifySetCookie } from 'cookie';
+import type { cookies } from 'next/headers';
+
 import { seal, unseal } from './Iron';
 
 /**
@@ -27,7 +28,7 @@ const kDisplaySessionExpirationTimeSeconds = 399 * 24 * 60 * 60;
  * Seals the given |session| in a format that can safely be shared with a display without expecting
  * the data to be tampered with.
  *
- * @param request The plaintext session data in its original format.
+ * @param session The plaintext session data in its original format.
  * @returns The sealed session data, as a string.
  */
 async function sealDisplaySession(session: any): Promise<string> {
@@ -46,20 +47,17 @@ async function unsealDisplaySession(sealedSession: string): Promise<any> {
 }
 
 /**
- * Returns the unsealed DisplaySession that was included in the given `headers`.
+ * Returns the unsealed DisplaySession that was included in the given `cookieStore`.
  */
-export async function getDisplayIdFromHeaders(headers: Headers): Promise<number | undefined> {
-    const cookieHeader = headers.get('Cookie');
-    if (cookieHeader) {
-        const cookies = parseCookie(cookieHeader);
-
-        const sessionCookie = cookies[kDisplaySessionCookieName];
-        if (sessionCookie) {
-            try {
-                return (await unsealDisplaySession(sessionCookie)).id;
-            } catch {
-                console.error('Invalid display session cookie, discarded');
-            }
+export async function getDisplayIdFromCookieStore(
+    cookieStore: Awaited<ReturnType<typeof cookies>>): Promise<number | undefined>
+{
+    const sessionCookie = cookieStore.get(kDisplaySessionCookieName);
+    if (sessionCookie) {
+        try {
+            return (await unsealDisplaySession(sessionCookie.value)).id;
+        } catch {
+            console.error('Invalid display session cookie, discarded');
         }
     }
 
@@ -67,14 +65,14 @@ export async function getDisplayIdFromHeaders(headers: Headers): Promise<number 
 }
 
 /**
- * rites the given `session` as an encrypted representation to `headers`.
+ * Writes the given `displayId` as an encrypted representation to `cookieStore`.
  */
-export async function writeDisplayIdToHeaders(headers: Headers, displayId: number) {
-    headers.append('Set-Cookie', stringifySetCookie({
-        name: kDisplaySessionCookieName,
-        value: await sealDisplaySession({ id: displayId }),
+export async function writeDisplayIdToCookieStore(
+    cookieStore: Awaited<ReturnType<typeof cookies>>, displayId: number)
+{
+    cookieStore.set(kDisplaySessionCookieName, await sealDisplaySession({ id: displayId }), {
         httpOnly: true,
         maxAge: kDisplaySessionExpirationTimeSeconds,
         path: '/',
-    }));
+    });
 }

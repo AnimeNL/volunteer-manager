@@ -6,14 +6,15 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 
-import type { DisplayDefinition } from '@app/api/display/route';
+import type { DisplayConfiguration } from './DisplayActions';
 import { DisplayContext, type DisplayContextInfo } from './DisplayContext';
 import { DisplayTheme } from './DisplayTheme';
+import device from './lib/Device';
 import {
     onceInitialiseGlobals, getColorValue, markUpdateCompleted, isLockedValue, setColorValue,
-    setLockedValue, setTimeOffset} from './Globals';
+    setLockedValue, setTimeOffset } from './Globals';
 
-import device from './lib/Device';
+import { getDisplayContext } from './DisplayActions';
 
 /**
  * How frequently should the display check in with the server? Can be configured by the server.
@@ -21,9 +22,15 @@ import device from './lib/Device';
 const kDefaultUpdateFrequencyMs = /* 5 minutes= */ 5 * 60 * 1000;
 
 /**
- * Fetcher used to retrieve the schedule from the server.
+ * Fetcher used to retrieve the display's context from the server.
  */
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+async function displayContextFetcher() {
+    const response = await getDisplayContext();
+    if (!response.success)
+        throw new Error(response.error ?? 'Unable to retrieve the display context');
+
+    return response.context;
+}
 
 /**
  * Decomposes the given `color` into an array of [R, G, B] values in range of [0-255)
@@ -47,15 +54,13 @@ export function DisplayController(props: React.PropsWithChildren) {
 
     // ---------------------------------------------------------------------------------------------
 
-    // URL from which information about this display can be loaded.
-    const url = '/api/display';
-
     // Periodically update the display's configuration using the `SWR` library. The interval can be
     // configured by the server, although will default to one update per five minutes.
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    const { data, isLoading, mutate } = useSWR<DisplayDefinition['response']>(url, fetcher, {
-        refreshInterval: data => !!data ? data.config.updateFrequencyMs : kDefaultUpdateFrequencyMs,
-    });
+    const { data, isLoading, mutate } = useSWR<DisplayConfiguration | undefined>(
+        'display-context', displayContextFetcher, {
+            refreshInterval: data =>
+                !!data ? data.config.updateFrequencyMs : kDefaultUpdateFrequencyMs,
+        });
 
     // ---------------------------------------------------------------------------------------------
     // Apply settings based of the `data`, to be updated whenever the state changes:

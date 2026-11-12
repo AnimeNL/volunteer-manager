@@ -5,7 +5,9 @@
 
 import { createContext } from 'react';
 
-import type { DisplayDefinition, DisplayShiftDefinition } from '@app/api/display/route';
+import type { DisplayConfiguration, DisplayShiftInfo } from './DisplayActions';
+
+export type { DisplayShiftInfo };
 
 /**
  * Context conveyed for the entire display. The context is owned and maintained by the
@@ -15,7 +17,7 @@ export type DisplayContextInfo = {
     /**
      * The context received by the server.
      */
-    context?: DisplayDefinition['response'],
+    context?: DisplayConfiguration;
 
     /**
      * Whether the display is currently loading.
@@ -28,11 +30,6 @@ export type DisplayContextInfo = {
      */
     refresh?: () => Promise<void>;
 };
-
-/**
- * Type describing the information shared for an individual shift that can be presented on screen.
- */
-export type DisplayShiftInfo = DisplayShiftDefinition;
 
 /**
  * The <DisplayContext> carries information about the display's configuration.
