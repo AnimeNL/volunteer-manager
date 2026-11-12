@@ -13,19 +13,19 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
 import type { BuildUpTearDownDataExport, CreditsDataExport, DiscordDataExport, RefundsDataExport,
-    TrainingsDataExport, VolunteersDataExport, WhatsAppDataExport } from '@app/api/exports/route';
-
+    TrainingsDataExport, VolunteersDataExport, WhatsAppDataExport } from './ExportActions';
 import type { ExportMetadata } from './ExportMetadata';
+import { ExportBuildUpTearDown } from './ExportBuildUpTearDown';
 import { ExportCredits } from './ExportCredits';
 import { ExportDiscord } from './ExportDiscord';
 import { ExportRefunds } from './ExportRefunds';
 import { ExportTrainings } from './ExportTrainings';
 import { ExportVolunteers } from './ExportVolunteers';
 import { ExportWhatsapp } from './ExportWhatsapp';
-import { callApi } from '@lib/callApi';
 
 import { kExportType } from '@lib/database/Types';
-import { ExportBuildUpTearDown } from './ExportBuildUpTearDown';
+
+import { accessExport } from './ExportActions';
 
 /**
  * Props accepted by the <ExportAvailable> component.
@@ -90,7 +90,7 @@ export function ExportAvailable(props: ExportAvailableProps) {
     const handleAccessData = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await callApi('post', '/api/exports', {
+            const response = await accessExport({
                 slug: metadata.slug,
             });
 

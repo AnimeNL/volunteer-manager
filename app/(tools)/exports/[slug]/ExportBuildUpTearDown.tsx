@@ -13,7 +13,7 @@ import TableRow from '@mui/material/TableRow';
 import Table from '@mui/material/Table';
 import Typography from '@mui/material/Typography';
 
-import type { BuildUpTearDownDataExport } from '@app/api/exports/route';
+import type { BuildUpTearDownDataExport } from './ExportActions';
 
 /**
  * Props accepted by the <ExportBuildUpTearDown> component.

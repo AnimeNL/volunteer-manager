@@ -7,7 +7,6 @@ import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePassk
 import type { DisplayDefinition } from '@app/api/display/route';
 import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyBookMarkAsRead';
 import type { DutyBookReportDefinition } from '@app/api/event/schedule/dutyBookReport';
-import type { ExportsDefinition } from '@app/api/exports/route';
 import type { GetScheduleDefinition } from '@app/api/admin/event/schedule/getSchedule';
 import type { ListPasskeysDefinition } from '@app/api/auth/passkeys/listPasskeys';
 import type { PasswordChangeDefinition } from '@app/api/auth/passwordChange';
@@ -65,7 +64,6 @@ export type ApiEndpoints = {
         '/api/auth/update-avatar': UpdateAvatarDefinition,
         '/api/event/schedule/duty-book': DutyBookReportDefinition,
         '/api/event/schedule/feedback': SubmitFeedbackDefinition,
-        '/api/exports': ExportsDefinition,
     },
     'delete': {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,

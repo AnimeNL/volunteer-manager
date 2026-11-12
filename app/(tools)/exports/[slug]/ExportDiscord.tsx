@@ -12,7 +12,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Table from '@mui/material/Table';
 
-import type { DiscordDataExport } from '@app/api/exports/route';
+import type { DiscordDataExport } from './ExportActions';
 
 /**
  * Props accepted by the <ExportDiscord> component.

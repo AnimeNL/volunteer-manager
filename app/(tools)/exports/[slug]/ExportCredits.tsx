@@ -14,7 +14,7 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import Table from '@mui/material/Table';
 
-import type { CreditsDataExport } from '@app/api/exports/route';
+import type { CreditsDataExport } from './ExportActions';
 
 /**
  * Props accepted by the <ExportCredits> component.

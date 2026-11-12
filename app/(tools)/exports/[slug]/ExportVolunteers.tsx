@@ -12,7 +12,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Table from '@mui/material/Table';
 
-import type { VolunteersDataExport } from '@app/api/exports/route';
+import type { VolunteersDataExport } from './ExportActions';
 import { useSelectElementText } from './useSelectElementText';
 
 /**

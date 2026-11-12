@@ -109,6 +109,11 @@ interface LogTypeParameterMap {
     // Administration > Organisation
     // ---------------------------------------------------------------------------------------------
 
+    AccessExport: {
+        event: string;  // short name
+        type: string;
+    };
+
     CreateExport: {
         event: string;  // short name
         type: string;
@@ -696,6 +701,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Organisation
     // ---------------------------------------------------------------------------------------------
 
+    AccessExport: 'AccessExport',
     CreateExport: 'CreateExport',
     ExpireExport: 'ExpireExport',
 

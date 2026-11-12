@@ -14,7 +14,7 @@ import TableRow from '@mui/material/TableRow';
 import Table from '@mui/material/Table';
 import Typography from '@mui/material/Typography';
 
-import type { TrainingsDataExport } from '@app/api/exports/route';
+import type { TrainingsDataExport } from './ExportActions';
 import { formatDate } from '@lib/Temporal';
 import { useSelectElementText } from './useSelectElementText';
 
