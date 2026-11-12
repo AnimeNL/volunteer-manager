@@ -42,7 +42,6 @@ export const kLogType = {
     AccountUpdate: 'account-update',
     DatabaseError: 'database-error',
     EventApplication: 'event-application',
-    EventVolunteerNotes: 'event-volunteer-notes',
 } as const;
 
 /**

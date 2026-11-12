@@ -43,6 +43,8 @@ import { formatDate } from '@lib/Temporal';
 import { kEnforceSingleLine } from '../../Constants';
 import { kLogicalDayChangeHour } from '../../lib/isDifferentDay';
 
+import { updateVolunteerNotes } from './VolunteerActions';
+
 const NotesEditorDialog = dynamic(() => import('../../components/NotesEditorDialog'), {
     ssr: false,
 });
@@ -374,7 +376,7 @@ export function VolunteerPage(props: VolunteerPageProps) {
         if (!schedule)
             return false;  // unable to update notes when the event is not known
 
-        const response = await callApi('put', '/api/event/schedule/notes', {
+        const response = await updateVolunteerNotes({
             event: schedule.slug,
             userId: parseInt(props.userId, /* radix= */ 10),
             notes,
