@@ -29,7 +29,8 @@ import { ReportIncidentDialog } from './ReportIncidentDialog';
 import { ScheduleContext } from '../ScheduleContext';
 import { SetTitle } from '../components/SetTitle';
 import { TimedAccordionSummary } from '../components/TimedAccordionSummary';
-import { callApi } from '@lib/callApi';
+
+import { markIncidentAsRead, reportIncident } from './DutyBookActions';
 
 /**
  * Local cache storing which incidents have already been read, and don't have to be updated to the
@@ -126,22 +127,23 @@ export function DutyBookPage(props: DutyBookPageProps) {
     const openReportIncidentDialog = useCallback(() => setReportIncidentDialogOpen(true), []);
 
     const handleIncidentToggle = useCallback(async (incidentId: number) => {
-        if (kReadIncidentCache.has(incidentId))
+        if (!schedule || kReadIncidentCache.has(incidentId))
             return;  // already reported
 
         try {
-            const response = await callApi('put', '/api/event/schedule/duty-book', {
+            const response = await markIncidentAsRead({
+                event: schedule.slug,
                 id: incidentId,
             });
 
-            if (!response || !response.success)
-                throw new Error('The API returned an invalid response');
+            if (!response.success)
+                throw new Error(response.error ?? 'The API returned an invalid response');
 
         } catch (error) {
             console.error('Unable to record the duty book access', error);
         }
 
-        if (!!schedule?.dutyBookUnread)
+        if (!!schedule.dutyBookUnread)
             schedule.dutyBookUnread = Math.max(0, schedule.dutyBookUnread - 1);
 
         kReadIncidentCache.add(incidentId);
@@ -155,7 +157,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
         if (!schedule)
             return false;  // unable to report incidents before the schedule is loaded
 
-        const response = await callApi('post', '/api/event/schedule/duty-book', {
+        const response = await reportIncident({
             event: schedule.slug,
             incident,
         });

@@ -5,8 +5,6 @@ import type { ConfirmIdentityDefinition } from '@app/api/auth/confirmIdentity';
 import type { CreateChallengeDefinition } from '@app/api/auth/passkeys/createChallenge';
 import type { DeletePasskeyDefinition } from '@app/api/auth/passkeys/deletePasskey';
 import type { DisplayDefinition } from '@app/api/display/route';
-import type { DutyBookMarkAsReadDefinition } from '@app/api/event/schedule/dutyBookMarkAsRead';
-import type { DutyBookReportDefinition } from '@app/api/event/schedule/dutyBookReport';
 import type { GetScheduleDefinition } from '@app/api/admin/event/schedule/getSchedule';
 import type { ListPasskeysDefinition } from '@app/api/auth/passkeys/listPasskeys';
 import type { PasswordChangeDefinition } from '@app/api/auth/passwordChange';
@@ -62,14 +60,12 @@ export type ApiEndpoints = {
         '/api/auth/sign-out': SignOutDefinition,
         '/api/auth/update-account': UpdateAccountDefinition,
         '/api/auth/update-avatar': UpdateAvatarDefinition,
-        '/api/event/schedule/duty-book': DutyBookReportDefinition,
         '/api/event/schedule/feedback': SubmitFeedbackDefinition,
     },
     'delete': {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,
     },
     'put': {
-        '/api/event/schedule/duty-book': DutyBookMarkAsReadDefinition,
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
         '/api/event/schedule/help-request': UpdateHelpRequestDefinition,
         '/api/event/schedule/notes': UpdateNotesDefinition,

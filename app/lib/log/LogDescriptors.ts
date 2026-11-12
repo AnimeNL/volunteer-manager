@@ -487,6 +487,11 @@ interface LogTypeParameterMap {
         team: string;  // title ("Volunteering Crew")
     };
 
+    CreateDutyBookIncident: {
+        event: string;  // short name
+        incidentId: number;
+    };
+
     CreateShift: {
         event: string;  // short name
         team: string;  // title
@@ -816,6 +821,7 @@ export const kLogType: { [k in LogType]: k } = {
 
     ClaimApplication: 'ClaimApplication',
     CreateApplication: 'CreateApplication',
+    CreateDutyBookIncident: 'CreateDutyBookIncident',
     CreateShift: 'CreateShift',
     CreateVendor: 'CreateVendor',
     DecideApplication: 'DecideApplication',
