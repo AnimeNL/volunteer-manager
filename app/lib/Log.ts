@@ -117,52 +117,6 @@ export function RecordLog(entry: LogEntry): void {
 }
 
 /**
- * Version of `RecordLog` that will write the given `entry` to the database immediately, in a way
- * that can be waited on. Should be used sparsely, generally `RecordLog` should be preferred unless
- * the log might be issued outside of a request context.
- */
-export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
-    const { sourceUser, targetUser } = entry;
-
-    let sourceUserId: number | null = null;
-    if (sourceUser)
-        sourceUserId = typeof sourceUser === 'number' ? sourceUser : sourceUser.id;
-
-    let targetUserId: number | null = null;
-    if (targetUser)
-        targetUserId = typeof targetUser === 'number' ? targetUser : targetUser.id;
-
-    const data = entry.data ? truncateToByteLength(JSON.stringify(entry.data)) : null;
-    const severity = entry.severity ?? kLogSeverity.Info;
-
-    let logSourceIpAddress: string | null = null;
-    let logSourceUserAgent: string | null = null;
-
-    try {
-        const requestHeaders = await headers();
-
-        logSourceIpAddress = requestHeaders.get('x-forwarded-for');
-        logSourceUserAgent = requestHeaders.get('user-agent');
-
-    } catch (_error) {
-        // IP address and user agent information are not available for uses of this function that
-        // aren't in a Next.js request path, so we ignore the |_error|.
-    }
-
-    await db.insertInto(tLogs)
-        .values({
-            logType: entry.type,
-            logSeverity: severity,
-            logSourceUserId: sourceUserId,
-            logSourceIpAddress,
-            logSourceUserAgent:
-                logSourceUserAgent ? truncateToByteLength(logSourceUserAgent) : null,
-            logTargetUserId: targetUserId,
-            logData: data,
-        }).executeInsert();
-}
-
-/**
  * Delegate that should be used to override the function used to defer writing error logs.
  */
 let errorLogDeferDelegate: typeof after = after;

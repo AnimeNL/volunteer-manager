@@ -7,7 +7,6 @@ import { ErrorReportingQueryRunner, useMockConnection } from './Connection';
 import db, { tHotels, tLogs } from './index';
 
 import { kLogSeverity } from '@lib/Log';
-import { kLogType } from '@lib/log/index';
 import { kMaxTextColumnByteLength } from './index';
 
 describe('Connection', () => {
@@ -87,7 +86,7 @@ describe('Connection', () => {
 
         // Should not trigger any `mockConnection` query when `'DatabaseError'` is in params.
         await expect(
-            failingRunner.executeInsert('insert into logs values (?)', [ kLogType.DatabaseError ])
+            failingRunner.executeInsert('insert into logs values (?)', [ 'DatabaseError' ])
         ).rejects.toThrow('Data too long');
 
         // Should truncate `log_data` to fit within MariaDB's `TEXT` byte limit.
@@ -100,7 +99,7 @@ describe('Connection', () => {
         await done;
 
         expect(recordedParams).toBeDefined();
-        expect(recordedParams![0]).toBe(kLogType.DatabaseError);
+        expect(recordedParams![0]).toBe('DatabaseError');
 
         const serializedData = recordedParams![6] as string;
         expect(Buffer.byteLength(serializedData, 'utf8')).toBeLessThanOrEqual(
