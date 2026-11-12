@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@AnimeNL/volunteer-manager-timeline": "git+https://git@github.com/AnimeNL/volunteer-manager-timeline.git#3.1.2",
-    "@google/genai": "^3.2.0",
+    "@google/genai": "^3.3.0",
     "@mdxeditor/editor": "^4.5.0",
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
@@ -82,7 +82,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.6",
+    "@biomejs/biome": "^2.6.7",
     "@next/bundle-analyzer": "16.4.6",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "@testing-library/dom": "^10.4.2",
