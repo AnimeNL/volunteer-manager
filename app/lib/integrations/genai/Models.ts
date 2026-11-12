@@ -21,6 +21,10 @@ type LibrarySupportedAiModels = PickStringLiterals<Interactions.Model>
  * Enumeration of the models that are supported by the Gen AI API.
  */
 export const kAiSupportedModels = {
+    'gemini-4-hydrogen': {  // EOL: Not announced
+        name: 'Gemini 4 Hydrogen',
+        url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-hydrogen',
+    },
     'gemini-4-carbon': {  // EOL: Not announced
         name: 'Gemini 4 Carbon',
         url: 'https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-carbon',
