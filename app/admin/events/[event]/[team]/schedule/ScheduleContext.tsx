@@ -26,15 +26,15 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { ChangeEventContext, ScheduleEvent } from '@app/admin/components/Schedule';
-import type { GetScheduleResult } from '@app/api/admin/event/schedule/getSchedule';
+import type { GetScheduleResult } from './ScheduleActions';
 import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { DocumentationButton } from '@app/admin/components/Documentation';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { formatDate } from '@lib/Temporal';
 
-import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, updateScheduleSettings }
-    from './ScheduleActions';
+import { createScheduleEntry, deleteScheduleEntry, getSchedule, updateScheduleEntry,
+    updateScheduleSettings } from './ScheduleActions';
 
 /**
  * Information regarding the schedule context.
@@ -66,9 +66,30 @@ export const ScheduleContext = createContext<ScheduleInfo>({
 });
 
 /**
+ * SWR key tuple used to retrieve the schedule from the server.
+ */
+type ScheduleFetcherKey = [
+    key: 'admin-schedule',
+    event: string,
+    team: string,
+    date: string | undefined,
+    highlights: string | undefined,
+];
+
+/**
  * Fetcher used to retrieve the schedule from the server.
  */
-const fetcher = (url: string) => fetch(url).then(r => r.json()).then(r => r.schedule);
+async function scheduleFetcher([ , event, team, date, highlights ]: ScheduleFetcherKey) {
+    const response = await getSchedule(event, team, {
+        date: date || undefined,
+        highlights: highlights || undefined,
+    });
+
+    if (!response.success)
+        throw new Error(response.error ?? 'The schedule could not be updated');
+
+    return response.schedule;
+}
 
 /**
  * Props accepted by the <ScheduleContextImpl> component.
@@ -161,22 +182,21 @@ export function ScheduleContextImpl(props: React.PropsWithChildren<ScheduleConte
     const [ highlightedShifts, setHighlightedShifts ] = useState<string | undefined>(
         defaultContext.highlightedShifts);
 
-    // Load the schedule using SWR. The endpoint will be composed based on the props and the date,
-    // following which we will acquire the necessary information from the server.
-    const { data, error, isLoading, mutate } = useSWR<GetScheduleResult>(() => {
-        const endpointParams = new URLSearchParams;
-        if (!!date)
-            endpointParams.set('date', date);
-        if (!!highlightedShifts)
-            endpointParams.set('highlights', highlightedShifts);
+    // Load the schedule using SWR. The key will be composed based on the props, the date, and any
+    // highlighted shifts, following which we will acquire the necessary information from the server.
+    const swrKey: ScheduleFetcherKey = [
+        'admin-schedule',
+        props.event.slug,
+        props.team.slug,
+        date,
+        highlightedShifts,
+    ];
 
-        const params = endpointParams.toString();
-        return `/api/admin/event/schedule/${props.event.slug}/${props.team.slug}?${params}`;
-
-    }, fetcher, {
-        keepPreviousData: true,
-        refreshInterval: /* ms= */ 15 * 1000,
-    });
+    const { data, error, isLoading, mutate } = useSWR<GetScheduleResult | undefined>(
+        swrKey, scheduleFetcher, {
+            keepPreviousData: true,
+            refreshInterval: /* ms= */ 15 * 1000,
+        });
 
     // ---------------------------------------------------------------------------------------------
 

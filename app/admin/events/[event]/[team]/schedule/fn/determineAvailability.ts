@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import { validateTime } from './validateTime';
 
-import { kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * Type describing an availability exception, as stored in the database.

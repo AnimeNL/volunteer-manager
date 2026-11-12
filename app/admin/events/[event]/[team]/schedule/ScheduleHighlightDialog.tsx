@@ -19,7 +19,7 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-import type { GetScheduleResult } from '@app/api/admin/event/schedule/getSchedule';
+import type { GetScheduleResult } from './ScheduleActions';
 import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**

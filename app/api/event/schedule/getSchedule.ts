@@ -22,7 +22,7 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTim
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
 import { kAnyTeam } from '@lib/auth/AccessList';
-import { kAvailabilityException } from '@app/api/admin/event/schedule/fn/determineAvailability';
+import { kAvailabilityException } from '@app/admin/events/[event]/[team]/schedule/fn/determineAvailability';
 import { kPublicSchedule } from './PublicSchedule';
 
 /**
