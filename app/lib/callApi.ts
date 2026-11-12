@@ -22,7 +22,6 @@ import type { SignOutDefinition } from '@app/api/auth/signOut';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
-import type { UpdateHelpRequestDefinition } from '@app/api/event/schedule/updateHelpRequest';
 import type { UpdateNotesDefinition } from '@app/api/event/schedule/updateNotes';
 
 /**
@@ -65,7 +64,6 @@ export type ApiEndpoints = {
     },
     'put': {
         '/api/event/schedule/favourite': UpdateFavouriteDefinition,
-        '/api/event/schedule/help-request': UpdateHelpRequestDefinition,
         '/api/event/schedule/notes': UpdateNotesDefinition,
     },
 };

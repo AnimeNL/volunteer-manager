@@ -22,7 +22,8 @@ import type { DisplayHelpRequestTarget } from '@lib/database/Types';
 import { Alert } from '../../components/Alert';
 import { ScheduleContext } from '../../ScheduleContext';
 import { TargetLoadingButton } from './TargetLoadingButton';
-import { callApi } from '@lib/callApi';
+
+import { closeHelpRequest } from './HelpRequestActions';
 
 /**
  * Props accepted by the <CloseForm> component.
@@ -83,12 +84,10 @@ export function CloseForm(props: CloseFormProps) {
             if (!reason || !reason.length || reason.length < 5)
                 throw new Error('The reason needs to be at least five characters long');
 
-            const response = await callApi('put', '/api/event/schedule/help-request', {
+            const response = await closeHelpRequest({
                 event: props.event,
                 requestId: props.requestId,
-                close: {
-                    reason,
-                },
+                reason,
             });
 
             if (!!response.success) {

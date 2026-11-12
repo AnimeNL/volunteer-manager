@@ -138,6 +138,12 @@ interface LogTypeParameterMap {
         label: string;
     };
 
+    UpdateHelpRequest: {
+        display: string;
+        event: string;  // short name
+        mutation: 'Acknowledged' | 'Closed';
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts
     // ---------------------------------------------------------------------------------------------
@@ -720,6 +726,7 @@ export const kLogType: { [k in LogType]: k } = {
 
     DeleteDisplay: 'DeleteDisplay',
     UpdateDisplay: 'UpdateDisplay',
+    UpdateHelpRequest: 'UpdateHelpRequest',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Accounts

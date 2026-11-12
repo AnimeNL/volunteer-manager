@@ -19,7 +19,8 @@ import type { DisplayHelpRequestTarget } from '@lib/database/Types';
 import { Alert } from '../../components/Alert';
 import { ScheduleContext } from '../../ScheduleContext';
 import { TargetLoadingButton } from './TargetLoadingButton';
-import { callApi } from '@lib/callApi';
+
+import { acknowledgeHelpRequest } from './HelpRequestActions';
 
 /**
  * Props accepted by the <AcknowledgeForm> component.
@@ -72,10 +73,9 @@ export function AcknowledgeForm(props: AcknowledgeFormProps) {
         setError(undefined);
         setLoading(true);
         try {
-            const response = await callApi('put', '/api/event/schedule/help-request', {
+            const response = await acknowledgeHelpRequest({
                 event: props.event,
                 requestId: props.requestId,
-                acknowledge: { /* empty object */ },
             });
 
             if (!!response.success) {
