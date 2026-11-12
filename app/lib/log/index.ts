@@ -4,3 +4,4 @@
 import 'server-only';
 
 export { LogBuilder } from './LogBuilder';
+export { kLogType } from './LogDescriptors';

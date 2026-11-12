@@ -40,8 +40,6 @@ export const kLogType = {
     AccountPasswordUpdate: 'account-password-update',
     AccountUpdateAvatar: 'account-update-avatar',
     AccountUpdate: 'account-update',
-    DatabaseError: 'database-error',
-    EventApplication: 'event-application',
 } as const;
 
 /**

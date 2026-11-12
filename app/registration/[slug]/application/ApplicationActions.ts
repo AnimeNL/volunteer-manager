@@ -3,8 +3,8 @@
 
 import { z } from 'zod/v4';
 
+import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
-import { RecordLog, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { determineAvailabilityStatus } from '@lib/EnvironmentContext';
 import { executeServerAction } from '@lib/serverAction';
@@ -213,14 +213,12 @@ export async function createApplication(eventId: number, teamId: number, formDat
         // we publish the event and send an e-mail to the volunteer to confirm their action.
         // -----------------------------------------------------------------------------------------
 
-        RecordLog({
-            type: kLogType.EventApplication,
-            sourceUser: props.user,
-            data: {
+        LogBuilder.for('SubmitApplication')
+            .withInitiatorUser(props.user)
+            .record({
                 event: eventInfo.shortName,
-                team: teamInfo.name,
-            },
-        });
+                team: teamInfo.title,
+            });
 
         const applicationConfirmation =
             await getStaticContent([ 'message', 'application-confirmation' ], {

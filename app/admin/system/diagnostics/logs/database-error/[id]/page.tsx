@@ -16,7 +16,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tLogs } from '@lib/database';
 
-import { kLogType } from '@lib/Log';
+import { kLogType } from '@lib/log/index';
 
 /**
  * This page provides details about a particular database error, such as the full error and the
@@ -39,7 +39,7 @@ export default async function DatabaseErrorLogPage(
     const dbInstance = db;
     const entry = await dbInstance.selectFrom(tLogs)
         .where(tLogs.logId.equals(logId))
-            .and(tLogs.logType.equals(kLogType.DatabaseError))
+            .and(tLogs.logType.in([ kLogType.DatabaseError, /* legacy= */ 'database-error' ]))
             .and(tLogs.logDeleted.isNull())
         .select({
             id: tLogs.logId,

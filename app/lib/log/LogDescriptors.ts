@@ -52,6 +52,13 @@ interface LogTypeParameterMap {
         taskName: string;
     };
 
+    DatabaseError: {
+        message: string;
+        stack?: string;
+        query: string;
+        params: string[];
+    };
+
     DeleteEmailAddress: {
         address: string;
     };
@@ -629,6 +636,11 @@ interface LogTypeParameterMap {
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
 
+    SubmitApplication: {
+        event: string;  // short name
+        team: string;  // title
+    };
+
     UpdateAvailabilityPreferences: {
         event: string;  // short name
         team: string;  // title
@@ -699,6 +711,7 @@ export const kLogType: { [k in LogType]: k } = {
     CreateLogMessageFormat: 'CreateLogMessageFormat',
     CreatePermissionRole: 'CreatePermissionRole',
     CreateSchedulerTask: 'CreateSchedulerTask',
+    DatabaseError: 'DatabaseError',
     DeleteEmailAddress: 'DeleteEmailAddress',
     DeletePermissionRole: 'DeletePermissionRole',
     RepeatSchedulerTask: 'RepeatSchedulerTask',
@@ -862,6 +875,7 @@ export const kLogType: { [k in LogType]: k } = {
     // Registration portal:
     // ---------------------------------------------------------------------------------------------
 
+    SubmitApplication: 'SubmitApplication',
     UpdateAvailabilityPreferences: 'UpdateAvailabilityPreferences',
     UpdateHotelPreferences: 'UpdateHotelPreferences',
     UpdateParticipationPreferences: 'UpdateParticipationPreferences',

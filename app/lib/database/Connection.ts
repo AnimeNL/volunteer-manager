@@ -9,7 +9,7 @@ import { MariaDBConnection } from 'ts-sql-query/connections/MariaDBConnection';
 import { MariaDBPoolQueryRunner } from 'ts-sql-query/queryRunners/MariaDBPoolQueryRunner';
 import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
-import { RecordLogImmediate, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder, kLogType } from '@lib/log/index';
 
 declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;
@@ -121,18 +121,17 @@ export class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined>
     override onQueryResult() {}
 
     override onQueryError(queryType: QueryType, query: string, params: any[], error: Error) {
-        if (query.includes('database-error') || params.includes('database-error'))
+        if (query.includes(kLogType.DatabaseError) || params.includes(kLogType.DatabaseError))
             return;  // prevent recursion
 
-        RecordLogImmediate({
-            type: kLogType.DatabaseError,
-            severity: kLogSeverity.Error,
-            data: {
+        LogBuilder.for('DatabaseError')
+            .withSeverity('Error')
+            .recordImmediately({
                 message: error.message,
                 stack: error.stack,
-                query, params,
-            },
-        });
+                query,
+                params: params.map(param => String(param)),
+            });
     }
 }
 

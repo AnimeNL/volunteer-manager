@@ -7,6 +7,7 @@ import { ErrorReportingQueryRunner, useMockConnection } from './Connection';
 import db, { tHotels, tLogs } from './index';
 
 import { kLogSeverity } from '@lib/Log';
+import { kLogType } from '@lib/log/index';
 import { kMaxTextColumnByteLength } from './index';
 
 describe('Connection', () => {
@@ -70,7 +71,7 @@ describe('Connection', () => {
         expect(selectResult.severity).toEqual(kLogSeverity.Warning);
     });
 
-    it('truncates oversized database-error log payloads and avoids recursion', async () => {
+    it('truncates oversized DatabaseError log payloads and avoids recursion', async () => {
         let recordedParams: unknown[] | undefined;
         const done = new Promise<void>(resolve => {
             mockConnection.expect('insert', (_query, params) => {
@@ -84,22 +85,22 @@ describe('Connection', () => {
             throw new Error('Data too long for column \'log_output\' at row 1');
         }));
 
-        // Should not trigger any `mockConnection` query when `'database-error'` is in params.
+        // Should not trigger any `mockConnection` query when `'DatabaseError'` is in params.
         await expect(
-            failingRunner.executeInsert('insert into logs values (?)', [ 'database-error' ])
+            failingRunner.executeInsert('insert into logs values (?)', [ kLogType.DatabaseError ])
         ).rejects.toThrow('Data too long');
 
         // Should truncate `log_data` to fit within MariaDB's `TEXT` byte limit.
         await expect(
             failingRunner.executeInsert(
-                'insert into integrations_logs (log_output) values (?)',
-                [ 'あ'.repeat(30000) ])
+                'insert into integrations_logs (log_output, row_id) values (?, ?)',
+                [ 'あ'.repeat(30000), 42 ])
         ).rejects.toThrow('Data too long');
 
         await done;
 
         expect(recordedParams).toBeDefined();
-        expect(recordedParams![0]).toBe('database-error');
+        expect(recordedParams![0]).toBe(kLogType.DatabaseError);
 
         const serializedData = recordedParams![6] as string;
         expect(Buffer.byteLength(serializedData, 'utf8')).toBeLessThanOrEqual(
