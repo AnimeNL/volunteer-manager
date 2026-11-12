@@ -6,7 +6,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-import { callApi } from '@lib/callApi';
+import { reportError } from './ErrorActions';
 
 /**
  * Declare existence of the `avpReportedErrors` global, through which we track when the last
@@ -48,7 +48,7 @@ export function ErrorPageClientReporter(props: ErrorPageClientReporterProps) {
 
         window.avpClientReportedErrors.push(pathname);
 
-        callApi('post', '/api/error', {
+        reportError({
             pathname,
             statusCode: props.statusCode,
         });

@@ -11,7 +11,8 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
-import { callApi } from '@lib/callApi';
+
+import { reportError } from './ErrorActions';
 
 /**
  * What is the minimum interval between reported errors? Errors that are thrown within this window
@@ -66,7 +67,7 @@ export default function ErrorPage({ error }: { error: Error & { digest?: string 
         if (++window.avpReportedErrors > kErrorReportingLimit)
             return;
 
-        callApi('post', '/api/error', {
+        reportError({
             pathname,
             name: error.name,
             message: error.message,
