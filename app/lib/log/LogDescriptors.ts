@@ -178,6 +178,10 @@ interface LogTypeParameterMap {
         action: string;  // Acknowledged | Archived | Declined | Resolved
     };
 
+    SubmitFeedback: {
+        id: number;
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Services
     // ---------------------------------------------------------------------------------------------
@@ -739,6 +743,7 @@ export const kLogType: { [k in LogType]: k } = {
     // ---------------------------------------------------------------------------------------------
 
     RespondToFeedback: 'RespondToFeedback',
+    SubmitFeedback: 'SubmitFeedback',
 
     // ---------------------------------------------------------------------------------------------
     // Administration > Organisation > Services

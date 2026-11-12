@@ -59,7 +59,6 @@ export const kLogType = {
     ApplicationTrainingPreferences: 'application-training-preferences',
     DatabaseError: 'database-error',
     EventApplication: 'event-application',
-    EventFeedbackSubmitted: 'event-feedback-submitted',
     EventHelpRequestUpdate: 'event-help-request-update',
     EventVolunteerNotes: 'event-volunteer-notes',
 } as const;

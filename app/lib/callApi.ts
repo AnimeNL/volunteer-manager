@@ -19,7 +19,6 @@ import type { SignInPasskeyDefinition } from '@app/api/auth/signInPasskey';
 import type { SignInPasswordDefinition } from '@app/api/auth/signInPassword';
 import type { SignInPasswordUpdateDefinition } from '@app/api/auth/signInPasswordUpdate';
 import type { SignOutDefinition } from '@app/api/auth/signOut';
-import type { SubmitFeedbackDefinition } from '@app/api/event/schedule/submitFeedback';
 import type { UpdateAccountDefinition } from '@app/api/auth/updateAccount';
 import type { UpdateAvatarDefinition } from '@app/api/auth/updateAvatar';
 import type { UpdateFavouriteDefinition } from '@app/api/event/schedule/updateFavourite';
@@ -60,7 +59,6 @@ export type ApiEndpoints = {
         '/api/auth/sign-out': SignOutDefinition,
         '/api/auth/update-account': UpdateAccountDefinition,
         '/api/auth/update-avatar': UpdateAvatarDefinition,
-        '/api/event/schedule/feedback': SubmitFeedbackDefinition,
     },
     'delete': {
         '/api/auth/passkeys/delete': DeletePasskeyDefinition,

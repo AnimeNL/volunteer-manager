@@ -15,7 +15,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 
 import { Alert } from '../components/Alert';
-import { callApi } from '@lib/callApi';
+
+import { submitFeedback } from './FeedbackActions';
 
 /**
  * Props accepted by the <FeedbackDialog> component.
@@ -69,7 +70,7 @@ export function FeedbackDialog(props: FeedbackDialogProps) {
             if (feedback.length < 8)
                 throw new Error('Your feedback is too short, could you add some more context?');
 
-            const response = await callApi('post', '/api/event/schedule/feedback', { feedback });
+            const response = await submitFeedback({ feedback });
             if (!!response.success)
                 setSuccess(true);
             else
