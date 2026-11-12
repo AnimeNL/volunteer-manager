@@ -99,7 +99,7 @@ export class DBConnection extends MariaDBConnection<'DBConnection'> {
  * Intercepts execution of queries to capture when errors occur, then logs those separately. The
  * actual queries will continue to be executed using a MariaDBQueryRunner.
  */
-class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined> {
+export class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined> {
     override onQuery(queryType: QueryType, query: string, params: any[]) {
         globalThis.animeConQueryCount ??= 0;
         globalThis.animeConQueryCount++;

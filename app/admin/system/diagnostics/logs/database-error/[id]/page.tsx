@@ -51,7 +51,17 @@ export default async function DatabaseErrorLogPage(
     if (!entry || !entry.data)
         return notFound();
 
-    const { message, query, stack, params } = JSON.parse(entry.data);
+    let message: string | undefined;
+    let query: string | undefined;
+    let stack: string | undefined;
+    let params: unknown[] | undefined;
+
+    try {
+        ({ message, query, stack, params } = JSON.parse(entry.data));
+    } catch {
+        message = 'The error details could not be parsed because the log payload was truncated.';
+        query = entry.data;
+    }
 
     return (
         <>
@@ -89,9 +99,9 @@ export default async function DatabaseErrorLogPage(
                     <>
                         <Divider />
                         <Stack>
-                            { params.map((param: string, index: number) =>
+                            { params.map((param: unknown, index: number) =>
                                 <Typography key={index}>
-                                    <strong>Param {index}</strong>: {param}
+                                    <strong>Param {index}</strong>: {String(param)}
                                 </Typography> )}
                         </Stack>
                     </> }

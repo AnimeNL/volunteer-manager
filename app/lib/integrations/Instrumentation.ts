@@ -5,7 +5,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 
 import type { IntegrationLogStatus, IntegrationLogTarget } from '@lib/database/Types';
 import { isMockConnection } from '@lib/database/Connection';
-import db, { tIntegrationsLogs } from '@lib/database';
+import db, { tIntegrationsLogs, truncateToByteLength } from '@lib/database';
 
 /**
  * Async-local storage tracking the active database `taskId` during scheduled task execution.
@@ -16,11 +16,6 @@ const kTaskContextStorage = new AsyncLocalStorage<number>();
  * Async-local storage tracking the active `userId` on whose behalf API calls are being made.
  */
 const kUserContextStorage = new AsyncLocalStorage<number>();
-
-/**
- * Maximum length of a serialized input or output payload, matching MariaDB's `TEXT` column limit.
- */
-const kMaxPayloadLength = 65535;
 
 /**
  * Runs the given `callback` with `taskId` bound in async-local storage so that any instrumented
@@ -361,15 +356,15 @@ export class Instrumentation {
     }
 
     /**
-     * Serializes an arbitrary `value` as JSON (supporting `bigint` and `Set`), truncated to
-     * `kMaxPayloadLength`. Returns `undefined` when `value` is `undefined`.
+     * Serializes an arbitrary `value` as JSON (supporting `bigint` and `Set`), truncated to fit
+     * within MariaDB's `TEXT` column byte limit. Returns `undefined` when `value` is `undefined`.
      */
     private serializeValue(value: unknown): string | undefined {
         if (value === undefined)
             return undefined;
 
         if (typeof value === 'string')
-            return value.substring(0, kMaxPayloadLength);
+            return truncateToByteLength(value);
 
         const serialized = JSON.stringify(value, (_key, entry: unknown) => {
             if (typeof entry === 'bigint')
@@ -380,7 +375,7 @@ export class Instrumentation {
             return entry;
         });
 
-        return serialized?.substring(0, kMaxPayloadLength);
+        return serialized !== undefined ? truncateToByteLength(serialized) : undefined;
     }
 
     /**
@@ -392,7 +387,8 @@ export class Instrumentation {
             return;
 
         try {
-            const cause = this.#status.exception?.cause;
+            const exception = this.#status.exception;
+            const cause = exception?.cause;
 
             const dbInstance = db;
             await dbInstance.insertInto(tIntegrationsLogs)
@@ -407,12 +403,14 @@ export class Instrumentation {
                     logOutput: this.#status.output,
                     logDurationMs: this.#status.durationMs,
                     logDurationTtfbMs: this.#status.durationTimeToFirstByteMs,
-                    logErrorName: this.#status.exception?.name,
-                    logErrorMessage: this.#status.exception?.message,
+                    logErrorName: exception ? truncateToByteLength(exception.name) : undefined,
+                    logErrorMessage:
+                        exception ? truncateToByteLength(exception.message) : undefined,
                     logErrorCause:
                         cause ? this.serializeValue(cause instanceof Error ? String(cause) : cause)
                               : undefined,
-                    logErrorStack: this.#status.exception?.stack,
+                    logErrorStack:
+                        exception?.stack ? truncateToByteLength(exception.stack) : undefined,
                 })
                 .executeInsert();
         } catch (error) {

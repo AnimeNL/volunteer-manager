@@ -1,10 +1,13 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { useMockConnection } from './Connection';
-import db, { tLogs, tHotels } from './index';
+import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
+
+import { ErrorReportingQueryRunner, useMockConnection } from './Connection';
+import db, { tHotels, tLogs } from './index';
 
 import { kLogSeverity } from '@lib/Log';
+import { kMaxTextColumnByteLength } from './index';
 
 describe('Connection', () => {
     const mockConnection = useMockConnection();
@@ -65,5 +68,42 @@ describe('Connection', () => {
         }).executeSelectOne();
 
         expect(selectResult.severity).toEqual(kLogSeverity.Warning);
+    });
+
+    it('truncates oversized database-error log payloads and avoids recursion', async () => {
+        let recordedParams: unknown[] | undefined;
+        const done = new Promise<void>(resolve => {
+            mockConnection.expect('insert', (_query, params) => {
+                recordedParams = params;
+                resolve();
+                return 1;
+            });
+        });
+
+        const failingRunner = new ErrorReportingQueryRunner(new MockQueryRunner(() => {
+            throw new Error('Data too long for column \'log_output\' at row 1');
+        }));
+
+        // Should not trigger any `mockConnection` query when `'database-error'` is in params.
+        await expect(
+            failingRunner.executeInsert('insert into logs values (?)', [ 'database-error' ])
+        ).rejects.toThrow('Data too long');
+
+        // Should truncate `log_data` to fit within MariaDB's `TEXT` byte limit.
+        await expect(
+            failingRunner.executeInsert(
+                'insert into integrations_logs (log_output) values (?)',
+                [ 'あ'.repeat(30000) ])
+        ).rejects.toThrow('Data too long');
+
+        await done;
+
+        expect(recordedParams).toBeDefined();
+        expect(recordedParams![0]).toBe('database-error');
+
+        const serializedData = recordedParams![6] as string;
+        expect(Buffer.byteLength(serializedData, 'utf8')).toBeLessThanOrEqual(
+            kMaxTextColumnByteLength);
+        expect(serializedData).not.toContain('\ufffd');
     });
 });

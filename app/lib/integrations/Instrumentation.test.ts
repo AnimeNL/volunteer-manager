@@ -104,6 +104,40 @@ describe('Instrumentation', () => {
         expect(insertedParams[6]).toHaveLength(65535);  // log_output
     });
 
+    it('truncates multi-byte UTF-8 payloads to 65,535 bytes rather than code units', async () => {
+        // 30,000 three-byte characters = 30,000 UTF-16 code units, 90,000 UTF-8 bytes.
+        fetchSpy.mockResolvedValueOnce(new Response('あ'.repeat(30000), {
+            status: 200,
+        }));
+
+        let insertedParams: any[] = [];
+        mockConnection.expect('insert', (_query, params) => {
+            insertedParams = params;
+            return 1;
+        });
+
+        const instrumentation = Instrumentation.withContext({
+            integration: 'AnimeCon',
+            operation: 'MultibytePayload',
+        });
+
+        await instrumentation.instrumentedFetch('https://example.com/api', {
+            method: 'POST',
+            body: 'é'.repeat(40000),
+        });
+
+        await instrumentation.completionPromise;
+
+        const status = instrumentation.statusForTesting;
+        expect(Buffer.byteLength(status.input!, 'utf8')).toBeLessThanOrEqual(65535);
+        expect(Buffer.byteLength(status.output!, 'utf8')).toBeLessThanOrEqual(65535);
+        expect(status.input).not.toContain('\ufffd');
+        expect(status.output).not.toContain('\ufffd');
+
+        expect(Buffer.byteLength(insertedParams[5], 'utf8')).toBeLessThanOrEqual(65535);
+        expect(Buffer.byteLength(insertedParams[6], 'utf8')).toBeLessThanOrEqual(65535);
+    });
+
     it('populates status and records to the database on a successful fetch', async () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), {
             status: 200,

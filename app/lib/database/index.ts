@@ -81,6 +81,8 @@ export const tUsers = new class extends UsersTable {
     name = this.displayName.valueWhenNull(this.firstName.concat(' ').concat(this.lastName));
 };
 
+export { kMaxTextColumnByteLength, truncateToByteLength } from './Utilities';
+
 // Export the database connection pool as the default export from this file, for convenient access
 // to the database throughout the server-side of the Volunteer Manager.
 export { globalConnection as default } from './Connection';

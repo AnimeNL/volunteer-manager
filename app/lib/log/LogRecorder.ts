@@ -5,7 +5,7 @@ import { after } from 'next/server';
 import { headers } from 'next/headers';
 
 import type { LogMessage } from './LogMessage';
-import db, { tLogs } from '@lib/database';
+import db, { tLogs, truncateToByteLength } from '@lib/database';
 
 import { kLogDifferencesSchema, kLogPayloadRecord } from './LogTypes';
 
@@ -16,13 +16,13 @@ export function RecordAfterRequestFinished(message: LogMessage): void {
     let serialisedDiff: string | undefined;
     if (!!message.diff) {
         const normalisedDiff = kLogDifferencesSchema.parse(message.diff);
-        serialisedDiff = JSON.stringify(normalisedDiff);
+        serialisedDiff = truncateToByteLength(JSON.stringify(normalisedDiff));
     }
 
     let serialisedParameters: string | undefined;
     if (!!message.parameters) {
         const normalisedParameters = kLogPayloadRecord.parse(message.parameters);
-        serialisedParameters = JSON.stringify(normalisedParameters);
+        serialisedParameters = truncateToByteLength(JSON.stringify(normalisedParameters));
     }
 
     after(async () => {
@@ -37,7 +37,8 @@ export function RecordAfterRequestFinished(message: LogMessage): void {
                 logSeverity: message.severity,
                 logSourceUserId: message.initiatorUserId,
                 logSourceIpAddress,
-                logSourceUserAgent,
+                logSourceUserAgent:
+                    logSourceUserAgent ? truncateToByteLength(logSourceUserAgent) : null,
                 logTargetUserId: message.affectedUserId,
                 logData: serialisedParameters,
                 logDiff: serialisedDiff,
@@ -52,13 +53,13 @@ export async function RecordImmediately(message: LogMessage): Promise<void> {
     let serialisedDiff: string | undefined;
     if (!!message.diff) {
         const normalisedDiff = kLogDifferencesSchema.parse(message.diff);
-        serialisedDiff = JSON.stringify(normalisedDiff);
+        serialisedDiff = truncateToByteLength(JSON.stringify(normalisedDiff));
     }
 
     let serialisedParameters: string | undefined;
     if (!!message.parameters) {
         const normalisedParameters = kLogPayloadRecord.parse(message.parameters);
-        serialisedParameters = JSON.stringify(normalisedParameters);
+        serialisedParameters = truncateToByteLength(JSON.stringify(normalisedParameters));
     }
 
     let logSourceIpAddress: string | null = null;
@@ -81,7 +82,8 @@ export async function RecordImmediately(message: LogMessage): Promise<void> {
             logSeverity: message.severity,
             logSourceUserId: message.initiatorUserId,
             logSourceIpAddress,
-            logSourceUserAgent,
+            logSourceUserAgent:
+                logSourceUserAgent ? truncateToByteLength(logSourceUserAgent) : null,
             logTargetUserId: message.affectedUserId,
             logData: serialisedParameters,
             logDiff: serialisedDiff,

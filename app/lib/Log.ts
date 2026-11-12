@@ -5,7 +5,7 @@ import { after } from 'next/server';
 import { headers } from 'next/headers';
 
 import type { User } from '@lib/auth/User';
-import db, { tErrorLogs, tLogs } from '@lib/database';
+import db, { tErrorLogs, tLogs, truncateToByteLength } from '@lib/database';
 
 import { kErrorSource, type ErrorSource } from './database/Types';
 
@@ -61,9 +61,7 @@ export const kLogType = {
     EventApplication: 'event-application',
     EventFeedbackSubmitted: 'event-feedback-submitted',
     EventHelpRequestUpdate: 'event-help-request-update',
-    EventIncidentReported: 'event-incident-reported',
     EventVolunteerNotes: 'event-volunteer-notes',
-    ExportDataAccess: 'export-data-access',
 } as const;
 
 /**
@@ -117,7 +115,7 @@ export function RecordLog(entry: LogEntry): void {
     if (targetUser)
         targetUserId = typeof targetUser === 'number' ? targetUser : targetUser.id;
 
-    const data = entry.data ? JSON.stringify(entry.data) : null;
+    const data = entry.data ? truncateToByteLength(JSON.stringify(entry.data)) : null;
     const severity = entry.severity ?? kLogSeverity.Info;
 
     after(async () => {
@@ -132,7 +130,8 @@ export function RecordLog(entry: LogEntry): void {
                 logSeverity: severity,
                 logSourceUserId: sourceUserId,
                 logSourceIpAddress,
-                logSourceUserAgent,
+                logSourceUserAgent:
+                    logSourceUserAgent ? truncateToByteLength(logSourceUserAgent) : null,
                 logTargetUserId: targetUserId,
                 logData: data,
             }).executeInsert();
@@ -155,7 +154,7 @@ export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
     if (targetUser)
         targetUserId = typeof targetUser === 'number' ? targetUser : targetUser.id;
 
-    const data = entry.data ? JSON.stringify(entry.data) : null;
+    const data = entry.data ? truncateToByteLength(JSON.stringify(entry.data)) : null;
     const severity = entry.severity ?? kLogSeverity.Info;
 
     let logSourceIpAddress: string | null = null;
@@ -178,7 +177,8 @@ export async function RecordLogImmediate(entry: LogEntry): Promise<void> {
             logSeverity: severity,
             logSourceUserId: sourceUserId,
             logSourceIpAddress,
-            logSourceUserAgent,
+            logSourceUserAgent:
+                logSourceUserAgent ? truncateToByteLength(logSourceUserAgent) : null,
             logTargetUserId: targetUserId,
             logData: data,
         }).executeInsert();
@@ -254,10 +254,11 @@ export function RecordErrorLog(entry: ErrorLogEntry): void {
                 errorUserIdConfidence: userId ? 'Certain' : 'Undefined',
                 errorIpAddress,
                 errorOrigin,
-                errorPathname: entry.requestUrl?.pathname || '',
-                errorName: entry.error.name,
-                errorMessage: entry.error.message,
-                errorStack: entry.error.stack,
+                errorPathname: truncateToByteLength(entry.requestUrl?.pathname || ''),
+                errorName: truncateToByteLength(entry.error.name),
+                errorMessage: truncateToByteLength(entry.error.message),
+                errorStack:
+                    entry.error.stack ? truncateToByteLength(entry.error.stack) : undefined,
             }).executeInsert();
     });
 }
