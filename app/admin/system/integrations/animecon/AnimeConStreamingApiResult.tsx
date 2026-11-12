@@ -26,13 +26,18 @@ const kTimeslotsYearFilter = 2024;
 const kFilterForTestResults = true;
 
 /**
+ * Callback signature for sequentially executing an operation against the `AnimeConClient`.
+ */
+export type AnimeConClientFn = <T>(fn: (client: AnimeConClient) => Promise<T>) => Promise<T>;
+
+/**
  * Props accepted by the <AnimeConStreamingApiResult> component.
  */
 interface AnimeConStreamingApiResultProps {
     /**
-     * The client through which the API can be accessed.
+     * Function through which the API client can be accessed.
      */
-    client: AnimeConClient;
+    clientFn: AnimeConClientFn;
 
     /**
      * Endpoint of the API call to issue to the AnimeCon API.
@@ -45,16 +50,16 @@ interface AnimeConStreamingApiResultProps {
  * display the API's results in an autosizing textarea.
  */
 export async function AnimeConStreamingApiResult(props: AnimeConStreamingApiResultProps) {
-    const { client, endpoint } = props;
+    const { clientFn, endpoint } = props;
 
     let stringifiedResult: string | undefined;
     try {
         let result: Activity[] | ActivityType[] | FloorApi[] | Timeslot[];
         switch (endpoint) {
             case 'activities.json':
-                result = await client.getActivities({
+                result = await clientFn(client => client.getActivities({
                     festivalId: kActivitiesFestivalIdFilter,
-                });
+                }));
 
                 if (!!kFilterForTestResults) {
                     result = result.map(activity => ({
@@ -66,15 +71,16 @@ export async function AnimeConStreamingApiResult(props: AnimeConStreamingApiResu
                 break;
 
             case 'activity-types.json':
-                result = await client.getActivityTypes();
+                result = await clientFn(client => client.getActivityTypes());
                 break;
 
             case 'floors.json':
-                result = await client.getFloors();
+                result = await clientFn(client => client.getFloors());
                 break;
 
             case 'timeslots.json':
-                result = await client.getTimeslots({ 'activity.year': kTimeslotsYearFilter });
+                result = await clientFn(
+                    client => client.getTimeslots({ 'activity.year': kTimeslotsYearFilter }));
                 break;
 
             default:

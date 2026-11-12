@@ -7,7 +7,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 
 import { AnimeConStreamingApiPlaceholder } from './AnimeConStreamingApiPlaceholder';
-import { AnimeConStreamingApiResult } from './AnimeConStreamingApiResult';
+import { AnimeConStreamingApiResult, type AnimeConClientFn } from './AnimeConStreamingApiResult';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createAnimeConClient } from '@lib/integrations/animecon';
@@ -22,6 +22,15 @@ export default async function AnimeConIntegrationPage() {
     await requireAuthentication('system.integrations');
 
     const client = await createAnimeConClient();
+
+    let queue: Promise<unknown> = Promise.resolve();
+    const clientFn: AnimeConClientFn = fn => {
+        const result = queue.then(() => fn(client));
+        queue = result.catch(() => undefined);
+
+        return result;
+    };
+
     return (
         <>
             <Section icon={ <AttractionsIcon color="primary" /> } title="AnimeCon API"
@@ -37,22 +46,23 @@ export default async function AnimeConIntegrationPage() {
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="activities.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult client={client} endpoint="activities.json" />
+                    <AnimeConStreamingApiResult clientFn={clientFn} endpoint="activities.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="activity-types.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult client={client} endpoint="activity-types.json" />
+                    <AnimeConStreamingApiResult clientFn={clientFn}
+                                                endpoint="activity-types.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="floors.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult client={client} endpoint="floors.json" />
+                    <AnimeConStreamingApiResult clientFn={clientFn} endpoint="floors.json" />
                 </Suspense>
             </Section>
             <Section icon={ <ApiIcon /> } title="API" subtitle="timeslots.json">
                 <Suspense fallback={ <AnimeConStreamingApiPlaceholder /> }>
-                    <AnimeConStreamingApiResult client={client} endpoint="timeslots.json" />
+                    <AnimeConStreamingApiResult clientFn={clientFn} endpoint="timeslots.json" />
                 </Suspense>
             </Section>
         </>
