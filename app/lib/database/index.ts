@@ -33,6 +33,7 @@ export { tHotelsBookings } from './scheme/HotelsBookingsTable';
 export { tHotelsPayments } from './scheme/HotelsPaymentsTable';
 export { tInboxEmail } from './scheme/InboxEmailTable';
 export { tInboxEmailAttachments } from './scheme/InboxEmailAttachmentsTable';
+export { tInboxThreads } from './scheme/InboxThreadsTable';
 export { tIntegrationsLogs } from './scheme/IntegrationsLogsTable';
 export { tLogs } from './scheme/LogsTable';
 export { tLogsFormat } from './scheme/LogsFormatTable';
