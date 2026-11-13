@@ -18,8 +18,15 @@ function readParentFontFaceCss(): string {
     for (const sheet of Array.from(document.styleSheets)) {
         try {
             for (const rule of Array.from(sheet.cssRules)) {
-                if (rule instanceof CSSFontFaceRule)
-                    fontRules.push(rule.cssText);
+                if (!(rule instanceof CSSFontFaceRule))
+                    continue;
+
+                const cssText = sheet.href
+                    ? rule.cssText.replace(/url\(["']?([^"')]+)["']?\)/g, (_, url: string) =>
+                        `url("${new URL(url, sheet.href!).href}")`)
+                    : rule.cssText;
+
+                fontRules.push(cssText);
             }
         } catch {
             // Cross-origin stylesheets cannot be inspected; skip them.

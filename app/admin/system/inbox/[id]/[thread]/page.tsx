@@ -245,12 +245,11 @@ export default async function EmailInboxThreadPage(
                 const showReplyTo = !!replyToFormatted && replyToEntries.some(
                     entry => entry?.address?.trim().toLowerCase() !== normalizedFromAddress);
                 const messageAttachments = attachmentsByEmailId.get(message.id) ?? [];
+                const messageSubject = message.subject || '(no subject)';
 
                 return (
-                    <Section key={message.id}
-                             icon={ <MailOutlinedIcon color="primary" /> }
-                             subtitle={ hasDistinctAddress ? message.fromAddress : undefined }
-                             title={messageSender.name}>
+                    <Section key={message.id} icon={ <MailOutlinedIcon color="primary" /> }
+                             title={messageSubject}>
                         <KeyValueList items={[
                             {
                                 key: 'Date',
