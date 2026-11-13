@@ -3,13 +3,13 @@
 
 'use server';
 
-import { forbidden, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { ImportEmailTask } from '@lib/scheduler/tasks/ImportEmailTask';
-import { canAccessInbox, invalidateInboxNavigationCache } from './InboxAccess';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateInboxNavigationCache, requireInboxAccess } from './InboxAccess';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tInboxThreads } from '@lib/database';
 
 /**
@@ -29,17 +29,11 @@ const kUpdateThreadStateData = z.object({
  * identified by `accountId`.
  */
 export async function synchronizeInbox(accountId: number, formData: unknown) {
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.inbox.eligible');
+    return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
+        const context = await requireAuthentication(
+            props.authenticationContext, 'system.inbox.eligible');
 
-        if (!Number.isSafeInteger(accountId))
-            notFound();
-
-        if (!props.authenticationContext.user ||
-                !await canAccessInbox(props.authenticationContext, accountId, 'read'))
-        {
-            forbidden();
-        }
+        await requireInboxAccess(context, accountId, 'read');
 
         const synchronized = await ImportEmailTask.synchronizeAccount(accountId);
         if (!synchronized) {
@@ -63,16 +57,13 @@ export async function updateInboxThreadState(
     accountId: number, threadId: number, formData: unknown)
 {
     return executeServerAction(formData, kUpdateThreadStateData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.inbox.eligible');
+        const context = await requireAuthentication(
+            props.authenticationContext, 'system.inbox.eligible');
 
-        if (!Number.isSafeInteger(accountId) || !Number.isSafeInteger(threadId))
+        await requireInboxAccess(context, accountId, 'create');
+
+        if (!Number.isSafeInteger(threadId))
             notFound();
-
-        if (!props.authenticationContext.user ||
-                !await canAccessInbox(props.authenticationContext, accountId, 'create'))
-        {
-            forbidden();
-        }
 
         const dbInstance = db;
         const existingThreadId = await dbInstance.selectFrom(tInboxThreads)

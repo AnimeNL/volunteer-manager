@@ -44,6 +44,11 @@ export function SynchronizeInboxAction(props: SynchronizeInboxActionProps) {
         setNotificationOpen(false);
     }, [ /* no deps */ ]);
 
+    const showNotification = useCallback((message: string, severity: 'error' | 'success') => {
+        setNotification({ message, severity });
+        setNotificationOpen(true);
+    }, [ /* no deps */ ]);
+
     const handleSynchronize = useCallback(async () => {
         setLoading(true);
         setNotificationOpen(false);
@@ -51,29 +56,17 @@ export function SynchronizeInboxAction(props: SynchronizeInboxActionProps) {
         try {
             const result = await action({ /* no arguments */ });
             if (result.success) {
-                setNotification({
-                    message: 'Messages have been synchronised.',
-                    severity: 'success',
-                });
-                setNotificationOpen(true);
+                showNotification('Messages have been synchronised.', 'success');
                 router.refresh();
             } else {
-                setNotification({
-                    message: result.error ?? 'Unable to synchronise messages.',
-                    severity: 'error',
-                });
-                setNotificationOpen(true);
+                showNotification(result.error ?? 'Unable to synchronise messages.', 'error');
             }
         } catch (error: any) {
-            setNotification({
-                message: error?.message || 'Unable to synchronise messages.',
-                severity: 'error',
-            });
-            setNotificationOpen(true);
+            showNotification(error?.message || 'Unable to synchronise messages.', 'error');
         } finally {
             setLoading(false);
         }
-    }, [ action, router ]);
+    }, [ action, router, showNotification ]);
 
     return (
         <>

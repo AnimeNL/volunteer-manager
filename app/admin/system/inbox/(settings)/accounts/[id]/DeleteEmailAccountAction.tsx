@@ -44,34 +44,25 @@ export function DeleteEmailAccountAction(props: DeleteEmailAccountActionProps) {
     const handleDialogOpen = useCallback(() => setDialogOpen(true), [ /* no deps */ ]);
     const handleDialogClose = useCallback(() => setDialogOpen(false), [ /* no deps */ ]);
 
-    if (disabled) {
-        return (
-            <Tooltip title="This account cannot be deleted">
+    return (
+        <>
+            <Tooltip title={ disabled ? 'This account cannot be deleted' : 'Delete this account…' }>
                 <TooltipIconWrapper>
-                    <IconButton disabled size="small">
-                        <DeleteIcon color="disabled" fontSize="small" />
+                    <IconButton disabled={disabled} onClick={handleDialogOpen} size="small">
+                        <DeleteIcon color={ disabled ? 'disabled' : 'error' } fontSize="small" />
                     </IconButton>
                 </TooltipIconWrapper>
             </Tooltip>
-        );
-    }
-
-    return (
-        <>
-            <Tooltip title="Delete this account…">
-                <IconButton onClick={handleDialogOpen} size="small">
-                    <DeleteIcon color="error" fontSize="small" />
-                </IconButton>
-            </Tooltip>
-            <ResponsiveConfirmationDialog
-                open={dialogOpen}
-                onClose={handleDialogClose}
-                action={action}
-                confirmLabel="Delete"
-                title="Delete this e-mail account?">
-                Are you sure you want to delete <strong>{address}</strong>? It will no longer be
-                available for sending or receiving messages.
-            </ResponsiveConfirmationDialog>
+            { !disabled &&
+                <ResponsiveConfirmationDialog
+                    open={dialogOpen}
+                    onClose={handleDialogClose}
+                    action={action}
+                    confirmLabel="Delete"
+                    title="Delete this e-mail account?">
+                    Are you sure you want to delete <strong>{address}</strong>? It will no longer be
+                    available for sending or receiving messages.
+                </ResponsiveConfirmationDialog> }
         </>
     );
 }

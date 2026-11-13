@@ -9,24 +9,20 @@ import EmailIcon from '@mui/icons-material/Email';
 import Grid from '@mui/material/Grid';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
-import Stack from '@mui/material/Stack';
 
-import { ConnectionCheckButton } from './ConnectionCheckButton';
+import { AccountQuickActions } from './AccountQuickActions';
 import { DeleteEmailAccountAction } from './DeleteEmailAccountAction';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TestMessageButton } from './TestMessageButton';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';
 
-import { kMaskedPassword } from '../EmailActions';
+import { kMaskedPassword } from '../../MaskedPassword';
 
-import { checkEmailAccountImap, checkEmailAccountSmtp, deleteEmailAccount,
-    sendEmailAccountTestMessage, updateEmailAccountImap, updateEmailAccountSmtp }
-    from '../EmailActions';
+import * as actions from '../../EmailActions';
 
 /**
  * Page that allows administrators to configure both the outgoing (SMTP) and incoming (IMAP) server
@@ -87,21 +83,24 @@ export default async function EmailAccountPage(
         imapPassword: account.hasImapPassword ? kMaskedPassword : '',
     };
 
-    const headerAction = (
-        <DeleteEmailAccountAction action={ deleteEmailAccount.bind(null, account.id) }
-                                  address={account.address} disabled={isProtected} />
-    );
-
-    const updateSmtpFn = updateEmailAccountSmtp.bind(null, account.id);
-    const updateImapFn = updateEmailAccountImap.bind(null, account.id);
-    const checkImapFn = checkEmailAccountImap.bind(null, account.id);
-    const checkSmtpFn = checkEmailAccountSmtp.bind(null, account.id);
-    const sendTestMessageFn = sendEmailAccountTestMessage.bind(null, account.id);
-
     const smtpConfigured = !!account.smtpHostname && account.hasSmtpPassword;
     const imapConfigured =
         !!account.imapHostname && !!account.imapPort && !!account.imapUsername &&
         account.hasImapPassword;
+
+    const headerAction = (
+        <DeleteEmailAccountAction action={ actions.deleteEmailAccount.bind(null, account.id) }
+                                  address={account.address} disabled={isProtected} />
+    );
+
+    const updateSmtpFn = actions.updateEmailAccountSmtp.bind(null, account.id);
+    const updateImapFn = actions.updateEmailAccountImap.bind(null, account.id);
+    const checkSmtpFn =
+        smtpConfigured ? actions.checkEmailAccountSmtp.bind(null, account.id) : undefined;
+    const checkImapFn =
+        imapConfigured ? actions.checkEmailAccountImap.bind(null, account.id) : undefined;
+    const sendTestMessageFn =
+        smtpConfigured ? actions.sendEmailAccountTestMessage.bind(null, account.id) : undefined;
 
     return (
         <>
@@ -117,7 +116,8 @@ export default async function EmailAccountPage(
                 </SectionIntroduction>
             </Section>
             <FormGridSection icon={ <OutboxOutlinedIcon /> } title="Outgoing server (SMTP)" tabs
-                             action={updateSmtpFn} defaultValues={smtpDefaultValues}>
+                             back="Back to accounts" action={updateSmtpFn}
+                             defaultValues={smtpDefaultValues}>
                 <SectionIntroduction grid>
                     Required server details used for sending outbound e-mail messages.
                 </SectionIntroduction>
@@ -164,17 +164,12 @@ export default async function EmailAccountPage(
                 </Grid>
             </FormGridSection>
             <Section noHeader>
-                <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                    <ConnectionCheckButton action={checkSmtpFn} disabled={!smtpConfigured}
-                                           protocol="SMTP" />
-                    { imapConfigured &&
-                        <ConnectionCheckButton action={checkImapFn} protocol="IMAP" /> }
-                    <TestMessageButton action={sendTestMessageFn} disabled={!smtpConfigured} />
-                </Stack>
+                <AccountQuickActions checkImapFn={checkImapFn} checkSmtpFn={checkSmtpFn}
+                                     sendTestMessageFn={sendTestMessageFn} />
             </Section>
         </>
     );
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ emailAccount: 'id' }, 'E-mail accounts', 'E-mail');
+    createGenerateMetadataFn({ emailAccount: 'id' }, 'Accounts', 'E-mail');

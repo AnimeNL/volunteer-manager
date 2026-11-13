@@ -2,11 +2,11 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { NextRequest } from 'next/server';
-import { forbidden, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
-import { canAccessInbox } from '@app/admin/system/inbox/InboxAccess';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEmailAccounts, tInboxEmail, tInboxEmailAttachments, tInboxThreads } from '@lib/database';
+import { requireInboxAccess } from '@app/admin/system/inbox/InboxAccess';
+import db, { tInboxEmail, tInboxEmailAttachments, tInboxThreads } from '@lib/database';
 
 /**
  * Serves an inbound e-mail attachment as an authenticated download for users who have read access
@@ -17,20 +17,13 @@ export async function GET(
     context: RouteContext<'/admin/system/inbox/[id]/[thread]/attachments/[attachmentId]'>)
 {
     const authContext = await requireAuthentication('system.inbox.eligible');
-
     const params = await context.params;
-    const accountId = parseInt(params.id, /* radix= */ 10);
+    const inbox = await requireInboxAccess(authContext, params.id, 'read');
+
     const threadId = parseInt(params.thread, /* radix= */ 10);
     const attachmentId = parseInt(params.attachmentId, /* radix= */ 10);
-
-    if (!Number.isSafeInteger(accountId) || !Number.isSafeInteger(threadId) ||
-            !Number.isSafeInteger(attachmentId))
-    {
+    if (!Number.isSafeInteger(threadId) || !Number.isSafeInteger(attachmentId))
         notFound();
-    }
-
-    if (!await canAccessInbox(authContext, accountId, 'read'))
-        forbidden();
 
     const attachment = await db.selectFrom(tInboxEmailAttachments)
         .innerJoin(tInboxEmail)
@@ -39,14 +32,9 @@ export async function GET(
         .innerJoin(tInboxThreads)
             .on(tInboxThreads.inboxThreadId.equals(tInboxEmail.inboxThreadId))
                 .and(tInboxThreads.threadDeleted.isNull())
-        .innerJoin(tEmailAccounts)
-            .on(tEmailAccounts.emailAccountId.equals(tInboxThreads.emailAccountId))
-                .and(tEmailAccounts.emailAccountDeleted.isNull())
-                .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
-                .and(tEmailAccounts.emailAccountImapHostname.notEquals(''))
         .where(tInboxEmailAttachments.inboxAttachmentId.equals(attachmentId))
             .and(tInboxEmail.inboxThreadId.equals(threadId))
-            .and(tInboxThreads.emailAccountId.equals(accountId))
+            .and(tInboxThreads.emailAccountId.equals(inbox.id))
             .and(tInboxEmailAttachments.attachmentData.isNotNull())
         .select({
             data: tInboxEmailAttachments.attachmentData,

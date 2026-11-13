@@ -26,12 +26,7 @@ export interface ThreadStateActionBarProps {
     action?: ServerAction;
 
     /**
-     * Whether the thread is currently marked as completed.
-     */
-    resolved: boolean;
-
-    /**
-     * Timestamp at which the thread was marked as completed, if applicable.
+     * UTC timestamp at which the thread was marked as completed, when resolved.
      */
     resolvedDate?: string;
 }
@@ -41,7 +36,8 @@ export interface ThreadStateActionBarProps {
  * allowing eligible users to mark the thread as completed or needing action.
  */
 export function ThreadStateActionBar(props: ThreadStateActionBarProps) {
-    const { action, resolved, resolvedDate } = props;
+    const { action, resolvedDate } = props;
+    const resolved = !!resolvedDate;
 
     const router = useRouter();
 
@@ -85,26 +81,20 @@ export function ThreadStateActionBar(props: ThreadStateActionBarProps) {
                 <Stack direction="row" spacing={2}
                        sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                     <Typography variant="inherit">
-                        { !resolved && 'This thread is pending a response and needs action.' }
-                        { !!resolved && !resolvedDate &&
-                            'This thread has been marked as completed.' }
-                        { !!resolved && !!resolvedDate &&
+                        { resolved ? (
                             <>
                                 This thread was marked as completed on{' '}
                                 <LocalDateTime dateTime={resolvedDate} format="YYYY-MM-DD HH:mm" />.
-                            </> }
+                            </>
+                        ) : (
+                            'This thread is pending a response and needs action.'
+                        ) }
                     </Typography>
-                    { !!action && !resolved &&
+                    { !!action &&
                         <Button color="inherit" loading={loading}
-                                onClick={() => handleToggle(true)} size="small"
+                                onClick={() => handleToggle(!resolved)} size="small"
                                 sx={{ flexShrink: 0 }}>
-                            Mark as completed
-                        </Button> }
-                    { !!action && !!resolved &&
-                        <Button color="inherit" loading={loading}
-                                onClick={() => handleToggle(false)} size="small"
-                                sx={{ flexShrink: 0 }}>
-                            Mark as needing action
+                            { resolved ? 'Mark as needing action' : 'Mark as completed' }
                         </Button> }
                 </Stack>
             </Alert>

@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden, notFound } from 'next/navigation';
+
 import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { Cache } from '@lib/cache';
 import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
@@ -41,39 +43,73 @@ export interface AccessibleInbox {
     address: string;
 
     /**
+     * UTC timestamp of the latest IMAP synchronisation, when available.
+     */
+    lastSynced?: string;
+
+    /**
      * Operations explicitly granted to the user on this inbox.
      */
-    permissions: {
-        create: boolean;
-        read: boolean;
-        delete: boolean;
-    };
+    permissions: Record<InboxOperation, boolean>;
 }
 
 /**
- * Returns whether the user represented by `context` is allowed to perform `operation` on the
- * inbound e-mail account identified by `emailAccountId`.
+ * Verifies that `accountIdParam` identifies an active inbound e-mail account (`notFound()` when
+ * missing) and that `context` is permitted to perform `operation` on it (`forbidden()` otherwise).
  */
-export async function canAccessInbox(
+export async function requireInboxAccess(
     context: UserAuthenticationContext,
-    emailAccountId: number,
-    operation: InboxOperation): Promise<boolean>
+    accountIdParam: number | string,
+    operation: InboxOperation): Promise<AccessibleInbox>
 {
     if (!context.access.can('system.inbox.eligible'))
-        return false;
+        forbidden();
 
-    const match = await db.selectFrom(tEmailAccountsPermissions)
-        .innerJoin(tEmailAccounts)
-            .on(tEmailAccounts.emailAccountId.equals(tEmailAccountsPermissions.emailAccountId))
-        .where(tEmailAccountsPermissions.userId.equals(context.user.id))
-            .and(tEmailAccountsPermissions.emailAccountId.equals(emailAccountId))
+    const accountId = typeof accountIdParam === 'number'
+        ? accountIdParam
+        : parseInt(accountIdParam, /* radix= */ 10);
+
+    if (!Number.isSafeInteger(accountId))
+        notFound();
+
+    const permissionsJoin = tEmailAccountsPermissions.forUseInLeftJoin();
+
+    const dbInstance = db;
+    const row = await dbInstance.selectFrom(tEmailAccounts)
+        .leftJoin(permissionsJoin)
+            .on(permissionsJoin.emailAccountId.equals(tEmailAccounts.emailAccountId))
+                .and(permissionsJoin.userId.equals(context.user.id))
+        .where(tEmailAccounts.emailAccountId.equals(accountId))
             .and(tEmailAccounts.emailAccountDeleted.isNull())
             .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
-            .and(kOperationColumns[operation].equals(/* true= */ 1))
-        .selectOneColumn(tEmailAccounts.emailAccountId)
+        .select({
+            id: tEmailAccounts.emailAccountId,
+            address: tEmailAccounts.emailAccountAddress,
+            lastSynced: dbInstance.dateTimeAsString(tEmailAccounts.emailAccountImapLastSynced),
+            canCreate: permissionsJoin.permissionCreate.equals(/* true= */ 1),
+            canRead: permissionsJoin.permissionRead.equals(/* true= */ 1),
+            canDelete: permissionsJoin.permissionDelete.equals(/* true= */ 1),
+        })
         .executeSelectNoneOrOne();
 
-    return !!match;
+    if (!row)
+        notFound();
+
+    const permissions: Record<InboxOperation, boolean> = {
+        create: !!row.canCreate,
+        read: !!row.canRead,
+        delete: !!row.canDelete,
+    };
+
+    if (!permissions[operation])
+        forbidden();
+
+    return {
+        id: row.id,
+        address: row.address,
+        lastSynced: row.lastSynced,
+        permissions,
+    };
 }
 
 /**
@@ -118,7 +154,7 @@ export async function queryAccessibleInboxes(
  * access to the inbound e-mail account identified by `emailAccountId`, ordered by name.
  */
 export async function queryInboxAssignees(
-    emailAccountId: number): Promise<Array<{ id: number; name: string }>>
+    emailAccountId: number): Promise<{ id: number; name: string }[]>
 {
     const eligibleUsers = await queryUsersWithPermission('system.inbox.eligible');
     if (!eligibleUsers.length)
@@ -146,10 +182,16 @@ export async function queryInboxAssignees(
 }
 
 /**
- * Invalidates cached `inbox/*` entries in `AdminNavigationMenuCache` across all users.
+ * Invalidates cached `inbox/*` entries in `AdminNavigationMenuCache`, either for a single `userId`
+ * or across all users when omitted.
  */
-export function invalidateInboxNavigationCache(): void {
+export function invalidateInboxNavigationCache(userId?: number): void {
     const cache = Cache.getInstance('AdminNavigationMenuCache');
+    if (userId !== undefined) {
+        cache.delete(`inbox/${userId}`);
+        return;
+    }
+
     for (const key of [ ...cache.params() ]) {
         if (key.startsWith('inbox/'))
             cache.delete(key);

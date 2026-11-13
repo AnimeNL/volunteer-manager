@@ -13,7 +13,7 @@ import Grid from '@mui/material/Grid';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { OutgoingCell, OutgoingHeader } from './EmailCells';
+import { OutgoingCell, OutgoingHeader } from '../../InboxCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -22,7 +22,7 @@ import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';
 
-import { createEmailAccount } from './EmailActions';
+import { createEmailAccount } from '../EmailActions';
 
 /**
  * Data source through which the configured e-mail accounts can be retrieved.
@@ -59,7 +59,7 @@ const emailAccountsDataSource = createDataSource('admin/system/inbox/accounts', 
     incomingServer: z.string().nullable(),
 
 }), {
-    async authorize(operation, props) {
+    async authorize(_operation, props) {
         executeAccessCheck(props.authenticationContext, 'system.integrations');
     },
 
@@ -204,4 +204,4 @@ export default async function EmailAccountsPage() {
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('E-mail accounts', 'E-mail');
+export const generateMetadata = createGenerateMetadataFn('Accounts', 'E-mail');

@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
@@ -11,12 +10,11 @@ import { DataTable, createDataSource, withContext, withRowModel } from '@app/adm
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SynchronizeInboxAction } from './SynchronizeInboxAction';
-import { ThreadStateCell, ThreadStateHeader } from './InboxCells';
-import { canAccessInbox, queryInboxAssignees } from '../InboxAccess';
+import { ThreadStateCell, ThreadStateHeader } from '../InboxCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { queryInboxAssignees, requireInboxAccess } from '../InboxAccess';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tEmailAccounts, tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
+import db, { tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
 
 import { synchronizeInbox } from '../InboxActions';
 
@@ -74,13 +72,10 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
 
 }), {
     async authorize(_operation, props, context) {
-        executeAccessCheck(props.authenticationContext, 'system.inbox.eligible');
+        const authContext = await requireAuthentication(
+            props.authenticationContext, 'system.inbox.eligible');
 
-        if (!props.authenticationContext.user)
-            forbidden();
-
-        if (!await canAccessInbox(props.authenticationContext, context.accountId, 'read'))
-            forbidden();
+        await requireInboxAccess(authContext, context.accountId, 'read');
     },
 
     async list(params, _props, context) {
@@ -175,15 +170,8 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
         return {
             rowCount: results.count,
             rows: results.data.map(row => ({
-                id: row.id,
-                resolved: row.resolved,
-                sender: {
-                    id: row.sender.id ?? undefined,
-                    name: row.sender.name,
-                },
-                assignee: row.assignee ?? undefined,
+                ...row,
                 subject: row.subject || '(no subject)',
-                latestDate: row.latestDate,
             })),
         };
     },
@@ -194,30 +182,8 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
  */
 export default async function EmailInboxPage(props: PageProps<'/admin/system/inbox/[id]'>) {
     const context = await requireAuthentication('system.inbox.eligible');
-
     const params = await props.params;
-
-    const accountId = parseInt(params.id, /* radix= */ 10);
-    if (!Number.isSafeInteger(accountId))
-        notFound();
-
-    const account = await db.selectFrom(tEmailAccounts)
-        .where(tEmailAccounts.emailAccountId.equals(accountId))
-            .and(tEmailAccounts.emailAccountDeleted.isNull())
-            .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
-            .and(tEmailAccounts.emailAccountImapHostname.notEquals(''))
-        .select({
-            id: tEmailAccounts.emailAccountId,
-            address: tEmailAccounts.emailAccountAddress,
-            lastSynced: db.dateTimeAsString(tEmailAccounts.emailAccountImapLastSynced),
-        })
-        .executeSelectNoneOrOne();
-
-    if (!account)
-        notFound();
-
-    if (!await canAccessInbox(context, account.id, 'read'))
-        forbidden();
+    const account = await requireInboxAccess(context, params.id, 'read');
 
     const threadLinkTemplate = `/admin/system/inbox/${account.id}/{id}`;
 

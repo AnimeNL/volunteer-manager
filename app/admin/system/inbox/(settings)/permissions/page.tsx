@@ -8,7 +8,7 @@ import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { EligibilityCell, EligibilityHeader } from './InboxPermissionCells';
+import { EligibilityCell, EligibilityHeader } from '../../InboxCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -166,11 +166,10 @@ export default async function InboxPermissionsPage() {
                         secondaryField: 'inboxLabel',
                         linkTemplate: '/admin/system/inbox/permissions/{id}',
                         startComponent: EligibilityCell,
-                    }}
-                />
+                    }} />
             </Section>
         </>
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Inbox permissions', 'E-mail');
+export const generateMetadata = createGenerateMetadataFn('Permissions', 'E-mail');

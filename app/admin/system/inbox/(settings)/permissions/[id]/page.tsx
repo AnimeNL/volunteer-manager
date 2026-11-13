@@ -31,7 +31,7 @@ import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/data
 
 import { kInboxOperations } from '../../../InboxAccess';
 
-import { updateInboxPermissions } from '../InboxPermissionActions';
+import { updateInboxPermissions } from '../../EmailActions';
 
 /**
  * Operations available for assignment on each inbound e-mail account.
@@ -70,49 +70,6 @@ const kOperationOptions = [
 ];
 
 /**
- * Props accepted by the <InboxPermissionListItem> component.
- */
-interface InboxPermissionListItemProps {
-    /**
-     * E-mail address associated with the inbox.
-     */
-    address: string;
-
-    /**
-     * Whether a divider should be rendered below this list item.
-     */
-    divider: boolean;
-
-    /**
-     * Unique ID of the e-mail account (`email_accounts.email_account_id`).
-     */
-    id: number;
-}
-
-/**
- * Renders a single inbound e-mail account row with its permission toggle buttons.
- */
-function InboxPermissionListItem(props: InboxPermissionListItemProps) {
-    const fieldName = `inbox-${props.id}`;
-
-    return (
-        <ListItem disableGutters divider={props.divider}>
-            <ListItemIcon>
-                <InboxAccountIcon name={fieldName} />
-            </ListItemIcon>
-            <ListItemText primary={props.address}
-                          slotProps={{
-                              primary: { noWrap: true, variant: 'body2' },
-                          }} />
-            <Box sx={{ ml: 2 }}>
-                <ToggleButtonGroupElement name={fieldName} options={kOperationOptions}
-                                          color="primary" size="small" />
-            </Box>
-        </ListItem>
-    );
-}
-
-/**
  * Page allowing explicit inbox permissions for an individual account to be viewed and updated.
  */
 export default async function AccountInboxPermissionsPage(
@@ -127,7 +84,6 @@ export default async function AccountInboxPermissionsPage(
         notFound();
 
     const dbInstance = db;
-
     const user = await dbInstance.selectFrom(tUsers)
         .where(tUsers.userId.equals(userId))
             .and(tUsers.anonymized.isNull())
@@ -181,7 +137,7 @@ export default async function AccountInboxPermissionsPage(
                      title={`Inbox permissions for ${user.firstName}`}
                      breadcrumbs={[
                          { label: 'E-mail' },
-                         { label: 'Inbox permissions', href: '/admin/system/inbox/permissions' },
+                         { label: 'Permissions', href: '/admin/system/inbox/permissions' },
                          { label: user.firstName },
                      ]}>
                 <SectionIntroduction>
@@ -207,12 +163,27 @@ export default async function AccountInboxPermissionsPage(
                             </Grid> }
                         <Grid size={{ xs: 12 }}>
                             <List disablePadding sx={{ my: -2 }}>
-                                { inboxes.map((inbox, index) =>
-                                    <InboxPermissionListItem
-                                        key={inbox.id}
-                                        id={inbox.id}
-                                        address={inbox.address}
-                                        divider={ index < inboxes.length - 1 } /> ) }
+                                { inboxes.map((inbox, index) => {
+                                    const fieldName = `inbox-${inbox.id}`;
+                                    return (
+                                        <ListItem key={inbox.id} disableGutters
+                                                  divider={ index < inboxes.length - 1 }>
+                                            <ListItemIcon>
+                                                <InboxAccountIcon name={fieldName} />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                                primary={inbox.address}
+                                                slotProps={{
+                                                    primary: { noWrap: true, variant: 'body2' },
+                                                }} />
+                                            <Box sx={{ ml: 2 }}>
+                                                <ToggleButtonGroupElement
+                                                    name={fieldName} options={kOperationOptions}
+                                                    color="primary" size="small" />
+                                            </Box>
+                                        </ListItem>
+                                    );
+                                }) }
                             </List>
                         </Grid>
                     </FormGrid>
@@ -223,4 +194,4 @@ export default async function AccountInboxPermissionsPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ user: 'id' }, 'Inbox permissions', 'E-mail');
+    createGenerateMetadataFn({ user: 'id' }, 'Permissions', 'E-mail');
