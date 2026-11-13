@@ -64,4 +64,4 @@ export default async function ContentEntryPage(props: PageProps<'/admin/system/c
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'Content', 'System');
+    createGenerateMetadataFn({ content: 'id' }, 'Content', 'System');

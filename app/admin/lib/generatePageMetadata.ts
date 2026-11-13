@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import { Cache, getEvent, getTeam } from '@lib/cache';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tEmailAccounts, tEnvironments, tUsers } from '@lib/database';
+import db, { tContent, tEmailAccounts, tEnvironments, tUsers } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 
@@ -23,6 +23,18 @@ const kProductName = 'AnimeCon Volunteer Manager';
  * Resolvers that obtain a human-readable entity label when required for metadata generation.
  */
 const kEntityResolvers = {
+    content: async (value: string) => {
+        const contentId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(contentId))
+            return null;
+
+        return await db.selectFrom(tContent)
+            .where(tContent.contentId.equals(contentId))
+                .and(tContent.revisionVisible.equals(/* true= */ 1))
+            .selectOneColumn(tContent.contentTitle)
+            .executeSelectNoneOrOne();
+    },
+
     emailAccount: async (value: string) => {
         const accountId = parseInt(value, /* radix= */ 10);
         if (!Number.isSafeInteger(accountId))
@@ -74,6 +86,7 @@ type EntityPathValue = {
  *
  * Special value types are:
  *
+ *   { content } - the parameter must include the content ID
  *   { emailAccount } - the parameter must include the e-mail account ID
  *   { environment } - the parameter must include the environment's domain
  *   { event } - the parameter must include the event's URL-safe slug

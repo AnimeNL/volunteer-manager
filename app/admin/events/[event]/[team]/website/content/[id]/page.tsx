@@ -89,4 +89,4 @@ export default async function EventWebsiteContentPage(
 }
 
 export const generateMetadata = createGenerateMetadataFn(
-    'Content', 'Website', { team: 'team' }, { event: 'event' });
+    { content: 'id' }, 'Content', 'Website', { team: 'team' }, { event: 'event' });

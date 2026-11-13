@@ -86,5 +86,5 @@ export default async function EventFaqEntryPage(
     );
 }
 
-export const generateMetadata =
-    createGenerateMetadataFn('Knowledge base', { team: 'team' }, { event: 'event' });
+export const generateMetadata = createGenerateMetadataFn(
+    { content: 'id' }, 'Knowledge base', { team: 'team' }, { event: 'event' });
