@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { ImportEmailTask } from './ImportEmailTask';
+import { ImportEmailTask, normalizeThreadSubject } from './ImportEmailTask';
 import { TaskContext } from '../TaskContext';
 import { useMockConnection } from '@lib/database/Connection';
 
@@ -75,13 +75,15 @@ describe('ImportEmailTask', () => {
                 {
                     uid: 11,
                     messageId: '<msg-11@example.com>',
+                    inReplyTo: '<msg-10@example.com>',
+                    references: [ '<msg-1@example.com>', '<msg-10@example.com>' ],
                     date: Temporal.Instant.from('2026-11-10T12:00:00Z'),
                     receivedDate: Temporal.Instant.from('2026-11-10T12:02:00Z'),
                     from: [ { name: 'Bob', address: 'bob@example.com' } ],
                     to: [ { address: 'volunteers@animecon.nl' } ],
                     cc: [ { name: 'CC', address: 'cc@example.com' } ],
                     replyTo: [ { address: 'reply@example.com' } ],
-                    subject: 'Unread message with oversized attachment',
+                    subject: 'Re: Historical read message',
                     flags: [],
                     text: 'New body',
                     attachments: [
@@ -97,14 +99,37 @@ describe('ImportEmailTask', () => {
 
         mockCreateImapClient.mockResolvedValueOnce({ readMessages: mockReadMessages });
 
-        // Message 1 (UID 10):
+        // Message 1 (UID 10) — no matching parent in inbox or outbox, creates new thread 701:
         mockConnection.expect('beginTransaction');
+        mockConnection.expect('selectOneColumnOneRow', (query, params) => {
+            expect(query).toContain('from users');
+            expect(params).toEqual([ 'alice@example.com' ]);
+            return 42;
+        });
+        mockConnection.expect('selectOneRow', query => {
+            expect(query).toContain('from inbox_email');
+            return undefined;
+        });
+        mockConnection.expect('selectOneColumnOneRow', query => {
+            expect(query).toContain('from outbox_email');
+            return undefined;
+        });
+        mockConnection.expect('insertReturningLastInsertedId', (query, params) => {
+            expect(query).toContain('insert into inbox_threads');
+            expect(params).toContain(3);
+            expect(params).toContain('Historical read message');
+            expect(params).toContain('alice@example.com');
+            expect(params).toContain(42);
+            return 701;
+        });
         mockConnection.expect('insertReturningLastInsertedId', (query, params) => {
             expect(query).toContain('insert ignore into inbox_email');
             expect(params).toContain(3);
+            expect(params).toContain(701);
             expect(params).toContain(9001n);
             expect(params).toContain(10);
             expect(params).toContain('alice@example.com');
+            expect(params).toContain(42);
             expect(params).toContain('2026-11-09 10:01:00'); // inbox_read populated from \Seen
             return 501;
         });
@@ -120,11 +145,24 @@ describe('ImportEmailTask', () => {
         });
         mockConnection.expect('commit');
 
-        // Message 2 (UID 11):
+        // Message 2 (UID 11) — matches existing thread 701 via In-Reply-To / References:
         mockConnection.expect('beginTransaction');
-        mockConnection.expect('insertReturningLastInsertedId', query => {
+        mockConnection.expect('selectOneColumnOneRow', () => undefined); // bob@example.com unknown
+        mockConnection.expect('selectOneRow', () => ({
+            id: 701,
+            latestDate: '2026-11-09 10:01:00',
+        }));
+        mockConnection.expect('insertReturningLastInsertedId', (query, params) => {
             expect(query).toContain('insert ignore into inbox_email');
+            expect(params).toContain(701);
+            expect(params).toContain('["<msg-1@example.com>","<msg-10@example.com>"]');
             return 502;
+        });
+        mockConnection.expect('update', (query, params) => {
+            expect(query).toContain('update inbox_threads');
+            expect(query).toContain('thread_resolved = ?');
+            expect(params).toEqual([ '2026-11-10 12:02:00', 1, null, 701 ]);
+            return 1;
         });
         mockConnection.expect('insert', (query, params) => {
             expect(query).toContain('insert into inbox_email_attachments');
@@ -291,5 +329,65 @@ describe('ImportEmailTask', () => {
         expect(context.log.entries.some(
             e => e.severity === 'Info' && e.message.includes('healthy@animecon.nl')))
             .toBe(true);
+    });
+
+    it('normalizes reply prefixes and bridges outbound outbox replies into threads', async () => {
+        expect(normalizeThreadSubject('Re: Fwd: Re[2]: Shift swap')).toBe('Shift swap');
+        expect(normalizeThreadSubject('Antw: Aw:   Hotel room  ')).toBe('Hotel room');
+        expect(normalizeThreadSubject(undefined)).toBe('');
+
+        mockConnection.expect('selectOneRow', () => ({
+            id: 5,
+            address: 'info@animecon.nl',
+            uidValidity: 10n,
+            lastUid: 20,
+        }));
+
+        mockCreateImapClient.mockResolvedValueOnce({
+            readMessages: vi.fn().mockResolvedValueOnce({
+                uidValidity: 10n,
+                uidValidityReset: false,
+                hasMore: false,
+                messages: [
+                    {
+                        uid: 21,
+                        messageId: '<reply-21@example.com>',
+                        inReplyTo: '<outbox-sent@animecon.nl>',
+                        receivedDate: Temporal.Instant.from('2026-11-12T15:00:00Z'),
+                        from: [ { name: 'Visitor', address: 'visitor@example.com' } ],
+                        to: [ { address: 'info@animecon.nl' } ],
+                        cc: [],
+                        replyTo: [],
+                        subject: 'Re: Ticket question',
+                        flags: [],
+                        attachments: [],
+                    },
+                ],
+            }),
+        });
+
+        mockConnection.expect('beginTransaction');
+        mockConnection.expect('selectOneColumnOneRow', () => undefined);
+        mockConnection.expect('selectOneRow', () => undefined); // not in inbox_email
+        mockConnection.expect('selectOneColumnOneRow', () => 88); // matched in outbox_email
+        mockConnection.expect('selectOneRow', (_query, params) => {
+            expect(params).toEqual([ 5, 'visitor@example.com', 'Ticket question', 1 ]);
+            return {
+                id: 300,
+                latestDate: '2026-11-11 10:00:00',
+            };
+        });
+        mockConnection.expect('insertReturningLastInsertedId', (_query, params) => {
+            expect(params).toContain(300);
+            return 601;
+        });
+        mockConnection.expect('update', (_query, params) => {
+            expect(params).toEqual([ '2026-11-12 15:00:00', 1, null, 300 ]);
+            return 1;
+        });
+        mockConnection.expect('update', () => 1);
+        mockConnection.expect('commit');
+
+        await expect(ImportEmailTask.synchronizeAccount(5)).resolves.toBe(true);
     });
 });

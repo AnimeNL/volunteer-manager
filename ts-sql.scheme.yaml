@@ -69,6 +69,9 @@ tables:
   - name: email_account_id
     type: int(4) unsigned
     nullable: false
+  - name: inbox_thread_id
+    type: int(8) unsigned
+    nullable: false
   - name: inbox_uid_validity
     type: bigint(20) unsigned
     nullable: false
@@ -81,6 +84,10 @@ tables:
     default: "NULL"
   - name: inbox_in_reply_to
     type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: inbox_references
+    type: text
     nullable: true
     default: "NULL"
   - name: inbox_date
@@ -156,6 +163,11 @@ tables:
     table: inbox_email
     columns:
     - inbox_message_id
+  - name: inbox_thread_id
+    def: KEY inbox_thread_id (inbox_thread_id) USING BTREE
+    table: inbox_email
+    columns:
+    - inbox_thread_id
   - name: PRIMARY
     def: PRIMARY KEY (inbox_email_id) USING BTREE
     table: inbox_email
@@ -195,6 +207,15 @@ tables:
     - inbox_from_user_id
     referencedColumns:
     - user_id
+  - name: inbox_email_thread_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (inbox_thread_id) REFERENCES inbox_threads (inbox_thread_id)
+    table: inbox_email
+    referencedTable: inbox_threads
+    columns:
+    - inbox_thread_id
+    referencedColumns:
+    - inbox_thread_id
   - name: PRIMARY
     type: PRIMARY KEY
     def: PRIMARY KEY (inbox_email_id)
@@ -205,10 +226,12 @@ tables:
     CREATE TABLE `inbox_email` (
       `inbox_email_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `email_account_id` int(4) unsigned NOT NULL,
+      `inbox_thread_id` int(8) unsigned NOT NULL,
       `inbox_uid_validity` bigint(20) unsigned NOT NULL,
       `inbox_uid` int(8) unsigned NOT NULL,
       `inbox_message_id` varchar(255) DEFAULT NULL,
       `inbox_in_reply_to` varchar(255) DEFAULT NULL,
+      `inbox_references` text DEFAULT NULL,
       `inbox_date` datetime NOT NULL,
       `inbox_received_date` datetime NOT NULL,
       `inbox_from_name` varchar(255) DEFAULT NULL,
@@ -229,8 +252,10 @@ tables:
       KEY `inbox_account_received` (`email_account_id`,`inbox_received_date`),
       KEY `inbox_message_id` (`inbox_message_id`),
       KEY `inbox_from_user_id` (`inbox_from_user_id`),
+      KEY `inbox_thread_id` (`inbox_thread_id`),
       CONSTRAINT `inbox_email_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
-      CONSTRAINT `inbox_email_from_user_id` FOREIGN KEY (`inbox_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+      CONSTRAINT `inbox_email_from_user_id` FOREIGN KEY (`inbox_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+      CONSTRAINT `inbox_email_thread_id` FOREIGN KEY (`inbox_thread_id`) REFERENCES `inbox_threads` (`inbox_thread_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: logs_format
   type: BASE TABLE
@@ -4262,6 +4287,127 @@ tables:
       KEY `outbox_to_user_id` (`outbox_to_user_id`),
       KEY `outbox_sender_user_id` (`outbox_sender_user_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: inbox_threads
+  type: BASE TABLE
+  columns:
+  - name: inbox_thread_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: email_account_id
+    type: int(4) unsigned
+    nullable: false
+  - name: thread_subject
+    type: text
+    nullable: false
+  - name: thread_from_name
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: thread_from_address
+    type: varchar(255)
+    nullable: false
+    default: "''"
+  - name: thread_from_user_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: thread_assignee_user_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: thread_resolved
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: thread_latest_date
+    type: datetime
+    nullable: false
+  - name: thread_message_count
+    type: int(4) unsigned
+    nullable: false
+    default: "1"
+  - name: thread_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: inbox_threads_account_latest
+    def: KEY inbox_threads_account_latest (email_account_id, thread_latest_date) USING BTREE
+    table: inbox_threads
+    columns:
+    - email_account_id
+    - thread_latest_date
+  - name: inbox_threads_assignee_user_id
+    def: KEY inbox_threads_assignee_user_id (thread_assignee_user_id) USING BTREE
+    table: inbox_threads
+    columns:
+    - thread_assignee_user_id
+  - name: inbox_threads_from_user_id
+    def: KEY inbox_threads_from_user_id (thread_from_user_id) USING BTREE
+    table: inbox_threads
+    columns:
+    - thread_from_user_id
+  - name: PRIMARY
+    def: PRIMARY KEY (inbox_thread_id) USING BTREE
+    table: inbox_threads
+    columns:
+    - inbox_thread_id
+  constraints:
+  - name: inbox_threads_account_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+    table: inbox_threads
+    referencedTable: email_accounts
+    columns:
+    - email_account_id
+    referencedColumns:
+    - email_account_id
+  - name: inbox_threads_assignee_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (thread_assignee_user_id) REFERENCES users (user_id)
+    table: inbox_threads
+    referencedTable: users
+    columns:
+    - thread_assignee_user_id
+    referencedColumns:
+    - user_id
+  - name: inbox_threads_from_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (thread_from_user_id) REFERENCES users (user_id)
+    table: inbox_threads
+    referencedTable: users
+    columns:
+    - thread_from_user_id
+    referencedColumns:
+    - user_id
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (inbox_thread_id)
+    table: inbox_threads
+    columns:
+    - inbox_thread_id
+  def: |-
+    CREATE TABLE `inbox_threads` (
+      `inbox_thread_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `email_account_id` int(4) unsigned NOT NULL,
+      `thread_subject` text NOT NULL,
+      `thread_from_name` varchar(255) DEFAULT NULL,
+      `thread_from_address` varchar(255) NOT NULL DEFAULT '',
+      `thread_from_user_id` int(8) unsigned DEFAULT NULL,
+      `thread_assignee_user_id` int(8) unsigned DEFAULT NULL,
+      `thread_resolved` datetime DEFAULT NULL,
+      `thread_latest_date` datetime NOT NULL,
+      `thread_message_count` int(4) unsigned NOT NULL DEFAULT 1,
+      `thread_deleted` datetime DEFAULT NULL,
+      PRIMARY KEY (`inbox_thread_id`),
+      KEY `inbox_threads_account_latest` (`email_account_id`,`thread_latest_date`),
+      KEY `inbox_threads_from_user_id` (`thread_from_user_id`),
+      KEY `inbox_threads_assignee_user_id` (`thread_assignee_user_id`),
+      CONSTRAINT `inbox_threads_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
+      CONSTRAINT `inbox_threads_assignee_user_id` FOREIGN KEY (`thread_assignee_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+      CONSTRAINT `inbox_threads_from_user_id` FOREIGN KEY (`thread_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: your_ticket_provider_tickets
   type: BASE TABLE
   columns:
@@ -5892,6 +6038,16 @@ relations:
   parentCardinality: zero_or_one
   def: FOREIGN KEY (inbox_from_user_id) REFERENCES users (user_id)
   virtual: false
+- table: inbox_email
+  columns:
+  - inbox_thread_id
+  cardinality: zero_or_more
+  parentTable: inbox_threads
+  parentColumns:
+  - inbox_thread_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (inbox_thread_id) REFERENCES inbox_threads (inbox_thread_id)
+  virtual: false
 - table: teams_roles
   columns:
   - role_id
@@ -6101,6 +6257,36 @@ relations:
   - user_id
   parentCardinality: zero_or_one
   def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+  virtual: false
+- table: inbox_threads
+  columns:
+  - email_account_id
+  cardinality: zero_or_more
+  parentTable: email_accounts
+  parentColumns:
+  - email_account_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (email_account_id) REFERENCES email_accounts (email_account_id)
+  virtual: false
+- table: inbox_threads
+  columns:
+  - thread_assignee_user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: zero_or_one
+  def: FOREIGN KEY (thread_assignee_user_id) REFERENCES users (user_id)
+  virtual: false
+- table: inbox_threads
+  columns:
+  - thread_from_user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: zero_or_one
+  def: FOREIGN KEY (thread_from_user_id) REFERENCES users (user_id)
   virtual: false
 - table: trainings
   columns:

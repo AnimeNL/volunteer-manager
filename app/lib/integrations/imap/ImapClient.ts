@@ -47,6 +47,7 @@ const kFetchQuery: FetchQueryObject = {
     internalDate: true,
     envelope: true,
     bodyStructure: true,
+    headers: [ 'references' ],
 };
 
 /**
@@ -339,11 +340,13 @@ export class ImapClient {
         const envelope = fetched.envelope;
         const receivedDate = toInstant(fetched.internalDate);
         const date = toInstant(envelope?.date) ?? receivedDate;
+        const references = parseReferencesHeader(fetched.headers);
 
         const message: ImapMessage = {
             uid: fetched.uid,
             messageId: envelope?.messageId || undefined,
             inReplyTo: envelope?.inReplyTo || undefined,
+            references: references.length ? references : undefined,
             date,
             receivedDate,
             from: normalizeAddresses(envelope?.from),
@@ -404,6 +407,37 @@ function normalizeAddresses(addresses?: MessageAddressObject[]): ImapAddress[] {
     }
 
     return normalized;
+}
+
+/**
+ * Parses an RFC 5322 `References` header block into an ordered, deduplicated list of Message-IDs.
+ */
+function parseReferencesHeader(rawHeaders?: Uint8Array): string[] {
+    if (!rawHeaders?.byteLength)
+        return [];
+
+    const unfolded = Buffer.from(rawHeaders).toString('utf8').replace(/\r?\n[ \t]+/g, ' ');
+    const references: string[] = [];
+    const seen = new Set<string>();
+
+    for (const line of unfolded.split(/\r?\n/)) {
+        const match = line.match(/^references\s*:\s*(.+)$/i);
+        if (!match)
+            continue;
+
+        const bracketed = match[1].match(/<[^>\s]+>/g);
+        const tokens = bracketed ?? match[1].split(/[\s,]+/);
+
+        for (const rawToken of tokens) {
+            const token = rawToken.trim();
+            if (token && !seen.has(token)) {
+                seen.add(token);
+                references.push(token);
+            }
+        }
+    }
+
+    return references;
 }
 
 /**

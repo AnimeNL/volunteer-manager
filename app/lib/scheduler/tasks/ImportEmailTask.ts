@@ -5,7 +5,16 @@ import type { ImapMessage } from '@lib/integrations/imap';
 import { Task } from '../Task';
 import { TaskContext } from '../TaskContext';
 import { createImapClient } from '@lib/integrations/imap';
-import db, { tEmailAccounts, tInboxEmail, tInboxEmailAttachments } from '@lib/database';
+import db, { tEmailAccounts, tInboxEmail, tInboxEmailAttachments, tInboxThreads, tOutboxEmail, tUsers } from '@lib/database';
+
+/**
+ * Strips leading reply/forward prefixes (e.g. `Re:`, `Fwd:`, `Antw:`, `Aw:`, `Sv:`) from `subject`
+ * so replies share a normalized conversation subject.
+ */
+export function normalizeThreadSubject(subject: string | undefined): string {
+    const trimmed = subject?.trim() ?? '';
+    return trimmed.replace(/^(?:(?:re|fwd?|aw|antw|sv|vs)(?:\[\d+\])?\s*:\s*)+/i, '').trim();
+}
 
 /**
  * Truncates `value` to at most `maxLength` characters when non-empty, returning `undefined`
@@ -196,8 +205,19 @@ export class ImportEmailTask extends Task {
 
         const inboxMessageId = truncate(message.messageId, 255) ?? null;
         const inboxInReplyTo = truncate(message.inReplyTo, 255) ?? null;
+        const references = (message.references ?? [])
+            .map(reference => truncate(reference, 255))
+            .filter((reference): reference is string => Boolean(reference));
+        const inboxReferences = references.length ? JSON.stringify(references) : null;
+
+        const candidateParentIds = Array.from(new Set([
+            ...(inboxInReplyTo ? [ inboxInReplyTo ] : []),
+            ...references,
+        ]));
+
         const inboxFromName = truncate(primaryFrom?.name, 255) ?? null;
         const inboxFromAddress = truncate(normalizedFromAddress, 255) ?? '';
+        const threadSubject = normalizeThreadSubject(message.subject);
 
         const dbInstance = db;
         return dbInstance.transaction(async () => {
@@ -230,17 +250,85 @@ export class ImportEmailTask extends Task {
                 }
             }
 
+            const inboxFromUserId = inboxFromAddress
+                ? await dbInstance.selectFrom(tUsers)
+                      .where(tUsers.username.equals(inboxFromAddress))
+                          .and(tUsers.anonymized.isNull())
+                      .selectOneColumn(tUsers.userId)
+                      .executeSelectNoneOrOne()
+                : null;
+
+            let existingThread: { id: number; latestDate: Temporal.ZonedDateTime } | null = null;
+            if (candidateParentIds.length > 0) {
+                existingThread = await dbInstance.selectFrom(tInboxEmail)
+                    .innerJoin(tInboxThreads)
+                        .on(tInboxThreads.inboxThreadId.equals(tInboxEmail.inboxThreadId))
+                    .where(tInboxEmail.emailAccountId.equals(account.id))
+                        .and(tInboxEmail.inboxDeleted.isNull())
+                        .and(tInboxThreads.threadDeleted.isNull())
+                        .and(tInboxEmail.inboxMessageId.in(candidateParentIds))
+                    .select({
+                        id: tInboxThreads.inboxThreadId,
+                        latestDate: tInboxThreads.threadLatestDate,
+                    })
+                    .orderBy(tInboxEmail.inboxReceivedDate, 'desc')
+                    .limit(1)
+                    .executeSelectNoneOrOne();
+
+                if (!existingThread && inboxFromAddress) {
+                    const matchedOutbox = await dbInstance.selectFrom(tOutboxEmail)
+                        .where(tOutboxEmail.outboxAccountId.equals(account.id))
+                            .and(tOutboxEmail.outboxResultMessageId.in(candidateParentIds))
+                        .selectOneColumn(tOutboxEmail.outboxEmailId)
+                        .limit(1)
+                        .executeSelectNoneOrOne();
+
+                    if (matchedOutbox) {
+                        existingThread = await dbInstance.selectFrom(tInboxThreads)
+                            .where(tInboxThreads.emailAccountId.equals(account.id))
+                                .and(tInboxThreads.threadDeleted.isNull())
+                                .and(tInboxThreads.threadFromAddress.equals(inboxFromAddress))
+                                .and(tInboxThreads.threadSubject.equals(threadSubject))
+                            .select({
+                                id: tInboxThreads.inboxThreadId,
+                                latestDate: tInboxThreads.threadLatestDate,
+                            })
+                            .orderBy(tInboxThreads.threadLatestDate, 'desc')
+                            .limit(1)
+                            .executeSelectNoneOrOne();
+                    }
+                }
+            }
+
+            const inboxThreadId = existingThread
+                ? existingThread.id
+                : await dbInstance.insertInto(tInboxThreads)
+                      .set({
+                          emailAccountId: account.id,
+                          threadSubject,
+                          threadFromName: inboxFromName,
+                          threadFromAddress: inboxFromAddress,
+                          threadFromUserId: inboxFromUserId,
+                          threadLatestDate: inboxReceivedDate,
+                          threadMessageCount: 1,
+                      })
+                      .returningLastInsertedId()
+                      .executeInsert();
+
             const inboxEmailId = await dbInstance.insertInto(tInboxEmail)
                 .set({
                     emailAccountId: account.id,
+                    inboxThreadId,
                     inboxUidValidity: uidValidity,
                     inboxUid: message.uid,
                     inboxMessageId,
                     inboxInReplyTo,
+                    inboxReferences,
                     inboxDate,
                     inboxReceivedDate,
                     inboxFromName,
                     inboxFromAddress,
+                    inboxFromUserId,
                     inboxTo: JSON.stringify(message.to),
                     inboxCc: message.cc.length ? JSON.stringify(message.cc) : null,
                     inboxReplyTo: message.replyTo.length ? JSON.stringify(message.replyTo) : null,
@@ -255,6 +343,23 @@ export class ImportEmailTask extends Task {
                 .executeInsert();
 
             if (inboxEmailId) {
+                if (existingThread) {
+                    const updatedLatestDate =
+                        Temporal.ZonedDateTime.compare(
+                            inboxReceivedDate, existingThread.latestDate) > 0
+                            ? inboxReceivedDate
+                            : existingThread.latestDate;
+
+                    await dbInstance.update(tInboxThreads)
+                        .set({
+                            threadLatestDate: updatedLatestDate,
+                            threadMessageCount: tInboxThreads.threadMessageCount.add(1),
+                            threadResolved: null,
+                        })
+                        .where(tInboxThreads.inboxThreadId.equals(existingThread.id))
+                        .executeUpdate();
+                }
+
                 for (const attachment of message.attachments) {
                     const exceedsLimit =
                         attachment.bytes.byteLength > ImportEmailTask.kMaxAttachmentSizeBytes;
@@ -283,6 +388,13 @@ export class ImportEmailTask extends Task {
                         })
                         .executeInsert();
                 }
+            } else if (!existingThread) {
+                await dbInstance.update(tInboxThreads)
+                    .set({
+                        threadDeleted: dbInstance.currentZonedDateTime(),
+                    })
+                    .where(tInboxThreads.inboxThreadId.equals(inboxThreadId))
+                    .executeUpdate();
             }
 
             await dbInstance.update(tEmailAccounts)

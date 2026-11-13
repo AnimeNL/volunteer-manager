@@ -276,6 +276,9 @@ describe('ImapClient', () => {
                     size: 4096,
                     flags: new Set([ '\\Answered' ]),
                     internalDate: new Date('2026-11-10T10:05:00Z'),
+                    headers: Buffer.from(
+                        'References: <msg-1@example.com>\r\n' +
+                        ' <msg-10@example.com> <msg-1@example.com>\r\n\r\n'),
                     envelope: {
                         date: new Date('2026-11-10T10:00:00Z'),
                         subject: 'Volunteer shift question',
@@ -355,6 +358,7 @@ describe('ImapClient', () => {
                     uid: 15,
                     messageId: '<msg-15@example.com>',
                     inReplyTo: '<msg-10@example.com>',
+                    references: [ '<msg-1@example.com>', '<msg-10@example.com>' ],
                     date: Temporal.Instant.from('2026-11-10T10:00:00Z'),
                     receivedDate: Temporal.Instant.from('2026-11-10T10:05:00Z'),
                     from: [ { name: 'Alice', address: 'alice@example.com' } ],

@@ -128,6 +128,12 @@ export interface ImapMessage {
     inReplyTo?: string;
 
     /**
+     * `References` header values listing ancestor `Message-ID`s in chronological order, when
+     * present.
+     */
+    references?: string[];
+
+    /**
      * Timestamp of the message derived from the envelope `Date` header, falling back to
      * `receivedDate` when missing or unparseable.
      */
