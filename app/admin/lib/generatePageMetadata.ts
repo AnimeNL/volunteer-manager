@@ -5,7 +5,8 @@ import type { Metadata } from 'next';
 
 import { Cache, getEvent, getTeam } from '@lib/cache';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tContent, tEmailAccounts, tEnvironments, tPermissionsRoles, tUsers } from '@lib/database';
+import db, { tActivities, tContent, tEmailAccounts, tEnvironments, tPermissionsRoles, tShifts,
+    tUsers } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kRootRole } from '@app/admin/system/permissions/Root';
@@ -24,6 +25,18 @@ const kProductName = 'AnimeCon Volunteer Manager';
  * Resolvers that obtain a human-readable entity label when required for metadata generation.
  */
 const kEntityResolvers = {
+    activity: async (value: string) => {
+        const activityId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(activityId))
+            return null;
+
+        return await db.selectFrom(tActivities)
+            .where(tActivities.activityId.equals(activityId))
+                .and(tActivities.activityDeleted.isNull())
+            .selectOneColumn(tActivities.activityTitle)
+            .executeSelectNoneOrOne();
+    },
+
     content: async (value: string) => {
         const contentId = parseInt(value, /* radix= */ 10);
         if (!Number.isSafeInteger(contentId))
@@ -76,6 +89,18 @@ const kEntityResolvers = {
             .executeSelectNoneOrOne();
     },
 
+    shift: async (value: string) => {
+        const shiftId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(shiftId))
+            return null;
+
+        return await db.selectFrom(tShifts)
+            .where(tShifts.shiftId.equals(shiftId))
+                .and(tShifts.shiftDeleted.isNull())
+            .selectOneColumn(tShifts.shiftName)
+            .executeSelectNoneOrOne();
+    },
+
     user: async (value: string) => {
         const userId = parseInt(value, /* radix= */ 10);
         if (!Number.isSafeInteger(userId))
@@ -107,6 +132,7 @@ type EntityPathValue = {
  *
  * Special value types are:
  *
+ *   { activity } - the parameter must include the program activity ID
  *   { content } - the parameter must include the content ID
  *   { emailAccount } - the parameter must include the e-mail account ID
  *   { environment } - the parameter must include the environment's domain
@@ -114,6 +140,7 @@ type EntityPathValue = {
  *   { param } - the literal value of the given parameter
  *   { prompt } - the parameter must include the AI prompt ID
  *   { role } - the parameter must include the permission role ID
+ *   { shift } - the parameter must include the shift ID
  *   { team } - the parameter must include the team's URL-safe slug
  *   { user } - the parameter must include the user ID
  */

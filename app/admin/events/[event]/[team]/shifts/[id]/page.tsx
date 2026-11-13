@@ -338,4 +338,4 @@ export default async function EventTeamShiftInformationPage(
 }
 
 export const generateMetadata = createGenerateMetadataFn(
-    'Shift details', 'Shifts', { team: 'team' }, { event: 'event' });
+    { shift: 'id' }, 'Shifts', { team: 'team' }, { event: 'event' });

@@ -284,20 +284,5 @@ export default async function ProgramActivityPage(
     );
 }
 
-export async function generateMetadata(
-    props: PageProps<'/admin/events/[event]/program/activities/[id]'>)
-{
-    let activityTitle: string | undefined;
-
-    const activityId = parseInt((await props.params).id, 10);
-    if (Number.isSafeInteger(activityId)) {
-        activityTitle = await db.selectFrom(tActivities)
-            .where(tActivities.activityId.equals(activityId))
-                .and(tActivities.activityDeleted.isNull())
-            .selectOneColumn(tActivities.activityTitle)
-            .executeSelectNoneOrOne() ?? undefined;
-    }
-
-    return createGenerateMetadataFn(
-        activityTitle ?? 'Activity', 'Activities', 'Program', { event: 'event' })(props);
-}
+export const generateMetadata = createGenerateMetadataFn(
+    { activity: 'id' }, 'Activities', 'Program', { event: 'event' });
