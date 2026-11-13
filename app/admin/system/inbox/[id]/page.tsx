@@ -174,7 +174,7 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
                     name: row.sender.name,
                 },
                 assignee: row.assignee ?? undefined,
-                subject: row.subject,
+                subject: row.subject || '(no subject)',
                 latestDate: row.latestDate,
             })),
         };
@@ -210,6 +210,8 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
 
     if (!await canAccessInbox(context, account.id, 'read'))
         forbidden();
+
+    const threadLinkTemplate = `/admin/system/inbox/${account.id}/{id}`;
 
     const columns: Column<ExtractRowModel<typeof inboxThreadsDataSource>>[] = [
         {
@@ -254,7 +256,7 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
 
             template: 'text',
             templateProps: {
-                defaultValue: '(no subject)',
+                href: threadLinkTemplate,
             },
         },
         {
@@ -302,6 +304,7 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
                         secondaryField: 'subject',
                         dateField: 'latestDate',
                         dateFieldFormat: 'YYYY-MM-DD',
+                        linkTemplate: threadLinkTemplate,
                     }} />
             </Section>
         </>
