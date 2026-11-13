@@ -260,7 +260,7 @@ export default async function IntegrationsPage() {
                              title="E-mail" icon={ <EmailIcon /> }
                              headerAction={
                                  <IconButton LinkComponent={Link} size="small"
-                                             href="/admin/system/integrations/email">
+                                             href="/admin/system/inbox/accounts">
                                      <Tooltip title="E-mail accounts...">
                                          <TooltipIconWrapper>
                                              <AllInboxIcon color="primary" fontSize="small" />

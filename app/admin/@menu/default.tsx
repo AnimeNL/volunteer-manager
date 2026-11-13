@@ -160,8 +160,8 @@ export default async function DefaultMenu() {
                 header: 'E-mail',
                 headerAction: {
                     Icon: SettingsOutlinedIcon,
-                    label: 'Inbox permissions',
-                    permission: 'system.inbox.management',
+                    label: 'E-mail settings',
+                    permission: [ 'system.inbox.management', 'system.integrations' ],
                     url: '/admin/system/inbox/permissions',
                 },
                 id: 'email',

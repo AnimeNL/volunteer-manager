@@ -33,7 +33,7 @@ import { checkEmailAccountImap, checkEmailAccountSmtp, deleteEmailAccount,
  * details of an individual e-mail account.
  */
 export default async function EmailAccountPage(
-    props: PageProps<'/admin/system/integrations/email/[id]'>)
+    props: PageProps<'/admin/system/inbox/accounts/[id]'>)
 {
     await requireAuthentication('system.integrations');
 
@@ -108,16 +108,15 @@ export default async function EmailAccountPage(
             <Section icon={ <EmailIcon color="primary" /> } title={account.address}
                      headerAction={headerAction}
                      breadcrumbs={[
-                         { label: 'System', href: '/admin/system' },
-                         { label: 'Integrations', href: '/admin/system/integrations' },
-                         { label: 'E-mail accounts', href: '/admin/system/integrations/email' },
+                         { label: 'E-mail' },
+                         { label: 'E-mail accounts', href: '/admin/system/inbox/accounts' },
                          { label: account.address },
                      ]}>
                 <SectionIntroduction>
-                    E-mail server configuration for <strong>{account.address}</strong>.
+                    Server configuration for this e-mail address.
                 </SectionIntroduction>
             </Section>
-            <FormGridSection icon={ <OutboxOutlinedIcon /> } title="Outgoing server (SMTP)"
+            <FormGridSection icon={ <OutboxOutlinedIcon /> } title="Outgoing server (SMTP)" tabs
                              action={updateSmtpFn} defaultValues={smtpDefaultValues}>
                 <SectionIntroduction grid>
                     Required server details used for sending outbound e-mail messages.
@@ -178,4 +177,4 @@ export default async function EmailAccountPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'E-mail accounts', 'Integrations', 'System');
+    createGenerateMetadataFn({ param: 'id' }, 'E-mail accounts', 'E-mail');

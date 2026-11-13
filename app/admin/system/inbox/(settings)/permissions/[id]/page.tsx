@@ -29,7 +29,7 @@ import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
-import { kInboxOperations } from '../../InboxAccess';
+import { kInboxOperations } from '../../../InboxAccess';
 
 import { updateInboxPermissions } from '../InboxPermissionActions';
 
@@ -180,7 +180,7 @@ export default async function AccountInboxPermissionsPage(
             <Section icon={ <LockPersonOutlinedIcon color="primary" /> }
                      title={`Inbox permissions for ${user.firstName}`}
                      breadcrumbs={[
-                         { label: 'Communication', href: '/admin/system/communication' },
+                         { label: 'E-mail' },
                          { label: 'Inbox permissions', href: '/admin/system/inbox/permissions' },
                          { label: user.firstName },
                      ]}>
@@ -189,7 +189,7 @@ export default async function AccountInboxPermissionsPage(
                     <InlineAccountLink user={user} />.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs back="Back to permissions" noHeader>
                 { inboxes.length === 0 ? (
                     <Alert severity="info" variant="outlined">
                         No inbound e-mail accounts have been configured yet. Configure IMAP server
@@ -223,4 +223,4 @@ export default async function AccountInboxPermissionsPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ user: 'id' }, 'Inbox permissions', 'Communication');
+    createGenerateMetadataFn({ user: 'id' }, 'Inbox permissions', 'E-mail');

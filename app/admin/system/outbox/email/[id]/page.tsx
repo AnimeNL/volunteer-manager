@@ -128,7 +128,7 @@ export default async function OutboxEmailPage(props: PageProps<'/admin/system/ou
                         condition: !!canManageEmailAccounts,
                         key: 'Account',
                         value:
-                            <MuiLink component={Link} href="/admin/system/integrations/email">
+                            <MuiLink component={Link} href="/admin/system/inbox/accounts">
                                 {message.account}
                             </MuiLink>,
                     },

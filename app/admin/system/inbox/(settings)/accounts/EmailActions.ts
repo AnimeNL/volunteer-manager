@@ -77,7 +77,7 @@ export async function createEmailAccount(formData: unknown) {
 
         return {
             success: true,
-            redirect: `/admin/system/integrations/email/${insertId}`,
+            redirect: `/admin/system/inbox/accounts/${insertId}`,
         };
     });
 }
@@ -140,7 +140,7 @@ export async function deleteEmailAccount(accountId: number, formData: unknown) {
 
         return {
             success: true,
-            redirect: '/admin/system/integrations/email',
+            redirect: '/admin/system/inbox/accounts',
         };
     });
 }

@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden, redirect } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
@@ -95,7 +96,13 @@ const dataSource = createDataSource('admin/system/inbox/permissions', withRowMod
  * Overview page listing volunteers eligible for or explicitly granted access to e-mail inboxes.
  */
 export default async function InboxPermissionsPage() {
-    await requireAuthentication('system.inbox.management');
+    const { access } = await requireAuthentication();
+    if (!access.can('system.inbox.management')) {
+        if (access.can('system.integrations'))
+            redirect('/admin/system/inbox/accounts');
+
+        forbidden();
+    }
 
     const columns: Column<ExtractRowModel<typeof dataSource>>[] = [
         {
@@ -137,17 +144,17 @@ export default async function InboxPermissionsPage() {
     return (
         <>
             <Section icon={ <LockPersonOutlinedIcon color="primary" /> }
-                     title="Inbox permissions"
+                     title="Permissions"
                      breadcrumbs={[
-                         { label: 'Communication', href: '/admin/system/communication' },
-                         { label: 'Inbox permissions' },
+                         { label: 'E-mail' },
+                         { label: 'Permissions' },
                      ]}>
                 <SectionIntroduction>
                     Any person granted the inbox eligibility permission can be given access to our
                     inboxes.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs noHeader>
                 <DataTable
                     columns={columns}
                     source={dataSource}
@@ -166,4 +173,4 @@ export default async function InboxPermissionsPage() {
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn('Inbox permissions', 'Communication');
+export const generateMetadata = createGenerateMetadataFn('Inbox permissions', 'E-mail');

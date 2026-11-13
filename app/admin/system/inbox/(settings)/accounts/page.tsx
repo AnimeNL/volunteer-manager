@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden, redirect } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { TextFieldElement } from '@proxy/react-hook-form-mui';
@@ -26,7 +27,7 @@ import { createEmailAccount } from './EmailActions';
 /**
  * Data source through which the configured e-mail accounts can be retrieved.
  */
-const emailAccountsDataSource = createDataSource('admin/system/integrations/email', withRowModel({
+const emailAccountsDataSource = createDataSource('admin/system/inbox/accounts', withRowModel({
     /**
      * Unique ID of the e-mail account.
      */
@@ -108,8 +109,14 @@ const emailAccountsDataSource = createDataSource('admin/system/integrations/emai
  * Page that allows administrators to configure and manage the e-mail accounts available in the
  * Volunteer Manager for sending outbound and receiving inbound messages.
  */
-export default async function EmailIntegrationPage() {
-    await requireAuthentication('system.integrations');
+export default async function EmailAccountsPage() {
+    const { access } = await requireAuthentication();
+    if (!access.can('system.integrations')) {
+        if (access.can('system.inbox.management'))
+            redirect('/admin/system/inbox/permissions');
+
+        forbidden();
+    }
 
     const columns: Column<ExtractRowModel<typeof emailAccountsDataSource>>[] = [
         {
@@ -134,7 +141,7 @@ export default async function EmailIntegrationPage() {
 
             template: 'text',
             templateProps: {
-                href: '/admin/system/integrations/email/{id}',
+                href: '/admin/system/inbox/accounts/{id}',
             },
         },
         {
@@ -163,18 +170,17 @@ export default async function EmailIntegrationPage() {
 
     return (
         <>
-            <Section icon={ <EmailIcon color="primary" /> } title="E-mail accounts"
+            <Section icon={ <EmailIcon color="primary" /> } title="Accounts"
                      breadcrumbs={[
-                         { label: 'System', href: '/admin/system' },
-                         { label: 'Integrations', href: '/admin/system/integrations' },
-                         { label: 'E-mail accounts' },
+                         { label: 'E-mail' },
+                         { label: 'Accounts' },
                      ]}>
                 <SectionIntroduction>
                     The Volunteer Manager supports multiple e-mail accounts for outbound and inbound
                     messaging.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader>
+            <Section tabs noHeader>
                 <DataTable
                     columns={columns} defaultSort={{ field: 'address', sort: 'asc' }}
                     source={emailAccountsDataSource}
@@ -182,7 +188,7 @@ export default async function EmailIntegrationPage() {
                     listViewProps={{
                         primaryField: 'address',
                         secondaryField: 'outgoingServer',
-                        linkTemplate: '/admin/system/integrations/email/{id}',
+                        linkTemplate: '/admin/system/inbox/accounts/{id}',
                         startComponent: OutgoingCell,
                     }} />
             </Section>
@@ -198,5 +204,4 @@ export default async function EmailIntegrationPage() {
     );
 }
 
-export const generateMetadata =
-    createGenerateMetadataFn('E-mail accounts', 'Integrations', 'System');
+export const generateMetadata = createGenerateMetadataFn('E-mail accounts', 'E-mail');
