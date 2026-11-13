@@ -37,7 +37,7 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
             '<meta charset="utf-8">',
             '<base target="_blank">',
             '<style>',
-            'html,body{margin:0;padding:12px 16px;font-family:system-ui,-apple-system,sans-serif;',
+            'html,body{margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;',
             'font-size:14px;line-height:1.5;color:#1f2937;background:#fff;overflow-wrap:anywhere;}',
             'img{max-width:100%;height:auto;}',
             'blockquote{margin:8px 0;padding-left:12px;border-left:3px solid #e5e7eb;',
