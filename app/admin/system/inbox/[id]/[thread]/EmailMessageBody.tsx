@@ -10,6 +10,26 @@ import Typography from '@mui/material/Typography';
 import { useColorScheme, useTheme } from '@mui/material/styles';
 
 /**
+ * Extracts `@font-face` declarations from same-origin stylesheets in the parent document so
+ * `next/font` web fonts (such as `Inter`) resolve inside the `srcDoc` iframe.
+ */
+function readParentFontFaceCss(): string {
+    const fontRules: string[] = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+        try {
+            for (const rule of Array.from(sheet.cssRules)) {
+                if (rule instanceof CSSFontFaceRule)
+                    fontRules.push(rule.cssText);
+            }
+        } catch {
+            // Cross-origin stylesheets cannot be inspected; skip them.
+        }
+    }
+
+    return fontRules.join('\n');
+}
+
+/**
  * Props accepted by the <EmailMessageBody> component.
  */
 export interface EmailMessageBodyProps {
@@ -48,9 +68,17 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         observerRef.current?.disconnect();
 
         const iframe = event.currentTarget;
-        const body = iframe.contentDocument?.body;
-        if (!body)
+        const iframeDoc = iframe.contentDocument;
+        const body = iframeDoc?.body;
+        if (!iframeDoc || !body)
             return;
+
+        const fontFaceCss = readParentFontFaceCss();
+        if (fontFaceCss && iframeDoc.head) {
+            const fontStyle = iframeDoc.createElement('style');
+            fontStyle.textContent = fontFaceCss;
+            iframeDoc.head.prepend(fontStyle);
+        }
 
         const syncHeight = () => {
             const height = Math.ceil(body.getBoundingClientRect().height);
@@ -58,6 +86,7 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         };
 
         syncHeight();
+        void iframeDoc.fonts?.ready.then(syncHeight);
 
         const observer = new ResizeObserver(syncHeight);
         observer.observe(body);
@@ -71,6 +100,10 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         const secondaryColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)';
         const dividerColor = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)';
 
+        const fontFamily = theme.typography.fontFamily ?? 'sans-serif';
+        const fontSize = theme.typography.body2.fontSize ?? '0.875rem';
+        const lineHeight = theme.typography.body2.lineHeight ?? 1.43;
+
         const srcDoc = [
             '<!doctype html>',
             '<html><head>',
@@ -80,7 +113,7 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
             `html{margin:0;padding:0;background:transparent;color-scheme:${colorScheme};`,
             'overflow:hidden;}',
             `body{margin:0;padding:0;display:flow-root;background:transparent;color:${textColor};`,
-            'font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;',
+            `font-family:${fontFamily};font-size:${fontSize};line-height:${lineHeight};`,
             'overflow-x:auto;overflow-wrap:anywhere;}',
             `a{color:${theme.palette.primary.main};}`,
             'img{max-width:100%;height:auto;}',

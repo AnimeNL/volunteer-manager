@@ -13,7 +13,6 @@ import Typography from '@mui/material/Typography';
 import { EmailMessageBody } from './EmailMessageBody';
 import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ThreadStateActionBar } from './ThreadStateActionBar';
@@ -247,19 +246,17 @@ export default async function EmailInboxThreadPage(
                     entry => entry?.address?.trim().toLowerCase() !== normalizedFromAddress);
                 const messageAttachments = attachmentsByEmailId.get(message.id) ?? [];
 
-                const receivedTimestamp = (
-                    <Typography color="text.secondary" sx={{ pr: 0.5 }} variant="body2">
-                        <LocalDateTime dateTime={message.receivedDate} fixedWidth
-                                       format="YYYY-MM-DD HH:mm:ss" />
-                    </Typography>
-                );
-
                 return (
-                    <Section key={message.id} headerAction={receivedTimestamp}
+                    <Section key={message.id}
                              icon={ <MailOutlinedIcon color="primary" /> }
                              subtitle={ hasDistinctAddress ? message.fromAddress : undefined }
                              title={messageSender.name}>
                         <KeyValueList items={[
+                            {
+                                key: 'Date',
+                                value: message.receivedDate,
+                                valueTemplate: 'localDateTime',
+                            },
                             {
                                 key: 'From',
                                 value: (
