@@ -3,6 +3,8 @@
 
 'use client';
 
+import { useCallback, useEffect, useRef } from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useColorScheme, useTheme } from '@mui/material/styles';
@@ -29,11 +31,38 @@ export interface EmailMessageBodyProps {
 
 /**
  * Renders the body of an inbound e-mail message. HTML bodies are isolated inside a sandboxed
- * `<iframe>` without scripts or origin access; plain-text bodies are rendered directly as fallback.
+ * `<iframe>` with scripts disabled and auto-sized to their content height; plain-text bodies are
+ * rendered directly as fallback.
  */
 export function EmailMessageBody(props: EmailMessageBodyProps) {
     const { mode, systemMode } = useColorScheme();
     const theme = useTheme();
+
+    const observerRef = useRef<ResizeObserver | null>(null);
+
+    useEffect(() => {
+        return () => observerRef.current?.disconnect();
+    }, [ /* no deps */ ]);
+
+    const handleLoad = useCallback((event: React.SyntheticEvent<HTMLIFrameElement>) => {
+        observerRef.current?.disconnect();
+
+        const iframe = event.currentTarget;
+        const body = iframe.contentDocument?.body;
+        if (!body)
+            return;
+
+        const syncHeight = () => {
+            const height = Math.ceil(body.getBoundingClientRect().height);
+            iframe.style.height = `${height}px`;
+        };
+
+        syncHeight();
+
+        const observer = new ResizeObserver(syncHeight);
+        observer.observe(body);
+        observerRef.current = observer;
+    }, [ /* no deps */ ]);
 
     if (props.html?.trim()) {
         const isDark = (mode === 'system' ? systemMode : mode) === 'dark';
@@ -48,9 +77,11 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
             '<meta charset="utf-8">',
             '<base target="_blank">',
             '<style>',
-            `html,body{margin:0;padding:0;background:transparent;color:${textColor};`,
-            `color-scheme:${colorScheme};font-family:system-ui,-apple-system,sans-serif;`,
-            'font-size:14px;line-height:1.5;overflow-wrap:anywhere;}',
+            `html{margin:0;padding:0;background:transparent;color-scheme:${colorScheme};`,
+            'overflow:hidden;}',
+            `body{margin:0;padding:0;display:flow-root;background:transparent;color:${textColor};`,
+            'font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;',
+            'overflow-x:auto;overflow-wrap:anywhere;}',
             `a{color:${theme.palette.primary.main};}`,
             'img{max-width:100%;height:auto;}',
             'blockquote{margin:8px 0;padding-left:12px;',
@@ -62,24 +93,16 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         ].join('');
 
         return (
-            <Box sx={{
-                height: 360,
-                minHeight: 160,
-                overflow: 'hidden',
-                resize: 'vertical',
-            }}>
-                <Box component="iframe" referrerPolicy="no-referrer"
-                     sandbox="allow-popups allow-popups-to-escape-sandbox"
-                     srcDoc={srcDoc} title={props.title}
-                     sx={{
-                         backgroundColor: 'transparent',
-                         border: 0,
-                         colorScheme,
-                         display: 'block',
-                         height: '100%',
-                         width: '100%',
-                     }} />
-            </Box>
+            <Box component="iframe" onLoad={handleLoad} referrerPolicy="no-referrer"
+                 sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                 srcDoc={srcDoc} title={props.title}
+                 sx={{
+                     backgroundColor: 'transparent',
+                     border: 0,
+                     colorScheme,
+                     display: 'block',
+                     width: '100%',
+                 }} />
         );
     }
 
