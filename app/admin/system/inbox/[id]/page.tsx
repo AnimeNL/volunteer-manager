@@ -123,7 +123,7 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
                 break;
         }
 
-        const results = await dbInstance.selectFrom(tInboxThreads)
+        const query = dbInstance.selectFrom(tInboxThreads)
             .leftJoin(senderUserJoin)
                 .on(senderUserJoin.userId.equals(tInboxThreads.threadFromUserId))
                     .and(senderUserJoin.anonymized.isNull())
@@ -158,7 +158,15 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
                 subject: tInboxThreads.threadSubject,
                 latestDate: dbInstance.dateTimeAsString(tInboxThreads.threadLatestDate),
             })
-            .orderBy(sortField, params.sort.direction)
+            .orderBy('resolved', sortField === 'resolved' ? params.sort.direction : 'asc');
+
+        if (sortField !== 'resolved')
+            query.orderBy(sortField, params.sort.direction);
+
+        if (sortField !== 'latestDate')
+            query.orderBy('latestDate', 'desc');
+
+        const results = await query
             .orderBy('id', 'desc')
             .limit(params.page.limit)
                 .offset(params.page.offset)
