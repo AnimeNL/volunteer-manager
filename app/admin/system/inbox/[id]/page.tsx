@@ -8,10 +8,13 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { SynchronizeInboxAction } from './SynchronizeInboxAction';
 import { canAccessInbox } from '../InboxAccess';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
+
+import { synchronizeInbox } from '../InboxActions';
 
 /**
  * Page displaying the inbox for an individual inbound e-mail account.
@@ -42,9 +45,14 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
     if (!await canAccessInbox(context, account.id, 'read'))
         forbidden();
 
+    const headerAction = (
+        <SynchronizeInboxAction action={ synchronizeInbox.bind(null, account.id) } />
+    );
+
     return (
         <>
             <Section icon={ <InboxOutlinedIcon color="primary" /> } title={account.address}
+                     headerAction={headerAction}
                      breadcrumbs={[
                          { label: 'E-mail' },
                          { label: account.address },
