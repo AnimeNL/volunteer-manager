@@ -19,7 +19,7 @@ interface InlineAccountLinkProps {
      */
     user: {
         name: string;
-        id: number;
+        id?: number;
     };
 }
 
@@ -29,7 +29,7 @@ interface InlineAccountLinkProps {
  */
 export function InlineAccountLink(props: InlineAccountLinkProps) {
     const { canAccessAccounts } = useContext(AdminClientContext);
-    if (!canAccessAccounts) {
+    if (!canAccessAccounts || !props.user.id) {
         return props.user.name;
     } else {
         return (

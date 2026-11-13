@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tEmailAccounts, tEmailAccountsPermissions } from '@lib/database';
+import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
+import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
 /**
  * Operations that can be explicitly granted on an inbound e-mail inbox.
@@ -108,5 +109,37 @@ export async function queryAccessibleInboxes(
             },
         })
         .orderBy(tEmailAccounts.emailAccountAddress, 'asc')
+        .executeSelectMany();
+}
+
+/**
+ * Queries all non-anonymized users who hold `system.inbox.eligible` and have explicit `read`
+ * access to the inbound e-mail account identified by `emailAccountId`, ordered by name.
+ */
+export async function queryInboxAssignees(
+    emailAccountId: number): Promise<Array<{ id: number; name: string }>>
+{
+    const eligibleUsers = await queryUsersWithPermission('system.inbox.eligible');
+    if (!eligibleUsers.length)
+        return [];
+
+    const eligibleUserIds = eligibleUsers.map(user => user.id);
+
+    return db.selectFrom(tEmailAccountsPermissions)
+        .innerJoin(tEmailAccounts)
+            .on(tEmailAccounts.emailAccountId.equals(tEmailAccountsPermissions.emailAccountId))
+        .innerJoin(tUsers)
+            .on(tUsers.userId.equals(tEmailAccountsPermissions.userId))
+        .where(tEmailAccountsPermissions.emailAccountId.equals(emailAccountId))
+            .and(tEmailAccountsPermissions.permissionRead.equals(/* true= */ 1))
+            .and(tEmailAccountsPermissions.userId.in(eligibleUserIds))
+            .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .and(tEmailAccounts.emailAccountImapHostname.isNotNull())
+            .and(tUsers.anonymized.isNull())
+        .select({
+            id: tUsers.userId,
+            name: tUsers.name,
+        })
+        .orderBy(tUsers.name, 'asc')
         .executeSelectMany();
 }
