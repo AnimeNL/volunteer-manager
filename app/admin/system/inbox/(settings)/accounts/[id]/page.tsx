@@ -109,7 +109,7 @@ export default async function EmailAccountPage(
                      headerAction={headerAction}
                      breadcrumbs={[
                          { label: 'E-mail' },
-                         { label: 'E-mail accounts', href: '/admin/system/inbox/accounts' },
+                         { label: 'Accounts', href: '/admin/system/inbox/accounts' },
                          { label: account.address },
                      ]}>
                 <SectionIntroduction>
