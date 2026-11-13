@@ -5,8 +5,8 @@ import type { Metadata } from 'next';
 
 import { Cache, getEvent, getTeam } from '@lib/cache';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tActivities, tContent, tEmailAccounts, tEnvironments, tPermissionsRoles, tShifts,
-    tUsers } from '@lib/database';
+import db, { tActivities, tContent, tEmailAccounts, tEnvironments, tInboxThreads,
+    tPermissionsRoles, tShifts, tUsers } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 import { kRootRole } from '@app/admin/system/permissions/Root';
@@ -67,6 +67,20 @@ const kEntityResolvers = {
                 .and(tEnvironments.environmentDeleted.isNull())
             .selectOneColumn(tEnvironments.environmentTitle)
             .executeSelectNoneOrOne();
+    },
+
+    inboxThread: async (value: string) => {
+        const threadId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(threadId))
+            return null;
+
+        const subject = await db.selectFrom(tInboxThreads)
+            .where(tInboxThreads.inboxThreadId.equals(threadId))
+                .and(tInboxThreads.threadDeleted.isNull())
+            .selectOneColumn(tInboxThreads.threadSubject)
+            .executeSelectNoneOrOne();
+
+        return subject !== null ? (subject || '(no subject)') : null;
     },
 
     prompt: async (value: string) => {
@@ -137,6 +151,7 @@ type EntityPathValue = {
  *   { emailAccount } - the parameter must include the e-mail account ID
  *   { environment } - the parameter must include the environment's domain
  *   { event } - the parameter must include the event's URL-safe slug
+ *   { inboxThread } - the parameter must include the inbound e-mail thread ID
  *   { param } - the literal value of the given parameter
  *   { prompt } - the parameter must include the AI prompt ID
  *   { role } - the parameter must include the permission role ID

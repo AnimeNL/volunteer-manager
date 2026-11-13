@@ -319,4 +319,4 @@ export default async function EmailInboxThreadPage(
 }
 
 export const generateMetadata = createGenerateMetadataFn(
-    { param: 'thread', prefix: '#' }, { emailAccount: 'id' }, 'E-mail');
+    { inboxThread: 'thread' }, { emailAccount: 'id' }, 'E-mail');
