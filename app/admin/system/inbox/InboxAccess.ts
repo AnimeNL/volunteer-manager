@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { Cache } from '@lib/cache';
 import { queryUsersWithPermission } from '@lib/auth/AccessQuery';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
@@ -142,4 +143,15 @@ export async function queryInboxAssignees(
         })
         .orderBy(tUsers.name, 'asc')
         .executeSelectMany();
+}
+
+/**
+ * Invalidates cached `inbox/*` entries in `AdminNavigationMenuCache` across all users.
+ */
+export function invalidateInboxNavigationCache(): void {
+    const cache = Cache.getInstance('AdminNavigationMenuCache');
+    for (const key of [ ...cache.params() ]) {
+        if (key.startsWith('inbox/'))
+            cache.delete(key);
+    }
 }

@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Cache } from '@lib/cache';
 import { ImportEmailTask, normalizeThreadSubject } from './ImportEmailTask';
 import { TaskContext } from '../TaskContext';
 import { useMockConnection } from '@lib/database/Connection';
@@ -388,6 +389,15 @@ describe('ImportEmailTask', () => {
         mockConnection.expect('update', () => 1);
         mockConnection.expect('commit');
 
+        const menuCache = Cache.getInstance('AdminNavigationMenuCache');
+        menuCache.set('inbox/1', [ { id: 5, address: 'info@animecon.nl', activeThreads: 0 } ]);
+        menuCache.set('inbox/2', [ { id: 5, address: 'info@animecon.nl', activeThreads: 0 } ]);
+        menuCache.set('system', { logs: 4 });
+
         await expect(ImportEmailTask.synchronizeAccount(5)).resolves.toBe(true);
+
+        expect(menuCache.has('inbox/1')).toBe(false);
+        expect(menuCache.has('inbox/2')).toBe(false);
+        expect(menuCache.has('system')).toBe(true);
     });
 });

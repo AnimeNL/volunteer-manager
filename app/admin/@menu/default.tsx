@@ -23,7 +23,7 @@ import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { queryAccessibleInboxes } from '../system/inbox/InboxAccess';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls }
+import db, { tInboxThreads, tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls }
     from '@lib/database';
 
 /**
@@ -101,14 +101,33 @@ export default async function DefaultMenu() {
         }
     }
 
-    let emailAccounts: { id: number; address: string }[] = [];
+    let emailAccounts: { id: number; address: string; activeThreads: number }[] = [];
     if (access.can('system.inbox.eligible')) {
         const cache = Cache.getInstance('AdminNavigationMenuCache');
         emailAccounts = await cache.getOrInsert(`inbox/${user.id}`, async () => {
             const inboxes = await queryAccessibleInboxes(context, 'read');
+            if (!inboxes.length)
+                return [];
+
+            const dbInstance = db;
+            const threadCounts = await dbInstance.selectFrom(tInboxThreads)
+                .where(tInboxThreads.emailAccountId.in(inboxes.map(inbox => inbox.id)))
+                    .and(tInboxThreads.threadResolved.isNull())
+                    .and(tInboxThreads.threadDeleted.isNull())
+                .select({
+                    accountId: tInboxThreads.emailAccountId,
+                    count: dbInstance.count(tInboxThreads.inboxThreadId),
+                })
+                .groupBy(tInboxThreads.emailAccountId)
+                .executeSelectMany();
+
+            const activeThreadsByAccount = new Map(
+                threadCounts.map(entry => [ entry.accountId, entry.count ]));
+
             return inboxes.map(inbox => ({
                 id: inbox.id,
                 address: inbox.address,
+                activeThreads: activeThreadsByAccount.get(inbox.id) ?? 0,
             }));
         }) ?? [];
     }
@@ -167,6 +186,10 @@ export default async function DefaultMenu() {
                 id: 'email',
                 items: emailAccounts.map((account): NavigationItem => ({
                     Icon: EmailOutlinedIcon,
+                    badge: {
+                        severity: 'warning',
+                        value: account.activeThreads,
+                    },
                     label: account.address,
                     permission: 'system.inbox.eligible',
                     url: `/admin/system/inbox/${account.id}`,

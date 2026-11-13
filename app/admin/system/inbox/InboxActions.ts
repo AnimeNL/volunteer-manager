@@ -6,9 +6,8 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { Cache } from '@lib/cache';
 import { ImportEmailTask } from '@lib/scheduler/tasks/ImportEmailTask';
-import { canAccessInbox } from './InboxAccess';
+import { canAccessInbox, invalidateInboxNavigationCache } from './InboxAccess';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tInboxThreads } from '@lib/database';
@@ -50,7 +49,7 @@ export async function synchronizeInbox(accountId: number, formData: unknown) {
             };
         }
 
-        Cache.getInstance('AdminNavigationMenuCache').delete(`inbox/${props.user.id}`);
+        invalidateInboxNavigationCache();
 
         return { success: true };
     });
@@ -94,6 +93,8 @@ export async function updateInboxThreadState(
                 .and(tInboxThreads.emailAccountId.equals(accountId))
                 .and(tInboxThreads.threadDeleted.isNull())
             .executeUpdate();
+
+        invalidateInboxNavigationCache();
 
         return { success: true, refresh: true };
     });

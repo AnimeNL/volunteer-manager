@@ -5,6 +5,7 @@ import type { ImapMessage } from '@lib/integrations/imap';
 import { Task } from '../Task';
 import { TaskContext } from '../TaskContext';
 import { createImapClient } from '@lib/integrations/imap';
+import { invalidateInboxNavigationCache } from '@app/admin/system/inbox/InboxAccess';
 import db, { tEmailAccounts, tInboxEmail, tInboxEmailAttachments, tInboxThreads, tOutboxEmail, tUsers } from '@lib/database';
 
 /**
@@ -170,6 +171,9 @@ export class ImportEmailTask extends Task {
                 importedAttachments += outcome.attachments;
             }
         }
+
+        if (importedMessages > 0)
+            invalidateInboxNavigationCache();
 
         if (result.hasMore) {
             this.log.info(
