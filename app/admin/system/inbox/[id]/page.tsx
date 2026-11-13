@@ -308,4 +308,4 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
     );
 }
 
-export const generateMetadata = createGenerateMetadataFn({ param: 'id' }, 'E-mail');
+export const generateMetadata = createGenerateMetadataFn({ emailAccount: 'id' }, 'E-mail');

@@ -177,4 +177,4 @@ export default async function EmailAccountPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'E-mail accounts', 'E-mail');
+    createGenerateMetadataFn({ emailAccount: 'id' }, 'E-mail accounts', 'E-mail');

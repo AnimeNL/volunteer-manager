@@ -3,19 +3,16 @@
 
 import type { Metadata } from 'next';
 
-import { getEvent, getTeam } from '@lib/cache';
+import { Cache, getEvent, getTeam } from '@lib/cache';
+import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import db, { tEmailAccounts, tEnvironments, tUsers } from '@lib/database';
 
-import db, { tEnvironments, tUsers } from '@lib/database';
-
-/**
- * Type that defines the fetcher for a special value, orthogonal to its data source.
- */
-type SpecialValueFetcher = (value: string) => Promise<string | undefined>;
+import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
 
 /**
- * Type that defines the sort of special values that are known to this sytem.
+ * Type that defines the resolver for an entity label, orthogonal to its data source.
  */
-type SpecialValues = 'environment' | 'user';
+type EntityResolver = (value: string) => Promise<string | null>;
 
 /**
  * Name of the product. Will be the last component in every page's title.
@@ -23,36 +20,52 @@ type SpecialValues = 'environment' | 'user';
 const kProductName = 'AnimeCon Volunteer Manager';
 
 /**
- * Cache of the values that can be loaded from the database during metadata generation.
+ * Resolvers that obtain a human-readable entity label when required for metadata generation.
  */
-const kSpecialValueCache: { [key in SpecialValues]: Map<any, string> } = {
-    environment: new Map<string, string>(),
-    user: new Map<number, string>(),
-};
+const kEntityResolvers = {
+    emailAccount: async (value: string) => {
+        const accountId = parseInt(value, /* radix= */ 10);
+        if (!Number.isSafeInteger(accountId))
+            return null;
 
-/**
- * Fetchers that can obtain a special from the database when required.
- */
-const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
+        return await db.selectFrom(tEmailAccounts)
+            .where(tEmailAccounts.emailAccountId.equals(accountId))
+                .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .selectOneColumn(tEmailAccounts.emailAccountAddress)
+            .executeSelectNoneOrOne();
+    },
+
     environment: async (value: string) => {
         return await db.selectFrom(tEnvironments)
             .where(tEnvironments.environmentDomain.equals(value))
                 .and(tEnvironments.environmentDeleted.isNull())
             .selectOneColumn(tEnvironments.environmentTitle)
-            .executeSelectNoneOrOne() ?? undefined;
+            .executeSelectNoneOrOne();
     },
 
     user: async (value: string) => {
         const userId = parseInt(value, /* radix= */ 10);
         if (!Number.isSafeInteger(userId))
-            return undefined;
+            return null;
 
         return await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(userId))
             .selectOneColumn(tUsers.name)
-            .executeSelectNoneOrOne() ?? undefined;
+            .executeSelectNoneOrOne();
     },
-};
+} satisfies Record<string, EntityResolver>;
+
+/**
+ * Set of entity types supported by `kEntityResolvers`.
+ */
+type EntityType = keyof typeof kEntityResolvers;
+
+/**
+ * Union of single-key parameter descriptors for each supported `EntityType`.
+ */
+type EntityPathValue = {
+    [K in EntityType]: { [P in K]: string };
+}[EntityType];
 
 /**
  * Value of a path component in the title that will be generated. Strings are included as-is,
@@ -61,6 +74,7 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
  *
  * Special value types are:
  *
+ *   { emailAccount } - the parameter must include the e-mail account ID
  *   { environment } - the parameter must include the environment's domain
  *   { event } - the parameter must include the event's URL-safe slug
  *   { param } - the literal value of the given parameter
@@ -68,8 +82,8 @@ const kSpecialValueFetcher: { [key in SpecialValues]: SpecialValueFetcher } = {
  *   { user } - the parameter must include the user ID
  */
 type PathValue =
-    string | { environment: string } | { event: string } | { team: string } | { user: string } |
-             { param: string, prefix?: string, suffix?: string };
+    string | EntityPathValue | { event: string } | { team: string } |
+    { param: string, prefix?: string, suffix?: string };
 
 /**
  * Creates a generateMetadata() function compatible with Next.js based on the given `path`. The path
@@ -87,13 +101,14 @@ export function createGenerateMetadataFn(...path: PathValue[]) {
 }
 
 /**
- * Composes the metadata for the current page by completing the `path` with the given `props`. When
- * values are loaded from the database, they will automatically be cached indefinitely until the
- * cache is manually pruned.
+ * Composes the metadata for the current page by completing the `path` with the given `props`.
+ * Values loaded through `kEntityResolvers` are cached in the `PageMetadata` TTL cache.
  */
 async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promise<Metadata> {
     let lazyParamsInitialised: boolean = false;
     let lazyParams!: Awaited<typeof props['params']>;
+
+    const metadataCache = Cache.getInstance('PageMetadata');
 
     const resolvedPath = [];
     for (const component of path) {
@@ -103,56 +118,52 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
         }
 
         if (!lazyParamsInitialised) {
+            const context = await getAuthenticationContext();
+            const hasAdminAccess = context.access.can('event.visible', {
+                event: kAnyEvent,
+                team: kAnyTeam,
+            });
+
+            if (!context.user || !hasAdminAccess)
+                return { title: kProductName };
+
             lazyParamsInitialised = true;
             lazyParams = await props.params;
         }
 
-        // (1) Substitute { environment: domain } with the environment's title.
-        // todo
-
-        // (2) Substitute { event: slug } with the event's short name.
         if ('event' in component) {
             const event = await getEvent(lazyParams[component.event]);
             resolvedPath.push(event?.shortName || '{event}');
+            continue;
         }
 
-        // (3) Substitute { param: name } with the param's literal value.
         if ('param' in component) {
             const value = lazyParams[component.param] || `{${component.param}}`;
-            resolvedPath.push(`${component.prefix || ''}${value}${component.suffix || ''}`)
+            resolvedPath.push(`${component.prefix || ''}${value}${component.suffix || ''}`);
+            continue;
         }
 
-        // (4) Substitute { team: slug } with the team's title.
         if ('team' in component) {
             const team = await getTeam(lazyParams[component.team]);
             resolvedPath.push(team?.name || '{team}');
+            continue;
         }
 
-        // (5) Substitute { user: id } with the user's name.
-        // todo
-
-        // -----------------------------------------------------------------------------------------
-        // TODO: Clean-up this outdated caching mechanism:
-        // -----------------------------------------------------------------------------------------
-
-        for (const [ key, fetcher ] of Object.entries(kSpecialValueFetcher)) {
-            const typedKey = key as SpecialValues;
+        for (const [ key, resolver ] of Object.entries(kEntityResolvers)) {
+            const typedKey = key as EntityType;
             if (!(typedKey in component))
                 continue;
 
-            const paramName: string = (component as any)[typedKey];
-            if (!lazyParams.hasOwnProperty(paramName))
+            const paramName = (component as Record<EntityType, string>)[typedKey];
+            if (!Object.hasOwn(lazyParams, paramName))
                 throw new Error(`The "${key}" parameter name does not exist: ${paramName}`);
 
-            const paramValue = lazyParams[paramName];
-            const specialValue =
-                kSpecialValueCache[typedKey].get(paramValue) ||
-                await fetcher(paramValue);
+            const paramValue = String(lazyParams[paramName]);
+            const resolvedValue = await metadataCache.getOrInsert(
+                { type: typedKey, id: paramValue }, () => resolver(paramValue));
 
-            if (specialValue !== undefined) {
-                kSpecialValueCache[typedKey].set(paramValue, specialValue);
-                resolvedPath.push(specialValue);
-            }
+            if (resolvedValue)
+                resolvedPath.push(resolvedValue);
         }
     }
 
@@ -162,8 +173,9 @@ async function generateMetadata(props: PageProps<any>, path: PathValue[]): Promi
 }
 
 /**
- * Clears the Special Value Cache for the given `key`.
+ * Clears cached page metadata entries for the given entity `key`, optionally narrowed to `id`.
  */
-export function clearPageMetadataCache(key: SpecialValues): void {
-    kSpecialValueCache[key].clear();
+export function clearPageMetadataCache(key: EntityType, id?: number | string): void {
+    Cache.getInstance('PageMetadata').delete(
+        id !== undefined ? { type: key, id: String(id) } : { type: key });
 }

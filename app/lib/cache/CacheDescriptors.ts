@@ -81,6 +81,14 @@ interface CacheDescriptorMap {
         };
     },
 
+    PageMetadata: {
+        Parameters: {
+            type: string;
+            id: string;
+        };
+        Contents: string;
+    };
+
     PermissionRoles: {
         Parameters: string;
         Contents: {
@@ -303,6 +311,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         name: 'ManifestLatestEvent',
         description: 'Latest visible event for use in manifest.json.',
         type: 'permanent',
+    },
+
+    PageMetadata: {
+        name: 'PageMetadata',
+        description: 'Resolved entity labels displayed in administration page titles.',
+        type: 'ttl',
+        ttl: 900,
     },
 
     PermissionRoles: {
