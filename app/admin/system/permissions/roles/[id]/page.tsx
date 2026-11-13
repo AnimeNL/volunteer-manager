@@ -79,4 +79,4 @@ export default async function RoleDetailPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'Roles', 'Permissions', 'System');
+    createGenerateMetadataFn({ role: 'id' }, 'Roles', 'Permissions', 'System');

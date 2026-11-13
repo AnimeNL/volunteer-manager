@@ -5,9 +5,10 @@ import type { Metadata } from 'next';
 
 import { Cache, getEvent, getTeam } from '@lib/cache';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import db, { tContent, tEmailAccounts, tEnvironments, tUsers } from '@lib/database';
+import db, { tContent, tEmailAccounts, tEnvironments, tPermissionsRoles, tUsers } from '@lib/database';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kRootRole } from '@app/admin/system/permissions/Root';
 
 /**
  * Type that defines the resolver for an entity label, orthogonal to its data source.
@@ -55,6 +56,26 @@ const kEntityResolvers = {
             .executeSelectNoneOrOne();
     },
 
+    prompt: async (value: string) => {
+        const prompts = await import('@lib/ai/prompts');
+        for (const PromptConstructor of Object.values(prompts)) {
+            const instance = new PromptConstructor();
+            if (instance.metadata.id === value && !('hidden' in instance.metadata))
+                return instance.metadata.label;
+        }
+        return null;
+    },
+
+    role: async (value: string) => {
+        if (value === kRootRole.id)
+            return kRootRole.name;
+
+        return await db.selectFrom(tPermissionsRoles)
+            .where(tPermissionsRoles.permissionRoleId.equals(value))
+            .selectOneColumn(tPermissionsRoles.permissionRoleName)
+            .executeSelectNoneOrOne();
+    },
+
     user: async (value: string) => {
         const userId = parseInt(value, /* radix= */ 10);
         if (!Number.isSafeInteger(userId))
@@ -91,6 +112,8 @@ type EntityPathValue = {
  *   { environment } - the parameter must include the environment's domain
  *   { event } - the parameter must include the event's URL-safe slug
  *   { param } - the literal value of the given parameter
+ *   { prompt } - the parameter must include the AI prompt ID
+ *   { role } - the parameter must include the permission role ID
  *   { team } - the parameter must include the team's URL-safe slug
  *   { user } - the parameter must include the user ID
  */

@@ -122,4 +122,4 @@ export default async function AiFeaturesPromptPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'Features', 'AI', 'System');
+    createGenerateMetadataFn({ prompt: 'id' }, 'Features', 'AI', 'System');

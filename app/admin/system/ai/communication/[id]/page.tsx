@@ -81,4 +81,4 @@ export default async function CommunicationPromptAiPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'Communication', 'AI', 'System');
+    createGenerateMetadataFn({ prompt: 'id' }, 'Communication', 'AI', 'System');
