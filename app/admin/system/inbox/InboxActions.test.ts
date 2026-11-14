@@ -187,6 +187,58 @@ describe('InboxActions - sendInboxMessage', () => {
         });
     });
 
+    it('accepts Name <email> recipients chosen from the volunteer autocomplete', async () => {
+        const smtpMock = new SmtpClientMock();
+        smtpMock.mock.reset();
+        mockCreateSmtpClient.mockResolvedValueOnce(smtpMock);
+        mockReadSetting.mockResolvedValueOnce(' (AnimeCon)');
+
+        mockConnection.expect('selectOneRow', () => ({
+            id: 3,
+            address: 'volunteers@animecon.nl',
+            canCreate: true,
+            canRead: true,
+            canDelete: false,
+        }));
+        mockConnection.expect('selectOneRow', () => ({
+            hostname: 'smtp.example.com',
+            password: 'secret',
+        }));
+        mockConnection.expect('selectOneRow', (_query, params) => {
+            expect(params).toContain('alice@example.com');
+            return { id: 42, name: 'Alice Wonderland' };
+        });
+
+        mockConnection.expect('beginTransaction');
+        mockConnection.expect('insertReturningLastInsertedId', (_query, params) => {
+            expect(params).toContain('Alice Wonderland');
+            expect(params).toContain('alice@example.com');
+            expect(params).toContain(42);
+            return 901;
+        });
+        mockConnection.expect('selectOneColumnOneRow', () => 5);
+        mockConnection.expect('insert', () => 1);
+        mockConnection.expect('commit');
+
+        const result = await sendInboxMessage(3, {
+            recipient: 'Alice Wonderland <alice@example.com>',
+            subject: 'Shift question',
+            message: 'Can you help on Friday?',
+        });
+
+        expect(result).toEqual({
+            success: true,
+            refresh: true,
+            message: 'The message has been sent.',
+        });
+
+        const [ sentMail ] = smtpMock.mock.getSentMail();
+        expect(sentMail).toMatchObject({
+            to: '"Alice Wonderland" <alice@example.com>',
+            subject: 'Shift question',
+        });
+    });
+
     it('surfaces SMTP failures without persisting to the inbox tables', async () => {
         const smtpMock = new SmtpClientMock();
         smtpMock.mock.reset();
