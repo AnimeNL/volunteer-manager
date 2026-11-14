@@ -4,6 +4,21 @@
 import { z } from 'zod/v4';
 
 /**
+ * Expected response for the /event/:guid API.
+ * @see https://docs.weeztix.com/api/dashboard/get-event-specific
+ */
+export const kGetEventResponse = z.object({
+    guid: z.string().nonempty(),
+    company_id: z.string().nonempty(),
+    name: z.string().nonempty(),
+});
+
+/**
+ * Expected response for the /event/:guid API.
+ */
+export type GetEventResponse = z.infer<typeof kGetEventResponse>;
+
+/**
  * Expected response for the /event/{type?} API.
  * @see https://docs.weeztix.com/api/dashboard/get-events
  */
@@ -20,6 +35,27 @@ export const kGetEventsResponse = z.array(z.object({
  * Expected response for the /event/{type?} API.
  */
 export type GetEventsResponse = z.infer<typeof kGetEventsResponse>;
+
+/**
+ * Expected response for the /order/:guid API. Kept permissive with `looseObject` while live API
+ * responses are inspected to determine the database model.
+ * @see https://docs.weeztix.com/api/dashboard/get-order-specific
+ */
+export const kGetOrderResponse = z.looseObject({
+    guid: z.string().nonempty(),
+    status: z.string().nullish(),
+    created_at: z.string().nullish(),
+    updated_at: z.string().nullish(),
+    tickets: z.array(z.looseObject({
+        guid: z.string().nonempty(),
+        ticket_number: z.string().nullish(),
+    })).optional(),
+});
+
+/**
+ * Expected response for the /order/:guid API.
+ */
+export type GetOrderResponse = z.infer<typeof kGetOrderResponse>;
 
 /**
  * Expected response for the /scanner/{type?} API.
@@ -52,6 +88,82 @@ export const kGetTicketTypesResponse = z.array(z.object({
  * Expected response for the /event/:guid/ticket/{type?} API.
  */
 export type GetTicketTypesResponse = z.infer<typeof kGetTicketTypesResponse>;
+
+/**
+ * Request payload for the POST /statistics/orders/:company_guid API.
+ * @see https://docs.weeztix.com/api/dashboard/get-company-orders
+ */
+export const kPostStatisticsOrdersRequest = z.object({
+    offset: z.number().int(),
+    limit: z.number().int(),
+    timeunit: z.enum([ 'year', 'month', 'week', 'day', 'hour' ]),
+    range_applies_to: z.enum([ 'created_at', 'updated_at' ]).optional(),
+    statii: z.array(z.enum([ 'swapped', 'paid', 'cancelled', 'expired', 'pending' ])).optional(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+    filters: z.string().optional(),
+    events: z.string().optional(),
+    sorting: z.string().optional(),
+    purchase_channels: z.array(
+        z.enum([ 'shop', 'import', 'guestlist', 'cashr', 'api', 'swap' ])).optional(),
+});
+
+/**
+ * Request payload for the POST /statistics/orders/:company_guid API.
+ */
+export type PostStatisticsOrdersRequest = z.infer<typeof kPostStatisticsOrdersRequest>;
+
+/**
+ * Minimal order entry returned by the POST /statistics/orders/:company_guid API.
+ */
+const kStatisticsOrderEntry = z.looseObject({
+    guid: z.string().nonempty().optional(),
+    created_at: z.string().nullish(),
+    updated_at: z.string().nullish(),
+});
+
+/**
+ * Elasticsearch hits envelope returned by Weeztix statistics endpoints.
+ */
+const kElasticsearchHitsEnvelope = z.looseObject({
+    hits: z.array(z.looseObject({
+        _id: z.string().nonempty().optional(),
+        _source: kStatisticsOrderEntry.optional(),
+    })),
+});
+
+/**
+ * Expected response for the POST /statistics/orders/:company_guid API. The Weeztix OpenAPI
+ * specification does not define a response schema ("All Orders directly from Elasticsearch"),
+ * so both raw Elasticsearch hit envelopes and flat order arrays are accepted.
+ * @see https://docs.weeztix.com/api/dashboard/get-company-orders
+ */
+export const kPostStatisticsOrdersResponse = z.union([
+    z.looseObject({
+        hits: kElasticsearchHitsEnvelope.optional(),
+        orders: z.union([
+            kElasticsearchHitsEnvelope,
+            z.array(kStatisticsOrderEntry),
+        ]).optional(),
+    }).refine(value => value.hits !== undefined || value.orders !== undefined, {
+        message: 'Expected either `hits` or `orders` in the statistics response',
+    }),
+    z.array(kStatisticsOrderEntry),
+]);
+
+/**
+ * Expected response for the POST /statistics/orders/:company_guid API.
+ */
+export type PostStatisticsOrdersResponse = z.infer<typeof kPostStatisticsOrdersResponse>;
+
+/**
+ * Normalised order summary extracted from `PostStatisticsOrdersResponse`.
+ */
+export interface StatisticsOrderSummary {
+    guid: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 /**
  * Expected response when refreshing the OAuth token.

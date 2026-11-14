@@ -203,4 +203,119 @@ describe('WeeztixClient', () => {
             operation: 'https://api.weeztix.com/event/<Id>/ticket',
         });
     });
+
+    it('retrieves event and order details with generalised instrumentation paths', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            guid: 'event-guid-123',
+            company_id: 'company-guid-456',
+            name: 'AnimeCon 2026',
+        }), { status: 200 }));
+
+        const event = await client.getEvent('event-guid-123');
+        expect(event.company_id).toBe('company-guid-456');
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/event/<Id>',
+        });
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            guid: 'order-guid-789',
+            status: 'paid',
+            finn_price: 4500,
+            tickets: [
+                {
+                    guid: 'order-ticket-1',
+                    ticket_number: '9988776655',
+                },
+            ],
+        }), { status: 200 }));
+
+        const order = await client.getOrder('order-guid-789');
+        expect(order.guid).toBe('order-guid-789');
+        expect(order.status).toBe('paid');
+        expect(order.tickets).toHaveLength(1);
+        expect((order as Record<string, unknown>).finn_price).toBe(4500);
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/order/<Id>',
+        });
+    });
+
+    it('posts order statistics queries and normalises hits in ascending order', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            hits: {
+                hits: [
+                    {
+                        _id: 'order-newer',
+                        _source: {
+                            guid: 'order-newer',
+                            updated_at: '2026-05-02T12:00:00+00:00',
+                        },
+                    },
+                    {
+                        _id: 'order-older',
+                        _source: {
+                            updated_at: '2026-05-01T12:00:00+00:00',
+                        },
+                    },
+                ],
+            },
+        }), { status: 200 }));
+
+        const orders = await client.listOrders('company-guid-456', {
+            offset: 0,
+            limit: 100,
+            timeunit: 'year',
+            range_applies_to: 'updated_at',
+            start: '2026-04-01T00:00:00+00:00',
+            end: '2026-05-03T00:00:00+00:00',
+            events: 'event-guid-123',
+        });
+
+        expect(orders).toEqual([
+            {
+                guid: 'order-older',
+                createdAt: undefined,
+                updatedAt: '2026-05-01T12:00:00+00:00',
+            },
+            {
+                guid: 'order-newer',
+                createdAt: undefined,
+                updatedAt: '2026-05-02T12:00:00+00:00',
+            },
+        ]);
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.weeztix.com/statistics/orders/company-guid-456',
+            expect.objectContaining({
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                    'Content-Type': 'application/json',
+                },
+            }));
+
+        expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+            offset: 0,
+            limit: 100,
+            timeunit: 'year',
+            range_applies_to: 'updated_at',
+            start: '2026-04-01T00:00:00+00:00',
+            end: '2026-05-03T00:00:00+00:00',
+            events: 'event-guid-123',
+        });
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/statistics/orders/<Id>',
+        });
+    });
 });

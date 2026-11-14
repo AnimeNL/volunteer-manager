@@ -10,6 +10,7 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
+import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEvents, tUsersEventsPreferencesRefunds, tYourTicketProviderPurchases } from '@lib/database';
 
@@ -359,12 +360,39 @@ export async function updateEventIntegrations(
                 };
                 break;
 
-            case 'weeztix':
+            case 'weeztix': {
+                const eventGuid = data.weeztixEventGuid?.trim() || null;
+                const scannerGuid = data.weeztixScannerGuid?.trim() || null;
+
+                let companyGuid: string | null = null;
+                if (!!eventGuid) {
+                    const existingCompanyGuid = event.integrations?.weeztixCompanyGuid ?? null;
+                    const existingEventGuid = event.integrations?.weeztixGuid ?? null;
+
+                    if (eventGuid === existingEventGuid && !!existingCompanyGuid) {
+                        companyGuid = existingCompanyGuid;
+                    } else {
+                        try {
+                            const client = await createWeeztixClient();
+                            const weeztixEvent = await client.getEvent(eventGuid);
+
+                            companyGuid = weeztixEvent.company_id;
+                        } catch {
+                            return {
+                                success: false,
+                                error: 'Unable to fetch event details from Weeztix for that GUID.',
+                            };
+                        }
+                    }
+                }
+
                 update = {
-                    eventWeeztixGuid: data.weeztixEventGuid,
-                    eventWeeztixScannerGuid: data.weeztixScannerGuid,
+                    eventWeeztixCompanyGuid: companyGuid,
+                    eventWeeztixGuid: eventGuid,
+                    eventWeeztixScannerGuid: scannerGuid,
                 };
                 break;
+            }
 
             case 'ytp':
                 update = {

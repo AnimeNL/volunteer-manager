@@ -626,6 +626,10 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: event_weeztix_company_guid
+    type: text
+    nullable: true
+    default: "NULL"
   indexes:
   - name: PRIMARY
     def: PRIMARY KEY (event_id) USING BTREE
@@ -677,6 +681,7 @@ tables:
       `event_ytp_external_event_id` text DEFAULT NULL,
       `event_weeztix_guid` text DEFAULT NULL,
       `event_weeztix_scanner_guid` text DEFAULT NULL,
+      `event_weeztix_company_guid` text DEFAULT NULL,
       PRIMARY KEY (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: nardo

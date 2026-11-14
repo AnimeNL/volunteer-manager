@@ -97,6 +97,11 @@ export interface CachedEvent {
         anPlanFestivalId?: number;
 
         /**
+         * GUID of the company that owns this event in Weeztix.
+         */
+        weeztixCompanyGuid?: string;
+
+        /**
          * GUID assigned to ticket sales for this event in Weeztix.
          */
         weeztixGuid?: string;

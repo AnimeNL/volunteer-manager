@@ -79,7 +79,7 @@ describe('WeeztixImportTask', () => {
                 WeeztixImportTask.kIntervalMaximum);
         });
 
-        it('synchronises orders for active Weeztix events and updates the interval', async () => {
+        it('synchronises orders using stored companyGuid and skips events missing it', async () => {
             task.contextForTesting.setIntervalForRepeatingTask(
                 WeeztixImportTask.kIntervalMaximum, /* force= */ true);
 
@@ -91,21 +91,22 @@ describe('WeeztixImportTask', () => {
                     slug: '2026',
                     name: 'AnimeCon 2026',
                     endTime: formatDate(soonEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
-                    eventGuid: 'event-guid-2026',
+                    context: {
+                        companyGuid: 'company-guid-1',
+                        eventGuid: 'event-guid-2026',
+                    },
                 },
                 {
                     slug: '2027',
                     name: 'AnimeCon 2027',
                     endTime: formatDate(laterEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
-                    eventGuid: 'event-guid-2027',
+                    context: {
+                        companyGuid: undefined,
+                        eventGuid: 'event-guid-2027',
+                    },
                 },
             ]);
 
-            mockGetEvent.mockResolvedValueOnce({
-                guid: 'event-guid-2026',
-                company_id: 'company-guid-1',
-                name: 'AnimeCon 2026',
-            });
             mockListOrders.mockResolvedValueOnce([
                 {
                     guid: 'order-guid-1',
@@ -118,19 +119,13 @@ describe('WeeztixImportTask', () => {
                 tickets: [],
             });
 
-            mockGetEvent.mockResolvedValueOnce({
-                guid: 'event-guid-2027',
-                company_id: 'company-guid-1',
-                name: 'AnimeCon 2027',
-            });
-            mockListOrders.mockResolvedValueOnce([]);
-
             const executePromise = task.execute();
             await vi.runAllTimersAsync();
             const result = await executePromise;
 
             expect(result).toBe(true);
-            expect(mockGetEvent).toHaveBeenCalledTimes(2);
+            expect(mockGetEvent).not.toHaveBeenCalled();
+            expect(mockListOrders).toHaveBeenCalledTimes(1);
             expect(mockListOrders).toHaveBeenCalledWith('company-guid-1', expect.objectContaining({
                 offset: 0,
                 limit: 100,
@@ -156,33 +151,18 @@ describe('WeeztixImportTask', () => {
         });
 
         it('returns false when no orders are returned by the statistics API', async () => {
-            mockGetEvent.mockResolvedValueOnce({
-                guid: 'event-guid-1',
-                company_id: 'company-guid-1',
-                name: 'AnimeCon',
-            });
             mockListOrders.mockResolvedValueOnce([]);
 
-            const result = await (task as any).importOrders('event-guid-1');
+            const result = await (task as any).importOrders('company-guid-1', 'event-guid-1');
             expect(result).toBe(false);
             expect(mockGetOrder).not.toHaveBeenCalled();
         });
 
-        it('deduplicates order GUIDs and respects maximumOrderImportsPerExecution', async () => {
-            mockGetEvent.mockResolvedValueOnce({
-                guid: 'event-guid-1',
-                company_id: 'company-guid-1',
-                name: 'AnimeCon',
-            });
-
-            const orders = [
+        it('respects maximumOrderImportsPerExecution = 1 and 12h compensation', async () => {
+            mockListOrders.mockResolvedValueOnce([
                 { guid: 'order-0', updatedAt: '2026-08-05T12:00:00+00:00' },
-                { guid: 'order-0', updatedAt: '2026-08-05T12:00:00+00:00' },
-            ];
-            for (let i = 1; i < 15; ++i)
-                orders.push({ guid: `order-${i}`, updatedAt: '2026-08-05T12:00:00+00:00' });
-
-            mockListOrders.mockResolvedValueOnce(orders);
+                { guid: 'order-1', updatedAt: '2026-08-05T12:01:00+00:00' },
+            ]);
             mockGetOrder.mockImplementation(async (guid: string) => ({
                 guid,
                 status: 'paid',
@@ -192,7 +172,8 @@ describe('WeeztixImportTask', () => {
             const mostRecentUpdate =
                 Temporal.Instant.from('2026-08-05T00:00:00Z').toZonedDateTimeISO('UTC');
 
-            const importPromise = (task as any).importOrders('event-guid-1', mostRecentUpdate);
+            const importPromise = (task as any).importOrders(
+                'company-guid-1', 'event-guid-1', mostRecentUpdate);
             await vi.runAllTimersAsync();
             const result = await importPromise;
 
@@ -202,9 +183,26 @@ describe('WeeztixImportTask', () => {
                 // 2026-08-05T00:00:00Z minus 12h race condition compensation:
                 start: '2026-08-04T12:00:00+00:00',
             }));
-            expect(mockGetOrder).toHaveBeenCalledTimes(10);
-            expect(mockGetOrder).toHaveBeenNthCalledWith(1, 'order-0');
-            expect(mockGetOrder).toHaveBeenNthCalledWith(10, 'order-9');
+            expect(mockGetOrder).toHaveBeenCalledTimes(1);
+            expect(mockGetOrder).toHaveBeenCalledWith('order-0');
+        });
+
+        it('fails fatally when an order timestamp is missing or invalid', async () => {
+            mockListOrders.mockResolvedValueOnce([
+                { guid: 'order-missing-ts' },
+            ]);
+
+            await expect((task as any).importOrders('company-guid-1', 'event-guid-1'))
+                .rejects.toThrow('missing a timestamp');
+
+            mockListOrders.mockResolvedValueOnce([
+                { guid: 'order-invalid-ts', updatedAt: 'not-a-valid-timestamp' },
+            ]);
+
+            await expect((task as any).importOrders('company-guid-1', 'event-guid-1'))
+                .rejects.toThrow();
+
+            expect(mockGetOrder).not.toHaveBeenCalled();
         });
     });
 

@@ -35,23 +35,14 @@ interface WeeztixImportTaskConfiguration {
 }
 
 /**
- * Parses an ISO 8601 timestamp returned by Weeztix into a `Temporal.Instant`, falling back to the
- * current instant when omitted or unparseable.
+ * Parses an ISO 8601 timestamp returned by Weeztix into a `Temporal.Instant`. Failures are fatal
+ * so unexpected or missing timestamps are surfaced immediately.
  */
 function parseOrderInstant(value?: string): Temporal.Instant {
-    if (value) {
-        try {
-            return Temporal.Instant.from(value);
-        } catch {
-            try {
-                return Temporal.PlainDateTime.from(value).toZonedDateTime('UTC').toInstant();
-            } catch {
-                // Fall through to current instant when the timestamp cannot be parsed.
-            }
-        }
-    }
+    if (!value)
+        throw new Error('Order summary from Weeztix is missing a timestamp');
 
-    return Temporal.Now.instant();
+    return Temporal.Instant.from(value);
 }
 
 /**
@@ -98,7 +89,7 @@ export class WeeztixImportTask extends Task {
         this.#client = await createWeeztixClient();
         this.#configuration = {
             delayBetweenOrderImportsMs: 1000,
-            maximumOrderImportsPerExecution: 10,
+            maximumOrderImportsPerExecution: 1,
             maximumOrdersConsideredPerExecution: 100,
             raceConditionCompensationHours: 12,
         };
@@ -120,7 +111,10 @@ export class WeeztixImportTask extends Task {
                 slug: tEvents.eventSlug,
                 name: tEvents.eventShortName,
                 endTime: tEvents.eventEndTime,
-                eventGuid: tEvents.eventWeeztixGuid,
+                context: {
+                    companyGuid: tEvents.eventWeeztixCompanyGuid,
+                    eventGuid: tEvents.eventWeeztixGuid,
+                },
                 // TODO: Select `mostRecentUpdate` from `weeztix_orders` once the table exists.
             })
             .orderBy(tEvents.eventEndTime, 'asc')
@@ -133,12 +127,18 @@ export class WeeztixImportTask extends Task {
         }
 
         for (const event of applicableEvents) {
-            if (!event.eventGuid)
+            if (!event.context?.eventGuid)
                 throw new Error(`Unable to update ${event.name} data without a Weeztix event GUID`);
 
             this.log.info(`Starting data import for ${event.name}`);
 
-            await this.importOrders(event.eventGuid, /* mostRecentUpdate= */ undefined);
+            if (!!event.context.companyGuid) {
+                await this.importOrders(
+                    event.context.companyGuid, event.context.eventGuid,
+                    /* mostRecentUpdate= */ undefined);
+            } else {
+                this.log.warning('[Orders] No Weeztix company GUID has been defined; skipping');
+            }
 
             // TODO: Import ticket types and revalidate `FinanceProcessor` once tables exist.
         }
@@ -151,11 +151,12 @@ export class WeeztixImportTask extends Task {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Method to import the latest orders for the given `eventGuid` that were updated after the
-     * given `mostRecentUpdate`.
+     * Method to import the latest orders for the given `eventGuid` belonging to `companyGuid` that
+     * were updated after the given `mostRecentUpdate`.
      */
-    private async importOrders(eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
-        : Promise<boolean>
+    private async importOrders(
+        companyGuid: string, eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
+            : Promise<boolean>
     {
         mostRecentUpdate ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
         mostRecentUpdate = mostRecentUpdate.subtract({
@@ -168,13 +169,10 @@ export class WeeztixImportTask extends Task {
         const end = Temporal.Now.zonedDateTimeISO('UTC').add({ minutes: 5 }).round('seconds')
             .toString({ timeZoneName: 'never' });
 
-        this.log.info('[Orders] Fetching event details from the Weeztix API');
-        const weeztixEvent = await this.#client.getEvent(eventGuid);
-
         this.log.info('[Orders] Fetching orders from the Weeztix API');
         this.log.info(`[Orders] w/ last updated = ${start}`);
 
-        const recentOrders = await this.#client.listOrders(weeztixEvent.company_id, {
+        const recentOrders = await this.#client.listOrders(companyGuid, {
             offset: 0,
             limit: this.#configuration.maximumOrdersConsideredPerExecution,
             timeunit: 'year',

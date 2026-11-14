@@ -73,6 +73,11 @@ interface WeeztixRequest {
     method: 'DELETE' | 'GET' | 'POST' | 'PUT';
 
     /**
+     * Request body that should be included with the API call.
+     */
+    body?: unknown;
+
+    /**
      * Whether this request is a retry following a (necessary) refresh of the access token.
      */
     retry?: boolean;
@@ -121,6 +126,36 @@ export class WeeztixClient {
     }
 
     /**
+     * Retrieves details for the specific event identified by `eventGuid`, including the owning
+     * company's GUID required by company-scoped statistics endpoints.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Details about the requested event.
+     */
+    async getEvent(eventGuid: string): Promise<weeztix.GetEventResponse> {
+        return this.issueRequest(weeztix.kGetEventResponse, {
+            api: `/event/${eventGuid}`,
+            operation: '/event/<Id>',
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Retrieves the full order details (including tickets, products, payments and refunds) for the
+     * order identified by `orderGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Details about the requested order.
+     */
+    async getOrder(orderGuid: string): Promise<weeztix.GetOrderResponse> {
+        return this.issueRequest(weeztix.kGetOrderResponse, {
+            api: `/order/${orderGuid}`,
+            operation: '/order/<Id>',
+            method: 'GET',
+        });
+    }
+
+    /**
      * Lists events that are accessible with the authentication token, past and future. Soft deleted
      * events will be omitted from the listing.
      *
@@ -132,6 +167,86 @@ export class WeeztixClient {
             api: '/event/normal',
             method: 'GET',
         });
+    }
+
+    /**
+     * Queries orders belonging to `companyGuid` using the Weeztix Elasticsearch statistics API.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Normalised list of matching order summaries sorted chronologically when possible.
+     */
+    async listOrders(companyGuid: string, request: weeztix.PostStatisticsOrdersRequest)
+        : Promise<weeztix.StatisticsOrderSummary[]>
+    {
+        const validatedRequest = weeztix.kPostStatisticsOrdersRequest.parse(request);
+        const response = await this.issueRequest(weeztix.kPostStatisticsOrdersResponse, {
+            api: `/statistics/orders/${companyGuid}`,
+            operation: '/statistics/orders/<Id>',
+            method: 'POST',
+            body: validatedRequest,
+        });
+
+        let rawEntries: Array<{
+            guid?: string;
+            created_at?: string | null;
+            updated_at?: string | null;
+        }>;
+
+        if (Array.isArray(response)) {
+            rawEntries = response;
+        } else if (response.hits) {
+            rawEntries = response.hits.hits.map(hit => ({
+                ...hit._source,
+                guid: hit._source?.guid ?? hit._id,
+            }));
+        } else if (Array.isArray(response.orders)) {
+            rawEntries = response.orders;
+        } else if (response.orders) {
+            rawEntries = response.orders.hits.map(hit => ({
+                ...hit._source,
+                guid: hit._source?.guid ?? hit._id,
+            }));
+        } else {
+            rawEntries = [];
+        }
+
+        const orders: weeztix.StatisticsOrderSummary[] = [];
+        for (const entry of rawEntries) {
+            if (!entry.guid)
+                continue;
+
+            orders.push({
+                guid: entry.guid,
+                createdAt: entry.created_at ?? undefined,
+                updatedAt: entry.updated_at ?? undefined,
+            });
+        }
+
+        const instantCache = new Map<string, Temporal.Instant>();
+        const resolveInstant = (order: weeztix.StatisticsOrderSummary): Temporal.Instant | null => {
+            const timestamp = order.updatedAt ?? order.createdAt;
+            if (!timestamp)
+                return null;
+
+            let instant = instantCache.get(timestamp);
+            if (!instant) {
+                instant = Temporal.Instant.from(timestamp);
+                instantCache.set(timestamp, instant);
+            }
+
+            return instant;
+        };
+
+        orders.sort((lhs, rhs) => {
+            const lhsInstant = resolveInstant(lhs);
+            const rhsInstant = resolveInstant(rhs);
+            if (!lhsInstant || !rhsInstant)
+                return 0;
+
+            return Temporal.Instant.compare(lhsInstant, rhsInstant);
+        });
+
+        return orders;
     }
 
     /**
@@ -206,11 +321,20 @@ export class WeeztixClient {
             operation,
         });
 
+        const headers: Record<string, string> = {
+            Authorization: `Bearer ${this.#settings.accessToken.token}`,
+        };
+
+        let body: string | undefined;
+        if (request.body !== undefined) {
+            body = JSON.stringify(request.body);
+            headers['Content-Type'] = 'application/json';
+        }
+
         const response = await instrumentation.instrumentedFetch(endpoint, {
             method: request.method,
-            headers: {
-                Authorization: `Bearer ${this.#settings.accessToken.token}`,
-            },
+            headers,
+            ...(body !== undefined ? { body } : {}),
         });
 
         // HTTP status codes that are not OK (i.e. not 2xx) signal that we did not get the expected
