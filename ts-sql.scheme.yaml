@@ -1873,6 +1873,10 @@ tables:
   - name: weeztix_ticket_updated
     type: datetime
     nullable: false
+  - name: weeztix_ticket_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
   indexes:
   - name: weeztix_guid
     def: UNIQUE KEY weeztix_guid (weeztix_guid, weeztix_event_guid) USING BTREE
@@ -1902,6 +1906,7 @@ tables:
       `weeztix_ticket_status` varchar(32) NOT NULL,
       `weeztix_ticket_created` datetime NOT NULL,
       `weeztix_ticket_updated` datetime NOT NULL,
+      `weeztix_ticket_deleted` datetime DEFAULT NULL,
       UNIQUE KEY `weeztix_guid` (`weeztix_guid`,`weeztix_event_guid`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: trainings_assignments

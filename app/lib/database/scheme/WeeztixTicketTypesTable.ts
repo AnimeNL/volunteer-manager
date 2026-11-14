@@ -28,6 +28,7 @@ export class WeeztixTicketTypesTable extends Table<DBConnection, 'WeeztixTicketT
     weeztixTicketStatus = this.column('weeztix_ticket_status', 'string');
     weeztixTicketCreated = this.column<Temporal.ZonedDateTime>('weeztix_ticket_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixTicketUpdated = this.column<Temporal.ZonedDateTime>('weeztix_ticket_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    weeztixTicketDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('weeztix_ticket_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
 
     constructor() {
         super('weeztix_ticket_types');

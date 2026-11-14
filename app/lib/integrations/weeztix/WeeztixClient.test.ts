@@ -184,23 +184,31 @@ describe('WeeztixClient', () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
                 guid: 'ticket-guid',
+                event_id: 'event-guid-123',
                 name: 'Weekend Ticket',
-                min_price: 50,
+                min_price: 5000,
+                available_stock: 100,
+                sold_count: 10,
+                scanned_count: 0,
+                created_at: '2026-05-01T10:00:00+00:00',
+                updated_at: '2026-05-02T10:00:00+00:00',
                 status: 'available',
+                products: [],
             },
         ]), { status: 200 }));
 
         const tickets = await client.listTicketTypes('event-guid-123');
         expect(tickets).toHaveLength(1);
 
-        expect(fetchSpy).toHaveBeenCalledWith('https://api.weeztix.com/event/event-guid-123/ticket',
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.weeztix.com/event/event-guid-123/ticket/products',
             expect.objectContaining({
                 method: 'GET',
             }));
 
         expect(withContextSpy).toHaveBeenCalledWith({
             integration: 'Weeztix',
-            operation: 'https://api.weeztix.com/event/<Id>/ticket',
+            operation: 'https://api.weeztix.com/event/<Id>/ticket/products',
         });
     });
 
@@ -246,25 +254,26 @@ describe('WeeztixClient', () => {
         });
     });
 
-    it('posts order statistics queries and normalises hits in ascending order', async () => {
+    it('posts order statistics queries and unwraps hit sources', async () => {
         const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
         const client = new WeeztixClient(createSettings(100));
 
+        const mockOrder = {
+            guid: 'order-newer',
+            status: 'paid',
+            fullname: 'Jane Doe',
+            created_at: '2026-05-01T12:00:00+00:00',
+            updated_at: '2026-05-02T12:00:00+00:00',
+            products: [],
+            tickets: [],
+        };
+
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             hits: {
+                total: 1,
                 hits: [
                     {
-                        _id: 'order-newer',
-                        _source: {
-                            guid: 'order-newer',
-                            updated_at: '2026-05-02T12:00:00+00:00',
-                        },
-                    },
-                    {
-                        _id: 'order-older',
-                        _source: {
-                            updated_at: '2026-05-01T12:00:00+00:00',
-                        },
+                        _source: mockOrder,
                     },
                 ],
             },
@@ -277,21 +286,11 @@ describe('WeeztixClient', () => {
             range_applies_to: 'updated_at',
             start: '2026-04-01T00:00:00+00:00',
             end: '2026-05-03T00:00:00+00:00',
-            events: 'event-guid-123',
+            sorting: { updated_at: 'desc' },
+            events: [ 'event-guid-123' ],
         });
 
-        expect(orders).toEqual([
-            {
-                guid: 'order-older',
-                createdAt: undefined,
-                updatedAt: '2026-05-01T12:00:00+00:00',
-            },
-            {
-                guid: 'order-newer',
-                createdAt: undefined,
-                updatedAt: '2026-05-02T12:00:00+00:00',
-            },
-        ]);
+        expect(orders).toEqual([ mockOrder ]);
 
         expect(fetchSpy).toHaveBeenCalledWith(
             'https://api.weeztix.com/statistics/orders/company-guid-456',
@@ -310,7 +309,8 @@ describe('WeeztixClient', () => {
             range_applies_to: 'updated_at',
             start: '2026-04-01T00:00:00+00:00',
             end: '2026-05-03T00:00:00+00:00',
-            events: 'event-guid-123',
+            sorting: { updated_at: 'desc' },
+            events: [ 'event-guid-123' ],
         });
 
         expect(withContextSpy).toHaveBeenCalledWith({

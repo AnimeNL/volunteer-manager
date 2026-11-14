@@ -97,6 +97,7 @@ export const kGetTicketTypesResponse = z.array(z.object({
     products: z.array(z.object({
         guid: z.string().nonempty(),
         event_id: z.string().nonempty(),
+        origin_type: z.enum([ 'product', 'ticket' ]),
         name: z.string().nonempty(),
         description: z.string().nullish(),
         price: z.number(),
