@@ -6,6 +6,7 @@ import { z } from 'zod/v4';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { ComposeEmailSection } from '../ComposeEmailSection';
 import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -16,7 +17,7 @@ import { queryInboxAssignees, requireInboxAccess } from '../InboxAccess';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
 
-import { synchronizeInbox } from '../InboxActions';
+import { sendInboxMessage, synchronizeInbox } from '../InboxActions';
 
 /**
  * Data source through which inbound e-mail threads for a specific account can be retrieved.
@@ -32,6 +33,12 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
      * reloads the table after a manual synchronisation.
      */
     lastSynced: z.string().nullable(),
+
+    /**
+     * Total number of non-deleted messages in this inbox, included so `router.refresh()` reloads
+     * the table after composing and sending a message.
+     */
+    messageCount: z.number(),
 
 }), withRowModel({
     /**
@@ -246,6 +253,12 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
         },
     ];
 
+    const messageCount = await db.selectFrom(tInboxEmail)
+        .where(tInboxEmail.emailAccountId.equals(account.id))
+            .and(tInboxEmail.inboxDeleted.isNull())
+        .selectCountAll()
+        .executeSelectNoneOrOne() ?? 0;
+
     const headerAction = (
         <SynchronizeInboxAction action={ synchronizeInbox.bind(null, account.id) } />
     );
@@ -267,7 +280,11 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
                 <DataTable
                     columns={columns}
                     source={inboxThreadsDataSource}
-                    context={{ accountId: account.id, lastSynced: account.lastSynced ?? null }}
+                    context={{
+                        accountId: account.id,
+                        lastSynced: account.lastSynced ?? null,
+                        messageCount,
+                    }}
                     defaultSort={{ field: 'latestDate', sort: 'desc' }}
                     pageSize={50}
                     search="prominent"
@@ -281,6 +298,8 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
                         linkTemplate: threadLinkTemplate,
                     }} />
             </Section>
+            { account.permissions.create &&
+                <ComposeEmailSection action={ sendInboxMessage.bind(null, account.id) } /> }
         </>
     );
 }
