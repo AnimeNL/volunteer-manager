@@ -7,7 +7,9 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import Typography from '@mui/material/Typography';
 
+import type { ComposeEmailDefaultValues } from '../../ComposeEmailSection';
 import type { EmailMessageAttachment } from './EmailMessageBody';
+import { ComposeEmailSection } from '../../ComposeEmailSection';
 import { EmailMessageBody } from './EmailMessageBody';
 import { InlineAccountLink } from '@app/admin/components/InlineAccountLink';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
@@ -19,7 +21,100 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import { requireInboxAccess } from '../../InboxAccess';
 import db, { tInboxEmail, tInboxEmailAttachments, tInboxThreads, tUsers } from '@lib/database';
 
-import { updateInboxThreadState } from '../../InboxActions';
+import { sendInboxThreadReply, updateInboxThreadState } from '../../InboxActions';
+
+/**
+ * Represents a single JSON-stored e-mail address entry on `inbox_email`.
+ */
+interface StoredEmailAddress {
+    name?: string;
+    address?: string;
+}
+
+/**
+ * Builds the pre-populated compose fields (`recipient`, `cc`, `subject`) for replying to `thread`.
+ */
+function buildReplyDefaultValues(
+    accountAddress: string,
+    thread: {
+        subject: string;
+        fromAddress: string;
+        sender: { name: string };
+    },
+    messages: {
+        fromAddress: string;
+        sender: { name: string };
+        cc?: string | null;
+        replyTo?: string | null;
+        subject: string;
+    }[]): ComposeEmailDefaultValues
+{
+    const normalizedAccount = accountAddress.trim().toLowerCase();
+    const latestInboundMessage = [ ...messages ].reverse().find(
+        message => message.fromAddress.trim().toLowerCase() !== normalizedAccount);
+
+    let recipient: string | undefined;
+    let primaryRecipientAddress: string | undefined;
+
+    const replyToEntry = parseStoredAddresses(latestInboundMessage?.replyTo).find(entry => {
+        const candidate = entry.address?.trim().toLowerCase();
+        return !!candidate && candidate !== normalizedAccount;
+    });
+
+    if (replyToEntry?.address) {
+        primaryRecipientAddress = replyToEntry.address.trim().toLowerCase();
+        recipient = formatAddressEntry(replyToEntry);
+    } else if (latestInboundMessage?.fromAddress.trim()) {
+        const address = latestInboundMessage.fromAddress.trim();
+        primaryRecipientAddress = address.toLowerCase();
+        recipient = formatAddressEntry({
+            name: latestInboundMessage.sender.name !== 'Unknown'
+                ? latestInboundMessage.sender.name
+                : undefined,
+            address,
+        });
+    } else if (thread.fromAddress.trim()) {
+        const address = thread.fromAddress.trim();
+        primaryRecipientAddress = address.toLowerCase();
+        recipient = formatAddressEntry({
+            name: thread.sender.name !== 'Unknown' ? thread.sender.name : undefined,
+            address,
+        });
+    }
+
+    const latestMessage = messages.at(-1);
+    const ccAddresses = parseStoredAddresses(latestMessage?.cc)
+        .filter(entry => {
+            const candidate = entry.address?.trim().toLowerCase();
+            return !!candidate && candidate !== normalizedAccount
+                && candidate !== primaryRecipientAddress;
+        })
+        .map(formatAddressEntry)
+        .filter(Boolean);
+
+    const rawSubject = thread.subject.trim() || latestMessage?.subject.trim() || '';
+    const subject = rawSubject
+        ? (/^re\s*:/i.test(rawSubject) ? rawSubject : `Re: ${rawSubject}`)
+        : '';
+
+    return {
+        recipient,
+        cc: ccAddresses.length > 0 ? ccAddresses.join(', ') : undefined,
+        subject,
+    };
+}
+
+/**
+ * Formats a single `StoredEmailAddress` into `Name <address>` or `address`.
+ */
+function formatAddressEntry(entry: StoredEmailAddress): string {
+    const name = entry.name?.trim();
+    const address = entry.address?.trim();
+    if (name && address && name !== address)
+        return `${name} <${address}>`;
+
+    return address || name || '';
+}
 
 /**
  * Formats a JSON-encoded list of e-mail addresses (`Array<{ name?: string; address?: string }>`)
@@ -27,41 +122,40 @@ import { updateInboxThreadState } from '../../InboxActions';
  * least one entry differs from `senderAddress`.
  */
 function formatAddresses(rawAddresses?: string | null, senderAddress?: string): string | undefined {
-    if (!rawAddresses)
+    const entries = parseStoredAddresses(rawAddresses);
+    if (entries.length === 0)
         return undefined;
-
-    let entries: { name?: string; address?: string }[];
-    try {
-        const parsed = JSON.parse(rawAddresses);
-        if (!Array.isArray(parsed))
-            return undefined;
-
-        entries = parsed;
-    } catch {
-        return undefined;
-    }
 
     if (senderAddress) {
         const normalizedSender = senderAddress.trim().toLowerCase();
         const hasDistinctAddress = entries.some(
-            entry => entry?.address?.trim().toLowerCase() !== normalizedSender);
+            entry => entry.address?.trim().toLowerCase() !== normalizedSender);
 
         if (!hasDistinctAddress)
             return undefined;
     }
 
-    const formatted = entries
-        .map(entry => {
-            const name = entry?.name?.trim();
-            const address = entry?.address?.trim();
-            if (name && address && name !== address)
-                return `${name} <${address}>`;
-
-            return address || name || '';
-        })
-        .filter(Boolean);
-
+    const formatted = entries.map(formatAddressEntry).filter(Boolean);
     return formatted.length > 0 ? formatted.join(', ') : undefined;
+}
+
+/**
+ * Safely parses a JSON-encoded list of `StoredEmailAddress` entries.
+ */
+function parseStoredAddresses(rawAddresses?: string | null): StoredEmailAddress[] {
+    if (!rawAddresses)
+        return [];
+
+    try {
+        const parsed = JSON.parse(rawAddresses);
+        if (!Array.isArray(parsed))
+            return [];
+
+        return parsed.filter(
+            (entry): entry is StoredEmailAddress => !!entry && typeof entry === 'object');
+    } catch {
+        return [];
+    }
 }
 
 /**
@@ -93,6 +187,7 @@ export default async function EmailInboxThreadPage(
             id: tInboxThreads.inboxThreadId,
             subject: tInboxThreads.threadSubject,
             resolvedDate: dbInstance.dateTimeAsString(tInboxThreads.threadResolved),
+            fromAddress: tInboxThreads.threadFromAddress,
             sender: {
                 id: senderUserJoin.userId,
                 name: senderUserJoin.name
@@ -169,6 +264,7 @@ export default async function EmailInboxThreadPage(
     const toggleAction = account.permissions.create
         ? updateInboxThreadState.bind(null, account.id, thread.id)
         : undefined;
+    const replyDefaultValues = buildReplyDefaultValues(account.address, thread, messages);
 
     return (
         <>
@@ -238,6 +334,11 @@ export default async function EmailInboxThreadPage(
                     </Section>
                 );
             }) }
+            { account.permissions.create &&
+                <ComposeEmailSection
+                    action={ sendInboxThreadReply.bind(null, account.id, thread.id) }
+                    defaultValues={replyDefaultValues}
+                    title="Reply to thread" /> }
         </>
     );
 }

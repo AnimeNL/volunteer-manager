@@ -7,7 +7,7 @@ import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
 import { SmtpClientMock } from '@lib/integrations/smtp/SmtpClientMock';
 import { useMockConnection } from '@lib/database/Connection';
 
-import { sendInboxMessage } from './InboxActions';
+import { sendInboxMessage, sendInboxThreadReply } from './InboxActions';
 
 global.setImmediate = setImmediate;
 
@@ -269,5 +269,127 @@ describe('InboxActions - sendInboxMessage', () => {
             success: false,
             error: 'Unable to send the e-mail: nodemailer-mock failure',
         });
+    });
+
+    it('attaches In-Reply-To and References headers and resolves the thread on reply', async () => {
+        const smtpMock = new SmtpClientMock();
+        smtpMock.mock.reset();
+        mockCreateSmtpClient.mockResolvedValueOnce(smtpMock);
+        mockReadSetting.mockResolvedValueOnce(' (AnimeCon)');
+
+        // 1. requireInboxAccess('create'):
+        mockConnection.expect('selectOneRow', () => ({
+            id: 3,
+            address: 'volunteers@animecon.nl',
+            canCreate: true,
+            canRead: true,
+            canDelete: false,
+        }));
+
+        // 2. Existing thread lookup (unassigned):
+        mockConnection.expect('selectOneRow', (query, params) => {
+            expect(query).toContain('from inbox_threads');
+            expect(params).toContain(45);
+            return {
+                id: 45,
+                assigneeUserId: undefined,
+                latestDate: '2026-11-10 12:00:00',
+            };
+        });
+
+        // 3. Prior messages in thread:
+        mockConnection.expect('selectManyRows', query => {
+            expect(query).toContain('from inbox_email');
+            return [
+                {
+                    messageId: '<root@example.com>',
+                    references: '["<anc0@example.com>"]',
+                },
+                {
+                    messageId: 'msg2@example.com',
+                    references: '["<anc0@example.com>","<root@example.com>"]',
+                },
+            ];
+        });
+
+        // 4. SMTP settings check:
+        mockConnection.expect('selectOneRow', () => ({
+            hostname: 'smtp.example.com',
+            password: 'secret',
+        }));
+
+        // 5. Recipient lookup in `users`:
+        mockConnection.expect('selectOneRow', () => ({
+            id: 42,
+            name: 'Alice Wonderland',
+        }));
+
+        // 6. Transaction inserting into `inbox_email` and updating `inbox_threads`:
+        mockConnection.expect('beginTransaction');
+        mockConnection.expect('selectOneColumnOneRow', () => 9);
+        mockConnection.expect('insert', (query, params) => {
+            expect(query).toContain('insert into inbox_email');
+            expect(params).toContain(45);
+            expect(params).toContain(10); // maxLocalUid (9) + 1
+            expect(params).toContain('<msg2@example.com>');
+            expect(params).toContain(
+                '["<anc0@example.com>","<root@example.com>","<msg2@example.com>"]');
+            return 1;
+        });
+        mockConnection.expect('update', (query, params) => {
+            expect(query).toContain('update inbox_threads');
+            expect(params).toContain(7); // assigned to signed-in user since previously unassigned
+            expect(params).toContain(45);
+            return 1;
+        });
+        mockConnection.expect('commit');
+
+        const result = await sendInboxThreadReply(3, 45, {
+            recipient: 'Alice Wonderland <alice@example.com>',
+            subject: 'Re: Shift question',
+            message: 'See you on Friday!',
+        });
+
+        expect(result).toEqual({
+            success: true,
+            refresh: true,
+            message: 'The message has been sent.',
+        });
+
+        const [ sentMail ] = smtpMock.mock.getSentMail();
+        expect(sentMail).toMatchObject({
+            to: '"Alice Wonderland" <alice@example.com>',
+            subject: 'Re: Shift question',
+            headers: [
+                { key: 'In-Reply-To', value: '<msg2@example.com>' },
+                {
+                    key: 'References',
+                    value: '<anc0@example.com> <root@example.com> <msg2@example.com>',
+                },
+            ],
+        });
+    });
+
+    it('fails cleanly when replying to a missing or deleted thread', async () => {
+        mockConnection.expect('selectOneRow', () => ({
+            id: 3,
+            address: 'volunteers@animecon.nl',
+            canCreate: true,
+            canRead: true,
+            canDelete: false,
+        }));
+        mockConnection.expect('selectOneRow', () => undefined);
+
+        const result = await sendInboxThreadReply(3, 999, {
+            recipient: 'alice@example.com',
+            subject: 'Re: Missing',
+            message: 'Hello?',
+        });
+
+        expect(result).toEqual({
+            success: false,
+            error: 'The thread could not be found.',
+        });
+        expect(mockCreateSmtpClient).not.toHaveBeenCalled();
     });
 });

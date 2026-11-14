@@ -45,6 +45,310 @@ const kUpdateThreadStateData = z.object({
 });
 
 /**
+ * Derives `In-Reply-To` and `References` header values from chronological `priorMessages` in an
+ * existing thread so subsequent replies thread back into the same conversation.
+ */
+function buildReplyThreadingHeaders(
+    priorMessages: { messageId?: string; references?: string }[]): {
+        inReplyTo?: string;
+        references: string[];
+    }
+{
+    const references: string[] = [];
+    const seenReferences = new Set<string>();
+
+    const appendReference = (candidate: string | undefined) => {
+        const formatted = truncate(formatMessageId(candidate), 255);
+        if (!formatted || seenReferences.has(formatted))
+            return;
+
+        seenReferences.add(formatted);
+        references.push(formatted);
+    };
+
+    for (const prior of priorMessages) {
+        if (prior.references) {
+            try {
+                const parsed = JSON.parse(prior.references);
+                if (Array.isArray(parsed)) {
+                    for (const item of parsed) {
+                        if (typeof item === 'string')
+                            appendReference(item);
+                    }
+                }
+            } catch {
+                // Ignore malformed historical `inbox_references` JSON payloads.
+            }
+        }
+
+        appendReference(prior.messageId);
+    }
+
+    let inReplyTo: string | undefined;
+    for (let index = priorMessages.length - 1; index >= 0; --index) {
+        const candidate = truncate(formatMessageId(priorMessages[index].messageId), 255);
+        if (candidate) {
+            inReplyTo = candidate;
+            break;
+        }
+    }
+
+    inReplyTo ??= references.at(-1);
+
+    return { inReplyTo, references };
+}
+
+/**
+ * Shared implementation for sending either a brand-new outbound inbox message (`threadId` omitted)
+ * or a reply within an existing thread (`threadId` provided).
+ */
+async function executeSendInboxMessage(
+    accountId: number, threadId: number | undefined, formData: unknown)
+{
+    return executeServerAction(formData, kSendInboxMessageData, async (data, props) => {
+        const context = await requireAuthentication(
+            props.authenticationContext, 'system.inbox.eligible');
+
+        const account = await requireInboxAccess(context, accountId, 'create');
+
+        if (threadId !== undefined && !Number.isSafeInteger(threadId))
+            notFound();
+
+        const recipient = parseEmailAddress(data.recipient);
+        if (!recipient) {
+            return {
+                success: false,
+                error: 'Please enter a valid recipient e-mail address.',
+            };
+        }
+
+        let ccEntries: ParsedEmailAddress[] = [];
+        if (data.cc) {
+            const parsedCc = parseEmailAddressList(data.cc);
+            if (!parsedCc) {
+                return {
+                    success: false,
+                    error: 'One or more CC e-mail addresses are invalid.',
+                };
+            }
+
+            ccEntries = parsedCc;
+        }
+
+        const dbInstance = db;
+
+        let existingThread: {
+            id: number;
+            assigneeUserId?: number;
+            latestDate: Temporal.ZonedDateTime;
+        } | null = null;
+        let inReplyTo: string | undefined;
+        let references: string[] = [];
+
+        if (threadId !== undefined) {
+            existingThread = await dbInstance.selectFrom(tInboxThreads)
+                .where(tInboxThreads.inboxThreadId.equals(threadId))
+                    .and(tInboxThreads.emailAccountId.equals(account.id))
+                    .and(tInboxThreads.threadDeleted.isNull())
+                .select({
+                    id: tInboxThreads.inboxThreadId,
+                    assigneeUserId: tInboxThreads.threadAssigneeUserId,
+                    latestDate: tInboxThreads.threadLatestDate,
+                })
+                .executeSelectNoneOrOne();
+
+            if (!existingThread)
+                return { success: false, error: 'The thread could not be found.' };
+
+            const priorMessages = await dbInstance.selectFrom(tInboxEmail)
+                .where(tInboxEmail.emailAccountId.equals(account.id))
+                    .and(tInboxEmail.inboxThreadId.equals(existingThread.id))
+                    .and(tInboxEmail.inboxDeleted.isNull())
+                .select({
+                    messageId: tInboxEmail.inboxMessageId,
+                    references: tInboxEmail.inboxReferences,
+                })
+                .orderBy(tInboxEmail.inboxReceivedDate, 'asc')
+                .orderBy(tInboxEmail.inboxEmailId, 'asc')
+                .executeSelectMany();
+
+            const threadingHeaders = buildReplyThreadingHeaders(priorMessages);
+            inReplyTo = threadingHeaders.inReplyTo;
+            references = threadingHeaders.references;
+        }
+
+        const smtpSettings = await dbInstance.selectFrom(tEmailAccounts)
+            .where(tEmailAccounts.emailAccountId.equals(account.id))
+                .and(tEmailAccounts.emailAccountDeleted.isNull())
+            .select({
+                hostname: tEmailAccounts.emailAccountSmtpHostname,
+                password: tEmailAccounts.emailAccountSmtpPassword,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!smtpSettings?.hostname || !smtpSettings.password) {
+            return {
+                success: false,
+                error: 'Outgoing e-mail is not configured for this account.',
+            };
+        }
+
+        const recipientUser = await dbInstance.selectFrom(tUsers)
+            .where(tUsers.username.equals(recipient.address))
+                .and(tUsers.anonymized.isNull())
+            .select({
+                id: tUsers.userId,
+                name: tUsers.name,
+            })
+            .executeSelectNoneOrOne();
+
+        const volunteerName = recipient.name || recipientUser?.name;
+        const senderNameSuffix = await readSetting('communication-name-suffix');
+        const senderDisplayName = `${context.user.name}${senderNameSuffix || ''}`;
+
+        const client = await createSmtpClient(account.id);
+        const smtpMessage = await client.createMessage()
+            .setTo(formatSmtpAddress({ name: volunteerName, address: recipient.address }))
+            .setSubject(data.subject)
+            .asyncSetMarkdown(data.message);
+
+        if (ccEntries.length > 0)
+            smtpMessage.setCc(ccEntries.map(formatSmtpAddress));
+        if (inReplyTo)
+            smtpMessage.addHeader('In-Reply-To', inReplyTo);
+        if (references.length > 0)
+            smtpMessage.addHeader('References', references.join(' '));
+
+        let sentInfo: Awaited<ReturnType<typeof client.sendMessage>>;
+        try {
+            sentInfo = await client.sendMessage({
+                sender: senderDisplayName,
+                message: smtpMessage,
+                sourceUser: context.user.id,
+                targetUser: recipientUser?.id,
+            });
+        } catch (error: unknown) {
+            const errorMessage =
+                error instanceof Error ? error.message : 'Unable to send the e-mail.';
+
+            return {
+                success: false,
+                error: `Unable to send the e-mail: ${errorMessage}`,
+            };
+        }
+
+        const now = Temporal.Now.zonedDateTimeISO('UTC').round('seconds');
+        const threadSubject = normalizeThreadSubject(data.subject);
+        const messageOptions = smtpMessage.options;
+
+        const toPayload = JSON.stringify([
+            {
+                ...(volunteerName ? { name: volunteerName } : {}),
+                address: recipient.address,
+            },
+        ]);
+        const ccPayload = ccEntries.length > 0 ? JSON.stringify(ccEntries) : null;
+        const bodyText =
+            typeof messageOptions.text === 'string' ? messageOptions.text : data.message;
+        const bodyHtml = typeof messageOptions.html === 'string' ? messageOptions.html : null;
+        const sentMessageId = truncate(formatMessageId(sentInfo.messageId), 255) ?? null;
+
+        await dbInstance.transaction(async () => {
+            const inboxThreadId = existingThread
+                ? existingThread.id
+                : await dbInstance.insertInto(tInboxThreads)
+                      .set({
+                          emailAccountId: account.id,
+                          threadSubject,
+                          threadFromName: truncate(volunteerName, 255) ?? null,
+                          threadFromAddress: truncate(recipient.address, 255) ?? '',
+                          threadFromUserId: recipientUser?.id ?? null,
+                          threadAssigneeUserId: context.user.id,
+                          threadResolved: now,
+                          threadLatestDate: now,
+                          threadMessageCount: 1,
+                      })
+                      .returningLastInsertedId()
+                      .executeInsert();
+
+            const maxLocalUid = await dbInstance.selectFrom(tInboxEmail)
+                .where(tInboxEmail.emailAccountId.equals(account.id))
+                    .and(tInboxEmail.inboxUidValidity.equals(0n))
+                .selectOneColumn(tInboxEmail.inboxUid)
+                .orderBy(tInboxEmail.inboxUid, 'desc')
+                .limit(1)
+                .executeSelectNoneOrOne();
+
+            await dbInstance.insertInto(tInboxEmail)
+                .set({
+                    emailAccountId: account.id,
+                    inboxThreadId,
+                    inboxUidValidity: 0n,
+                    inboxUid: (maxLocalUid ?? 0) + 1,
+                    inboxMessageId: sentMessageId,
+                    inboxInReplyTo: inReplyTo ?? null,
+                    inboxReferences: references.length > 0 ? JSON.stringify(references) : null,
+                    inboxDate: now,
+                    inboxReceivedDate: now,
+                    inboxFromName: truncate(senderDisplayName, 255) ?? null,
+                    inboxFromAddress: truncate(account.address.trim().toLowerCase(), 255) ?? '',
+                    inboxFromUserId: context.user.id,
+                    inboxTo: toPayload,
+                    inboxCc: ccPayload,
+                    inboxSubject: data.subject,
+                    inboxBodyText: bodyText,
+                    inboxBodyHtml: bodyHtml,
+                    inboxFlags: JSON.stringify([ '\\Seen' ]),
+                    inboxRead: now,
+                })
+                .executeInsert();
+
+            if (existingThread) {
+                const updatedLatestDate =
+                    Temporal.ZonedDateTime.compare(now, existingThread.latestDate) > 0
+                        ? now
+                        : existingThread.latestDate;
+
+                await dbInstance.update(tInboxThreads)
+                    .set({
+                        threadAssigneeUserId: existingThread.assigneeUserId ?? context.user.id,
+                        threadLatestDate: updatedLatestDate,
+                        threadMessageCount: tInboxThreads.threadMessageCount.add(1),
+                        threadResolved: now,
+                    })
+                    .where(tInboxThreads.inboxThreadId.equals(existingThread.id))
+                        .and(tInboxThreads.emailAccountId.equals(account.id))
+                        .and(tInboxThreads.threadDeleted.isNull())
+                    .executeUpdate();
+            }
+        });
+
+        invalidateInboxNavigationCache();
+
+        return {
+            success: true,
+            refresh: true,
+            message: 'The message has been sent.',
+        };
+    });
+}
+
+/**
+ * Ensures a Message-ID token is wrapped in angle brackets (`<...>`), returning `undefined` when
+ * `value` is empty.
+ */
+function formatMessageId(value: string | undefined): string | undefined {
+    const trimmed = value?.trim();
+    if (!trimmed)
+        return undefined;
+
+    if (trimmed.startsWith('<') && trimmed.endsWith('>'))
+        return trimmed;
+
+    return `<${trimmed}>`;
+}
+
+/**
  * Formats a `ParsedEmailAddress` for Nodemailer's recipient fields.
  */
 function formatSmtpAddress(entry: ParsedEmailAddress): string {
@@ -151,160 +455,18 @@ function truncate(value: string | undefined, maxLength: number): string | undefi
  * resulting thread and message in the local inbox tables.
  */
 export async function sendInboxMessage(accountId: number, formData: unknown) {
-    return executeServerAction(formData, kSendInboxMessageData, async (data, props) => {
-        const context = await requireAuthentication(
-            props.authenticationContext, 'system.inbox.eligible');
+    return executeSendInboxMessage(accountId, /* threadId= */ undefined, formData);
+}
 
-        const account = await requireInboxAccess(context, accountId, 'create');
-
-        const recipient = parseEmailAddress(data.recipient);
-        if (!recipient) {
-            return {
-                success: false,
-                error: 'Please enter a valid recipient e-mail address.',
-            };
-        }
-
-        let ccEntries: ParsedEmailAddress[] = [];
-        if (data.cc) {
-            const parsedCc = parseEmailAddressList(data.cc);
-            if (!parsedCc) {
-                return {
-                    success: false,
-                    error: 'One or more CC e-mail addresses are invalid.',
-                };
-            }
-
-            ccEntries = parsedCc;
-        }
-
-        const dbInstance = db;
-        const smtpSettings = await dbInstance.selectFrom(tEmailAccounts)
-            .where(tEmailAccounts.emailAccountId.equals(account.id))
-                .and(tEmailAccounts.emailAccountDeleted.isNull())
-            .select({
-                hostname: tEmailAccounts.emailAccountSmtpHostname,
-                password: tEmailAccounts.emailAccountSmtpPassword,
-            })
-            .executeSelectNoneOrOne();
-
-        if (!smtpSettings?.hostname || !smtpSettings.password) {
-            return {
-                success: false,
-                error: 'Outgoing e-mail is not configured for this account.',
-            };
-        }
-
-        const recipientUser = await dbInstance.selectFrom(tUsers)
-            .where(tUsers.username.equals(recipient.address))
-                .and(tUsers.anonymized.isNull())
-            .select({
-                id: tUsers.userId,
-                name: tUsers.name,
-            })
-            .executeSelectNoneOrOne();
-
-        const volunteerName = recipient.name || recipientUser?.name;
-        const senderNameSuffix = await readSetting('communication-name-suffix');
-        const senderDisplayName = `${context.user.name}${senderNameSuffix || ''}`;
-
-        const client = await createSmtpClient(account.id);
-        const smtpMessage = await client.createMessage()
-            .setTo(formatSmtpAddress({ name: volunteerName, address: recipient.address }))
-            .setSubject(data.subject)
-            .asyncSetMarkdown(data.message);
-
-        if (ccEntries.length > 0)
-            smtpMessage.setCc(ccEntries.map(formatSmtpAddress));
-
-        let sentInfo: Awaited<ReturnType<typeof client.sendMessage>>;
-        try {
-            sentInfo = await client.sendMessage({
-                sender: senderDisplayName,
-                message: smtpMessage,
-                sourceUser: context.user.id,
-                targetUser: recipientUser?.id,
-            });
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error ? error.message : 'Unable to send the e-mail.';
-
-            return {
-                success: false,
-                error: `Unable to send the e-mail: ${errorMessage}`,
-            };
-        }
-
-        const now = Temporal.Now.zonedDateTimeISO('UTC').round('seconds');
-        const threadSubject = normalizeThreadSubject(data.subject);
-        const messageOptions = smtpMessage.options;
-
-        const toPayload = JSON.stringify([
-            {
-                ...(volunteerName ? { name: volunteerName } : {}),
-                address: recipient.address,
-            },
-        ]);
-        const ccPayload = ccEntries.length > 0 ? JSON.stringify(ccEntries) : null;
-        const bodyText =
-            typeof messageOptions.text === 'string' ? messageOptions.text : data.message;
-        const bodyHtml = typeof messageOptions.html === 'string' ? messageOptions.html : null;
-
-        await dbInstance.transaction(async () => {
-            const inboxThreadId = await dbInstance.insertInto(tInboxThreads)
-                .set({
-                    emailAccountId: account.id,
-                    threadSubject,
-                    threadFromName: truncate(volunteerName, 255) ?? null,
-                    threadFromAddress: truncate(recipient.address, 255) ?? '',
-                    threadFromUserId: recipientUser?.id ?? null,
-                    threadAssigneeUserId: context.user.id,
-                    threadResolved: now,
-                    threadLatestDate: now,
-                    threadMessageCount: 1,
-                })
-                .returningLastInsertedId()
-                .executeInsert();
-
-            const maxLocalUid = await dbInstance.selectFrom(tInboxEmail)
-                .where(tInboxEmail.emailAccountId.equals(account.id))
-                    .and(tInboxEmail.inboxUidValidity.equals(0n))
-                .selectOneColumn(tInboxEmail.inboxUid)
-                .orderBy(tInboxEmail.inboxUid, 'desc')
-                .limit(1)
-                .executeSelectNoneOrOne();
-
-            await dbInstance.insertInto(tInboxEmail)
-                .set({
-                    emailAccountId: account.id,
-                    inboxThreadId,
-                    inboxUidValidity: 0n,
-                    inboxUid: (maxLocalUid ?? 0) + 1,
-                    inboxMessageId: truncate(sentInfo.messageId, 255) ?? null,
-                    inboxDate: now,
-                    inboxReceivedDate: now,
-                    inboxFromName: truncate(senderDisplayName, 255) ?? null,
-                    inboxFromAddress: truncate(account.address.trim().toLowerCase(), 255) ?? '',
-                    inboxFromUserId: context.user.id,
-                    inboxTo: toPayload,
-                    inboxCc: ccPayload,
-                    inboxSubject: data.subject,
-                    inboxBodyText: bodyText,
-                    inboxBodyHtml: bodyHtml,
-                    inboxFlags: JSON.stringify([ '\\Seen' ]),
-                    inboxRead: now,
-                })
-                .executeInsert();
-        });
-
-        invalidateInboxNavigationCache();
-
-        return {
-            success: true,
-            refresh: true,
-            message: 'The message has been sent.',
-        };
-    });
+/**
+ * Server Action that sends an outbound reply within `threadId` of `accountId`, attaching RFC 5322
+ * threading headers (`In-Reply-To` and `References`), storing the sent message in the thread, and
+ * marking the thread as completed.
+ */
+export async function sendInboxThreadReply(
+    accountId: number, threadId: number, formData: unknown)
+{
+    return executeSendInboxMessage(accountId, threadId, formData);
 }
 
 /**
