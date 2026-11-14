@@ -47,7 +47,7 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
     /**
      * Person the thread is with, linked to their portal account when matched.
      */
-    sender: z.object({
+    volunteer: z.object({
         id: z.number().optional(),
         name: z.string(),
     }),
@@ -82,7 +82,7 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
         const eligibleAssignees = await queryInboxAssignees(context.accountId);
         const eligibleAssigneeIds = eligibleAssignees.map(assignee => assignee.id);
 
-        const senderUserJoin = tUsers.forUseInLeftJoinAs('su');
+        const volunteerUserJoin = tUsers.forUseInLeftJoinAs('vu');
         const assigneeUserJoin = tUsers.forUseInLeftJoinAs('au');
 
         const dbInstance = db;
@@ -98,15 +98,15 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
                     tInboxEmail.inboxBodyText.containsInsensitiveIfValue(search)))
             .selectOneColumn(tInboxEmail.inboxThreadId);
 
-        let sortField: 'resolved' | 'sender.name' | 'assignee.name' | 'subject' | 'latestDate';
+        let sortField: 'resolved' | 'volunteer.name' | 'assignee.name' | 'subject' | 'latestDate';
         switch (params.sort.field) {
             case 'resolved':
             case 'subject':
                 sortField = params.sort.field;
                 break;
 
-            case 'sender':
-                sortField = 'sender.name';
+            case 'volunteer':
+                sortField = 'volunteer.name';
                 break;
 
             case 'assignee':
@@ -119,9 +119,9 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
         }
 
         const query = dbInstance.selectFrom(tInboxThreads)
-            .leftJoin(senderUserJoin)
-                .on(senderUserJoin.userId.equals(tInboxThreads.threadFromUserId))
-                    .and(senderUserJoin.anonymized.isNull())
+            .leftJoin(volunteerUserJoin)
+                .on(volunteerUserJoin.userId.equals(tInboxThreads.threadFromUserId))
+                    .and(volunteerUserJoin.anonymized.isNull())
             .leftJoin(assigneeUserJoin)
                 .on(assigneeUserJoin.userId.equals(tInboxThreads.threadAssigneeUserId))
                     .and(eligibleAssigneeIds.length > 0
@@ -133,15 +133,15 @@ const inboxThreadsDataSource = createDataSource('admin/system/inbox/threads', wi
                     tInboxThreads.threadSubject.containsInsensitiveIfValue(search).or(
                     tInboxThreads.threadFromName.containsInsensitiveIfValue(search)).or(
                     tInboxThreads.threadFromAddress.containsInsensitiveIfValue(search)).or(
-                    senderUserJoin.name.containsInsensitiveIfValue(search)).or(
+                    volunteerUserJoin.name.containsInsensitiveIfValue(search)).or(
                     assigneeUserJoin.name.containsInsensitiveIfValue(search)).or(
                     tInboxThreads.inboxThreadId.in(matchingEmailsSubquery).onlyWhen(!!search)))
             .select({
                 id: tInboxThreads.inboxThreadId,
                 resolved: tInboxThreads.threadResolved.isNotNull(),
-                sender: {
-                    id: senderUserJoin.userId,
-                    name: senderUserJoin.name
+                volunteer: {
+                    id: volunteerUserJoin.userId,
+                    name: volunteerUserJoin.name
                         .valueWhenNull(tInboxThreads.threadFromName.nullIfValue(''))
                         .valueWhenNull(tInboxThreads.threadFromAddress.nullIfValue(''))
                         .valueWhenNull('Unknown'),
@@ -204,8 +204,8 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
             },
         },
         {
-            field: 'sender',
-            headerName: 'Sender',
+            field: 'volunteer',
+            headerName: 'Volunteer',
             sortable: true,
             flex: 1.5,
 
@@ -274,7 +274,7 @@ export default async function EmailInboxPage(props: PageProps<'/admin/system/inb
                     subject="thread"
                     listViewProps={{
                         startComponent: ThreadStateCell,
-                        primaryField: 'sender.name',
+                        primaryField: 'volunteer.name',
                         secondaryField: 'subject',
                         dateField: 'latestDate',
                         dateFieldFormat: 'YYYY-MM-DD',
