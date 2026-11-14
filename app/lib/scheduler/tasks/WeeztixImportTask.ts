@@ -3,7 +3,6 @@
 
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { Task } from '../Task';
-import { TaskContext } from '../TaskContext';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import db, { tEvents } from '@lib/database';
 
@@ -35,17 +34,6 @@ interface WeeztixImportTaskConfiguration {
 }
 
 /**
- * Parses an ISO 8601 timestamp returned by Weeztix into a `Temporal.Instant`. Failures are fatal
- * so unexpected or missing timestamps are surfaced immediately.
- */
-function parseOrderInstant(value?: string): Temporal.Instant {
-    if (!value)
-        throw new Error('Order summary from Weeztix is missing a timestamp');
-
-    return Temporal.Instant.from(value);
-}
-
-/**
  * Task that periodically imports order and ticket information from Weeztix.
  */
 export class WeeztixImportTask extends Task {
@@ -62,22 +50,6 @@ export class WeeztixImportTask extends Task {
         { maximumDays: /*  4 weeks= */ 28, intervalMs: /* 3 hours= */ 3 * 3600 * 1000 },
         { maximumDays: /* 12 weeks= */ 56, intervalMs: /* 6 hours= */ 6 * 3600 * 1000 },
     ];
-
-    /**
-     * Executes a one-off import of the given `orderGuid` in context of the given `eventGuid`. This
-     * will issue a single API call to the Weeztix API.
-     */
-    static async importOrder(eventGuid: string, orderGuid: string): Promise<boolean> {
-        const taskContext = TaskContext.forEphemeralTask('WeeztixImportTask', null);
-        const task = new WeeztixImportTask(taskContext);
-        await task.initialise();
-
-        // When manually importing an order, provide a last updated time well in the past to avoid
-        // interfering with the synchronisation cursor once database persistence is enabled.
-        const lastUpdated = Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 }).toInstant();
-
-        return task.importIndividualOrder(eventGuid, orderGuid, lastUpdated);
-    }
 
     #client: WeeztixClient = undefined!;
     #configuration: WeeztixImportTaskConfiguration = undefined!;
@@ -190,53 +162,7 @@ export class WeeztixImportTask extends Task {
 
         this.log.info(`[Orders] Weeztix responded with ${recentOrders.length} order(s)`);
 
-        // TODO: Query known order records from `weeztix_orders` to enable early elimination when
-        // none of the persisted fields have changed.
-
-        const seenOrderGuids = new Set<string>();
-        let updated = 0;
-
-        for (const orderSummary of recentOrders) {
-            if (seenOrderGuids.has(orderSummary.guid))
-                continue;
-
-            seenOrderGuids.add(orderSummary.guid);
-
-            const lastUpdated = parseOrderInstant(orderSummary.updatedAt ?? orderSummary.createdAt);
-
-            const delayMs = this.#configuration.delayBetweenOrderImportsMs;
-            if (delayMs > 0) {
-                this.log.debug(`[Orders] Waiting ${delayMs}ms…`);
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-            }
-
-            this.log.info(`[Orders] Fetching order ${orderSummary.guid} from the Weeztix API`);
-
-            await this.importIndividualOrder(eventGuid, orderSummary.guid, lastUpdated);
-
-            if (++updated >= this.#configuration.maximumOrderImportsPerExecution)
-                break;
-        }
-
-        this.log.info(`[Orders] Completed the synchronisation (updated = ${updated})`);
-        return true;
-    }
-
-    /**
-     * Method to import all metadata required for the given `orderGuid` belonging to `eventGuid`.
-     * This will issue a single API call to the Weeztix API.
-     */
-    private async importIndividualOrder(
-        _eventGuid: string, orderGuid: string, lastUpdated: Temporal.Instant): Promise<boolean>
-    {
-        const order = await this.#client.getOrder(orderGuid);
-
-        this.log.info(
-            `[Orders] Retrieved order ${order.guid} (status=${order.status ?? 'unknown'}, ` +
-            `tickets=${order.tickets?.length ?? 0}, updated=${lastUpdated.toString()})`);
-
-        // TODO: Persist the order and its tickets in `weeztix_orders` and `weeztix_tickets` once
-        // the database model has been finalised.
+        // TODO: Import the actual order(s).
 
         return true;
     }

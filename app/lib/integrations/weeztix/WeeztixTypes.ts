@@ -114,56 +114,96 @@ export const kPostStatisticsOrdersRequest = z.object({
 export type PostStatisticsOrdersRequest = z.infer<typeof kPostStatisticsOrdersRequest>;
 
 /**
- * Minimal order entry returned by the POST /statistics/orders/:company_guid API.
+ * Schema associated with metadata fields.
+ * @see https://docs.weeztix.com/api/dashboard/get-order-specific/
  */
-const kStatisticsOrderEntry = z.looseObject({
-    guid: z.string().nonempty().optional(),
-    created_at: z.string().nullish(),
-    updated_at: z.string().nullish(),
+export const kMetadataSchema = z.object({
+    value: z.string().or(z.number()).or(z.boolean()),
+    meta_data: z.object({
+        name: z.string(),
+    }),
 });
 
 /**
- * Elasticsearch hits envelope returned by Weeztix statistics endpoints.
+ * Schema associated with an individual product.
+ * @see https://docs.weeztix.com/api/dashboard/get-order-specific/
  */
-const kElasticsearchHitsEnvelope = z.looseObject({
-    hits: z.array(z.looseObject({
-        _id: z.string().nonempty().optional(),
-        _source: kStatisticsOrderEntry.optional(),
-    })),
+export const kProductSchema = z.object({
+    guid: z.string().nonempty(),
+    finn_inner_value: z.number(),  // price of the product, without service fees
+    finn_service_fee: z.number(),  // price of any charged service fees
+    finn_price: z.number(),  // price of the product, inclusive of and service fees
+    product_id: z.string().nonempty(),
+    invalidated_since: z.iso.datetime({ offset: true }).nullish(),
+    invalidated_reason: z.string().nullish(),
+    meta_data: z.array(kMetadataSchema),
 });
 
 /**
- * Expected response for the POST /statistics/orders/:company_guid API. The Weeztix OpenAPI
- * specification does not define a response schema ("All Orders directly from Elasticsearch"),
- * so both raw Elasticsearch hit envelopes and flat order arrays are accepted.
+ * Schema associated with an individual ticket.
+ * @see https://docs.weeztix.com/api/dashboard/get-order-specific/
+ */
+export const kTicketSchema = z.object({
+    guid: z.string().nonempty(),
+    finn_value: z.number(),  // price of the ticket, without add-on products or service fees
+    finn_inner_value: z.number(),  // price of any additional add-on products
+    finn_service_fee: z.number(),  // price of any charged service fees
+    finn_price: z.number(),  // price of the ticket, add-on products and service fees
+    ticket_id: z.string().nonempty(),
+    ticket_number: z.string(),  // barcode
+    created_at: z.iso.datetime({ offset: true }),
+    updated_at: z.iso.datetime({ offset: true }),
+    invalidated_since: z.iso.datetime({ offset: true }).nullish(),
+    invalidated_reason: z.string().nullish(),
+    meta_data: z.array(kMetadataSchema),
+
+    // 0 or more:
+    products: z.array(kProductSchema),
+});
+
+/**
+ * Schema associated with an individual order.
+ * @see https://docs.weeztix.com/api/dashboard/get-order-specific/
+ */
+export const kOrderSchema = z.object({
+    guid: z.string().nonempty(),
+    // email: z.string(),
+    status: z.string(),
+    invalidated_since: z.iso.datetime({ offset: true }).nullish(),
+    invalidated_reason: z.string().nullish(),
+    fullname: z.string(),
+    created_at: z.iso.datetime({ offset: true }),
+    updated_at: z.iso.datetime({ offset: true }),
+
+    // 0 or more:
+    products: z.array(kProductSchema),
+
+    // 0 or more:
+    tickets: z.array(kTicketSchema),
+});
+
+/**
+ * Schema for an individual order.
+ */
+export type Order = z.infer<typeof kOrderSchema>;
+
+/**
+ * Response payload from the POST /statistics/orders/:company_guid API.
  * @see https://docs.weeztix.com/api/dashboard/get-company-orders
  */
-export const kPostStatisticsOrdersResponse = z.union([
-    z.looseObject({
-        hits: kElasticsearchHitsEnvelope.optional(),
-        orders: z.union([
-            kElasticsearchHitsEnvelope,
-            z.array(kStatisticsOrderEntry),
-        ]).optional(),
-    }).refine(value => value.hits !== undefined || value.orders !== undefined, {
-        message: 'Expected either `hits` or `orders` in the statistics response',
+export const kPostStatisticsOrdersResponse = z.object({
+    hits: z.object({
+        total: z.number(),
+        hits: z.array(z.object({
+            _source: kOrderSchema,
+        })),
     }),
-    z.array(kStatisticsOrderEntry),
-]);
+});
 
 /**
- * Expected response for the POST /statistics/orders/:company_guid API.
+ * Response payload for the POST /statistics/orders/:company_guid API.
  */
 export type PostStatisticsOrdersResponse = z.infer<typeof kPostStatisticsOrdersResponse>;
-
-/**
- * Normalised order summary extracted from `PostStatisticsOrdersResponse`.
- */
-export interface StatisticsOrderSummary {
-    guid: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
 
 /**
  * Expected response when refreshing the OAuth token.

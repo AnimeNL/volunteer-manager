@@ -176,7 +176,7 @@ export class WeeztixClient {
      * @returns Normalised list of matching order summaries sorted chronologically when possible.
      */
     async listOrders(companyGuid: string, request: weeztix.PostStatisticsOrdersRequest)
-        : Promise<weeztix.StatisticsOrderSummary[]>
+        : Promise<weeztix.Order[]>
     {
         const validatedRequest = weeztix.kPostStatisticsOrdersRequest.parse(request);
         const response = await this.issueRequest(weeztix.kPostStatisticsOrdersResponse, {
@@ -186,67 +186,7 @@ export class WeeztixClient {
             body: validatedRequest,
         });
 
-        let rawEntries: Array<{
-            guid?: string;
-            created_at?: string | null;
-            updated_at?: string | null;
-        }>;
-
-        if (Array.isArray(response)) {
-            rawEntries = response;
-        } else if (response.hits) {
-            rawEntries = response.hits.hits.map(hit => ({
-                ...hit._source,
-                guid: hit._source?.guid ?? hit._id,
-            }));
-        } else if (Array.isArray(response.orders)) {
-            rawEntries = response.orders;
-        } else if (response.orders) {
-            rawEntries = response.orders.hits.map(hit => ({
-                ...hit._source,
-                guid: hit._source?.guid ?? hit._id,
-            }));
-        } else {
-            rawEntries = [];
-        }
-
-        const orders: weeztix.StatisticsOrderSummary[] = [];
-        for (const entry of rawEntries) {
-            if (!entry.guid)
-                continue;
-
-            orders.push({
-                guid: entry.guid,
-                createdAt: entry.created_at ?? undefined,
-                updatedAt: entry.updated_at ?? undefined,
-            });
-        }
-
-        const instantCache = new Map<string, Temporal.Instant>();
-        const resolveInstant = (order: weeztix.StatisticsOrderSummary): Temporal.Instant | null => {
-            const timestamp = order.updatedAt ?? order.createdAt;
-            if (!timestamp)
-                return null;
-
-            let instant = instantCache.get(timestamp);
-            if (!instant) {
-                instant = Temporal.Instant.from(timestamp);
-                instantCache.set(timestamp, instant);
-            }
-
-            return instant;
-        };
-
-        orders.sort((lhs, rhs) => {
-            const lhsInstant = resolveInstant(lhs);
-            const rhsInstant = resolveInstant(rhs);
-            if (!lhsInstant || !rhsInstant)
-                return 0;
-
-            return Temporal.Instant.compare(lhsInstant, rhsInstant);
-        });
-
-        return orders;
+        return response.hits.hits.map(hit => hit._source);
     }
 
     /**

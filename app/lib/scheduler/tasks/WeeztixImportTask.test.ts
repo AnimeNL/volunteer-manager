@@ -33,24 +33,6 @@ describe('WeeztixImportTask', () => {
         await (task as any).initialise();
     });
 
-    it('supports one-off manual invocation via importOrder()', async () => {
-        mockGetOrder.mockResolvedValueOnce({
-            guid: 'order-guid-1',
-            status: 'paid',
-            tickets: [
-                { guid: 'ticket-guid-1', ticket_number: '1234567890' },
-            ],
-        });
-
-        const result = await WeeztixImportTask.importOrder('event-guid-1', 'order-guid-1');
-        expect(result).toBe(true);
-
-        expect(mockGetEvent).not.toHaveBeenCalled();
-        expect(mockListOrders).not.toHaveBeenCalled();
-        expect(mockGetOrder).toHaveBeenCalledTimes(1);
-        expect(mockGetOrder).toHaveBeenCalledWith('order-guid-1');
-    });
-
     describe('execute', () => {
         beforeEach(() => {
             vi.useFakeTimers();
