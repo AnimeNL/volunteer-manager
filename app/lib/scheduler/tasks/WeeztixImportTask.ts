@@ -179,7 +179,8 @@ export class WeeztixImportTask extends Task {
             range_applies_to: 'updated_at',
             start,
             end,
-            events: eventGuid,
+            sorting: { updated_at: 'desc' },
+            events: [ eventGuid ],
         });
 
         if (!recentOrders.length) {

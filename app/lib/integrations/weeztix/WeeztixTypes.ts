@@ -102,8 +102,8 @@ export const kPostStatisticsOrdersRequest = z.object({
     start: z.string().optional(),
     end: z.string().optional(),
     filters: z.string().optional(),
-    events: z.string().optional(),
-    sorting: z.string().optional(),
+    events: z.array(z.string()).optional(),
+    sorting: z.record(z.string(), z.enum([ 'asc', 'desc' ])).optional(),
     purchase_channels: z.array(
         z.enum([ 'shop', 'import', 'guestlist', 'cashr', 'api', 'swap' ])).optional(),
 });
