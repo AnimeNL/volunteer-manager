@@ -396,3 +396,13 @@ export const kVendorTeam = {
     FirstAid: 'first-aid',
     Security: 'security',
 } as const;
+
+/**
+ * Type of Weeztix ticket (i.e. product or ticket) stored in the table.
+ * @see Table `weeztix_ticket_types`
+ */
+export type WeeztixTicketType = Values<typeof kWeeztixTicketType>;
+export const kWeeztixTicketType = {
+    Product: 'Product',
+    Ticket: 'Ticket',
+} as const;

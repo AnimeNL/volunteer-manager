@@ -104,6 +104,9 @@ export class WeeztixImportTask extends Task {
 
             this.log.info(`Starting data import for ${event.name}`);
 
+            await this.importProductsAndTickets(event.context.eventGuid);
+            break;
+
             if (!!event.context.companyGuid) {
                 await this.importOrders(
                     event.context.companyGuid, event.context.eventGuid,
@@ -116,6 +119,17 @@ export class WeeztixImportTask extends Task {
         }
 
         this.updateTaskIntervalForFestivalDate(applicableEvents[0].endTime);
+
+        return true;
+    }
+
+    /**
+     * Method to import the products and tickets that exist for the given `eventGuid`.
+     */
+    private async importProductsAndTickets(eventGuid: string): Promise<boolean> {
+        const tickets = await this.#client.listTicketTypes(eventGuid);
+
+        // TODO: Implement this method.
 
         return true;
     }

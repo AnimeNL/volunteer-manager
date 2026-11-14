@@ -210,8 +210,8 @@ export class WeeztixClient {
      */
     async listTicketTypes(eventGuid: string): Promise<weeztix.GetTicketTypesResponse> {
         return this.issueRequest(weeztix.kGetTicketTypesResponse, {
-            api: `/event/${eventGuid}/ticket`,
-            operation: '/event/<Id>/ticket',
+            api: `/event/${eventGuid}/ticket/products`,
+            operation: '/event/<Id>/ticket/products',
             method: 'GET',
         });
     }

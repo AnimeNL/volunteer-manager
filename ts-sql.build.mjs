@@ -284,6 +284,10 @@ do {
                 { field: [ 'vendors', 'vendor_shirt_fit' ], type: 'ShirtFit' },
                 { field: [ 'vendors', 'vendor_shirt_size' ], type: 'ShirtSize' },
                 { field: [ 'vendors', 'vendor_team' ], type: 'VendorTeam' },
+                {
+                    field: [ 'weeztix_ticket_types', 'weeztix_ticket_type' ],
+                    type: 'WeeztixTicketType',
+                },
             ].map(({ field, type }) => ({
                 tableName: field[0],
                 columnName: field[1],

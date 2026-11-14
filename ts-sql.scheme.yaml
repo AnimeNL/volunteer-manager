@@ -256,7 +256,7 @@ tables:
       CONSTRAINT `inbox_email_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
       CONSTRAINT `inbox_email_from_user_id` FOREIGN KEY (`inbox_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
       CONSTRAINT `inbox_email_thread_id` FOREIGN KEY (`inbox_thread_id`) REFERENCES `inbox_threads` (`inbox_thread_id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: logs_format
   type: BASE TABLE
   columns:
@@ -1832,6 +1832,77 @@ tables:
       PRIMARY KEY (`inbox_attachment_id`),
       KEY `inbox_email_id` (`inbox_email_id`),
       CONSTRAINT `inbox_attachments_email_id` FOREIGN KEY (`inbox_email_id`) REFERENCES `inbox_email` (`inbox_email_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+- name: weeztix_ticket_types
+  type: BASE TABLE
+  columns:
+  - name: weeztix_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_event_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_ticket_type
+    type: enum('Product','Ticket')
+    nullable: false
+  - name: weeztix_ticket_name
+    type: text
+    nullable: false
+  - name: weeztix_ticket_description
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_ticket_price
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_ticket_available
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_ticket_sold
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_ticket_scanned
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_ticket_status
+    type: varchar(32)
+    nullable: false
+  - name: weeztix_ticket_created
+    type: datetime
+    nullable: false
+  - name: weeztix_ticket_updated
+    type: datetime
+    nullable: false
+  indexes:
+  - name: weeztix_guid
+    def: UNIQUE KEY weeztix_guid (weeztix_guid, weeztix_event_guid) USING BTREE
+    table: weeztix_ticket_types
+    columns:
+    - weeztix_guid
+    - weeztix_event_guid
+  constraints:
+  - name: weeztix_guid
+    type: UNIQUE
+    def: UNIQUE KEY weeztix_guid (weeztix_guid, weeztix_event_guid)
+    table: weeztix_ticket_types
+    columns:
+    - weeztix_guid
+    - weeztix_event_guid
+  def: |-
+    CREATE TABLE `weeztix_ticket_types` (
+      `weeztix_guid` char(36) NOT NULL,
+      `weeztix_event_guid` char(36) NOT NULL,
+      `weeztix_ticket_type` enum('Product','Ticket') NOT NULL,
+      `weeztix_ticket_name` text NOT NULL,
+      `weeztix_ticket_description` text DEFAULT NULL,
+      `weeztix_ticket_price` int(4) unsigned NOT NULL,
+      `weeztix_ticket_available` int(4) unsigned NOT NULL,
+      `weeztix_ticket_sold` int(4) unsigned NOT NULL,
+      `weeztix_ticket_scanned` int(4) unsigned NOT NULL,
+      `weeztix_ticket_status` varchar(32) NOT NULL,
+      `weeztix_ticket_created` datetime NOT NULL,
+      `weeztix_ticket_updated` datetime NOT NULL,
+      UNIQUE KEY `weeztix_guid` (`weeztix_guid`,`weeztix_event_guid`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: trainings_assignments
   type: BASE TABLE
@@ -4412,7 +4483,7 @@ tables:
       CONSTRAINT `inbox_threads_account_id` FOREIGN KEY (`email_account_id`) REFERENCES `email_accounts` (`email_account_id`) ON DELETE CASCADE,
       CONSTRAINT `inbox_threads_assignee_user_id` FOREIGN KEY (`thread_assignee_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
       CONSTRAINT `inbox_threads_from_user_id` FOREIGN KEY (`thread_from_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: your_ticket_provider_tickets
   type: BASE TABLE
   columns:

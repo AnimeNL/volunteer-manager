@@ -74,18 +74,41 @@ export const kGetScannerTypesResponse = z.array(z.object({
 export type GetScannerTypesResponse = z.infer<typeof kGetScannerTypesResponse>;
 
 /**
- * Expected response for the /event/:guid/ticket/{type?} API.
+ * Expected response for the /event/:guid/ticket/products API.
  * @see https://docs.weeztix.com/api/dashboard/get-event-tickets
  */
 export const kGetTicketTypesResponse = z.array(z.object({
     guid: z.string().nonempty(),
+    event_id: z.string().nonempty(),
     name: z.string().nonempty(),
+    description: z.string().nullish(),
     min_price: z.number(),
-    status: z.enum([ 'sold_out', 'not_sold_right_now', 'available' ]),
+    available_stock: z.number(),
+    sold_count: z.number(),
+    scanned_count: z.number(),
+    available_from: z.iso.datetime({ offset: true }).nullish(),
+    available_until: z.iso.datetime({ offset: true }).nullish(),
+    created_at: z.iso.datetime({ offset: true }),
+    updated_at: z.iso.datetime({ offset: true }),
+    status: z.enum([ 'sold_out', 'not_sold_right_now', 'available', 'auto' ]),
+    include_service_cost_in_price: z.boolean().nullish(),
+
+    // 0 or more:
+    products: z.array(z.object({
+        guid: z.string().nonempty(),
+        event_id: z.string().nonempty(),
+        name: z.string().nonempty(),
+        description: z.string().nullish(),
+        price: z.number(),
+        available_stock: z.number(),
+        sold_count: z.number(),
+        scanned_count: z.number(),
+        status: z.enum([ 'sold_out', 'not_sold_right_now', 'available', 'auto' ]),
+    })),
 }));
 
 /**
- * Expected response for the /event/:guid/ticket/{type?} API.
+ * Expected response for the /event/:guid/ticket/products API.
  */
 export type GetTicketTypesResponse = z.infer<typeof kGetTicketTypesResponse>;
 
