@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TaskContext } from '@lib/scheduler/TaskContext';
+import { WeeztixImportTask } from '@lib/scheduler/tasks/WeeztixImportTask';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
@@ -20,7 +21,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * Zod schema describing the task execution request.
  */
 const kExecuteSchedulerTaskData = z.object({
-    taskName: z.enum([ 'YourTicketProviderImportTask' ]),
+    taskName: z.enum([ 'WeeztixImportTask', 'YourTicketProviderImportTask' ]),
 });
 
 /**
@@ -33,21 +34,25 @@ async function executeSchedulerTask(taskName: string) {
     {
         await requireAuthentication(props.authenticationContext, 'system.internals.debug');
 
-        switch (data.taskName) {
-            case 'YourTicketProviderImportTask': {
-                const taskContext =
-                    TaskContext.forEphemeralTask(data.taskName, { /* no params */ });
-                const task = new YourTicketProviderImportTask(taskContext);
-                try {
-                    await task.execute();
-                } catch (error: any) {
-                    console.error(error);
-                } finally {
-                    console.log(taskContext.log.entries);
-                }
+        const taskContext = TaskContext.forEphemeralTask(data.taskName, { /* no params */ });
 
+        let task: WeeztixImportTask | YourTicketProviderImportTask;
+        switch (data.taskName) {
+            case 'WeeztixImportTask':
+                task = new WeeztixImportTask(taskContext);
                 break;
-            }
+
+            case 'YourTicketProviderImportTask':
+                task = new YourTicketProviderImportTask(taskContext);
+                break;
+        }
+
+        try {
+            await task.execute();
+        } catch (error: any) {
+            console.error(error);
+        } finally {
+            console.log(taskContext.log.entries);
         }
 
         return { success: true };
@@ -60,6 +65,7 @@ async function executeSchedulerTask(taskName: string) {
 export default async function SchedulerDebugPage() {
     await requireAuthentication('system.internals.debug');
 
+    const weeztixImportTaskFn = executeSchedulerTask.bind(null, 'WeeztixImportTask');
     const yourTicketProviderImportTaskFn =
         executeSchedulerTask.bind(null, 'YourTicketProviderImportTask');
 
@@ -76,6 +82,10 @@ export default async function SchedulerDebugPage() {
             </Section>
             <Section noHeader>
                 <Stack direction="column" spacing={1.5}>
+                    <Button size="small" variant="outlined" startIcon={ <ReplayIcon /> }
+                            onClick={weeztixImportTaskFn}>
+                        Weeztix Import Task
+                    </Button>
                     <Button size="small" variant="outlined" startIcon={ <ReplayIcon /> }
                             onClick={yourTicketProviderImportTaskFn}>
                         YourTicketProvider Import Task
