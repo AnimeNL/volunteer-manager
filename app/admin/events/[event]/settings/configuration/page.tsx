@@ -282,7 +282,8 @@ export default async function EventSettingsConfigurationPage(
                                               fullWidth size="small" />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="weeztixCompanyGuid" label="Weeztix Company GUID"
+                            <TextFieldElement name="weeztixCompanyGuid"
+                                              label="Weeztix Company GUID (auto-determined)"
                                               fullWidth size="small"
                                               slotProps={{ input: { readOnly: true } }} />
                         </Grid>

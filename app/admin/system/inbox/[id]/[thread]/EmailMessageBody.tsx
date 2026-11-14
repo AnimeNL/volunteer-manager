@@ -4,15 +4,31 @@
 'use client';
 
 import type { ReactNode, SyntheticEvent } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Theme } from '@mui/material/styles';
 import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useColorScheme, useTheme } from '@mui/material/styles';
+
+import { findCollapsibleHtmlNodes, splitPlainTextQuote } from './emailQuoteCollapse';
+
+/**
+ * Toggles the `[data-email-quote-collapsed]` attribute on collapsible quote elements inside the
+ * sandboxed e-mail iframe.
+ */
+function applyHtmlQuoteVisibility(nodes: HTMLElement[], visible: boolean): void {
+    for (const node of nodes) {
+        if (visible)
+            delete node.dataset.emailQuoteCollapsed;
+        else
+            node.dataset.emailQuoteCollapsed = 'true';
+    }
+}
 
 /**
  * Formats a byte size into a compact human-readable binary unit (`B`, `KiB`, or `MiB`).
@@ -79,6 +95,7 @@ function buildEmailSrcDoc(html: string, isDark: boolean, theme: Theme): string {
         'img{max-width:100%;height:auto;}',
         'blockquote{margin:8px 0;padding-left:12px;',
         `border-left:3px solid ${dividerColor};color:${secondaryColor};}`,
+        '[data-email-quote-collapsed="true"]{display:none!important;}',
         '</style></head><body>',
         html,
         '</body></html>',
@@ -138,13 +155,20 @@ export interface EmailMessageBodyProps {
 /**
  * Renders the body and attachments of an inbound e-mail message. HTML bodies are isolated inside a
  * sandboxed `<iframe>` with scripts disabled and auto-sized to their content height; plain-text
- * bodies are rendered directly as fallback.
+ * bodies are rendered directly as fallback. Trailing quoted sections are collapsed by default.
  */
 export function EmailMessageBody(props: EmailMessageBodyProps) {
     const { mode, systemMode } = useColorScheme();
     const theme = useTheme();
 
+    const [ hasHtmlQuote, setHasHtmlQuote ] = useState(false);
+    const [ showQuoted, setShowQuoted ] = useState(false);
+
+    const iframeRef = useRef<HTMLIFrameElement | null>(null);
     const observerRef = useRef<ResizeObserver | null>(null);
+    const quotedNodesRef = useRef<HTMLElement[]>([]);
+    const showQuotedRef = useRef(showQuoted);
+    showQuotedRef.current = showQuoted;
 
     useEffect(() => {
         return () => observerRef.current?.disconnect();
@@ -154,6 +178,8 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         observerRef.current?.disconnect();
 
         const iframe = event.currentTarget;
+        iframeRef.current = iframe;
+
         const iframeDoc = iframe.contentDocument;
         const body = iframeDoc?.body;
         if (!iframeDoc || !body)
@@ -165,6 +191,11 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
             fontStyle.textContent = fontFaceCss;
             iframeDoc.head.prepend(fontStyle);
         }
+
+        const collapsibleNodes = findCollapsibleHtmlNodes(body);
+        quotedNodesRef.current = collapsibleNodes;
+        setHasHtmlQuote(collapsibleNodes.length > 0);
+        applyHtmlQuoteVisibility(collapsibleNodes, showQuotedRef.current);
 
         const syncHeight = () => {
             const height = Math.ceil(body.getBoundingClientRect().height);
@@ -179,11 +210,35 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         observerRef.current = observer;
     }, [ /* no deps */ ]);
 
-    let content: ReactNode;
-    if (props.html?.trim()) {
-        const isDark = (mode === 'system' ? systemMode : mode) === 'dark';
-        const srcDoc = buildEmailSrcDoc(props.html, isDark, theme);
+    const handleToggleQuoted = useCallback(() => {
+        setShowQuoted(previous => {
+            const next = !previous;
+            showQuotedRef.current = next;
+            applyHtmlQuoteVisibility(quotedNodesRef.current, next);
 
+            const body = iframeRef.current?.contentDocument?.body;
+            if (iframeRef.current && body) {
+                const height = Math.ceil(body.getBoundingClientRect().height);
+                iframeRef.current.style.height = `${height}px`;
+            }
+
+            return next;
+        });
+    }, [ /* no deps */ ]);
+
+    const hasHtmlBody = !!props.html?.trim();
+    const isDark = (mode === 'system' ? systemMode : mode) === 'dark';
+
+    const srcDoc = useMemo(
+        () => (hasHtmlBody ? buildEmailSrcDoc(props.html!, isDark, theme) : ''),
+        [ hasHtmlBody, isDark, props.html, theme ]);
+
+    const plainTextParts = useMemo(
+        () => (!hasHtmlBody && props.text?.trim() ? splitPlainTextQuote(props.text) : undefined),
+        [ hasHtmlBody, props.text ]);
+
+    let content: ReactNode;
+    if (hasHtmlBody) {
         content = (
             <Box component="iframe" onLoad={handleLoad} referrerPolicy="no-referrer"
                  sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
@@ -196,14 +251,18 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
                      width: '100%',
                  }} />
         );
-    } else if (props.text?.trim()) {
+    } else if (plainTextParts) {
+        const displayedText = showQuoted && plainTextParts.quotedText
+            ? `${plainTextParts.mainText}\n\n${plainTextParts.quotedText}`
+            : plainTextParts.mainText;
+
         content = (
             <Typography variant="body2"
                         sx={{
                             overflowWrap: 'anywhere',
                             whiteSpace: 'pre-wrap',
                         }}>
-                {props.text}
+                {displayedText}
             </Typography>
         );
     } else {
@@ -214,30 +273,43 @@ export function EmailMessageBody(props: EmailMessageBodyProps) {
         );
     }
 
-    if (!props.attachments?.length)
+    const hasQuotedSection = hasHtmlBody ? hasHtmlQuote : !!plainTextParts?.quotedText;
+    const hasAttachments = !!props.attachments?.length;
+
+    if (!hasQuotedSection && !hasAttachments)
         return content;
 
     return (
-        <Stack spacing={2}>
+        <Stack spacing={1.5}>
             {content}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} useFlexGap>
-                { props.attachments.map(attachment => {
-                    const label = `${attachment.filename} (${formatFileSize(attachment.size)})`;
-                    if (!attachment.downloadUrl) {
-                        return (
-                            <Chip disabled icon={ <AttachFileOutlinedIcon /> } key={attachment.id}
-                                  label={`${label} — unavailable`} size="small"
-                                  variant="outlined" />
-                        );
-                    }
+            { hasQuotedSection &&
+                <Box>
+                    <Chip clickable icon={ <MoreHorizIcon /> }
+                          label={ showQuoted ? 'Hide quoted text' : 'Show quoted text' }
+                          onClick={handleToggleQuoted} size="small"
+                          sx={{ color: 'text.secondary' }} variant="outlined" />
+                </Box> }
+            { hasAttachments &&
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} useFlexGap>
+                    { props.attachments!.map(attachment => {
+                        const label =
+                            `${attachment.filename} (${formatFileSize(attachment.size)})`;
 
-                    return (
-                        <Chip clickable component="a" href={attachment.downloadUrl}
-                              icon={ <AttachFileOutlinedIcon /> } key={attachment.id} label={label}
-                              size="small" variant="outlined" />
-                    );
-                }) }
-            </Stack>
+                        if (!attachment.downloadUrl) {
+                            return (
+                                <Chip disabled icon={ <AttachFileOutlinedIcon /> }
+                                      key={attachment.id} label={`${label} — unavailable`}
+                                      size="small" variant="outlined" />
+                            );
+                        }
+
+                        return (
+                            <Chip clickable component="a" href={attachment.downloadUrl}
+                                  icon={ <AttachFileOutlinedIcon /> } key={attachment.id}
+                                  label={label} size="small" variant="outlined" />
+                        );
+                    }) }
+                </Stack> }
         </Stack>
     );
 }
