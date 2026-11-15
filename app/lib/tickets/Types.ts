@@ -431,23 +431,3 @@ export interface VolunteerTicket {
      */
     cancelled: boolean;
 }
-
-/**
- * Editable details of an individual ticket holder.
- */
-export interface TicketDetails {
-    /**
-     * First name of the ticket holder.
-     */
-    firstName: string;
-
-    /**
-     * Last name of the ticket holder.
-     */
-    lastName: string;
-
-    /**
-     * E-mail address of the ticket holder.
-     */
-    email: string;
-}

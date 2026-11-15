@@ -5,7 +5,7 @@ import type { PaletteMode } from '@mui/material/styles';
 
 import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
-import type { TicketingPurchaseItemResponse, TicketingPurchaseResponse }
+import type { TicketingPurchaseResponse }
     from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
 
 /**
@@ -151,11 +151,6 @@ interface CacheDescriptorMap {
     EventPurchaseCache: {
         Parameters: number | string;
         Contents: TicketingPurchaseResponse;
-    };
-
-    EventTicketCache: {
-        Parameters: number | string;
-        Contents: TicketingPurchaseItemResponse;
     };
 
     // ---------------------------------------------------------------------------------------------
@@ -385,13 +380,6 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     EventPurchaseCache: {
         name: 'EventPurchaseCache',
         description: 'Detailed purchase information requested from our ticketing partners.',
-        type: 'ttl',
-        ttl: 1800,
-    },
-
-    EventTicketCache: {
-        name: 'EventTicketCache',
-        description: 'Detailed ticket information requested from our ticketing partners.',
         type: 'ttl',
         ttl: 1800,
     },

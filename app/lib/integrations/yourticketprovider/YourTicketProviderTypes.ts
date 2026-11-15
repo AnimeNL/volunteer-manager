@@ -169,68 +169,6 @@ export type TicketingPurchaseUpdateResponse = z.infer<typeof kTicketingPurchaseU
  * API: GET /PurchaseItems(<Id>)
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
-export const kTicketingPurchaseItemResponse = z.object({
-    Id: z.number(),
-    PurchaseId: z.number(),
-    TicketId: z.number(),
-    TimeslotIdsForTicket: z.any(),
-    HasToBeClaimed: z.boolean(),
-    IsClaimed: z.boolean(),
-    IsValid: z.boolean(),
-    ClaimDateTime: z.iso.datetime().nullish(),
-    Barcode: z.number(),
-    TicketHolderEmail: z.string().nullish(),
-    TicketHolderFirstname: z.string().nullish(),
-    TicketHolderInsertion: z.string().nullish(),
-    TicketHolderLastname: z.string().nullish(),
-    TicketHolderOrganisation: z.string().nullish(),
-    TicketHolderDepartment: z.string().nullish(),
-    TicketHolderPosition: z.string().nullish(),
-    TicketHolderAddress: z.string().nullish(),
-    TicketHolderCity: z.string().nullish(),
-    TicketHolderPostalCode: z.string().nullish(),
-    TicketHolderCountry: z.string().nullish(),
-    TicketHolderID: z.string().nullish(),
-    TicketHolderDateOfBirth: z.string().nullish(),
-    TicketHolderMobile: z.string().nullish(),
-    TicketHolderPhone: z.string().nullish(),
-    TicketHolderGender: z.string().nullish(),
-    TicketHolderNewsletterSubscribe: z.boolean(),
-    IsGroupTicket: z.boolean(),
-    NumberOfUsersAllowedEntranceWithTicket: z.number(),
-});
-
-/**
- * API: GET /PurchaseItems(<Id>)
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export type TicketingPurchaseItemResponse = z.infer<typeof kTicketingPurchaseItemResponse>;
-
-/**
- * API: PATCH /PurchaseItems(<Id>)
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export const kTicketingPurchaseItemPatchRequest = kTicketingPurchaseItemResponse.partial();
-
-/**
- * API: PATCH /PurchaseItems(<Id>)
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export type TicketingPurchaseItemPatchRequest = z.infer<typeof kTicketingPurchaseItemPatchRequest>;
-
-/**
- * API: PATCH /PurchaseItems(<Id>)
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export const kTicketingPurchaseItemPatchResponse = kTicketingPurchaseItemResponse;
-
-/**
- * API: PATCH /PurchaseItems(<Id>)
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export type TicketingPurchaseItemPatchResponse =
-    z.infer<typeof kTicketingPurchaseItemPatchResponse>;
-
 // -------------------------------------------------------------------------------------------------
 // Visitor Information API:
 // -------------------------------------------------------------------------------------------------

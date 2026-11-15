@@ -243,40 +243,6 @@ export class YourTicketProviderClient {
         })).value;
     }
 
-    /**
-     * Fetches the purchase item with the given `purchaseItemId`.
-     *
-     * @api GET /PurchaseItems(<Id>)
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Information about this specific purchase items.
-     */
-    async getPurchaseItem(purchaseItemId: number): Promise<ytp.TicketingPurchaseItemResponse> {
-        return this.issueRequest(ytp.kTicketingPurchaseItemResponse, {
-            api: `/PurchaseItems(${purchaseItemId})`,
-            operation: '/PurchaseItems(<Id>)',
-            method: 'GET',
-        });
-    }
-
-    /**
-     * Patches the purchase item with the given `purchaseItemId`.
-     *
-     * @api PATCH /PurchaseItems(<Id>)
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Unknown.
-     */
-    async patchPurchaseItem(purchaseItemId: number, request: ytp.TicketingPurchaseItemPatchRequest)
-        : Promise<ytp.TicketingPurchaseItemPatchResponse>
-    {
-        const validatedRequest = ytp.kTicketingPurchaseItemPatchRequest.parse(request);
-        return this.issueRequest(ytp.kTicketingPurchaseItemPatchResponse, {
-            api: `/PurchaseItems(${purchaseItemId})`,
-            operation: '/PurchaseItems(<Id>)',
-            method: 'PATCH',
-            body: validatedRequest,
-        });
-    }
-
     // ---------------------------------------------------------------------------------------------
     // Visitor Information API:
     // ---------------------------------------------------------------------------------------------

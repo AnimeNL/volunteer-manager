@@ -12,7 +12,7 @@ import { LogBuilder } from '@lib/log/index';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
+import db, { tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
 
@@ -121,10 +121,6 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
 
         // Cancel the ticket with the ticketing partner. Only proceed when this succeeds.
         await service.cancelPurchase(purchaseId);
-
-        // Clear any cached variants of the issued tickets, as they are no logner valid.
-        for (const ticket of purchase.tickets)
-            Cache.getInstance('EventTicketCache').delete(ticket.id);
 
         // Write log entries for the affected tickets; associate them with a particular user when
         // it involves a known volunteer, otherwise assume that this is an associate ticket.
@@ -353,72 +349,6 @@ export async function updateYourTicketProviderPurchase(
             .record({
                 event: event.shortName,
                 purchaseId: service.formatPurchaseId(purchaseId),
-            });
-
-        return {
-            success: true,
-            refresh: true,
-        };
-    });
-}
-
-/**
- * Data necessary to update a ticket issued by YourTicketProvider.
- */
-const kUpdateYtpTicketData = z.object({
-    TicketHolderFirstname: z.string().nonempty(),
-    TicketHolderLastname: z.string().nonempty(),
-    TicketHolderEmail: z.string().nonempty(),
-});
-
-/**
- * Server Action through which an individual ticket issued by YourTicketProvider can be updated.
- */
-export async function updateYourTicketProviderTicket(
-    eventSlug: string, purchaseItemId: number, formData: unknown)
-{
-    return executeServerAction(formData, kUpdateYtpTicketData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, {
-                permission: 'volunteers.tickets',
-                operation: 'update',
-            });
-
-        const service = await createTicketService(event.id);
-        if (!service || service.id !== 'YourTicketProvider')
-            notFound();
-
-        const client = await service.getClient() as YourTicketProviderClient;
-        const ticket = await client.patchPurchaseItem(purchaseItemId, {
-            TicketHolderFirstname: data.TicketHolderFirstname,
-            TicketHolderLastname: data.TicketHolderLastname,
-            TicketHolderEmail: data.TicketHolderEmail,
-            // TODO: TicketHolderOrganisation
-            // TODO: TicketHolderDepartment
-            // TODO: TicketHolderPosition
-        });
-
-        // Overwrite the cached ticket with the updated representation received from the server:
-        Cache.getInstance('EventTicketCache').set(purchaseItemId, ticket);
-
-        const ytpPurchaseItemHolder = [
-            ticket.TicketHolderFirstname,
-            ticket.TicketHolderInsertion,
-            ticket.TicketHolderLastname,
-        ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
-
-        await db.update(tYourTicketProviderPurchases)
-            .set({ ytpPurchaseItemHolder })
-            .where(tYourTicketProviderPurchases.ytpPurchaseItemId.equals(purchaseItemId))
-            .executeUpdate();
-
-        LogBuilder.for('UpdateAssociateTicket')
-            .withInitiatorUser(props.user)
-            .withSeverity('Error')
-            .record({
-                event: event.shortName,
-                recipient: ytpPurchaseItemHolder || '(unknown)',
-                purchaseId: ticket.Id,
             });
 
         return {

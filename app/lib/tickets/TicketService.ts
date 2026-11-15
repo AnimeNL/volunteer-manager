@@ -3,8 +3,8 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
-    TicketCreateRequest, TicketDetails, TicketFinancialSummary, TicketSearchRequest,
-    TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket } from './Types';
+    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
+    TicketStatistics, TicketType, VolunteerTicket } from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -60,12 +60,6 @@ export interface TicketService {
      * Fetches daily sale counts for the given `productIds` in `eventId`.
      */
     fetchProductSales(eventId: number, productIds: number[]): Promise<ProviderProductSales[]>;
-
-    /**
-     * Fetches editable details for the individual ticket identified by `ticketId`, or `null` if
-     * unavailable or unsupported by the provider.
-     */
-    fetchTicketDetails(ticketId: number | string): Promise<TicketDetails | null>;
 
     /**
      * Formats the given |purchaseId| in a manner that it can be presented to visitors.
