@@ -79,7 +79,7 @@ export default async function EventTicketsVisitorPurchasePage(
                         valueTemplate: 'component',
                         value: (
                             <Typography variant="body2">
-                                { service.formatPurchaseId(purchase.id) }
+                                { purchase.id }
                                 { !!purchaseLink &&
                                     <MuiLink component={Link} href={purchaseLink} target="_blank">
                                         <OpenInNewIcon fontSize="inherit" sx={{

@@ -65,10 +65,12 @@ function toTicket(row: RawTicketRow): Ticket {
  */
 export class Weeztix implements TicketService {
     #client: WeeztixClient | undefined;
+    #companyId: string | undefined;
     #eventId: string;
 
-    constructor(eventId: string) {
+    constructor(eventId: string, companyId?: string) {
         this.#eventId = eventId;
+        this.#companyId = companyId;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -88,7 +90,11 @@ export class Weeztix implements TicketService {
     }
 
     createPurchaseLink(purchaseId: number | string): string | undefined {
-        return undefined;
+        if (!this.#companyId)
+            return undefined;
+
+        const baseUrl = 'https://app.weeztix.com/orders';
+        return `${baseUrl}/${purchaseId}?company=${this.#companyId}&classic=true`;
     }
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {

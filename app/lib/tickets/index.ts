@@ -21,8 +21,11 @@ export async function createTicketService(eventIdentifier: number | string)
     let service: TicketService | undefined;
     switch (event.tickets?.provider) {
         case 'Weeztix':
-            if (!!event?.integrations?.weeztixGuid)
-                service = new Weeztix(event.integrations.weeztixGuid);
+            if (!!event?.integrations?.weeztixGuid) {
+                service = new Weeztix(
+                    event.integrations.weeztixGuid,
+                    event.integrations.weeztixCompanyGuid);
+            }
 
             break;
 
