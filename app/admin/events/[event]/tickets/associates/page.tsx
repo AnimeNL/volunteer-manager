@@ -149,10 +149,11 @@ export default async function EventTicketsAssociatesPage(
         operation: 'read',
     });
 
-    const service = await createTicketService(event.slug);
-    const serviceCanCreateTickets =
-        !!service?.canCreateTickets() &&
+    const allowedToCreateTickets =
         access.can('volunteers.tickets', 'create', { event: event.slug });
+
+    const service = await createTicketService(event.slug);
+    const serviceCanCreateTickets = allowedToCreateTickets && !!service?.canCreateTickets();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -204,7 +205,7 @@ export default async function EventTicketsAssociatesPage(
         <>
             <Section icon={ <Diversity1Icon color="primary" /> }
                      title="Associate tickets" documentation="event/tickets"
-                     limited={!serviceCanCreateTickets}
+                     limited={!allowedToCreateTickets}
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
                         { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
