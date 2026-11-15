@@ -2,13 +2,13 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary,
-    TicketSearchRequest, TicketSearchResults, TicketSearchSortField, TicketStatistics,
-    TicketType } from '../Types';
+import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCreateRequest,
+    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketSearchSortField,
+    TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
-import { fetchWeeztixProducts, hasWeeztixSales }
+import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales }
     from '@app/admin/events/[event]/finance/processor/WeeztixFinancialData';
 import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes,
     tWeeztixTickets } from '@lib/database';
@@ -110,6 +110,10 @@ export class Weeztix implements TicketService {
 
     async fetchFinancialProducts(eventId: number): Promise<ProviderProduct[]> {
         return fetchWeeztixProducts(eventId, this.#eventId);
+    }
+
+    async fetchProductSales(eventId: number, productIds: number[]): Promise<ProviderProductSales[]> {
+        return fetchWeeztixProductSales(eventId, this.#eventId, productIds);
     }
 
     async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {

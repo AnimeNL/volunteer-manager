@@ -10,13 +10,12 @@ import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
 
 import type { ProviderProductSales } from '../processor/Types';
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
+import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
-import { fetchWeeztixProductSales } from '../processor/WeeztixFinancialData';
-import { fetchYourTicketProviderProductSales } from '../processor/YourTicketProviderFinancialData';
 import { isAfter, isBefore } from '@lib/Temporal';
 import db, { tEvents, tEventsDates } from '@lib/database';
 
-import { kDateType, kEventTicketProvider } from '@lib/database/Types';
+import { kDateType } from '@lib/database/Types';
 import { kProductHighlightColors } from './ProductHighlightColors';
 import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './RemoteGraphFn';
 
@@ -67,31 +66,15 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
         .where(tEvents.eventId.equals(eventId))
         .select({
             endTime: tEvents.eventEndTime,
-            provider: tEvents.ticketsProvider,
-            weeztixGuid: tEvents.eventWeeztixGuid,
-            ytpEventId: tEvents.eventYtpEventId,
         })
         .executeSelectNoneOrOne();
 
     if (!event)
         return { success: false, error: 'Unable to determine the date range for this graph…' };
 
-    let ticketsData: ProviderProductSales[] = [];
-    switch (event.provider) {
-        case kEventTicketProvider.Weeztix:
-            if (event.weeztixGuid) {
-                ticketsData = await fetchWeeztixProductSales(
-                    eventId, event.weeztixGuid, products);
-            }
-            break;
-
-        case kEventTicketProvider.YourTicketProvider:
-            if (event.ytpEventId) {
-                ticketsData = await fetchYourTicketProviderProductSales(
-                    eventId, event.ytpEventId, products);
-            }
-            break;
-    }
+    const service = await createTicketService(eventId);
+    const ticketsData: ProviderProductSales[] =
+        service ? await service.fetchProductSales(eventId, products) : [];
 
     if (!ticketsData.length)
         return { success: false, error: 'Unable to determine the products for this graph…' };

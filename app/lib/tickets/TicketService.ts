@@ -2,8 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary,
-    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType } from './Types';
+import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCreateRequest,
+    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
+    TicketType } from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -49,6 +50,11 @@ export interface TicketService {
      * Fetches categorised financial products and their daily sale counts for the given `eventId`.
      */
     fetchFinancialProducts(eventId: number): Promise<ProviderProduct[]>;
+
+    /**
+     * Fetches daily sale counts for the given `productIds` in `eventId`.
+     */
+    fetchProductSales(eventId: number, productIds: number[]): Promise<ProviderProductSales[]>;
 
     /**
      * Formats the given |purchaseId| in a manner that it can be presented to visitors.
