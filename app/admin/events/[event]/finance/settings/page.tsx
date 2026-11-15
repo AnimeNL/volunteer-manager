@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import EuroIcon from '@mui/icons-material/Euro';
 
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
-import { CategoryCell, PriceCell } from './SettingsCells';
+import { CategoryCell } from './SettingsCells';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { FinanceProcessor } from '../FinanceProcessor';
@@ -23,6 +23,14 @@ import db, { tEventsTicketsConfiguration } from '@lib/database';
 import { kEventTicketCategory } from '@lib/database/Types';
 import { kEventTicketCategoryOptions } from './Settings';
 import { kEventTransformer } from '@app/admin/components/DataTable';
+
+/**
+ * Formatter to display a price in euros.
+ */
+const kPriceFormatter = new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'EUR',
+});
 
 /**
  * Data source for the financial settings of an event.
@@ -60,9 +68,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     categoryLabel: z.string().nullish(),
 
     /**
-     * Price of the ticket, when known.
+     * Price of the ticket, formatted in euros.
      */
-    price: z.number().nullish(),
+    price: z.string(),
 
     /**
      * Optional activity ID that this product is associated with.
@@ -115,7 +123,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 productLimit: type.amount,
                 category: association?.ticketCategory ?? ('' as const),
                 categoryLabel: association?.ticketCategory || '(unassigned)',
-                price: type.price / 100,
+                price: type.price,
                 activityId: association?.ticketActivityId,
             };
         });
@@ -130,7 +138,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                     return (lhs.category ?? '').localeCompare(rhs.category ?? '') * direction;
 
                 case 'price':
-                    return ((lhs.price ?? 0) - (rhs.price ?? 0)) * direction;
+                    return (lhs.price - rhs.price) * direction;
 
                 case 'product':
                     return lhs.product.localeCompare(rhs.product) * direction;
@@ -142,9 +150,15 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             return 0;
         });
 
+        const paginated = products.slice(
+            params.page.offset, params.page.offset + params.page.limit);
+
         return {
             rowCount: products.length,
-            rows: products.slice(params.page.offset, params.page.offset + params.page.limit),
+            rows: paginated.map(product => ({
+                ...product,
+                price: kPriceFormatter.format(product.price / 100),
+            })),
         };
     },
 
@@ -236,16 +250,12 @@ export default async function EventFinanceSettingsPage(
         },
         {
             field: 'price',
+            headerAlign: 'right',
             headerName: 'Price',
+            align: 'right',
             editable: false,
             sortable: true,
-            type: 'number',
             flex: 1,
-
-            template: 'component',
-            templateProps: {
-                component: PriceCell,
-            },
         },
         {
             field: 'category',
@@ -304,7 +314,7 @@ export default async function EventFinanceSettingsPage(
                            pageSize={100}
                            listViewProps={{
                                primaryField: 'product',
-                               secondaryTemplate: '€{price} · {categoryLabel}',
+                               secondaryTemplate: '{price} · {categoryLabel}',
                            }} />
             </Section>
         </>

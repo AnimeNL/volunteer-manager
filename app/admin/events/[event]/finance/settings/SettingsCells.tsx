@@ -7,34 +7,8 @@ import Typography from '@mui/material/Typography';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import type { EventTicketCategory } from '@lib/database/Types';
+
 import { kEventTicketCategoryOptions } from './Settings';
-
-/**
- * Props accepted by the <PriceCell> component.
- */
-interface PriceCellProps {
-    /**
-     * The row model for the financial setting item.
-     */
-    row: {
-        price?: number | null;
-    };
-}
-
-/**
- * The <PriceCell> component displays the price formatted in euros, or "Unknown" when not set.
- */
-export function PriceCell(props: PriceCellProps) {
-    if (props.row.price === undefined || props.row.price === null) {
-        return (
-            <Typography component="span" color="textDisabled" variant="body2">
-                Unknown
-            </Typography>
-        );
-    }
-
-    return <>€{Math.round(props.row.price * 100) / 100}</>;
-}
 
 /**
  * Props accepted by the <CategoryCell> component.
