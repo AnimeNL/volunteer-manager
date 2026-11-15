@@ -9,12 +9,9 @@ import Alert from '@mui/material/Alert';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Grid from '@mui/material/Grid';
 
-import type { Purchase } from '@lib/tickets/Types';
+import type { Purchase, TicketDetails } from '@lib/tickets/Types';
 import type { ServerAction } from '@lib/serverAction';
 import type { TicketService } from '@lib/tickets/TicketService';
-import type { TicketingPurchaseItemResponse } from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
-import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider';
-import { Cache } from '@lib/cache';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { QrCodeAction } from './QrCodeAction';
 import { Section } from '@app/admin/components/Section';
@@ -54,12 +51,7 @@ interface YourTicketProviderPurchaseItemProps {
  */
 export async function YourTicketProviderPurchaseItem(props: YourTicketProviderPurchaseItemProps) {
     const ticketId = Number(props.ticket.id);
-
-    const cache = Cache.getInstance('EventTicketCache');
-    const ticket = cache.getOrInsert(ticketId, async () => {
-        const client = await props.service.getClient() as YourTicketProviderClient;
-        return client.getPurchaseItem(ticketId);
-    });
+    const ticket = props.service.fetchTicketDetails(ticketId);
 
     const updateTicketFn =
         props.readOnly ? undefined
@@ -87,12 +79,16 @@ interface YourTicketProviderPurchaseItemFormProps {
     /**
      * Server Action through which the ticket can be updated, when allowed.
      */
-    action: ServerAction<Partial<TicketingPurchaseItemResponse>> | undefined;
+    action: ServerAction<{
+        TicketHolderFirstname: string;
+        TicketHolderLastname: string;
+        TicketHolderEmail: string;
+    }> | undefined;
 
     /**
      * Detailed information about the ticket obtained from our ticketing partner.
      */
-    ticket: Promise<TicketingPurchaseItemResponse | null>;
+    ticket: Promise<TicketDetails | null>;
 }
 
 /**
@@ -108,9 +104,15 @@ async function YourTicketProviderPurchaseItemForm(props: YourTicketProviderPurch
         );
     }
 
+    const defaultValues = {
+        TicketHolderFirstname: ticket.firstName,
+        TicketHolderLastname: ticket.lastName,
+        TicketHolderEmail: ticket.email,
+    };
+
     const readOnly = !props.action;
     return (
-        <FormGrid action={props.action!} defaultValues={ticket} callToAction="Update ticket">
+        <FormGrid action={props.action!} defaultValues={defaultValues} callToAction="Update ticket">
             <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldElement name="TicketHolderFirstname" label="First name" required
                                   fullWidth size="small" slotProps={{ input: { readOnly } }} />

@@ -3,9 +3,11 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
-    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
+    TicketCreateRequest, TicketDetails, TicketFinancialSummary, TicketSearchRequest,
+    TicketSearchResults, TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket }
+    from '../Types';
 import type { TicketService } from '../TicketService';
+import { Cache } from '@lib/cache';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
@@ -89,6 +91,24 @@ export class YourTicketProvider implements TicketService {
             })
             .groupBy(tYourTicketProviderPurchases.ytpPurchaseId)
             .executeSelectNoneOrOne() ?? undefined;
+    }
+
+    async fetchTicketDetails(ticketId: number | string): Promise<TicketDetails | null> {
+        const numericId = Number(ticketId);
+        const cache = Cache.getInstance('EventTicketCache');
+        const item = await cache.getOrInsert(numericId, async () => {
+            const client = await this.getClient();
+            return client.getPurchaseItem(numericId);
+        });
+
+        if (!item)
+            return null;
+
+        return {
+            firstName: item.TicketHolderFirstname ?? '',
+            lastName: item.TicketHolderLastname ?? '',
+            email: item.TicketHolderEmail ?? '',
+        };
     }
 
     formatPurchaseId(purchaseId: number | string): string {

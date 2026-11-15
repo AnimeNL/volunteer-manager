@@ -3,8 +3,9 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
-    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
+    TicketCreateRequest, TicketDetails, TicketFinancialSummary, TicketSearchRequest,
+    TicketSearchResults, TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket }
+    from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
@@ -205,6 +206,10 @@ export class Weeztix implements TicketService {
                 })),
             ],
         };
+    }
+
+    async fetchTicketDetails(_ticketId: number | string): Promise<TicketDetails | null> {
+        return null;
     }
 
     formatPurchaseId(purchaseId: number | string): string {
