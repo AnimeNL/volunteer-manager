@@ -99,7 +99,7 @@ export class Weeztix implements TicketService {
     }
 
     formatPurchaseId(purchaseId: number | string): string {
-        throw new Error('Not yet implemented');
+        return String(purchaseId).split('-')[0];
     }
 
     async getStatistics(): Promise<TicketStatistics | undefined> {
