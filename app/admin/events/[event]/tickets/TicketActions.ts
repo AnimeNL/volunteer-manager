@@ -9,7 +9,6 @@ import { z } from 'zod/v4';
 import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -44,11 +43,15 @@ export async function associatePurchase(
                 operation: 'update',
             });
 
+        const service = await createTicketService(event.id);
+        if (!service)
+            notFound();
+
         const affectedRows = await db.insertInto(tUsersEventsTickets)
             .set({
                 userId: data.userId,
                 eventId: event.id,
-                ticketProvider: 'YourTicketProvider',
+                ticketProvider: service.id,
                 ticketProviderPurchaseId: purchaseId.toString(),
             })
             .onConflictDoNothing()
@@ -212,12 +215,7 @@ export async function createAssociateTicket(eventSlug: string, formData: unknown
         // Import the purchase into our database if required, so that it's immediately visible
         // across our systems. The import routine will pick it up properly at the next interval.
         try {
-            switch (service.id) {
-                case 'YourTicketProvider':
-                    await YourTicketProviderImportTask.importPurchase(
-                        Number(service.eventId), Number(ticket.purchaseId));
-                    break;
-            }
+            await service.importPurchase(ticket.purchaseId);
         } catch (error) {
             console.error('Unable to import a new purchase:', error);
             return {
@@ -354,7 +352,7 @@ export async function updateYourTicketProviderPurchase(
             .withSeverity('Error')
             .record({
                 event: event.shortName,
-                purchaseId: `REF${purchaseId}`,
+                purchaseId: service.formatPurchaseId(purchaseId),
             });
 
         return {

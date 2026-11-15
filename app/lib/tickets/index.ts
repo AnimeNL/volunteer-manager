@@ -1,10 +1,28 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { CachedEvent } from '@lib/cache/Types';
 import type { TicketService } from './TicketService';
 import { Weeztix } from './backends/Weeztix';
 import { YourTicketProvider } from './backends/YourTicketProvider';
 import { getEvent } from '@lib/cache';
+
+/**
+ * Returns whether the given `event` has a configured ticket service.
+ */
+export function isTicketServiceConfigured(
+    event: Pick<CachedEvent, 'tickets' | 'integrations'>): boolean
+{
+    switch (event.tickets?.provider) {
+        case 'Weeztix':
+            return !!event.integrations?.weeztixGuid;
+
+        case 'YourTicketProvider':
+            return !!event.integrations?.yourTicketProviderEventId;
+    }
+
+    return false;
+}
 
 /**
  * Creates a ticket service for the given `eventIdentifier`, which may either be a unique event ID

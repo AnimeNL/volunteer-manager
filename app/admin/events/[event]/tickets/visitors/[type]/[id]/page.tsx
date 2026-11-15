@@ -186,6 +186,6 @@ export default async function EventTicketsVisitorPurchasePage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id', prefix: 'Purchase REF' },
+    createGenerateMetadataFn({ param: 'id', prefix: 'Purchase #' },
                              { param: 'type', prefix: 'Ticket #' }, 'Visitors', 'Tickets',
                              { event: 'event' });

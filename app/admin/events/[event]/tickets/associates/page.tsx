@@ -106,7 +106,8 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
 
             return ticket.barcode?.toLocaleLowerCase().includes(searchQuery) ||
                    ticket.holder?.toLocaleLowerCase().includes(searchQuery) ||
-                   `ref${ticket.purchaseId}`.includes(searchQuery);
+                   service.formatPurchaseId(ticket.purchaseId)
+                       .toLocaleLowerCase().includes(searchQuery);
         });
 
         const sortedTickets = filteredTickets.sort((lhs, rhs) => {
@@ -128,8 +129,7 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
                 id: ticket.id,
                 purchaseId: ticket.purchaseId,
                 holder: ticket.holder ?? '(Unclaimed ticket)',
-                order: service.id === 'YourTicketProvider' ? `REF${ticket.purchaseId}`
-                                                           : ticket.purchaseId.toString(),
+                order: service.formatPurchaseId(ticket.purchaseId),
                 created: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
             })),
@@ -220,7 +220,7 @@ export default async function EventTicketsAssociatesPage(
                            subject="ticket"
                            listViewProps={{
                                primaryField: 'holder',
-                               secondaryTemplate: 'REF{purchaseId}',
+                               secondaryTemplate: '{order}',
                                startComponent: ValidityCell,
                                linkTemplate: './associates/{purchaseId}',
                            }} />

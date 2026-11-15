@@ -265,6 +265,10 @@ export class Weeztix implements TicketService {
         return statistics;
     }
 
+    async importPurchase(_purchaseId: number | string): Promise<void> {
+        // Weeztix purchases are imported asynchronously via the scheduled import task.
+    }
+
     async listTicketTypes(): Promise<TicketType[]> {
         const rows = await db.selectFrom(tWeeztixTicketTypes)
             .where(tWeeztixTicketTypes.weeztixEventGuid.equals(this.#eventId))

@@ -25,6 +25,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
+import { isTicketServiceConfigured } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tEvents, tEventsTeams, tHotels, tHotelsBookings, tRoles, tShifts, tTeams,
     tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsersEventsPreferencesHotel,
@@ -186,10 +187,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: AnalyticsOutlinedIcon,
-            condition:
-                (event.tickets?.provider === 'Weeztix' && !!event.integrations?.weeztixGuid) ||
-                (event.tickets?.provider === 'YourTicketProvider' &&
-                    !!event.integrations?.yourTicketProviderEventId),
+            condition: isTicketServiceConfigured(event),
             label: 'Finances',
             permission: {
                 permission: 'statistics.finances',

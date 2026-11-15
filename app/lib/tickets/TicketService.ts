@@ -56,6 +56,11 @@ export interface TicketService {
     getStatistics(): Promise<TicketStatistics | undefined>;
 
     /**
+     * Imports the purchase identified by `purchaseId` into the local database cache, if required.
+     */
+    importPurchase(purchaseId: number | string): Promise<void>;
+
+    /**
      * Lists the ticket types that exist for the current event.
      */
     listTicketTypes(): Promise<TicketType[]>;

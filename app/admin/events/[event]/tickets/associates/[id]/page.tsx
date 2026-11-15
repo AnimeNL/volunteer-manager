@@ -95,10 +95,12 @@ export default async function EventTicketsAssociatesPage(
         canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
                          : undefined!;
 
+    const formattedPurchaseId = service.formatPurchaseId(purchase.id);
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                     title={`REF${params.id}`} documentation="event/tickets"
+                     title={formattedPurchaseId} documentation="event/tickets"
                      limited={!canDeleteTickets || !canUpdateTickets}
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
@@ -107,7 +109,7 @@ export default async function EventTicketsAssociatesPage(
                             label: 'Associates',
                             href: `/admin/events/${event.slug}/tickets/associates`,
                         },
-                        { label: `REF${params.id}` },
+                        { label: formattedPurchaseId },
                      ]}>
                 <SectionIntroduction>
                     Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
@@ -178,5 +180,5 @@ export default async function EventTicketsAssociatesPage(
 }
 
 export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id', prefix: 'REF' }, 'Associates', 'Tickets',
+    createGenerateMetadataFn({ param: 'id', prefix: 'Purchase #' }, 'Associates', 'Tickets',
                              { event: 'event' });

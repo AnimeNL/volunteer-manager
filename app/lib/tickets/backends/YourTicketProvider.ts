@@ -7,6 +7,7 @@ import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, Ticket
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
+import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 
 import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
@@ -128,6 +129,10 @@ export class YourTicketProvider implements TicketService {
         }
 
         return statistics;
+    }
+
+    async importPurchase(purchaseId: number | string): Promise<void> {
+        await YourTicketProviderImportTask.importPurchase(this.#eventId, Number(purchaseId));
     }
 
     async listTicketTypes(): Promise<TicketType[]> {

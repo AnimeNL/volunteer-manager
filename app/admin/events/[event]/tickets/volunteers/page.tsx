@@ -110,7 +110,7 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
                 let created: string | undefined;
 
                 if (!!volunteer.yourTicketProvider?.order) {
-                    order = `REF${volunteer.yourTicketProvider.order}`;
+                    order = service.formatPurchaseId(volunteer.yourTicketProvider.order);
                     created = volunteer.yourTicketProvider.created;
                 }
 
