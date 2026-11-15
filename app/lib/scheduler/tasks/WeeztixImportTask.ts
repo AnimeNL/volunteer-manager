@@ -146,6 +146,27 @@ function parseTimestamp(value: string): Temporal.ZonedDateTime {
 }
 
 /**
+ * Normalises a Weeztix `product` entry into a `LivePurchaseEntry` associated with `orderGuid` and
+ * optionally `ticketGuid`.
+ */
+function toLivePurchaseEntry(
+    product: Order['products'][number], orderGuid: string, ticketGuid: string | null)
+        : LivePurchaseEntry
+{
+    return {
+        guid: product.guid,
+        ticketGuid,
+        orderGuid,
+        typeGuid: product.product_id,
+        name: extractPurchaseName(product.meta_data),
+        price: Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
+        created: parseTimestamp(product.created_at),
+        updated: parseTimestamp(product.updated_at),
+        deleted: product.invalidated_since ? parseTimestamp(product.invalidated_since) : null,
+    };
+}
+
+/**
  * Task that periodically imports order and ticket information from Weeztix.
  */
 export class WeeztixImportTask extends Task {
@@ -503,21 +524,14 @@ export class WeeztixImportTask extends Task {
                 });
 
                 for (const product of ticket.products) {
-                    livePurchases.set(product.guid, {
-                        guid: product.guid,
-                        ticketGuid: ticket.guid,
-                        orderGuid: order.guid,
-                        typeGuid: product.product_id,
-                        name: extractPurchaseName(product.meta_data),
-                        price:
-                            Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
-                        created: parseTimestamp(product.created_at),
-                        updated: parseTimestamp(product.updated_at),
-                        deleted: product.invalidated_since
-                            ? parseTimestamp(product.invalidated_since)
-                            : null,
-                    });
+                    livePurchases.set(
+                        product.guid, toLivePurchaseEntry(product, order.guid, ticket.guid));
                 }
+            }
+
+            for (const product of order.products) {
+                if (!livePurchases.has(product.guid))
+                    livePurchases.set(product.guid, toLivePurchaseEntry(product, order.guid, null));
             }
         }
 
@@ -554,7 +568,6 @@ export class WeeztixImportTask extends Task {
 
         const knownPurchases = await dbInstance.selectFrom(tWeeztixPurchases)
             .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
-                .and(tWeeztixPurchases.weeztixTicketGuid.isNotNull())
             .select({
                 guid: tWeeztixPurchases.weeztixGuid,
                 ticketGuid: tWeeztixPurchases.weeztixTicketGuid,
@@ -777,7 +790,6 @@ export class WeeztixImportTask extends Task {
                             weeztixPurchaseDeleted: dbInstance.currentZonedDateTime(),
                         })
                         .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
-                            .and(tWeeztixPurchases.weeztixTicketGuid.isNotNull())
                             .and(tWeeztixPurchases.weeztixGuid.in(purchaseGuidsToDelete))
                             .and(tWeeztixPurchases.weeztixPurchaseDeleted.isNull())
                         .executeUpdate();
