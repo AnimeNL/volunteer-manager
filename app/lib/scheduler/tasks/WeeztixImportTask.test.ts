@@ -1,24 +1,72 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Order } from '@lib/integrations/weeztix/WeeztixTypes';
 import { TaskContext } from '../TaskContext';
 import { WeeztixImportTask } from './WeeztixImportTask';
 import { formatDate } from '@lib/Temporal';
 import { useMockConnection } from '@lib/database/Connection';
 
-const mockGetEvent = vi.fn();
-const mockGetOrder = vi.fn();
 const mockListOrders = vi.fn();
 const mockListTicketTypes = vi.fn();
 
 vi.mock('@lib/integrations/weeztix', () => ({
     createWeeztixClient: async () => ({
-        getEvent: mockGetEvent,
-        getOrder: mockGetOrder,
         listOrders: mockListOrders,
         listTicketTypes: mockListTicketTypes,
     }),
 }));
+
+type OrderProduct = Order['products'][number];
+type OrderTicket = Order['tickets'][number];
+
+function buildProduct(overrides: Partial<OrderProduct> = {}): OrderProduct {
+    return {
+        guid: 'product-1',
+        product_id: 'type-product-1',
+        origin_type: 'product',
+        finn_inner_value: 1000,
+        finn_service_fee: 50,
+        finn_price: 1050,
+        invalidated_since: null,
+        created_at: '2026-08-01T10:00:00Z',
+        updated_at: '2026-08-02T12:00:00Z',
+        meta_data: [],
+        ...overrides,
+    };
+}
+
+function buildTicket(overrides: Partial<OrderTicket> = {}): OrderTicket {
+    return {
+        guid: 'ticket-1',
+        ticket_id: 'type-ticket-1',
+        ticket_number: 'BARCODE-001',
+        finn_value: 4500,
+        finn_inner_value: 0,
+        finn_service_fee: 250,
+        finn_price: 4750,
+        invalidated_since: null,
+        created_at: '2026-08-01T10:00:00Z',
+        updated_at: '2026-08-02T12:00:00Z',
+        meta_data: [],
+        products: [],
+        ...overrides,
+    };
+}
+
+function buildOrder(overrides: Partial<Order> = {}): Order {
+    return {
+        guid: 'order-1',
+        fullname: 'Jane Doe',
+        status: 'paid',
+        invalidated_since: null,
+        created_at: '2026-08-01T10:00:00Z',
+        updated_at: '2026-08-02T12:00:00Z',
+        products: [],
+        tickets: [],
+        ...overrides,
+    };
+}
 
 describe('WeeztixImportTask', () => {
     const mockConnection = useMockConnection();
@@ -26,8 +74,6 @@ describe('WeeztixImportTask', () => {
     let task: WeeztixImportTask;
 
     beforeEach(async () => {
-        mockGetEvent.mockReset();
-        mockGetOrder.mockReset();
         mockListOrders.mockReset();
         mockListTicketTypes.mockReset();
 
@@ -43,20 +89,21 @@ describe('WeeztixImportTask', () => {
             mockConnection.expect('selectManyRows', query => {
                 expect(query).toContain('from events');
                 expect(query).toContain('event_weeztix_guid is not null');
+                expect(query).toContain(
+                    'select max(weeztix_order_updated) as result from weeztix_orders');
                 return [];
             });
 
             const result = await task.execute();
             expect(result).toBe(true);
 
-            expect(mockGetEvent).not.toHaveBeenCalled();
             expect(mockListTicketTypes).not.toHaveBeenCalled();
             expect(mockListOrders).not.toHaveBeenCalled();
             expect(task.contextForTesting.intervalMsForTesting).toBe(
                 WeeztixImportTask.kIntervalMaximum);
         });
 
-        it('synchronises ticket types for each active event and updates interval', async () => {
+        it('synchronises active events, scales interval, and validates context', async () => {
             task.contextForTesting.setIntervalForRepeatingTask(
                 WeeztixImportTask.kIntervalMaximum, /* force= */ true);
 
@@ -69,30 +116,58 @@ describe('WeeztixImportTask', () => {
                     name: 'AnimeCon 2026',
                     endTime: formatDate(soonEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
                     context: {
+                        companyGuid: undefined,
+                        eventGuid: 'event-guid-2026',
+                    },
+                    mostRecentUpdate: undefined,
+                },
+            ]);
+
+            await expect(task.execute()).rejects.toThrow('without a company GUID');
+
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    slug: '2026',
+                    name: 'AnimeCon 2026',
+                    endTime: formatDate(soonEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
+                    context: {
                         companyGuid: 'company-guid-1',
                         eventGuid: 'event-guid-2026',
                     },
+                    mostRecentUpdate: '2026-08-05 00:00:00',
                 },
                 {
                     slug: '2027',
                     name: 'AnimeCon 2027',
                     endTime: formatDate(laterEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
                     context: {
-                        companyGuid: undefined,
+                        companyGuid: 'company-guid-2',
                         eventGuid: 'event-guid-2027',
                     },
+                    mostRecentUpdate: undefined,
                 },
             ]);
 
             mockListTicketTypes.mockResolvedValue([]);
+            mockListOrders.mockResolvedValue([]);
 
             const result = await task.execute();
             expect(result).toBe(true);
 
-            expect(mockListTicketTypes).toHaveBeenCalledTimes(2);
             expect(mockListTicketTypes).toHaveBeenNthCalledWith(1, 'event-guid-2026');
             expect(mockListTicketTypes).toHaveBeenNthCalledWith(2, 'event-guid-2027');
-            expect(mockListOrders).not.toHaveBeenCalled();
+
+            expect(mockListOrders).toHaveBeenNthCalledWith(
+                1, 'company-guid-1', expect.objectContaining({
+                    start: '2026-08-04T12:00:00+00:00',
+                    sorting: { updated_at: 'asc' },
+                    events: [ 'event-guid-2026' ],
+                }));
+            expect(mockListOrders).toHaveBeenNthCalledWith(
+                2, 'company-guid-2', expect.objectContaining({
+                    sorting: { updated_at: 'asc' },
+                    events: [ 'event-guid-2027' ],
+                }));
 
             // Driven by `soonEndTime` (7 days -> 1 hour), not overwritten by `laterEndTime`.
             expect(task.contextForTesting.intervalMsForTesting).toBe(3600 * 1000);
@@ -100,142 +175,10 @@ describe('WeeztixImportTask', () => {
     });
 
     describe('importProductsAndTickets', () => {
-        it('returns false when no tickets are returned by the API', async () => {
+        it('avoids database writes when empty or when stored entries match', async () => {
             mockListTicketTypes.mockResolvedValueOnce([]);
+            expect(await (task as any).importProductsAndTickets('event-guid-1')).toBe(false);
 
-            const result = await (task as any).importProductsAndTickets('event-guid-1');
-            expect(result).toBe(false);
-        });
-
-        it('inserts tickets and products, deduplicating shared products', async () => {
-            mockListTicketTypes.mockResolvedValueOnce([
-                {
-                    guid: 'ticket-1',
-                    event_id: 'event-guid-1',
-                    name: 'Weekend Pass',
-                    description: 'Full weekend access',
-                    min_price: 4500,
-                    available_stock: 500,
-                    sold_count: 120,
-                    scanned_count: 0,
-                    created_at: '2026-08-02T10:00:00+02:00',
-                    updated_at: '2026-08-05T14:00:00+02:00',
-                    status: 'available',
-                    products: [
-                        {
-                            guid: 'product-shared',
-                            event_id: 'event-guid-1',
-                            name: 'Weekend Locker',
-                            description: 'Large locker',
-                            price: 1250,
-                            available_stock: 100,
-                            sold_count: 25,
-                            scanned_count: 0,
-                            status: 'available',
-                        },
-                        {
-                            guid: 'product-lanyard',
-                            event_id: 'event-guid-1',
-                            name: 'Lanyard',
-                            description: null,
-                            price: 500,
-                            available_stock: 300,
-                            sold_count: 40,
-                            scanned_count: 0,
-                            status: 'available',
-                        },
-                    ],
-                },
-                {
-                    guid: 'ticket-2',
-                    event_id: 'event-guid-1',
-                    name: 'VIP Pass',
-                    description: '',
-                    min_price: 9500,
-                    available_stock: 50,
-                    sold_count: 50,
-                    scanned_count: 0,
-                    created_at: '2026-08-01T12:00:00Z',
-                    updated_at: '2026-08-03T12:00:00Z',
-                    status: 'sold_out',
-                    products: [
-                        {
-                            guid: 'product-shared',
-                            event_id: 'event-guid-1',
-                            name: 'Weekend Locker',
-                            description: 'Large locker',
-                            price: 1250,
-                            available_stock: 100,
-                            sold_count: 25,
-                            scanned_count: 0,
-                            status: 'available',
-                        },
-                    ],
-                },
-            ]);
-
-            mockConnection.expect('selectManyRows', (query, params) => {
-                expect(query).toContain('from weeztix_ticket_types');
-                expect(params).toEqual([ 'event-guid-1' ]);
-                return [];
-            });
-
-            const insertedByGuid = new Map<string, unknown[]>();
-
-            mockConnection.expect('beginTransaction');
-            for (let i = 0; i < 4; ++i) {
-                mockConnection.expect('insert', (query, params) => {
-                    expect(query).toContain('insert into weeztix_ticket_types');
-                    expect(query).toContain('on duplicate key update');
-                    insertedByGuid.set(params[0] as string, params);
-                    return 1;
-                });
-            }
-            mockConnection.expect('commit');
-
-            const result = await (task as any).importProductsAndTickets('event-guid-1');
-            expect(result).toBe(true);
-
-            expect(insertedByGuid.size).toBe(4);
-
-            // Ticket 1: +02:00 converted to UTC ('2026-08-02 08:00:00' and '2026-08-05 12:00:00').
-            expect(insertedByGuid.get('ticket-1')?.slice(0, 12)).toEqual([
-                'ticket-1',
-                'event-guid-1',
-                'Ticket',
-                'Weekend Pass',
-                'Full weekend access',
-                4500,
-                500,
-                120,
-                0,
-                'available',
-                '2026-08-02 08:00:00',
-                '2026-08-05 12:00:00',
-            ]);
-
-            // Shared product merges min(created) from ticket-2 and max(updated) from ticket-1.
-            expect(insertedByGuid.get('product-shared')?.slice(0, 12)).toEqual([
-                'product-shared',
-                'event-guid-1',
-                'Product',
-                'Weekend Locker',
-                'Large locker',
-                1250,
-                100,
-                25,
-                0,
-                'available',
-                '2026-08-01 12:00:00',
-                '2026-08-05 12:00:00',
-            ]);
-
-            // Null/empty descriptions are normalised to null (`undefined` omitted vs SQL `null`).
-            expect(insertedByGuid.get('product-lanyard')?.[4]).toBeNull();
-            expect(insertedByGuid.get('ticket-2')?.[4]).toBeNull();
-        });
-
-        it('skips database writes when live entries match stored records', async () => {
             mockListTicketTypes.mockResolvedValueOnce([
                 {
                     guid: 'ticket-1',
@@ -270,11 +213,153 @@ describe('WeeztixImportTask', () => {
                 },
             ]);
 
-            const result = await (task as any).importProductsAndTickets('event-guid-1');
-            expect(result).toBe(true);
+            expect(await (task as any).importProductsAndTickets('event-guid-1')).toBe(true);
         });
 
-        it('updates modified entries and restores previously soft-deleted entries', async () => {
+        it('inserts tickets and products, deduplicating shared products', async () => {
+            mockListTicketTypes.mockResolvedValueOnce([
+                {
+                    guid: 'ticket-1',
+                    event_id: 'event-guid-1',
+                    name: 'Weekend Pass',
+                    description: 'Full weekend access',
+                    min_price: 4500,
+                    available_stock: 500,
+                    sold_count: 120,
+                    scanned_count: 0,
+                    created_at: '2026-08-02T10:00:00+02:00',
+                    updated_at: '2026-08-05T14:00:00+02:00',
+                    status: 'available',
+                    products: [
+                        {
+                            guid: 'product-ticket-origin',
+                            event_id: 'event-guid-1',
+                            origin_type: 'ticket',
+                            name: 'Weekend Pass',
+                            description: null,
+                            price: 4500,
+                            available_stock: 500,
+                            sold_count: 120,
+                            scanned_count: 0,
+                            status: 'available',
+                        },
+                        {
+                            guid: 'product-shared',
+                            event_id: 'event-guid-1',
+                            origin_type: 'product',
+                            name: 'Weekend Locker',
+                            description: 'Large locker',
+                            price: 1250,
+                            available_stock: 100,
+                            sold_count: 25,
+                            scanned_count: 0,
+                            status: 'available',
+                        },
+                        {
+                            guid: 'product-lanyard',
+                            event_id: 'event-guid-1',
+                            origin_type: 'product',
+                            name: 'Lanyard',
+                            description: null,
+                            price: 500,
+                            available_stock: 300,
+                            sold_count: 40,
+                            scanned_count: 0,
+                            status: 'available',
+                        },
+                    ],
+                },
+                {
+                    guid: 'ticket-2',
+                    event_id: 'event-guid-1',
+                    name: 'VIP Pass',
+                    description: '',
+                    min_price: 9500,
+                    available_stock: 50,
+                    sold_count: 50,
+                    scanned_count: 0,
+                    created_at: '2026-08-01T12:00:00Z',
+                    updated_at: '2026-08-03T12:00:00Z',
+                    status: 'sold_out',
+                    products: [
+                        {
+                            guid: 'product-shared',
+                            event_id: 'event-guid-1',
+                            origin_type: 'product',
+                            name: 'Weekend Locker',
+                            description: 'Large locker',
+                            price: 1250,
+                            available_stock: 100,
+                            sold_count: 25,
+                            scanned_count: 0,
+                            status: 'available',
+                        },
+                    ],
+                },
+            ]);
+
+            mockConnection.expect('selectManyRows', (query, params) => {
+                expect(query).toContain('from weeztix_ticket_types');
+                expect(params).toEqual([ 'event-guid-1' ]);
+                return [];
+            });
+
+            const insertedByGuid = new Map<string, unknown[]>();
+
+            mockConnection.expect('beginTransaction');
+            for (let i = 0; i < 4; ++i) {
+                mockConnection.expect('insert', (query, params) => {
+                    expect(query).toContain('insert into weeztix_ticket_types');
+                    expect(query).toContain('on duplicate key update');
+                    insertedByGuid.set(params[0] as string, params);
+                    return 1;
+                });
+            }
+            mockConnection.expect('commit');
+
+            const result = await (task as any).importProductsAndTickets('event-guid-1');
+            expect(result).toBe(true);
+            expect(insertedByGuid.size).toBe(4);
+            expect(insertedByGuid.has('product-ticket-origin')).toBe(false);
+
+            expect(insertedByGuid.get('ticket-1')?.slice(0, 13)).toEqual([
+                'ticket-1',
+                'event-guid-1',
+                'Ticket',
+                'Weekend Pass',
+                'Full weekend access',
+                4500,
+                500,
+                120,
+                0,
+                'available',
+                '2026-08-02 08:00:00',
+                '2026-08-05 12:00:00',
+                null,
+            ]);
+
+            // Shared product merges min(created) from ticket-2 and max(updated) from ticket-1.
+            expect(insertedByGuid.get('product-shared')?.slice(0, 13)).toEqual([
+                'product-shared',
+                'event-guid-1',
+                'Product',
+                'Weekend Locker',
+                'Large locker',
+                1250,
+                100,
+                25,
+                0,
+                'available',
+                '2026-08-01 12:00:00',
+                '2026-08-05 12:00:00',
+                null,
+            ]);
+
+            expect(insertedByGuid.get('product-lanyard')?.[4]).toBeNull();
+            expect(insertedByGuid.get('ticket-2')?.[4]).toBeNull();
+        });
+
+        it('updates modified, restores deleted, and soft-deletes omitted entries', async () => {
             mockListTicketTypes.mockResolvedValueOnce([
                 {
                     guid: 'ticket-unchanged',
@@ -292,6 +377,7 @@ describe('WeeztixImportTask', () => {
                         {
                             guid: 'product-restored',
                             event_id: 'event-guid-1',
+                            origin_type: 'product',
                             name: 'Parking Token',
                             description: null,
                             price: 1000,
@@ -361,58 +447,6 @@ describe('WeeztixImportTask', () => {
                     updated: '2026-08-05 09:00:00',
                     deleted: undefined,
                 },
-            ]);
-
-            const upsertedGuids: string[] = [];
-
-            mockConnection.expect('beginTransaction');
-            for (let i = 0; i < 2; ++i) {
-                mockConnection.expect('insert', (query, params) => {
-                    expect(query).toContain('weeztix_ticket_deleted = ?');
-                    upsertedGuids.push(params[0] as string);
-                    return 1;
-                });
-            }
-            mockConnection.expect('commit');
-
-            const result = await (task as any).importProductsAndTickets('event-guid-1');
-            expect(result).toBe(true);
-            expect(upsertedGuids).toEqual([ 'product-restored', 'ticket-modified' ]);
-        });
-
-        it('soft-deletes active entries omitted from the API response', async () => {
-            mockListTicketTypes.mockResolvedValueOnce([
-                {
-                    guid: 'ticket-active',
-                    event_id: 'event-guid-1',
-                    name: 'Friday Ticket',
-                    description: null,
-                    min_price: 2500,
-                    available_stock: 200,
-                    sold_count: 80,
-                    scanned_count: 0,
-                    created_at: '2026-08-01T10:00:00Z',
-                    updated_at: '2026-08-04T15:30:00Z',
-                    status: 'available',
-                    products: [],
-                },
-            ]);
-
-            mockConnection.expect('selectManyRows', () => [
-                {
-                    guid: 'ticket-active',
-                    type: 'Ticket',
-                    name: 'Friday Ticket',
-                    description: undefined,
-                    price: 2500,
-                    available: 200,
-                    sold: 80,
-                    scanned: 0,
-                    status: 'available',
-                    created: '2026-08-01 10:00:00',
-                    updated: '2026-08-04 15:30:00',
-                    deleted: undefined,
-                },
                 {
                     guid: 'ticket-removed',
                     type: 'Ticket',
@@ -443,7 +477,17 @@ describe('WeeztixImportTask', () => {
                 },
             ]);
 
+            const upsertedGuids: string[] = [];
+
             mockConnection.expect('beginTransaction');
+            for (let i = 0; i < 2; ++i) {
+                mockConnection.expect('insert', (query, params) => {
+                    expect(query).toContain('weeztix_ticket_deleted = ?');
+                    expect(params[12]).toBeNull();
+                    upsertedGuids.push(params[0] as string);
+                    return 1;
+                });
+            }
             mockConnection.expect('update', (query, params) => {
                 expect(query).toContain('update weeztix_ticket_types set weeztix_ticket_deleted =');
                 expect(query).toContain('weeztix_ticket_deleted is null');
@@ -454,74 +498,557 @@ describe('WeeztixImportTask', () => {
 
             const result = await (task as any).importProductsAndTickets('event-guid-1');
             expect(result).toBe(true);
+            expect(upsertedGuids).toEqual([ 'product-restored', 'ticket-modified' ]);
         });
     });
 
     describe('importOrders', () => {
-        it('returns false when no orders are returned by the statistics API', async () => {
+        it('paginates with 12h compensation, deduplicates orders, and skips empty', async () => {
             mockListOrders.mockResolvedValueOnce([]);
+            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(false);
 
-            const result = await (task as any).importOrders('company-guid-1', 'event-guid-1');
-            expect(result).toBe(false);
+            vi.useFakeTimers({ toFake: [ 'setTimeout' ] });
+            try {
+                const firstPage = Array.from({ length: 100 }, (_, index) =>
+                    buildOrder({ guid: `order-${index}`, status: 'pending' }));
+                const secondPage = [ buildOrder({ guid: 'order-0', status: 'paid' }) ];
+
+                mockListOrders
+                    .mockResolvedValueOnce(firstPage)
+                    .mockResolvedValueOnce(secondPage);
+
+                mockConnection.expect('selectManyRows', () =>
+                    Array.from({ length: 99 }, (_, index) => ({
+                        guid: `order-${index + 1}`,
+                        eventGuid: 'event-guid-1',
+                        name: 'Jane Doe',
+                        status: 'pending',
+                        created: '2026-08-01 10:00:00',
+                        updated: '2026-08-02 12:00:00',
+                        deleted: undefined,
+                    })));
+                mockConnection.expect('selectManyRows', () => []);
+                mockConnection.expect('selectManyRows', () => []);
+
+                let insertedOrderParams: unknown[] = [];
+                mockConnection.expect('beginTransaction');
+                mockConnection.expect('insert', (_query, params) => {
+                    insertedOrderParams = params;
+                    return 1;
+                });
+                mockConnection.expect('commit');
+
+                const mostRecentUpdate =
+                    Temporal.Instant.from('2026-08-05T00:00:00Z').toZonedDateTimeISO('UTC');
+
+                const resultPromise = (task as any).importOrders(
+                    'company-guid-1', 'event-guid-1', mostRecentUpdate);
+                await vi.runAllTimersAsync();
+                expect(await resultPromise).toBe(true);
+
+                expect(mockListOrders).toHaveBeenNthCalledWith(
+                    2, 'company-guid-1', expect.objectContaining({
+                        offset: 0,
+                        limit: 100,
+                        timeunit: 'year',
+                        range_applies_to: 'updated_at',
+                        start: '2026-08-04T12:00:00+00:00',
+                        sorting: { updated_at: 'asc' },
+                        events: [ 'event-guid-1' ],
+                    }));
+                expect(mockListOrders).toHaveBeenNthCalledWith(
+                    3, 'company-guid-1', expect.objectContaining({
+                        offset: 100,
+                        limit: 100,
+                        sorting: { updated_at: 'asc' },
+                    }));
+
+                // Duplicate `order-0` across pages retains the status from the later page.
+                expect(insertedOrderParams.slice(0, 4)).toEqual([
+                    'order-0',
+                    'event-guid-1',
+                    'Jane Doe',
+                    'paid',
+                ]);
+            } finally {
+                vi.useRealTimers();
+            }
         });
 
-        it('queries orders filtered by eventGuid with 12h compensation', async () => {
+        it('imports orders, tickets, and ticket- and order-associated purchases', async () => {
+            const sharedAddonProduct = buildProduct({
+                guid: 'purchase-ticket-addon',
+                product_id: 'type-locker',
+                origin_type: 'product',
+                finn_price: 1250,
+                finn_service_fee: 50,
+                meta_data: [],
+            });
+
             mockListOrders.mockResolvedValueOnce([
-                { guid: 'order-0', updated_at: '2026-08-05T12:00:00+00:00' },
+                buildOrder({
+                    guid: 'order-1',
+                    fullname: '  Jane   Doe  ',
+                    status: 'paid',
+                    created_at: '2026-08-02T10:00:00+02:00',
+                    updated_at: '2026-08-05T14:00:00+02:00',
+                    tickets: [
+                        buildTicket({
+                            guid: 'ticket-1',
+                            ticket_id: 'type-weekend',
+                            ticket_number: 'BARCODE-777',
+                            finn_price: 5250,
+                            finn_service_fee: 250,
+                            created_at: '2026-08-02T10:00:00+02:00',
+                            updated_at: '2026-08-05T14:00:00+02:00',
+                            products: [
+                                buildProduct({
+                                    guid: 'purchase-ticket-origin',
+                                    product_id: 'type-weekend-product',
+                                    origin_type: 'ticket',
+                                    finn_price: 4200,
+                                    finn_service_fee: 200,
+                                    meta_data: [
+                                        { value: 'Jane', meta_data: { name: 'first_name' } },
+                                        { value: 'Doe', meta_data: { name: 'last_name' } },
+                                        { value: true, meta_data: { name: 'terms' } },
+                                    ],
+                                }),
+                                sharedAddonProduct,
+                            ],
+                        }),
+                    ],
+                    products: [
+                        sharedAddonProduct,
+                        buildProduct({
+                            guid: 'purchase-order-merch',
+                            product_id: 'type-tshirt',
+                            origin_type: 'product',
+                            finn_price: 2650,
+                            finn_service_fee: 150,
+                            meta_data: [
+                                { value: 'Jane', meta_data: { name: 'first_name' } },
+                            ],
+                        }),
+                    ],
+                }),
+                buildOrder({
+                    guid: 'order-2',
+                    fullname: '   ',
+                    status: 'cancelled',
+                    invalidated_since: '2026-08-06T10:00:00Z',
+                }),
             ]);
 
-            const mostRecentUpdate =
-                Temporal.Instant.from('2026-08-05T00:00:00Z').toZonedDateTimeISO('UTC');
+            mockConnection.expect('selectManyRows', query => {
+                expect(query).toContain('from weeztix_orders');
+                return [];
+            });
+            mockConnection.expect('selectManyRows', query => {
+                expect(query).toContain('from weeztix_tickets');
+                return [];
+            });
+            mockConnection.expect('selectManyRows', query => {
+                expect(query).toContain('from weeztix_purchases');
+                expect(query).not.toContain('weeztix_ticket_guid is not null');
+                return [];
+            });
 
-            const result = await (task as any).importOrders(
-                'company-guid-1', 'event-guid-1', mostRecentUpdate);
+            const ordersByGuid = new Map<string, unknown[]>();
+            const ticketsByGuid = new Map<string, unknown[]>();
+            const purchasesByGuid = new Map<string, unknown[]>();
 
-            expect(result).toBe(true);
-            expect(mockListOrders).toHaveBeenCalledWith('company-guid-1', expect.objectContaining({
-                offset: 0,
-                limit: 100,
-                timeunit: 'year',
-                range_applies_to: 'updated_at',
-                // 2026-08-05T00:00:00Z minus 12h race condition compensation:
-                start: '2026-08-04T12:00:00+00:00',
-                sorting: { updated_at: 'desc' },
-                events: [ 'event-guid-1' ],
-            }));
+            mockConnection.expect('beginTransaction');
+            for (let i = 0; i < 2; ++i) {
+                mockConnection.expect('insert', (query, params) => {
+                    expect(query).toContain('insert into weeztix_orders');
+                    ordersByGuid.set(params[0] as string, params);
+                    return 1;
+                });
+            }
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into weeztix_tickets');
+                ticketsByGuid.set(params[0] as string, params);
+                return 1;
+            });
+            for (let i = 0; i < 3; ++i) {
+                mockConnection.expect('insert', (query, params) => {
+                    expect(query).toContain('insert into weeztix_purchases');
+                    purchasesByGuid.set(params[0] as string, params);
+                    return 1;
+                });
+            }
+            mockConnection.expect('commit');
+
+            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
+
+            expect(ordersByGuid.get('order-1')?.slice(0, 7)).toEqual([
+                'order-1',
+                'event-guid-1',
+                'Jane Doe',
+                'paid',
+                '2026-08-02 08:00:00',
+                '2026-08-05 12:00:00',
+                null,
+            ]);
+            expect(ordersByGuid.get('order-2')?.slice(0, 7)).toEqual([
+                'order-2',
+                'event-guid-1',
+                null,
+                'cancelled',
+                '2026-08-01 10:00:00',
+                '2026-08-02 12:00:00',
+                '2026-08-06 10:00:00',
+            ]);
+
+            expect(ticketsByGuid.get('ticket-1')?.slice(0, 9)).toEqual([
+                'ticket-1',
+                'order-1',
+                'event-guid-1',
+                'type-weekend',
+                'BARCODE-777',
+                5000,
+                '2026-08-02 08:00:00',
+                '2026-08-05 12:00:00',
+                null,
+            ]);
+
+            expect(purchasesByGuid.get('purchase-ticket-origin')?.slice(0, 10)).toEqual([
+                'purchase-ticket-origin',
+                'ticket-1',
+                'order-1',
+                'event-guid-1',
+                'type-weekend-product',
+                'Jane Doe',
+                4000,
+                '2026-08-01 10:00:00',
+                '2026-08-02 12:00:00',
+                null,
+            ]);
+            expect(purchasesByGuid.get('purchase-ticket-addon')?.slice(0, 7)).toEqual([
+                'purchase-ticket-addon',
+                'ticket-1',
+                'order-1',
+                'event-guid-1',
+                'type-locker',
+                null,
+                1200,
+            ]);
+            expect(purchasesByGuid.get('purchase-order-merch')?.slice(0, 10)).toEqual([
+                'purchase-order-merch',
+                null,
+                'order-1',
+                'event-guid-1',
+                'type-tshirt',
+                'Jane',
+                2500,
+                '2026-08-01 10:00:00',
+                '2026-08-02 12:00:00',
+                null,
+            ]);
+        });
+
+        it('skips database writes when live orders, tickets, and purchases match', async () => {
+            mockListOrders.mockResolvedValueOnce([
+                buildOrder({
+                    guid: 'order-1',
+                    fullname: '',
+                    status: 'paid',
+                    tickets: [
+                        buildTicket({
+                            guid: 'ticket-1',
+                            invalidated_since: '2026-08-06T10:00:00Z',
+                            products: [
+                                buildProduct({
+                                    guid: 'purchase-ticket',
+                                    meta_data: [
+                                        { value: 'Jane', meta_data: { name: 'first_name' } },
+                                        { value: 'Doe', meta_data: { name: 'last_name' } },
+                                    ],
+                                }),
+                            ],
+                        }),
+                    ],
+                    products: [
+                        buildProduct({ guid: 'purchase-order' }),
+                    ],
+                }),
+            ]);
+
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    name: undefined,
+                    status: 'paid',
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+            ]);
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'ticket-1',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-ticket-1',
+                    barcode: 'BARCODE-001',
+                    price: 4500,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: '2026-08-06 10:00:00',
+                },
+            ]);
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'purchase-ticket',
+                    ticketGuid: 'ticket-1',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: 'Jane Doe',
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'purchase-order',
+                    ticketGuid: undefined,
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+            ]);
+
+            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
+        });
+
+        it('updates modified records, maps invalidations, and soft-deletes omitted', async () => {
+            mockListOrders.mockResolvedValueOnce([
+                buildOrder({
+                    guid: 'order-1',
+                    status: 'cancelled',
+                    invalidated_since: '2026-08-07T12:00:00Z',
+                    updated_at: '2026-08-07T12:00:00Z',
+                    tickets: [
+                        buildTicket({
+                            guid: 'ticket-unchanged',
+                            products: [
+                                buildProduct({ guid: 'purchase-unchanged' }),
+                            ],
+                        }),
+                        buildTicket({
+                            guid: 'ticket-invalidated',
+                            invalidated_since: '2026-08-07T12:00:00Z',
+                            updated_at: '2026-08-07T12:00:00Z',
+                        }),
+                    ],
+                    products: [
+                        buildProduct({
+                            guid: 'purchase-modified',
+                            finn_price: 2050,
+                            finn_service_fee: 50,
+                            invalidated_since: '2026-08-07T12:00:00Z',
+                            updated_at: '2026-08-07T12:00:00Z',
+                        }),
+                    ],
+                }),
+            ]);
+
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    name: 'Jane Doe',
+                    status: 'paid',
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+            ]);
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'ticket-unchanged',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-ticket-1',
+                    barcode: 'BARCODE-001',
+                    price: 4500,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'ticket-invalidated',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-ticket-1',
+                    barcode: 'BARCODE-001',
+                    price: 4500,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'ticket-omitted',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-ticket-1',
+                    barcode: 'BARCODE-002',
+                    price: 4500,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'ticket-already-deleted',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-ticket-1',
+                    barcode: 'BARCODE-003',
+                    price: 4500,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: '2026-08-03 00:00:00',
+                },
+            ]);
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'purchase-unchanged',
+                    ticketGuid: 'ticket-unchanged',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'purchase-modified',
+                    ticketGuid: undefined,
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'purchase-ticket-omitted',
+                    ticketGuid: 'ticket-omitted',
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'purchase-order-omitted',
+                    ticketGuid: undefined,
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                },
+                {
+                    guid: 'purchase-already-deleted',
+                    ticketGuid: undefined,
+                    orderGuid: 'order-1',
+                    eventGuid: 'event-guid-1',
+                    typeGuid: 'type-product-1',
+                    name: undefined,
+                    price: 1000,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: '2026-08-03 00:00:00',
+                },
+            ]);
+
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into weeztix_orders');
+                expect(params[0]).toBe('order-1');
+                expect(params[3]).toBe('cancelled');
+                expect(params[6]).toBe('2026-08-07 12:00:00');
+                return 1;
+            });
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into weeztix_tickets');
+                expect(params[0]).toBe('ticket-invalidated');
+                expect(params[8]).toBe('2026-08-07 12:00:00');
+                return 1;
+            });
+            mockConnection.expect('update', (query, params) => {
+                expect(query).toContain('update weeztix_tickets set weeztix_ticket_deleted =');
+                expect(query).toContain('weeztix_ticket_deleted is null');
+                expect(params).toEqual([ 'order-1', 'ticket-omitted' ]);
+                return 1;
+            });
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into weeztix_purchases');
+                expect(params[0]).toBe('purchase-modified');
+                expect(params[1]).toBeNull();
+                expect(params[6]).toBe(2000);
+                expect(params[9]).toBe('2026-08-07 12:00:00');
+                return 1;
+            });
+            mockConnection.expect('update', (query, params) => {
+                expect(query).toContain('update weeztix_purchases set weeztix_purchase_deleted =');
+                expect(query).toContain('weeztix_purchase_deleted is null');
+                expect(params).toEqual([
+                    'order-1',
+                    'purchase-ticket-omitted',
+                    'purchase-order-omitted',
+                ]);
+                return 1;
+            });
+            mockConnection.expect('commit');
+
+            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
         });
     });
 
     describe('updateTaskIntervalForFestivalDate', () => {
-        it('should scale the task interval based on duration until the festival', () => {
+        it('scales the task interval based on duration until the festival', () => {
             task.contextForTesting.setIntervalForRepeatingTask(
                 WeeztixImportTask.kIntervalMaximum, /* force= */ true);
 
-            expect(task.contextForTesting.intervalMsForTesting).toBe(
-                WeeztixImportTask.kIntervalMaximum);
-
             const anonymousTask = task as any;
 
-            // 1. Event in the past
             anonymousTask.updateTaskIntervalForFestivalDate(
                 Temporal.Now.zonedDateTimeISO('UTC').subtract({ days: 1 }));
             expect(task.contextForTesting.intervalMsForTesting).toBe(
                 WeeztixImportTask.kIntervalMaximum);
 
-            // 2. Within 14 days (e.g. 5 days)
             anonymousTask.updateTaskIntervalForFestivalDate(
                 Temporal.Now.zonedDateTimeISO('UTC').add({ days: 5 }));
             expect(task.contextForTesting.intervalMsForTesting).toBe(3600 * 1000);
 
-            // 3. Within 28 days (e.g. 20 days)
             anonymousTask.updateTaskIntervalForFestivalDate(
                 Temporal.Now.zonedDateTimeISO('UTC').add({ days: 20 }));
             expect(task.contextForTesting.intervalMsForTesting).toBe(3 * 3600 * 1000);
 
-            // 4. Within 56 days (e.g. 45 days)
             anonymousTask.updateTaskIntervalForFestivalDate(
                 Temporal.Now.zonedDateTimeISO('UTC').add({ days: 45 }));
             expect(task.contextForTesting.intervalMsForTesting).toBe(6 * 3600 * 1000);
 
-            // 5. Far in the future (e.g. 90 days)
             anonymousTask.updateTaskIntervalForFestivalDate(
                 Temporal.Now.zonedDateTimeISO('UTC').add({ days: 90 }));
             expect(task.contextForTesting.intervalMsForTesting).toBe(
