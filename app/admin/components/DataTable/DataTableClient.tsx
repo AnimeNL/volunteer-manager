@@ -7,9 +7,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
-    DataGridPremium, GRID_REORDER_COL_DEF, type GridCellParams, type GridColDef,
-    type GridDataSource, type GridFilterModel, type GridPaginationModel, type GridRowModel,
-    type GridRowOrderChangeParams, type GridSortModel, type GridValidRowModel }
+    DataGridPremium, GRID_REORDER_COL_DEF, GridEditSingleSelectCell, type GridCellParams,
+    type GridColDef, type GridDataSource, type GridFilterModel, type GridPaginationModel,
+    type GridRenderEditCellParams, type GridRowModel, type GridRowOrderChangeParams,
+    type GridSortModel, type GridValidRowModel }
     from '@mui/x-data-grid-premium';
 
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -477,10 +478,19 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             if (enableReorder)
                 sortable = false;
 
-            if ('template' in column && !!column.template)
-                columns.push({ ...kColumnTemplates[column.template](column), sortable });
-            else
-                columns.push({ ...column, sortable });
+            const baseColumn = 'template' in column && !!column.template
+                ? kColumnTemplates[column.template](column)
+                : column;
+
+            // MUI's GridEditSingleSelectCell forwards `value` directly to <Select>, which warns
+            // when `value` transitions from `undefined`/`null` to a defined option on edit.
+            const renderEditCell =
+                baseColumn.type === 'singleSelect' && !baseColumn.renderEditCell
+                    ? (params: GridRenderEditCellParams) =>
+                          <GridEditSingleSelectCell {...params} value={params.value ?? ''} />
+                    : baseColumn.renderEditCell;
+
+            columns.push({ ...baseColumn, renderEditCell, sortable });
         }
 
         return columns;

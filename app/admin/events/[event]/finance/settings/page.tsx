@@ -113,7 +113,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 id: type.id,
                 product: type.name,
                 productLimit: type.amount,
-                category: association?.ticketCategory,
+                category: association?.ticketCategory ?? ('' as const),
                 categoryLabel: association?.ticketCategory || '(unassigned)',
                 price: type.price / 100,
                 activityId: association?.ticketActivityId,
@@ -172,9 +172,17 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 break;
         }
 
+        const normaliseCategory = (value: typeof row.category) =>
+            (value === 'null' || !value) ? null : value;
+
         const eventTicketActivityId = row.activityId ?? null;
-        const eventTicketCategory =
-            (row.category === 'null' || !row.category) ? null : row.category;
+        const eventTicketCategory = normaliseCategory(row.category);
+
+        const categoryLabel = eventTicketCategory || '(unassigned)';
+        if (eventTicketActivityId === (previousRow.activityId ?? null) &&
+                eventTicketCategory === normaliseCategory(previousRow.category)) {
+            return { ...row, categoryLabel };
+        }
 
         const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
             .set({
@@ -201,7 +209,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 product: row.product,
             });
 
-        return !!affectedRows ? { ...row, categoryLabel: row.category || '(unassigned)' } : false;
+        return { ...row, categoryLabel };
     },
 });
 

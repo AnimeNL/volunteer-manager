@@ -363,4 +363,74 @@ describe('DataTable - Update', () => {
             expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
         });
     });
+
+    it('does not warn about uncontrolled-to-controlled input for undefined fields', async () => {
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        type SettingsRowModel = z.infer<typeof kSettingsRowModel>;
+        const kSettingsRowModel = withRowModel({
+            id: z.string(),
+            product: z.string(),
+            category: z.enum([ 'Regular', 'Hidden' ]).or(z.literal('')).nullish(),
+            activityId: z.number().nullish(),
+        });
+
+        const dataSource = createDataSource('test/finance-settings-repro', kSettingsRowModel, {
+            async authorize() {},
+            async list() {
+                return {
+                    rowCount: 1,
+                    rows: [{ id: '1', product: 'Weekend', category: undefined, activityId: undefined }],
+                };
+            },
+            async update() {
+                return true;
+            },
+        });
+
+        const columns: Column<SettingsRowModel>[] = [
+            { field: 'product', editable: false },
+            {
+                field: 'category',
+                editable: true,
+                type: 'singleSelect',
+                valueOptions: [
+                    { value: '', label: 'Uncategorised' },
+                    { value: 'Regular', label: 'Regular' },
+                    { value: 'Hidden', label: 'Hidden' },
+                ],
+            },
+            { field: 'activityId', editable: true, type: 'number' },
+        ];
+
+        render(
+            <NuqsTestingAdapter searchParams="" onUrlUpdate={vi.fn()}>
+                <DataTable source={dataSource} columns={columns}
+                           defaultSort={{ field: 'product', sort: 'asc' }}
+                           disableSearch pageSize={100}
+                           listViewProps={{ primaryField: 'product' }} />
+            </NuqsTestingAdapter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Weekend')).toBeDefined();
+        });
+
+        // Double click the category cell to enter edit mode.
+        const cells = screen.getAllByRole('gridcell');
+        fireEvent.doubleClick(cells[1]);
+
+        const comboboxes = await screen.findAllByRole('combobox');
+        // First combobox in the DOM is the grid cell editor, last is the footer pageSize selector.
+        fireEvent.mouseDown(comboboxes[0]);
+        const regularOption = await screen.findByRole('option', { name: 'Regular' });
+        fireEvent.click(regularOption);
+
+        const calls = errorSpy.mock.calls.map(c => c.join(' '));
+        errorSpy.mockRestore();
+
+        const controlledWarning = calls.find(
+            msg => msg.includes('uncontrolled input to be controlled'));
+        expect(controlledWarning).toBeUndefined();
+    });
 });
