@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck, and } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEventsTicketsConfiguration } from '@lib/database';
 
@@ -71,12 +71,10 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.settings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        executeAccessCheck(
+            props.authenticationContext,
+            and('statistics.finances', 'event.settings'),
+            { event: context.event.slug });
     },
 
     async list(params, props, context) {
@@ -213,7 +211,8 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 export default async function EventFinanceSettingsPage(
     props: PageProps<'/admin/events/[event]/finance/settings'>)
 {
-    const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
+    const { event } = await requireAuthenticationWithEvent(
+        props, and('statistics.finances', 'event.settings'));
 
     const service = await createTicketService(event.id);
     if (!service)
