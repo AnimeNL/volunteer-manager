@@ -31,10 +31,12 @@ import { kEventTicketCategory } from '@lib/database/Types';
  * Optional category labels to translate to a human readable name. Falls back to the category name.
  */
 const kCategoryLabels: { [key in EventTicketCategory]?: string } = {
+    [kEventTicketCategory.Donation]: 'Donations',
     [kEventTicketCategory.LockerFriday]: 'Friday lockers',
     [kEventTicketCategory.LockerSaturday]: 'Saturday lockers',
     [kEventTicketCategory.LockerSunday]: 'Sunday lockers',
     [kEventTicketCategory.LockerWeekend]: 'Weekend lockers',
+    [kEventTicketCategory.Merchandise]: 'Merchandise',
     [kEventTicketCategory.TicketFriday]: 'Friday tickets',
     [kEventTicketCategory.TicketSaturday]: 'Saturday tickets',
     [kEventTicketCategory.TicketSunday]: 'Sunday tickets',
@@ -45,6 +47,13 @@ const kCategoryLabels: { [key in EventTicketCategory]?: string } = {
  * Returns the tree data path for category grouping as supported by the <SalesDataGrid> component.
  */
 function getTreeDataPathForCategories(row: SalesDataGridRow): string[] {
+    if (row.avoidCategoryAggregation && (
+        row.category === kEventTicketCategory.Donation ||
+        row.category === kEventTicketCategory.Merchandise))
+    {
+        return [ row.product ];
+    }
+
     const categoryLabel = kCategoryLabels[row.category as EventTicketCategory] ?? row.category;
     return (row.id <= 0 || row.avoidCategoryAggregation)
         ? [ categoryLabel ]
@@ -136,7 +145,7 @@ interface SalesDataGridProps {
     /**
      * Kind of products displayed by this data table.
      */
-    kind: 'events' | 'lockers' | 'tickets';
+    kind: 'events' | 'lockers' | 'products' | 'tickets';
 
     /**
      * Rows that should be shown in the DataGrid component.
@@ -344,6 +353,8 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                 return OverlayWithoutLabel.bind(null, 'Event tickets will appear here…');
             case 'lockers':
                 return OverlayWithoutLabel.bind(null, 'Lockers will appear here…');
+            case 'products':
+                return OverlayWithoutLabel.bind(null, 'Products will appear here…');
             case 'tickets':
                 return OverlayWithoutLabel.bind(null, 'Tickets will appear here…');
         }

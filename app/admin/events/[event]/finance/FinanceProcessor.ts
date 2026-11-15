@@ -71,6 +71,7 @@ export class FinanceProcessor {
     // Data tables:
     readonly #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
     readonly #lockerSalesTableView: ReturnType<typeof views.generateLockerSalesTableView>;
+    readonly #productSalesTableView: ReturnType<typeof views.generateProductSalesTableView>;
     readonly #ticketSalesTableView: ReturnType<typeof views.generateTicketSalesTableView>;
 
     // Graphs:
@@ -90,6 +91,7 @@ export class FinanceProcessor {
 
         this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
         this.#lockerSalesTableView = views.generateLockerSalesTableView(financialData);
+        this.#productSalesTableView = views.generateProductSalesTableView(financialData);
         this.#ticketSalesTableView = views.generateTicketSalesTableView(financialData);
 
         this.#lockerSalesGraphView = views.generateLockerSalesGraphView(financialData);
@@ -108,6 +110,7 @@ export class FinanceProcessor {
 
     get eventSalesTableView() { return this.#eventSalesTableView; }
     get lockerSalesTableView() { return this.#lockerSalesTableView; }
+    get productSalesTableView() { return this.#productSalesTableView; }
     get ticketSalesTableView() { return this.#ticketSalesTableView; }
 
     get lockerSalesGraphView() { return this.#lockerSalesGraphView; }

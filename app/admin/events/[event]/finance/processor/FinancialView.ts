@@ -31,6 +31,7 @@ const kSalesBarColors = [
  * Labels to apply to each of the sales categories.
  */
 const kSalesCategoryLabels: { [key in EventTicketCategory]?: string } = {
+    Donation: 'Donations',
     Event: 'Event tickets',
     Hidden: 'N/A',
     Locker: 'Lockers',
@@ -38,12 +39,22 @@ const kSalesCategoryLabels: { [key in EventTicketCategory]?: string } = {
     LockerSaturday: 'Saturday',
     LockerSunday: 'Sunday',
     LockerWeekend: 'Weekend',
+    Merchandise: 'Merchandise',
+    Product: 'Products',
     TicketFriday: 'Friday',
     TicketSaturday: 'Saturday',
     TicketSunday: 'Sunday',
     TicketVolunteers: 'Volunteers',
     TicketWeekend: 'Weekend',
 };
+
+/**
+ * Predicate to determine whether a product describes an additional standalone product.
+ */
+const isAdditionalProduct = (product: FinancialProduct): boolean =>
+    product.category === kEventTicketCategory.Donation ||
+    product.category === kEventTicketCategory.Merchandise ||
+    product.category === kEventTicketCategory.Product;
 
 /**
  * Predicate to determine whether a product describes an event ticket.
@@ -105,6 +116,13 @@ export function generateLockerSalesGraphView(financialData: FinancialData) {
  */
 export function generateLockerSalesTableView(financialData: FinancialData) {
     return generateSalesTableView(isLockerProduct, financialData);
+}
+
+/**
+ * Generates the view necessary to populate the additional products `<SalesDataGrid>` component.
+ */
+export function generateProductSalesTableView(financialData: FinancialData) {
+    return generateSalesTableView(isAdditionalProduct, financialData);
 }
 
 /**
@@ -219,9 +237,14 @@ function generateSalesTableView(filter: ProductFilterFn, financialData: Financia
         if (!!product.program.id)
             href = `${baseHref}/${product.program.id}`;
 
+        const category =
+            product.category === kEventTicketCategory.Product
+                ? (product.program.title ?? product.product)
+                : (product.program.title ?? product.category);
+
         return {
             id: product.id,
-            category: product.program.title ?? product.category,
+            category,
             href,
             product: maybeRemoveProductNameDuplication(product.product, product.program.title),
             productIds: [ product.id ],

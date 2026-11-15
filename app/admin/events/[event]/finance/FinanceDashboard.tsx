@@ -103,6 +103,18 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
                         </Card>
                     </Grid>
 
+                    { /** Section: Products --------------------------------------------------- */ }
+
+                    { processor.productSalesTableView.length > 0 &&
+                        <Grid size={{ xs: 12 }}>
+                            <Card elevation={1}>
+                                <SalesDataGrid disableProductLinks={props.disableProductLinks}
+                                               partialFetchDataFn={partialFetchDataFn}
+                                               kind="products"
+                                               rows={processor.productSalesTableView} />
+                            </Card>
+                        </Grid> }
+
                 </Grid>
             </Grid>
 
