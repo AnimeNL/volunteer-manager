@@ -9,6 +9,15 @@ import { useMockConnection } from '@lib/database/Connection';
 
 const mockListOrders = vi.fn();
 const mockListTicketTypes = vi.fn();
+const { mockRevalidateForEvent } = vi.hoisted(() => ({
+    mockRevalidateForEvent: vi.fn(),
+}));
+
+vi.mock('@app/admin/events/[event]/finance/FinanceProcessor', () => ({
+    FinanceProcessor: {
+        revalidateForEvent: mockRevalidateForEvent,
+    },
+}));
 
 vi.mock('@lib/integrations/weeztix', () => ({
     createWeeztixClient: async () => ({
@@ -76,6 +85,7 @@ describe('WeeztixImportTask', () => {
     beforeEach(async () => {
         mockListOrders.mockReset();
         mockListTicketTypes.mockReset();
+        mockRevalidateForEvent.mockReset();
 
         const context = TaskContext.forEphemeralTask('WeeztixImportTask', {});
         task = new WeeztixImportTask(context);
@@ -99,6 +109,7 @@ describe('WeeztixImportTask', () => {
 
             expect(mockListTicketTypes).not.toHaveBeenCalled();
             expect(mockListOrders).not.toHaveBeenCalled();
+            expect(mockRevalidateForEvent).not.toHaveBeenCalled();
             expect(task.contextForTesting.intervalMsForTesting).toBe(
                 WeeztixImportTask.kIntervalMaximum);
         });
@@ -171,6 +182,9 @@ describe('WeeztixImportTask', () => {
 
             // Driven by `soonEndTime` (7 days -> 1 hour), not overwritten by `laterEndTime`.
             expect(task.contextForTesting.intervalMsForTesting).toBe(3600 * 1000);
+
+            expect(mockRevalidateForEvent).toHaveBeenNthCalledWith(1, '2026');
+            expect(mockRevalidateForEvent).toHaveBeenNthCalledWith(2, '2027');
         });
     });
 

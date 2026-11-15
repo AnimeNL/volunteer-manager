@@ -4,6 +4,7 @@
 import type { Order } from '@lib/integrations/weeztix/WeeztixTypes';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import type { WeeztixTicketType } from '@lib/database/Types';
+import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import db, { tEvents, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
@@ -250,7 +251,9 @@ export class WeeztixImportTask extends Task {
             await this.importOrders(
                 event.context.companyGuid, event.context.eventGuid, event.mostRecentUpdate);
 
-            // TODO: Revalidate `FinanceProcessor` once order tables exist.
+            // Revalidate the financial cache, ensuring that all metrics and dashboards show the
+            // most recently updated data.
+            await FinanceProcessor.revalidateForEvent(event.slug);
         }
 
         this.updateTaskIntervalForFestivalDate(applicableEvents[0].endTime);
