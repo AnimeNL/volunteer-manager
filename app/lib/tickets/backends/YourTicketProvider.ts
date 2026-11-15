@@ -6,8 +6,6 @@ import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCon
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
     TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
-import { type YourTicketProviderClient, createYourTicketProviderClient }
-    from '@lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
     hasYourTicketProviderSales } from './YourTicketProviderFinancialData';
@@ -20,7 +18,6 @@ import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tYourTicketProvid
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
 export class YourTicketProvider implements TicketService {
-    #client: YourTicketProviderClient | undefined;
     #eventId: number;
 
     constructor(eventId: number) {
@@ -33,11 +30,6 @@ export class YourTicketProvider implements TicketService {
 
     get id(): EventTicketProvider { return 'YourTicketProvider' };
     get eventId(): number | string { return this.#eventId; }
-
-    async getClient(): Promise<YourTicketProviderClient> {
-        this.#client ??= await createYourTicketProviderClient();
-        return this.#client;
-    }
 
     createPurchaseLink(purchaseId: number | string): string | undefined {
         const baseUrl = 'https://www.yourticketprovider.nl/account/events/manage/guests';

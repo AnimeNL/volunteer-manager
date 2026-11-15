@@ -6,8 +6,6 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { YourTicketProviderClient } from '@lib/integrations/yourticketprovider';
-import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
@@ -15,12 +13,6 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
-
-/**
- * Whether to disable the ability to cancel purchases, which depends on figuring out how to cancel
- * zero-priced tickets in YourTicketProvider that it insists on refunding.
- */
-const kCancelPurchaseDisabledPendingIssueResolution = true;
 
 /**
  * Data required to associate a purchase with a volunteer.
@@ -88,16 +80,6 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
                 permission: 'volunteers.tickets',
                 operation: 'delete',
             });
-
-        // TODO: Enable this API after YourTicketProvider (hopefully) resolves the API issue.
-        if (kCancelPurchaseDisabledPendingIssueResolution) {
-            return {
-                success: false,
-                error:
-                    'The ability to cancel tickets has been disabled pending a fix in ' +
-                    'YourTicketProvider—use YTP directly for now.',
-            };
-        }
 
         const service = await createTicketService(event.id);
         if (!service || !event.tickets?.volunteerTicketId)
@@ -293,67 +275,6 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
         return {
             success: true,
             message: 'They will receive an e-mail shortly.',
-        };
-    });
-}
-
-/**
- * Data necessary to update a purchase issued by YourTicketProvider.
- */
-const kUpdateYtpPurchaseData = z.object({
-    Email: z.email(),
-});
-
-/**
- * Server Action through which an individual purchase issued by YourTicketProvider can be updated.
- */
-export async function updateYourTicketProviderPurchase(
-    eventSlug: string, purchaseId: number, formData: unknown)
-{
-    return executeServerAction(formData, kUpdateYtpPurchaseData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, {
-                permission: 'volunteers.tickets',
-                operation: 'update',
-            });
-
-        // TODO: Enable this API after YourTicketProvider (hopefully) resolves the API issue.
-        if (kCancelPurchaseDisabledPendingIssueResolution) {
-            return {
-                success: false,
-                error:
-                    'The ability to update purchases has been disabled pending a fix in ' +
-                    'YourTicketProvider—use YTP directly for now.',
-            };
-        }
-
-        const service = await createTicketService(event.id);
-        if (!service || service.id !== 'YourTicketProvider')
-            notFound();
-
-        const client = await service.getClient() as YourTicketProviderClient;
-        await client.postUpdatePurchase(purchaseId, {
-            Email: data.Email,
-            IncludeTicketGuarantee: false,
-            Language: 'en',
-            BasketId: null,
-            HasAcceptedTermsAndAgreements: true,
-        });
-
-        // Remove the cached information as it's no longer relevant:
-        Cache.getInstance('EventPurchaseCache').delete(purchaseId);
-
-        LogBuilder.for('UpdateTicketPurchase')
-            .withInitiatorUser(props.user)
-            .withSeverity('Error')
-            .record({
-                event: event.shortName,
-                purchaseId: service.formatPurchaseId(purchaseId),
-            });
-
-        return {
-            success: true,
-            refresh: true,
         };
     });
 }

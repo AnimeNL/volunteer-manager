@@ -22,11 +22,6 @@ export interface TicketService {
     get eventId(): number | string;
 
     /**
-     * Lazily initializes and returns the underlying API client used by this ticket service.
-     */
-    getClient(): Promise<unknown>;
-
-    /**
      * Returns whether this ticket service supports creating new tickets.
      */
     canCreateTickets(): boolean;

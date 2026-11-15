@@ -6,8 +6,7 @@ import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCon
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
     TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
-import type { WeeztixClient } from '@lib/integrations/weeztix';
-import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
+import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
 import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales }
     from './WeeztixFinancialData';
 import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tWeeztixOrders, tWeeztixPurchases,
@@ -71,7 +70,6 @@ function toTicket(row: RawTicketRow): Ticket {
  * @see https://docs.weeztix.com/api/dashboard/dashboard
  */
 export class Weeztix implements TicketService {
-    #client: WeeztixClient | undefined;
     #companyId: string | undefined;
     #eventId: string;
 
@@ -86,11 +84,6 @@ export class Weeztix implements TicketService {
 
     get id(): EventTicketProvider { return 'Weeztix' };
     get eventId(): number | string { return this.#eventId; }
-
-    async getClient(): Promise<WeeztixClient> {
-        this.#client ??= await createWeeztixClient();
-        return this.#client;
-    }
 
     canCreateTickets(): boolean {
         return false;
