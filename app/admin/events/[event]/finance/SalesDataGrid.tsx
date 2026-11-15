@@ -204,9 +204,9 @@ export function SalesDataGrid(props: SalesDataGridProps) {
                         ) : (
                             salesContent
                         ) }
-                        { !!params.row.maximumSales &&
+                        { (params.row.id > 0 || !!params.row.maximumSales) &&
                             <Typography component="span" color="textDisabled" variant="inherit">
-                                {' '}/ {params.row.maximumSales}
+                                {' '}/ {params.row.maximumSales ?? '∞'}
                             </Typography> }
                     </Typography>
                 );

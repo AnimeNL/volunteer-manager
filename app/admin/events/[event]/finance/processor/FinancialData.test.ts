@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
 import { fetchFinancialData } from './FinancialData';
 import { formatDate } from '@lib/Temporal';
 import { useMockConnection } from '@lib/database/Connection';
@@ -125,6 +126,7 @@ describe('FinancialData', () => {
                     category: 'TicketWeekend',
                     available: 380,
                     sold: 120,
+                    status: 'available',
                     price: 65,
                     product: 'Weekend Pass',
                     program: undefined,
@@ -136,6 +138,7 @@ describe('FinancialData', () => {
                     category: 'LockerWeekend',
                     available: 0,
                     sold: 0,
+                    status: 'available',
                     price: 15,
                     product: 'Weekend Locker',
                     program: { id: 88, title: 'Wardrobe' },
@@ -259,5 +262,14 @@ describe('FinancialData', () => {
         expect(historicTicket.totalSales).toBe(25);
         expect(historicTicket.totalRevenue).toBe(20 * 60);
         expect(historicTicket.sales.get(10)).toEqual({ paid: 20, complimentary: 5 });
+    });
+
+    it('treats Weeztix available=0 as unlimited unless status is sold_out', () => {
+        expect(computeWeeztixTicketCapacity(380, 120, 'available')).toBe(500);
+        expect(computeWeeztixTicketCapacity(0, 4, 'available')).toBeUndefined();
+        expect(computeWeeztixTicketCapacity(0, 4, 'not_sold_right_now')).toBeUndefined();
+        expect(computeWeeztixTicketCapacity(0, 4, 'auto')).toBeUndefined();
+        expect(computeWeeztixTicketCapacity(0, 4, 'sold_out')).toBe(4);
+        expect(computeWeeztixTicketCapacity(0, 0, 'sold_out')).toBeUndefined();
     });
 });

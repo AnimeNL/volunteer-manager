@@ -3,6 +3,7 @@
 
 import type { ProviderProduct, ProviderProductSales, ProviderSale } from './Types';
 import type { WeeztixTicketType } from '@lib/database/Types';
+import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
 import db, { tActivities, tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases,
     tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
@@ -90,6 +91,7 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
             category: tEventsTicketsConfiguration.eventTicketCategory,
             available: tWeeztixTicketTypes.weeztixTicketAvailable,
             sold: tWeeztixTicketTypes.weeztixTicketSold,
+            status: tWeeztixTicketTypes.weeztixTicketStatus,
             price: tWeeztixTicketTypes.weeztixTicketPrice.divide(100),
             product: tWeeztixTicketTypes.weeztixTicketName,
             program: {
@@ -104,18 +106,15 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
 
     const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products);
 
-    return products.map(product => {
-        const capacity = product.available + product.sold;
-        return {
-            id: product.id,
-            category: product.category!,
-            limit: capacity > 0 ? capacity : undefined,
-            price: product.price,
-            product: product.product,
-            program: product.program ?? {},
-            sales: salesByTypeGuid.get(product.typeGuid) ?? [],
-        };
-    });
+    return products.map(product => ({
+        id: product.id,
+        category: product.category!,
+        limit: computeWeeztixTicketCapacity(product.available, product.sold, product.status),
+        price: product.price,
+        product: product.product,
+        program: product.program ?? {},
+        sales: salesByTypeGuid.get(product.typeGuid) ?? [],
+    }));
 }
 
 /**
@@ -142,6 +141,7 @@ export async function fetchWeeztixProductSales(
             type: tWeeztixTicketTypes.weeztixTicketType,
             available: tWeeztixTicketTypes.weeztixTicketAvailable,
             sold: tWeeztixTicketTypes.weeztixTicketSold,
+            status: tWeeztixTicketTypes.weeztixTicketStatus,
             product: tWeeztixTicketTypes.weeztixTicketName,
         })
         .executeSelectMany();
@@ -151,15 +151,12 @@ export async function fetchWeeztixProductSales(
 
     const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products);
 
-    return products.map(product => {
-        const capacity = product.available + product.sold;
-        return {
-            id: product.id,
-            limit: capacity > 0 ? capacity : undefined,
-            product: product.product,
-            sales: salesByTypeGuid.get(product.typeGuid) ?? [],
-        };
-    });
+    return products.map(product => ({
+        id: product.id,
+        limit: computeWeeztixTicketCapacity(product.available, product.sold, product.status),
+        product: product.product,
+        sales: salesByTypeGuid.get(product.typeGuid) ?? [],
+    }));
 }
 
 /**

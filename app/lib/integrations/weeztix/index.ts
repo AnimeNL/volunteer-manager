@@ -48,3 +48,20 @@ export async function createWeeztixClient(settings?: WeeztixClientSettings)
 
     return new WeeztixClient(settings);
 }
+
+/**
+ * Computes the total capacity of a Weeztix ticket or product type from its `available` stock,
+ * `sold` count, and `status`. In Weeztix, an `available` stock of `0` represents unlimited capacity
+ * unless the ticket's `status` is `'sold_out'`.
+ */
+export function computeWeeztixTicketCapacity(
+    available: number, sold: number, status: string): number | undefined
+{
+    if (available > 0)
+        return available + sold;
+
+    if (status === 'sold_out' && sold > 0)
+        return sold;
+
+    return undefined;
+}

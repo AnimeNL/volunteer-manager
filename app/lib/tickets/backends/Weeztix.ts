@@ -6,7 +6,7 @@ import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, Ticket
     TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
-import { createWeeztixClient } from '@lib/integrations/weeztix';
+import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import db, { tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
 import { kWeeztixTicketType } from '@lib/database/Types';
@@ -269,17 +269,14 @@ export class Weeztix implements TicketService {
             .orderBy('name', 'asc')
             .executeSelectMany();
 
-        return rows.map(row => {
-            const capacity = row.available + row.sold;
-            return {
-                id: row.id,
-                name: row.name.trim(),
-                price: row.price,
-                active: row.status === 'available' || (row.status === 'auto' && row.available > 0),
-                sold: row.sold,
-                amount: capacity > 0 ? capacity : undefined,
-            };
-        });
+        return rows.map(row => ({
+            id: row.id,
+            name: row.name.trim(),
+            price: row.price,
+            active: row.status === 'available' || (row.status === 'auto' && row.available > 0),
+            sold: row.sold,
+            amount: computeWeeztixTicketCapacity(row.available, row.sold, row.status),
+        }));
     }
 
     async listTicketsForType(id: number | string): Promise<Ticket[]> {
