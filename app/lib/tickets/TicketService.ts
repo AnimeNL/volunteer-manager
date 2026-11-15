@@ -27,6 +27,11 @@ export interface TicketService {
     getClient(): Promise<unknown>;
 
     /**
+     * Returns whether this ticket service supports creating new tickets.
+     */
+    canCreateTickets(): boolean;
+
+    /**
      * Cancels the purchase identified by the given `purchaseId`.
      */
     cancelPurchase(purchaseId: number | string): Promise<void>;

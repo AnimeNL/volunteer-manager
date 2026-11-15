@@ -92,6 +92,10 @@ export class Weeztix implements TicketService {
         return this.#client;
     }
 
+    canCreateTickets(): boolean {
+        return false;
+    }
+
     async cancelPurchase(purchaseId: number | string): Promise<void> {
         throw new Error('Not yet implemented');
     }

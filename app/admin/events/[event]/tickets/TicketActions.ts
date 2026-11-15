@@ -190,7 +190,7 @@ export async function createAssociateTicket(eventSlug: string, formData: unknown
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !event.tickets?.volunteerTicketId)
+        if (!service || !service.canCreateTickets() || !event.tickets?.volunteerTicketId)
             notFound();
 
         const ticket = await service.createTicket({

@@ -151,7 +151,8 @@ export default async function EventTicketsAssociatesPage(
 
     const service = await createTicketService(event.slug);
     const serviceCanCreateTickets =
-        service && access.can('volunteers.tickets', 'create', { event: event.slug });
+        !!service?.canCreateTickets() &&
+        access.can('volunteers.tickets', 'create', { event: event.slug });
 
     // ---------------------------------------------------------------------------------------------
 

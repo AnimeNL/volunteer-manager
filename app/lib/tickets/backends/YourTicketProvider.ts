@@ -44,6 +44,10 @@ export class YourTicketProvider implements TicketService {
         return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;
     }
 
+    canCreateTickets(): boolean {
+        return false;
+    }
+
     async cancelPurchase(purchaseId: number | string): Promise<void> {
         throw new Error('Not implemented');
     }
