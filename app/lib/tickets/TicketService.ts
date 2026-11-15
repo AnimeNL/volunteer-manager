@@ -28,6 +28,11 @@ export interface TicketService {
     anonymizeTickets(): Promise<number>;
 
     /**
+     * Returns whether this ticket service supports cancelling purchases.
+     */
+    canCancelPurchases(): boolean;
+
+    /**
      * Returns whether this ticket service supports creating new tickets.
      */
     canCreateTickets(): boolean;

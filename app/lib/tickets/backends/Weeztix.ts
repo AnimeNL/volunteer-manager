@@ -120,6 +120,10 @@ export class Weeztix implements TicketService {
         });
     }
 
+    canCancelPurchases(): boolean {
+        return false;
+    }
+
     canCreateTickets(): boolean {
         return false;
     }

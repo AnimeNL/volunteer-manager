@@ -1,9 +1,23 @@
 # Project instructions
 
-Always verify changes prior to considering a task complete. Use the "/self-verify" skill for this.
+## Iterative development
+Large changes are undesirable: always iterate with smaller, logical steps towards a broader goal.
+Prefer 5 commits of 100 lines over one commit of 500 lines where such a sensible iteration approach
+exists. Match what you would expect a really experienced engineer to do.
 
-Always self review changes prior to considering a task complete. Use the "/self-review" skill for
-this.
+Always check in with the user between each iteration of a multi-step approach, so that they can
+confirm and verify the changes, and commit them to Git.
+
+## Verification, review, and commit messages
+Prior to checking in at the end of an iteration, or considering a task complete, you must always:
+
+1. Verify changes using the "/self-verify" skill.
+2. Self-review changes using the "/self-review" skill.
+3. Include a proposed commit message in the format of "what: Description", for example:
+   * `fix: Improve permission checks on the ticket information page`
+   * `faff: Simplify the code by removing redundant checks`
+   * `perf: Improve the Next.js build time by 12% through improved inline caches`
+   * `feat: Add a new section on the finance page displaying total revenue`
 
 # Coding rules
 
