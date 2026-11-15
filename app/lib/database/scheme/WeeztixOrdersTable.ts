@@ -14,8 +14,9 @@ import {
 
 export class WeeztixOrdersTable extends Table<DBConnection, 'WeeztixOrdersTable'> {
     weeztixGuid = this.column('weeztix_guid', 'string');
-    weeztixOrderEvent = this.column('weeztix_order_event', 'string');
-    weeztixOrderName = this.column('weeztix_order_name', 'string');
+    weeztixEventGuid = this.column('weeztix_event_guid', 'string');
+    weeztixOrderName = this.optionalColumnWithDefaultValue('weeztix_order_name', 'string');
+    weeztixOrderStatus = this.column('weeztix_order_status', 'string');
     weeztixOrderCreated = this.column<Temporal.ZonedDateTime>('weeztix_order_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderUpdated = this.column<Temporal.ZonedDateTime>('weeztix_order_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('weeztix_order_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);

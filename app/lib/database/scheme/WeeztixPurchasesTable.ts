@@ -18,7 +18,7 @@ export class WeeztixPurchasesTable extends Table<DBConnection, 'WeeztixPurchases
     weeztixOrderGuid = this.column('weeztix_order_guid', 'string');
     weeztixEventGuid = this.column('weeztix_event_guid', 'string');
     weeztixPurchaseTypeGuid = this.column('weeztix_purchase_type_guid', 'string');
-    weeztixPurchaseName = this.column('weeztix_purchase_name', 'string');
+    weeztixPurchaseName = this.optionalColumnWithDefaultValue('weeztix_purchase_name', 'string');
     weeztixPurchasePrice = this.column('weeztix_purchase_price', 'int');
     weeztixPurchaseCreated = this.column<Temporal.ZonedDateTime>('weeztix_purchase_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixPurchaseUpdated = this.column<Temporal.ZonedDateTime>('weeztix_purchase_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
