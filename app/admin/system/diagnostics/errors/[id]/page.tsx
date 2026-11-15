@@ -196,5 +196,5 @@ export default async function ErrorPage(props: PageProps<'/admin/system/diagnost
     );
 }
 
-export const generateMetadata =
-    createGenerateMetadataFn({ param: 'id' }, 'Error logs', 'Diagnostics', 'System');
+export const generateMetadata = createGenerateMetadataFn(
+    { param: 'id', prefix: 'Error #' }, 'Error logs', 'Diagnostics', 'System');
