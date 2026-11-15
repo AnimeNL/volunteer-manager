@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ProviderProduct, ProviderSale } from './Types';
+import type { ProviderProduct, ProviderProductSales, ProviderSale } from './Types';
 import db, { tActivities, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';
 
@@ -40,6 +40,7 @@ export async function fetchYourTicketProviderProducts(eventId: number, ytpEventI
             .on(activitiesJoin.activityId.equals(
                 tEventsTicketsConfiguration.eventTicketActivityId))
         .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
             .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
         .select({
             id: tEventsTicketsConfiguration.eventTicketId,
@@ -59,6 +60,66 @@ export async function fetchYourTicketProviderProducts(eventId: number, ytpEventI
         return [];
 
     const ytpTicketIds = products.map(product => product.ytpTicketId);
+    const salesByTicketId = await fetchYourTicketProviderSalesByTicketId(ytpEventId, ytpTicketIds);
+
+    return products.map(product => ({
+        id: product.id,
+        category: product.category!,
+        limit: product.limit,
+        price: product.price,
+        product: product.product,
+        program: product.program ?? {},
+        sales: salesByTicketId.get(product.ytpTicketId) ?? [],
+    }));
+}
+
+/**
+ * Fetches daily sale counts for the requested `productIds` from YourTicketProvider for the given
+ * `eventId` and `ytpEventId`.
+ */
+export async function fetchYourTicketProviderProductSales(
+    eventId: number, ytpEventId: number, productIds: number[]): Promise<ProviderProductSales[]>
+{
+    if (!productIds.length)
+        return [];
+
+    const products = await db.selectFrom(tEventsTicketsConfiguration)
+        .innerJoin(tYourTicketProviderTickets)
+            .on(tYourTicketProviderTickets.ytpTicketEventId.equals(ytpEventId))
+                .and(tYourTicketProviderTickets.ytpTicketId.equals(
+                    tEventsTicketsConfiguration.eventTicketYtpId))
+        .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
+            .and(tEventsTicketsConfiguration.eventTicketId.in(productIds))
+        .select({
+            id: tEventsTicketsConfiguration.eventTicketId,
+            ytpTicketId: tYourTicketProviderTickets.ytpTicketId,
+            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
+            product: tYourTicketProviderTickets.ytpTicketName,
+        })
+        .executeSelectMany();
+
+    if (!products.length)
+        return [];
+
+    const ytpTicketIds = products.map(product => product.ytpTicketId);
+    const salesByTicketId = await fetchYourTicketProviderSalesByTicketId(ytpEventId, ytpTicketIds);
+
+    return products.map(product => ({
+        id: product.id,
+        limit: product.limit,
+        product: product.product,
+        sales: salesByTicketId.get(product.ytpTicketId) ?? [],
+    }));
+}
+
+/**
+ * Fetches and groups daily YourTicketProvider sales by ticket ID.
+ */
+async function fetchYourTicketProviderSalesByTicketId(ytpEventId: number, ytpTicketIds: number[])
+    : Promise<Map<number, ProviderSale[]>>
+{
+    const dbInstance = db;
 
     const salesRows = await dbInstance.selectFrom(tYourTicketProviderPurchases)
         .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(ytpEventId))
@@ -94,13 +155,5 @@ export async function fetchYourTicketProviderProducts(eventId: number, ytpEventI
         });
     }
 
-    return products.map(product => ({
-        id: product.id,
-        category: product.category!,
-        limit: product.limit,
-        price: product.price,
-        product: product.product,
-        program: product.program ?? {},
-        sales: salesByTicketId.get(product.ytpTicketId) ?? [],
-    }));
+    return salesByTicketId;
 }

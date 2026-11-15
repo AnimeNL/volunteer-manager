@@ -8,13 +8,15 @@ import { z } from 'zod/v4';
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
     from '@mui/x-charts-premium';
 
+import type { ProviderProductSales } from '../processor/Types';
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { executeServerAction } from '@lib/serverAction';
+import { fetchWeeztixProductSales } from '../processor/WeeztixFinancialData';
+import { fetchYourTicketProviderProductSales } from '../processor/YourTicketProviderFinancialData';
 import { isAfter, isBefore } from '@lib/Temporal';
-import db, { tEvents, tEventsDates, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
-    tYourTicketProviderTickets } from '@lib/database';
+import db, { tEvents, tEventsDates } from '@lib/database';
 
-import { kDateType } from '@lib/database/Types';
+import { kDateType, kEventTicketProvider } from '@lib/database/Types';
 import { kProductHighlightColors } from './ProductHighlightColors';
 import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './RemoteGraphFn';
 
@@ -50,45 +52,66 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
 {
     if (products.length > kRemoteGraphColorScheme.length)
         throw new Error('Not enough colours defined to deal with this many products...');
+    if (!products.length)
+        return { success: false, error: 'Unable to determine the products for this graph…' };
 
     const currentDate = Temporal.Now.plainDateISO();
 
     const dbInstance = db;
 
     // ---------------------------------------------------------------------------------------------
-    // Determine the date range for this sales graph. This is relative to either the festival's
-    // dates, or to the product category's availability dates, depending on a settings.
+    // Fetch the event's active ticketing provider and product sales, then determine the date range.
     // ---------------------------------------------------------------------------------------------
 
-    const dateRange = await dbInstance.selectFrom(tYourTicketProviderPurchases)
-        .innerJoin(tEvents)
-            .on(tEvents.eventYtpEventId.equals(tYourTicketProviderPurchases.ytpPurchaseEventId))
-        .innerJoin(tEventsTicketsConfiguration)
-            .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
-                .and(tEventsTicketsConfiguration.eventTicketYtpId.equals(
-                    tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
+    const event = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventId.equals(eventId))
-            .and(tEventsTicketsConfiguration.eventTicketId.in(products))
-            .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
-            .and(tYourTicketProviderPurchases.ytpPurchaseDatePaid.isNotNull())
         .select({
-            min: dbInstance.min(tYourTicketProviderPurchases.ytpPurchaseDatePaid),
-            max: tEvents.eventEndTime,
+            endTime: tEvents.eventEndTime,
+            provider: tEvents.ticketsProvider,
+            weeztixGuid: tEvents.eventWeeztixGuid,
+            ytpEventId: tEvents.eventYtpEventId,
         })
         .executeSelectNoneOrOne();
 
-    if (!dateRange)
+    if (!event)
         return { success: false, error: 'Unable to determine the date range for this graph…' };
-    if (!dateRange.min)
+
+    let ticketsData: ProviderProductSales[] = [];
+    switch (event.provider) {
+        case kEventTicketProvider.Weeztix:
+            if (event.weeztixGuid) {
+                ticketsData = await fetchWeeztixProductSales(
+                    eventId, event.weeztixGuid, products);
+            }
+            break;
+
+        case kEventTicketProvider.YourTicketProvider:
+            if (event.ytpEventId) {
+                ticketsData = await fetchYourTicketProviderProductSales(
+                    eventId, event.ytpEventId, products);
+            }
+            break;
+    }
+
+    let earliestSaleDate: string | undefined;
+    for (const data of ticketsData) {
+        for (const sale of data.sales) {
+            if (!earliestSaleDate || sale.date < earliestSaleDate)
+                earliestSaleDate = sale.date;
+        }
+    }
+
+    if (!earliestSaleDate)
         return { success: false, error: 'Unable to determine the minimum date for this graph…' };
 
-    const maxPlainDate = dateRange.max.toPlainDate();
+    const maxPlainDate = event.endTime.toPlainDate();
 
-    const min = dateRange.min.toPlainDate();
-    const max = isBefore(currentDate, maxPlainDate) ? currentDate : maxPlainDate;
+    const min = Temporal.PlainDate.from(earliestSaleDate);
+    const cappedMax = isBefore(currentDate, maxPlainDate) ? currentDate : maxPlainDate;
+    const max = isBefore(cappedMax, min) ? min : cappedMax;
 
     // ---------------------------------------------------------------------------------------------
-    // Prepare the base information.
+    // Prepare the base information and populate day-by-day sales for each product.
     // ---------------------------------------------------------------------------------------------
 
     // The bar graphs that should be shown on the graph, populated for each product.
@@ -114,33 +137,6 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
         yAxisId: 'total-axis',
         data: [ /* to be populated */ ],
     };
-
-    // ---------------------------------------------------------------------------------------------
-    // Fetch the sales information from the database and populate the
-    // ---------------------------------------------------------------------------------------------
-
-    const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
-    const paidDate = dbInstance.dateTimeAsDateString(purchasesJoin.ytpPurchaseDatePaid);
-
-    const ticketsData = await dbInstance.selectFrom(tEventsTicketsConfiguration)
-        .innerJoin(tYourTicketProviderTickets)
-            .on(tYourTicketProviderTickets.ytpTicketId.equals(
-                tEventsTicketsConfiguration.eventTicketYtpId))
-        .leftJoin(purchasesJoin)
-            .on(purchasesJoin.ytpPurchaseItemTicketId.equals(
-                tEventsTicketsConfiguration.eventTicketYtpId))
-                .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
-                .and(purchasesJoin.ytpPurchaseDatePaid.isNotNull())
-        .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-            .and(tEventsTicketsConfiguration.eventTicketId.in(products))
-        .select({
-            id: tEventsTicketsConfiguration.eventTicketId,
-            product: tYourTicketProviderTickets.ytpTicketName,
-            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
-            purchaseDates: dbInstance.aggregateAsArrayOfOneColumn(paidDate),
-        })
-        .groupBy(tEventsTicketsConfiguration.eventTicketId)
-        .executeSelectMany();
 
     let productIndex = 0;
     for (const data of ticketsData) {
@@ -168,12 +164,8 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
         });
 
         const productSales = sales.get(data.id)!;
-        for (const date of data.purchaseDates) {
-            if (!date)
-                continue;
-
-            productSales.set(date, (productSales.get(date) ?? 0) + 1);
-        }
+        for (const sale of data.sales)
+            productSales.set(sale.date, (productSales.get(sale.date) ?? 0) + sale.count);
 
         productIndex++;
     }

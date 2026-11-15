@@ -80,7 +80,7 @@ describe('FinancialData', () => {
         const futureStartTime = futureEndTime.subtract({ days: 2 });
         const futureEndDate = futureEndTime.toPlainDate();
 
-        // Target event (2027) uses Weeztix:
+        // Target event (2027) uses Weeztix even if a legacy ytpEventId is still populated:
         mockConnection.expect('selectOneRow', () => ({
             id: 27,
             slug: '2027',
@@ -89,7 +89,7 @@ describe('FinancialData', () => {
             endTime: formatDate(futureEndTime, 'YYYY-MM-DD HH:mm:ss'),
             provider: 'Weeztix',
             weeztixGuid: 'weeztix-2027',
-            ytpEventId: undefined,
+            ytpEventId: 9999,
         }));
 
         // Target event has settled Weeztix ticket sales:
@@ -225,6 +225,8 @@ describe('FinancialData', () => {
 
         const result = await fetchFinancialData('2027');
         expect(result).toBeDefined();
+        expect(result!.provider).toBe('Weeztix');
+        expect(result!.providerEventId).toBe('weeztix-2027');
         expect(result!.remaining).toBeGreaterThanOrEqual(29);
         expect(result!.remaining).toBeLessThanOrEqual(30);
         expect(result!.data).toHaveLength(2);

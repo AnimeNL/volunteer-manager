@@ -24,18 +24,13 @@ export interface ProviderSale {
 }
 
 /**
- * Provider-neutral representation of a configured event product and its raw daily sales.
+ * Provider-neutral representation of a configured product and its daily sales for graphing.
  */
-export interface ProviderProduct {
+export interface ProviderProductSales {
     /**
      * Unique ID of the configured ticket entry (`events_tickets_configuration.event_ticket_id`).
      */
     id: number;
-
-    /**
-     * Category of sale that this product belongs to.
-     */
-    category: EventTicketCategory;
 
     /**
      * Maximum number of items that can be sold for this product, when capped.
@@ -43,14 +38,29 @@ export interface ProviderProduct {
     limit?: number;
 
     /**
-     * Unit price, in local currency, for which this product is sold.
-     */
-    price?: number;
-
-    /**
      * Human-readable name of the product as imported from the ticketing provider.
      */
     product: string;
+
+    /**
+     * Daily sales recorded for this product across valid orders.
+     */
+    sales: ProviderSale[];
+}
+
+/**
+ * Provider-neutral representation of a categorised event product and its raw daily sales.
+ */
+export interface ProviderProduct extends ProviderProductSales {
+    /**
+     * Category of sale that this product belongs to.
+     */
+    category: EventTicketCategory;
+
+    /**
+     * Unit price, in local currency, for which this product is sold.
+     */
+    price?: number;
 
     /**
      * Optional AnPlan program association configured for this product.
@@ -59,9 +69,4 @@ export interface ProviderProduct {
         id?: number;
         title?: string;
     };
-
-    /**
-     * Daily sales recorded for this product across valid orders.
-     */
-    sales: ProviderSale[];
 }

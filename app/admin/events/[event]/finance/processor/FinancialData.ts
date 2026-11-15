@@ -135,6 +135,16 @@ interface FinancialEventData {
  */
 export interface FinancialData {
     /**
+     * Ticketing provider backing the highlighted event.
+     */
+    provider: EventTicketProvider;
+
+    /**
+     * External event identifier on `provider` backing the highlighted event.
+     */
+    providerEventId: number | string;
+
+    /**
      * Reference date that indicates the end of the financial coverage of this event.
      */
     referenceDate: Temporal.ZonedDateTime;
@@ -152,9 +162,9 @@ export interface FinancialData {
 }
 
 /**
- * Database fields selected for the target and historic events.
+ * Raw database row selected for the target and historic events.
  */
-interface EventRecord {
+interface RawEventRow {
     id: number;
     slug: string;
     shortName: string;
@@ -164,6 +174,30 @@ interface EventRecord {
     weeztixGuid?: string;
     ytpEventId?: number;
 }
+
+/**
+ * Event record resolved to its single configured ticketing provider, discarding any integration
+ * identifiers belonging to other providers.
+ */
+type ConfiguredEvent =
+    | {
+        id: number;
+        slug: string;
+        shortName: string;
+        startTime: Temporal.ZonedDateTime;
+        endTime: Temporal.ZonedDateTime;
+        provider: typeof kEventTicketProvider.Weeztix;
+        providerEventId: string;
+    }
+    | {
+        id: number;
+        slug: string;
+        shortName: string;
+        startTime: Temporal.ZonedDateTime;
+        endTime: Temporal.ZonedDateTime;
+        provider: typeof kEventTicketProvider.YourTicketProvider;
+        providerEventId: number;
+    };
 
 /**
  * Number of historic events that should be considered by the processor.
@@ -183,7 +217,7 @@ const kSalesWindowDays = 365;
 export async function fetchFinancialData(eventSlug: string): Promise<FinancialData | undefined> {
     const dbInstance = db;
 
-    const targetEvent = await dbInstance.selectFrom(tEvents)
+    const rawTargetEvent = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventSlug.equals(eventSlug))
         .select({
             id: tEvents.eventId,
@@ -197,6 +231,7 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
         })
         .executeSelectNoneOrOne();
 
+    const targetEvent = rawTargetEvent ? resolveConfiguredEvent(rawTargetEvent) : undefined;
     if (!targetEvent || !(await hasEventSales(targetEvent)))
         return undefined;
 
@@ -211,6 +246,8 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
     });
 
     return {
+        provider: targetEvent.provider,
+        providerEventId: targetEvent.providerEventId,
         referenceDate: targetEvent.endTime,
         remaining: Math.max(0, Math.min(remaining.days, kSalesWindowDays)),
         data: financialEventData,
@@ -218,27 +255,63 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
 }
 
 /**
- * Returns whether the given `event` has a valid ticketing provider configured and at least one
- * recorded sale in that provider's tables.
+ * Resolves a raw database event row to its single active ticketing provider, ignoring any columns
+ * belonging to non-selected providers.
  */
-async function hasEventSales(event: EventRecord): Promise<boolean> {
-    switch (event.provider) {
+function resolveConfiguredEvent(row: RawEventRow): ConfiguredEvent | undefined {
+    switch (row.provider) {
         case kEventTicketProvider.Weeztix:
-            return !!event.weeztixGuid && (await hasWeeztixSales(event.weeztixGuid));
+            if (!row.weeztixGuid)
+                return undefined;
+
+            return {
+                id: row.id,
+                slug: row.slug,
+                shortName: row.shortName,
+                startTime: row.startTime,
+                endTime: row.endTime,
+                provider: kEventTicketProvider.Weeztix,
+                providerEventId: row.weeztixGuid,
+            };
 
         case kEventTicketProvider.YourTicketProvider:
-            return !!event.ytpEventId && (await hasYourTicketProviderSales(event.ytpEventId));
+            if (!row.ytpEventId)
+                return undefined;
+
+            return {
+                id: row.id,
+                slug: row.slug,
+                shortName: row.shortName,
+                startTime: row.startTime,
+                endTime: row.endTime,
+                provider: kEventTicketProvider.YourTicketProvider,
+                providerEventId: row.ytpEventId,
+            };
 
         default:
-            return false;
+            return undefined;
+    }
+}
+
+/**
+ * Returns whether the given `event` has at least one recorded sale in its configured provider's
+ * tables.
+ */
+async function hasEventSales(event: ConfiguredEvent): Promise<boolean> {
+    switch (event.provider) {
+        case kEventTicketProvider.Weeztix:
+            return hasWeeztixSales(event.providerEventId);
+
+        case kEventTicketProvider.YourTicketProvider:
+            return hasYourTicketProviderSales(event.providerEventId);
     }
 }
 
 /**
  * Fetches up to `kHistoricEventCount` previous events that concluded on or before `targetEvent` and
- * have categorised ticket configurations matching their configured ticketing provider.
+ * have categorised ticket configurations matching their single configured ticketing provider.
  */
-async function fetchHistoricEvents(targetEvent: EventRecord): Promise<EventRecord[]> {
+async function fetchHistoricEvents(targetEvent: ConfiguredEvent): Promise<ConfiguredEvent[]> {
     const hasConfiguredWeeztixTickets =
         tEvents.ticketsProvider.equals(kEventTicketProvider.Weeztix)
             .and(tEvents.eventWeeztixGuid.isNotNull())
@@ -249,7 +322,7 @@ async function fetchHistoricEvents(targetEvent: EventRecord): Promise<EventRecor
             .and(tEvents.eventYtpEventId.isNotNull())
             .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull());
 
-    return db.selectFrom(tEvents)
+    const rows = await db.selectFrom(tEvents)
         .innerJoin(tEventsTicketsConfiguration)
             .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
                 .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
@@ -270,13 +343,22 @@ async function fetchHistoricEvents(targetEvent: EventRecord): Promise<EventRecor
         .orderBy(tEvents.eventEndTime, 'desc')
         .limit(kHistoricEventCount)
         .executeSelectMany();
+
+    const historicEvents: ConfiguredEvent[] = [];
+    for (const row of rows) {
+        const resolved = resolveConfiguredEvent(row);
+        if (resolved)
+            historicEvents.push(resolved);
+    }
+
+    return historicEvents;
 }
 
 /**
  * Fetches configured products from the ticketing provider configured on `event` and builds its
  * `FinancialEventData` record.
  */
-async function buildFinancialEventData(event: EventRecord): Promise<FinancialEventData> {
+async function buildFinancialEventData(event: ConfiguredEvent): Promise<FinancialEventData> {
     const rawProducts = await fetchEventProducts(event);
 
     const products = new Map<number, FinancialProduct>();
@@ -294,22 +376,15 @@ async function buildFinancialEventData(event: EventRecord): Promise<FinancialEve
 }
 
 /**
- * Dispatches product and sales retrieval to the ticketing provider configured for `event`.
+ * Dispatches product and sales retrieval to the single ticketing provider configured for `event`.
  */
-async function fetchEventProducts(event: EventRecord): Promise<ProviderProduct[]> {
+async function fetchEventProducts(event: ConfiguredEvent): Promise<ProviderProduct[]> {
     switch (event.provider) {
         case kEventTicketProvider.Weeztix:
-            return event.weeztixGuid
-                ? fetchWeeztixProducts(event.id, event.weeztixGuid)
-                : [];
+            return fetchWeeztixProducts(event.id, event.providerEventId);
 
         case kEventTicketProvider.YourTicketProvider:
-            return event.ytpEventId
-                ? fetchYourTicketProviderProducts(event.id, event.ytpEventId)
-                : [];
-
-        default:
-            return [];
+            return fetchYourTicketProviderProducts(event.id, event.providerEventId);
     }
 }
 

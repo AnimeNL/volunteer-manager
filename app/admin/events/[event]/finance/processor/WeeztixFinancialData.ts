@@ -1,7 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ProviderProduct, ProviderSale } from './Types';
+import type { ProviderProduct, ProviderProductSales, ProviderSale } from './Types';
+import type { WeeztixTicketType } from '@lib/database/Types';
 import db, { tActivities, tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases,
     tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
@@ -80,6 +81,7 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
             .on(activitiesJoin.activityId.equals(
                 tEventsTicketsConfiguration.eventTicketActivityId))
         .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+            .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
             .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
         .select({
             id: tEventsTicketsConfiguration.eventTicketId,
@@ -100,6 +102,73 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
     if (!products.length)
         return [];
 
+    const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products);
+
+    return products.map(product => {
+        const capacity = product.available + product.sold;
+        return {
+            id: product.id,
+            category: product.category!,
+            limit: capacity > 0 ? capacity : undefined,
+            price: product.price,
+            product: product.product,
+            program: product.program ?? {},
+            sales: salesByTypeGuid.get(product.typeGuid) ?? [],
+        };
+    });
+}
+
+/**
+ * Fetches daily sale counts for the requested `productIds` from Weeztix for the given `eventId` and
+ * `weeztixGuid`.
+ */
+export async function fetchWeeztixProductSales(
+    eventId: number, weeztixGuid: string, productIds: number[]): Promise<ProviderProductSales[]>
+{
+    if (!productIds.length)
+        return [];
+
+    const products = await db.selectFrom(tEventsTicketsConfiguration)
+        .innerJoin(tWeeztixTicketTypes)
+            .on(tWeeztixTicketTypes.weeztixEventGuid.equals(weeztixGuid))
+                .and(tWeeztixTicketTypes.weeztixGuid.equals(
+                    tEventsTicketsConfiguration.eventTicketWeeztixGuid))
+        .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+            .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
+            .and(tEventsTicketsConfiguration.eventTicketId.in(productIds))
+        .select({
+            id: tEventsTicketsConfiguration.eventTicketId,
+            typeGuid: tWeeztixTicketTypes.weeztixGuid,
+            type: tWeeztixTicketTypes.weeztixTicketType,
+            available: tWeeztixTicketTypes.weeztixTicketAvailable,
+            sold: tWeeztixTicketTypes.weeztixTicketSold,
+            product: tWeeztixTicketTypes.weeztixTicketName,
+        })
+        .executeSelectMany();
+
+    if (!products.length)
+        return [];
+
+    const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products);
+
+    return products.map(product => {
+        const capacity = product.available + product.sold;
+        return {
+            id: product.id,
+            limit: capacity > 0 ? capacity : undefined,
+            product: product.product,
+            sales: salesByTypeGuid.get(product.typeGuid) ?? [],
+        };
+    });
+}
+
+/**
+ * Fetches and groups daily ticket and product sales by Weeztix type GUID.
+ */
+async function fetchWeeztixSalesByTypeGuid(
+    weeztixGuid: string,
+    products: { typeGuid: string; type: WeeztixTicketType }[]): Promise<Map<string, ProviderSale[]>>
+{
     const ticketTypeGuids = products
         .filter(product => product.type === kWeeztixTicketType.Ticket)
         .map(product => product.typeGuid);
@@ -129,18 +198,7 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
         });
     }
 
-    return products.map(product => {
-        const capacity = product.available + product.sold;
-        return {
-            id: product.id,
-            category: product.category!,
-            limit: capacity > 0 ? capacity : undefined,
-            price: product.price,
-            product: product.product,
-            program: product.program ?? {},
-            sales: salesByTypeGuid.get(product.typeGuid) ?? [],
-        };
-    });
+    return salesByTypeGuid;
 }
 
 /**
