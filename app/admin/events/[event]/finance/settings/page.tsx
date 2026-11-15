@@ -37,7 +37,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     /**
      * Unique ID of the ticket type as it exists in the database.
      */
-    id: z.number(),
+    id: z.string().or(z.number()),
 
     /**
      * Type of ticket type that this row model details.
@@ -89,23 +89,30 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
         const types = await service.listTicketTypes();
         const associations = await dbInstance.selectDistinctFrom(tEventsTicketsConfiguration)
             .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
-                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
+                .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull().onlyWhen(
+                    service.id === 'Weeztix'))
+                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull().onlyWhen(
+                    service.id === 'YourTicketProvider'))
             .select({
-                ticketId: tEventsTicketsConfiguration.eventTicketYtpId,
+                weeztixGuid: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
+                ytpId: tEventsTicketsConfiguration.eventTicketYtpId,
                 ticketCategory: tEventsTicketsConfiguration.eventTicketCategory,
                 ticketActivityId: tEventsTicketsConfiguration.eventTicketActivityId,
             })
             .executeSelectMany();
 
-        const associationsMap = new Map(
-            associations.map(association => [ association.ticketId, association ]));
+        const associationsMap = new Map<number | string, (typeof associations)[number]>();
+        for (const association of associations) {
+            const ticketId =
+                service.id === 'Weeztix' ? association.weeztixGuid : association.ytpId;
+            if (ticketId !== undefined)
+                associationsMap.set(ticketId, association);
+        }
 
         const products = types.map(type => {
-            const ticketId = Number(type.id);  // TODO: Weeztix compatibility
-
-            const association = associationsMap.get(ticketId);
+            const association = associationsMap.get(type.id);
             return {
-                id: ticketId,
+                id: type.id,
                 product: type.name,
                 productLimit: type.amount,
                 category: association?.ticketCategory,
@@ -144,14 +151,38 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     },
 
     async update(row, previousRow, props, context) {
-        const eventTicketActivityId = row.activityId;
+        const service = await createTicketService(context.event.id);
+        if (!service)
+            notFound();
+
+        let eventTicketWeeztixGuid: string | undefined;
+        let eventTicketYtpId: number | undefined;
+
+        switch (service.id) {
+            case 'Weeztix':
+                if (typeof row.id !== 'string' || !row.id.length)
+                    return false;
+
+                eventTicketWeeztixGuid = row.id;
+                break;
+
+            case 'YourTicketProvider':
+                if (typeof row.id !== 'number' || !Number.isSafeInteger(row.id))
+                    return false;
+
+                eventTicketYtpId = row.id;
+                break;
+        }
+
+        const eventTicketActivityId = row.activityId ?? null;
         const eventTicketCategory =
             (row.category === 'null' || !row.category) ? null : row.category;
 
         const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
             .set({
                 eventId: context.event.id,
-                eventTicketYtpId: row.id,
+                eventTicketWeeztixGuid,
+                eventTicketYtpId,
                 eventTicketActivityId,
                 eventTicketCategory,
             })

@@ -1,8 +1,11 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { EventTicketProvider } from '@lib/database/Types';
+import type { FinancialData } from './processor/FinancialData';
 import { Cache } from '@lib/cache';
-import { fetchFinancialData, type FinancialData } from './processor/FinancialData';
+import { createTicketService } from '@lib/tickets';
+import { fetchFinancialData } from './processor/FinancialData';
 
 import * as views from './processor/FinancialView';
 
@@ -21,24 +24,42 @@ export class FinanceProcessor {
     }
 
     /**
-     * Retrieves the processor for the given `event` when it exists in the cache, or creates and
-     * initialises a new instance when it doesn't. Returns `undefined` when an instance could not
-     * be created for the given `event`, for example because it does not contain financial data.
+     * Retrieves the processor for the given `event` when it exists in the cache and matches the
+     * event's active ticket provider, or creates and initialises a new instance when it doesn't.
+     * Returns `undefined` when an instance could not be created for the given `event`, for example
+     * because it does not contain financial data.
      */
     static async getOrCreateForEvent(event: string): Promise<FinanceProcessor | undefined> {
-        return await Cache.getInstance('EventFinances').getOrInsert(event, async () => {
+        const cache = Cache.getInstance('EventFinances');
+
+        const service = await createTicketService(event);
+        if (!service) {
+            cache.delete(event);
+            return undefined;
+        }
+
+        const existing = cache.get(event);
+        const skipCache =
+            existing !== undefined && existing !== null && (
+                !(existing instanceof FinanceProcessor) ||
+                existing.#provider !== service.id ||
+                existing.#providerEventId !== service.eventId);
+
+        return await cache.getOrInsert(event, async () => {
             const financialData = await fetchFinancialData(event);
             return financialData
                 ? new FinanceProcessor(financialData)
-                : undefined;
+                : null;
 
-        }) ?? undefined;
+        }, skipCache) ?? undefined;
     }
 
     // ---------------------------------------------------------------------------------------------
 
     // Generic data:
     readonly #eventId: number | undefined;
+    readonly #provider: EventTicketProvider;
+    readonly #providerEventId: number | string;
     readonly #remainingDays: number;
 
     // KPI overview:
@@ -58,6 +79,8 @@ export class FinanceProcessor {
 
     private constructor(financialData: FinancialData) {
         this.#eventId = financialData.data[0]?.id;
+        this.#provider = financialData.provider;
+        this.#providerEventId = financialData.providerEventId;
         this.#remainingDays = financialData.remaining;
 
         this.#eventTicketRevenueView = views.generateEventTicketRevenueView(financialData);

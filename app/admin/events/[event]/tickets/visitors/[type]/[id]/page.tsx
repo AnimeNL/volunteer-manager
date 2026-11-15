@@ -50,7 +50,7 @@ export default async function EventTicketsVisitorPurchasePage(
     if (!relevantTicket || !purchase)
         notFound();
 
-    const purchaseLink = service.createPurchaseLink(purchase.id) || '#';
+    const purchaseLink = service.createPurchaseLink(purchase.id);
 
     return (
         <>
@@ -80,13 +80,14 @@ export default async function EventTicketsVisitorPurchasePage(
                         value: (
                             <Typography variant="body2">
                                 { service.formatPurchaseId(purchase.id) }
-                                <MuiLink component={Link} href={purchaseLink} target="_blank">
-                                    <OpenInNewIcon fontSize="inherit" sx={{
-                                        position: 'relative',
-                                        left: '6px',
-                                        top: '2px',
-                                    }} />
-                                </MuiLink>
+                                { !!purchaseLink &&
+                                    <MuiLink component={Link} href={purchaseLink} target="_blank">
+                                        <OpenInNewIcon fontSize="inherit" sx={{
+                                            position: 'relative',
+                                            left: '6px',
+                                            top: '2px',
+                                        }} />
+                                    </MuiLink> }
                             </Typography>
                         ),
                     },
@@ -109,11 +110,12 @@ export default async function EventTicketsVisitorPurchasePage(
                 ]} />
             </Section>
             <Grid container spacing={1.5}>
-                { service.id === 'YourTicketProvider' && purchase.tickets.map(ticket =>
+                { purchase.tickets.map(ticket =>
                     <Grid key={ticket.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                        <Paper sx={{ p: 1.5, pb: 0 }}>
+                        <Paper sx={{ p: 1.5, pb: ticket.barcode ? 0 : 1.5 }}>
                             <SectionHeader icon={ <ConfirmationNumberOutlinedIcon /> }
-                                           title={`Ticket ${ticket.id}`} sx={{ pb: 1.5 }} />
+                                           title={`Ticket ${String(ticket.id).split('-')[0]}`}
+                                           sx={{ pb: 1.5 }} />
                             <Stack direction="column" spacing={0.5}>
                                 { !!ticket.ticketName &&
                                     <Typography variant="subtitle2" noWrap>

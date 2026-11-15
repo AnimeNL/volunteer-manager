@@ -116,11 +116,31 @@ export default async function ProgramActivityPage(
     let products: number[] = [ /* none */ ];
 
     if (access.can('statistics.basic')) {
-        products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
-            .where(tEventsTicketsConfiguration.eventId.equals(event.id))
-                .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(activityId))
-            .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
-            .executeSelectMany();
+        switch (event.tickets?.provider) {
+            case 'Weeztix':
+                if (!!event.integrations?.weeztixGuid) {
+                    products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
+                        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
+                            .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(
+                                activityId))
+                            .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
+                        .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
+                        .executeSelectMany();
+                }
+                break;
+
+            case 'YourTicketProvider':
+                if (!!event.integrations?.yourTicketProviderEventId) {
+                    products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
+                        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
+                            .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(
+                                activityId))
+                            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
+                        .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
+                        .executeSelectMany();
+                }
+                break;
+        }
     }
 
     let canContactOwner: boolean = false;

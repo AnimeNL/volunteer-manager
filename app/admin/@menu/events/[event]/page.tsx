@@ -186,8 +186,10 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: AnalyticsOutlinedIcon,
-            condition: !!event.integrations?.yourTicketProviderEventId ||
-                       !!event.integrations?.weeztixGuid,
+            condition:
+                (event.tickets?.provider === 'Weeztix' && !!event.integrations?.weeztixGuid) ||
+                (event.tickets?.provider === 'YourTicketProvider' &&
+                    !!event.integrations?.yourTicketProviderEventId),
             label: 'Finances',
             permission: {
                 permission: 'statistics.finances',
