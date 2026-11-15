@@ -7,11 +7,10 @@ import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCre
     TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
-    from '@app/lib/integrations/yourticketprovider';
+    from '@lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
-    hasYourTicketProviderSales }
-    from '@app/admin/events/[event]/finance/processor/YourTicketProviderFinancialData';
+    hasYourTicketProviderSales } from './YourTicketProviderFinancialData';
 
 import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';

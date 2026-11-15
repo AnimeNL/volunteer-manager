@@ -9,7 +9,7 @@ import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales }
-    from '@app/admin/events/[event]/finance/processor/WeeztixFinancialData';
+    from './WeeztixFinancialData';
 import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes,
     tWeeztixTickets } from '@lib/database';
 
