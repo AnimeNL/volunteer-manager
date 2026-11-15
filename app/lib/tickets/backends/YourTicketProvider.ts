@@ -4,7 +4,7 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
+    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
@@ -12,7 +12,7 @@ import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketPro
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
     hasYourTicketProviderSales } from './YourTicketProviderFinancialData';
 
-import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases,
+import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';
 
 /**
@@ -235,6 +235,46 @@ export class YourTicketProvider implements TicketService {
                 paid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
             })
             .executeSelectMany();
+    }
+
+    async listVolunteerTickets(eventId: number, userIds?: number[])
+        : Promise<Map<number, VolunteerTicket>>
+    {
+        if (userIds && !userIds.length)
+            return new Map();
+
+        const dbInstance = db;
+
+        const purchaseIdCast = dbInstance.fragmentWithType('int', 'optional')
+            .sql`CAST(${tUsersEventsTickets.ticketProviderPurchaseId} AS INTEGER)`;
+
+        const rows = await dbInstance.selectFrom(tUsersEventsTickets)
+            .innerJoin(tYourTicketProviderPurchases)
+                .on(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+                    .and(tYourTicketProviderPurchases.ytpPurchaseId.equals(purchaseIdCast))
+            .where(tUsersEventsTickets.eventId.equals(eventId))
+                .and(tUsersEventsTickets.ticketProvider.equals('YourTicketProvider'))
+                .and(tUsersEventsTickets.userId.inIfValue(userIds))
+            .select({
+                userId: tUsersEventsTickets.userId,
+                purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
+                paid: dbInstance.dateTimeAsString(
+                    tYourTicketProviderPurchases.ytpPurchaseDatePaid),
+                cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNotNull(),
+            })
+            .groupBy(tUsersEventsTickets.userId)
+            .executeSelectMany();
+
+        const tickets = new Map<number, VolunteerTicket>();
+        for (const row of rows) {
+            tickets.set(row.userId, {
+                purchaseId: row.purchaseId,
+                paid: row.paid,
+                cancelled: row.cancelled,
+            });
+        }
+
+        return tickets;
     }
 
     async searchTickets(request: TicketSearchRequest): Promise<TicketSearchResults> {

@@ -4,14 +4,14 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
+    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales }
     from './WeeztixFinancialData';
-import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes,
-    tWeeztixTickets } from '@lib/database';
+import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tWeeztixOrders, tWeeztixPurchases,
+    tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
 import { kWeeztixTicketType } from '@lib/database/Types';
 
@@ -427,6 +427,44 @@ export class Weeztix implements TicketService {
             .executeSelectMany();
 
         return rows.map(toTicket);
+    }
+
+    async listVolunteerTickets(eventId: number, userIds?: number[])
+        : Promise<Map<number, VolunteerTicket>>
+    {
+        if (userIds && !userIds.length)
+            return new Map();
+
+        const dbInstance = db;
+
+        const rows = await dbInstance.selectFrom(tUsersEventsTickets)
+            .innerJoin(tWeeztixOrders)
+                .on(tWeeztixOrders.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixOrders.weeztixGuid.equals(
+                        tUsersEventsTickets.ticketProviderPurchaseId))
+            .where(tUsersEventsTickets.eventId.equals(eventId))
+                .and(tUsersEventsTickets.ticketProvider.equals('Weeztix'))
+                .and(tUsersEventsTickets.userId.inIfValue(userIds))
+            .select({
+                userId: tUsersEventsTickets.userId,
+                purchaseId: tWeeztixOrders.weeztixGuid,
+                paid: dbInstance.dateTimeAsString(tWeeztixOrders.weeztixOrderCreated),
+                orderStatus: tWeeztixOrders.weeztixOrderStatus,
+                cancelled: tWeeztixOrders.weeztixOrderDeleted.isNotNull().or(
+                    tWeeztixOrders.weeztixOrderStatus.equals('cancelled')),
+            })
+            .executeSelectMany();
+
+        const tickets = new Map<number, VolunteerTicket>();
+        for (const row of rows) {
+            tickets.set(row.userId, {
+                purchaseId: row.purchaseId,
+                paid: kSettledOrderStatuses.includes(row.orderStatus) ? row.paid : undefined,
+                cancelled: row.cancelled,
+            });
+        }
+
+        return tickets;
     }
 
     async searchTickets(request: TicketSearchRequest): Promise<TicketSearchResults> {

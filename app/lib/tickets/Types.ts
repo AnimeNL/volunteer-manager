@@ -411,3 +411,23 @@ export interface TicketConfiguration {
      */
     activityId?: number;
 }
+
+/**
+ * Status of a volunteer's associated ticket for an event.
+ */
+export interface VolunteerTicket {
+    /**
+     * Purchase ID associated with the volunteer.
+     */
+    purchaseId: number | string;
+
+    /**
+     * Date/time string when the purchase was paid, if settled.
+     */
+    paid?: string;
+
+    /**
+     * Whether the purchase has been cancelled.
+     */
+    cancelled: boolean;
+}

@@ -4,7 +4,7 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketStatistics, TicketType } from './Types';
+    TicketStatistics, TicketType, VolunteerTicket } from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -101,6 +101,13 @@ export interface TicketService {
      * Lists the tickets that exist for the type identified by `id`.
      */
     listTicketsForType(id: number | string): Promise<Ticket[]>;
+
+    /**
+     * Lists volunteer ticket statuses for `eventId` (optionally filtered to `userIds`), keyed by
+     * user ID.
+     */
+    listVolunteerTickets(
+        eventId: number, userIds?: number[]): Promise<Map<number, VolunteerTicket>>;
 
     /**
      * Searches for tickets matching the given `request`.

@@ -6,13 +6,13 @@ import { z } from 'zod/v4';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, kEventTransformer, kTeamTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
+import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { isBefore } from '@lib/Temporal';
 import db, { tEvents, tHotelsBookings, tRefunds, tRoles, tSchedule, tShifts, tShiftsCategories,
     tTrainingsAssignments, tUsers, tUsersCommunication, tUsersEvents,
     tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
-    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining, tUsersEventsTickets,
-    tYourTicketProviderPurchases } from '@lib/database';
+    tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
 import { kCommunicationLanguage, kEventAvailabilityStatus, kRegistrationStatus }
     from '@lib/database/Types';
@@ -186,11 +186,6 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
         const preferencesTrainingJoin = tUsersEventsPreferencesTraining.forUseInLeftJoin();
         const refundsJoin = tRefunds.forUseInLeftJoin();
         const trainingsAssignmentsJoin = tTrainingsAssignments.forUseInLeftJoin();
-        const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
-        const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
-
-        const purchaseIdCast = dbInstance.fragmentWithType('int', 'optional')
-            .sql`CAST(${usersEventsTicketsJoin.ticketProviderPurchaseId} AS INTEGER)`;
 
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tEvents)
@@ -238,13 +233,6 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                     .and(usersCommunicationJoin.communicationEventId.equals(tUsersEvents.eventId))
                     .and(usersCommunicationJoin.communicationTeamId.equals(tUsersEvents.teamId))
                     .and(usersCommunicationJoin.communicationPromptId.isNotNull())
-            .leftJoin(usersEventsTicketsJoin)
-                .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
-                    .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
-            .leftJoin(yourTicketProviderPurchasesJoin)
-                .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
-                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
-                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseDateCancelled.isNull())
             .groupBy(tUsersEvents.userId)
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.teamId.equals(context.team.id))
@@ -296,7 +284,6 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                                 tRoles.roleTrainingEligible).equals(/* true= */ 1)),
                     trainingPreferences: preferencesTrainingJoin.trainingId,
                 },
-                ticket: yourTicketProviderPurchasesJoin.ytpPurchaseItemId.isNotNull(),
                 communication: dbInstance.aggregateAsArray({
                     promptId: usersCommunicationJoin.communicationPromptId,
                     date: usersCommunicationJoin.communicationDate,
@@ -308,10 +295,20 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                 .offset(params.page.offset)
             .executeSelectPage();
 
-        const rows = volunteers.data.map(volunteer => ({
-            ...volunteer,
-            communication: processVolunteerCommunication(volunteer.communication),
-        }));
+        const service = await createTicketService(context.event.id);
+        const volunteerTickets = service
+            ? await service.listVolunteerTickets(
+                  context.event.id, volunteers.data.map(volunteer => volunteer.id))
+            : new Map();
+
+        const rows = volunteers.data.map(volunteer => {
+            const ticketInfo = volunteerTickets.get(volunteer.id);
+            return {
+                ...volunteer,
+                ticket: !!ticketInfo && !ticketInfo.cancelled,
+                communication: processVolunteerCommunication(volunteer.communication),
+            };
+        });
 
         return {
             rowCount: volunteers.count,

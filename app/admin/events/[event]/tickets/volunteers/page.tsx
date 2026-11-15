@@ -14,7 +14,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsTickets, tYourTicketProviderPurchases } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 /**
  * Data source for volunteer tickets granted for an event.
@@ -66,12 +66,8 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             return { rowCount: 0, rows: [] };  // no ticket has been specified
 
         const usersEventsTicketsJoin = tUsersEventsTickets.forUseInLeftJoin();
-        const yourTicketProviderPurchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
 
         const dbInstance = db;
-
-        const purchaseIdCast = dbInstance.fragmentWithType('int', 'optional')
-            .sql`CAST(${usersEventsTicketsJoin.ticketProviderPurchaseId} AS INTEGER)`;
 
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
             .innerJoin(tUsers)
@@ -79,10 +75,6 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             .leftJoin(usersEventsTicketsJoin)
                 .on(usersEventsTicketsJoin.userId.equals(tUsersEvents.userId))
                     .and(usersEventsTicketsJoin.eventId.equals(tUsersEvents.eventId))
-            .leftJoin(yourTicketProviderPurchasesJoin)
-                .on(usersEventsTicketsJoin.ticketProvider.equals('YourTicketProvider'))
-                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseId.equals(purchaseIdCast))
-                    .and(yourTicketProviderPurchasesJoin.ytpPurchaseDateCancelled.isNull())
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.registrationStatus.equals('Accepted'))
                 .and(tUsers.name.containsInsensitiveIfValue(params.search)
@@ -91,11 +83,6 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             .select({
                 id: tUsersEvents.userId,
                 name: tUsers.name,
-                yourTicketProvider: {
-                    order: yourTicketProviderPurchasesJoin.ytpPurchaseId,
-                    created: dbInstance.dateTimeAsString(
-                        yourTicketProviderPurchasesJoin.ytpPurchaseDatePaid)
-                },
             })
             .groupBy(tUsersEvents.userId)
             .orderBy('name', 'asc')
@@ -103,22 +90,23 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
                 .offset(params.page.offset)
             .executeSelectPage();
 
+        const volunteerTickets = await service.listVolunteerTickets(
+            context.event.id, volunteers.data.map(volunteer => volunteer.id));
+
         return {
             rowCount: volunteers.count,
             rows: volunteers.data.map(volunteer => {
-                let order: string | undefined;
-                let created: string | undefined;
-
-                if (!!volunteer.yourTicketProvider?.order) {
-                    order = service.formatPurchaseId(volunteer.yourTicketProvider.order);
-                    created = volunteer.yourTicketProvider.created;
-                }
+                const ticketInfo = volunteerTickets.get(volunteer.id);
+                const activeTicket =
+                    ticketInfo && !ticketInfo.cancelled ? ticketInfo : undefined;
 
                 return {
                     id: volunteer.id,
                     name: volunteer.name,
-                    order,
-                    created,
+                    order: activeTicket
+                        ? service.formatPurchaseId(activeTicket.purchaseId)
+                        : undefined,
+                    created: activeTicket?.paid,
                 };
             }),
         };
