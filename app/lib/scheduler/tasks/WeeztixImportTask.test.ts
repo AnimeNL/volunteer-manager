@@ -618,6 +618,10 @@ describe('WeeztixImportTask', () => {
                             meta_data: [
                                 { value: 'John', meta_data: { name: 'first_name' } },
                                 { value: 'Smith', meta_data: { name: 'last_name' } },
+                                {
+                                    value: '  Johnny   S  ',
+                                    meta_data: { name: '  nickname (for badge) ' },
+                                },
                             ],
                             products: [
                                 buildProduct({
@@ -719,13 +723,14 @@ describe('WeeztixImportTask', () => {
                 '2026-08-06 10:00:00',
             ]);
 
-            expect(ticketsByGuid.get('ticket-1')?.slice(0, 10)).toEqual([
+            expect(ticketsByGuid.get('ticket-1')?.slice(0, 11)).toEqual([
                 'ticket-1',
                 'order-1',
                 'event-guid-1',
                 'type-weekend',
                 'BARCODE-777',
                 'John Smith',
+                'Johnny S',
                 5000,
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
@@ -813,6 +818,7 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: undefined,
+                    nickname: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -861,6 +867,7 @@ describe('WeeztixImportTask', () => {
                             guid: 'ticket-unchanged',
                             meta_data: [
                                 { value: 'Jane', meta_data: { name: 'first_name' } },
+                                { value: 'Janie', meta_data: { name: 'NICKNAME' } },
                             ],
                             products: [
                                 buildProduct({ guid: 'purchase-unchanged' }),
@@ -907,6 +914,7 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: 'Jane',
+                    nickname: 'Janie',
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -919,6 +927,7 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: undefined,
+                    nickname: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -1024,7 +1033,8 @@ describe('WeeztixImportTask', () => {
                 expect(query).toContain('insert into weeztix_tickets');
                 expect(params[0]).toBe('ticket-invalidated');
                 expect(params[5]).toBe('Alex Lee');
-                expect(params[9]).toBe('2026-08-07 12:00:00');
+                expect(params[6]).toBeNull();
+                expect(params[10]).toBe('2026-08-07 12:00:00');
                 return 1;
             });
             mockConnection.expect('update', (query, params) => {

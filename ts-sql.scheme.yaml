@@ -4103,6 +4103,10 @@ tables:
     type: text
     nullable: true
     default: "NULL"
+  - name: weeztix_ticket_nickname
+    type: text
+    nullable: true
+    default: "NULL"
   - name: weeztix_ticket_price
     type: int(4) unsigned
     nullable: false
@@ -4148,6 +4152,7 @@ tables:
       `weeztix_ticket_type_guid` char(36) NOT NULL,
       `weeztix_ticket_barcode` varchar(64) NOT NULL,
       `weeztix_ticket_name` text DEFAULT NULL,
+      `weeztix_ticket_nickname` text DEFAULT NULL,
       `weeztix_ticket_price` int(4) unsigned NOT NULL,
       `weeztix_ticket_created` datetime NOT NULL,
       `weeztix_ticket_updated` datetime NOT NULL,

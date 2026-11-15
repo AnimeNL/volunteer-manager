@@ -73,6 +73,7 @@ interface LiveTicketEntry {
     typeGuid: string;
     barcode: string;
     name: string | null;
+    nickname: string | null;
     price: number;
     created: Temporal.ZonedDateTime;
     updated: Temporal.ZonedDateTime;
@@ -138,6 +139,25 @@ function extractHolderName(metadata: Order['tickets'][number]['meta_data']): str
 
     return [ firstName, lastName ]
         .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
+}
+
+/**
+ * Extracts the optional nickname from ticket `metadata`, matching any field whose name starts with
+ * "Nickname" (case-insensitive, ignoring leading whitespace), returning `null` when absent.
+ */
+function extractNickname(metadata: Order['tickets'][number]['meta_data']): string | null {
+    for (const entry of metadata) {
+        if (typeof entry.value === 'boolean')
+            continue;
+
+        if (entry.meta_data.name.trimStart().toLowerCase().startsWith('nickname')) {
+            const nickname = String(entry.value).replace(/\s+/g, ' ').trim();
+            if (nickname)
+                return nickname;
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -521,6 +541,7 @@ export class WeeztixImportTask extends Task {
                     typeGuid: ticket.ticket_id,
                     barcode: ticket.ticket_number,
                     name: extractHolderName(ticket.meta_data),
+                    nickname: extractNickname(ticket.meta_data),
                     price: Math.max(0, Math.round(ticket.finn_price - ticket.finn_service_fee)),
                     created: parseTimestamp(ticket.created_at),
                     updated: parseTimestamp(ticket.updated_at),
@@ -565,6 +586,7 @@ export class WeeztixImportTask extends Task {
                 typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
                 name: tWeeztixTickets.weeztixTicketName,
+                nickname: tWeeztixTickets.weeztixTicketNickname,
                 price: tWeeztixTickets.weeztixTicketPrice,
                 created: tWeeztixTickets.weeztixTicketCreated,
                 updated: tWeeztixTickets.weeztixTicketUpdated,
@@ -642,6 +664,7 @@ export class WeeztixImportTask extends Task {
                 knownTicket.typeGuid !== liveTicket.typeGuid ||
                 knownTicket.barcode !== liveTicket.barcode ||
                 (knownTicket.name || null) !== liveTicket.name ||
+                (knownTicket.nickname || null) !== liveTicket.nickname ||
                 knownTicket.price !== liveTicket.price ||
                 !areTimestampsEqual(knownTicket.created, liveTicket.created) ||
                 !areTimestampsEqual(knownTicket.updated, liveTicket.updated) ||
@@ -744,6 +767,7 @@ export class WeeztixImportTask extends Task {
                         weeztixTicketTypeGuid: entry.typeGuid,
                         weeztixTicketBarcode: entry.barcode,
                         weeztixTicketName: entry.name,
+                        weeztixTicketNickname: entry.nickname,
                         weeztixTicketPrice: entry.price,
                         weeztixTicketCreated: entry.created,
                         weeztixTicketUpdated: entry.updated,

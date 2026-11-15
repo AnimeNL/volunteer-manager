@@ -19,6 +19,7 @@ export class WeeztixTicketsTable extends Table<DBConnection, 'WeeztixTicketsTabl
     weeztixTicketTypeGuid = this.column('weeztix_ticket_type_guid', 'string');
     weeztixTicketBarcode = this.column('weeztix_ticket_barcode', 'string');
     weeztixTicketName = this.optionalColumnWithDefaultValue('weeztix_ticket_name', 'string');
+    weeztixTicketNickname = this.optionalColumnWithDefaultValue('weeztix_ticket_nickname', 'string');
     weeztixTicketPrice = this.column('weeztix_ticket_price', 'int');
     weeztixTicketCreated = this.column<Temporal.ZonedDateTime>('weeztix_ticket_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixTicketUpdated = this.column<Temporal.ZonedDateTime>('weeztix_ticket_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
