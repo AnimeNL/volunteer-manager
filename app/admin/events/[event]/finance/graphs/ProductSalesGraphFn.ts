@@ -63,8 +63,12 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     const dateRange = await dbInstance.selectFrom(tYourTicketProviderPurchases)
         .innerJoin(tEvents)
             .on(tEvents.eventYtpEventId.equals(tYourTicketProviderPurchases.ytpPurchaseEventId))
+        .innerJoin(tEventsTicketsConfiguration)
+            .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
+                .and(tEventsTicketsConfiguration.eventTicketYtpId.equals(
+                    tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
         .where(tEvents.eventId.equals(eventId))
-            .and(tYourTicketProviderPurchases.ytpPurchaseItemTicketId.in(products))
+            .and(tEventsTicketsConfiguration.eventTicketId.in(products))
             .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
             .and(tYourTicketProviderPurchases.ytpPurchaseDatePaid.isNotNull())
         .select({
@@ -128,14 +132,14 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
                 .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
                 .and(purchasesJoin.ytpPurchaseDatePaid.isNotNull())
         .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-            .and(tEventsTicketsConfiguration.eventTicketYtpId.in(products))
+            .and(tEventsTicketsConfiguration.eventTicketId.in(products))
         .select({
-            id: tEventsTicketsConfiguration.eventTicketYtpId,
+            id: tEventsTicketsConfiguration.eventTicketId,
             product: tYourTicketProviderTickets.ytpTicketName,
             limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
             purchaseDates: dbInstance.aggregateAsArrayOfOneColumn(paidDate),
         })
-        .groupBy(tEventsTicketsConfiguration.eventTicketYtpId)
+        .groupBy(tEventsTicketsConfiguration.eventTicketId)
         .executeSelectMany();
 
     let productIndex = 0;

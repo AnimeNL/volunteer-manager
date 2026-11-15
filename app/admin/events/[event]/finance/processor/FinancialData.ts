@@ -1,9 +1,14 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventTicketCategory } from '@lib/database/Types';
-import db, { tActivities, tEvents, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
-    tYourTicketProviderTickets } from '@lib/database';
+import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
+import type { ProviderProduct } from './Types';
+import { fetchWeeztixProducts, hasWeeztixSales } from './WeeztixFinancialData';
+import { fetchYourTicketProviderProducts, hasYourTicketProviderSales }
+    from './YourTicketProviderFinancialData';
+import db, { tEvents, tEventsTicketsConfiguration } from '@lib/database';
+
+import { kEventTicketProvider } from '@lib/database/Types';
 
 /**
  * Information about sales on a specific day.
@@ -110,7 +115,7 @@ interface FinancialEventData {
     shortName: string;
 
     /**
-     * Time and date, in UTC, at which the event will finish.
+     * Time and date, in UTC, at which the event will start.
      */
     startTime: Temporal.ZonedDateTime;
 
@@ -120,7 +125,7 @@ interface FinancialEventData {
     endTime: Temporal.ZonedDateTime;
 
     /**
-     * Sale products that exist for this event. Keyed by the products's unique ID.
+     * Sale products that exist for this event. Keyed by the product's unique ID.
      */
     products: Map<number, FinancialProduct>;
 }
@@ -147,9 +152,28 @@ export interface FinancialData {
 }
 
 /**
+ * Database fields selected for the target and historic events.
+ */
+interface EventRecord {
+    id: number;
+    slug: string;
+    shortName: string;
+    startTime: Temporal.ZonedDateTime;
+    endTime: Temporal.ZonedDateTime;
+    provider?: EventTicketProvider;
+    weeztixGuid?: string;
+    ytpEventId?: number;
+}
+
+/**
  * Number of historic events that should be considered by the processor.
  */
 const kHistoricEventCount = 3;
+
+/**
+ * Maximum number of days prior to an event's end date tracked in daily sales buckets.
+ */
+const kSalesWindowDays = 365;
 
 /**
  * Fetches financial data from the database for the given `eventSlug`, as well as a number of
@@ -159,155 +183,180 @@ const kHistoricEventCount = 3;
 export async function fetchFinancialData(eventSlug: string): Promise<FinancialData | undefined> {
     const dbInstance = db;
 
-    const eventValidation = await dbInstance.selectFrom(tEvents)
-        .innerJoin(tYourTicketProviderPurchases)
-            .on(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(tEvents.eventYtpEventId))
-                .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
-                .and(tYourTicketProviderPurchases.ytpPurchaseDatePaid.isNotNull())
+    const targetEvent = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventSlug.equals(eventSlug))
         .select({
-            endTime: tEvents.eventEndTime.asOptional(),
-            sales: dbInstance.count(tYourTicketProviderPurchases.ytpPurchaseItemId),
-        })
-        .groupBy(tEvents.eventId)
-        .executeSelectNoneOrOne();
-
-    if (!eventValidation || !eventValidation.endTime || eventValidation.sales === 0)
-        return undefined;  // invalid |event|, or it has no sales data attached
-
-    // ---------------------------------------------------------------------------------------------
-
-    const events = await dbInstance.selectFrom(tEvents)
-        .innerJoin(tEventsTicketsConfiguration)
-            .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
-                .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
-        .where(tEvents.eventEndTime.lessOrEqual(eventValidation.endTime))
-        .select({
             id: tEvents.eventId,
-
+            slug: tEvents.eventSlug,
+            shortName: tEvents.eventShortName,
             startTime: tEvents.eventStartTime,
             endTime: tEvents.eventEndTime,
-
-            shortName: tEvents.eventShortName,
-            slug: tEvents.eventSlug,
-
-            products: dbInstance.aggregateAsArrayOfOneColumn(
-                tEventsTicketsConfiguration.eventTicketYtpId),
+            provider: tEvents.ticketsProvider,
+            weeztixGuid: tEvents.eventWeeztixGuid,
+            ytpEventId: tEvents.eventYtpEventId,
         })
-        .groupBy(tEvents.eventId)
-        .orderBy(tEvents.eventEndTime, 'desc')
-        .limit(kHistoricEventCount + 1)
-        .executeSelectMany();
+        .executeSelectNoneOrOne();
 
-    // ---------------------------------------------------------------------------------------------
+    if (!targetEvent || !(await hasEventSales(targetEvent)))
+        return undefined;
 
-    const activitiesJoin = tActivities.forUseInLeftJoin();
-    const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
-
-    const daysFromEvent = dbInstance.fragmentWithType('int', 'optional')
-        .sql`DATEDIFF(${tEvents.eventEndTime}, ${purchasesJoin.ytpPurchaseDatePaid})`;
-
-    const products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
-        .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tEventsTicketsConfiguration.eventId))
-        .innerJoin(tYourTicketProviderTickets)
-            .on(tYourTicketProviderTickets.ytpTicketId.equals(
-                tEventsTicketsConfiguration.eventTicketYtpId))
-        .leftJoin(activitiesJoin)
-            .on(activitiesJoin.activityId.equals(
-                tEventsTicketsConfiguration.eventTicketActivityId))
-        .leftJoin(purchasesJoin)
-            .on(purchasesJoin.ytpPurchaseItemTicketId.equals(
-                tEventsTicketsConfiguration.eventTicketYtpId))
-                .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
-                .and(purchasesJoin.ytpPurchaseDatePaid.isNotNull())
-        .where(tEventsTicketsConfiguration.eventId.in(events.map(event => event.id)))
-            .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
-        .select({
-            id: tEventsTicketsConfiguration.eventTicketYtpId,
-
-            category: tEventsTicketsConfiguration.eventTicketCategory,
-            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
-            price: tYourTicketProviderTickets.ytpTicketPrice.divide(100),
-            product: tYourTicketProviderTickets.ytpTicketName,
-            program: {
-                id: tEventsTicketsConfiguration.eventTicketActivityId,
-                title: activitiesJoin.activityTitle,
-            },
-
-            sales: dbInstance.aggregateAsArray({
-                days: daysFromEvent,
-                complimentary: purchasesJoin.ytpPurchaseComplimentary.equals(1),
-            }),
-        })
-        .groupBy(tEventsTicketsConfiguration.eventTicketYtpId)
-        .executeSelectMany();
-
-    // Transforms the |products| array into a map for faster lookup:
-    const productsMap = new Map(products.map(products => ([ products.id, products ])));
-
-    // ---------------------------------------------------------------------------------------------
+    const historicEvents = await fetchHistoricEvents(targetEvent);
 
     const financialEventData: FinancialEventData[] = [];
-    for (const event of events) {
-        const products: FinancialEventData['products'] = new Map;
+    for (const event of [ targetEvent, ...historicEvents ])
+        financialEventData.push(await buildFinancialEventData(event));
 
-        for (const productId of event.products) {
-            if (!productsMap.has(productId))
-                throw new Error(`Invalid product found for event ${event.slug}: ${productId}`);
-
-            const product = productsMap.get(productId)!;
-            const sales: Map<number, DailySales> = new Map;
-
-            for (let days = 365; days >= 0; --days)
-                sales.set(days, { paid: 0, complimentary: 0 });
-
-            let paidSales = 0;
-            let complimentarySales = 0;
-
-            for (const sale of product.sales) {
-                if (typeof sale.days !== 'number')
-                    continue;
-
-                const clampedDays = Math.max(0, Math.min(sale.days, 365));
-                const entry = sales.get(clampedDays)!;
-
-                if (sale.complimentary) {
-                    entry.complimentary++;
-                    complimentarySales++;
-                } else {
-                    entry.paid++;
-                    paidSales++;
-                }
-            }
-
-            products.set(product.id, {
-                ...product,
-                category: product.category!,  // null check performed in the query
-                program: product.program ?? { /* no program data */ },
-                sales,
-                paidSales,
-                complimentarySales,
-                totalSales: paidSales + complimentarySales,
-                totalRevenue: paidSales * (product.price ?? 0),
-            });
-        }
-
-        financialEventData.push({
-            ...event,
-            products,
-        });
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    const remaining = financialEventData[0].endTime.since(Temporal.Now.zonedDateTimeISO('utc'), {
+    const remaining = targetEvent.endTime.since(Temporal.Now.zonedDateTimeISO('UTC'), {
         largestUnit: 'days',
     });
 
     return {
-        referenceDate: financialEventData[0].endTime,
-        remaining: Math.max(0, Math.min(remaining.days, 365)),
+        referenceDate: targetEvent.endTime,
+        remaining: Math.max(0, Math.min(remaining.days, kSalesWindowDays)),
         data: financialEventData,
+    };
+}
+
+/**
+ * Returns whether the given `event` has a valid ticketing provider configured and at least one
+ * recorded sale in that provider's tables.
+ */
+async function hasEventSales(event: EventRecord): Promise<boolean> {
+    switch (event.provider) {
+        case kEventTicketProvider.Weeztix:
+            return !!event.weeztixGuid && (await hasWeeztixSales(event.weeztixGuid));
+
+        case kEventTicketProvider.YourTicketProvider:
+            return !!event.ytpEventId && (await hasYourTicketProviderSales(event.ytpEventId));
+
+        default:
+            return false;
+    }
+}
+
+/**
+ * Fetches up to `kHistoricEventCount` previous events that concluded on or before `targetEvent` and
+ * have categorised ticket configurations matching their configured ticketing provider.
+ */
+async function fetchHistoricEvents(targetEvent: EventRecord): Promise<EventRecord[]> {
+    const hasConfiguredWeeztixTickets =
+        tEvents.ticketsProvider.equals(kEventTicketProvider.Weeztix)
+            .and(tEvents.eventWeeztixGuid.isNotNull())
+            .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull());
+
+    const hasConfiguredYourTicketProviderTickets =
+        tEvents.ticketsProvider.equals(kEventTicketProvider.YourTicketProvider)
+            .and(tEvents.eventYtpEventId.isNotNull())
+            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull());
+
+    return db.selectFrom(tEvents)
+        .innerJoin(tEventsTicketsConfiguration)
+            .on(tEventsTicketsConfiguration.eventId.equals(tEvents.eventId))
+                .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
+        .where(tEvents.eventEndTime.lessOrEqual(targetEvent.endTime))
+            .and(tEvents.eventId.notEquals(targetEvent.id))
+            .and(hasConfiguredWeeztixTickets.or(hasConfiguredYourTicketProviderTickets))
+        .select({
+            id: tEvents.eventId,
+            slug: tEvents.eventSlug,
+            shortName: tEvents.eventShortName,
+            startTime: tEvents.eventStartTime,
+            endTime: tEvents.eventEndTime,
+            provider: tEvents.ticketsProvider,
+            weeztixGuid: tEvents.eventWeeztixGuid,
+            ytpEventId: tEvents.eventYtpEventId,
+        })
+        .groupBy(tEvents.eventId)
+        .orderBy(tEvents.eventEndTime, 'desc')
+        .limit(kHistoricEventCount)
+        .executeSelectMany();
+}
+
+/**
+ * Fetches configured products from the ticketing provider configured on `event` and builds its
+ * `FinancialEventData` record.
+ */
+async function buildFinancialEventData(event: EventRecord): Promise<FinancialEventData> {
+    const rawProducts = await fetchEventProducts(event);
+
+    const products = new Map<number, FinancialProduct>();
+    for (const rawProduct of rawProducts)
+        products.set(rawProduct.id, buildFinancialProduct(rawProduct, event.endTime));
+
+    return {
+        id: event.id,
+        slug: event.slug,
+        shortName: event.shortName,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        products,
+    };
+}
+
+/**
+ * Dispatches product and sales retrieval to the ticketing provider configured for `event`.
+ */
+async function fetchEventProducts(event: EventRecord): Promise<ProviderProduct[]> {
+    switch (event.provider) {
+        case kEventTicketProvider.Weeztix:
+            return event.weeztixGuid
+                ? fetchWeeztixProducts(event.id, event.weeztixGuid)
+                : [];
+
+        case kEventTicketProvider.YourTicketProvider:
+            return event.ytpEventId
+                ? fetchYourTicketProviderProducts(event.id, event.ytpEventId)
+                : [];
+
+        default:
+            return [];
+    }
+}
+
+/**
+ * Aggregates raw daily provider sales into a `FinancialProduct` with `[kSalesWindowDays, 0]` daily
+ * buckets, total sales counts, and paid revenue relative to `eventEndTime`.
+ */
+function buildFinancialProduct(
+    product: ProviderProduct, eventEndTime: Temporal.ZonedDateTime): FinancialProduct
+{
+    const eventEndDate = eventEndTime.withTimeZone('UTC').toPlainDate();
+
+    const sales = new Map<number, DailySales>();
+    for (let days = kSalesWindowDays; days >= 0; --days)
+        sales.set(days, { paid: 0, complimentary: 0 });
+
+    let paidSales = 0;
+    let complimentarySales = 0;
+
+    for (const sale of product.sales) {
+        const daysUntilEvent = eventEndDate.since(Temporal.PlainDate.from(sale.date), {
+            largestUnit: 'days',
+        }).days;
+
+        const clampedDays = Math.max(0, Math.min(daysUntilEvent, kSalesWindowDays));
+        const entry = sales.get(clampedDays)!;
+
+        if (sale.complimentary) {
+            entry.complimentary += sale.count;
+            complimentarySales += sale.count;
+        } else {
+            entry.paid += sale.count;
+            paidSales += sale.count;
+        }
+    }
+
+    return {
+        id: product.id,
+        category: product.category,
+        limit: product.limit,
+        price: product.price,
+        product: product.product,
+        program: product.program,
+        sales,
+        paidSales,
+        complimentarySales,
+        totalSales: paidSales + complimentarySales,
+        totalRevenue: paidSales * (product.price ?? 0),
     };
 }

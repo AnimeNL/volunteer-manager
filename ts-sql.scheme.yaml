@@ -2553,12 +2553,21 @@ tables:
 - name: events_tickets_configuration
   type: BASE TABLE
   columns:
+  - name: event_ticket_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
   - name: event_id
     type: int(4)
     nullable: false
   - name: event_ticket_ytp_id
     type: int(10) unsigned
-    nullable: false
+    nullable: true
+    default: "NULL"
+  - name: event_ticket_weeztix_guid
+    type: char(36)
+    nullable: true
+    default: "NULL"
   - name: event_ticket_category
     type: enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend')
     nullable: true
@@ -2568,12 +2577,23 @@ tables:
     nullable: true
     default: "NULL"
   indexes:
+  - name: PRIMARY
+    def: PRIMARY KEY (event_ticket_id) USING BTREE
+    table: events_tickets_configuration
+    columns:
+    - event_ticket_id
   - name: event_id
     def: UNIQUE KEY event_id (event_id, event_ticket_ytp_id) USING BTREE
     table: events_tickets_configuration
     columns:
     - event_id
     - event_ticket_ytp_id
+  - name: event_ticket_weeztix
+    def: UNIQUE KEY event_ticket_weeztix (event_id, event_ticket_weeztix_guid) USING BTREE
+    table: events_tickets_configuration
+    columns:
+    - event_id
+    - event_ticket_weeztix_guid
   constraints:
   - name: event_id
     type: UNIQUE
@@ -2582,14 +2602,31 @@ tables:
     columns:
     - event_id
     - event_ticket_ytp_id
+  - name: event_ticket_weeztix
+    type: UNIQUE
+    def: UNIQUE KEY event_ticket_weeztix (event_id, event_ticket_weeztix_guid)
+    table: events_tickets_configuration
+    columns:
+    - event_id
+    - event_ticket_weeztix_guid
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (event_ticket_id)
+    table: events_tickets_configuration
+    columns:
+    - event_ticket_id
   def: |-
     CREATE TABLE `events_tickets_configuration` (
+      `event_ticket_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
       `event_id` int(4) NOT NULL,
-      `event_ticket_ytp_id` int(10) unsigned NOT NULL,
+      `event_ticket_ytp_id` int(10) unsigned DEFAULT NULL,
+      `event_ticket_weeztix_guid` char(36) DEFAULT NULL,
       `event_ticket_category` enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend') DEFAULT NULL,
       `event_ticket_activity_id` int(4) unsigned DEFAULT NULL,
-      UNIQUE KEY `event_id` (`event_id`,`event_ticket_ytp_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
+      PRIMARY KEY (`event_ticket_id`),
+      UNIQUE KEY `event_id` (`event_id`,`event_ticket_ytp_id`),
+      UNIQUE KEY `event_ticket_weeztix` (`event_id`,`event_ticket_weeztix_guid`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: users_passkeys
   type: BASE TABLE
   columns:

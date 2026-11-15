@@ -89,6 +89,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
         const types = await service.listTicketTypes();
         const associations = await dbInstance.selectDistinctFrom(tEventsTicketsConfiguration)
             .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
+                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
             .select({
                 ticketId: tEventsTicketsConfiguration.eventTicketYtpId,
                 ticketCategory: tEventsTicketsConfiguration.eventTicketCategory,

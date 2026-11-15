@@ -119,7 +119,7 @@ export default async function ProgramActivityPage(
         products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
             .where(tEventsTicketsConfiguration.eventId.equals(event.id))
                 .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(activityId))
-            .selectOneColumn(tEventsTicketsConfiguration.eventTicketYtpId)
+            .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
             .executeSelectMany();
     }
 
