@@ -228,6 +228,9 @@ export default async function EventFinanceSettingsPage(
             sortable: true,
             type: 'number',
             flex: 1,
+
+            template: 'number',
+            templateProps: {},
         },
         {
             field: 'productLimit',
