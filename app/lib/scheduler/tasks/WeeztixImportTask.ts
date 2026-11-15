@@ -1,11 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { Order } from '@lib/integrations/weeztix/WeeztixTypes';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import type { WeeztixTicketType } from '@lib/database/Types';
 import { Task } from '../Task';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
-import db, { tEvents, tWeeztixTicketTypes } from '@lib/database';
+import db, { tEvents, tWeeztixOrders, tWeeztixTicketTypes } from '@lib/database';
 
 import { kWeeztixTicketType } from '@lib/database/Types';
 
@@ -14,26 +15,37 @@ import { kWeeztixTicketType } from '@lib/database/Types';
  */
 interface WeeztixImportTaskConfiguration {
     /**
-     * Number of milliseconds of delay to impose between importing multiple orders.
+     * Number of milliseconds of delay to impose between fetching paginated order batches.
      */
-    delayBetweenOrderImportsMs: number;
+    delayBetweenOrderPagesMs: number;
 
     /**
-     * Maximum number of orders to import per execution of this task. Importing orders issues an
-     * additional API call per order to the Weeztix API, so we want to be careful.
+     * Maximum number of order pages to retrieve from the statistics endpoint per execution.
      */
-    maximumOrderImportsPerExecution: number;
+    maximumOrderPagesPerExecution: number;
 
     /**
-     * Maximum number of orders to retrieve from the statistics endpoint per execution.
+     * Maximum number of orders to retrieve per statistics endpoint request.
      */
-    maximumOrdersConsideredPerExecution: number;
+    maximumOrdersPerPage: number;
 
     /**
      * Number of hours to subtract from the most recent update to compensate for race conditions in
      * the update process, i.e. failures or overlapping requests.
      */
     raceConditionCompensationHours: number;
+}
+
+/**
+ * Normalised representation of a live Weeztix order returned by the API.
+ */
+interface LiveOrderEntry {
+    guid: string;
+    name: string | null;
+    status: string;
+    created: Temporal.ZonedDateTime;
+    updated: Temporal.ZonedDateTime;
+    deleted: Temporal.ZonedDateTime | null;
 }
 
 /**
@@ -54,10 +66,32 @@ interface LiveTicketTypeEntry {
 }
 
 /**
+ * Returns whether optional `lhs` and `rhs` timestamps represent the same instant at second
+ * precision, or are both absent.
+ */
+function areOptionalTimestampsEqual(
+    lhs?: Temporal.ZonedDateTime | null, rhs?: Temporal.ZonedDateTime | null): boolean
+{
+    if (!lhs && !rhs)
+        return true;
+    if (!lhs || !rhs)
+        return false;
+
+    return areTimestampsEqual(lhs, rhs);
+}
+
+/**
  * Returns whether `lhs` and `rhs` represent the same instant at second precision.
  */
 function areTimestampsEqual(lhs: Temporal.ZonedDateTime, rhs: Temporal.ZonedDateTime): boolean {
     return Temporal.ZonedDateTime.compare(lhs.round('seconds'), rhs.round('seconds')) === 0;
+}
+
+/**
+ * Parses an ISO 8601 timestamp string into a UTC `Temporal.ZonedDateTime` rounded to whole seconds.
+ */
+function parseTimestamp(value: string): Temporal.ZonedDateTime {
+    return Temporal.Instant.from(value).round('seconds').toZonedDateTimeISO('UTC');
 }
 
 /**
@@ -87,9 +121,9 @@ export class WeeztixImportTask extends Task {
     private async initialise(): Promise<void> {
         this.#client = await createWeeztixClient();
         this.#configuration = {
-            delayBetweenOrderImportsMs: 1000,
-            maximumOrderImportsPerExecution: 0,  // disabled until order tables exist
-            maximumOrdersConsideredPerExecution: 100,
+            delayBetweenOrderPagesMs: 250,
+            maximumOrderPagesPerExecution: 10,
+            maximumOrdersPerPage: 100,
             raceConditionCompensationHours: 12,
         };
     }
@@ -102,6 +136,12 @@ export class WeeztixImportTask extends Task {
         await this.initialise();
 
         const dbInstance = db;
+        const mostRecentUpdateSubQuery = dbInstance.subSelectUsing(tEvents)
+            .from(tWeeztixOrders)
+                .where(tWeeztixOrders.weeztixEventGuid.equals(tEvents.eventWeeztixGuid))
+            .selectOneColumn(dbInstance.max(tWeeztixOrders.weeztixOrderUpdated))
+            .forUseAsInlineQueryValue();
+
         const applicableEvents = await dbInstance.selectFrom(tEvents)
             .where(tEvents.eventHidden.equals(/* false= */ 0))
                 .and(tEvents.eventEndTime.greaterOrEqual(dbInstance.currentZonedDateTime()))
@@ -114,7 +154,7 @@ export class WeeztixImportTask extends Task {
                     companyGuid: tEvents.eventWeeztixCompanyGuid,
                     eventGuid: tEvents.eventWeeztixGuid,
                 },
-                // TODO: Select `mostRecentUpdate` from `weeztix_orders` once the table exists.
+                mostRecentUpdate: mostRecentUpdateSubQuery,
             })
             .orderBy(tEvents.eventEndTime, 'asc')
             .executeSelectMany();
@@ -134,12 +174,8 @@ export class WeeztixImportTask extends Task {
             this.log.info(`Starting data import for ${event.name}`);
 
             await this.importProductsAndTickets(event.context.eventGuid);
-
-            if (this.#configuration.maximumOrderImportsPerExecution > 0) {
-                await this.importOrders(
-                    event.context.companyGuid, event.context.eventGuid,
-                    /* mostRecentUpdate= */ undefined);
-            }
+            await this.importOrders(
+                event.context.companyGuid, event.context.eventGuid, event.mostRecentUpdate);
 
             // TODO: Revalidate `FinanceProcessor` once order tables exist.
         }
@@ -356,25 +392,123 @@ export class WeeztixImportTask extends Task {
         this.log.info('[Orders] Fetching orders from the Weeztix API');
         this.log.info(`[Orders] w/ last updated = ${start}`);
 
-        const recentOrders = await this.#client.listOrders(companyGuid, {
-            offset: 0,
-            limit: this.#configuration.maximumOrdersConsideredPerExecution,
-            timeunit: 'year',
-            range_applies_to: 'updated_at',
-            start,
-            end,
-            sorting: { updated_at: 'desc' },
-            events: [ eventGuid ],
-        });
+        const recentOrdersMap = new Map<string, Order>();
+        for (let page = 0; page < this.#configuration.maximumOrderPagesPerExecution; ++page) {
+            if (page > 0 && this.#configuration.delayBetweenOrderPagesMs > 0) {
+                await new Promise(resolve =>
+                    setTimeout(resolve, this.#configuration.delayBetweenOrderPagesMs));
+            }
 
-        if (!recentOrders.length) {
+            const batch = await this.#client.listOrders(companyGuid, {
+                offset: page * this.#configuration.maximumOrdersPerPage,
+                limit: this.#configuration.maximumOrdersPerPage,
+                timeunit: 'year',
+                range_applies_to: 'updated_at',
+                start,
+                end,
+                sorting: { updated_at: 'asc' },
+                events: [ eventGuid ],
+            });
+
+            for (const order of batch)
+                recentOrdersMap.set(order.guid, order);
+
+            if (batch.length < this.#configuration.maximumOrdersPerPage)
+                break;
+        }
+
+        if (!recentOrdersMap.size) {
             this.log.warning('[Orders] No orders were returned by the API; skipping');
             return false;
         }
 
-        this.log.info(`[Orders] Weeztix responded with ${recentOrders.length} order(s)`);
+        this.log.info(`[Orders] Weeztix responded with ${recentOrdersMap.size} order(s)`);
 
-        // TODO: Import the actual order(s).
+        const liveOrders = new Map<string, LiveOrderEntry>();
+        for (const order of recentOrdersMap.values()) {
+            liveOrders.set(order.guid, {
+                guid: order.guid,
+                name: order.fullname.replace(/\s+/g, ' ').trim() || null,
+                status: order.status,
+                created: parseTimestamp(order.created_at),
+                updated: parseTimestamp(order.updated_at),
+                deleted: order.invalidated_since ? parseTimestamp(order.invalidated_since) : null,
+            });
+        }
+
+        const orderGuids = [ ...liveOrders.keys() ];
+
+        const dbInstance = db;
+        const knownOrders = await dbInstance.selectFrom(tWeeztixOrders)
+            .where(tWeeztixOrders.weeztixGuid.in(orderGuids))
+            .select({
+                guid: tWeeztixOrders.weeztixGuid,
+                eventGuid: tWeeztixOrders.weeztixEventGuid,
+                name: tWeeztixOrders.weeztixOrderName,
+                status: tWeeztixOrders.weeztixOrderStatus,
+                created: tWeeztixOrders.weeztixOrderCreated,
+                updated: tWeeztixOrders.weeztixOrderUpdated,
+                deleted: tWeeztixOrders.weeztixOrderDeleted,
+            })
+            .executeSelectMany();
+
+        const knownOrdersMap = new Map(knownOrders.map(order => [ order.guid, order ]));
+        const ordersToUpsert: LiveOrderEntry[] = [];
+
+        let ordersAdded = 0;
+        let ordersDeleted = 0;
+        let ordersUpdated = 0;
+
+        for (const liveOrder of liveOrders.values()) {
+            const knownOrder = knownOrdersMap.get(liveOrder.guid);
+            if (!knownOrder) {
+                ordersToUpsert.push(liveOrder);
+                ordersAdded++;
+                continue;
+            }
+
+            const hasChanged =
+                knownOrder.eventGuid !== eventGuid ||
+                (knownOrder.name || null) !== liveOrder.name ||
+                knownOrder.status !== liveOrder.status ||
+                !areTimestampsEqual(knownOrder.created, liveOrder.created) ||
+                !areTimestampsEqual(knownOrder.updated, liveOrder.updated) ||
+                !areOptionalTimestampsEqual(knownOrder.deleted, liveOrder.deleted);
+
+            if (hasChanged) {
+                ordersToUpsert.push(liveOrder);
+                if (!knownOrder.deleted && !!liveOrder.deleted)
+                    ordersDeleted++;
+                else
+                    ordersUpdated++;
+            }
+        }
+
+        if (ordersToUpsert.length > 0) {
+            await dbInstance.transaction(async () => {
+                for (const entry of ordersToUpsert) {
+                    const values = {
+                        weeztixEventGuid: eventGuid,
+                        weeztixOrderName: entry.name,
+                        weeztixOrderStatus: entry.status,
+                        weeztixOrderCreated: entry.created,
+                        weeztixOrderUpdated: entry.updated,
+                        weeztixOrderDeleted: entry.deleted,
+                    };
+
+                    await dbInstance.insertInto(tWeeztixOrders)
+                        .set({
+                            weeztixGuid: entry.guid,
+                            ...values,
+                        })
+                        .onConflictDoUpdateSet(values)
+                        .executeInsert();
+                }
+            });
+        }
+
+        this.log.info(
+            `[Orders] Added: ${ordersAdded}, updated: ${ordersUpdated}, deleted: ${ordersDeleted}`);
 
         return true;
     }
