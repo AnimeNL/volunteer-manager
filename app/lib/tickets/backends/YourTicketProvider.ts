@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketStatistics, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, TicketSearchResults,
+    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
@@ -199,6 +200,60 @@ export class YourTicketProvider implements TicketService {
                 paid: tYourTicketProviderPurchases.ytpPurchaseDatePaid,
             })
             .executeSelectMany();
+    }
+
+    async searchTickets(request: TicketSearchRequest): Promise<TicketSearchResults> {
+        const dbInstance = db;
+
+        const purchaseIdCast = dbInstance.fragmentWithType('string', 'required')
+            .sql`CAST(${tYourTicketProviderPurchases.ytpPurchaseId} AS CHAR)`;
+        const ticketIdCast = dbInstance.fragmentWithType('string', 'required')
+            .sql`CAST(${tYourTicketProviderPurchases.ytpPurchaseItemId} AS CHAR)`;
+
+        const sortFieldMap: Record<TicketSearchSortField,
+            'cancelled' | 'holder' | 'purchaseId' | 'purchased' | 'ticketName'> =
+        {
+            cancelled: 'cancelled',
+            holder: 'holder',
+            order: 'purchaseId',
+            purchased: 'purchased',
+            ticket: 'ticketName',
+        };
+
+        const sortField = sortFieldMap[request.sort?.field ?? 'purchased'];
+        const sortDirection = request.sort?.direction ?? 'desc';
+
+        const purchases = await dbInstance.selectFrom(tYourTicketProviderPurchases)
+            .innerJoin(tYourTicketProviderTickets)
+                .on(tYourTicketProviderTickets.ytpTicketId.equals(
+                    tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
+            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+                .and(
+                    tYourTicketProviderPurchases.ytpPurchaseItemHolder.containsInsensitive(
+                        request.query).or(
+                    tYourTicketProviderTickets.ytpTicketName.containsInsensitive(request.query).or(
+                    purchaseIdCast.containsInsensitive(request.query).or(
+                    ticketIdCast.containsInsensitive(request.query)))))
+            .select({
+                id: tYourTicketProviderPurchases.ytpPurchaseItemId,
+                purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
+                ticketId: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
+                holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
+                ticketName: tYourTicketProviderTickets.ytpTicketName,
+                purchased: dbInstance.dateTimeAsString(
+                    tYourTicketProviderPurchases.ytpPurchaseDatePaid),
+                cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNotNull(),
+                complimentary: tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(1),
+            })
+            .orderBy(sortField, sortDirection)
+            .limit(request.limit)
+                .offset(request.offset)
+            .executeSelectPage();
+
+        return {
+            count: purchases.count,
+            results: purchases.data,
+        };
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {

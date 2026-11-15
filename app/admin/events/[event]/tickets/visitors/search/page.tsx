@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import Alert from '@mui/material/Alert';
 import PublicIcon from '@mui/icons-material/Public';
 
+import type { TicketSearchSortField } from '@lib/tickets/Types';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel, type Column,
     type ExtractRowModel } from '@app/admin/components/DataTable';
 import { HolderCell, ValidityCell, ValidityHeaderCell } from '../../TicketCells';
@@ -17,7 +18,6 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Data source for visitor ticket types obtained from the ticketing provider.
@@ -92,51 +92,31 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
 
     async list(params, props, context) {
         const service = await createTicketService(context.event.slug);
-        if (!service || service.id !== 'YourTicketProvider')
+        if (!service)
             return { rowCount: 0, rows: [] };
 
-        const { query } = context;
-
-        // TODO: Implement ticket search for Weeztix and/or other ticketing partners.
-
-        const dbInstance = db;
-
-        const purchaseIdCast = dbInstance.fragmentWithType('string', 'required')
-            .sql`CAST(${tYourTicketProviderPurchases.ytpPurchaseId} AS CHAR)`;
-        const ticketIdCast = dbInstance.fragmentWithType('string', 'required')
-            .sql`CAST(${tYourTicketProviderPurchases.ytpPurchaseItemId} AS CHAR)`;
-
-        const purchases = await dbInstance.selectFrom(tYourTicketProviderPurchases)
-            .innerJoin(tYourTicketProviderTickets)
-                .on(tYourTicketProviderTickets.ytpTicketId.equals(
-                    tYourTicketProviderPurchases.ytpPurchaseItemTicketId))
-            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(Number(service.eventId)))
-                .and(
-                    tYourTicketProviderPurchases.ytpPurchaseItemHolder.containsInsensitive(query).or(
-                    tYourTicketProviderTickets.ytpTicketName.containsInsensitive(query).or(
-                    purchaseIdCast.containsInsensitive(query).or(
-                    ticketIdCast.containsInsensitive(query)))))
-            .select({
-                id: tYourTicketProviderPurchases.ytpPurchaseItemId,
-                purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
-                type: tYourTicketProviderPurchases.ytpPurchaseItemTicketId,
-                holder: tYourTicketProviderPurchases.ytpPurchaseItemHolder,
-                ticket: tYourTicketProviderTickets.ytpTicketName,
-                purchased: dbInstance.dateTimeAsString(
-                    tYourTicketProviderPurchases.ytpPurchaseDatePaid),
-                cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNotNull(),
-                complimentary: tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(1),
-            })
-            .limit(params.page.limit)
-                .offset(params.page.offset)
-            .executeSelectPage();
+        const { count, results } = await service.searchTickets({
+            query: context.query,
+            limit: params.page.limit,
+            offset: params.page.offset,
+            sort: {
+                field: params.sort.field as TicketSearchSortField,
+                direction: params.sort.direction,
+            },
+        });
 
         return {
-            rowCount: purchases.count,
-            rows: purchases.data.map(row => ({
-                ...row,
-                link: `${row.type}/${row.purchaseId}`,
+            rowCount: count,
+            rows: results.map(row => ({
+                id: row.id,
+                purchaseId: row.purchaseId,
+                link: `${row.ticketId}/${row.purchaseId}`,
                 order: service.formatPurchaseId(row.purchaseId),
+                holder: row.holder,
+                ticket: row.ticketName,
+                purchased: row.purchased,
+                cancelled: row.cancelled,
+                complimentary: row.complimentary,
             })),
         };
     },

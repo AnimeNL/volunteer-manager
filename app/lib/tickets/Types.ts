@@ -199,3 +199,97 @@ export interface TicketType {
     amount?: number;
 }
 
+/**
+ * Valid sort fields for ticket search results.
+ */
+export type TicketSearchSortField = 'cancelled' | 'holder' | 'order' | 'purchased' | 'ticket';
+
+/**
+ * Interface that describes a search query for tickets.
+ */
+export interface TicketSearchRequest {
+    /**
+     * Search query string to match against ticket holder, ticket name, order/ticket IDs, or barcode.
+     */
+    query: string;
+
+    /**
+     * Maximum number of results to return.
+     */
+    limit: number;
+
+    /**
+     * Offset into the result set for pagination.
+     */
+    offset: number;
+
+    /**
+     * Optional sorting configuration for the results.
+     */
+    sort?: {
+        field: TicketSearchSortField;
+        direction: 'asc' | 'desc';
+    };
+}
+
+/**
+ * Interface that describes a single ticket search result.
+ */
+export interface TicketSearchResult {
+    /**
+     * Unique ID of this ticket.
+     */
+    id: number | string;
+
+    /**
+     * Unique ID of the purchase that this ticket was issued for.
+     */
+    purchaseId: number | string;
+
+    /**
+     * Unique ID of the ticket type that this ticket is an example of.
+     */
+    ticketId: number | string;
+
+    /**
+     * Name of the holder of the ticket, when known.
+     */
+    holder?: string;
+
+    /**
+     * Name of the ticket type, when known.
+     */
+    ticketName?: string;
+
+    /**
+     * Date/time string when the ticket was purchased, if settled.
+     */
+    purchased?: string;
+
+    /**
+     * Whether the ticket has been cancelled.
+     */
+    cancelled: boolean;
+
+    /**
+     * Whether the ticket was complimentary, i.e. issued without requiring payment.
+     */
+    complimentary?: boolean;
+}
+
+/**
+ * Interface that describes a paginated list of ticket search results.
+ */
+export interface TicketSearchResults {
+    /**
+     * Total number of matching tickets across all pages.
+     */
+    count: number;
+
+    /**
+     * Matching tickets for the requested page.
+     */
+    results: TicketSearchResult[];
+}
+
+

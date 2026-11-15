@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketStatistics, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, TicketSearchResults,
+    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
@@ -346,6 +347,127 @@ export class Weeztix implements TicketService {
             .executeSelectMany();
 
         return rows.map(toTicket);
+    }
+
+    async searchTickets(request: TicketSearchRequest): Promise<TicketSearchResults> {
+        const dbInstance = db;
+        const { query } = request;
+
+        const ticketTypesJoin = tWeeztixTicketTypes.forUseInLeftJoin();
+
+        const ticketHolder = dbInstance.fragmentWithType('string', 'optional').sql`
+            NULLIF(TRIM(COALESCE(
+                NULLIF(TRIM(${tWeeztixTickets.weeztixTicketName}), ''),
+                NULLIF(TRIM(${tWeeztixOrders.weeztixOrderName}), '')
+            )), '')`;
+
+        const ticketPurchased = dbInstance.fragmentWithType('string', 'optional').sql`
+            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses)}
+                THEN ${dbInstance.dateTimeAsString(tWeeztixTickets.weeztixTicketCreated)}
+                ELSE NULL
+            END`;
+
+        const ticketsQuery = dbInstance.selectFrom(tWeeztixTickets)
+            .innerJoin(tWeeztixOrders)
+                .on(tWeeztixOrders.weeztixGuid.equals(tWeeztixTickets.weeztixOrderGuid))
+            .leftJoin(ticketTypesJoin)
+                .on(ticketTypesJoin.weeztixEventGuid.equals(this.#eventId))
+                    .and(ticketTypesJoin.weeztixGuid.equals(
+                        tWeeztixTickets.weeztixTicketTypeGuid))
+            .where(tWeeztixTickets.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixOrders.weeztixOrderStatus.notIn([ 'pending', 'expired' ]))
+                .and(
+                    tWeeztixTickets.weeztixTicketName.containsInsensitive(query).or(
+                    tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
+                    ticketTypesJoin.weeztixTicketName.containsInsensitive(query).or(
+                    tWeeztixTickets.weeztixGuid.containsInsensitive(query).or(
+                    tWeeztixTickets.weeztixOrderGuid.containsInsensitive(query).or(
+                    tWeeztixTickets.weeztixTicketBarcode.containsInsensitive(query)))))))
+            .select({
+                id: tWeeztixTickets.weeztixGuid,
+                purchaseId: tWeeztixTickets.weeztixOrderGuid,
+                ticketId: tWeeztixTickets.weeztixTicketTypeGuid,
+                holder: ticketHolder,
+                ticketName: ticketTypesJoin.weeztixTicketName.asOptional(),
+                purchased: ticketPurchased,
+                cancelled: tWeeztixTickets.weeztixTicketDeleted.isNotNull().or(
+                    tWeeztixOrders.weeztixOrderDeleted.isNotNull()).or(
+                    tWeeztixOrders.weeztixOrderStatus.equals('cancelled')),
+                complimentary: tWeeztixTickets.weeztixTicketPrice.equals(0),
+            });
+
+        const parentTicketsJoin = tWeeztixTickets.forUseInLeftJoin();
+
+        const purchaseHolder = dbInstance.fragmentWithType('string', 'optional').sql`
+            NULLIF(TRIM(COALESCE(
+                NULLIF(TRIM(${tWeeztixPurchases.weeztixPurchaseName}), ''),
+                NULLIF(TRIM(${parentTicketsJoin.weeztixTicketName}), ''),
+                NULLIF(TRIM(${tWeeztixOrders.weeztixOrderName}), '')
+            )), '')`;
+
+        const purchasePurchased = dbInstance.fragmentWithType('string', 'optional').sql`
+            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses)}
+                THEN ${dbInstance.dateTimeAsString(tWeeztixPurchases.weeztixPurchaseCreated)}
+                ELSE NULL
+            END`;
+
+        const purchasesQuery = dbInstance.selectFrom(tWeeztixPurchases)
+            .innerJoin(tWeeztixTicketTypes)
+                .on(tWeeztixTicketTypes.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixTicketTypes.weeztixGuid.equals(
+                        tWeeztixPurchases.weeztixPurchaseTypeGuid))
+                    .and(tWeeztixTicketTypes.weeztixTicketType.equals(kWeeztixTicketType.Product))
+            .innerJoin(tWeeztixOrders)
+                .on(tWeeztixOrders.weeztixGuid.equals(tWeeztixPurchases.weeztixOrderGuid))
+            .leftJoin(parentTicketsJoin)
+                .on(parentTicketsJoin.weeztixGuid.equals(tWeeztixPurchases.weeztixTicketGuid))
+            .where(tWeeztixPurchases.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixOrders.weeztixOrderStatus.notIn([ 'pending', 'expired' ]))
+                .and(
+                    tWeeztixPurchases.weeztixPurchaseName.containsInsensitive(query).or(
+                    parentTicketsJoin.weeztixTicketName.containsInsensitive(query).or(
+                    tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
+                    tWeeztixTicketTypes.weeztixTicketName.containsInsensitive(query).or(
+                    tWeeztixPurchases.weeztixGuid.containsInsensitive(query).or(
+                    tWeeztixPurchases.weeztixOrderGuid.containsInsensitive(query).or(
+                    parentTicketsJoin.weeztixTicketBarcode.containsInsensitive(query))))))))
+            .select({
+                id: tWeeztixPurchases.weeztixGuid,
+                purchaseId: tWeeztixPurchases.weeztixOrderGuid,
+                ticketId: tWeeztixPurchases.weeztixPurchaseTypeGuid,
+                holder: purchaseHolder,
+                ticketName: tWeeztixTicketTypes.weeztixTicketName.asOptional(),
+                purchased: purchasePurchased,
+                cancelled: tWeeztixPurchases.weeztixPurchaseDeleted.isNotNull().or(
+                    parentTicketsJoin.weeztixTicketDeleted.isNotNull()).or(
+                    tWeeztixOrders.weeztixOrderDeleted.isNotNull()).or(
+                    tWeeztixOrders.weeztixOrderStatus.equals('cancelled')),
+                complimentary: tWeeztixPurchases.weeztixPurchasePrice.equals(0),
+            });
+
+        const sortFieldMap: Record<TicketSearchSortField,
+            'cancelled' | 'holder' | 'purchaseId' | 'purchased' | 'ticketName'> =
+        {
+            cancelled: 'cancelled',
+            holder: 'holder',
+            order: 'purchaseId',
+            purchased: 'purchased',
+            ticket: 'ticketName',
+        };
+
+        const sortField = sortFieldMap[request.sort?.field ?? 'purchased'];
+        const sortDirection = request.sort?.direction ?? 'desc';
+
+        const { count, data } = await ticketsQuery.unionAll(purchasesQuery)
+            .orderBy(sortField, sortDirection)
+            .limit(request.limit)
+                .offset(request.offset)
+            .executeSelectPage();
+
+        return {
+            count,
+            results: data,
+        };
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
