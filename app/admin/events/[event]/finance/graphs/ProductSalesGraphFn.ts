@@ -93,6 +93,9 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
             break;
     }
 
+    if (!ticketsData.length)
+        return { success: false, error: 'Unable to determine the products for this graph…' };
+
     let earliestSaleDate: string | undefined;
     for (const data of ticketsData) {
         for (const sale of data.sales) {
@@ -101,13 +104,33 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
         }
     }
 
-    if (!earliestSaleDate)
-        return { success: false, error: 'Unable to determine the minimum date for this graph…' };
+    // Fetch applicable highlights from the event's key dates configuration. They are added to the
+    // graph as reference lines, and the earliest highlight also serves as a fallback minimum date
+    // when no sales have been recorded yet.
+    const highlights = await dbInstance.selectFrom(tEventsDates)
+        .where(tEventsDates.eventId.equals(eventId))
+            .and(tEventsDates.dateType.in([ kDateType.Highlight, kDateType.HighlightFinance ]))
+            .and(tEventsDates.dateDeleted.isNull())
+        .select({
+            date: dbInstance.dateAsString(tEventsDates.dateDate),
+            label: tEventsDates.dateTitle,
+        })
+        .orderBy(tEventsDates.dateDate, 'asc')
+        .executeSelectMany();
 
     const maxPlainDate = event.endTime.toPlainDate();
-
-    const min = Temporal.PlainDate.from(earliestSaleDate);
     const cappedMax = isBefore(currentDate, maxPlainDate) ? currentDate : maxPlainDate;
+
+    let min: Temporal.PlainDate;
+    if (earliestSaleDate) {
+        min = Temporal.PlainDate.from(earliestSaleDate);
+    } else if (highlights.length) {
+        const firstHighlight = Temporal.PlainDate.from(highlights[0].date);
+        min = isBefore(firstHighlight, cappedMax) ? firstHighlight : cappedMax;
+    } else {
+        min = cappedMax;
+    }
+
     const max = isBefore(cappedMax, min) ? min : cappedMax;
 
     // ---------------------------------------------------------------------------------------------
@@ -190,20 +213,8 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     }));
 
     // ---------------------------------------------------------------------------------------------
-    // Fetch applicable highlights from the event's key dates configuration, as those should be
-    // added to the set of available reference lines as well.
+    // Add applicable highlights from the event's key dates configuration to the reference lines.
     // ---------------------------------------------------------------------------------------------
-
-    const highlights = await dbInstance.selectFrom(tEventsDates)
-        .where(tEventsDates.eventId.equals(eventId))
-            .and(tEventsDates.dateType.in([ kDateType.Highlight, kDateType.HighlightFinance ]))
-            .and(tEventsDates.dateDeleted.isNull())
-        .select({
-            date: dbInstance.dateAsString(tEventsDates.dateDate),
-            label: tEventsDates.dateTitle,
-        })
-        .orderBy(tEventsDates.dateDate, 'asc')
-        .executeSelectMany();
 
     let highlightCount = 0;
     for (const { date, label } of highlights) {
@@ -268,7 +279,10 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
     // ---------------------------------------------------------------------------------------------
 
     let verticalAxisMaximum: number | undefined;
-    if (limitMaximum > 0 && (limitMaximum * kMaximumWastedVerticalSpace) <= productSalesMaximum) {
+    if (limitMaximum > 0 && (
+        productSalesMaximum === 0 ||
+        (limitMaximum * kMaximumWastedVerticalSpace) <= productSalesMaximum))
+    {
         verticalAxisMaximum = Math.floor(limitMaximum * 1.1);
     }
 
@@ -297,6 +311,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
             yAxis: [
                 {
                     position: 'left',
+                    min: productSalesMaximum === 0 ? 0 : undefined,
                     max: verticalAxisMaximum,
                     width: 50,
                 },
