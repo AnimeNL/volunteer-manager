@@ -8,6 +8,8 @@ import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
+import { hasYourTicketProviderSales }
+    from '@app/admin/events/[event]/finance/processor/YourTicketProviderFinancialData';
 
 import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';
@@ -156,6 +158,10 @@ export class YourTicketProvider implements TicketService {
         }
 
         return statistics;
+    }
+
+    async hasSales(): Promise<boolean> {
+        return hasYourTicketProviderSales(this.#eventId);
     }
 
     async importPurchase(purchaseId: number | string): Promise<void> {

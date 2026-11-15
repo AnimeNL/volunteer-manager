@@ -62,6 +62,11 @@ export interface TicketService {
     getStatistics(): Promise<TicketStatistics | undefined>;
 
     /**
+     * Returns whether any valid, settled sales have been recorded for the current event.
+     */
+    hasSales(): Promise<boolean>;
+
+    /**
      * Imports the purchase identified by `purchaseId` into the local database cache, if required.
      */
     importPurchase(purchaseId: number | string): Promise<void>;

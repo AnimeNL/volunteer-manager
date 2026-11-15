@@ -7,6 +7,7 @@ import type { Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary, Tic
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
+import { hasWeeztixSales } from '@app/admin/events/[event]/finance/processor/WeeztixFinancialData';
 import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes,
     tWeeztixTickets } from '@lib/database';
 
@@ -290,6 +291,10 @@ export class Weeztix implements TicketService {
         }
 
         return statistics;
+    }
+
+    async hasSales(): Promise<boolean> {
+        return hasWeeztixSales(this.#eventId);
     }
 
     async importPurchase(_purchaseId: number | string): Promise<void> {

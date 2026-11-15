@@ -3,9 +3,9 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct } from './Types';
-import { fetchWeeztixProducts, hasWeeztixSales } from './WeeztixFinancialData';
-import { fetchYourTicketProviderProducts, hasYourTicketProviderSales }
-    from './YourTicketProviderFinancialData';
+import { createTicketServiceForProvider } from '@lib/tickets';
+import { fetchWeeztixProducts } from './WeeztixFinancialData';
+import { fetchYourTicketProviderProducts } from './YourTicketProviderFinancialData';
 import db, { tEvents, tEventsTicketsConfiguration } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
@@ -298,13 +298,8 @@ function resolveConfiguredEvent(row: RawEventRow): ConfiguredEvent | undefined {
  * tables.
  */
 async function hasEventSales(event: ConfiguredEvent): Promise<boolean> {
-    switch (event.provider) {
-        case kEventTicketProvider.Weeztix:
-            return hasWeeztixSales(event.providerEventId);
-
-        case kEventTicketProvider.YourTicketProvider:
-            return hasYourTicketProviderSales(event.providerEventId);
-    }
+    const service = createTicketServiceForProvider(event.provider, event.providerEventId);
+    return service ? await service.hasSales() : false;
 }
 
 /**

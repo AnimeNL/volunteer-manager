@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { CachedEvent } from '@lib/cache/Types';
+import type { EventTicketProvider } from '@lib/database/Types';
 import type { TicketService } from './TicketService';
 import { Weeztix } from './backends/Weeztix';
 import { YourTicketProvider } from './backends/YourTicketProvider';
@@ -55,4 +56,19 @@ export async function createTicketService(eventIdentifier: number | string)
     }
 
     return service;
+}
+
+/**
+ * Creates a ticket service directly from a known `provider` and `providerEventId`.
+ */
+export function createTicketServiceForProvider(
+    provider: EventTicketProvider, providerEventId: number | string): TicketService | undefined
+{
+    switch (provider) {
+        case 'Weeztix':
+            return new Weeztix(String(providerEventId));
+
+        case 'YourTicketProvider':
+            return new YourTicketProvider(Number(providerEventId));
+    }
 }
