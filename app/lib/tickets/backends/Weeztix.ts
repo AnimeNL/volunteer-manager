@@ -87,7 +87,7 @@ export class Weeztix implements TicketService {
     }
 
     createPurchaseLink(purchaseId: number | string): string | undefined {
-        throw new Error('Not yet implemented');
+        return undefined;
     }
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
@@ -95,7 +95,88 @@ export class Weeztix implements TicketService {
     }
 
     async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
-        throw new Error('Not yet implemented');
+        const dbInstance = db;
+        const orderGuid = String(purchaseId);
+
+        const order = await dbInstance.selectFrom(tWeeztixOrders)
+            .where(tWeeztixOrders.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixOrders.weeztixGuid.equals(orderGuid))
+            .select({
+                id: tWeeztixOrders.weeztixGuid,
+                eventId: tWeeztixOrders.weeztixEventGuid,
+                name: tWeeztixOrders.weeztixOrderName,
+                status: tWeeztixOrders.weeztixOrderStatus,
+                created: tWeeztixOrders.weeztixOrderCreated,
+                updated: tWeeztixOrders.weeztixOrderUpdated,
+                deleted: tWeeztixOrders.weeztixOrderDeleted,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!order)
+            return undefined;
+
+        const ticketTypesJoin = tWeeztixTicketTypes.forUseInLeftJoin();
+
+        const ticketRows = await dbInstance.selectFrom(tWeeztixTickets)
+            .leftJoin(ticketTypesJoin)
+                .on(ticketTypesJoin.weeztixEventGuid.equals(this.#eventId))
+                    .and(ticketTypesJoin.weeztixGuid.equals(
+                        tWeeztixTickets.weeztixTicketTypeGuid))
+            .where(tWeeztixTickets.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixTickets.weeztixOrderGuid.equals(orderGuid))
+            .select({
+                id: tWeeztixTickets.weeztixGuid,
+                ticketId: tWeeztixTickets.weeztixTicketTypeGuid,
+                ticketName: ticketTypesJoin.weeztixTicketName,
+                barcode: tWeeztixTickets.weeztixTicketBarcode,
+                name: tWeeztixTickets.weeztixTicketName,
+            })
+            .executeSelectMany();
+
+        const parentTicketsJoin = tWeeztixTickets.forUseInLeftJoin();
+
+        const purchaseRows = await dbInstance.selectFrom(tWeeztixPurchases)
+            .innerJoin(tWeeztixTicketTypes)
+                .on(tWeeztixTicketTypes.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixTicketTypes.weeztixGuid.equals(
+                        tWeeztixPurchases.weeztixPurchaseTypeGuid))
+                    .and(tWeeztixTicketTypes.weeztixTicketType.equals(kWeeztixTicketType.Product))
+            .leftJoin(parentTicketsJoin)
+                .on(parentTicketsJoin.weeztixGuid.equals(tWeeztixPurchases.weeztixTicketGuid))
+            .where(tWeeztixPurchases.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixPurchases.weeztixOrderGuid.equals(orderGuid))
+            .select({
+                id: tWeeztixPurchases.weeztixGuid,
+                ticketId: tWeeztixPurchases.weeztixPurchaseTypeGuid,
+                ticketName: tWeeztixTicketTypes.weeztixTicketName,
+                barcode: parentTicketsJoin.weeztixTicketBarcode,
+                name: tWeeztixPurchases.weeztixPurchaseName,
+                parentTicketName: parentTicketsJoin.weeztixTicketName,
+            })
+            .executeSelectMany();
+
+        return {
+            id: order.id,
+            eventId: order.eventId,
+            cancelled: order.deleted ?? (order.status === 'cancelled' ? order.updated : undefined),
+            paid: kSettledOrderStatuses.includes(order.status) ? order.created : undefined,
+            tickets: [
+                ...ticketRows.map(row => ({
+                    id: row.id,
+                    ticketId: row.ticketId,
+                    ticketName: row.ticketName?.trim() || undefined,
+                    barcode: row.barcode || undefined,
+                    holder: (row.name || order.name)?.trim() || undefined,
+                })),
+                ...purchaseRows.map(row => ({
+                    id: row.id,
+                    ticketId: row.ticketId,
+                    ticketName: row.ticketName.trim() || undefined,
+                    barcode: row.barcode || undefined,
+                    holder: (row.name || row.parentTicketName || order.name)?.trim() || undefined,
+                })),
+            ],
+        };
     }
 
     formatPurchaseId(purchaseId: number | string): string {
