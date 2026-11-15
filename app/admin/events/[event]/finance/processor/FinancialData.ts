@@ -4,8 +4,6 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct } from './Types';
 import { createTicketServiceForProvider } from '@lib/tickets';
-import { fetchWeeztixProducts } from './WeeztixFinancialData';
-import { fetchYourTicketProviderProducts } from './YourTicketProviderFinancialData';
 import db, { tEvents, tEventsTicketsConfiguration } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
@@ -374,13 +372,8 @@ async function buildFinancialEventData(event: ConfiguredEvent): Promise<Financia
  * Dispatches product and sales retrieval to the single ticketing provider configured for `event`.
  */
 async function fetchEventProducts(event: ConfiguredEvent): Promise<ProviderProduct[]> {
-    switch (event.provider) {
-        case kEventTicketProvider.Weeztix:
-            return fetchWeeztixProducts(event.id, event.providerEventId);
-
-        case kEventTicketProvider.YourTicketProvider:
-            return fetchYourTicketProviderProducts(event.id, event.providerEventId);
-    }
+    const service = createTicketServiceForProvider(event.provider, event.providerEventId);
+    return service ? await service.fetchFinancialProducts(event.id) : [];
 }
 
 /**

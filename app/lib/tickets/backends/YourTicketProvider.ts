@@ -2,13 +2,14 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest,
-    TicketSearchResults, TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
+import type { ProviderProduct, Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary,
+    TicketSearchRequest, TicketSearchResults, TicketSearchSortField, TicketStatistics,
+    TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
-import { hasYourTicketProviderSales }
+import { fetchYourTicketProviderProducts, hasYourTicketProviderSales }
     from '@app/admin/events/[event]/finance/processor/YourTicketProviderFinancialData';
 
 import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases,
@@ -49,6 +50,10 @@ export class YourTicketProvider implements TicketService {
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
         throw new Error('Not implemented');
+    }
+
+    async fetchFinancialProducts(eventId: number): Promise<ProviderProduct[]> {
+        return fetchYourTicketProviderProducts(eventId, this.#eventId);
     }
 
     async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
