@@ -1,19 +1,16 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { forbidden, notFound } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import Typography from '@mui/material/Typography';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { PurchaseIdLink } from '../../PurchaseIdLink';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -50,7 +47,7 @@ export default async function EventTicketsAssociatesPage(
     if (!containsVolunteerTicket && !access.can('root'))
         forbidden();
 
-    const purchaseLink = service.createPurchaseLink(params.id) || '#';
+    const purchaseLink = service.createPurchaseLink(params.id);
 
     // ---------------------------------------------------------------------------------------------
     // Functionality: Associating the ticket with a volunteer
@@ -140,16 +137,9 @@ export default async function EventTicketsAssociatesPage(
                         key: 'Purchase ID',
                         valueTemplate: 'component',
                         value: (
-                            <Typography variant="body2">
-                                { service.formatPurchaseId(purchase.id) }
-                                <MuiLink component={Link} href={purchaseLink} target="_blank">
-                                    <OpenInNewIcon fontSize="inherit" sx={{
-                                        position: 'relative',
-                                        left: '6px',
-                                        top: '2px',
-                                    }} />
-                                </MuiLink>
-                            </Typography>
+                            <PurchaseIdLink
+                                href={purchaseLink}
+                                label={service.formatPurchaseId(purchase.id)} />
                         ),
                     },
                     {

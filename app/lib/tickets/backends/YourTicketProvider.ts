@@ -33,6 +33,18 @@ export class YourTicketProvider implements TicketService {
     get id(): EventTicketProvider { return 'YourTicketProvider' };
     get eventId(): number | string { return this.#eventId; }
 
+    async anonymizeTickets(): Promise<number> {
+        return db.update(tYourTicketProviderPurchases)
+            .set({
+                ytpPurchaseItemHolder: '(anonymized)',
+            })
+            .where(tYourTicketProviderPurchases.ytpPurchaseItemHolder.isNotNull())
+                .and(tYourTicketProviderPurchases.ytpPurchaseItemHolder.notEquals('(anonymized)'))
+                .and(tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(/* false= */ 0))
+                .and(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+            .executeUpdate();
+    }
+
     createPurchaseLink(purchaseId: number | string): string | undefined {
         const baseUrl = 'https://www.yourticketprovider.nl/account/events/manage/guests';
         return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;

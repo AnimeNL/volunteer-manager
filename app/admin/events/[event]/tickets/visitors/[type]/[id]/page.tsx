@@ -1,21 +1,19 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
-import { default as MuiLink } from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Paper from '@mui/material/Paper';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { PurchaseIdLink } from '../../../PurchaseIdLink';
 import { QrCode } from '@components/QrCode';
 import { Section } from '@app/admin/components/Section';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
@@ -107,17 +105,7 @@ export default async function EventTicketsVisitorPurchasePage(
                         key: 'Purchase ID',
                         valueTemplate: 'component',
                         value: (
-                            <Typography variant="body2">
-                                { purchase.id }
-                                { !!purchaseLink &&
-                                    <MuiLink component={Link} href={purchaseLink} target="_blank">
-                                        <OpenInNewIcon fontSize="inherit" sx={{
-                                            position: 'relative',
-                                            left: '6px',
-                                            top: '2px',
-                                        }} />
-                                    </MuiLink> }
-                            </Typography>
+                            <PurchaseIdLink href={purchaseLink} label={purchase.id} />
                         ),
                     },
                     {

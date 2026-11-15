@@ -82,6 +82,44 @@ export class Weeztix implements TicketService {
     get id(): EventTicketProvider { return 'Weeztix' };
     get eventId(): number | string { return this.#eventId; }
 
+    async anonymizeTickets(): Promise<number> {
+        return db.transaction(async () => {
+            const ticketRows = await db.update(tWeeztixTickets)
+                .set({
+                    weeztixTicketName: '(anonymized)',
+                    weeztixTicketNickname: null,
+                })
+                .where(tWeeztixTickets.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixTickets.weeztixTicketPrice.greaterThan(0))
+                    .and(tWeeztixTickets.weeztixTicketName.isNotNull().or(
+                        tWeeztixTickets.weeztixTicketNickname.isNotNull()))
+                    .and(tWeeztixTickets.weeztixTicketName.isNull().or(
+                        tWeeztixTickets.weeztixTicketName.notEquals('(anonymized)')))
+                .executeUpdate();
+
+            const purchaseRows = await db.update(tWeeztixPurchases)
+                .set({
+                    weeztixPurchaseName: '(anonymized)',
+                })
+                .where(tWeeztixPurchases.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixPurchases.weeztixPurchasePrice.greaterThan(0))
+                    .and(tWeeztixPurchases.weeztixPurchaseName.isNotNull())
+                    .and(tWeeztixPurchases.weeztixPurchaseName.notEquals('(anonymized)'))
+                .executeUpdate();
+
+            const orderRows = await db.update(tWeeztixOrders)
+                .set({
+                    weeztixOrderName: '(anonymized)',
+                })
+                .where(tWeeztixOrders.weeztixEventGuid.equals(this.#eventId))
+                    .and(tWeeztixOrders.weeztixOrderName.isNotNull())
+                    .and(tWeeztixOrders.weeztixOrderName.notEquals('(anonymized)'))
+                .executeUpdate();
+
+            return ticketRows + purchaseRows + orderRows;
+        });
+    }
+
     canCreateTickets(): boolean {
         return false;
     }

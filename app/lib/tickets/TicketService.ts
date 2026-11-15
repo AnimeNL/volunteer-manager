@@ -22,6 +22,12 @@ export interface TicketService {
     get eventId(): number | string;
 
     /**
+     * Anonymizes personally identifiable information stored for non-complimentary visitor tickets
+     * for this event. Returns the number of database rows affected.
+     */
+    anonymizeTickets(): Promise<number>;
+
+    /**
      * Returns whether this ticket service supports creating new tickets.
      */
     canCreateTickets(): boolean;

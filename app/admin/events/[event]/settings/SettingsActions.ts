@@ -10,9 +10,10 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
+import { createTicketService } from '@lib/tickets';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tEvents, tUsersEventsPreferencesRefunds, tYourTicketProviderPurchases } from '@lib/database';
+import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
@@ -58,20 +59,11 @@ export async function anonymizeVisitorTickets(eventSlug: string) {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'root');
 
-        if (!event.integrations?.yourTicketProviderEventId)
+        const service = await createTicketService(event.id);
+        if (!service)
             return { success: false, error: 'No ticketing partner has been set up for this event' };
 
-        // TODO: Support Weeztix once we start importing data?
-
-        const affectedRows = await db.update(tYourTicketProviderPurchases)
-            .set({
-                ytpPurchaseItemHolder: '(anonymized)',
-            })
-            .where(tYourTicketProviderPurchases.ytpPurchaseItemHolder.isNotNull())
-                .and(tYourTicketProviderPurchases.ytpPurchaseComplimentary.equals(/* false= */ 0))
-                .and(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(
-                    event.integrations.yourTicketProviderEventId))
-            .executeUpdate();
+        const affectedRows = await service.anonymizeTickets();
 
         LogBuilder.for('AnonymizeVisitorTickets')
             .withCondition(!!affectedRows)

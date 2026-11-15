@@ -348,15 +348,8 @@ export default async function IntegrationsPage() {
                                     {weeztixExpirationWarning}
                                     <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
                                                             state={weeztixState} />
-                                    <IconButton LinkComponent={Link} size="small"
-                                             href="/admin/system/integrations/weeztix">
-                                        <Tooltip title="More information...">
-                                            <TooltipIconWrapper>
-                                                <InfoOutlinedIcon color="primary"
-                                                                  fontSize="small" />
-                                            </TooltipIconWrapper>
-                                        </Tooltip>
-                                    </IconButton>
+                                    <IntegrationInfoButton
+                                        href="/admin/system/integrations/weeztix" />
                                 </Stack>
                              }
                              defaultValues={{
@@ -401,14 +394,8 @@ export default async function IntegrationsPage() {
                              }}
                              title="YourTicketProvider" icon={ <CmComIcon /> }
                              headerAction={
-                                 <IconButton LinkComponent={Link} size="small"
-                                             href="/admin/system/integrations/yourticketprovider">
-                                     <Tooltip title="More information...">
-                                         <TooltipIconWrapper>
-                                             <InfoOutlinedIcon color="primary" fontSize="small" />
-                                         </TooltipIconWrapper>
-                                     </Tooltip>
-                                 </IconButton>
+                                 <IntegrationInfoButton
+                                     href="/admin/system/integrations/yourticketprovider" />
                              }>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
@@ -436,6 +423,21 @@ export default async function IntegrationsPage() {
                 </Grid>
             </FormGridSection>
         </>
+    );
+}
+
+/**
+ * Renders an info icon button linking to an integration's diagnostic details page.
+ */
+function IntegrationInfoButton(props: { href: string }) {
+    return (
+        <IconButton LinkComponent={Link} size="small" href={props.href}>
+            <Tooltip title="More information...">
+                <TooltipIconWrapper>
+                    <InfoOutlinedIcon color="primary" fontSize="small" />
+                </TooltipIconWrapper>
+            </Tooltip>
+        </IconButton>
     );
 }
 

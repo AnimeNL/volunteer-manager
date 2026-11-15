@@ -3,6 +3,7 @@
 
 'use client';
 
+import Box from '@mui/material/Box';
 import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
@@ -28,19 +29,15 @@ export function LiveHeaderCell() {
  * Cell that indicates whether the ticket type is live.
  */
 export function LiveCell(props: { row: { live: boolean } }) {
-    if (props.row.live) {
-        return (
-            <Tooltip title="Ticket type is live">
-                <ShoppingCartIcon color="success" fontSize="small" />
-            </Tooltip>
-        );
-    } else {
-        return (
-            <Tooltip title="Ticket type is not live">
-                <RemoveShoppingCartOutlinedIcon color="error" fontSize="small" />
-            </Tooltip>
-        );
-    }
+    return props.row.live ? (
+        <Tooltip title="Ticket type is live">
+            <ShoppingCartIcon color="success" fontSize="small" />
+        </Tooltip>
+    ) : (
+        <Tooltip title="Ticket type is not live">
+            <RemoveShoppingCartOutlinedIcon color="error" fontSize="small" />
+        </Tooltip>
+    );
 }
 
 /**
@@ -58,19 +55,15 @@ export function IssuedHeaderCell() {
  * Cell that indicates whether the ticket has been issued.
  */
 export function IssuedCell(props: { row: { order?: string } }) {
-    if (!props.row.order) {
-        return (
-            <Tooltip title="No ticket issued">
-                <ConfirmationNumberOutlinedIcon color="error" fontSize="small" />
-            </Tooltip>
-        );
-    } else {
-        return (
-            <Tooltip title="Ticket has been issued">
-                <ConfirmationNumberOutlinedIcon color="success" fontSize="small" />
-            </Tooltip>
-        );
-    }
+    return !props.row.order ? (
+        <Tooltip title="No ticket issued">
+            <ConfirmationNumberOutlinedIcon color="error" fontSize="small" />
+        </Tooltip>
+    ) : (
+        <Tooltip title="Ticket has been issued">
+            <ConfirmationNumberOutlinedIcon color="success" fontSize="small" />
+        </Tooltip>
+    );
 }
 
 /**
@@ -88,19 +81,15 @@ export function ValidityHeaderCell() {
  * Cell that indicates whether the ticket is still valid.
  */
 export function ValidityCell(props: { row: { cancelled: boolean } }) {
-    if (props.row.cancelled) {
-        return (
-            <Tooltip title="Ticket has been cancelled">
-                <NotInterestedOutlinedIcon color="error" fontSize="small" />
-            </Tooltip>
-        );
-    } else {
-        return (
-            <Tooltip title="Ticket has been issued">
-                <ConfirmationNumberOutlinedIcon color="success" fontSize="small" />
-            </Tooltip>
-        );
-    }
+    return props.row.cancelled ? (
+        <Tooltip title="Ticket has been cancelled">
+            <NotInterestedOutlinedIcon color="error" fontSize="small" />
+        </Tooltip>
+    ) : (
+        <Tooltip title="Ticket has been issued">
+            <ConfirmationNumberOutlinedIcon color="success" fontSize="small" />
+        </Tooltip>
+    );
 }
 
 /**
@@ -109,22 +98,21 @@ export function ValidityCell(props: { row: { cancelled: boolean } }) {
  */
 export function HolderCell(props: { row: { holder?: string; complimentary?: boolean } }) {
     const hasHolder = !!props.row.holder;
-
     const label = props.row.holder || 'Unclaimed ticket';
 
     return (
-        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-            { !!hasHolder && label }
-            { !hasHolder &&
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+            { hasHolder ? label : (
                 <Typography variant="inherit" color="textDisabled" component="span"
                             sx={{ fontStyle: 'italic' }}>
                     {label}
-                </Typography> }
-            {!!props.row.complimentary && (
+                </Typography>
+            ) }
+            { !!props.row.complimentary && (
                 <Tooltip title="Complimentary ticket">
-                    <CardGiftcardOutlinedIcon color="primary" fontSize="inherit" sx={{ ml: 1 }} />
+                    <CardGiftcardOutlinedIcon color="primary" fontSize="inherit" />
                 </Tooltip>
-            )}
-        </span>
+            ) }
+        </Box>
     );
 }
