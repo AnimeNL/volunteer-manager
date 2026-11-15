@@ -44,12 +44,21 @@ export function DoublePieChart(props: DoublePieChartProps) {
             },
         };
 
+        const innerTotal = props.series[1].data.reduce((sum, item) => sum + item.value, 0);
+
         return [
             {
                 ...commonSeriesProperties,
                 innerRadius: '35%',
                 outerRadius: '55%',
                 data: props.series[1].data,
+                valueFormatter: item => {
+                    if (!innerTotal)
+                        return `${item.value}`;
+
+                    const percentage = Math.round((item.value / innerTotal) * 100);
+                    return `${item.value} (${percentage}%)`;
+                },
             },
             {
                 ...commonSeriesProperties,
