@@ -131,7 +131,7 @@ export default async function EventTicketsVisitorPurchasePage(
                     <Grid key={ticket.id} size={{ xs: 12, md: 6, lg: 4 }}>
                         <Paper sx={{ p: 1.5, pb: ticket.barcode ? 0 : 1.5 }}>
                             <SectionHeader icon={ <ConfirmationNumberOutlinedIcon /> }
-                                           title={`Ticket ${String(ticket.id).split('-')[0]}`}
+                                           title={`Ticket ${service.formatTicketId(ticket.id)}`}
                                            sx={{ pb: 1.5 }} />
                             <Stack direction="column" spacing={0.5}>
                                 { !!ticket.ticketName &&
@@ -158,7 +158,8 @@ export default async function EventTicketsVisitorPurchasePage(
                 <Section icon={ <ShoppingBagOutlinedIcon color="primary" /> }
                          title="Additional products">
                     <KeyValueList items={additionalProducts.map(product => ({
-                        key: product.ticketName || `Product ${String(product.id).split('-')[0]}`,
+                        key: product.ticketName ||
+                            `Product ${service.formatTicketId(product.id)}`,
                         value: product.holder
                             ? `${product.id} (${product.holder})`
                             : String(product.id),

@@ -73,6 +73,11 @@ export interface TicketService {
     formatPurchaseId(purchaseId: number | string): string;
 
     /**
+     * Formats the given `ticketId` in a manner suitable for display in the UI.
+     */
+    formatTicketId(ticketId: number | string): string;
+
+    /**
      * Returns the financial summary (most recent update timestamp and pending categorisation count)
      * for the given `eventId`.
      */

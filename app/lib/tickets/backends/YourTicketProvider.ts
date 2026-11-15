@@ -105,6 +105,10 @@ export class YourTicketProvider implements TicketService {
         return `REF${purchaseId}`;
     }
 
+    formatTicketId(ticketId: number | string): string {
+        return String(ticketId);
+    }
+
     async getFinancialSummary(eventId: number): Promise<TicketFinancialSummary> {
         const dbInstance = db;
         const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();

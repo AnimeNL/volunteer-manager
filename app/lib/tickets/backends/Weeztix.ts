@@ -243,6 +243,10 @@ export class Weeztix implements TicketService {
         return String(purchaseId).split('-')[0];
     }
 
+    formatTicketId(ticketId: number | string): string {
+        return String(ticketId).split('-')[0];
+    }
+
     async getFinancialSummary(eventId: number): Promise<TicketFinancialSummary> {
         const dbInstance = db;
         const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();
