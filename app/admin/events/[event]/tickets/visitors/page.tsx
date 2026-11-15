@@ -20,15 +20,8 @@ import { TicketSearchBar } from './TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-
-/**
- * Formatter to display a price in euros.
- */
-const kPriceFormatter = new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'EUR',
-});
 
 /**
  * Data source for visitor ticket types obtained from the ticketing provider.
@@ -123,7 +116,7 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
             rows: paginated.map(ticketType => ({
                 id: ticketType.id,
                 name: ticketType.name,
-                price: kPriceFormatter.format(ticketType.price / 100),
+                price: formatTicketPrice(ticketType.price),
                 live: ticketType.active,
                 sold: ticketType.sold,
                 amount: ticketType.amount,

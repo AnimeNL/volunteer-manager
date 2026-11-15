@@ -17,19 +17,12 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck, and } from '@lib/auth/AuthenticationContext';
+import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 import { kEventTicketCategory } from '@lib/database/Types';
 import { kEventTicketCategoryOptions } from './Settings';
 import { kEventTransformer } from '@app/admin/components/DataTable';
-
-/**
- * Formatter to display a price in euros.
- */
-const kPriceFormatter = new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'EUR',
-});
 
 /**
  * Data source for the financial settings of an event.
@@ -136,7 +129,7 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             rowCount: products.length,
             rows: paginated.map(product => ({
                 ...product,
-                price: kPriceFormatter.format(product.price / 100),
+                price: formatTicketPrice(product.price),
             })),
         };
     },

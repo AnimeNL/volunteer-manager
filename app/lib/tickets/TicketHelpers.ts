@@ -6,6 +6,21 @@ import type { ProviderSale, TicketConfiguration, TicketSearchSortField } from '.
 import db, { tEventsTicketsConfiguration } from '@lib/database';
 
 /**
+ * Formatter to display a price in euros.
+ */
+const kPriceFormatter = new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'EUR',
+});
+
+/**
+ * Formats a ticket or product price given in `cents` as a EUR currency string.
+ */
+export function formatTicketPrice(cents: number): string {
+    return kPriceFormatter.format(cents / 100);
+}
+
+/**
  * Maps `TicketSearchSortField` values from the UI/API to database projection column names.
  */
 export const kTicketSearchSortFieldMap: Record<TicketSearchSortField,
