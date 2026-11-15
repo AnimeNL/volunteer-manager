@@ -114,6 +114,7 @@ export class Weeztix implements TicketService {
                 sold: tWeeztixTicketTypes.weeztixTicketSold,
                 status: tWeeztixTicketTypes.weeztixTicketStatus,
             })
+            .orderBy('name', 'asc')
             .executeSelectMany();
 
         return rows.map(row => ({
