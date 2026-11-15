@@ -2,14 +2,15 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest,
+    TicketSearchResults, TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@app/lib/integrations/yourticketprovider';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 
-import db, { tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
+import db, { tEventsTicketsConfiguration, tYourTicketProviderPurchases,
+    tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Implementation of the `TicketService` specific to YourTicketProvider and/or CM.com.
@@ -77,6 +78,32 @@ export class YourTicketProvider implements TicketService {
 
     formatPurchaseId(purchaseId: number | string): string {
         return `REF${purchaseId}`;
+    }
+
+    async getFinancialSummary(eventId: number): Promise<TicketFinancialSummary> {
+        const dbInstance = db;
+        const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();
+
+        const mostRecentUpdate = await dbInstance.selectFrom(tYourTicketProviderPurchases)
+            .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(this.#eventId))
+            .selectOneColumn(dbInstance.max(tYourTicketProviderPurchases.ytpPurchaseItemUpdated))
+            .executeSelectNoneOrOne() ?? undefined;
+
+        const pendingCategorisationCount = await dbInstance.selectFrom(tYourTicketProviderTickets)
+            .leftJoin(eventsTicketsConfigurationJoin)
+                .on(eventsTicketsConfigurationJoin.eventId.equals(eventId))
+                    .and(eventsTicketsConfigurationJoin.eventTicketYtpId.equals(
+                        tYourTicketProviderTickets.ytpTicketId))
+            .where(tYourTicketProviderTickets.ytpTicketEventId.equals(this.#eventId))
+                .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
+                .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
+            .selectCountAll()
+            .executeSelectOne();
+
+        return {
+            mostRecentUpdate,
+            pendingCategorisationCount,
+        };
     }
 
     async getStatistics(): Promise<TicketStatistics | undefined> {

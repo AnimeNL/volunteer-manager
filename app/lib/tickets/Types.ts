@@ -302,4 +302,17 @@ export interface TicketSearchResults {
     results: TicketSearchResult[];
 }
 
+/**
+ * Summary of financial import status and uncategorised ticket types for an event.
+ */
+export interface TicketFinancialSummary {
+    /**
+     * Timestamp of the most recent ticket/order update imported for this event, if any.
+     */
+    mostRecentUpdate?: Temporal.ZonedDateTime;
 
+    /**
+     * Number of active ticket types that have not yet been assigned a financial category.
+     */
+    pendingCategorisationCount: number;
+}

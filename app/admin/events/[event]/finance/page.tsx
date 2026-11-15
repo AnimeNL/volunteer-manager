@@ -17,8 +17,6 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixTicketTypes,
-    tYourTicketProviderPurchases, tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Page that displays the financial dashboard for the given event.
@@ -31,59 +29,8 @@ export default async function EventFinancePage(props: PageProps<'/admin/events/[
     if (!service)
         notFound();
 
-    const dbInstance = db;
-
-    const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();
-
-    let mostRecentUpdate: Temporal.ZonedDateTime | undefined;
-    let pendingCategorisationCount: number | undefined;
-
-    switch (service.id) {
-        case 'Weeztix': {
-            const weeztixEventGuid = String(service.eventId);
-
-            mostRecentUpdate = await dbInstance.selectFrom(tWeeztixOrders)
-                .where(tWeeztixOrders.weeztixEventGuid.equals(weeztixEventGuid))
-                .selectOneColumn(dbInstance.max(tWeeztixOrders.weeztixOrderUpdated))
-                .executeSelectNoneOrOne() ?? undefined;
-
-            pendingCategorisationCount = await dbInstance.selectFrom(tWeeztixTicketTypes)
-                .leftJoin(eventsTicketsConfigurationJoin)
-                    .on(eventsTicketsConfigurationJoin.eventId.equals(event.id))
-                        .and(eventsTicketsConfigurationJoin.eventTicketWeeztixGuid.equals(
-                            tWeeztixTicketTypes.weeztixGuid))
-                .where(tWeeztixTicketTypes.weeztixEventGuid.equals(weeztixEventGuid))
-                    .and(tWeeztixTicketTypes.weeztixTicketDeleted.isNull())
-                    .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
-                .selectCountAll()
-                .executeSelectOne();
-
-            break;
-        }
-
-        case 'YourTicketProvider': {
-            const ytpEventId = Number(service.eventId);
-
-            mostRecentUpdate = await dbInstance.selectFrom(tYourTicketProviderPurchases)
-                .where(tYourTicketProviderPurchases.ytpPurchaseEventId.equals(ytpEventId))
-                .selectOneColumn(
-                    dbInstance.max(tYourTicketProviderPurchases.ytpPurchaseItemUpdated))
-                .executeSelectNoneOrOne() ?? undefined;
-
-            pendingCategorisationCount = await dbInstance.selectFrom(tYourTicketProviderTickets)
-                .leftJoin(eventsTicketsConfigurationJoin)
-                    .on(eventsTicketsConfigurationJoin.eventId.equals(event.id))
-                        .and(eventsTicketsConfigurationJoin.eventTicketYtpId.equals(
-                                 tYourTicketProviderTickets.ytpTicketId))
-                .where(tYourTicketProviderTickets.ytpTicketEventId.equals(ytpEventId))
-                    .and(tYourTicketProviderTickets.ytpTicketDeleted.isNull())
-                    .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
-                .selectCountAll()
-                .executeSelectOne();
-
-            break;
-        }
-    }
+    const { mostRecentUpdate, pendingCategorisationCount } =
+        await service.getFinancialSummary(event.id);
 
     const headerActions: React.ReactNode[] = [];
     if (!!mostRecentUpdate) {

@@ -2,12 +2,13 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { Purchase, Ticket, TicketCreateRequest, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
+import type { Purchase, Ticket, TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest,
+    TicketSearchResults, TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
-import db, { tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
+import db, { tEventsTicketsConfiguration, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes,
+    tWeeztixTickets } from '@lib/database';
 
 import { kWeeztixTicketType } from '@lib/database/Types';
 
@@ -193,6 +194,32 @@ export class Weeztix implements TicketService {
 
     formatPurchaseId(purchaseId: number | string): string {
         return String(purchaseId).split('-')[0];
+    }
+
+    async getFinancialSummary(eventId: number): Promise<TicketFinancialSummary> {
+        const dbInstance = db;
+        const eventsTicketsConfigurationJoin = tEventsTicketsConfiguration.forUseInLeftJoin();
+
+        const mostRecentUpdate = await dbInstance.selectFrom(tWeeztixOrders)
+            .where(tWeeztixOrders.weeztixEventGuid.equals(this.#eventId))
+            .selectOneColumn(dbInstance.max(tWeeztixOrders.weeztixOrderUpdated))
+            .executeSelectNoneOrOne() ?? undefined;
+
+        const pendingCategorisationCount = await dbInstance.selectFrom(tWeeztixTicketTypes)
+            .leftJoin(eventsTicketsConfigurationJoin)
+                .on(eventsTicketsConfigurationJoin.eventId.equals(eventId))
+                    .and(eventsTicketsConfigurationJoin.eventTicketWeeztixGuid.equals(
+                        tWeeztixTicketTypes.weeztixGuid))
+            .where(tWeeztixTicketTypes.weeztixEventGuid.equals(this.#eventId))
+                .and(tWeeztixTicketTypes.weeztixTicketDeleted.isNull())
+                .and(eventsTicketsConfigurationJoin.eventTicketCategory.isNull())
+            .selectCountAll()
+            .executeSelectOne();
+
+        return {
+            mostRecentUpdate,
+            pendingCategorisationCount,
+        };
     }
 
     async getStatistics(): Promise<TicketStatistics | undefined> {
