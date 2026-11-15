@@ -54,6 +54,11 @@ export interface Purchase {
          */
         holder?: string;
 
+        /**
+         * Nickname of the holder of the ticket, when known.
+         */
+        nickname?: string;
+
     }[];
 }
 
@@ -85,6 +90,11 @@ export interface Ticket {
      * Name of the holder of the ticket. May be anonimised after an event concludes.
      */
     holder?: string;
+
+    /**
+     * Nickname of the holder of the ticket, when known.
+     */
+    nickname?: string;
 
     /**
      * Whether the ticket was complimentary, i.e. issued without requiring payment.

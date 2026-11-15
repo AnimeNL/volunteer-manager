@@ -26,6 +26,7 @@ interface RawTicketRow {
     ticketId: string;
     barcode?: string;
     name?: string;
+    nickname?: string;
     parentTicketName?: string;
     price: number;
     created: Temporal.ZonedDateTime;
@@ -42,6 +43,7 @@ interface RawTicketRow {
  */
 function toTicket(row: RawTicketRow): Ticket {
     const holder = (row.name || row.parentTicketName || row.orderName)?.trim() || undefined;
+    const nickname = row.nickname?.trim() || undefined;
     const paid = kSettledOrderStatuses.includes(row.orderStatus) ? row.created : undefined;
     const cancelled =
         row.deleted ?? row.parentTicketDeleted ?? row.orderDeleted ??
@@ -53,6 +55,7 @@ function toTicket(row: RawTicketRow): Ticket {
         ticketId: row.ticketId,
         barcode: row.barcode || undefined,
         holder,
+        nickname,
         complimentary: row.price === 0,
         cancelled,
         paid,
@@ -137,6 +140,7 @@ export class Weeztix implements TicketService {
                 ticketName: ticketTypesJoin.weeztixTicketName,
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
                 name: tWeeztixTickets.weeztixTicketName,
+                nickname: tWeeztixTickets.weeztixTicketNickname,
             })
             .executeSelectMany();
 
@@ -174,6 +178,7 @@ export class Weeztix implements TicketService {
                     ticketName: row.ticketName?.trim() || undefined,
                     barcode: row.barcode || undefined,
                     holder: (row.name || order.name)?.trim() || undefined,
+                    nickname: row.nickname?.trim() || undefined,
                 })),
                 ...purchaseRows.map(row => ({
                     id: row.id,
@@ -311,6 +316,7 @@ export class Weeztix implements TicketService {
                     ticketId: tWeeztixTickets.weeztixTicketTypeGuid,
                     barcode: tWeeztixTickets.weeztixTicketBarcode,
                     name: tWeeztixTickets.weeztixTicketName,
+                    nickname: tWeeztixTickets.weeztixTicketNickname,
                     price: tWeeztixTickets.weeztixTicketPrice,
                     created: tWeeztixTickets.weeztixTicketCreated,
                     deleted: tWeeztixTickets.weeztixTicketDeleted,
@@ -384,11 +390,12 @@ export class Weeztix implements TicketService {
                 .and(tWeeztixOrders.weeztixOrderStatus.notIn([ 'pending', 'expired' ]))
                 .and(
                     tWeeztixTickets.weeztixTicketName.containsInsensitive(query).or(
+                    tWeeztixTickets.weeztixTicketNickname.containsInsensitive(query).or(
                     tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
                     ticketTypesJoin.weeztixTicketName.containsInsensitive(query).or(
                     tWeeztixTickets.weeztixGuid.containsInsensitive(query).or(
                     tWeeztixTickets.weeztixOrderGuid.containsInsensitive(query).or(
-                    tWeeztixTickets.weeztixTicketBarcode.containsInsensitive(query)))))))
+                    tWeeztixTickets.weeztixTicketBarcode.containsInsensitive(query))))))))
             .select({
                 id: tWeeztixTickets.weeztixGuid,
                 purchaseId: tWeeztixTickets.weeztixOrderGuid,
@@ -432,11 +439,12 @@ export class Weeztix implements TicketService {
                 .and(
                     tWeeztixPurchases.weeztixPurchaseName.containsInsensitive(query).or(
                     parentTicketsJoin.weeztixTicketName.containsInsensitive(query).or(
+                    parentTicketsJoin.weeztixTicketNickname.containsInsensitive(query).or(
                     tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
                     tWeeztixTicketTypes.weeztixTicketName.containsInsensitive(query).or(
                     tWeeztixPurchases.weeztixGuid.containsInsensitive(query).or(
                     tWeeztixPurchases.weeztixOrderGuid.containsInsensitive(query).or(
-                    parentTicketsJoin.weeztixTicketBarcode.containsInsensitive(query))))))))
+                    parentTicketsJoin.weeztixTicketBarcode.containsInsensitive(query)))))))))
             .select({
                 id: tWeeztixPurchases.weeztixGuid,
                 purchaseId: tWeeztixPurchases.weeztixOrderGuid,

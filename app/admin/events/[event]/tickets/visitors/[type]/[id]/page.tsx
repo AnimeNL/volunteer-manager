@@ -159,6 +159,10 @@ export default async function EventTicketsVisitorPurchasePage(
                                     <Typography variant="body2" noWrap>
                                         {ticket.holder}
                                     </Typography>}
+                                { !!ticket.nickname &&
+                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                        <strong>Nickname</strong>: {ticket.nickname}
+                                    </Typography> }
                                 { !!ticket.barcode &&
                                     <Box sx={{ pt: 1 }}>
                                         <QrCode content={ticket.barcode} />
