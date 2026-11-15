@@ -88,12 +88,10 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
     async list(params, props, context) {
         const service = await createTicketService(context.event.id);
         if (!service)
-            return notFound();
-
-        const dbInstance = db;
+            notFound();
 
         const types = await service.listTicketTypes();
-        const associations = await dbInstance.selectDistinctFrom(tEventsTicketsConfiguration)
+        const associations = await db.selectFrom(tEventsTicketsConfiguration)
             .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
                 .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull().onlyWhen(
                     service.id === 'Weeztix'))
