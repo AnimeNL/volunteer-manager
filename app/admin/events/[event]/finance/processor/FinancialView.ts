@@ -81,6 +81,15 @@ const isLockerProduct = (product: FinancialProduct): boolean =>
     product.category === kEventTicketCategory.LockerSunday ||
     product.category === kEventTicketCategory.LockerWeekend;
 
+/**
+ * Predicate to determine whether a product should be included in the total revenue calculation.
+ */
+const isTotalRevenueProduct = (product: FinancialProduct): boolean =>
+    isFestivalTicket(product) ||
+    isEventTicket(product) ||
+    isLockerProduct(product) ||
+    isAdditionalProduct(product);
+
 // -------------------------------------------------------------------------------------------------
 
 /**
@@ -151,6 +160,13 @@ export function generateTicketSalesTableView(financialData: FinancialData) {
  */
 export function generateTicketSalesView(financialData: FinancialData) {
     return computeKeyMetricsData(financialData, isFestivalTicket, 'sales');
+}
+
+/**
+ * Generates the view necessary to populate the `<TotalRevenueCard>` component.
+ */
+export function generateTotalRevenueView(financialData: FinancialData) {
+    return computeKeyMetricsData(financialData, isTotalRevenueProduct, 'revenue');
 }
 
 // -------------------------------------------------------------------------------------------------

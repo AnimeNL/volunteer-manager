@@ -67,6 +67,7 @@ export class FinanceProcessor {
     readonly #eventTicketSalesView: ReturnType<typeof views.generateEventTicketSalesView>;
     readonly #ticketRevenueView: ReturnType<typeof views.generateTicketRevenueView>;
     readonly #ticketSalesView: ReturnType<typeof views.generateTicketSalesView>;
+    readonly #totalRevenueView: ReturnType<typeof views.generateTotalRevenueView>;
 
     // Data tables:
     readonly #eventSalesTableView: ReturnType<typeof views.generateEventSalesTableView>;
@@ -88,6 +89,7 @@ export class FinanceProcessor {
         this.#eventTicketSalesView = views.generateEventTicketSalesView(financialData);
         this.#ticketRevenueView = views.generateTicketRevenueView(financialData);
         this.#ticketSalesView = views.generateTicketSalesView(financialData);
+        this.#totalRevenueView = views.generateTotalRevenueView(financialData);
 
         this.#eventSalesTableView = views.generateEventSalesTableView(financialData);
         this.#lockerSalesTableView = views.generateLockerSalesTableView(financialData);
@@ -107,6 +109,7 @@ export class FinanceProcessor {
     get eventTicketSalesView() { return this.#eventTicketSalesView; }
     get ticketRevenueView() { return this.#ticketRevenueView; }
     get ticketSalesView() { return this.#ticketSalesView; }
+    get totalRevenueView() { return this.#totalRevenueView; }
 
     get eventSalesTableView() { return this.#eventSalesTableView; }
     get lockerSalesTableView() { return this.#lockerSalesTableView; }

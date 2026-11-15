@@ -13,6 +13,7 @@ import { LockerSalesGraph } from './graphs/LockerSalesGraph';
 import { SalesDataGrid } from './SalesDataGrid';
 import { TicketRevenueCard } from './kpi/TicketRevenueCard';
 import { TicketSalesCard } from './kpi/TicketSalesCard';
+import { TotalRevenueCard } from './kpi/TotalRevenueCard';
 import { VisitorGraphCard } from './graphs/VisitorGraphCard';
 import { fetchProductSales } from './graphs/ProductSalesGraphFn';
 
@@ -121,11 +122,18 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             { /** Section: Event sales -------------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6 }}>
-                <Card elevation={1}>
-                    <SalesDataGrid disableProductLinks={props.disableProductLinks}
-                                   partialFetchDataFn={partialFetchDataFn}
-                                   kind="events" rows={processor.eventSalesTableView} />
-                </Card>
+                <Grid container spacing={2}>
+                    <Grid size={{ xs: 12 }}>
+                        <Card elevation={1}>
+                            <SalesDataGrid disableProductLinks={props.disableProductLinks}
+                                           partialFetchDataFn={partialFetchDataFn}
+                                           kind="events" rows={processor.eventSalesTableView} />
+                        </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <TotalRevenueCard processor={processor} />
+                    </Grid>
+                </Grid>
             </Grid>
 
         </Grid>

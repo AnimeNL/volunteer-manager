@@ -14,25 +14,7 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { formatMetric } from './ValueFormatter';
-
-/**
- * Formats the difference between the `figure` and the `reference` as a percentage.
- */
-function formatDifference(figure: number, reference: number) {
-    if (!reference) {
-        if (!figure)
-            return /* no data: */ '=';
-
-        return /* no comparable results: */ '+100%';
-    }
-
-    const difference = (figure - reference) / reference;
-    const differencePct = Math.round(difference * 100);
-
-    return differencePct > 0 ? `+${differencePct}%`
-                             : `${differencePct}%`;
-}
+import { formatDifference, formatMetric, formatMetricReference } from './ValueFormatter';
 
 /**
  * Props accepted by the <KeyMetricCard> component.
@@ -97,14 +79,6 @@ interface KeyMetricCardProps {
 export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>) {
     const { format, headline, historical, remainingDays, subject, title } = props;
 
-    function formatMetricRef(figure: number) {
-        const formattedMetric = formatMetric(figure, format, subject);
-        if (remainingDays > 0)
-            return `${formattedMetric} @ T-${remainingDays} days`;
-
-        return formattedMetric;
-    }
-
     const changePercentage =
         headline.changePercentage !== undefined
             ? Math.round(headline.changePercentage)
@@ -146,7 +120,9 @@ export function KeyMetricCard(props: React.PropsWithChildren<KeyMetricCardProps>
                                                   sx: { color: 'text.secondary'}
                                               }
                                           }} />
-                            <Tooltip title={ formatMetricRef(entry.figure) }>
+                            <Tooltip title={
+                                formatMetricReference(entry.figure, format, remainingDays, subject)
+                            }>
                                 <Typography
                                     color={
                                         entry.figure === headline.figure
