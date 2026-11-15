@@ -11,6 +11,7 @@ import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Paper from '@mui/material/Paper';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -81,6 +82,9 @@ export default async function EventTicketsVisitorPurchasePage(
 
     const displayedTickets = purchase.tickets.filter(
         ticket => ticketTypeIds.has(ticket.ticketId.toString()));
+
+    const additionalProducts = purchase.tickets.filter(
+        ticket => !ticketTypeIds.has(ticket.ticketId.toString()));
 
     return (
         <>
@@ -163,6 +167,16 @@ export default async function EventTicketsVisitorPurchasePage(
                         </Paper>
                     </Grid> ) }
             </Grid>
+            { additionalProducts.length > 0 &&
+                <Section icon={ <ShoppingBagOutlinedIcon color="primary" /> }
+                         title="Additional products">
+                    <KeyValueList items={additionalProducts.map(product => ({
+                        key: product.ticketName || `Product ${String(product.id).split('-')[0]}`,
+                        value: product.holder
+                            ? `${product.id} (${product.holder})`
+                            : String(product.id),
+                    }))} />
+                </Section> }
         </>
     );
 }
