@@ -386,3 +386,28 @@ export interface ProviderProduct extends ProviderProductSales {
         title?: string;
     };
 }
+
+/**
+ * Configuration for a single ticket type in an event (`events_tickets_configuration`).
+ */
+export interface TicketConfiguration {
+    /**
+     * Unique ID of the configuration row in the database.
+     */
+    id: number;
+
+    /**
+     * Provider-specific ticket type ID (e.g., Weeztix GUID or YourTicketProvider ticket ID).
+     */
+    ticketTypeId: number | string;
+
+    /**
+     * Financial category assigned to this ticket type, if any.
+     */
+    category?: EventTicketCategory;
+
+    /**
+     * Optional AnPlan activity ID associated with this ticket type.
+     */
+    activityId?: number;
+}

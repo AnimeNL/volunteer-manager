@@ -23,9 +23,20 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEventsTicketsConfiguration } from '@lib/database';
 
 import { kEventTicketCategory } from '@lib/database/Types';
+
+/**
+ * Ticket categories that represent primary visitor/volunteer admission tickets.
+ */
+const kDisplayedTicketCategories = new Set<string>([
+    kEventTicketCategory.Event,
+    kEventTicketCategory.TicketFriday,
+    kEventTicketCategory.TicketSaturday,
+    kEventTicketCategory.TicketSunday,
+    kEventTicketCategory.TicketVolunteers,
+    kEventTicketCategory.TicketWeekend,
+]);
 
 /**
  * Page that displays an individual purchase for a particular event and ticket type. While there is
@@ -56,28 +67,12 @@ export default async function EventTicketsVisitorPurchasePage(
 
     const purchaseLink = service.createPurchaseLink(purchase.id);
 
-    const configuredTicketTypes = await db.selectFrom(tEventsTicketsConfiguration)
-        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
-            .and(tEventsTicketsConfiguration.eventTicketCategory.in([
-                kEventTicketCategory.Event,
-                kEventTicketCategory.TicketFriday,
-                kEventTicketCategory.TicketSaturday,
-                kEventTicketCategory.TicketSunday,
-                kEventTicketCategory.TicketVolunteers,
-                kEventTicketCategory.TicketWeekend,
-            ]))
-        .select({
-            weeztixGuid: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
-            ytpId: tEventsTicketsConfiguration.eventTicketYtpId,
-        })
-        .executeSelectMany();
+    const configurations = await service.listTicketConfigurations(event.id);
 
     const ticketTypeIds = new Set<string>();
-    for (const configuredType of configuredTicketTypes) {
-        if (service.id === 'Weeztix' && !!configuredType.weeztixGuid)
-            ticketTypeIds.add(configuredType.weeztixGuid);
-        else if (service.id === 'YourTicketProvider' && !!configuredType.ytpId)
-            ticketTypeIds.add(configuredType.ytpId.toString());
+    for (const config of configurations) {
+        if (config.category && kDisplayedTicketCategories.has(config.category))
+            ticketTypeIds.add(String(config.ticketTypeId));
     }
 
     const displayedTickets = purchase.tickets.filter(

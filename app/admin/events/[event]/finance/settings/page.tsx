@@ -91,27 +91,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             notFound();
 
         const types = await service.listTicketTypes();
-        const associations = await db.selectFrom(tEventsTicketsConfiguration)
-            .where(tEventsTicketsConfiguration.eventId.equals(context.event.id))
-                .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull().onlyWhen(
-                    service.id === 'Weeztix'))
-                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull().onlyWhen(
-                    service.id === 'YourTicketProvider'))
-            .select({
-                weeztixGuid: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
-                ytpId: tEventsTicketsConfiguration.eventTicketYtpId,
-                ticketCategory: tEventsTicketsConfiguration.eventTicketCategory,
-                ticketActivityId: tEventsTicketsConfiguration.eventTicketActivityId,
-            })
-            .executeSelectMany();
-
-        const associationsMap = new Map<number | string, (typeof associations)[number]>();
-        for (const association of associations) {
-            const ticketId =
-                service.id === 'Weeztix' ? association.weeztixGuid : association.ytpId;
-            if (ticketId !== undefined)
-                associationsMap.set(ticketId, association);
-        }
+        const configurations = await service.listTicketConfigurations(context.event.id);
+        const associationsMap = new Map(
+            configurations.map(config => [ config.ticketTypeId, config ]));
 
         const products = types.map(type => {
             const association = associationsMap.get(type.id);
@@ -119,10 +101,10 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
                 id: type.id,
                 product: type.name,
                 productLimit: type.amount,
-                category: association?.ticketCategory ?? ('' as const),
-                categoryLabel: association?.ticketCategory || '(unassigned)',
+                category: association?.category ?? ('' as const),
+                categoryLabel: association?.category || '(unassigned)',
                 price: type.price,
-                activityId: association?.ticketActivityId,
+                activityId: association?.activityId,
             };
         });
 

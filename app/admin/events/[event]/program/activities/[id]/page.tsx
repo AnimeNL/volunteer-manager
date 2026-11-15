@@ -25,11 +25,12 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
 import { formatDate } from '@lib/Temporal';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tEventsTicketsConfiguration,
-    tShifts, tTeams } from '@lib/database';
+import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tShifts, tTeams }
+    from '@lib/database';
 
 import { kActivityType } from '@lib/database/Types';
 
@@ -116,30 +117,12 @@ export default async function ProgramActivityPage(
     let products: number[] = [ /* none */ ];
 
     if (access.can('statistics.basic')) {
-        switch (event.tickets?.provider) {
-            case 'Weeztix':
-                if (!!event.integrations?.weeztixGuid) {
-                    products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
-                        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
-                            .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(
-                                activityId))
-                            .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
-                        .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
-                        .executeSelectMany();
-                }
-                break;
-
-            case 'YourTicketProvider':
-                if (!!event.integrations?.yourTicketProviderEventId) {
-                    products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
-                        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
-                            .and(tEventsTicketsConfiguration.eventTicketActivityId.equals(
-                                activityId))
-                            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
-                        .selectOneColumn(tEventsTicketsConfiguration.eventTicketId)
-                        .executeSelectMany();
-                }
-                break;
+        const service = await createTicketService(event.id);
+        if (service) {
+            const configurations = await service.listTicketConfigurations(event.id);
+            products = configurations
+                .filter(config => config.activityId === activityId)
+                .map(config => config.id);
         }
     }
 

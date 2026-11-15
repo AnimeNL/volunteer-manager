@@ -2,9 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCreateRequest,
-    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketSearchSortField,
-    TicketStatistics, TicketType } from '../Types';
+import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
+    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
+    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import { type YourTicketProviderClient, createYourTicketProviderClient }
     from '@lib/integrations/yourticketprovider';
@@ -179,6 +179,24 @@ export class YourTicketProvider implements TicketService {
 
     async importPurchase(purchaseId: number | string): Promise<void> {
         await YourTicketProviderImportTask.importPurchase(this.#eventId, Number(purchaseId));
+    }
+
+    async listTicketConfigurations(eventId: number): Promise<TicketConfiguration[]> {
+        const rows = await db.selectFrom(tEventsTicketsConfiguration)
+            .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
+            .select({
+                id: tEventsTicketsConfiguration.eventTicketId,
+                ticketTypeId: tEventsTicketsConfiguration.eventTicketYtpId,
+                category: tEventsTicketsConfiguration.eventTicketCategory,
+                activityId: tEventsTicketsConfiguration.eventTicketActivityId,
+            })
+            .executeSelectMany();
+
+        return rows.map(row => ({
+            ...row,
+            ticketTypeId: row.ticketTypeId!,
+        }));
     }
 
     async listTicketTypes(): Promise<TicketType[]> {

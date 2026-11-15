@@ -2,9 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketCreateRequest,
-    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketSearchSortField,
-    TicketStatistics, TicketType } from '../Types';
+import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
+    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
+    TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
 import type { TicketService } from '../TicketService';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
@@ -313,6 +313,24 @@ export class Weeztix implements TicketService {
 
     async importPurchase(_purchaseId: number | string): Promise<void> {
         // Weeztix purchases are imported asynchronously via the scheduled import task.
+    }
+
+    async listTicketConfigurations(eventId: number): Promise<TicketConfiguration[]> {
+        const rows = await db.selectFrom(tEventsTicketsConfiguration)
+            .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+                .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
+            .select({
+                id: tEventsTicketsConfiguration.eventTicketId,
+                ticketTypeId: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
+                category: tEventsTicketsConfiguration.eventTicketCategory,
+                activityId: tEventsTicketsConfiguration.eventTicketActivityId,
+            })
+            .executeSelectMany();
+
+        return rows.map(row => ({
+            ...row,
+            ticketTypeId: row.ticketTypeId!,
+        }));
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
