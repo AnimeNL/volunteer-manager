@@ -125,6 +125,7 @@ export const kEventAvailabilityStatus = {
  */
 export type EventTicketCategory = Values<typeof kEventTicketCategory>;
 export const kEventTicketCategory = {
+    Donation: 'Donation',
     Event: 'Event',
     Hidden: 'Hidden',
     Locker: 'Locker',
@@ -132,6 +133,8 @@ export const kEventTicketCategory = {
     LockerSaturday: 'LockerSaturday',
     LockerSunday: 'LockerSunday',
     LockerWeekend: 'LockerWeekend',
+    Merchandise: 'Merchandise',
+    Product: 'Product',
     TicketFriday: 'TicketFriday',
     TicketSaturday: 'TicketSaturday',
     TicketSunday: 'TicketSunday',

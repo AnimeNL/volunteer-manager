@@ -8,6 +8,7 @@ import type { EventTicketCategory } from '@lib/database/Types';
  * what they represent. This object is used to populate the dropdown in the sales configuration.
  */
 export const kEventTicketCategoryOptions: { [k in EventTicketCategory]: string } = {
+    Donation: 'Donation',
     Event: 'Event',
     Hidden: 'Hidden',
     Locker: 'Locker',
@@ -15,6 +16,8 @@ export const kEventTicketCategoryOptions: { [k in EventTicketCategory]: string }
     LockerSaturday: 'Locker (Saturday)',
     LockerSunday: 'Locker (Sunday)',
     LockerWeekend: 'Locker (Weekend)',
+    Merchandise: 'Merchandise',
+    Product: 'Product',
     TicketFriday: 'Ticket (Friday)',
     TicketSaturday: 'Ticket (Saturday)',
     TicketSunday: 'Ticket (Sunday)',

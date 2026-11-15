@@ -2569,7 +2569,7 @@ tables:
     nullable: true
     default: "NULL"
   - name: event_ticket_category
-    type: enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend')
+    type: enum('Donation','Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','Merchandise','Product','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend')
     nullable: true
     default: "NULL"
   - name: event_ticket_activity_id
@@ -2621,7 +2621,7 @@ tables:
       `event_id` int(4) NOT NULL,
       `event_ticket_ytp_id` int(10) unsigned DEFAULT NULL,
       `event_ticket_weeztix_guid` char(36) DEFAULT NULL,
-      `event_ticket_category` enum('Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend') DEFAULT NULL,
+      `event_ticket_category` enum('Donation','Event','Hidden','Locker','LockerFriday','LockerSaturday','LockerSunday','LockerWeekend','Merchandise','Product','TicketFriday','TicketSaturday','TicketSunday','TicketVolunteers','TicketWeekend') DEFAULT NULL,
       `event_ticket_activity_id` int(4) unsigned DEFAULT NULL,
       PRIMARY KEY (`event_ticket_id`),
       UNIQUE KEY `event_id` (`event_id`,`event_ticket_ytp_id`),
