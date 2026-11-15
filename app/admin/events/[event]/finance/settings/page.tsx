@@ -18,7 +18,6 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck, and } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEventsTicketsConfiguration } from '@lib/database';
 
 import { kEventTicketCategory } from '@lib/database/Types';
 import { kEventTicketCategoryOptions } from './Settings';
@@ -147,25 +146,6 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
         if (!service)
             notFound();
 
-        let eventTicketWeeztixGuid: string | undefined;
-        let eventTicketYtpId: number | undefined;
-
-        switch (service.id) {
-            case 'Weeztix':
-                if (typeof row.id !== 'string' || !row.id.length)
-                    return false;
-
-                eventTicketWeeztixGuid = row.id;
-                break;
-
-            case 'YourTicketProvider':
-                if (typeof row.id !== 'number' || !Number.isSafeInteger(row.id))
-                    return false;
-
-                eventTicketYtpId = row.id;
-                break;
-        }
-
         const normaliseCategory = (value: typeof row.category) =>
             (value === 'null' || !value) ? null : value;
 
@@ -178,25 +158,17 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
             return { ...row, categoryLabel };
         }
 
-        const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
-            .set({
-                eventId: context.event.id,
-                eventTicketWeeztixGuid,
-                eventTicketYtpId,
-                eventTicketActivityId,
-                eventTicketCategory,
-            })
-            .onConflictDoUpdateSet({
-                eventTicketActivityId,
-                eventTicketCategory,
-            })
-            .executeInsert();
+        const updated = await service.upsertTicketConfiguration(context.event.id, row.id, {
+            activityId: eventTicketActivityId,
+            category: eventTicketCategory,
+        });
 
-        if (!!affectedRows)
-            await FinanceProcessor.revalidateForEvent(context.event.slug);
+        if (!updated)
+            return false;
+
+        await FinanceProcessor.revalidateForEvent(context.event.slug);
 
         LogBuilder.for('UpdateEventProductAssociation')
-            .withCondition(!!affectedRows)
             .withInitiatorUser(props.user)
             .record({
                 event: context.event.shortName,

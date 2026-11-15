@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventTicketProvider } from '@lib/database/Types';
+import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
     TicketSearchSortField, TicketStatistics, TicketType } from '../Types';
@@ -293,5 +293,29 @@ export class YourTicketProvider implements TicketService {
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
         throw new Error('Not implemented');
+    }
+
+    async upsertTicketConfiguration(
+        eventId: number,
+        ticketTypeId: number | string,
+        config: { activityId: number | null; category: EventTicketCategory | null }): Promise<boolean>
+    {
+        if (typeof ticketTypeId !== 'number' || !Number.isSafeInteger(ticketTypeId))
+            return false;
+
+        const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
+            .set({
+                eventId,
+                eventTicketYtpId: ticketTypeId,
+                eventTicketActivityId: config.activityId,
+                eventTicketCategory: config.category,
+            })
+            .onConflictDoUpdateSet({
+                eventTicketActivityId: config.activityId,
+                eventTicketCategory: config.category,
+            })
+            .executeInsert();
+
+        return !!affectedRows;
     }
 }

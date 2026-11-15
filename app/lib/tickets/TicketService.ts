@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { EventTicketProvider } from '@lib/database/Types';
+import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
     TicketStatistics, TicketType } from './Types';
@@ -111,4 +111,13 @@ export interface TicketService {
      * Sends a purchase confirmation for the given `purchaseId` to the associated e-mail address.
      */
     sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean>;
+
+    /**
+     * Creates or updates the configuration for `ticketTypeId` in `eventId`. Returns whether any
+     * database row was affected.
+     */
+    upsertTicketConfiguration(
+        eventId: number,
+        ticketTypeId: number | string,
+        config: { activityId: number | null; category: EventTicketCategory | null }): Promise<boolean>;
 }
