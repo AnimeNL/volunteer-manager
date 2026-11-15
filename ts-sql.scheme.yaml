@@ -1577,6 +1577,57 @@ tables:
       PRIMARY KEY (`export_id`),
       KEY `export_slug` (`export_slug`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: weeztix_orders
+  type: BASE TABLE
+  columns:
+  - name: weeztix_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_order_event
+    type: char(36)
+    nullable: false
+  - name: weeztix_order_name
+    type: text
+    nullable: false
+  - name: weeztix_order_created
+    type: datetime
+    nullable: false
+  - name: weeztix_order_updated
+    type: datetime
+    nullable: false
+  - name: weeztix_order_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: weeztix_order_event
+    def: KEY weeztix_order_event (weeztix_order_event) USING BTREE
+    table: weeztix_orders
+    columns:
+    - weeztix_order_event
+  - name: weeztix_guid
+    def: UNIQUE KEY weeztix_guid (weeztix_guid) USING BTREE
+    table: weeztix_orders
+    columns:
+    - weeztix_guid
+  constraints:
+  - name: weeztix_guid
+    type: UNIQUE
+    def: UNIQUE KEY weeztix_guid (weeztix_guid)
+    table: weeztix_orders
+    columns:
+    - weeztix_guid
+  def: |-
+    CREATE TABLE `weeztix_orders` (
+      `weeztix_guid` char(36) NOT NULL,
+      `weeztix_order_event` char(36) NOT NULL,
+      `weeztix_order_name` text NOT NULL,
+      `weeztix_order_created` datetime NOT NULL,
+      `weeztix_order_updated` datetime NOT NULL,
+      `weeztix_order_deleted` datetime DEFAULT NULL,
+      UNIQUE KEY `weeztix_guid` (`weeztix_guid`),
+      KEY `weeztix_order_event` (`weeztix_order_event`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: environments_events
   type: BASE TABLE
   columns:
@@ -2957,6 +3008,68 @@ tables:
       CONSTRAINT `schedule_updated_by` FOREIGN KEY (`schedule_updated_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
       CONSTRAINT `schedule_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: weeztix_purchases
+  type: BASE TABLE
+  columns:
+  - name: weeztix_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_ticket_guid
+    type: char(36)
+    nullable: true
+    default: "NULL"
+  - name: weeztix_order_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_event_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_purchase_type_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_purchase_name
+    type: text
+    nullable: false
+  - name: weeztix_purchase_price
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_purchase_created
+    type: datetime
+    nullable: false
+  - name: weeztix_purchase_updated
+    type: datetime
+    nullable: false
+  - name: weeztix_purchase_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: weeztix_guid
+    def: UNIQUE KEY weeztix_guid (weeztix_guid) USING BTREE
+    table: weeztix_purchases
+    columns:
+    - weeztix_guid
+  constraints:
+  - name: weeztix_guid
+    type: UNIQUE
+    def: UNIQUE KEY weeztix_guid (weeztix_guid)
+    table: weeztix_purchases
+    columns:
+    - weeztix_guid
+  def: |-
+    CREATE TABLE `weeztix_purchases` (
+      `weeztix_guid` char(36) NOT NULL,
+      `weeztix_ticket_guid` char(36) DEFAULT NULL,
+      `weeztix_order_guid` char(36) NOT NULL,
+      `weeztix_event_guid` char(36) NOT NULL,
+      `weeztix_purchase_type_guid` char(36) NOT NULL,
+      `weeztix_purchase_name` text NOT NULL,
+      `weeztix_purchase_price` int(4) unsigned NOT NULL,
+      `weeztix_purchase_created` datetime NOT NULL,
+      `weeztix_purchase_updated` datetime NOT NULL,
+      `weeztix_purchase_deleted` datetime DEFAULT NULL,
+      UNIQUE KEY `weeztix_guid` (`weeztix_guid`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: your_ticket_provider_purchases
   type: BASE TABLE
   columns:
@@ -3905,6 +4018,63 @@ tables:
       UNIQUE KEY `user_id_2` (`user_id`,`event_id`,`activity_id`),
       KEY `user_id` (`user_id`,`event_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: weeztix_tickets
+  type: BASE TABLE
+  columns:
+  - name: weeztix_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_order_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_event_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_ticket_type_guid
+    type: char(36)
+    nullable: false
+  - name: weeztix_ticket_barcode
+    type: text
+    nullable: false
+  - name: weeztix_ticket_price
+    type: int(4) unsigned
+    nullable: false
+  - name: weeztix_ticket_created
+    type: datetime
+    nullable: false
+  - name: weeztix_ticket_updated
+    type: datetime
+    nullable: false
+  - name: weeztix_ticket_deleted
+    type: datetime
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: weeztix_guid
+    def: UNIQUE KEY weeztix_guid (weeztix_guid) USING BTREE
+    table: weeztix_tickets
+    columns:
+    - weeztix_guid
+  constraints:
+  - name: weeztix_guid
+    type: UNIQUE
+    def: UNIQUE KEY weeztix_guid (weeztix_guid)
+    table: weeztix_tickets
+    columns:
+    - weeztix_guid
+  def: |-
+    CREATE TABLE `weeztix_tickets` (
+      `weeztix_guid` char(36) NOT NULL,
+      `weeztix_order_guid` char(36) NOT NULL,
+      `weeztix_event_guid` char(36) NOT NULL,
+      `weeztix_ticket_type_guid` char(36) NOT NULL,
+      `weeztix_ticket_barcode` text NOT NULL,
+      `weeztix_ticket_price` int(4) unsigned NOT NULL,
+      `weeztix_ticket_created` datetime NOT NULL,
+      `weeztix_ticket_updated` datetime NOT NULL,
+      `weeztix_ticket_deleted` datetime DEFAULT NULL,
+      UNIQUE KEY `weeztix_guid` (`weeztix_guid`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
 - name: tasks
   type: BASE TABLE
   columns:

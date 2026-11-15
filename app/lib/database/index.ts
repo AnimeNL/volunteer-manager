@@ -75,7 +75,10 @@ export { tUsersPasskeys } from './scheme/UsersPasskeysTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';
 export { tVendorsSchedule } from './scheme/VendorsScheduleTable';
 export { tVendors } from './scheme/VendorsTable';
+export { tWeeztixOrders } from './scheme/WeeztixOrdersTable';
+export { tWeeztixPurchases } from './scheme/WeeztixPurchasesTable';
 export { tWeeztixTicketTypes } from './scheme/WeeztixTicketTypesTable';
+export { tWeeztixTickets } from './scheme/WeeztixTicketsTable';
 export { tYourTicketProviderPurchases } from './scheme/YourTicketProviderPurchasesTable';
 export { tYourTicketProviderTickets } from './scheme/YourTicketProviderTicketsTable';
 

@@ -158,8 +158,11 @@ export const kProductSchema = z.object({
     finn_service_fee: z.number(),  // price of any charged service fees
     finn_price: z.number(),  // price of the product, inclusive of and service fees
     product_id: z.string().nonempty(),
+    origin_type: z.enum([ 'product', 'ticket' ]),
     invalidated_since: z.iso.datetime({ offset: true }).nullish(),
     invalidated_reason: z.string().nullish(),
+    created_at: z.iso.datetime({ offset: true }),
+    updated_at: z.iso.datetime({ offset: true }),
     meta_data: z.array(kMetadataSchema),
 });
 
@@ -175,10 +178,10 @@ export const kTicketSchema = z.object({
     finn_price: z.number(),  // price of the ticket, add-on products and service fees
     ticket_id: z.string().nonempty(),
     ticket_number: z.string(),  // barcode
-    created_at: z.iso.datetime({ offset: true }),
-    updated_at: z.iso.datetime({ offset: true }),
     invalidated_since: z.iso.datetime({ offset: true }).nullish(),
     invalidated_reason: z.string().nullish(),
+    created_at: z.iso.datetime({ offset: true }),
+    updated_at: z.iso.datetime({ offset: true }),
     meta_data: z.array(kMetadataSchema),
 
     // 0 or more:
