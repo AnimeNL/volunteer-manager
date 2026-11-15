@@ -24,7 +24,6 @@ describe('YourTicketProviderClient', () => {
         ticketingApiKey: 'secret-ticketing-key',
         visitorApiKey: 'secret-visitor-key',
         endpoint: 'https://api.yourticketprovider.nl',
-        queueEndpoint: 'https://queue.yourticketprovider.nl',
     };
 
     it('issues Ticketing API requests and strips api_key from instrumentation operations', async () => {
@@ -103,69 +102,6 @@ describe('YourTicketProviderClient', () => {
                 message: expect.stringContaining('Received HTTP 404 response'),
                 cause: 'Invalid purchase ID',
             }));
-    });
-
-    it('checks the sales queue before creating a ticket and aborts when the queue is too long', async () => {
-        // (1) Queue time exceeds 15 seconds -> abort before calling /Purchases.
-        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
-            queueTimeInSeconds: 20,
-        }), { status: 200 }));
-
-        const client = new YourTicketProviderClient(kDefaultSettings);
-        await expect(client.createTicket(100, {
-            EventId: 100,
-            Email: 'volunteer@animecon.nl',
-            IncludeTicketGuarantee: false,
-            Language: 'NL',
-            Complimentary: true,
-            HasAcceptedTermsAndAgreements: true,
-            PurchaseItems: [
-                {
-                    TicketId: 5,
-                    TicketHolderEmail: 'volunteer@animecon.nl',
-                    TicketHolderFirstname: 'Jane',
-                    TicketHolderLastname: 'Doe',
-                },
-            ],
-        })).rejects.toThrow('Requested to wait 20s (max: 15s)');
-
-        expect(fetchSpy).toHaveBeenCalledTimes(1);
-        expect(fetchSpy.mock.calls[0][0]).toBe('https://queue.yourticketprovider.nl/100');
-        expect(withContextSpy).toHaveBeenCalledWith({
-            integration: 'YourTicketProvider',
-            operation: 'https://queue.yourticketprovider.nl/<Id>',
-        });
-
-        // (2) Queue time is 0 -> proceeds to POST /Purchases.
-        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
-            queueTimeInSeconds: 0,
-        }), { status: 200 }));
-
-        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
-            Id: 777,
-            EventId: 100,
-            IsTicketClaimRequired: false,
-            TotalAmount: 0,
-            Reference: 'REF777',
-            Secret: 'secret',
-            Paid: true,
-            PaidDate: '2026-06-01T12:00:00Z',
-            Complimentary: true,
-            Cancelled: false,
-        }), { status: 200 }));
-
-        const created = await client.createTicket(100, {
-            EventId: 100,
-            Email: 'volunteer@animecon.nl',
-            IncludeTicketGuarantee: false,
-            Language: 'NL',
-            Complimentary: true,
-            HasAcceptedTermsAndAgreements: true,
-            PurchaseItems: [],
-        });
-
-        expect(created.Id).toBe(777);
-        expect(fetchSpy).toHaveBeenCalledTimes(3);
     });
 
     it('queries the Visitor Information API and sorts results by lastUpdated ascending', async () => {

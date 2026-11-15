@@ -19,15 +19,11 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
             'integration-ytp-ticketing-api-key',
             'integration-ytp-visitor-api-key',
             'integration-ytp-endpoint',
-            'integration-ytp-queue-endpoint',
         ]);
 
         for (const [ key, value ] of Object.entries(configuration)) {
             if (value !== undefined)
                 continue;
-
-            if (key === 'integration-ytp-queue-endpoint')
-                continue;  // undefined value allowed
 
             throw new Error(`Unable to instantiate the YTP client, missing setting ${key}`);
         }
@@ -36,7 +32,6 @@ export async function createYourTicketProviderClient(settings?: YourTicketProvid
             ticketingApiKey: configuration['integration-ytp-ticketing-api-key']!,
             visitorApiKey: configuration['integration-ytp-visitor-api-key']!,
             endpoint: configuration['integration-ytp-endpoint']!,
-            queueEndpoint: configuration['integration-ytp-queue-endpoint'],
         };
     }
 

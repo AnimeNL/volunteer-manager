@@ -32,11 +32,6 @@ export interface YourTicketProviderClientSettings {
      * Endpoint through which the YourTicketProvider API can be reached.
      */
     endpoint: string;
-
-    /**
-     * Endpoint through which we can check YourTicketProvider's sales queue load.
-     */
-    queueEndpoint?: string;
 }
 
 /**
@@ -123,12 +118,6 @@ type VisitorInformationRequest =
     };
 
 /**
- * Maximum number of seconds we will wait prior to submitting a purchase. Any queueing times longer
- * than this value will throw an exception, and should be retried later.
- */
-const kMaximumQueueWaitTimeSeconds = 15;
-
-/**
  * The YourTicketProvider client integrates with the YTP Ticketing API to obtain information about
  * the products and tickets sold for particular events.
  *
@@ -145,68 +134,6 @@ export class YourTicketProviderClient {
     // ---------------------------------------------------------------------------------------------
     // Public APIs:
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Creates a new ticket with the YourTicketProvider backend based on the given `request`.
-     *
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Array of events that exist in our YourTicketProvider account.
-     */
-    async createTicket(eventId: number, request: ytp.CreateTicketRequest)
-        : Promise<ytp.CreateTicketResponse>
-    {
-        // Parse the `request` to validate that correct input data has been given.
-        const validatedRequest = ytp.kCreateTicketRequest.parse(request);
-
-        const requiredQueueTime = await this.determineQueueTime(eventId);
-        if (requiredQueueTime > kMaximumQueueWaitTimeSeconds) {
-            throw new Error(
-                `Requested to wait ${requiredQueueTime}s (max: ${kMaximumQueueWaitTimeSeconds}s)`);
-        }
-
-        // Wait for `requiredQueueTime` when a queue is in place and it's below the threshold at
-        // which we're willing to wait for the purchase to complete.
-        if (requiredQueueTime > 0) {
-            console.info(`Waiting for ${requiredQueueTime}s to continue ticket purchase...`);
-            await new Promise(resolve => setTimeout(resolve, requiredQueueTime * 1000));
-        }
-
-        return await this.issueRequest(ytp.kCreateTicketResponse, {
-            api: '/Purchases',
-            method: 'POST',
-            body: validatedRequest,
-        });
-    }
-
-    /**
-     * Determines the queue time for a purchase request for the given `eventId`. The purchase queue
-     * must be checked prior to filing a purchase, in line with YourTicketProvider's requirements.
-     *
-     * @param eventId ID of the event for which the queue duration is to be decided.
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Number of seconds we have to wait prior to making a purchase.
-     */
-    async determineQueueTime(eventId: number): Promise<number> {
-        if (!this.#settings.queueEndpoint) {
-            console.warn('[YTP] Ticket purchase queue confirmation has been disabled');
-            return 0;
-        }
-
-        try {
-            return (await this.issueRequest(ytp.kQueueNeededResponse, {
-                endpoint: `${this.#settings.queueEndpoint}/${eventId}`,
-                operation: `${this.#settings.queueEndpoint}/<Id>`,
-                method: 'GET',
-            })).queueTimeInSeconds;
-
-        } catch (error: any) {
-            console.warn(error);
-        }
-
-        // If we cannot determine the amount of time we're requested to wait, then wait one second
-        // longer than the maximum wait time to abort the purchase.
-        return kMaximumQueueWaitTimeSeconds + 1;
-    }
 
     /**
      * Lists the events accessible for the current authentication token.
@@ -264,38 +191,6 @@ export class YourTicketProviderClient {
     // ---------------------------------------------------------------------------------------------
     // Ticketing API:
     // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Posts to have the purchase with the given `purchaseId` cancelled. This is irrevocable.
-     *
-     * @api POST /Purchases({Id})/YTP.CancelPurchase
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns The purchase object that has now been cancelled.
-     */
-    async postCancelPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseCancelResponse> {
-        return this.issueRequest(ytp.kTicketingPurchaseCancelResponse, {
-            api: `/Purchases(${purchaseId})/YTP.CancelPurchase`,
-            operation: '/Purchases(<Id>)/YTP.CancelPurchase',
-            method: 'POST',
-            body: { /* no payload */ },
-        });
-    }
-
-    /**
-     * Posts to have the purchase with the given `purchaseId` send out another confirmation.
-     *
-     * @api POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns No response.
-     */
-    async postEmailPurchase(purchaseId: number): Promise<ytp.TicketingPurchaseEmailResponse> {
-        return this.issueRequest(ytp.kTicketingPurchaseEmailResponse, {
-            api: `/Purchases(${purchaseId})/YTP.ResendPurchaseEmail`,
-            operation: '/Purchases(<Id>)/YTP.ResendPurchaseEmail',
-            method: 'POST',
-            body: { /* no payload */ },
-        });
-    }
 
     /**
      * Posts to have the purchase with the given `purchaseId` updated.

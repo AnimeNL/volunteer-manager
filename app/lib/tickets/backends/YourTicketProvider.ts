@@ -40,45 +40,11 @@ export class YourTicketProvider implements TicketService {
     }
 
     async cancelPurchase(purchaseId: number | string): Promise<void> {
-        const client = await this.getClient();
-        const _cancelledPurchase = await client.postCancelPurchase(Number(purchaseId));
-        // TODO: Figure out what to do with |_cancelledPurchase|, if anything?
-
-        const dbInstance = db;
-
-        // Update the ticket cache in the database to mark them as cancelled.
-        await dbInstance.update(tYourTicketProviderPurchases)
-            .set({
-                ytpPurchaseDateCancelled: dbInstance.currentZonedDateTime(),
-            })
-            .where(tYourTicketProviderPurchases.ytpPurchaseId.equals(Number(purchaseId)))
-                .and(tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNull())
-            .executeUpdate();
+        throw new Error('Not implemented');
     }
 
     async createTicket(request: TicketCreateRequest): Promise<Pick<Ticket, 'purchaseId'>> {
-        const client = await this.getClient();
-        const ticket = await client.createTicket(this.#eventId, {
-            EventId: this.#eventId,
-            Email: request.emailAddress,
-            IncludeTicketGuarantee: false,
-            Language: 'en',
-            Complimentary: true,
-            HasAcceptedTermsAndAgreements: true,
-            PurchaseItems: [
-                {
-                    TicketId: Number(request.type),
-                    TicketHolderEmail: request.emailAddress,
-                    TicketHolderFirstname: request.firstName,
-                    TicketHolderLastname: request.lastName,
-                    // TODO: TicketHolderOrganisation
-                    // TODO: TicketHolderDepartment
-                    // TODO: TicketHolderPosition
-                }
-            ],
-        });
-
-        return { purchaseId: ticket.Id };
+        throw new Error('Not implemented');
     }
 
     async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
@@ -257,9 +223,6 @@ export class YourTicketProvider implements TicketService {
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
-        const client = await this.getClient();
-        await client.postEmailPurchase(Number(purchaseId));
-
-        return true;
+        throw new Error('Not implemented');
     }
 }

@@ -4,55 +4,6 @@
 import { z } from 'zod/v4';
 
 /**
- * Type definition for the request parameters for a ticket creation request.
- */
-export const kCreateTicketRequest = z.object({
-    EventId: z.number(),
-    Email: z.email(),
-    IncludeTicketGuarantee: z.literal(false),
-    Language: z.string().nonempty(),
-    Complimentary: z.literal(true),
-    HasAcceptedTermsAndAgreements: z.literal(true),
-    PurchaseItems: z.array(z.object({
-        TicketId: z.number(),
-        TicketHolderEmail: z.email(),
-        TicketHolderFirstname: z.string().nonempty(),
-        TicketHolderLastname: z.string().nonempty(),
-        TicketHolderOrganisation: z.string().optional(),
-        TicketHolderDepartment: z.string().optional(),
-        TicketHolderPosition: z.string().optional(),
-    })),
-});
-
-/**
- * Interface describing the data we need in order to create a new ticket.
- */
-export type CreateTicketRequest = z.infer<typeof kCreateTicketRequest>;
-
-/**
- * Type definition for the response parameters for a ticket creation request.
- */
-export const kCreateTicketResponse = z.object({
-    Id: z.number(),
-    EventId: z.number(),
-    IsTicketClaimRequired: z.boolean(),
-    TicketClaimUrl: z.string().nullish(),
-    TotalAmount: z.number(),
-    Reference: z.string(),
-    PaymentUrl: z.string().nullish(),
-    Secret: z.string(),
-    Paid: z.boolean(),
-    PaidDate: z.iso.datetime(),
-    Complimentary: z.boolean(),
-    Cancelled: z.boolean(),
-});
-
-/**
- * Interface describing the data we retrieve after having created a new ticket.
- */
-export type CreateTicketResponse = z.infer<typeof kCreateTicketResponse>;
-
-/**
  * Type definition for YourTicketProvider's response when querying event responses.
  */
 export const kOrganiserEventResponse = z.object({
@@ -89,16 +40,6 @@ export const kOrganisersResponse = z.object({
  * Interface describing the data we expect from the Organisers API.
  */
 export type OrganisersResponse = z.infer<typeof kOrganisersResponse>['value'];
-
-/**
- * Type definition for the response expected from the sales queue API.
- */
-export const kQueueNeededResponse = z.object({
-    /**
-     * Number of seconds we have to wait prior to making a purchase.
-     */
-    queueTimeInSeconds: z.number(),
-});
 
 /**
  * Type definition that defines the response we expect when calling the Tickets API.
@@ -223,30 +164,6 @@ export const kTicketingPurchaseUpdateResponse = z.object({
  * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
  */
 export type TicketingPurchaseUpdateResponse = z.infer<typeof kTicketingPurchaseUpdateResponse>;
-
-/**
- * API: POST /Purchases(<Id>)/YTP.CancelPurchase
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export const kTicketingPurchaseCancelResponse = kTicketingPurchaseResponse;
-
-/**
- * API: POST /Purchases(<Id>)/YTP.CancelPurchase
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export type TicketingPurchaseCancelResponse = z.infer<typeof kTicketingPurchaseCancelResponse>;
-
-/**
- * API: POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export const kTicketingPurchaseEmailResponse = kTicketingPurchaseResponse;
-
-/**
- * API: POST /Purchases(<Id>)/YTP.ResendPurchaseEmail
- * @see https://ytpstorage1.blob.core.windows.net/media/YTP%20Ticketing%20API%20Specifications.pdf
- */
-export type TicketingPurchaseEmailResponse = z.infer<typeof kTicketingPurchaseEmailResponse>;
 
 /**
  * API: GET /PurchaseItems(<Id>)
