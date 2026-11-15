@@ -22,6 +22,9 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import db, { tEventsTicketsConfiguration } from '@lib/database';
+
+import { kEventTicketCategory } from '@lib/database/Types';
 
 /**
  * Page that displays an individual purchase for a particular event and ticket type. While there is
@@ -51,6 +54,33 @@ export default async function EventTicketsVisitorPurchasePage(
         notFound();
 
     const purchaseLink = service.createPurchaseLink(purchase.id);
+
+    const configuredTicketTypes = await db.selectFrom(tEventsTicketsConfiguration)
+        .where(tEventsTicketsConfiguration.eventId.equals(event.id))
+            .and(tEventsTicketsConfiguration.eventTicketCategory.in([
+                kEventTicketCategory.Event,
+                kEventTicketCategory.TicketFriday,
+                kEventTicketCategory.TicketSaturday,
+                kEventTicketCategory.TicketSunday,
+                kEventTicketCategory.TicketVolunteers,
+                kEventTicketCategory.TicketWeekend,
+            ]))
+        .select({
+            weeztixGuid: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
+            ytpId: tEventsTicketsConfiguration.eventTicketYtpId,
+        })
+        .executeSelectMany();
+
+    const ticketTypeIds = new Set<string>();
+    for (const configuredType of configuredTicketTypes) {
+        if (service.id === 'Weeztix' && !!configuredType.weeztixGuid)
+            ticketTypeIds.add(configuredType.weeztixGuid);
+        else if (service.id === 'YourTicketProvider' && !!configuredType.ytpId)
+            ticketTypeIds.add(configuredType.ytpId.toString());
+    }
+
+    const displayedTickets = purchase.tickets.filter(
+        ticket => ticketTypeIds.has(ticket.ticketId.toString()));
 
     return (
         <>
@@ -110,7 +140,7 @@ export default async function EventTicketsVisitorPurchasePage(
                 ]} />
             </Section>
             <Grid container spacing={1.5}>
-                { purchase.tickets.map(ticket =>
+                { displayedTickets.map(ticket =>
                     <Grid key={ticket.id} size={{ xs: 12, md: 6, lg: 4 }}>
                         <Paper sx={{ p: 1.5, pb: ticket.barcode ? 0 : 1.5 }}>
                             <SectionHeader icon={ <ConfirmationNumberOutlinedIcon /> }
