@@ -4,11 +4,13 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
+    TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
     hasYourTicketProviderSales } from './YourTicketProviderFinancialData';
+import { kTicketSearchSortFieldMap, listTicketConfigurationsByProvider,
+    upsertTicketConfigurationByProvider } from '../TicketHelpers';
 
 import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';
@@ -174,21 +176,7 @@ export class YourTicketProvider implements TicketService {
     }
 
     async listTicketConfigurations(eventId: number): Promise<TicketConfiguration[]> {
-        const rows = await db.selectFrom(tEventsTicketsConfiguration)
-            .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-                .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
-            .select({
-                id: tEventsTicketsConfiguration.eventTicketId,
-                ticketTypeId: tEventsTicketsConfiguration.eventTicketYtpId,
-                category: tEventsTicketsConfiguration.eventTicketCategory,
-                activityId: tEventsTicketsConfiguration.eventTicketActivityId,
-            })
-            .executeSelectMany();
-
-        return rows.map(row => ({
-            ...row,
-            ticketTypeId: row.ticketTypeId!,
-        }));
+        return listTicketConfigurationsByProvider(eventId, 'YourTicketProvider');
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
@@ -277,17 +265,7 @@ export class YourTicketProvider implements TicketService {
         const ticketIdCast = dbInstance.fragmentWithType('string', 'required')
             .sql`CAST(${tYourTicketProviderPurchases.ytpPurchaseItemId} AS CHAR)`;
 
-        const sortFieldMap: Record<TicketSearchSortField,
-            'cancelled' | 'holder' | 'purchaseId' | 'purchased' | 'ticketName'> =
-        {
-            cancelled: 'cancelled',
-            holder: 'holder',
-            order: 'purchaseId',
-            purchased: 'purchased',
-            ticket: 'ticketName',
-        };
-
-        const sortField = sortFieldMap[request.sort?.field ?? 'purchased'];
+        const sortField = kTicketSearchSortFieldMap[request.sort?.field ?? 'purchased'];
         const sortDirection = request.sort?.direction ?? 'desc';
 
         const purchases = await dbInstance.selectFrom(tYourTicketProviderPurchases)
@@ -332,22 +310,7 @@ export class YourTicketProvider implements TicketService {
         ticketTypeId: number | string,
         config: { activityId: number | null; category: EventTicketCategory | null }): Promise<boolean>
     {
-        if (typeof ticketTypeId !== 'number' || !Number.isSafeInteger(ticketTypeId))
-            return false;
-
-        const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
-            .set({
-                eventId,
-                eventTicketYtpId: ticketTypeId,
-                eventTicketActivityId: config.activityId,
-                eventTicketCategory: config.category,
-            })
-            .onConflictDoUpdateSet({
-                eventTicketActivityId: config.activityId,
-                eventTicketCategory: config.category,
-            })
-            .executeInsert();
-
-        return !!affectedRows;
+        return upsertTicketConfigurationByProvider(
+            eventId, 'YourTicketProvider', ticketTypeId, config);
     }
 }

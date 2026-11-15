@@ -4,20 +4,17 @@
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
     TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketSearchSortField, TicketStatistics, TicketType, VolunteerTicket } from '../Types';
+    TicketStatistics, TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
 import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
-import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales }
-    from './WeeztixFinancialData';
+import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales,
+    kWeeztixSettledOrderStatuses } from './WeeztixFinancialData';
+import { kTicketSearchSortFieldMap, listTicketConfigurationsByProvider,
+    upsertTicketConfigurationByProvider } from '../TicketHelpers';
 import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tWeeztixOrders, tWeeztixPurchases,
     tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
 import { kWeeztixTicketType } from '@lib/database/Types';
-
-/**
- * Weeztix order statuses that represent settled, active orders.
- */
-const kSettledOrderStatuses = [ 'paid', 'swapped' ];
 
 /**
  * Normalised row projected from either `weeztix_tickets` or `weeztix_purchases` joined with its
@@ -47,7 +44,7 @@ interface RawTicketRow {
 function toTicket(row: RawTicketRow): Ticket {
     const holder = (row.name || row.parentTicketName || row.orderName)?.trim() || undefined;
     const nickname = row.nickname?.trim() || undefined;
-    const paid = kSettledOrderStatuses.includes(row.orderStatus) ? row.created : undefined;
+    const paid = kWeeztixSettledOrderStatuses.includes(row.orderStatus) ? row.created : undefined;
     const cancelled =
         row.deleted ?? row.parentTicketDeleted ?? row.orderDeleted ??
         (row.orderStatus === 'cancelled' ? row.orderUpdated : undefined);
@@ -179,7 +176,7 @@ export class Weeztix implements TicketService {
             id: order.id,
             eventId: order.eventId,
             cancelled: order.deleted ?? (order.status === 'cancelled' ? order.updated : undefined),
-            paid: kSettledOrderStatuses.includes(order.status) ? order.created : undefined,
+            paid: kWeeztixSettledOrderStatuses.includes(order.status) ? order.created : undefined,
             tickets: [
                 ...ticketRows.map(row => ({
                     id: row.id,
@@ -240,7 +237,7 @@ export class Weeztix implements TicketService {
             .where(tWeeztixTickets.weeztixEventGuid.equals(this.#eventId))
                 .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
                 .and(tWeeztixOrders.weeztixOrderDeleted.isNull())
-                .and(tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses))
+                .and(tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses))
             .select({
                 complimentary: tWeeztixTickets.weeztixTicketPrice.equals(0),
                 inLastWeek: tWeeztixTickets.weeztixTicketCreated.greaterOrEqual(cutoffDate),
@@ -265,7 +262,7 @@ export class Weeztix implements TicketService {
                 .and(tWeeztixPurchases.weeztixPurchaseDeleted.isNull())
                 .and(parentTicketsJoin.weeztixTicketDeleted.isNull())
                 .and(tWeeztixOrders.weeztixOrderDeleted.isNull())
-                .and(tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses))
+                .and(tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses))
             .select({
                 complimentary: tWeeztixPurchases.weeztixPurchasePrice.equals(0),
                 inLastWeek: tWeeztixPurchases.weeztixPurchaseCreated.greaterOrEqual(cutoffDate),
@@ -309,21 +306,7 @@ export class Weeztix implements TicketService {
     }
 
     async listTicketConfigurations(eventId: number): Promise<TicketConfiguration[]> {
-        const rows = await db.selectFrom(tEventsTicketsConfiguration)
-            .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-                .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
-            .select({
-                id: tEventsTicketsConfiguration.eventTicketId,
-                ticketTypeId: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
-                category: tEventsTicketsConfiguration.eventTicketCategory,
-                activityId: tEventsTicketsConfiguration.eventTicketActivityId,
-            })
-            .executeSelectMany();
-
-        return rows.map(row => ({
-            ...row,
-            ticketTypeId: row.ticketTypeId!,
-        }));
+        return listTicketConfigurationsByProvider(eventId, 'Weeztix');
     }
 
     async listTicketTypes(): Promise<TicketType[]> {
@@ -452,7 +435,7 @@ export class Weeztix implements TicketService {
         for (const row of rows) {
             tickets.set(row.userId, {
                 purchaseId: row.purchaseId,
-                paid: kSettledOrderStatuses.includes(row.orderStatus) ? row.paid : undefined,
+                paid: kWeeztixSettledOrderStatuses.includes(row.orderStatus) ? row.paid : undefined,
                 cancelled: row.cancelled,
             });
         }
@@ -473,7 +456,7 @@ export class Weeztix implements TicketService {
             )), '')`;
 
         const ticketPurchased = dbInstance.fragmentWithType('string', 'optional').sql`
-            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses)}
+            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses)}
                 THEN ${dbInstance.dateTimeAsString(tWeeztixTickets.weeztixTicketCreated)}
                 ELSE NULL
             END`;
@@ -518,7 +501,7 @@ export class Weeztix implements TicketService {
             )), '')`;
 
         const purchasePurchased = dbInstance.fragmentWithType('string', 'optional').sql`
-            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kSettledOrderStatuses)}
+            CASE WHEN ${tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses)}
                 THEN ${dbInstance.dateTimeAsString(tWeeztixPurchases.weeztixPurchaseCreated)}
                 ELSE NULL
             END`;
@@ -558,17 +541,7 @@ export class Weeztix implements TicketService {
                 complimentary: tWeeztixPurchases.weeztixPurchasePrice.equals(0),
             });
 
-        const sortFieldMap: Record<TicketSearchSortField,
-            'cancelled' | 'holder' | 'purchaseId' | 'purchased' | 'ticketName'> =
-        {
-            cancelled: 'cancelled',
-            holder: 'holder',
-            order: 'purchaseId',
-            purchased: 'purchased',
-            ticket: 'ticketName',
-        };
-
-        const sortField = sortFieldMap[request.sort?.field ?? 'purchased'];
+        const sortField = kTicketSearchSortFieldMap[request.sort?.field ?? 'purchased'];
         const sortDirection = request.sort?.direction ?? 'desc';
 
         const { count, data } = await ticketsQuery.unionAll(purchasesQuery)
@@ -592,22 +565,6 @@ export class Weeztix implements TicketService {
         ticketTypeId: number | string,
         config: { activityId: number | null; category: EventTicketCategory | null }): Promise<boolean>
     {
-        if (typeof ticketTypeId !== 'string' || !ticketTypeId.length)
-            return false;
-
-        const affectedRows = await db.insertInto(tEventsTicketsConfiguration)
-            .set({
-                eventId,
-                eventTicketWeeztixGuid: ticketTypeId,
-                eventTicketActivityId: config.activityId,
-                eventTicketCategory: config.category,
-            })
-            .onConflictDoUpdateSet({
-                eventTicketActivityId: config.activityId,
-                eventTicketCategory: config.category,
-            })
-            .executeInsert();
-
-        return !!affectedRows;
+        return upsertTicketConfigurationByProvider(eventId, 'Weeztix', ticketTypeId, config);
     }
 }

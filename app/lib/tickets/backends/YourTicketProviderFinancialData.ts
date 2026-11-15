@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { ProviderProduct, ProviderProductSales, ProviderSale } from '../Types';
+import { groupSalesByKey } from '../TicketHelpers';
 import db, { tActivities, tEventsTicketsConfiguration, tYourTicketProviderPurchases,
     tYourTicketProviderTickets } from '@lib/database';
 
@@ -27,8 +28,40 @@ export async function hasYourTicketProviderSales(ytpEventId: number): Promise<bo
 export async function fetchYourTicketProviderProducts(eventId: number, ytpEventId: number)
     : Promise<ProviderProduct[]>
 {
-    const dbInstance = db;
+    const products = await queryYourTicketProviderProducts(eventId, ytpEventId);
+    return products.map(product => ({
+        ...product,
+        category: product.category!,
+    }));
+}
 
+/**
+ * Fetches daily sale counts for the requested `productIds` from YourTicketProvider for the given
+ * `eventId` and `ytpEventId`.
+ */
+export async function fetchYourTicketProviderProductSales(
+    eventId: number, ytpEventId: number, productIds: number[]): Promise<ProviderProductSales[]>
+{
+    if (!productIds.length)
+        return [];
+
+    const products = await queryYourTicketProviderProducts(eventId, ytpEventId, productIds);
+    return products.map(({ id, limit, product, sales }) => ({
+        id,
+        limit,
+        product,
+        sales,
+    }));
+}
+
+/**
+ * Shared query helper for fetching configured YourTicketProvider products and their daily sale
+ * counts, optionally filtered to specific `productIds` (otherwise requiring an assigned category).
+ */
+async function queryYourTicketProviderProducts(
+    eventId: number, ytpEventId: number, productIds?: number[])
+{
+    const dbInstance = db;
     const activitiesJoin = tActivities.forUseInLeftJoin();
 
     const products = await dbInstance.selectFrom(tEventsTicketsConfiguration)
@@ -41,7 +74,9 @@ export async function fetchYourTicketProviderProducts(eventId: number, ytpEventI
                 tEventsTicketsConfiguration.eventTicketActivityId))
         .where(tEventsTicketsConfiguration.eventId.equals(eventId))
             .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
-            .and(tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
+            .and(productIds !== undefined
+                ? tEventsTicketsConfiguration.eventTicketId.in(productIds)
+                : tEventsTicketsConfiguration.eventTicketCategory.isNotNull())
         .select({
             id: tEventsTicketsConfiguration.eventTicketId,
             ytpTicketId: tYourTicketProviderTickets.ytpTicketId,
@@ -64,51 +99,11 @@ export async function fetchYourTicketProviderProducts(eventId: number, ytpEventI
 
     return products.map(product => ({
         id: product.id,
-        category: product.category!,
+        category: product.category,
         limit: product.limit,
         price: product.price,
         product: product.product,
         program: product.program ?? {},
-        sales: salesByTicketId.get(product.ytpTicketId) ?? [],
-    }));
-}
-
-/**
- * Fetches daily sale counts for the requested `productIds` from YourTicketProvider for the given
- * `eventId` and `ytpEventId`.
- */
-export async function fetchYourTicketProviderProductSales(
-    eventId: number, ytpEventId: number, productIds: number[]): Promise<ProviderProductSales[]>
-{
-    if (!productIds.length)
-        return [];
-
-    const products = await db.selectFrom(tEventsTicketsConfiguration)
-        .innerJoin(tYourTicketProviderTickets)
-            .on(tYourTicketProviderTickets.ytpTicketEventId.equals(ytpEventId))
-                .and(tYourTicketProviderTickets.ytpTicketId.equals(
-                    tEventsTicketsConfiguration.eventTicketYtpId))
-        .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
-            .and(tEventsTicketsConfiguration.eventTicketId.in(productIds))
-        .select({
-            id: tEventsTicketsConfiguration.eventTicketId,
-            ytpTicketId: tYourTicketProviderTickets.ytpTicketId,
-            limit: tYourTicketProviderTickets.ytpTicketAmount.asOptional(),
-            product: tYourTicketProviderTickets.ytpTicketName,
-        })
-        .executeSelectMany();
-
-    if (!products.length)
-        return [];
-
-    const ytpTicketIds = products.map(product => product.ytpTicketId);
-    const salesByTicketId = await fetchYourTicketProviderSalesByTicketId(ytpEventId, ytpTicketIds);
-
-    return products.map(product => ({
-        id: product.id,
-        limit: product.limit,
-        product: product.product,
         sales: salesByTicketId.get(product.ytpTicketId) ?? [],
     }));
 }
@@ -137,23 +132,5 @@ async function fetchYourTicketProviderSalesByTicketId(ytpEventId: number, ytpTic
         .groupBy('ytpTicketId', 'date', 'complimentary')
         .executeSelectMany();
 
-    const salesByTicketId = new Map<number, ProviderSale[]>();
-    for (const row of salesRows) {
-        if (!row.date)
-            continue;
-
-        let bucket = salesByTicketId.get(row.ytpTicketId);
-        if (!bucket) {
-            bucket = [];
-            salesByTicketId.set(row.ytpTicketId, bucket);
-        }
-
-        bucket.push({
-            date: row.date,
-            complimentary: row.complimentary,
-            count: row.count,
-        });
-    }
-
-    return salesByTicketId;
+    return groupSalesByKey(salesRows, row => row.ytpTicketId);
 }
