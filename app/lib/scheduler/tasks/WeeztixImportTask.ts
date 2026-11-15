@@ -71,6 +71,7 @@ interface LiveTicketEntry {
     orderGuid: string;
     typeGuid: string;
     barcode: string;
+    name: string | null;
     price: number;
     created: Temporal.ZonedDateTime;
     updated: Temporal.ZonedDateTime;
@@ -117,10 +118,10 @@ function areTimestampsEqual(lhs: Temporal.ZonedDateTime, rhs: Temporal.ZonedDate
 }
 
 /**
- * Extracts the personalised holder name (`first_name` and `last_name`) from purchase `metadata`,
- * returning `null` when neither is present.
+ * Extracts the personalised holder name (`first_name` and `last_name`) from ticket or purchase
+ * `metadata`, returning `null` when neither is present.
  */
-function extractPurchaseName(metadata: Order['products'][number]['meta_data']): string | null {
+function extractHolderName(metadata: Order['tickets'][number]['meta_data']): string | null {
     let firstName: string | undefined;
     let lastName: string | undefined;
 
@@ -158,7 +159,7 @@ function toLivePurchaseEntry(
         ticketGuid,
         orderGuid,
         typeGuid: product.product_id,
-        name: extractPurchaseName(product.meta_data),
+        name: extractHolderName(product.meta_data),
         price: Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
         created: parseTimestamp(product.created_at),
         updated: parseTimestamp(product.updated_at),
@@ -516,6 +517,7 @@ export class WeeztixImportTask extends Task {
                     orderGuid: order.guid,
                     typeGuid: ticket.ticket_id,
                     barcode: ticket.ticket_number,
+                    name: extractHolderName(ticket.meta_data),
                     price: Math.max(0, Math.round(ticket.finn_price - ticket.finn_service_fee)),
                     created: parseTimestamp(ticket.created_at),
                     updated: parseTimestamp(ticket.updated_at),
@@ -559,6 +561,7 @@ export class WeeztixImportTask extends Task {
                 eventGuid: tWeeztixTickets.weeztixEventGuid,
                 typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
+                name: tWeeztixTickets.weeztixTicketName,
                 price: tWeeztixTickets.weeztixTicketPrice,
                 created: tWeeztixTickets.weeztixTicketCreated,
                 updated: tWeeztixTickets.weeztixTicketUpdated,
@@ -635,6 +638,7 @@ export class WeeztixImportTask extends Task {
                 knownTicket.eventGuid !== eventGuid ||
                 knownTicket.typeGuid !== liveTicket.typeGuid ||
                 knownTicket.barcode !== liveTicket.barcode ||
+                (knownTicket.name || null) !== liveTicket.name ||
                 knownTicket.price !== liveTicket.price ||
                 !areTimestampsEqual(knownTicket.created, liveTicket.created) ||
                 !areTimestampsEqual(knownTicket.updated, liveTicket.updated) ||
@@ -736,6 +740,7 @@ export class WeeztixImportTask extends Task {
                         weeztixEventGuid: eventGuid,
                         weeztixTicketTypeGuid: entry.typeGuid,
                         weeztixTicketBarcode: entry.barcode,
+                        weeztixTicketName: entry.name,
                         weeztixTicketPrice: entry.price,
                         weeztixTicketCreated: entry.created,
                         weeztixTicketUpdated: entry.updated,

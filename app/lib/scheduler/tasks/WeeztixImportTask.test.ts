@@ -601,6 +601,10 @@ describe('WeeztixImportTask', () => {
                             finn_service_fee: 250,
                             created_at: '2026-08-02T10:00:00+02:00',
                             updated_at: '2026-08-05T14:00:00+02:00',
+                            meta_data: [
+                                { value: 'John', meta_data: { name: 'first_name' } },
+                                { value: 'Smith', meta_data: { name: 'last_name' } },
+                            ],
                             products: [
                                 buildProduct({
                                     guid: 'purchase-ticket-origin',
@@ -701,12 +705,13 @@ describe('WeeztixImportTask', () => {
                 '2026-08-06 10:00:00',
             ]);
 
-            expect(ticketsByGuid.get('ticket-1')?.slice(0, 9)).toEqual([
+            expect(ticketsByGuid.get('ticket-1')?.slice(0, 10)).toEqual([
                 'ticket-1',
                 'order-1',
                 'event-guid-1',
                 'type-weekend',
                 'BARCODE-777',
+                'John Smith',
                 5000,
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
@@ -793,6 +798,7 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
+                    name: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -839,6 +845,9 @@ describe('WeeztixImportTask', () => {
                     tickets: [
                         buildTicket({
                             guid: 'ticket-unchanged',
+                            meta_data: [
+                                { value: 'Jane', meta_data: { name: 'first_name' } },
+                            ],
                             products: [
                                 buildProduct({ guid: 'purchase-unchanged' }),
                             ],
@@ -847,6 +856,10 @@ describe('WeeztixImportTask', () => {
                             guid: 'ticket-invalidated',
                             invalidated_since: '2026-08-07T12:00:00Z',
                             updated_at: '2026-08-07T12:00:00Z',
+                            meta_data: [
+                                { value: 'Alex', meta_data: { name: 'first_name' } },
+                                { value: 'Lee', meta_data: { name: 'last_name' } },
+                            ],
                         }),
                     ],
                     products: [
@@ -879,6 +892,7 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
+                    name: 'Jane',
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -890,6 +904,7 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
+                    name: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -901,6 +916,7 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-002',
+                    name: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -912,6 +928,7 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-003',
+                    name: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -992,7 +1009,8 @@ describe('WeeztixImportTask', () => {
             mockConnection.expect('insert', (query, params) => {
                 expect(query).toContain('insert into weeztix_tickets');
                 expect(params[0]).toBe('ticket-invalidated');
-                expect(params[8]).toBe('2026-08-07 12:00:00');
+                expect(params[5]).toBe('Alex Lee');
+                expect(params[9]).toBe('2026-08-07 12:00:00');
                 return 1;
             });
             mockConnection.expect('update', (query, params) => {

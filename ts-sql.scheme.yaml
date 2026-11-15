@@ -4062,6 +4062,10 @@ tables:
   - name: weeztix_ticket_barcode
     type: varchar(64)
     nullable: false
+  - name: weeztix_ticket_name
+    type: text
+    nullable: true
+    default: "NULL"
   - name: weeztix_ticket_price
     type: int(4) unsigned
     nullable: false
@@ -4106,6 +4110,7 @@ tables:
       `weeztix_event_guid` char(36) NOT NULL,
       `weeztix_ticket_type_guid` char(36) NOT NULL,
       `weeztix_ticket_barcode` varchar(64) NOT NULL,
+      `weeztix_ticket_name` text DEFAULT NULL,
       `weeztix_ticket_price` int(4) unsigned NOT NULL,
       `weeztix_ticket_created` datetime NOT NULL,
       `weeztix_ticket_updated` datetime NOT NULL,
