@@ -218,6 +218,10 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
 
     let highlightCount = 0;
     for (const { date, label } of highlights) {
+        const highlightDate = Temporal.PlainDate.from(date);
+        if (isBefore(highlightDate, min) || isAfter(highlightDate, max))
+            continue;
+
         const colour =
             kProductHighlightColors[highlightCount++ % kProductHighlightColors.length];
 
