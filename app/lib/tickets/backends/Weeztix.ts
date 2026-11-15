@@ -269,14 +269,17 @@ export class Weeztix implements TicketService {
             .orderBy('name', 'asc')
             .executeSelectMany();
 
-        return rows.map(row => ({
-            id: row.id,
-            name: row.name.trim(),
-            price: row.price,
-            active: row.status === 'available' || (row.status === 'auto' && row.available > 0),
-            sold: row.sold,
-            amount: row.available + row.sold,
-        }));
+        return rows.map(row => {
+            const capacity = row.available + row.sold;
+            return {
+                id: row.id,
+                name: row.name.trim(),
+                price: row.price,
+                active: row.status === 'available' || (row.status === 'auto' && row.available > 0),
+                sold: row.sold,
+                amount: capacity > 0 ? capacity : undefined,
+            };
+        });
     }
 
     async listTicketsForType(id: number | string): Promise<Ticket[]> {
