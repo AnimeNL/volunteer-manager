@@ -78,14 +78,15 @@ export default async function EventTicketsAssociatesPage(
 
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
+    const canCancelPurchases = service.canCancelPurchases() && canDeleteTickets;
 
     const associatePurchaseFn =
         canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)
                          : undefined!;
 
     const cancelPurchaseFn =
-        canDeleteTickets ? cancelPurchase.bind(null, event.slug, purchase.id)
-                         : undefined!;
+        canCancelPurchases ? cancelPurchase.bind(null, event.slug, purchase.id)
+                           : undefined!;
 
     const resendConfirmationFn =
         canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
@@ -117,7 +118,7 @@ export default async function EventTicketsAssociatesPage(
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
                     </Alert> }
-                { ((canDeleteTickets || canUpdateTickets) && !hasBeenCancelled) &&
+                { ((canCancelPurchases || canUpdateTickets) && !hasBeenCancelled) &&
                     <ActionBar>
                         { canUpdateTickets &&
                             <AssociateQuickAction action={associatePurchaseFn}
@@ -125,7 +126,7 @@ export default async function EventTicketsAssociatesPage(
                                                   volunteers={associateVolunteers} /> }
                         { canUpdateTickets &&
                             <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                        { canDeleteTickets &&
+                        { canCancelPurchases &&
                             <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }
                 { !!hasBeenCancelled &&

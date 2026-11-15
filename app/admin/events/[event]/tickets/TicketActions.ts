@@ -82,7 +82,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !event.tickets?.volunteerTicketId)
+        if (!service || !service.canCancelPurchases() || !event.tickets?.volunteerTicketId)
             notFound();
 
         // Confirm that the |purchaseId| corresponds to a ticket that contains a volunteering
@@ -254,7 +254,7 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !event.tickets?.volunteerTicketId)
+        if (!service || !service.canCancelPurchases() || !event.tickets?.volunteerTicketId)
             notFound();
 
         const result = await service.sendPurchaseConfirmation(purchaseId);

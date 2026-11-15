@@ -50,6 +50,10 @@ export class YourTicketProvider implements TicketService {
         return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;
     }
 
+    canCancelPurchases(): boolean {
+        return false;
+    }
+
     canCreateTickets(): boolean {
         return false;
     }

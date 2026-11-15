@@ -70,9 +70,10 @@ export default async function EventTicketsVolunteerPage(
 
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
+    const canCancelPurchases = !!service?.canCancelPurchases() && canDeleteTickets;
 
     const cancelPurchaseFn =
-        canDeleteTickets && !!purchaseId
+        canCancelPurchases && !!purchaseId
             ? cancelPurchase.bind(null, event.slug, purchaseId)
             : undefined!;
 
@@ -115,7 +116,7 @@ export default async function EventTicketsVolunteerPage(
                         inadvertently been cancelled.
                         { canUpdateTickets && ' You need to disassociate their ticket below.' }
                     </Alert> }
-                { ((canDeleteTickets || canUpdateTickets) && hasAssociatedTicket) &&
+                { ((canCancelPurchases || canUpdateTickets) && hasAssociatedTicket) &&
                     <ActionBar>
                         { canUpdateTickets &&
                             <QuickActionButton
@@ -133,7 +134,7 @@ export default async function EventTicketsVolunteerPage(
                                 } /> }
                         { canUpdateTickets &&
                             <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                        { canDeleteTickets &&
+                        { canCancelPurchases &&
                             <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                     </ActionBar> }
             </Section>
