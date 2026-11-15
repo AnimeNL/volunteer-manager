@@ -619,15 +619,15 @@ tables:
     nullable: true
     default: "NULL"
   - name: event_weeztix_guid
-    type: text
+    type: char(36)
     nullable: true
     default: "NULL"
   - name: event_weeztix_scanner_guid
-    type: text
+    type: char(36)
     nullable: true
     default: "NULL"
   - name: event_weeztix_company_guid
-    type: text
+    type: char(36)
     nullable: true
     default: "NULL"
   indexes:
@@ -679,9 +679,9 @@ tables:
       `event_identity_id` int(8) unsigned DEFAULT NULL,
       `event_ytp_event_id` int(4) DEFAULT NULL,
       `event_ytp_external_event_id` text DEFAULT NULL,
-      `event_weeztix_guid` text DEFAULT NULL,
-      `event_weeztix_scanner_guid` text DEFAULT NULL,
-      `event_weeztix_company_guid` text DEFAULT NULL,
+      `event_weeztix_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
+      `event_weeztix_scanner_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
+      `event_weeztix_company_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
       PRIMARY KEY (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: nardo
