@@ -3,16 +3,13 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-
-import Button from '@mui/material/Button';
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 
 import type { EventTicketProvider } from '@lib/database/Types';
 import type { ServerAction } from '@lib/serverAction';
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
 import { HiddenInput } from '@components/HiddenInput';
-import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
+import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 
 /**
  * Props accepted by the <AssociateQuickAction> component.
@@ -56,37 +53,26 @@ interface AssociateQuickActionProps {
  * participating in the current event, but does not have a ticket associated with them yet.
  */
 export function AssociateQuickAction(props: AssociateQuickActionProps) {
-    const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
-
-    const handleDialogClose = useCallback(() => setDialogOpen(false), []);
-    const handleDialogOpen = useCallback(() => setDialogOpen(true), []);
-
     return (
-        <>
-            <Button startIcon={ <PersonAddAltOutlinedIcon /> } size="small" variant="outlined"
-                    color="inherit" onClick={handleDialogOpen}>
-                Associate with volunteer
-            </Button>
-            <ResponsiveFormDialog
-                open={dialogOpen}
-                onClose={handleDialogClose}
-                action={props.action}
-                defaultValues={{ ticketProvider: props.ticketProvider }}
-                title="Who should get this ticket?"
-                submitLabel="Associate"
-                description={
-                    <>
-                        Associating the ticket with a volunteer will allow them to enter the
-                        festival. Volunteers may only have a single ticket associated with them.
-                    </>
-                }>
+        <QuickActionButton
+            action={props.action}
+            defaultValues={{ ticketProvider: props.ticketProvider }}
+            icon={ <PersonAddAltOutlinedIcon /> }
+            label="Associate with volunteer"
+            submitLabel="Associate"
+            title="Who should get this ticket?"
+            description={
+                <>
+                    Associating the ticket with a volunteer will allow them to enter the festival.
+                    Volunteers may only have a single ticket associated with them.
+                </>
+            }>
 
-                <HiddenInput name="ticketProvider" />
-                <AutocompleteElementWithDisabledOptions
-                    name="userId" label="Volunteer" options={props.volunteers} required
-                    matchId autocompleteProps={{ fullWidth: true, size: 'small' }} />
+            <HiddenInput name="ticketProvider" />
+            <AutocompleteElementWithDisabledOptions
+                name="userId" label="Volunteer" options={props.volunteers} required
+                matchId autocompleteProps={{ fullWidth: true, size: 'small' }} />
 
-            </ResponsiveFormDialog>
-        </>
+        </QuickActionButton>
     );
 }

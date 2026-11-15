@@ -10,6 +10,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import Grid from '@mui/material/Grid';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
@@ -19,7 +20,6 @@ import type { EventAvailabilityStatus } from '@lib/database/Types';
 import type { TicketService } from '@lib/tickets/TicketService';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AnonymizeRefundsButton } from './AnonymizeRefundsButton';
-import { AnonymizeTicketsButton } from './AnonymizeTicketsButton';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
 import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
@@ -27,6 +27,7 @@ import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { GridCollapse } from '@components/GridCollapse';
 import { PublishQuickAction } from './PublishQuickAction';
+import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
@@ -347,7 +348,21 @@ export default async function EventSettingsConfigurationPage(
                         These actions may permanently affect this event. Use with caution.
                     </SectionIntroduction>
                     { anonymizeRefundsFn && <AnonymizeRefundsButton action={anonymizeRefundsFn} /> }
-                    { anonymizeTicketsFn && <AnonymizeTicketsButton action={anonymizeTicketsFn} /> }
+                    { anonymizeTicketsFn &&
+                        <QuickActionButton
+                            action={anonymizeTicketsFn}
+                            color="error"
+                            icon={ <LinkOffIcon /> }
+                            label="Anonymize visitor tickets…"
+                            submitColor="error"
+                            submitLabel="Anonymize"
+                            title="Anonymize visitor tickets"
+                            description={
+                                'Anonymizing visitor tickets will permanently and irrevocably ' +
+                                'remove all personally identifiable information from such tickets ' +
+                                "from our system, in compliance with the GDPR. Don't proceed " +
+                                'with anonymization until the festival has concluded.'
+                            } /> }
                 </Section> }
         </>
     );

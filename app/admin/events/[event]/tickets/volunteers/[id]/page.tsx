@@ -5,10 +5,11 @@ import { notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
+import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { CancelPurchaseQuickAction } from '../../associates/[id]/CancelPurchaseQuickAction';
-import { DisassociateQuickAction } from './DisassociateQuickAction';
+import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -117,7 +118,19 @@ export default async function EventTicketsVolunteerPage(
                 { ((canDeleteTickets || canUpdateTickets) && hasAssociatedTicket) &&
                     <ActionBar>
                         { canUpdateTickets &&
-                            <DisassociateQuickAction action={disassociateFn} /> }
+                            <QuickActionButton
+                                action={disassociateFn}
+                                icon={ <PersonRemoveOutlinedIcon /> }
+                                label="Disassociate"
+                                submitLabel="Disassociate"
+                                title="Disassociate this ticket?"
+                                description={
+                                    <>
+                                        This action will return the ticket to the{' '}
+                                        <em>associate</em> pool—it may continue to be valid for
+                                        entry, but won't be associated with this volunteer anymore.
+                                    </>
+                                } /> }
                         { canUpdateTickets &&
                             <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
                         { canDeleteTickets &&

@@ -3,13 +3,10 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
-
-import Button from '@mui/material/Button';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import type { ServerAction } from '@lib/serverAction';
-import { ResponsiveConfirmationDialog } from '@app/admin/components/ResponsiveConfirmationDialog';
+import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 
 /**
  * Props accepted by the <CancelPurchaseQuickAction> component.
@@ -26,29 +23,19 @@ interface CancelPurchaseQuickActionProps {
  * immediately invalidate the ticket with our ticketing partner, and cannot be undone.
  */
 export function CancelPurchaseQuickAction(props: CancelPurchaseQuickActionProps) {
-    const [ dialogOpen, setDialogOpen ] = useState<boolean>(false);
-
-    const handleDialogClose = useCallback(() => setDialogOpen(false), []);
-    const handleDialogOpen = useCallback(() => setDialogOpen(true), []);
-
     return (
-        <>
-            <Button startIcon={ <CancelOutlinedIcon /> } size="small" variant="outlined"
-                    color="error" onClick={handleDialogOpen}>
-                Cancel purchase
-            </Button>
-            <ResponsiveConfirmationDialog
-                open={dialogOpen}
-                onClose={handleDialogClose}
-                action={props.action}
-                confirmLabel="Cancel purchase"
-                title="Cancel this purchase?">
-
-                Cancelling this purchase is permanent and cannot be undone. Doing so will revoke the
-                ticket with our ticketing partner, and owners of any and all tickets within this
-                purchase will not be notified of this action.
-
-            </ResponsiveConfirmationDialog>
-        </>
+        <QuickActionButton
+            action={props.action}
+            color="error"
+            icon={ <CancelOutlinedIcon /> }
+            label="Cancel purchase"
+            submitColor="error"
+            submitLabel="Cancel purchase"
+            title="Cancel this purchase?"
+            description={
+                'Cancelling this purchase is permanent and cannot be undone. Doing so will ' +
+                'revoke the ticket with our ticketing partner, and owners of any and all tickets ' +
+                'within this purchase will not be notified of this action.'
+            } />
     );
 }
