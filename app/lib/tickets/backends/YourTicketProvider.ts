@@ -2,9 +2,10 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
-    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketStatistics, TicketType, VolunteerTicket } from '../Types';
+import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
+    Purchase, Ticket, TicketConfiguration, TicketCreateRequest, TicketFinancialSummary,
+    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
+    from '../Types';
 import type { TicketService } from '../TicketService';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
@@ -66,11 +67,19 @@ export class YourTicketProvider implements TicketService {
         throw new Error('Not implemented');
     }
 
-    async fetchFinancialProducts(eventId: number): Promise<ProviderProduct[]> {
+    async fetchFinancialFilterOptions(): Promise<FinancialFilterOptions> {
+        return { utmSources: [], utmCampaigns: [] };
+    }
+
+    async fetchFinancialProducts(eventId: number, _filter?: FinancialFilter)
+        : Promise<ProviderProduct[]>
+    {
         return fetchYourTicketProviderProducts(eventId, this.#eventId);
     }
 
-    async fetchProductSales(eventId: number, productIds: number[]): Promise<ProviderProductSales[]> {
+    async fetchProductSales(eventId: number, productIds: number[], _filter?: FinancialFilter)
+        : Promise<ProviderProductSales[]>
+    {
         return fetchYourTicketProviderProductSales(eventId, this.#eventId, productIds);
     }
 

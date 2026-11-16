@@ -2,9 +2,10 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
-import type { ProviderProduct, ProviderProductSales, Purchase, Ticket, TicketConfiguration,
-    TicketCreateRequest, TicketFinancialSummary, TicketSearchRequest, TicketSearchResults,
-    TicketStatistics, TicketType, VolunteerTicket } from './Types';
+import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
+    Purchase, Ticket, TicketConfiguration, TicketCreateRequest, TicketFinancialSummary,
+    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
+    from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -58,14 +59,24 @@ export interface TicketService {
     fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined>;
 
     /**
-     * Fetches categorised financial products and their daily sale counts for the given `eventId`.
+     * Fetches the available financial filter options (such as UTM sources and campaigns) for the
+     * current event.
      */
-    fetchFinancialProducts(eventId: number): Promise<ProviderProduct[]>;
+    fetchFinancialFilterOptions(): Promise<FinancialFilterOptions>;
 
     /**
-     * Fetches daily sale counts for the given `productIds` in `eventId`.
+     * Fetches categorised financial products and their daily sale counts for the given `eventId`,
+     * optionally restricted by `filter`.
      */
-    fetchProductSales(eventId: number, productIds: number[]): Promise<ProviderProductSales[]>;
+    fetchFinancialProducts(eventId: number, filter?: FinancialFilter): Promise<ProviderProduct[]>;
+
+    /**
+     * Fetches daily sale counts for the given `productIds` in `eventId`, optionally restricted by
+     * `filter`.
+     */
+    fetchProductSales(
+        eventId: number, productIds: number[], filter?: FinancialFilter)
+            : Promise<ProviderProductSales[]>;
 
     /**
      * Formats the given |purchaseId| in a manner that it can be presented to visitors.
