@@ -95,6 +95,8 @@ export class Weeztix implements TicketService {
                         tWeeztixTickets.weeztixTicketMetaNickname.isNotNull()))
                     .and(tWeeztixTickets.weeztixTicketName.isNull().or(
                         tWeeztixTickets.weeztixTicketName.notEquals('(anonymized)')))
+                    .and(tWeeztixTickets.weeztixTicketMetaFunction.isNull())
+                    .and(tWeeztixTickets.weeztixTicketMetaOrganisation.isNull())
                 .executeUpdate();
 
             const purchaseRows = await db.update(tWeeztixPurchases)
