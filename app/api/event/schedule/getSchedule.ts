@@ -541,13 +541,12 @@ async function populateVendors(
 }
 
 /**
- * Populates the volunteers who participate in this event in the given `schedule`. All information
- * relevant for the given `eventId` will be fetched.
+ * Registers participating volunteers and their teams in `schedule`.
  */
-async function populateVolunteers(
-    dbInstance: DBConnection, schedule: Response, currentTime: Temporal.ZonedDateTime,
-    eventId: number, unavailabilityFn: UnavailabilityFn, notesAccess: boolean,
-    phoneNumberAccess: boolean, teamAccess: boolean, team?: string)
+async function registerVolunteers(
+    dbInstance: DBConnection, schedule: Response, eventId: number,
+    unavailabilityFn: UnavailabilityFn, notesAccess: boolean, phoneNumberAccess: boolean,
+    teamAccess: boolean, team?: string)
 {
     const availabilityPreferencesJoin = tUsersEventsPreferencesAvailability.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
@@ -632,7 +631,12 @@ async function populateVolunteers(
             unavailableUntil: unavailabilityFn(volunteer.user),
         };
     }
+}
 
+/**
+ * Fetches all active shifts and their scheduled instances for `eventId`.
+ */
+async function fetchScheduledShifts(dbInstance: DBConnection, eventId: number) {
     const activitiesJoin = tActivities.forUseInLeftJoinAs('aj');
     const activitiesAreasJoin = tActivitiesAreas.forUseInLeftJoinAs('aaj');
     const activitiesLocationsJoin = tActivitiesLocations.forUseInLeftJoinAs('alj');
@@ -642,7 +646,7 @@ async function populateVolunteers(
 
     const scheduleJoin = tSchedule.forUseInLeftJoin();
 
-    const shifts = await dbInstance.selectFrom(tShifts)
+    return dbInstance.selectFrom(tShifts)
         .leftJoin(activitiesJoin)
             .on(activitiesJoin.activityId.equals(tShifts.shiftActivityId))
         .leftJoin(activitiesLocationsJoin)
@@ -697,165 +701,202 @@ async function populateVolunteers(
         })
         .groupBy(tShifts.shiftId)
         .executeSelectMany();
+}
+
+type ScheduledShiftRow = Awaited<ReturnType<typeof fetchScheduledShifts>>[number];
+
+/**
+ * Composes merged timeslots for an internal shift activity based on its scheduled instances.
+ */
+function composeInternalTimeslots(
+    schedule: Response, activityId: string, numericActivityId: number, locationId: string,
+    shiftSchedule: ScheduledShiftRow['schedule'], currentTime: Temporal.ZonedDateTime)
+{
+    const sortedSchedule = shiftSchedule.map(entry => ({ ...entry }));
+    sortedSchedule.sort((lhs, rhs) => {
+        const startCompare = Temporal.ZonedDateTime.compare(lhs.start, rhs.start);
+        return !!startCompare ? startCompare
+                              : Temporal.ZonedDateTime.compare(lhs.end, rhs.end);
+    });
+
+    let timeslot = sortedSchedule.shift();
+    let timeslotId = kInternalTimeslotOffset + numericActivityId * 10_000;
+
+    while (!!timeslot) {
+        while (sortedSchedule.length > 0) {
+            const peek = sortedSchedule[0];
+            if (Temporal.ZonedDateTime.compare(timeslot.end, peek.start) < 0)
+                break;  // |peek| timeslot starts after |timeslot| has already ended
+
+            const nextTimeslot = sortedSchedule.shift()!;
+            if (Temporal.ZonedDateTime.compare(timeslot.end, nextTimeslot.end) >= 0)
+                continue;  // |nextTimeslot| ends before the |timeslot| ends
+
+            timeslot.end = nextTimeslot.end;
+        }
+
+        const timeslotIdString = `${timeslotId++}`;
+
+        schedule.program.activities[activityId].timeslots.push(timeslotIdString);
+        schedule.program.locations[locationId].timeslots.push(timeslotIdString);
+        schedule.program.timeslots[timeslotIdString] = {
+            id: timeslotIdString,
+            activity: activityId,
+            location: locationId,
+            start: Math.round(timeslot.start.epochMilliseconds / 1000),
+            end: Math.round(timeslot.end.epochMilliseconds / 1000),
+        };
+
+        if (isBefore(timeslot.start, currentTime) && isAfter(timeslot.end, currentTime)) {
+            const areaId = schedule.program.locations[locationId].area;
+
+            schedule.program.areas[areaId].active++;
+            schedule.program.locations[locationId].active++;
+            schedule.program.timeslots[timeslotIdString].active = true;
+        }
+
+        timeslot = sortedSchedule.shift();
+    }
+}
+
+/**
+ * Ensures an internal activity, location, and area exist in `schedule.program` for `shift`.
+ * Returns the resolved `activityId`, or `undefined` if no fallback location/area exists.
+ */
+function ensureInternalShiftActivity(
+    schedule: Response, shift: ScheduledShiftRow, currentTime: Temporal.ZonedDateTime)
+        : string | undefined
+{
+    const shiftId = `${shift.id}`;
+
+    // Generate a deterministic activity ID for shifts that we create out of our own initiative.
+    if (!shift.activity || !shift.activity.id) {
+        shift.activity = {
+            id: kInternalActivityOffset + shift.id,
+            location: shift.location,
+        };
+    }
+
+    const numericActivityId = shift.activity.id!;
+    const activityId = `${numericActivityId}`;
+    if (Object.hasOwn(schedule.program.activities, activityId))
+        return activityId;
+
+    // (1) Internal activities must have a location. However, the tool does not allow us to
+    // guarantee that one has been set, so have an automatic mitigation in case that failed.
+    if (!shift.activity.location) {
+        console.error(`Shift with an internal activity, but no location: ${shiftId}`);
+
+        // Try to mitigate the lack of a location by picking the first one defined in the
+        // program. This'll wrongly parent the shift, but it'll still be accessible.
+        const existingLocations = Object.keys(schedule.program.locations);
+        if (!existingLocations.length)
+            return undefined;  // no locations exist either
+
+        const existingLocation = schedule.program.locations[existingLocations[0]];
+        const existingArea = schedule.program.areas[existingLocation.area];
+
+        shift.activity.location = {
+            id: parseInt(existingLocation.id, /* radix= */ 10),
+            name: existingLocation.name,
+            area: {
+                id: parseInt(existingArea.id, /* radix= */ 10),
+                name: existingArea.name,
+            },
+        };
+    }
+
+    const locationId = `${shift.activity.location.id}`;
+
+    // (2) Internal locations are not included in the program by default, unless a shift
+    // exists that requires them. The location may have to be appended.
+    if (!Object.hasOwn(schedule.program.locations, locationId)) {
+        // (2b) Internal locations are always associated with an area. This may fail when a
+        // manual data manipulation has been done, so implement a similar mitigation.
+        if (!shift.activity.location.area) {
+            console.error(`Shift with an internal location, but no area: ${shiftId}`);
+
+            const existingAreas = Object.keys(schedule.program.areas);
+            if (!existingAreas.length)
+                return undefined;  // no areas exist
+
+            const existingArea = schedule.program.areas[existingAreas[0]];
+
+            shift.activity.location.area = {
+                id: parseInt(existingArea.id, /* radix= */ 10),
+                name: existingArea.name,
+            };
+        }
+
+        const areaId = `${shift.activity.location.area.id}`;
+
+        // (2c) Internal areas are not included in the program by default either, so create
+        // the area when this has been created exclusively for a shift.
+        if (!Object.hasOwn(schedule.program.areas, areaId)) {
+            schedule.program.areas[areaId] = {
+                id: areaId,
+                name: shift.activity.location.area.name,
+                locations: [ /* empty */ ],
+                active: 0,
+            };
+        }
+
+        schedule.program.areas[areaId].locations.push(locationId);
+        schedule.program.locations[locationId] = {
+            id: locationId,
+            name: shift.activity.location.name,
+            area: areaId,
+            timeslots: [ /* empty */ ],
+            active: 0,
+        };
+    }
+
+    // (3) Create an activity for this shift. Timeslots and the schedule will be created and
+    // associated with this entry in the following steps.
+    schedule.program.activities[activityId] = {
+        id: activityId,
+        title: shift.name,
+        timeslots: [ /* empty */ ],
+        timeslotsHidden: true,
+        invisible: true,
+        schedule: [ /* empty */ ],
+    };
+
+    // (4) Compose timeslots for the created activity based on the scheduled shifts.
+    composeInternalTimeslots(
+        schedule, activityId, numericActivityId, locationId, shift.schedule, currentTime);
+
+    return activityId;
+}
+
+/**
+ * Populates the volunteers who participate in this event in the given `schedule`. All information
+ * relevant for the given `eventId` will be fetched.
+ */
+async function populateVolunteers(
+    dbInstance: DBConnection, schedule: Response, currentTime: Temporal.ZonedDateTime,
+    eventId: number, unavailabilityFn: UnavailabilityFn, notesAccess: boolean,
+    phoneNumberAccess: boolean, teamAccess: boolean, team?: string)
+{
+    await registerVolunteers(
+        dbInstance, schedule, eventId, unavailabilityFn, notesAccess, phoneNumberAccess,
+        teamAccess, team);
+
+    const shifts = await fetchScheduledShifts(dbInstance, eventId);
 
     for (const shift of shifts) {
-        const shiftId = `${shift.id}`;
-
         // Bail out when the shift doesn't have any scheduled instances. There is no point in
         // creating the associated metainformation as it won't be presented anywhere.
         if (!shift.schedule.length)
             continue;
 
-        // Generate a deterministic activity ID for shifts that we create out of our own initiative.
-        if (!shift.activity || !shift.activity.id) {
-            shift.activity = {
-                id: kInternalActivityOffset + shift.id,
-                location: shift.location,
-            };
-        }
+        const activityId = ensureInternalShiftActivity(schedule, shift, currentTime);
+        if (!activityId)
+            continue;
 
-        const activityId = `${shift.activity.id}`;
-
-        if (!Object.hasOwn(schedule.program.activities, activityId)) {
-            // (1) Internal activities must have a location. However, the tool does not allow us to
-            // guarantee that one has been set, so have an automatic mitigation in case that failed.
-            if (!shift.activity.location) {
-                console.error(`Shift with an internal activity, but no location: ${shiftId}`);
-
-                // Try to mitigate the lack of a location by picking the first one defined in the
-                // program. This'll wrongly parent the shift, but it'll still be accessible.
-                const existingLocations = Object.keys(schedule.program.locations);
-                if (!existingLocations.length)
-                    continue;  // no locations exist either
-
-                const existingLocation = schedule.program.locations[existingLocations[0]];
-                const existingArea = schedule.program.areas[existingLocation.area];
-
-                shift.activity.location = {
-                    id: parseInt(existingLocation.id, /* radix= */ 10),
-                    name: existingLocation.name,
-                    area: {
-                        id: parseInt(existingArea.id, /* radix= */ 10),
-                        name: existingArea.name,
-                    },
-                };
-            }
-
-            const locationId = `${shift.activity.location.id}`;
-
-            // (2) Internal locations are not included in the program by default, unless a shift
-            // exists that requires them. The location may have to be appended.
-            if (!Object.hasOwn(schedule.program.locations, locationId)) {
-                // (2b) Internal locations are always associated with an area. This may fail when a
-                // manual data manipulation has been done, so implement a similar mitigation.
-                if (!shift.activity.location.area) {
-                    console.error(`Shift with an internal location, but no area: ${shiftId}`);
-
-                    const existingAreas = Object.keys(schedule.program.areas);
-                    if (!existingAreas.length)
-                        continue;  // no areas exist
-
-                    const existingArea = schedule.program.areas[existingAreas[0]];
-
-                    shift.activity.location.area = {
-                        id: parseInt(existingArea.id, /* radix= */ 10),
-                        name: existingArea.name,
-                    };
-                }
-
-                const areaId = `${shift.activity.location.area.id}`;
-
-                // (2c) Internal areas are not included in the program by default either, so create
-                // the area when this has been created exclusively for a shift.
-                if (!Object.hasOwn(schedule.program.areas, areaId)) {
-                    schedule.program.areas[areaId] = {
-                        id: areaId,
-                        name: shift.activity.location.area.name,
-                        locations: [ /* empty */ ],
-                        active: 0,
-                    };
-                }
-
-                schedule.program.areas[areaId].locations.push(locationId);
-                schedule.program.locations[locationId] = {
-                    id: locationId,
-                    name: shift.activity.location.name,
-                    area: areaId,
-                    timeslots: [ /* empty */ ],
-                    active: 0,
-                };
-            }
-
-            // (3) Create an activity for this shift. Timeslots and the schedule will be created and
-            // associated with this entry in the following steps.
-            schedule.program.activities[activityId] = {
-                id: activityId,
-                title: shift.name,
-                timeslots: [ /* empty */ ],
-                timeslotsHidden: true,
-                invisible: true,
-                schedule: [ /* empty */ ],
-            };
-
-            // (4) Compose timeslots for the created activity based on the scheduled shifts.
-            {
-                const sortedSchedule = shift.schedule.map(entry => ({ ...entry }));
-                sortedSchedule.sort((lhs, rhs) => {
-                    const startCompare = Temporal.ZonedDateTime.compare(lhs.start, rhs.start);
-                    return !!startCompare ? startCompare
-                                          : Temporal.ZonedDateTime.compare(lhs.end, rhs.end);
-                });
-
-                let timeslot = sortedSchedule.shift();
-                let timeslotId = kInternalTimeslotOffset + shift.activity.id! * 10_000;
-
-                do {
-                    if (!timeslot)
-                        break;  // defensive, this should only happen when len(`sortedSchedule`)=0
-
-                    while (sortedSchedule.length > 0) {
-                        const peek = sortedSchedule[0];
-                        if (Temporal.ZonedDateTime.compare(timeslot.end, peek.start) < 0)
-                            break;  // |peek| timeslot starts after |timeslot| has already ended
-
-                        const nextTimeslot = sortedSchedule.shift()!;
-                        if (Temporal.ZonedDateTime.compare(timeslot.end, nextTimeslot.end) >= 0)
-                            continue;  // |nextTimeslot| ends before the |timeslot| ends
-
-                        timeslot.end = nextTimeslot.end;
-                    }
-
-                    const timeslotIdString = `${timeslotId++}`;
-
-                    schedule.program.activities[activityId].timeslots.push(timeslotIdString);
-                    schedule.program.locations[locationId].timeslots.push(timeslotIdString);
-                    schedule.program.timeslots[timeslotIdString] = {
-                        id: timeslotIdString,
-                        activity: activityId,
-                        location: locationId,
-                        start: Math.round(timeslot.start.epochMilliseconds / 1000),
-                        end: Math.round(timeslot.end.epochMilliseconds / 1000),
-                    };
-
-                    if (isBefore(timeslot.start, currentTime)
-                            && isAfter(timeslot.end, currentTime))
-                    {
-                        const areaId = schedule.program.locations[locationId].area;
-
-                        schedule.program.areas[areaId].active++;
-                        schedule.program.locations[locationId].active++;
-                        schedule.program.timeslots[timeslotIdString].active = true;
-                    }
-
-                    timeslot = sortedSchedule.shift();
-
-                } while (!!timeslot);
-            }
-        }
-
+        const shiftId = `${shift.id}`;
         for (const scheduledShift of shift.schedule) {
             const volunteerId = `${scheduledShift.userId}`;
-
             if (!Object.hasOwn(schedule.volunteers, volunteerId))
                 continue;  // the |shift| will be performed by someone unknown to the volunteer
 
@@ -869,8 +910,7 @@ async function populateVolunteers(
             };
 
             if (isBefore(scheduledShift.start, currentTime)
-                    && isAfter(scheduledShift.end, currentTime))
-            {
+                    && isAfter(scheduledShift.end, currentTime)) {
                 if (!schedule.volunteers[volunteerId].activeShift)
                     schedule.volunteersActive++;
 
