@@ -3,6 +3,7 @@
 
 import type { EventTicketProvider } from '@lib/database/Types';
 import type { FinancialData } from './processor/FinancialData';
+import type { FinancialFilter } from '@lib/tickets/Types';
 import { Cache } from '@lib/cache';
 import { createTicketService } from '@lib/tickets';
 import { fetchFinancialData } from './processor/FinancialData';
@@ -26,10 +27,18 @@ export class FinanceProcessor {
     /**
      * Retrieves the processor for the given `event` when it exists in the cache and matches the
      * event's active ticket provider, or creates and initialises a new instance when it doesn't.
-     * Returns `undefined` when an instance could not be created for the given `event`, for example
-     * because it does not contain financial data.
+     * Bypasses the cache when `filter` has any active criteria. Returns `undefined` when an
+     * instance could not be created for the given `event`, for example because it does not contain
+     * financial data.
      */
-    static async getOrCreateForEvent(event: string): Promise<FinanceProcessor | undefined> {
+    static async getOrCreateForEvent(event: string, filter?: FinancialFilter)
+        : Promise<FinanceProcessor | undefined>
+    {
+        if (filter?.utmSource || filter?.utmCampaign) {
+            const financialData = await fetchFinancialData(event, filter);
+            return financialData ? new FinanceProcessor(financialData) : undefined;
+        }
+
         const cache = Cache.getInstance('EventFinances');
 
         const service = await createTicketService(event);

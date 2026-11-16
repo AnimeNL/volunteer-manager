@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
+import type { FinancialFilter } from '@lib/tickets/Types';
 import type { ProviderProduct } from './Types';
 import { createTicketServiceForProvider } from '@lib/tickets';
 import db, { tEvents, tEventsTicketsConfiguration } from '@lib/database';
@@ -209,10 +210,12 @@ const kSalesWindowDays = 365;
 
 /**
  * Fetches financial data from the database for the given `eventSlug`, as well as a number of
- * historic events defined in the `kHistoricEventCount` constant. Returns `undefined` when the
- * `eventSlug` has no financial information associated with it (yet).
+ * historic events defined in the `kHistoricEventCount` constant (omitted when `filter` is active).
+ * Returns `undefined` when the `eventSlug` has no financial information associated with it (yet).
  */
-export async function fetchFinancialData(eventSlug: string): Promise<FinancialData | undefined> {
+export async function fetchFinancialData(eventSlug: string, filter?: FinancialFilter)
+    : Promise<FinancialData | undefined>
+{
     const dbInstance = db;
 
     const rawTargetEvent = await dbInstance.selectFrom(tEvents)
@@ -233,10 +236,14 @@ export async function fetchFinancialData(eventSlug: string): Promise<FinancialDa
     if (!targetEvent || !(await hasEventSales(targetEvent)))
         return undefined;
 
-    const historicEvents = await fetchHistoricEvents(targetEvent);
+    const isFiltered = Boolean(filter?.utmSource || filter?.utmCampaign);
+    const historicEvents = isFiltered ? [] : await fetchHistoricEvents(targetEvent);
 
-    const financialEventData: FinancialEventData[] = [];
-    for (const event of [ targetEvent, ...historicEvents ])
+    const financialEventData: FinancialEventData[] = [
+        await buildFinancialEventData(targetEvent, filter),
+    ];
+
+    for (const event of historicEvents)
         financialEventData.push(await buildFinancialEventData(event));
 
     const remaining = targetEvent.endTime.since(Temporal.Now.zonedDateTimeISO('UTC'), {
@@ -351,8 +358,10 @@ async function fetchHistoricEvents(targetEvent: ConfiguredEvent): Promise<Config
  * Fetches configured products from the ticketing provider configured on `event` and builds its
  * `FinancialEventData` record.
  */
-async function buildFinancialEventData(event: ConfiguredEvent): Promise<FinancialEventData> {
-    const rawProducts = await fetchEventProducts(event);
+async function buildFinancialEventData(event: ConfiguredEvent, filter?: FinancialFilter)
+    : Promise<FinancialEventData>
+{
+    const rawProducts = await fetchEventProducts(event, filter);
 
     const products = new Map<number, FinancialProduct>();
     for (const rawProduct of rawProducts)
@@ -371,9 +380,11 @@ async function buildFinancialEventData(event: ConfiguredEvent): Promise<Financia
 /**
  * Dispatches product and sales retrieval to the single ticketing provider configured for `event`.
  */
-async function fetchEventProducts(event: ConfiguredEvent): Promise<ProviderProduct[]> {
+async function fetchEventProducts(event: ConfiguredEvent, filter?: FinancialFilter)
+    : Promise<ProviderProduct[]>
+{
     const service = createTicketServiceForProvider(event.provider, event.providerEventId);
-    return service ? await service.fetchFinancialProducts(event.id) : [];
+    return service ? await service.fetchFinancialProducts(event.id, filter) : [];
 }
 
 /**
