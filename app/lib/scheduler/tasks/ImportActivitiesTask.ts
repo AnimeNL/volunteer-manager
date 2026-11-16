@@ -239,117 +239,18 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
             mutations: [],
         };
 
-        // -----------------------------------------------------------------------------------------
-        // Step 1: Gather IDs of entities in the stored program
-        // -----------------------------------------------------------------------------------------
+        const stored = this.indexStoredProgram(storedActivities);
+        const current = this.indexCurrentProgram(currentActivities);
 
-        const seenActivitiesInStoredProgram = new Map<number, StoredActivity>();
-        const seenAreasInStoredProgram = new Map<number, StoredArea>();
-        const seenLocationsInStoredProgram = new Map<number, StoredLocation>();
-        const seenTimeslotsInStoredProgram = new Map<number, StoredTimeslot>();
-
-        const timeslotToStoredActivity = new Map<number, StoredActivity>();
-
-        for (const storedActivity of storedActivities) {
-            seenActivitiesInStoredProgram.set(storedActivity.id, storedActivity);
-            for (const storedTimeslot of storedActivity.timeslots) {
-                if (!storedTimeslot.id) {
-                    this.log.warning(`Invalid timeslot found for activity=${storedActivity.id}`);
-                    continue;
-                }
-
-                seenTimeslotsInStoredProgram.set(storedTimeslot.id, storedTimeslot);
-                timeslotToStoredActivity.set(storedTimeslot.id, storedActivity);
-
-                if (!!storedTimeslot.locationId) {
-                    if (!seenLocationsInStoredProgram.has(storedTimeslot.locationId)) {
-                        seenLocationsInStoredProgram.set(storedTimeslot.locationId, {
-                            id: storedTimeslot.locationId,
-                            name: storedTimeslot.locationName!,
-                            areaId: storedTimeslot.locationAreaId!,
-                        });
-                    }
-                }
-
-                if (!!storedTimeslot.locationAreaId) {
-                    if (!seenAreasInStoredProgram.has(storedTimeslot.locationAreaId)) {
-                        seenAreasInStoredProgram.set(storedTimeslot.locationAreaId, {
-                            id: storedTimeslot.locationAreaId,
-                            name: storedTimeslot.locationAreaName ?? 'Unnamed area',
-                        });
-                    }
-                }
-            }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Step 2: Gather IDs of entities in the current program
-        // -----------------------------------------------------------------------------------------
-
-        const seenActivitiesInCurrentProgram = new Map<number, Activity>();
-        const seenAreasInCurrentProgram = new Map<number, Area>();
-        const seenLocationsInCurrentProgram = new Map<number, Location>();
-        const seenTimeslotsInCurrentProgram = new Map<number, Timeslot>();
-
-        const timeslotToCurrentActivity = new Map<number, Activity>();
-
-        for (const currentActivity of currentActivities) {
-            seenActivitiesInCurrentProgram.set(currentActivity.id, currentActivity);
-            for (const currentTimeslot of currentActivity.timeslots) {
-                seenTimeslotsInCurrentProgram.set(currentTimeslot.id, currentTimeslot);
-                timeslotToCurrentActivity.set(currentTimeslot.id, currentActivity);
-
-                if (!seenLocationsInCurrentProgram.has(currentTimeslot.location.id)) {
-                    seenLocationsInCurrentProgram.set(
-                        currentTimeslot.location.id, currentTimeslot.location);
-                }
-
-                if (!seenAreasInCurrentProgram.has(currentTimeslot.location.floorId)) {
-                    seenAreasInCurrentProgram.set(currentTimeslot.location.floorId, {
-                        id: currentTimeslot.location.floorId,
-                        name: currentTimeslot.location.area ?? 'Unnamed area',
-                    });
-                }
-            }
-        }
-
-        // -----------------------------------------------------------------------------------------
-        // Step 3: Identify program additions and removals
-        // -----------------------------------------------------------------------------------------
-
-        const addedOrRemovedActivities =
-            new Set([ ...seenActivitiesInStoredProgram.keys() ]).symmetricDifference(
-            new Set([ ...seenActivitiesInCurrentProgram.keys() ]));
-
-        for (const activityId of addedOrRemovedActivities) {
-            if (!seenActivitiesInStoredProgram.has(activityId)) {
-                const currentActivity = seenActivitiesInCurrentProgram.get(activityId);
-                if (!currentActivity)
-                    throw new Error('Unrecognised new entry in seenActivitiesInCurrentProgram');
-
+        this.reconcileEntities(stored.activities, current.activities, {
+            entityName: 'Activities',
+            onCreate: (activityId, currentActivity) => {
                 mutations.created.push(dbInstance.insertInto(tActivities)
                     .set({
                         activityId: currentActivity.id,
                         activityFestivalId: currentActivity.festivalId,
                         activityType: kActivityType.Program,
-                        activityTitle: currentActivity.title,
-                        activityDescription: currentActivity.description,
-                        activityDescriptionWeb: currentActivity.webDescription,
-                        activityRules: currentActivity.rules,
-                        activityUrl: currentActivity.url,
-                        activityPrice: currentActivity.price,
-                        activityHelpNeeded: currentActivity.helpNeeded ? 1 : 0,
-                        activityMaxVisitors: currentActivity.maxVisitors,
-                        activityReportToEmail: currentActivity.reportToEmail,
-                        activityReportToName: currentActivity.reportToName,
-                        activityTypeAdultsOnly: currentActivity.activityType?.adultsOnly ? 1 : 0,
-                        activityTypeCompetition: currentActivity.activityType?.competition ? 1 : 0,
-                        activityTypeCosplay: currentActivity.activityType?.cosplay ? 1 : 0,
-                        activityTypeEvent: currentActivity.activityType?.event ? 1 : 0,
-                        activityTypeGameRoom: currentActivity.activityType?.gameRoom ? 1 : 0,
-                        activityTypeVideo: currentActivity.activityType?.video ? 1 : 0,
-                        activityVisible: currentActivity.visible ? 1 : 0,
-                        activityVisibleReason: currentActivity.reasonInvisible,
+                        ...this.buildActivityFields(currentActivity),
                         activityCreated: dbInstance.currentZonedDateTime(),
                         activityUpdated: dbInstance.currentZonedDateTime(),
                         activityDeleted: null,
@@ -367,12 +268,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     severity: this.maybeEscalateMutationSeverity(
                         currentActivity, kMutationSeverity.Moderate),
                 });
-
-            } else {
-                const storedActivity = seenActivitiesInStoredProgram.get(activityId);
-                if (!storedActivity)
-                    throw new Error('Unrecognised removed entry in seenActivitiesInStoredProgram');
-
+            },
+            onDelete: (activityId, storedActivity) => {
                 mutations.deleted.push(dbInstance.update(tActivities)
                     .set({
                         activityDeleted: dbInstance.currentZonedDateTime(),
@@ -385,21 +282,36 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     severity: this.maybeEscalateMutationSeverity(
                         storedActivity, kMutationSeverity.Moderate),
                 });
-            }
-        }
+            },
+            onUpdate: (activityId, storedActivity, currentActivity) => {
+                const update = this.compareActivity(storedActivity, currentActivity);
+                if (!update.fields.length)
+                    return;  // the `storedActivity` is still up-to-date
 
-        // -----------------------------------------------------------------------------------------
+                mutations.updated.push(dbInstance.update(tActivities)
+                    .set({
+                        ...this.buildActivityFields(currentActivity),
+                        activityUpdated: dbInstance.currentZonedDateTime(),
+                        activityDeleted: null,
+                    })
+                    .where(tActivities.activityId.equals(activityId))
+                        .and(tActivities.activityFestivalId.equals(festivalId)));
 
-        const addedOrRemovedAreas =
-            new Set([ ...seenAreasInStoredProgram.keys() ]).symmetricDifference(
-            new Set([ ...seenAreasInCurrentProgram.keys() ]));
+                if (update.fields.length === 1 && update.fields[0] === 'report to (e-mail)')
+                    return;  // do not write a changelog entry when only the e-mail address changed
 
-        for (const areaId of addedOrRemovedAreas) {
-            if (!seenAreasInStoredProgram.has(areaId)) {
-                const currentArea = seenAreasInCurrentProgram.get(areaId);
-                if (!currentArea)
-                    throw new Error('Unrecognised new entry in seenAreasInCurrentProgram');
+                mutations.mutations.push({
+                    activityId,
+                    mutation: kMutation.Updated,
+                    mutatedFields: update.fields,
+                    severity: update.severity,
+                });
+            },
+        });
 
+        this.reconcileEntities(stored.areas, current.areas, {
+            entityName: 'Areas',
+            onCreate: (areaId, currentArea) => {
                 mutations.created.push(dbInstance.insertInto(tActivitiesAreas)
                     .set({
                         areaId: currentArea.id,
@@ -422,12 +334,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     mutation: kMutation.Created,
                     severity: kMutationSeverity.Moderate,
                 });
-
-            } else {
-                const storedArea = seenAreasInStoredProgram.get(areaId);
-                if (!storedArea)
-                    throw new Error('Unrecognised removed entry in seenAreasInStoredProgram');
-
+            },
+            onDelete: (areaId) => {
                 mutations.deleted.push(dbInstance.update(tActivitiesAreas)
                     .set({
                         areaDeleted: dbInstance.currentZonedDateTime(),
@@ -439,21 +347,33 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     mutation: kMutation.Deleted,
                     severity: kMutationSeverity.Moderate,
                 });
-            }
-        }
+            },
+            onUpdate: (areaId, storedArea, currentArea) => {
+                const update = this.compareArea(storedArea, currentArea);
+                if (!update.fields.length)
+                    return;  // the `storedArea` is still up-to-date
 
-        // -----------------------------------------------------------------------------------------
+                mutations.updated.push(dbInstance.update(tActivitiesAreas)
+                    .set({
+                        areaName: currentArea.name,
+                        areaUpdated: dbInstance.currentZonedDateTime(),
+                        areaDeleted: null,
+                    })
+                    .where(tActivitiesAreas.areaId.equals(areaId))
+                        .and(tActivitiesAreas.areaFestivalId.equals(festivalId)));
 
-        const addedOrRemovedLocations =
-            new Set([ ...seenLocationsInStoredProgram.keys() ]).symmetricDifference(
-            new Set([ ...seenLocationsInCurrentProgram.keys() ]));
+                mutations.mutations.push({
+                    areaId,
+                    mutation: kMutation.Updated,
+                    mutatedFields: update.fields,
+                    severity: update.severity,
+                });
+            },
+        });
 
-        for (const locationId of addedOrRemovedLocations) {
-            if (!seenLocationsInStoredProgram.has(locationId)) {
-                const currentLocation = seenLocationsInCurrentProgram.get(locationId);
-                if (!currentLocation)
-                    throw new Error('Unrecognised new entry in seenLocationsInCurrentProgram');
-
+        this.reconcileEntities(stored.locations, current.locations, {
+            entityName: 'Locations',
+            onCreate: (locationId, currentLocation) => {
                 mutations.created.push(dbInstance.insertInto(tActivitiesLocations)
                     .set({
                         locationId: currentLocation.id,
@@ -477,12 +397,8 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     mutation: kMutation.Created,
                     severity: kMutationSeverity.Moderate,
                 });
-
-            } else {
-                const storedLocation = seenLocationsInStoredProgram.get(locationId);
-                if (!storedLocation)
-                    throw new Error('Unrecognised removed entry in seenLocationsInStoredProgram');
-
+            },
+            onDelete: (locationId) => {
                 mutations.deleted.push(dbInstance.update(tActivitiesLocations)
                     .set({
                         locationDeleted: dbInstance.currentZonedDateTime(),
@@ -494,21 +410,35 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     mutation: kMutation.Deleted,
                     severity: kMutationSeverity.Moderate,
                 });
-            }
-        }
+            },
+            onUpdate: (locationId, storedLocation, currentLocation) => {
+                const update = this.compareLocation(storedLocation, currentLocation);
+                if (!update.fields.length)
+                    return;  // the `storedLocation` is still up-to-date
 
-        // -----------------------------------------------------------------------------------------
+                mutations.updated.push(dbInstance.update(tActivitiesLocations)
+                    .set({
+                        locationName: currentLocation.useName ?? currentLocation.name,
+                        locationUpdated: dbInstance.currentZonedDateTime(),
+                        locationDeleted: null,
+                    })
+                    .where(tActivitiesLocations.locationId.equals(locationId))
+                        .and(tActivitiesLocations.locationFestivalId.equals(festivalId)));
 
-        const addedOrRemovedTimeslots =
-            new Set([ ...seenTimeslotsInStoredProgram.keys() ]).symmetricDifference(
-            new Set([ ...seenTimeslotsInCurrentProgram.keys() ]));
+                mutations.mutations.push({
+                    locationId,
+                    mutation: kMutation.Updated,
+                    mutatedFields: update.fields,
+                    severity: update.severity,
+                });
+            },
+        });
 
-        for (const timeslotId of addedOrRemovedTimeslots) {
-            if (!seenTimeslotsInStoredProgram.has(timeslotId)) {
-                const currentActivity = timeslotToCurrentActivity.get(timeslotId);
-                const currentTimeslot = seenTimeslotsInCurrentProgram.get(timeslotId);
-
-                if (!currentActivity || !currentTimeslot)
+        this.reconcileEntities(stored.timeslots, current.timeslots, {
+            entityName: 'Timeslots',
+            onCreate: (timeslotId, currentTimeslot) => {
+                const currentActivity = current.timeslotToActivity.get(timeslotId);
+                if (!currentActivity)
                     throw new Error('Unrecognised new entry in seenTimeslotsInCurrentProgram');
 
                 mutations.created.push(dbInstance.insertInto(tActivitiesTimeslots)
@@ -538,16 +468,14 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     severity: this.maybeEscalateMutationSeverity(
                         currentActivity, kMutationSeverity.Moderate),
                 });
-
-            } else {
-                const storedActivity = timeslotToStoredActivity.get(timeslotId);
-                const storedTimeslot = seenTimeslotsInStoredProgram.get(timeslotId);
-
-                if (!storedActivity || !storedTimeslot || !storedTimeslot.id)
+            },
+            onDelete: (timeslotId, storedTimeslot) => {
+                const storedActivity = stored.timeslotToActivity.get(timeslotId);
+                if (!storedActivity || !storedTimeslot.id)
                     throw new Error('Unrecognised removed entry in seenTimeslotsInStoredProgram');
 
                 if (!!storedTimeslot.deleted)
-                    continue;  // the `storedTimeslot` has already been marked as deleted
+                    return;  // the `storedTimeslot` has already been marked as deleted
 
                 mutations.deleted.push(dbInstance.update(tActivitiesTimeslots)
                     .set({
@@ -563,140 +491,164 @@ export class ImportActivitiesTask extends TaskWithParams<TaskParams> {
                     severity: this.maybeEscalateMutationSeverity(
                         storedActivity, kMutationSeverity.Moderate),
                 });
+            },
+            onUpdate: (timeslotId, storedTimeslot, currentTimeslot) => {
+                const update = this.compareTimeslot(storedTimeslot, currentTimeslot);
+                if (!update.fields.length)
+                    return;  // the `storedTimeslot` is still up-to-date
+
+                mutations.updated.push(dbInstance.update(tActivitiesTimeslots)
+                    .set({
+                        timeslotStartTime: toZonedDateTime(currentTimeslot.dateStartsAt),
+                        timeslotEndTime: toZonedDateTime(currentTimeslot.dateEndsAt),
+                        timeslotLocationId: currentTimeslot.location.id,
+                        timeslotUpdated: dbInstance.currentZonedDateTime(),
+                        timeslotDeleted: null,
+                    })
+                    .where(tActivitiesTimeslots.timeslotId.equals(timeslotId)));
+
+                mutations.mutations.push({
+                    activityId: current.timeslotToActivity.get(currentTimeslot.id)?.id,
+                    activityTimeslotId: timeslotId,
+                    mutation: kMutation.Updated,
+                    mutatedFields: update.fields,
+                    severity: update.severity,
+                });
+            },
+        });
+
+        return mutations;
+    }
+
+    private indexStoredProgram(storedActivities: StoredActivity[]) {
+        const activities = new Map<number, StoredActivity>();
+        const areas = new Map<number, StoredArea>();
+        const locations = new Map<number, StoredLocation>();
+        const timeslots = new Map<number, StoredTimeslot>();
+        const timeslotToActivity = new Map<number, StoredActivity>();
+
+        for (const storedActivity of storedActivities) {
+            activities.set(storedActivity.id, storedActivity);
+            for (const storedTimeslot of storedActivity.timeslots) {
+                if (!storedTimeslot.id) {
+                    this.log.warning(`Invalid timeslot found for activity=${storedActivity.id}`);
+                    continue;
+                }
+
+                timeslots.set(storedTimeslot.id, storedTimeslot);
+                timeslotToActivity.set(storedTimeslot.id, storedActivity);
+
+                if (storedTimeslot.locationId && !locations.has(storedTimeslot.locationId)) {
+                    locations.set(storedTimeslot.locationId, {
+                        id: storedTimeslot.locationId,
+                        name: storedTimeslot.locationName!,
+                        areaId: storedTimeslot.locationAreaId!,
+                    });
+                }
+
+                if (storedTimeslot.locationAreaId && !areas.has(storedTimeslot.locationAreaId)) {
+                    areas.set(storedTimeslot.locationAreaId, {
+                        id: storedTimeslot.locationAreaId,
+                        name: storedTimeslot.locationAreaName ?? 'Unnamed area',
+                    });
+                }
             }
         }
 
-        // -----------------------------------------------------------------------------------------
-        // Step 4: Identify updates to the program
-        // -----------------------------------------------------------------------------------------
+        return { activities, areas, locations, timeslots, timeslotToActivity };
+    }
 
-        for (const storedActivity of seenActivitiesInStoredProgram.values()) {
-            const currentActivity = seenActivitiesInCurrentProgram.get(storedActivity.id);
-            if (!currentActivity)
-                continue;
+    private indexCurrentProgram(currentActivities: Activity[]) {
+        const activities = new Map<number, Activity>();
+        const areas = new Map<number, Area>();
+        const locations = new Map<number, Location>();
+        const timeslots = new Map<number, Timeslot>();
+        const timeslotToActivity = new Map<number, Activity>();
 
-            const update = this.compareActivity(storedActivity, currentActivity);
-            if (!update.fields.length)
-                continue;  // the `storedActivity` is still up-to-date
+        for (const currentActivity of currentActivities) {
+            activities.set(currentActivity.id, currentActivity);
+            for (const currentTimeslot of currentActivity.timeslots) {
+                timeslots.set(currentTimeslot.id, currentTimeslot);
+                timeslotToActivity.set(currentTimeslot.id, currentActivity);
 
-            mutations.updated.push(dbInstance.update(tActivities)
-                .set({
-                    activityTitle: currentActivity.title,
-                    activityDescription: currentActivity.description,
-                    activityDescriptionWeb: currentActivity.webDescription,
-                    activityRules: currentActivity.rules,
-                    activityUrl: currentActivity.url,
-                    activityPrice: currentActivity.price,
-                    activityHelpNeeded: currentActivity.helpNeeded ? 1 : 0,
-                    activityMaxVisitors: currentActivity.maxVisitors,
-                    activityReportToEmail: currentActivity.reportToEmail,
-                    activityReportToName: currentActivity.reportToName,
-                    activityTypeAdultsOnly: currentActivity.activityType?.adultsOnly ? 1 : 0,
-                    activityTypeCompetition: currentActivity.activityType?.competition ? 1 : 0,
-                    activityTypeCosplay: currentActivity.activityType?.cosplay ? 1 : 0,
-                    activityTypeEvent: currentActivity.activityType?.event ? 1 : 0,
-                    activityTypeGameRoom: currentActivity.activityType?.gameRoom ? 1 : 0,
-                    activityTypeVideo: currentActivity.activityType?.video ? 1 : 0,
-                    activityVisible: currentActivity.visible ? 1 : 0,
-                    activityVisibleReason: currentActivity.reasonInvisible,
-                    activityUpdated: dbInstance.currentZonedDateTime(),
-                    activityDeleted: null,
-                })
-                .where(tActivities.activityId.equals(storedActivity.id))
-                    .and(tActivities.activityFestivalId.equals(festivalId)));
+                if (!locations.has(currentTimeslot.location.id)) {
+                    locations.set(currentTimeslot.location.id, currentTimeslot.location);
+                }
 
-            if (update.fields.length === 1 && update.fields[0] === 'report to (e-mail)')
-                continue;  // do not write a changelog entry when only the e-mail address changed
-
-            mutations.mutations.push({
-                activityId: storedActivity.id,
-                mutation: kMutation.Updated,
-                mutatedFields: update.fields,
-                severity: update.severity,
-            });
+                if (!areas.has(currentTimeslot.location.floorId)) {
+                    areas.set(currentTimeslot.location.floorId, {
+                        id: currentTimeslot.location.floorId,
+                        name: currentTimeslot.location.area ?? 'Unnamed area',
+                    });
+                }
+            }
         }
 
-        for (const storedArea of seenAreasInStoredProgram.values()) {
-            const currentArea = seenAreasInCurrentProgram.get(storedArea.id);
-            if (!currentArea)
-                continue;
+        return { activities, areas, locations, timeslots, timeslotToActivity };
+    }
 
-            const update = this.compareArea(storedArea, currentArea);
-            if (!update.fields.length)
-                continue;  // the `storedArea` is still up-to-date
+    private reconcileEntities<TStored, TCurrent>(
+        storedMap: Map<number, TStored>,
+        currentMap: Map<number, TCurrent>,
+        handlers: {
+            entityName: string;
+            onCreate: (id: number, current: TCurrent) => void;
+            onDelete: (id: number, stored: TStored) => void;
+            onUpdate: (id: number, stored: TStored, current: TCurrent) => void;
+        },
+    ) {
+        const addedOrRemoved =
+            new Set([ ...storedMap.keys() ]).symmetricDifference(
+            new Set([ ...currentMap.keys() ]));
 
-            mutations.updated.push(dbInstance.update(tActivitiesAreas)
-                .set({
-                    areaName: currentArea.name,
-                    areaUpdated: dbInstance.currentZonedDateTime(),
-                    areaDeleted: null,
-                })
-                .where(tActivitiesAreas.areaId.equals(storedArea.id))
-                    .and(tActivitiesAreas.areaFestivalId.equals(festivalId)));
-
-            mutations.mutations.push({
-                areaId: storedArea.id,
-                mutation: kMutation.Updated,
-                mutatedFields: update.fields,
-                severity: update.severity,
-            });
+        for (const id of addedOrRemoved) {
+            if (!storedMap.has(id)) {
+                const current = currentMap.get(id);
+                if (!current) {
+                    throw new Error(
+                        `Unrecognised new entry in seen${handlers.entityName}InCurrentProgram`);
+                }
+                handlers.onCreate(id, current);
+            } else {
+                const stored = storedMap.get(id);
+                if (!stored) {
+                    throw new Error(
+                        `Unrecognised removed entry in seen${handlers.entityName}InStoredProgram`);
+                }
+                handlers.onDelete(id, stored);
+            }
         }
 
-        for (const storedLocation of seenLocationsInStoredProgram.values()) {
-            const currentLocation = seenLocationsInCurrentProgram.get(storedLocation.id);
-            if (!currentLocation)
+        for (const [ id, stored ] of storedMap.entries()) {
+            const current = currentMap.get(id);
+            if (!current)
                 continue;
 
-            const update = this.compareLocation(storedLocation, currentLocation);
-            if (!update.fields.length)
-                continue;  // the `storedLocation` is still up-to-date
-
-            mutations.updated.push(dbInstance.update(tActivitiesLocations)
-                .set({
-                    locationName: currentLocation.useName ?? currentLocation.name,
-                    locationUpdated: dbInstance.currentZonedDateTime(),
-                    locationDeleted: null,
-                })
-                .where(tActivitiesLocations.locationId.equals(storedLocation.id))
-                    .and(tActivitiesLocations.locationFestivalId.equals(festivalId)));
-
-            mutations.mutations.push({
-                locationId: storedLocation.id,
-                mutation: kMutation.Updated,
-                mutatedFields: update.fields,
-                severity: update.severity,
-            });
+            handlers.onUpdate(id, stored, current);
         }
+    }
 
-        for (const storedTimeslot of seenTimeslotsInStoredProgram.values()) {
-            const currentTimeslot = seenTimeslotsInCurrentProgram.get(storedTimeslot.id!);
-            if (!currentTimeslot)
-                continue;
-
-            const update = this.compareTimeslot(storedTimeslot, currentTimeslot);
-            if (!update.fields.length)
-                continue;  // the `storedTimeslot` is still up-to-date
-
-            mutations.updated.push(dbInstance.update(tActivitiesTimeslots)
-                .set({
-                    timeslotStartTime: toZonedDateTime(currentTimeslot.dateStartsAt),
-                    timeslotEndTime: toZonedDateTime(currentTimeslot.dateEndsAt),
-                    timeslotLocationId: currentTimeslot.location.id,
-                    timeslotUpdated: dbInstance.currentZonedDateTime(),
-                    timeslotDeleted: null,
-                })
-                .where(tActivitiesTimeslots.timeslotId.equals(storedTimeslot.id!)));
-
-            mutations.mutations.push({
-                activityId: timeslotToCurrentActivity.get(currentTimeslot.id)?.id,
-                activityTimeslotId: storedTimeslot.id,
-                mutation: kMutation.Updated,
-                mutatedFields: update.fields,
-                severity: update.severity,
-            });
-        }
-
-        return mutations;
+    private buildActivityFields(activity: Activity) {
+        return {
+            activityTitle: activity.title,
+            activityDescription: activity.description,
+            activityDescriptionWeb: activity.webDescription,
+            activityRules: activity.rules,
+            activityUrl: activity.url,
+            activityPrice: activity.price,
+            activityHelpNeeded: activity.helpNeeded ? 1 : 0,
+            activityMaxVisitors: activity.maxVisitors,
+            activityReportToEmail: activity.reportToEmail,
+            activityReportToName: activity.reportToName,
+            activityTypeAdultsOnly: activity.activityType?.adultsOnly ? 1 : 0,
+            activityTypeCompetition: activity.activityType?.competition ? 1 : 0,
+            activityTypeCosplay: activity.activityType?.cosplay ? 1 : 0,
+            activityTypeEvent: activity.activityType?.event ? 1 : 0,
+            activityTypeGameRoom: activity.activityType?.gameRoom ? 1 : 0,
+            activityTypeVideo: activity.activityType?.video ? 1 : 0,
+            activityVisible: activity.visible ? 1 : 0,
+            activityVisibleReason: activity.reasonInvisible,
+        };
     }
 
     // ---------------------------------------------------------------------------------------------
