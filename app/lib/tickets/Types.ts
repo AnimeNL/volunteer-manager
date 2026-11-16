@@ -451,3 +451,33 @@ export interface VolunteerTicket {
      */
     cancelled: boolean;
 }
+
+/**
+ * Filter criteria that can be applied to financial queries.
+ */
+export interface FinancialFilter {
+    /**
+     * UTM source value to filter orders by.
+     */
+    utmSource?: string;
+
+    /**
+     * UTM campaign value to filter orders by.
+     */
+    utmCampaign?: string;
+}
+
+/**
+ * Available filter values discovered for an event's financial data.
+ */
+export interface FinancialFilterOptions {
+    /**
+     * Distinct UTM source values present in settled orders for the event.
+     */
+    utmSources: string[];
+
+    /**
+     * Distinct UTM campaign values present in settled orders for the event.
+     */
+    utmCampaigns: string[];
+}
