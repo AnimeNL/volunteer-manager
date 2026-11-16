@@ -73,7 +73,9 @@ interface LiveTicketEntry {
     typeGuid: string;
     barcode: string;
     name: string | null;
-    nickname: string | null;
+    metaFunction: string | null;
+    metaNickname: string | null;
+    metaOrganisation: string | null;
     price: number;
     created: Temporal.ZonedDateTime;
     updated: Temporal.ZonedDateTime;
@@ -142,22 +144,54 @@ function extractHolderName(metadata: Order['tickets'][number]['meta_data']): str
 }
 
 /**
- * Extracts the optional nickname from ticket `metadata`, matching any field whose name starts with
- * "Nickname" (case-insensitive, ignoring leading whitespace), returning `null` when absent.
+ * Extracted metadata fields from a Weeztix ticket's `meta_data` array.
  */
-function extractNickname(metadata: Order['tickets'][number]['meta_data']): string | null {
+interface ExtractedTicketMetadata {
+    metaFunction: string | null;
+    metaNickname: string | null;
+    metaOrganisation: string | null;
+}
+
+/**
+ * Mapping of `ExtractedTicketMetadata` keys to their case-insensitive field name prefixes.
+ */
+const kTicketMetadataFields: Record<keyof ExtractedTicketMetadata, string> = {
+    metaFunction: 'function',
+    metaNickname: 'nickname',
+    metaOrganisation: 'organisation',
+};
+
+/**
+ * Extracts known metadata fields from ticket `metadata`, matching each field whose name starts with
+ * the configured prefix (case-insensitive, ignoring leading whitespace), returning `null` when
+ * absent.
+ */
+function extractTicketMetadata(
+    metadata: Order['tickets'][number]['meta_data'],
+): ExtractedTicketMetadata {
+    const result: ExtractedTicketMetadata = {
+        metaFunction: null,
+        metaNickname: null,
+        metaOrganisation: null,
+    };
+
     for (const entry of metadata) {
         if (typeof entry.value === 'boolean')
             continue;
 
-        if (entry.meta_data.name.trimStart().toLowerCase().startsWith('nickname')) {
-            const nickname = String(entry.value).replace(/\s+/g, ' ').trim();
-            if (nickname)
-                return nickname;
+        const fieldName = entry.meta_data.name.trimStart().toLowerCase();
+        for (const [ key, prefix ] of Object.entries(kTicketMetadataFields) as
+            [ keyof ExtractedTicketMetadata, string ][]) {
+            if (result[key] !== null || !fieldName.startsWith(prefix))
+                continue;
+
+            const value = String(entry.value).replace(/\s+/g, ' ').trim();
+            if (value)
+                result[key] = value;
         }
     }
 
-    return null;
+    return result;
 }
 
 /**
@@ -535,13 +569,15 @@ export class WeeztixImportTask extends Task {
             });
 
             for (const ticket of order.tickets) {
+                const ticketMetadata = extractTicketMetadata(ticket.meta_data);
+
                 liveTickets.set(ticket.guid, {
                     guid: ticket.guid,
                     orderGuid: order.guid,
                     typeGuid: ticket.ticket_id,
                     barcode: ticket.ticket_number,
                     name: extractHolderName(ticket.meta_data),
-                    nickname: extractNickname(ticket.meta_data),
+                    ...ticketMetadata,
                     price: Math.max(0, Math.round(ticket.finn_price - ticket.finn_service_fee)),
                     created: parseTimestamp(ticket.created_at),
                     updated: parseTimestamp(ticket.updated_at),
@@ -586,7 +622,9 @@ export class WeeztixImportTask extends Task {
                 typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
                 name: tWeeztixTickets.weeztixTicketName,
-                nickname: tWeeztixTickets.weeztixTicketMetaNickname,
+                metaFunction: tWeeztixTickets.weeztixTicketMetaFunction,
+                metaNickname: tWeeztixTickets.weeztixTicketMetaNickname,
+                metaOrganisation: tWeeztixTickets.weeztixTicketMetaOrganisation,
                 price: tWeeztixTickets.weeztixTicketPrice,
                 created: tWeeztixTickets.weeztixTicketCreated,
                 updated: tWeeztixTickets.weeztixTicketUpdated,
@@ -664,7 +702,9 @@ export class WeeztixImportTask extends Task {
                 knownTicket.typeGuid !== liveTicket.typeGuid ||
                 knownTicket.barcode !== liveTicket.barcode ||
                 (knownTicket.name || null) !== liveTicket.name ||
-                (knownTicket.nickname || null) !== liveTicket.nickname ||
+                (knownTicket.metaFunction || null) !== liveTicket.metaFunction ||
+                (knownTicket.metaNickname || null) !== liveTicket.metaNickname ||
+                (knownTicket.metaOrganisation || null) !== liveTicket.metaOrganisation ||
                 knownTicket.price !== liveTicket.price ||
                 !areTimestampsEqual(knownTicket.created, liveTicket.created) ||
                 !areTimestampsEqual(knownTicket.updated, liveTicket.updated) ||
@@ -767,7 +807,9 @@ export class WeeztixImportTask extends Task {
                         weeztixTicketTypeGuid: entry.typeGuid,
                         weeztixTicketBarcode: entry.barcode,
                         weeztixTicketName: entry.name,
-                        weeztixTicketMetaNickname: entry.nickname,
+                        weeztixTicketMetaFunction: entry.metaFunction,
+                        weeztixTicketMetaNickname: entry.metaNickname,
+                        weeztixTicketMetaOrganisation: entry.metaOrganisation,
                         weeztixTicketPrice: entry.price,
                         weeztixTicketCreated: entry.created,
                         weeztixTicketUpdated: entry.updated,

@@ -619,8 +619,16 @@ describe('WeeztixImportTask', () => {
                                 { value: 'John', meta_data: { name: 'first_name' } },
                                 { value: 'Smith', meta_data: { name: 'last_name' } },
                                 {
+                                    value: '  Steward  ',
+                                    meta_data: { name: '  Function (volunteer) ' },
+                                },
+                                {
                                     value: '  Johnny   S  ',
                                     meta_data: { name: '  nickname (for badge) ' },
+                                },
+                                {
+                                    value: '  AnimeCon  ',
+                                    meta_data: { name: 'Organisation' },
                                 },
                             ],
                             products: [
@@ -723,14 +731,16 @@ describe('WeeztixImportTask', () => {
                 '2026-08-06 10:00:00',
             ]);
 
-            expect(ticketsByGuid.get('ticket-1')?.slice(0, 11)).toEqual([
+            expect(ticketsByGuid.get('ticket-1')?.slice(0, 13)).toEqual([
                 'ticket-1',
                 'order-1',
                 'event-guid-1',
                 'type-weekend',
                 'BARCODE-777',
                 'John Smith',
+                'Steward',
                 'Johnny S',
+                'AnimeCon',
                 5000,
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
@@ -818,7 +828,9 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: undefined,
-                    nickname: undefined,
+                    metaFunction: undefined,
+                    metaNickname: undefined,
+                    metaOrganisation: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -914,7 +926,9 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: 'Jane',
-                    nickname: 'Janie',
+                    metaFunction: undefined,
+                    metaNickname: 'Janie',
+                    metaOrganisation: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -927,7 +941,9 @@ describe('WeeztixImportTask', () => {
                     typeGuid: 'type-ticket-1',
                     barcode: 'BARCODE-001',
                     name: undefined,
-                    nickname: undefined,
+                    metaFunction: undefined,
+                    metaNickname: undefined,
+                    metaOrganisation: undefined,
                     price: 4500,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
@@ -1034,7 +1050,9 @@ describe('WeeztixImportTask', () => {
                 expect(params[0]).toBe('ticket-invalidated');
                 expect(params[5]).toBe('Alex Lee');
                 expect(params[6]).toBeNull();
-                expect(params[10]).toBe('2026-08-07 12:00:00');
+                expect(params[7]).toBeNull();
+                expect(params[8]).toBeNull();
+                expect(params[12]).toBe('2026-08-07 12:00:00');
                 return 1;
             });
             mockConnection.expect('update', (query, params) => {
