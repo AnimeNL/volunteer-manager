@@ -3,6 +3,7 @@
 
 import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
 import { fetchFinancialData } from './FinancialData';
+import { fetchWeeztixFinancialFilterOptions } from '@lib/tickets/backends/WeeztixFinancialData';
 import { formatDate } from '@lib/Temporal';
 import { useMockConnection } from '@lib/database/Connection';
 
@@ -271,5 +272,90 @@ describe('FinancialData', () => {
         expect(computeWeeztixTicketCapacity(0, 4, 'auto')).toBeUndefined();
         expect(computeWeeztixTicketCapacity(0, 4, 'sold_out')).toBe(4);
         expect(computeWeeztixTicketCapacity(0, 0, 'sold_out')).toBeUndefined();
+    });
+
+    it('applies UTM filters and omits historic events when a filter is active', async () => {
+        const futureEndTime = Temporal.Now.zonedDateTimeISO('UTC').add({ days: 30 });
+        const futureStartTime = futureEndTime.subtract({ days: 2 });
+        const futureEndDate = futureEndTime.toPlainDate();
+
+        mockConnection.expect('selectOneRow', () => ({
+            id: 27,
+            slug: '2027',
+            shortName: 'AnimeCon 2027',
+            startTime: formatDate(futureStartTime, 'YYYY-MM-DD HH:mm:ss'),
+            endTime: formatDate(futureEndTime, 'YYYY-MM-DD HH:mm:ss'),
+            provider: 'Weeztix',
+            weeztixGuid: 'weeztix-2027',
+            ytpEventId: undefined,
+        }));
+
+        mockConnection.expect('selectOneColumnOneRow', () => 5);
+
+        mockConnection.expect('selectManyRows', () => [
+            {
+                id: 101,
+                typeGuid: 'guid-weekend-ticket',
+                type: 'Ticket',
+                category: 'TicketWeekend',
+                available: 380,
+                sold: 120,
+                status: 'available',
+                price: 65,
+                product: 'Weekend Pass',
+                program: undefined,
+            },
+        ]);
+
+        mockConnection.expect('selectManyRows', (query, params) => {
+            expect(query).toContain('weeztix_order_utm_source');
+            expect(query).toContain('weeztix_order_utm_campaign');
+            expect(params).toEqual([
+                0,
+                'weeztix-2027',
+                'guid-weekend-ticket',
+                'paid',
+                'swapped',
+                'newsletter',
+                'early_bird',
+                0,
+            ]);
+            return [
+                {
+                    typeGuid: 'guid-weekend-ticket',
+                    date: formatDate(futureEndDate.subtract({ days: 1 }), 'YYYY-MM-DD'),
+                    complimentary: 0,
+                    count: 3,
+                },
+            ];
+        });
+
+        const result = await fetchFinancialData('2027', {
+            utmSource: 'newsletter',
+            utmCampaign: 'early_bird',
+        });
+
+        expect(result).toBeDefined();
+        expect(result!.data).toHaveLength(1);
+        expect(result!.data[0].products.get(101)?.paidSales).toBe(3);
+    });
+
+    it('discovers distinct sorted UTM filter options for Weeztix', async () => {
+        mockConnection.expect('selectManyRows', (query, params) => {
+            expect(query).toContain('from weeztix_orders');
+            expect(params).toEqual([ 'weeztix-2027', 'paid', 'swapped' ]);
+            return [
+                { utmSource: 'newsletter', utmCampaign: 'early_bird' },
+                { utmSource: 'instagram', utmCampaign: null },
+                { utmSource: 'newsletter', utmCampaign: 'cosplay' },
+                { utmSource: null, utmCampaign: 'cosplay' },
+            ];
+        });
+
+        const options = await fetchWeeztixFinancialFilterOptions('weeztix-2027');
+        expect(options).toEqual({
+            utmSources: [ 'instagram', 'newsletter' ],
+            utmCampaigns: [ 'cosplay', 'early_bird' ],
+        });
     });
 });
