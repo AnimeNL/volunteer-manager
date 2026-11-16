@@ -410,6 +410,26 @@ export interface TicketConfiguration {
      * Optional AnPlan activity ID associated with this ticket type.
      */
     activityId?: number;
+
+    /**
+     * Human-readable name of the ticket type, when known.
+     */
+    name?: string;
+
+    /**
+     * Price of the ticket, in cents to avoid floating point inaccuracy issues, when known.
+     */
+    price?: number;
+
+    /**
+     * Number of sold (non-cancelled, issued) tickets of this type, when known.
+     */
+    sold?: number;
+
+    /**
+     * Maximum number of tickets of this type that can be issued, when known.
+     */
+    amount?: number;
 }
 
 /**

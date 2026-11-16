@@ -3,7 +3,9 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { ProviderSale, TicketConfiguration, TicketSearchSortField } from './Types';
-import db, { tEventsTicketsConfiguration } from '@lib/database';
+import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
+import db, { tEventsTicketsConfiguration, tWeeztixTicketTypes, tYourTicketProviderPurchases,
+    tYourTicketProviderTickets } from '@lib/database';
 
 /**
  * Formatter to display a price in euros.
@@ -69,24 +71,79 @@ export function groupSalesByKey<
 export async function listTicketConfigurationsByProvider(
     eventId: number, provider: EventTicketProvider): Promise<TicketConfiguration[]>
 {
-    const ticketTypeIdColumn = provider === 'Weeztix'
-        ? tEventsTicketsConfiguration.eventTicketWeeztixGuid
-        : tEventsTicketsConfiguration.eventTicketYtpId;
+    if (provider === 'Weeztix') {
+        const ticketTypesJoin = tWeeztixTicketTypes.forUseInLeftJoin();
+
+        const rows = await db.selectFrom(tEventsTicketsConfiguration)
+            .leftJoin(ticketTypesJoin)
+                .on(ticketTypesJoin.weeztixGuid.equals(
+                    tEventsTicketsConfiguration.eventTicketWeeztixGuid))
+                    .and(ticketTypesJoin.weeztixTicketDeleted.isNull())
+            .where(tEventsTicketsConfiguration.eventId.equals(eventId))
+                .and(tEventsTicketsConfiguration.eventTicketWeeztixGuid.isNotNull())
+            .select({
+                id: tEventsTicketsConfiguration.eventTicketId,
+                ticketTypeId: tEventsTicketsConfiguration.eventTicketWeeztixGuid,
+                category: tEventsTicketsConfiguration.eventTicketCategory,
+                activityId: tEventsTicketsConfiguration.eventTicketActivityId,
+                name: ticketTypesJoin.weeztixTicketName,
+                price: ticketTypesJoin.weeztixTicketPrice,
+                sold: ticketTypesJoin.weeztixTicketSold,
+                available: ticketTypesJoin.weeztixTicketAvailable,
+                status: ticketTypesJoin.weeztixTicketStatus,
+            })
+            .executeSelectMany();
+
+        return rows.map(row => ({
+            id: row.id,
+            ticketTypeId: row.ticketTypeId!,
+            category: row.category,
+            activityId: row.activityId,
+            name: row.name?.trim(),
+            price: row.price,
+            sold: row.sold,
+            amount: (row.available !== undefined && row.sold !== undefined &&
+                     row.status !== undefined)
+                ? computeWeeztixTicketCapacity(row.available, row.sold, row.status)
+                : undefined,
+        }));
+    }
+
+    const ticketTypesJoin = tYourTicketProviderTickets.forUseInLeftJoin();
+    const purchasesJoin = tYourTicketProviderPurchases.forUseInLeftJoin();
 
     const rows = await db.selectFrom(tEventsTicketsConfiguration)
+        .leftJoin(ticketTypesJoin)
+            .on(ticketTypesJoin.ytpTicketId.equals(
+                tEventsTicketsConfiguration.eventTicketYtpId))
+                .and(ticketTypesJoin.ytpTicketDeleted.isNull())
+        .leftJoin(purchasesJoin)
+            .on(purchasesJoin.ytpPurchaseItemTicketId.equals(ticketTypesJoin.ytpTicketId))
+                .and(purchasesJoin.ytpPurchaseDateCancelled.isNull())
         .where(tEventsTicketsConfiguration.eventId.equals(eventId))
-            .and(ticketTypeIdColumn.isNotNull())
+            .and(tEventsTicketsConfiguration.eventTicketYtpId.isNotNull())
         .select({
             id: tEventsTicketsConfiguration.eventTicketId,
-            ticketTypeId: ticketTypeIdColumn,
+            ticketTypeId: tEventsTicketsConfiguration.eventTicketYtpId,
             category: tEventsTicketsConfiguration.eventTicketCategory,
             activityId: tEventsTicketsConfiguration.eventTicketActivityId,
+            name: ticketTypesJoin.ytpTicketName,
+            price: ticketTypesJoin.ytpTicketPrice,
+            sold: db.count(purchasesJoin.ytpPurchaseItemId),
+            amount: ticketTypesJoin.ytpTicketAmount,
         })
+        .groupBy(tEventsTicketsConfiguration.eventTicketId)
         .executeSelectMany();
 
     return rows.map(row => ({
-        ...row,
+        id: row.id,
         ticketTypeId: row.ticketTypeId!,
+        category: row.category,
+        activityId: row.activityId,
+        name: row.name?.trim(),
+        price: row.price,
+        sold: row.name !== undefined ? row.sold : undefined,
+        amount: row.amount,
     }));
 }
 

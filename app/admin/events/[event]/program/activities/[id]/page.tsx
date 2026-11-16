@@ -5,10 +5,13 @@ import Link from '@app/LinkProxy';
 import { notFound } from 'next/navigation';
 
 import { default as MuiLink } from '@mui/material/Link';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import Divider from '@mui/material/Divider';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import LabelImportantOutlinedIcon from '@mui/icons-material/LabelImportantOutlined';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
@@ -17,6 +20,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
+import type { TicketConfiguration } from '@lib/tickets/Types';
 import { HistorySection } from '../../HistorySection';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { ProductSalesGraph } from '../../../finance/graphs/ProductSalesGraph';
@@ -27,6 +31,7 @@ import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { formatDate } from '@lib/Temporal';
+import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tShifts, tTeams }
@@ -114,15 +119,20 @@ export default async function ProgramActivityPage(
         })
         .executeSelectMany();
 
-    let products: number[] = [ /* none */ ];
+    const canViewSalesGraph = access.can('statistics.basic');
+    const canViewTickets = access.can('event.tickets', 'read', { event: event.slug });
 
-    if (access.can('statistics.basic')) {
+    let products: number[] = [ /* none */ ];
+    let tickets: TicketConfiguration[] = [ /* none */ ];
+
+    if (canViewSalesGraph || canViewTickets) {
         const service = await createTicketService(event.id);
         if (service) {
             const configurations = await service.listTicketConfigurations(event.id);
-            products = configurations
+            tickets = configurations
                 .filter(config => config.activityId === activityId)
-                .map(config => config.id);
+                .sort((lhs, rhs) => (lhs.name ?? '').localeCompare(rhs.name ?? ''));
+            products = tickets.map(config => config.id);
         }
     }
 
@@ -278,9 +288,43 @@ export default async function ProgramActivityPage(
                             </ListItem> )}
                     </List>
                 </Section> }
-            { !!products.length &&
+            { !!tickets.length &&
                 <Section title="Ticket sales" icon={ <LocalActivityOutlinedIcon /> }>
-                    <ProductSalesGraph cumulative eventId={event.id} products={products} />
+                    { canViewSalesGraph &&
+                        <ProductSalesGraph cumulative eventId={event.id} products={products} /> }
+                    { (canViewSalesGraph && canViewTickets) && <Divider /> }
+                    { canViewTickets &&
+                        <List dense disablePadding
+                              sx={ canViewSalesGraph ? { mt: '0px !important' } : undefined }>
+                            { tickets.map((ticket, index) => {
+                                const href =
+                                    `/admin/events/${event.slug}/tickets/visitors/${ticket.ticketTypeId}`;
+                                const sales = ticket.amount !== undefined
+                                    ? `${ticket.sold ?? 0} / ${ticket.amount} sold`
+                                    : `${ticket.sold ?? 0} sold`;
+                                const revenue =
+                                    formatTicketPrice((ticket.sold ?? 0) * (ticket.price ?? 0));
+                                const secondary =
+                                    ticket.sold !== undefined && ticket.price !== undefined
+                                        ? `${sales} · ${revenue} total revenue`
+                                        : undefined;
+
+                                return (
+                                    <ListItemButton key={ticket.id} LinkComponent={Link} href={href}
+                                                    divider={ index !== tickets.length - 1 }
+                                                    disableGutters>
+                                        <ListItemIcon>
+                                            <ConfirmationNumberOutlinedIcon
+                                                color="primary" fontSize="small" />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={ticket.name ?? String(ticket.ticketTypeId)}
+                                            secondary={secondary}
+                                            slotProps={{ primary: { noWrap: true } }} />
+                                    </ListItemButton>
+                                );
+                            }) }
+                        </List> }
                 </Section> }
             <HistorySection event={event.slug} activityId={activityId} />
         </>
