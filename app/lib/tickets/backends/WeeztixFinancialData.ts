@@ -1,7 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { ProviderProduct, ProviderProductSales, ProviderSale } from '../Types';
+import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
+    ProviderSale } from '../Types';
 import type { WeeztixTicketType } from '@lib/database/Types';
 import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
 import { groupSalesByKey } from '../TicketHelpers';
@@ -64,13 +65,48 @@ export async function hasWeeztixSales(weeztixGuid: string): Promise<boolean> {
 }
 
 /**
- * Fetches all categorised ticket and product types together with their daily sale counts from
- * Weeztix for the given `eventId` and `weeztixGuid`.
+ * Fetches distinct UTM source and campaign values from settled Weeztix orders for `weeztixGuid`.
  */
-export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
-    : Promise<ProviderProduct[]>
+export async function fetchWeeztixFinancialFilterOptions(weeztixGuid: string)
+    : Promise<FinancialFilterOptions>
 {
-    const products = await queryWeeztixProducts(eventId, weeztixGuid);
+    const dbInstance = db;
+
+    const rows = await dbInstance.selectFrom(tWeeztixOrders)
+        .where(tWeeztixOrders.weeztixEventGuid.equals(weeztixGuid))
+            .and(tWeeztixOrders.weeztixOrderDeleted.isNull())
+            .and(tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses))
+        .select({
+            utmSource: tWeeztixOrders.weeztixOrderUtmSource,
+            utmCampaign: tWeeztixOrders.weeztixOrderUtmCampaign,
+        })
+        .groupBy('utmSource', 'utmCampaign')
+        .executeSelectMany();
+
+    const utmSources = new Set<string>();
+    const utmCampaigns = new Set<string>();
+
+    for (const row of rows) {
+        if (row.utmSource)
+            utmSources.add(row.utmSource);
+        if (row.utmCampaign)
+            utmCampaigns.add(row.utmCampaign);
+    }
+
+    return {
+        utmSources: [ ...utmSources ].sort(),
+        utmCampaigns: [ ...utmCampaigns ].sort(),
+    };
+}
+
+/**
+ * Fetches all categorised ticket and product types together with their daily sale counts from
+ * Weeztix for the given `eventId` and `weeztixGuid`, optionally filtered by `filter`.
+ */
+export async function fetchWeeztixProducts(
+    eventId: number, weeztixGuid: string, filter?: FinancialFilter): Promise<ProviderProduct[]>
+{
+    const products = await queryWeeztixProducts(eventId, weeztixGuid, undefined, filter);
     return products.map(product => ({
         ...product,
         category: product.category!,
@@ -79,15 +115,16 @@ export async function fetchWeeztixProducts(eventId: number, weeztixGuid: string)
 
 /**
  * Fetches daily sale counts for the requested `productIds` from Weeztix for the given `eventId` and
- * `weeztixGuid`.
+ * `weeztixGuid`, optionally filtered by `filter`.
  */
 export async function fetchWeeztixProductSales(
-    eventId: number, weeztixGuid: string, productIds: number[]): Promise<ProviderProductSales[]>
+    eventId: number, weeztixGuid: string, productIds: number[], filter?: FinancialFilter)
+        : Promise<ProviderProductSales[]>
 {
     if (!productIds.length)
         return [];
 
-    const products = await queryWeeztixProducts(eventId, weeztixGuid, productIds);
+    const products = await queryWeeztixProducts(eventId, weeztixGuid, productIds, filter);
     return products.map(({ id, limit, product, sales }) => ({
         id,
         limit,
@@ -98,10 +135,11 @@ export async function fetchWeeztixProductSales(
 
 /**
  * Shared query helper for fetching configured Weeztix products and their daily sale counts,
- * optionally filtered to specific `productIds` (otherwise requiring an assigned category).
+ * optionally filtered to specific `productIds` (otherwise requiring an assigned category) and
+ * `filter`.
  */
 async function queryWeeztixProducts(
-    eventId: number, weeztixGuid: string, productIds?: number[])
+    eventId: number, weeztixGuid: string, productIds?: number[], filter?: FinancialFilter)
 {
     const dbInstance = db;
     const activitiesJoin = tActivities.forUseInLeftJoin();
@@ -139,7 +177,7 @@ async function queryWeeztixProducts(
     if (!products.length)
         return [];
 
-    const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products);
+    const salesByTypeGuid = await fetchWeeztixSalesByTypeGuid(weeztixGuid, products, filter);
 
     return products.map(product => ({
         id: product.id,
@@ -157,7 +195,8 @@ async function queryWeeztixProducts(
  */
 async function fetchWeeztixSalesByTypeGuid(
     weeztixGuid: string,
-    products: { typeGuid: string; type: WeeztixTicketType }[]): Promise<Map<string, ProviderSale[]>>
+    products: { typeGuid: string; type: WeeztixTicketType }[],
+    filter?: FinancialFilter): Promise<Map<string, ProviderSale[]>>
 {
     const ticketTypeGuids = products
         .filter(product => product.type === kWeeztixTicketType.Ticket)
@@ -167,8 +206,8 @@ async function fetchWeeztixSalesByTypeGuid(
         .filter(product => product.type === kWeeztixTicketType.Product)
         .map(product => product.typeGuid);
 
-    const ticketSales = await fetchWeeztixTicketSales(weeztixGuid, ticketTypeGuids);
-    const purchaseSales = await fetchWeeztixPurchaseSales(weeztixGuid, productTypeGuids);
+    const ticketSales = await fetchWeeztixTicketSales(weeztixGuid, ticketTypeGuids, filter);
+    const purchaseSales = await fetchWeeztixPurchaseSales(weeztixGuid, productTypeGuids, filter);
 
     return groupSalesByKey([ ...ticketSales, ...purchaseSales ], row => row.typeGuid);
 }
@@ -176,8 +215,9 @@ async function fetchWeeztixSalesByTypeGuid(
 /**
  * Fetches daily sale counts for configured Weeztix ticket types (`kWeeztixTicketType.Ticket`).
  */
-async function fetchWeeztixTicketSales(weeztixGuid: string, typeGuids: string[])
-    : Promise<RawWeeztixSaleRow[]>
+async function fetchWeeztixTicketSales(
+    weeztixGuid: string, typeGuids: string[], filter?: FinancialFilter)
+        : Promise<RawWeeztixSaleRow[]>
 {
     if (!typeGuids.length)
         return [];
@@ -192,6 +232,9 @@ async function fetchWeeztixTicketSales(weeztixGuid: string, typeGuids: string[])
             .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
             .and(tWeeztixOrders.weeztixOrderDeleted.isNull())
             .and(tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses))
+            .and(tWeeztixOrders.weeztixOrderUtmSource.equalsIfValue(filter?.utmSource || undefined))
+            .and(tWeeztixOrders.weeztixOrderUtmCampaign.equalsIfValue(
+                filter?.utmCampaign || undefined))
         .select({
             typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
             date: dbInstance.dateTimeAsDateString(tWeeztixTickets.weeztixTicketCreated),
@@ -206,8 +249,9 @@ async function fetchWeeztixTicketSales(weeztixGuid: string, typeGuids: string[])
  * Fetches daily sale counts for configured Weeztix add-on and standalone product types
  * (`kWeeztixTicketType.Product`).
  */
-async function fetchWeeztixPurchaseSales(weeztixGuid: string, typeGuids: string[])
-    : Promise<RawWeeztixSaleRow[]>
+async function fetchWeeztixPurchaseSales(
+    weeztixGuid: string, typeGuids: string[], filter?: FinancialFilter)
+        : Promise<RawWeeztixSaleRow[]>
 {
     if (!typeGuids.length)
         return [];
@@ -226,6 +270,9 @@ async function fetchWeeztixPurchaseSales(weeztixGuid: string, typeGuids: string[
             .and(parentTicketsJoin.weeztixTicketDeleted.isNull())
             .and(tWeeztixOrders.weeztixOrderDeleted.isNull())
             .and(tWeeztixOrders.weeztixOrderStatus.in(kWeeztixSettledOrderStatuses))
+            .and(tWeeztixOrders.weeztixOrderUtmSource.equalsIfValue(filter?.utmSource || undefined))
+            .and(tWeeztixOrders.weeztixOrderUtmCampaign.equalsIfValue(
+                filter?.utmCampaign || undefined))
         .select({
             typeGuid: tWeeztixPurchases.weeztixPurchaseTypeGuid,
             date: dbInstance.dateTimeAsDateString(tWeeztixPurchases.weeztixPurchaseCreated),

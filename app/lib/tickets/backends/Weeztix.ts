@@ -8,8 +8,8 @@ import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, Provider
     from '../Types';
 import type { TicketService } from '../TicketService';
 import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
-import { fetchWeeztixProductSales, fetchWeeztixProducts, hasWeeztixSales,
-    kWeeztixSettledOrderStatuses } from './WeeztixFinancialData';
+import { fetchWeeztixFinancialFilterOptions, fetchWeeztixProductSales, fetchWeeztixProducts,
+    hasWeeztixSales, kWeeztixSettledOrderStatuses } from './WeeztixFinancialData';
 import { kTicketSearchSortFieldMap, listTicketConfigurationsByProvider,
     upsertTicketConfigurationByProvider } from '../TicketHelpers';
 import db, { tEventsTicketsConfiguration, tUsersEventsTickets, tWeeztixOrders, tWeeztixPurchases,
@@ -148,19 +148,19 @@ export class Weeztix implements TicketService {
     }
 
     async fetchFinancialFilterOptions(): Promise<FinancialFilterOptions> {
-        return { utmSources: [], utmCampaigns: [] };
+        return fetchWeeztixFinancialFilterOptions(this.#eventId);
     }
 
-    async fetchFinancialProducts(eventId: number, _filter?: FinancialFilter)
+    async fetchFinancialProducts(eventId: number, filter?: FinancialFilter)
         : Promise<ProviderProduct[]>
     {
-        return fetchWeeztixProducts(eventId, this.#eventId);
+        return fetchWeeztixProducts(eventId, this.#eventId, filter);
     }
 
-    async fetchProductSales(eventId: number, productIds: number[], _filter?: FinancialFilter)
+    async fetchProductSales(eventId: number, productIds: number[], filter?: FinancialFilter)
         : Promise<ProviderProductSales[]>
     {
-        return fetchWeeztixProductSales(eventId, this.#eventId, productIds);
+        return fetchWeeztixProductSales(eventId, this.#eventId, productIds, filter);
     }
 
     async fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined> {
