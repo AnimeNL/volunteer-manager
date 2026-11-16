@@ -8,6 +8,7 @@ import { z } from 'zod/v4';
 import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
     from '@mui/x-charts-premium';
 
+import type { FinancialFilter } from '@lib/tickets/Types';
 import type { ProviderProductSales } from '../processor/Types';
 import type { RemoteGraphFnReturn } from './RemoteGraphFn';
 import { createTicketService } from '@lib/tickets';
@@ -26,28 +27,32 @@ import { kRemoteGraphColorScheme, kRemoteGraphLimitColour } from './RemoteGraphF
 const kMaximumWastedVerticalSpace = 0.4;
 
 /**
- * Server action used to fetch product sales information for the given |products|, associated with
- * the given |eventId|. Called when the chart is being requested by the client. Will complete the
- * necessary security checks, specifically to verify access to financial statistics.
+ * Server action used to fetch product sales information for the given `products`, associated with
+ * the given `eventId` and optional `filter`. Called when the chart is being requested by the
+ * client. Will complete the necessary security checks, specifically to verify access to financial
+ * statistics.
  */
-export async function fetchProductSales(eventId: number, products: number[], cumulative: boolean)
-    : Promise<RemoteGraphFnReturn>
+export async function fetchProductSales(
+    eventId: number, filter: FinancialFilter | undefined, products: number[], cumulative: boolean)
+        : Promise<RemoteGraphFnReturn>
 {
     return executeServerAction(new FormData, z.object(), async (data: unknown, props) => {
         if (!props.access.can('statistics.finances'))
             return { success: false, error: 'No access to sales information…' };
 
-        return actuallyFetchProductSales(eventId, products, cumulative);
+        return actuallyFetchProductSales(eventId, filter, products, cumulative);
 
     }) as Promise<RemoteGraphFnReturn>;
 }
 
 /**
- * Actually fetches product sales information for the given |eventId| and |products|. When the
- * |cumulative| flag is set, total lines for each of the sold products will be included as well.
+ * Actually fetches product sales information for the given `eventId`, optional `filter`, and
+ * `products`. When the `cumulative` flag is set, total lines for each of the sold products will be
+ * included as well.
  */
-async function actuallyFetchProductSales(eventId: number, products: number[], cumulative: boolean)
-    : Promise<RemoteGraphFnReturn>
+async function actuallyFetchProductSales(
+    eventId: number, filter: FinancialFilter | undefined, products: number[], cumulative: boolean)
+        : Promise<RemoteGraphFnReturn>
 {
     if (products.length > kRemoteGraphColorScheme.length)
         throw new Error('Not enough colours defined to deal with this many products...');
@@ -74,7 +79,7 @@ async function actuallyFetchProductSales(eventId: number, products: number[], cu
 
     const service = await createTicketService(eventId);
     const ticketsData: ProviderProductSales[] =
-        service ? await service.fetchProductSales(eventId, products) : [];
+        service ? await service.fetchProductSales(eventId, products, filter) : [];
 
     if (!ticketsData.length)
         return { success: false, error: 'Unable to determine the products for this graph…' };

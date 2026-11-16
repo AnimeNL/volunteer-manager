@@ -47,7 +47,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     }
 
     // Server Action through which remote graph data can be obtained.
-    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId);
+    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId, undefined);
 
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;

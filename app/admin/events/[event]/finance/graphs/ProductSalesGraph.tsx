@@ -33,6 +33,6 @@ interface ProductSalesGraphProps extends Omit<RemoteGraphProps, 'fetchDataFn'> {
 export function ProductSalesGraph(props: ProductSalesGraphProps) {
     const { eventId, products, ...rest } = props;
 
-    const fetchDataFn = fetchProductSales.bind(null, eventId, products);
+    const fetchDataFn = fetchProductSales.bind(null, eventId, undefined, products);
     return <RemoteGraph cumulative={props.cumulative} fetchDataFn={fetchDataFn} {...rest} />;
 }
