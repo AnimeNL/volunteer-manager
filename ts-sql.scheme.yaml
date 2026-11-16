@@ -4099,6 +4099,18 @@ tables:
   - name: weeztix_ticket_barcode
     type: varchar(64)
     nullable: false
+  - name: weeztix_ticket_meta_function
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_ticket_meta_nickname
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_ticket_meta_organisation
+    type: text
+    nullable: true
+    default: "NULL"
   - name: weeztix_ticket_name
     type: text
     nullable: true
@@ -4151,6 +4163,9 @@ tables:
       `weeztix_event_guid` char(36) NOT NULL,
       `weeztix_ticket_type_guid` char(36) NOT NULL,
       `weeztix_ticket_barcode` varchar(64) NOT NULL,
+      `weeztix_ticket_meta_function` text DEFAULT NULL,
+      `weeztix_ticket_meta_nickname` text DEFAULT NULL,
+      `weeztix_ticket_meta_organisation` text DEFAULT NULL,
       `weeztix_ticket_name` text DEFAULT NULL,
       `weeztix_ticket_nickname` text DEFAULT NULL,
       `weeztix_ticket_price` int(4) unsigned NOT NULL,

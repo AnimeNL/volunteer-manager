@@ -87,12 +87,12 @@ export class Weeztix implements TicketService {
             const ticketRows = await db.update(tWeeztixTickets)
                 .set({
                     weeztixTicketName: '(anonymized)',
-                    weeztixTicketNickname: null,
+                    weeztixTicketMetaNickname: null,
                 })
                 .where(tWeeztixTickets.weeztixEventGuid.equals(this.#eventId))
                     .and(tWeeztixTickets.weeztixTicketPrice.greaterThan(0))
                     .and(tWeeztixTickets.weeztixTicketName.isNotNull().or(
-                        tWeeztixTickets.weeztixTicketNickname.isNotNull()))
+                        tWeeztixTickets.weeztixTicketMetaNickname.isNotNull()))
                     .and(tWeeztixTickets.weeztixTicketName.isNull().or(
                         tWeeztixTickets.weeztixTicketName.notEquals('(anonymized)')))
                 .executeUpdate();
@@ -188,7 +188,7 @@ export class Weeztix implements TicketService {
                 ticketName: ticketTypesJoin.weeztixTicketName,
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
                 name: tWeeztixTickets.weeztixTicketName,
-                nickname: tWeeztixTickets.weeztixTicketNickname,
+                nickname: tWeeztixTickets.weeztixTicketMetaNickname,
             })
             .executeSelectMany();
 
@@ -406,7 +406,7 @@ export class Weeztix implements TicketService {
                     ticketId: tWeeztixTickets.weeztixTicketTypeGuid,
                     barcode: tWeeztixTickets.weeztixTicketBarcode,
                     name: tWeeztixTickets.weeztixTicketName,
-                    nickname: tWeeztixTickets.weeztixTicketNickname,
+                    nickname: tWeeztixTickets.weeztixTicketMetaNickname,
                     price: tWeeztixTickets.weeztixTicketPrice,
                     created: tWeeztixTickets.weeztixTicketCreated,
                     deleted: tWeeztixTickets.weeztixTicketDeleted,
@@ -518,7 +518,7 @@ export class Weeztix implements TicketService {
                 .and(tWeeztixOrders.weeztixOrderStatus.notIn([ 'pending', 'expired' ]))
                 .and(
                     tWeeztixTickets.weeztixTicketName.containsInsensitive(query).or(
-                    tWeeztixTickets.weeztixTicketNickname.containsInsensitive(query).or(
+                    tWeeztixTickets.weeztixTicketMetaNickname.containsInsensitive(query).or(
                     tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
                     ticketTypesJoin.weeztixTicketName.containsInsensitive(query).or(
                     tWeeztixTickets.weeztixGuid.containsInsensitive(query).or(
@@ -567,7 +567,7 @@ export class Weeztix implements TicketService {
                 .and(
                     tWeeztixPurchases.weeztixPurchaseName.containsInsensitive(query).or(
                     parentTicketsJoin.weeztixTicketName.containsInsensitive(query).or(
-                    parentTicketsJoin.weeztixTicketNickname.containsInsensitive(query).or(
+                    parentTicketsJoin.weeztixTicketMetaNickname.containsInsensitive(query).or(
                     tWeeztixOrders.weeztixOrderName.containsInsensitive(query).or(
                     tWeeztixTicketTypes.weeztixTicketName.containsInsensitive(query).or(
                     tWeeztixPurchases.weeztixGuid.containsInsensitive(query).or(

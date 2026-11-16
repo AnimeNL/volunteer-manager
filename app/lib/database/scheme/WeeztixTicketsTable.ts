@@ -18,6 +18,9 @@ export class WeeztixTicketsTable extends Table<DBConnection, 'WeeztixTicketsTabl
     weeztixEventGuid = this.column('weeztix_event_guid', 'string');
     weeztixTicketTypeGuid = this.column('weeztix_ticket_type_guid', 'string');
     weeztixTicketBarcode = this.column('weeztix_ticket_barcode', 'string');
+    weeztixTicketMetaFunction = this.optionalColumnWithDefaultValue('weeztix_ticket_meta_function', 'string');
+    weeztixTicketMetaNickname = this.optionalColumnWithDefaultValue('weeztix_ticket_meta_nickname', 'string');
+    weeztixTicketMetaOrganisation = this.optionalColumnWithDefaultValue('weeztix_ticket_meta_organisation', 'string');
     weeztixTicketName = this.optionalColumnWithDefaultValue('weeztix_ticket_name', 'string');
     weeztixTicketNickname = this.optionalColumnWithDefaultValue('weeztix_ticket_nickname', 'string');
     weeztixTicketPrice = this.column('weeztix_ticket_price', 'int');
