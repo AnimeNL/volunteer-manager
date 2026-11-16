@@ -6,6 +6,7 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 
+import type { FinancialFilter } from '@lib/tickets/Types';
 import { EventRevenueCard } from './kpi/EventRevenueCard';
 import { EventSalesCard } from './kpi/EventSalesCard';
 import { FinanceProcessor } from './FinanceProcessor';
@@ -30,6 +31,11 @@ interface FinanceDashboardProps {
      * URL-safe slug of the event for which financial information should be shown.
      */
     event: string;
+
+    /**
+     * Optional UTM filter to restrict the displayed financial data.
+     */
+    filter?: FinancialFilter;
 }
 
 /**
@@ -37,7 +43,7 @@ interface FinanceDashboardProps {
  * the key metrics that are relevant to those dealing with the event's financial situation.
  */
 export async function FinanceDashboard(props: FinanceDashboardProps) {
-    const processor = await FinanceProcessor.getOrCreateForEvent(props.event);
+    const processor = await FinanceProcessor.getOrCreateForEvent(props.event, props.filter);
     if (!processor || !processor.eventId) {
         return (
             <Paper component={Alert} severity="error">
@@ -47,7 +53,7 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
     }
 
     // Server Action through which remote graph data can be obtained.
-    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId, undefined);
+    const partialFetchDataFn = fetchProductSales.bind(null, processor.eventId, props.filter);
 
     // Aspect ratio to apply to the pie chart containers.
     const kPieChartAspectRatio = 1.8;
