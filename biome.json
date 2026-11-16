@@ -36,6 +36,12 @@
             "complexity": {
                 "noArguments": "error",
                 "noCommaOperator": "error",
+                "noExcessiveCognitiveComplexity": {
+                    "level": "error",
+                    "options": {
+                        "maxAllowedComplexity": 141
+                    }
+                },
                 "noThisInStatic": "error",
                 "noUselessConstructor": "error",
                 "noUselessContinue": "error",

@@ -85,7 +85,7 @@ export function FinanceFilterButton(props: FinanceFilterButtonProps) {
                      onClose={() => setAnchorEl(null)}
                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                <Stack spacing={1} sx={{ p: 1, minWidth: 260 }}>
+                <Stack spacing={1} sx={{ p: 1.5, minWidth: 260 }}>
                     <FormControl size="small" fullWidth disabled={options.utmSources.length === 0}>
                         <InputLabel id="finance-filter-utm-source">UTM Source</InputLabel>
                         <Select labelId="finance-filter-utm-source" label="UTM Source"

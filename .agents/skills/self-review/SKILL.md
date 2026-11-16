@@ -25,6 +25,15 @@ You must prioritise readability and maintainability. Simple, readable code with 
 complexity is strongly preferred. Duplication is frowned upon for this reason, but deduplication
 leading to a lot of considtionals is frowned upon more. Suggest opportunities to the user.
 
+For every file changed in the current diff (`git diff --name-only`):
+
+* **Cognitive complexity**: Review modified and newly added functions for nested conditionals,
+  loops, and branching. Keep new or refactored functions simple, and never introduce a function that
+  exceeds `noExcessiveCognitiveComplexity` in `biome.json`.
+* **Ratcheting down hotspots**: If you modify an existing high-complexity function, prefer
+  extracting small, single-purpose helpers or using early returns to reduce its complexity so the
+  project-wide `maxAllowedComplexity` threshold in `biome.json` can be lowered over time.
+
 You must match the coding and style conventions of the existing project. Some specific rules:
 
 * Lines must not exceed 100 characters in length. Exceptions are import statements and URLs in

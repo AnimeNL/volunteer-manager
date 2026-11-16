@@ -15,7 +15,12 @@ are mandatory, one step is optional.
 2. You must test the code (`npm run test`) and verify that there are no tests that have started
    failing due to your changes. This is expected to take approximately 10 seconds.
 3. You must lint the code (`npm run lint`) and verify that there are no lint failures due to your
-   changes. This is expected to take approximately 5 seconds.
+   changes. This includes Biome's `complexity/noExcessiveCognitiveComplexity` check configured in
+   `biome.json` (currently capped at `141` and ratcheted down over time). This is expected to take
+   approximately 5 seconds.
+4. Inspect the files touched in your change (`git diff --name-only`) for cognitive complexity:
+   ensure you did not push any modified function closer to the `biome.json` limit, and aim to keep
+   newly added or refactored functions simple (ideally <= 15).
 
 These three steps may run in parallel.
 
