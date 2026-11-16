@@ -512,6 +512,145 @@ export class WeeztixImportTask extends Task {
         companyGuid: string, eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
             : Promise<boolean>
     {
+        const recentOrdersMap = await this.fetchRecentOrders(
+            companyGuid, eventGuid, mostRecentUpdate);
+
+        if (!recentOrdersMap.size) {
+            this.log.warning('[Orders] No orders were returned by the API; skipping');
+            return false;
+        }
+
+        this.log.info(`[Orders] Weeztix responded with ${recentOrdersMap.size} order(s)`);
+
+        const { liveOrders, liveTickets, livePurchases } =
+            this.extractLiveEntities(recentOrdersMap);
+
+        const orderGuids = [ ...liveOrders.keys() ];
+        const dbInstance = db;
+
+        const [ knownOrders, knownTickets, knownPurchases ] = await Promise.all([
+            dbInstance.selectFrom(tWeeztixOrders)
+                .where(tWeeztixOrders.weeztixGuid.in(orderGuids))
+                .select({
+                    guid: tWeeztixOrders.weeztixGuid,
+                    eventGuid: tWeeztixOrders.weeztixEventGuid,
+                    name: tWeeztixOrders.weeztixOrderName,
+                    status: tWeeztixOrders.weeztixOrderStatus,
+                    utmSource: tWeeztixOrders.weeztixOrderUtmSource,
+                    utmMedium: tWeeztixOrders.weeztixOrderUtmMedium,
+                    utmCampaign: tWeeztixOrders.weeztixOrderUtmCampaign,
+                    utmTerm: tWeeztixOrders.weeztixOrderUtmTerm,
+                    created: tWeeztixOrders.weeztixOrderCreated,
+                    updated: tWeeztixOrders.weeztixOrderUpdated,
+                    deleted: tWeeztixOrders.weeztixOrderDeleted,
+                })
+                .executeSelectMany(),
+            dbInstance.selectFrom(tWeeztixTickets)
+                .where(tWeeztixTickets.weeztixOrderGuid.in(orderGuids))
+                .select({
+                    guid: tWeeztixTickets.weeztixGuid,
+                    orderGuid: tWeeztixTickets.weeztixOrderGuid,
+                    eventGuid: tWeeztixTickets.weeztixEventGuid,
+                    typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
+                    barcode: tWeeztixTickets.weeztixTicketBarcode,
+                    name: tWeeztixTickets.weeztixTicketName,
+                    metaFunction: tWeeztixTickets.weeztixTicketMetaFunction,
+                    metaNickname: tWeeztixTickets.weeztixTicketMetaNickname,
+                    metaOrganisation: tWeeztixTickets.weeztixTicketMetaOrganisation,
+                    price: tWeeztixTickets.weeztixTicketPrice,
+                    created: tWeeztixTickets.weeztixTicketCreated,
+                    updated: tWeeztixTickets.weeztixTicketUpdated,
+                    deleted: tWeeztixTickets.weeztixTicketDeleted,
+                })
+                .executeSelectMany(),
+            dbInstance.selectFrom(tWeeztixPurchases)
+                .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
+                .select({
+                    guid: tWeeztixPurchases.weeztixGuid,
+                    ticketGuid: tWeeztixPurchases.weeztixTicketGuid,
+                    orderGuid: tWeeztixPurchases.weeztixOrderGuid,
+                    eventGuid: tWeeztixPurchases.weeztixEventGuid,
+                    typeGuid: tWeeztixPurchases.weeztixPurchaseTypeGuid,
+                    name: tWeeztixPurchases.weeztixPurchaseName,
+                    price: tWeeztixPurchases.weeztixPurchasePrice,
+                    created: tWeeztixPurchases.weeztixPurchaseCreated,
+                    updated: tWeeztixPurchases.weeztixPurchaseUpdated,
+                    deleted: tWeeztixPurchases.weeztixPurchaseDeleted,
+                })
+                .executeSelectMany(),
+        ]);
+
+        const ordersDiff = this.diffWeeztixEntities(
+            knownOrders, liveOrders, false,
+            (known, live) =>
+                known.eventGuid !== eventGuid ||
+                (known.name || null) !== live.name ||
+                known.status !== live.status ||
+                (known.utmSource || null) !== live.utmSource ||
+                (known.utmMedium || null) !== live.utmMedium ||
+                (known.utmCampaign || null) !== live.utmCampaign ||
+                (known.utmTerm || null) !== live.utmTerm ||
+                !areTimestampsEqual(known.created, live.created) ||
+                !areTimestampsEqual(known.updated, live.updated) ||
+                !areOptionalTimestampsEqual(known.deleted, live.deleted));
+
+        const ticketsDiff = this.diffWeeztixEntities(
+            knownTickets, liveTickets, true,
+            (known, live) =>
+                known.orderGuid !== live.orderGuid ||
+                known.eventGuid !== eventGuid ||
+                known.typeGuid !== live.typeGuid ||
+                known.barcode !== live.barcode ||
+                (known.name || null) !== live.name ||
+                (known.metaFunction || null) !== live.metaFunction ||
+                (known.metaNickname || null) !== live.metaNickname ||
+                (known.metaOrganisation || null) !== live.metaOrganisation ||
+                known.price !== live.price ||
+                !areTimestampsEqual(known.created, live.created) ||
+                !areTimestampsEqual(known.updated, live.updated) ||
+                !areOptionalTimestampsEqual(known.deleted, live.deleted));
+
+        const purchasesDiff = this.diffWeeztixEntities(
+            knownPurchases, livePurchases, true,
+            (known, live) =>
+                (known.ticketGuid || null) !== live.ticketGuid ||
+                known.orderGuid !== live.orderGuid ||
+                known.eventGuid !== eventGuid ||
+                known.typeGuid !== live.typeGuid ||
+                (known.name || null) !== live.name ||
+                known.price !== live.price ||
+                !areTimestampsEqual(known.created, live.created) ||
+                !areTimestampsEqual(known.updated, live.updated) ||
+                !areOptionalTimestampsEqual(known.deleted, live.deleted));
+
+        await this.persistOrderChanges(dbInstance, eventGuid, orderGuids, {
+            ordersToUpsert: ordersDiff.toUpsert,
+            ticketsToUpsert: ticketsDiff.toUpsert,
+            ticketGuidsToDelete: ticketsDiff.guidsToDelete,
+            purchasesToUpsert: purchasesDiff.toUpsert,
+            purchaseGuidsToDelete: purchasesDiff.guidsToDelete,
+        });
+
+        this.log.info(
+            `[Orders] Added: ${ordersDiff.added}, updated: ${ordersDiff.updated}, ` +
+            `deleted: ${ordersDiff.deleted}`);
+        this.log.info(
+            `[Orders] Tickets — added: ${ticketsDiff.added}, updated: ${ticketsDiff.updated}, ` +
+            `deleted: ${ticketsDiff.deleted}`);
+        this.log.info(
+            `[Orders] Purchases — added: ${purchasesDiff.added}, ` +
+            `updated: ${purchasesDiff.updated}, deleted: ${purchasesDiff.deleted}`);
+
+        return true;
+    }
+
+    /**
+     * Fetches paginated orders from the Weeztix API updated since `mostRecentUpdate`.
+     */
+    private async fetchRecentOrders(
+        companyGuid: string, eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
+            : Promise<Map<string, Order>>
+    {
         mostRecentUpdate ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
         mostRecentUpdate = mostRecentUpdate.subtract({
             hours: this.#configuration.raceConditionCompensationHours,
@@ -551,13 +690,13 @@ export class WeeztixImportTask extends Task {
                 break;
         }
 
-        if (!recentOrdersMap.size) {
-            this.log.warning('[Orders] No orders were returned by the API; skipping');
-            return false;
-        }
+        return recentOrdersMap;
+    }
 
-        this.log.info(`[Orders] Weeztix responded with ${recentOrdersMap.size} order(s)`);
-
+    /**
+     * Normalises API orders into separate maps of live orders, tickets, and purchases.
+     */
+    private extractLiveEntities(recentOrdersMap: Map<string, Order>) {
         const liveOrders = new Map<string, LiveOrderEntry>();
         const liveTickets = new Map<string, LiveTicketEntry>();
         const livePurchases = new Map<string, LivePurchaseEntry>();
@@ -577,15 +716,13 @@ export class WeeztixImportTask extends Task {
             });
 
             for (const ticket of order.tickets) {
-                const ticketMetadata = extractTicketMetadata(ticket.meta_data);
-
                 liveTickets.set(ticket.guid, {
                     guid: ticket.guid,
                     orderGuid: order.guid,
                     typeGuid: ticket.ticket_id,
                     barcode: ticket.ticket_number,
                     name: extractHolderName(ticket.meta_data),
-                    ...ticketMetadata,
+                    ...extractTicketMetadata(ticket.meta_data),
                     price: Math.max(0, Math.round(ticket.finn_price - ticket.finn_service_fee)),
                     created: parseTimestamp(ticket.created_at),
                     updated: parseTimestamp(ticket.updated_at),
@@ -605,302 +742,164 @@ export class WeeztixImportTask extends Task {
             }
         }
 
-        const orderGuids = [ ...liveOrders.keys() ];
+        return { liveOrders, liveTickets, livePurchases };
+    }
 
-        const dbInstance = db;
-        const knownOrders = await dbInstance.selectFrom(tWeeztixOrders)
-            .where(tWeeztixOrders.weeztixGuid.in(orderGuids))
-            .select({
-                guid: tWeeztixOrders.weeztixGuid,
-                eventGuid: tWeeztixOrders.weeztixEventGuid,
-                name: tWeeztixOrders.weeztixOrderName,
-                status: tWeeztixOrders.weeztixOrderStatus,
-                utmSource: tWeeztixOrders.weeztixOrderUtmSource,
-                utmMedium: tWeeztixOrders.weeztixOrderUtmMedium,
-                utmCampaign: tWeeztixOrders.weeztixOrderUtmCampaign,
-                utmTerm: tWeeztixOrders.weeztixOrderUtmTerm,
-                created: tWeeztixOrders.weeztixOrderCreated,
-                updated: tWeeztixOrders.weeztixOrderUpdated,
-                deleted: tWeeztixOrders.weeztixOrderDeleted,
-            })
-            .executeSelectMany();
+    /**
+     * Computes additions, updates, and soft-deletions between stored and live Weeztix entities.
+     */
+    private diffWeeztixEntities<
+        TKnown extends { guid: string; deleted?: Temporal.ZonedDateTime | null },
+        TLive extends { guid: string; deleted: Temporal.ZonedDateTime | null },
+    >(
+        knownItems: TKnown[],
+        liveMap: Map<string, TLive>,
+        trackOrphans: boolean,
+        hasChanged: (known: TKnown, live: TLive) => boolean,
+    ) {
+        const knownMap = new Map(knownItems.map(item => [ item.guid, item ]));
+        const toUpsert: TLive[] = [];
+        const guidsToDelete: string[] = [];
 
-        const knownTickets = await dbInstance.selectFrom(tWeeztixTickets)
-            .where(tWeeztixTickets.weeztixOrderGuid.in(orderGuids))
-            .select({
-                guid: tWeeztixTickets.weeztixGuid,
-                orderGuid: tWeeztixTickets.weeztixOrderGuid,
-                eventGuid: tWeeztixTickets.weeztixEventGuid,
-                typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
-                barcode: tWeeztixTickets.weeztixTicketBarcode,
-                name: tWeeztixTickets.weeztixTicketName,
-                metaFunction: tWeeztixTickets.weeztixTicketMetaFunction,
-                metaNickname: tWeeztixTickets.weeztixTicketMetaNickname,
-                metaOrganisation: tWeeztixTickets.weeztixTicketMetaOrganisation,
-                price: tWeeztixTickets.weeztixTicketPrice,
-                created: tWeeztixTickets.weeztixTicketCreated,
-                updated: tWeeztixTickets.weeztixTicketUpdated,
-                deleted: tWeeztixTickets.weeztixTicketDeleted,
-            })
-            .executeSelectMany();
+        let added = 0;
+        let deleted = 0;
+        let updated = 0;
 
-        const knownPurchases = await dbInstance.selectFrom(tWeeztixPurchases)
-            .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
-            .select({
-                guid: tWeeztixPurchases.weeztixGuid,
-                ticketGuid: tWeeztixPurchases.weeztixTicketGuid,
-                orderGuid: tWeeztixPurchases.weeztixOrderGuid,
-                eventGuid: tWeeztixPurchases.weeztixEventGuid,
-                typeGuid: tWeeztixPurchases.weeztixPurchaseTypeGuid,
-                name: tWeeztixPurchases.weeztixPurchaseName,
-                price: tWeeztixPurchases.weeztixPurchasePrice,
-                created: tWeeztixPurchases.weeztixPurchaseCreated,
-                updated: tWeeztixPurchases.weeztixPurchaseUpdated,
-                deleted: tWeeztixPurchases.weeztixPurchaseDeleted,
-            })
-            .executeSelectMany();
-
-        const knownOrdersMap = new Map(knownOrders.map(order => [ order.guid, order ]));
-        const ordersToUpsert: LiveOrderEntry[] = [];
-
-        let ordersAdded = 0;
-        let ordersDeleted = 0;
-        let ordersUpdated = 0;
-
-        for (const liveOrder of liveOrders.values()) {
-            const knownOrder = knownOrdersMap.get(liveOrder.guid);
-            if (!knownOrder) {
-                ordersToUpsert.push(liveOrder);
-                ordersAdded++;
+        for (const live of liveMap.values()) {
+            const known = knownMap.get(live.guid);
+            if (!known) {
+                toUpsert.push(live);
+                added++;
                 continue;
             }
 
-            const hasChanged =
-                knownOrder.eventGuid !== eventGuid ||
-                (knownOrder.name || null) !== liveOrder.name ||
-                knownOrder.status !== liveOrder.status ||
-                (knownOrder.utmSource || null) !== liveOrder.utmSource ||
-                (knownOrder.utmMedium || null) !== liveOrder.utmMedium ||
-                (knownOrder.utmCampaign || null) !== liveOrder.utmCampaign ||
-                (knownOrder.utmTerm || null) !== liveOrder.utmTerm ||
-                !areTimestampsEqual(knownOrder.created, liveOrder.created) ||
-                !areTimestampsEqual(knownOrder.updated, liveOrder.updated) ||
-                !areOptionalTimestampsEqual(knownOrder.deleted, liveOrder.deleted);
-
-            if (hasChanged) {
-                ordersToUpsert.push(liveOrder);
-                if (!knownOrder.deleted && !!liveOrder.deleted)
-                    ordersDeleted++;
+            if (hasChanged(known, live)) {
+                toUpsert.push(live);
+                if (!known.deleted && !!live.deleted)
+                    deleted++;
                 else
-                    ordersUpdated++;
+                    updated++;
             }
         }
 
-        const knownTicketsMap = new Map(knownTickets.map(ticket => [ ticket.guid, ticket ]));
-        const ticketsToUpsert: LiveTicketEntry[] = [];
-        const ticketGuidsToDelete: string[] = [];
+        if (trackOrphans) {
+            for (const known of knownItems) {
+                if (!!known.deleted || liveMap.has(known.guid))
+                    continue;
 
-        let ticketsAdded = 0;
-        let ticketsDeleted = 0;
-        let ticketsUpdated = 0;
-
-        for (const liveTicket of liveTickets.values()) {
-            const knownTicket = knownTicketsMap.get(liveTicket.guid);
-            if (!knownTicket) {
-                ticketsToUpsert.push(liveTicket);
-                ticketsAdded++;
-                continue;
-            }
-
-            const hasChanged =
-                knownTicket.orderGuid !== liveTicket.orderGuid ||
-                knownTicket.eventGuid !== eventGuid ||
-                knownTicket.typeGuid !== liveTicket.typeGuid ||
-                knownTicket.barcode !== liveTicket.barcode ||
-                (knownTicket.name || null) !== liveTicket.name ||
-                (knownTicket.metaFunction || null) !== liveTicket.metaFunction ||
-                (knownTicket.metaNickname || null) !== liveTicket.metaNickname ||
-                (knownTicket.metaOrganisation || null) !== liveTicket.metaOrganisation ||
-                knownTicket.price !== liveTicket.price ||
-                !areTimestampsEqual(knownTicket.created, liveTicket.created) ||
-                !areTimestampsEqual(knownTicket.updated, liveTicket.updated) ||
-                !areOptionalTimestampsEqual(knownTicket.deleted, liveTicket.deleted);
-
-            if (hasChanged) {
-                ticketsToUpsert.push(liveTicket);
-                if (!knownTicket.deleted && !!liveTicket.deleted)
-                    ticketsDeleted++;
-                else
-                    ticketsUpdated++;
+                guidsToDelete.push(known.guid);
+                deleted++;
             }
         }
 
-        for (const knownTicket of knownTickets) {
-            if (!!knownTicket.deleted || liveTickets.has(knownTicket.guid))
-                continue;
+        return { toUpsert, guidsToDelete, added, deleted, updated };
+    }
 
-            ticketGuidsToDelete.push(knownTicket.guid);
-            ticketsDeleted++;
-        }
-
-        const knownPurchasesMap =
-            new Map(knownPurchases.map(purchase => [ purchase.guid, purchase ]));
-        const purchasesToUpsert: LivePurchaseEntry[] = [];
-        const purchaseGuidsToDelete: string[] = [];
-
-        let purchasesAdded = 0;
-        let purchasesDeleted = 0;
-        let purchasesUpdated = 0;
-
-        for (const livePurchase of livePurchases.values()) {
-            const knownPurchase = knownPurchasesMap.get(livePurchase.guid);
-            if (!knownPurchase) {
-                purchasesToUpsert.push(livePurchase);
-                purchasesAdded++;
-                continue;
-            }
-
-            const hasChanged =
-                (knownPurchase.ticketGuid || null) !== livePurchase.ticketGuid ||
-                knownPurchase.orderGuid !== livePurchase.orderGuid ||
-                knownPurchase.eventGuid !== eventGuid ||
-                knownPurchase.typeGuid !== livePurchase.typeGuid ||
-                (knownPurchase.name || null) !== livePurchase.name ||
-                knownPurchase.price !== livePurchase.price ||
-                !areTimestampsEqual(knownPurchase.created, livePurchase.created) ||
-                !areTimestampsEqual(knownPurchase.updated, livePurchase.updated) ||
-                !areOptionalTimestampsEqual(knownPurchase.deleted, livePurchase.deleted);
-
-            if (hasChanged) {
-                purchasesToUpsert.push(livePurchase);
-                if (!knownPurchase.deleted && !!livePurchase.deleted)
-                    purchasesDeleted++;
-                else
-                    purchasesUpdated++;
-            }
-        }
-
-        for (const knownPurchase of knownPurchases) {
-            if (!!knownPurchase.deleted || livePurchases.has(knownPurchase.guid))
-                continue;
-
-            purchaseGuidsToDelete.push(knownPurchase.guid);
-            purchasesDeleted++;
-        }
-
+    /**
+     * Persists order, ticket, and purchase upserts and soft-deletions in a single transaction.
+     */
+    private async persistOrderChanges(
+        dbInstance: typeof db,
+        eventGuid: string,
+        orderGuids: string[],
+        changes: {
+            ordersToUpsert: LiveOrderEntry[];
+            ticketsToUpsert: LiveTicketEntry[];
+            ticketGuidsToDelete: string[];
+            purchasesToUpsert: LivePurchaseEntry[];
+            purchaseGuidsToDelete: string[];
+        },
+    ): Promise<void> {
         const hasDatabaseChanges =
-            ordersToUpsert.length > 0 ||
-            ticketsToUpsert.length > 0 ||
-            ticketGuidsToDelete.length > 0 ||
-            purchasesToUpsert.length > 0 ||
-            purchaseGuidsToDelete.length > 0;
+            changes.ordersToUpsert.length > 0 ||
+            changes.ticketsToUpsert.length > 0 ||
+            changes.ticketGuidsToDelete.length > 0 ||
+            changes.purchasesToUpsert.length > 0 ||
+            changes.purchaseGuidsToDelete.length > 0;
 
-        if (hasDatabaseChanges) {
-            await dbInstance.transaction(async () => {
-                for (const entry of ordersToUpsert) {
-                    const values = {
-                        weeztixEventGuid: eventGuid,
-                        weeztixOrderName: entry.name,
-                        weeztixOrderStatus: entry.status,
-                        weeztixOrderUtmSource: entry.utmSource,
-                        weeztixOrderUtmMedium: entry.utmMedium,
-                        weeztixOrderUtmCampaign: entry.utmCampaign,
-                        weeztixOrderUtmTerm: entry.utmTerm,
-                        weeztixOrderCreated: entry.created,
-                        weeztixOrderUpdated: entry.updated,
-                        weeztixOrderDeleted: entry.deleted,
-                    };
+        if (!hasDatabaseChanges)
+            return;
 
-                    await dbInstance.insertInto(tWeeztixOrders)
-                        .set({
-                            weeztixGuid: entry.guid,
-                            ...values,
-                        })
-                        .onConflictDoUpdateSet(values)
-                        .executeInsert();
-                }
+        await dbInstance.transaction(async () => {
+            for (const entry of changes.ordersToUpsert) {
+                const values = {
+                    weeztixEventGuid: eventGuid,
+                    weeztixOrderName: entry.name,
+                    weeztixOrderStatus: entry.status,
+                    weeztixOrderUtmSource: entry.utmSource,
+                    weeztixOrderUtmMedium: entry.utmMedium,
+                    weeztixOrderUtmCampaign: entry.utmCampaign,
+                    weeztixOrderUtmTerm: entry.utmTerm,
+                    weeztixOrderCreated: entry.created,
+                    weeztixOrderUpdated: entry.updated,
+                    weeztixOrderDeleted: entry.deleted,
+                };
 
-                for (const entry of ticketsToUpsert) {
-                    const values = {
-                        weeztixOrderGuid: entry.orderGuid,
-                        weeztixEventGuid: eventGuid,
-                        weeztixTicketTypeGuid: entry.typeGuid,
-                        weeztixTicketBarcode: entry.barcode,
-                        weeztixTicketName: entry.name,
-                        weeztixTicketMetaFunction: entry.metaFunction,
-                        weeztixTicketMetaNickname: entry.metaNickname,
-                        weeztixTicketMetaOrganisation: entry.metaOrganisation,
-                        weeztixTicketPrice: entry.price,
-                        weeztixTicketCreated: entry.created,
-                        weeztixTicketUpdated: entry.updated,
-                        weeztixTicketDeleted: entry.deleted,
-                    };
+                await dbInstance.insertInto(tWeeztixOrders)
+                    .set({ weeztixGuid: entry.guid, ...values })
+                    .onConflictDoUpdateSet(values)
+                    .executeInsert();
+            }
 
-                    await dbInstance.insertInto(tWeeztixTickets)
-                        .set({
-                            weeztixGuid: entry.guid,
-                            ...values,
-                        })
-                        .onConflictDoUpdateSet(values)
-                        .executeInsert();
-                }
+            for (const entry of changes.ticketsToUpsert) {
+                const values = {
+                    weeztixOrderGuid: entry.orderGuid,
+                    weeztixEventGuid: eventGuid,
+                    weeztixTicketTypeGuid: entry.typeGuid,
+                    weeztixTicketBarcode: entry.barcode,
+                    weeztixTicketName: entry.name,
+                    weeztixTicketMetaFunction: entry.metaFunction,
+                    weeztixTicketMetaNickname: entry.metaNickname,
+                    weeztixTicketMetaOrganisation: entry.metaOrganisation,
+                    weeztixTicketPrice: entry.price,
+                    weeztixTicketCreated: entry.created,
+                    weeztixTicketUpdated: entry.updated,
+                    weeztixTicketDeleted: entry.deleted,
+                };
 
-                if (ticketGuidsToDelete.length > 0) {
-                    await dbInstance.update(tWeeztixTickets)
-                        .set({
-                            weeztixTicketDeleted: dbInstance.currentZonedDateTime(),
-                        })
-                        .where(tWeeztixTickets.weeztixOrderGuid.in(orderGuids))
-                            .and(tWeeztixTickets.weeztixGuid.in(ticketGuidsToDelete))
-                            .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
-                        .executeUpdate();
-                }
+                await dbInstance.insertInto(tWeeztixTickets)
+                    .set({ weeztixGuid: entry.guid, ...values })
+                    .onConflictDoUpdateSet(values)
+                    .executeInsert();
+            }
 
-                for (const entry of purchasesToUpsert) {
-                    const values = {
-                        weeztixTicketGuid: entry.ticketGuid,
-                        weeztixOrderGuid: entry.orderGuid,
-                        weeztixEventGuid: eventGuid,
-                        weeztixPurchaseTypeGuid: entry.typeGuid,
-                        weeztixPurchaseName: entry.name,
-                        weeztixPurchasePrice: entry.price,
-                        weeztixPurchaseCreated: entry.created,
-                        weeztixPurchaseUpdated: entry.updated,
-                        weeztixPurchaseDeleted: entry.deleted,
-                    };
+            if (changes.ticketGuidsToDelete.length > 0) {
+                await dbInstance.update(tWeeztixTickets)
+                    .set({ weeztixTicketDeleted: dbInstance.currentZonedDateTime() })
+                    .where(tWeeztixTickets.weeztixOrderGuid.in(orderGuids))
+                        .and(tWeeztixTickets.weeztixGuid.in(changes.ticketGuidsToDelete))
+                        .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
+                    .executeUpdate();
+            }
 
-                    await dbInstance.insertInto(tWeeztixPurchases)
-                        .set({
-                            weeztixGuid: entry.guid,
-                            ...values,
-                        })
-                        .onConflictDoUpdateSet(values)
-                        .executeInsert();
-                }
+            for (const entry of changes.purchasesToUpsert) {
+                const values = {
+                    weeztixTicketGuid: entry.ticketGuid,
+                    weeztixOrderGuid: entry.orderGuid,
+                    weeztixEventGuid: eventGuid,
+                    weeztixPurchaseTypeGuid: entry.typeGuid,
+                    weeztixPurchaseName: entry.name,
+                    weeztixPurchasePrice: entry.price,
+                    weeztixPurchaseCreated: entry.created,
+                    weeztixPurchaseUpdated: entry.updated,
+                    weeztixPurchaseDeleted: entry.deleted,
+                };
 
-                if (purchaseGuidsToDelete.length > 0) {
-                    await dbInstance.update(tWeeztixPurchases)
-                        .set({
-                            weeztixPurchaseDeleted: dbInstance.currentZonedDateTime(),
-                        })
-                        .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
-                            .and(tWeeztixPurchases.weeztixGuid.in(purchaseGuidsToDelete))
-                            .and(tWeeztixPurchases.weeztixPurchaseDeleted.isNull())
-                        .executeUpdate();
-                }
-            });
-        }
+                await dbInstance.insertInto(tWeeztixPurchases)
+                    .set({ weeztixGuid: entry.guid, ...values })
+                    .onConflictDoUpdateSet(values)
+                    .executeInsert();
+            }
 
-        this.log.info(
-            `[Orders] Added: ${ordersAdded}, updated: ${ordersUpdated}, deleted: ${ordersDeleted}`);
-        this.log.info(
-            `[Orders] Tickets — added: ${ticketsAdded}, updated: ${ticketsUpdated}, ` +
-            `deleted: ${ticketsDeleted}`);
-        this.log.info(
-            `[Orders] Purchases — added: ${purchasesAdded}, updated: ${purchasesUpdated}, ` +
-            `deleted: ${purchasesDeleted}`);
-
-        return true;
+            if (changes.purchaseGuidsToDelete.length > 0) {
+                await dbInstance.update(tWeeztixPurchases)
+                    .set({ weeztixPurchaseDeleted: dbInstance.currentZonedDateTime() })
+                    .where(tWeeztixPurchases.weeztixOrderGuid.in(orderGuids))
+                        .and(tWeeztixPurchases.weeztixGuid.in(changes.purchaseGuidsToDelete))
+                        .and(tWeeztixPurchases.weeztixPurchaseDeleted.isNull())
+                    .executeUpdate();
+            }
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
