@@ -73,6 +73,7 @@ function buildOrder(overrides: Partial<Order> = {}): Order {
         updated_at: '2026-08-02T12:00:00Z',
         products: [],
         tickets: [],
+        tech_data: {},
         ...overrides,
     };
 }
@@ -606,6 +607,12 @@ describe('WeeztixImportTask', () => {
                     status: 'paid',
                     created_at: '2026-08-02T10:00:00+02:00',
                     updated_at: '2026-08-05T14:00:00+02:00',
+                    tech_data: {
+                        utm_source: '  newsletter ',
+                        utm_medium: 'email',
+                        utm_campaign: '   ',
+                        utm_term: null,
+                    },
                     tickets: [
                         buildTicket({
                             guid: 'ticket-1',
@@ -712,20 +719,28 @@ describe('WeeztixImportTask', () => {
 
             expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
 
-            expect(ordersByGuid.get('order-1')?.slice(0, 7)).toEqual([
+            expect(ordersByGuid.get('order-1')?.slice(0, 11)).toEqual([
                 'order-1',
                 'event-guid-1',
                 'Jane Doe',
                 'paid',
+                'newsletter',
+                'email',
+                null,
+                null,
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
                 null,
             ]);
-            expect(ordersByGuid.get('order-2')?.slice(0, 7)).toEqual([
+            expect(ordersByGuid.get('order-2')?.slice(0, 11)).toEqual([
                 'order-2',
                 'event-guid-1',
                 null,
                 'cancelled',
+                null,
+                null,
+                null,
+                null,
                 '2026-08-01 10:00:00',
                 '2026-08-02 12:00:00',
                 '2026-08-06 10:00:00',
@@ -815,6 +830,10 @@ describe('WeeztixImportTask', () => {
                     eventGuid: 'event-guid-1',
                     name: undefined,
                     status: 'paid',
+                    utmSource: undefined,
+                    utmMedium: undefined,
+                    utmCampaign: undefined,
+                    utmTerm: undefined,
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
                     deleted: undefined,
@@ -1042,7 +1061,7 @@ describe('WeeztixImportTask', () => {
                 expect(query).toContain('insert into weeztix_orders');
                 expect(params[0]).toBe('order-1');
                 expect(params[3]).toBe('cancelled');
-                expect(params[6]).toBe('2026-08-07 12:00:00');
+                expect(params[10]).toBe('2026-08-07 12:00:00');
                 return 1;
             });
             mockConnection.expect('insert', (query, params) => {

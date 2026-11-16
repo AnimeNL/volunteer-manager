@@ -44,6 +44,10 @@ interface LiveOrderEntry {
     guid: string;
     name: string | null;
     status: string;
+    utmSource: string | null;
+    utmMedium: string | null;
+    utmCampaign: string | null;
+    utmTerm: string | null;
     created: Temporal.ZonedDateTime;
     updated: Temporal.ZonedDateTime;
     deleted: Temporal.ZonedDateTime | null;
@@ -563,6 +567,10 @@ export class WeeztixImportTask extends Task {
                 guid: order.guid,
                 name: order.fullname.replace(/\s+/g, ' ').trim() || null,
                 status: order.status,
+                utmSource: order.tech_data.utm_source?.trim() || null,
+                utmMedium: order.tech_data.utm_medium?.trim() || null,
+                utmCampaign: order.tech_data.utm_campaign?.trim() || null,
+                utmTerm: order.tech_data.utm_term?.trim() || null,
                 created: parseTimestamp(order.created_at),
                 updated: parseTimestamp(order.updated_at),
                 deleted: order.invalidated_since ? parseTimestamp(order.invalidated_since) : null,
@@ -607,6 +615,10 @@ export class WeeztixImportTask extends Task {
                 eventGuid: tWeeztixOrders.weeztixEventGuid,
                 name: tWeeztixOrders.weeztixOrderName,
                 status: tWeeztixOrders.weeztixOrderStatus,
+                utmSource: tWeeztixOrders.weeztixOrderUtmSource,
+                utmMedium: tWeeztixOrders.weeztixOrderUtmMedium,
+                utmCampaign: tWeeztixOrders.weeztixOrderUtmCampaign,
+                utmTerm: tWeeztixOrders.weeztixOrderUtmTerm,
                 created: tWeeztixOrders.weeztixOrderCreated,
                 updated: tWeeztixOrders.weeztixOrderUpdated,
                 deleted: tWeeztixOrders.weeztixOrderDeleted,
@@ -667,6 +679,10 @@ export class WeeztixImportTask extends Task {
                 knownOrder.eventGuid !== eventGuid ||
                 (knownOrder.name || null) !== liveOrder.name ||
                 knownOrder.status !== liveOrder.status ||
+                (knownOrder.utmSource || null) !== liveOrder.utmSource ||
+                (knownOrder.utmMedium || null) !== liveOrder.utmMedium ||
+                (knownOrder.utmCampaign || null) !== liveOrder.utmCampaign ||
+                (knownOrder.utmTerm || null) !== liveOrder.utmTerm ||
                 !areTimestampsEqual(knownOrder.created, liveOrder.created) ||
                 !areTimestampsEqual(knownOrder.updated, liveOrder.updated) ||
                 !areOptionalTimestampsEqual(knownOrder.deleted, liveOrder.deleted);
@@ -786,6 +802,10 @@ export class WeeztixImportTask extends Task {
                         weeztixEventGuid: eventGuid,
                         weeztixOrderName: entry.name,
                         weeztixOrderStatus: entry.status,
+                        weeztixOrderUtmSource: entry.utmSource,
+                        weeztixOrderUtmMedium: entry.utmMedium,
+                        weeztixOrderUtmCampaign: entry.utmCampaign,
+                        weeztixOrderUtmTerm: entry.utmTerm,
                         weeztixOrderCreated: entry.created,
                         weeztixOrderUpdated: entry.updated,
                         weeztixOrderDeleted: entry.deleted,

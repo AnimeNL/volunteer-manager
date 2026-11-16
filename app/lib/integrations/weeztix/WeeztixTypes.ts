@@ -207,6 +207,13 @@ export const kOrderSchema = z.object({
 
     // 0 or more:
     tickets: z.array(kTicketSchema),
+
+    tech_data: z.object({
+        utm_source: z.string().nullish(),
+        utm_medium: z.string().nullish(),
+        utm_campaign: z.string().nullish(),
+        utm_term: z.string().nullish(),
+    }),
 });
 
 /**

@@ -266,6 +266,7 @@ describe('WeeztixClient', () => {
             updated_at: '2026-05-02T12:00:00+00:00',
             products: [],
             tickets: [],
+            tech_data: {},
         };
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({

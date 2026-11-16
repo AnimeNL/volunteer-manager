@@ -1593,6 +1593,22 @@ tables:
   - name: weeztix_order_status
     type: varchar(32)
     nullable: false
+  - name: weeztix_order_utm_source
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_order_utm_medium
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_order_utm_campaign
+    type: text
+    nullable: true
+    default: "NULL"
+  - name: weeztix_order_utm_term
+    type: text
+    nullable: true
+    default: "NULL"
   - name: weeztix_order_created
     type: datetime
     nullable: false
@@ -1628,6 +1644,10 @@ tables:
       `weeztix_event_guid` char(36) NOT NULL,
       `weeztix_order_name` text DEFAULT NULL,
       `weeztix_order_status` varchar(32) NOT NULL,
+      `weeztix_order_utm_source` text DEFAULT NULL,
+      `weeztix_order_utm_medium` text DEFAULT NULL,
+      `weeztix_order_utm_campaign` text DEFAULT NULL,
+      `weeztix_order_utm_term` text DEFAULT NULL,
       `weeztix_order_created` datetime NOT NULL,
       `weeztix_order_updated` datetime NOT NULL,
       `weeztix_order_deleted` datetime DEFAULT NULL,
