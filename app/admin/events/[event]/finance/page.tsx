@@ -10,7 +10,9 @@ import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Stack from '@mui/material/Stack';
 
+import type { FinancialFilter } from '@lib/tickets/Types';
 import { FinanceDashboard } from './FinanceDashboard';
+import { FinanceFilterButton } from './FinanceFilterButton';
 import { FinanceUpdatedChip } from './FinanceUpdatedChip';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -29,13 +31,31 @@ export default async function EventFinancePage(props: PageProps<'/admin/events/[
     if (!service)
         notFound();
 
-    const { mostRecentUpdate, pendingCategorisationCount } =
-        await service.getFinancialSummary(event.id);
+    const searchParams = await props.searchParams;
+    const filter: FinancialFilter = {
+        utmSource: typeof searchParams.utm_source === 'string'
+            ? searchParams.utm_source || undefined
+            : undefined,
+        utmCampaign: typeof searchParams.utm_campaign === 'string'
+            ? searchParams.utm_campaign || undefined
+            : undefined,
+    };
+
+    const [ { mostRecentUpdate, pendingCategorisationCount }, filterOptions ] = await Promise.all([
+        service.getFinancialSummary(event.id),
+        service.fetchFinancialFilterOptions(),
+    ]);
 
     const headerActions: React.ReactNode[] = [];
     if (!!mostRecentUpdate) {
         headerActions.push(
             <FinanceUpdatedChip updated={ mostRecentUpdate.toString() } key="updated" />);
+    }
+
+    if (filterOptions.utmSources.length > 0 || filterOptions.utmCampaigns.length > 0 ||
+            filter.utmSource || filter.utmCampaign) {
+        headerActions.push(
+            <FinanceFilterButton filter={filter} options={filterOptions} key="filter" />);
     }
 
     if (access.can('event.settings', { event: event.slug })) {
@@ -65,7 +85,7 @@ export default async function EventFinancePage(props: PageProps<'/admin/events/[
                     figures.
                 </SectionIntroduction>
             </Section>
-            <FinanceDashboard event={event.slug} />
+            <FinanceDashboard event={event.slug} filter={filter} />
         </>
     );
 }
