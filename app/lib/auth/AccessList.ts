@@ -219,51 +219,14 @@ export class AccessList {
             };
         }
 
-        if (!!access.scopes) {
-            for (const accessScope of access.scopes) {
-                let global: 'global' | undefined = undefined;
+        if (!access.scopes) {
+            const eventBlocked =
+                !!scope.event && scope.event !== kAnyEvent && !globalEventAccess && !access.global;
+            const teamBlocked =
+                !!scope.team && scope.team !== kAnyTeam && !globalTeamAccess && !access.global;
 
-                if (this.#requireSpecificScope) {
-                    if (scope.event === kAnyEvent && accessScope.event !== kAnyEvent)
-                        continue;
-                    if (scope.team === kAnyTeam && accessScope.team !== kAnyTeam)
-                        continue;
-                }
-
-                if (!!scope.event && scope.event !== kAnyEvent) {
-                    if (accessScope.event !== scope.event && accessScope.event !== kAnyEvent) {
-                        if (!globalEventAccess)
-                            continue;
-
-                        global = 'global';
-                    }
-                }
-
-                if (!!scope.team && scope.team !== kAnyTeam) {
-                    if (accessScope.team !== scope.team && accessScope.team !== kAnyTeam) {
-                        if (!globalTeamAccess)
-                            continue;
-
-                        global = 'global';
-                    }
-                }
-
-                return {
-                    expanded: access.expanded,
-                    global: access.global,
-                    scope: global || accessScope,
-                };
-            }
-        } else if (!!scope) {
-            if (!!scope.event && scope.event !== kAnyEvent) {
-                if (!globalEventAccess && !access.global)
-                    return undefined;
-            }
-
-            if (!!scope.team && scope.team !== kAnyTeam) {
-                if (!globalTeamAccess && !access.global)
-                    return undefined;
-            }
+            if (eventBlocked || teamBlocked)
+                return undefined;
 
             return {
                 expanded: access.expanded,
@@ -272,6 +235,53 @@ export class AccessList {
             };
         }
 
+        for (const accessScope of access.scopes) {
+            const matchedScope = this.matchAccessScope(
+                accessScope, scope, globalEventAccess, globalTeamAccess);
+
+            if (matchedScope) {
+                return {
+                    expanded: access.expanded,
+                    global: access.global,
+                    scope: matchedScope,
+                };
+            }
+        }
+
         return undefined;
+    }
+
+    private matchAccessScope(
+        accessScope: AccessScope,
+        scope: AccessScope,
+        globalEventAccess: boolean,
+        globalTeamAccess: boolean,
+    ): AccessScope | 'global' | undefined {
+        const eventMatch = this.matchScopeDimension(
+            scope.event, accessScope.event, kAnyEvent, globalEventAccess);
+        if (eventMatch === 'mismatch')
+            return undefined;
+
+        const teamMatch = this.matchScopeDimension(
+            scope.team, accessScope.team, kAnyTeam, globalTeamAccess);
+        if (teamMatch === 'mismatch')
+            return undefined;
+
+        return eventMatch === 'global' || teamMatch === 'global' ? 'global' : accessScope;
+    }
+
+    private matchScopeDimension(
+        requested: string | undefined,
+        granted: string | undefined,
+        wildcard: string,
+        hasGlobalAccess: boolean,
+    ): 'match' | 'global' | 'mismatch' {
+        if (this.#requireSpecificScope && requested === wildcard && granted !== wildcard)
+            return 'mismatch';
+
+        if (!requested || requested === wildcard || granted === requested || granted === wildcard)
+            return 'match';
+
+        return hasGlobalAccess ? 'global' : 'mismatch';
     }
 }
