@@ -69,6 +69,150 @@ interface AvailabilityExpectationsProps {
 }
 
 /**
+ * Parses unverified availability exceptions into a lookup map keyed by `YYYY-MM-DDTH`.
+ */
+function parseAvailabilityExceptions(
+    rawExceptions: string | undefined,
+    timezone: string,
+): Map<string, AvailabilityExpectation> {
+    const exceptions = new Map<string, AvailabilityExpectation>();
+    if (!rawExceptions || rawExceptions.length <= 2)
+        return exceptions;
+
+    try {
+        const exceptionArray = JSON.parse(rawExceptions);
+        for (const exception of exceptionArray) {
+            if (!('start' in exception) || !('end' in exception) || !('state' in exception))
+                continue;
+
+            const end = Temporal.ZonedDateTime.from(exception.end).withTimeZone(timezone);
+            const start = Temporal.ZonedDateTime.from(exception.start).withTimeZone(timezone).with({
+                minute: 0,
+            });
+
+            for (let time = start; isBefore(time, end); time = time.add({ hours: 1 }))
+                exceptions.set(formatDate(time, 'YYYY-MM-DD[T]H'), exception.state);
+        }
+    } catch (error: any) {
+        console.error('Unable to parse exception information:', error);
+    }
+
+    return exceptions;
+}
+
+/**
+ * Determines availability status for `hour` based on the volunteer's preferred shift window.
+ */
+function getServiceTimingStatus(
+    hour: number,
+    isFirstDay: boolean,
+    serviceTimingStart?: number,
+    serviceTimingEnd?: number,
+): AvailabilityExpectation {
+    if (serviceTimingStart === undefined || serviceTimingEnd === undefined)
+        return 'available';
+
+    let decidedStatus: AvailabilityExpectation = 'available';
+    const hoursUntilWindowStart = serviceTimingStart - hour;
+
+    if (serviceTimingEnd > serviceTimingStart) {
+        // Case (1): The volunteer's shifts will start and end on the same day.
+        const hoursUntilWindowEnd = serviceTimingEnd - hour;
+
+        if (hoursUntilWindowStart > 1)
+            decidedStatus = 'unavailable';
+        else if (hoursUntilWindowStart > 0)
+            decidedStatus = 'avoid';
+
+        if (hoursUntilWindowEnd === 0)
+            decidedStatus = 'avoid';
+        else if (hoursUntilWindowEnd < 0)
+            decidedStatus = 'unavailable';
+
+        return decidedStatus;
+    }
+
+    // Case (2): The volunteer's shifts will start and end on separate days.
+    if (!isFirstDay) {
+        if (hour === serviceTimingEnd)
+            decidedStatus = 'avoid';
+        else if (hour > serviceTimingEnd && hoursUntilWindowStart > 2)
+            decidedStatus = 'unavailable';
+    }
+
+    if (hour > serviceTimingEnd) {
+        if (hoursUntilWindowStart > 1)
+            decidedStatus = 'unavailable';
+        else if (hoursUntilWindowStart > 0)
+            decidedStatus = 'avoid';
+    }
+
+    return decidedStatus;
+}
+
+/**
+ * Returns whether any of the volunteer's selected events overlaps the given hour.
+ */
+function hasOverlappingSelectedEvent(
+    hourlyDateTime: Temporal.ZonedDateTime,
+    selectedEvents: TimeslotWithZonedDateTimes[],
+): boolean {
+    if (!selectedEvents.length)
+        return false;
+
+    const nextHourlyDateTime = hourlyDateTime.add({ hours: 1 });
+    for (const eventTimeslot of selectedEvents) {
+        if (!eventTimeslot.startTime || !eventTimeslot.endTime)
+            continue;  // incomplete timeslot
+
+        if (isBefore(eventTimeslot.startTime, nextHourlyDateTime) &&
+                isAfter(eventTimeslot.endTime, hourlyDateTime)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Returns a forced availability override when `hourlyDateTime` falls before festival opening or
+ * after festival closure.
+ */
+function getFestivalBoundaryStatus(
+    hourlyDateTime: Temporal.ZonedDateTime,
+    isFirstDay: boolean,
+    isLastDay: boolean,
+    startDateEvent: Temporal.ZonedDateTime,
+    endDateEvent: Temporal.ZonedDateTime,
+): AvailabilityExpectation | undefined {
+    // We won't schedule shifts (well) before the festival's opening time without having
+    // discussed this with the volunteer.
+    if (isFirstDay) {
+        const hoursUntilOpening = hourlyDateTime.until(startDateEvent, {
+            largestUnit: 'hours',
+        }).hours;
+
+        if (hoursUntilOpening > 3)
+            return 'unavailable';
+        if (hoursUntilOpening > 1)
+            return 'avoid';  // always invite volunteers to the briefing
+    }
+
+    // Similarly, we won't schedule shifts after the festival has finished. Folks are
+    // welcome to stick around, but we won't count on it.
+    if (isLastDay) {
+        const hoursUntilClosure = hourlyDateTime.until(endDateEvent, {
+            largestUnit: 'hours',
+        }).hours;
+
+        if (hoursUntilClosure <= 0)
+            return 'unavailable';
+    }
+
+    return undefined;
+}
+
+/**
  * The <AvailabilityExpectations> component fetches and then renders an overview of when we expect
  * the volunteer to be available during the festival. It represents three separate states: avoid,
  * available and unavailable. It will be updated whenever the volunteer's preferences change.
@@ -98,41 +242,15 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
     // for a variety of reasons fail, not least of all developer error.
     // ---------------------------------------------------------------------------------------------
 
-    const exceptions = new Map</* YYYY-MM-DDTH */ string, AvailabilityExpectation>;
-    if (props.exceptions && props.exceptions.length > 2) {
-        try {
-            const exceptionArray = JSON.parse(props.exceptions);
-            for (const exception of exceptionArray) {
-                if (!('start' in exception) || !('end' in exception) || !('state' in exception))
-                    continue;
-
-                const end = Temporal.ZonedDateTime.from(exception.end).withTimeZone(timezone);
-                const start =
-                    Temporal.ZonedDateTime.from(exception.start).withTimeZone(timezone).with({
-                        minute: 0,
-                    });
-
-                for (let time = start; isBefore(time, end); time = time.add({ hours: 1 }))
-                    exceptions.set(formatDate(time, 'YYYY-MM-DD[T]H'), exception.state);
-            }
-
-        } catch (error: any) {
-            console.error('Unable to parse exception information:', error);
-        }
-    }
+    const exceptions = parseAvailabilityExceptions(props.exceptions, timezone);
 
     // ---------------------------------------------------------------------------------------------
     // Determine the timeslots that the volunteer has selected as wanting to attend.
     // ---------------------------------------------------------------------------------------------
 
-    const selectedEvents: TimeslotWithZonedDateTimes[] = [];
-    if (!!props.exceptionEvents) {
-        const exceptionEventIds = new Set(props.exceptionEvents);
-        for (const availabilityEvent of props.availabilityEvents) {
-            if (exceptionEventIds.has(availabilityEvent.id))
-                selectedEvents.push(availabilityEvent);
-        }
-    }
+    const exceptionEventIds = new Set(props.exceptionEvents);
+    const selectedEvents = props.availabilityEvents.filter((event) =>
+        exceptionEventIds.has(event.id));
 
     // ---------------------------------------------------------------------------------------------
     // Actually determine the expectations. We do this by iterating over each of the days, then over
@@ -142,99 +260,36 @@ export async function AvailabilityExpectations(props: AvailabilityExpectationsPr
     const expectations: AvailabilityDayInfo[] = [];
     for (let date = startDate; isBefore(date, endDate); date = date.add({ days: 1 })) {
         const dateString = formatDate(date, 'YYYY-MM-DD');
+        const isFirstDay = isSameDay(date, startDate);
+        const isLastDay = isSameDay(date, endDate);
 
         expectations.push({
             label: formatDate(date, 'dddd, MMMM D'),
             expectations: [ ...Array(/* hours= */ 24) ].map((_, hour) => {
-                const hourlyDateTime = date.add({ hours: hour });
-                let decidedStatus: AvailabilityExpectation = 'available';
-
                 // Consider exceptions that have been approved by the volunteering leads. When one
                 // is seen, all other processing will be moot.
                 const exception = exceptions.get(`${dateString}T${hour}`);
                 if (!!exception)
                     return exception;
 
+                const hourlyDateTime = date.add({ hours: hour });
+
                 // Consider the window in which the volunteer indicated they want to help out with
                 // shifts. We'll add some grace, but otherwise will roster them out at other times.
-                if (serviceTimingStart !== undefined && serviceTimingEnd !== undefined) {
-                    if (serviceTimingEnd > serviceTimingStart) {
-                        // Case (1): The volunteer's shifts will start and end on the same day.
-                        const hoursUntilWindowStart = serviceTimingStart - hour;
-                        const hoursUntilWindowEnd = serviceTimingEnd - hour;
-
-                        if (hoursUntilWindowStart > 1)
-                            decidedStatus = 'unavailable';
-                        else if (hoursUntilWindowStart > 0)
-                            decidedStatus = 'avoid';
-
-                        if (hoursUntilWindowEnd === 0)
-                            decidedStatus = 'avoid';
-                        else if (hoursUntilWindowEnd < 0)
-                            decidedStatus = 'unavailable';
-
-                    } else {
-                        // Case (2): The volunteer's shifts will start and end on separate days.
-                        const hoursUntilWindowStart = serviceTimingStart - hour;
-
-                        if (!isSameDay(date, startDate)) {
-                            if (hour === serviceTimingEnd)
-                                decidedStatus = 'avoid';
-                            else if (hour > serviceTimingEnd && hoursUntilWindowStart > 2)
-                                decidedStatus = 'unavailable';
-                        }
-
-                        if (hour > serviceTimingEnd) {
-                            if (hoursUntilWindowStart > 1)
-                                decidedStatus = 'unavailable';
-                            else if (hoursUntilWindowStart > 0)
-                                decidedStatus = 'avoid';
-                        }
-                    }
-                }
+                let decidedStatus = getServiceTimingStatus(
+                    hour, isFirstDay, serviceTimingStart, serviceTimingEnd);
 
                 // Consider the events that the volunteer has selected as wanting to attend. We only
                 // reduce the availability here, in other words "available" becomes "avoid", but
                 // "unavailable" remains "unavailable".
-                if (decidedStatus !== 'unavailable' && selectedEvents.length > 0) {
-                    const nextHourlyDateTime = hourlyDateTime.add({ hours: 1 });
-                    for (const eventTimeslot of selectedEvents) {
-                        if (!eventTimeslot.startTime || !eventTimeslot.endTime)
-                            continue;  // incomplete timeslot
-
-                        if (isBefore(eventTimeslot.startTime, nextHourlyDateTime) &&
-                                isAfter(eventTimeslot.endTime, hourlyDateTime)) {
-                            decidedStatus = 'avoid';
-                        }
-                    }
+                if (decidedStatus !== 'unavailable' &&
+                        hasOverlappingSelectedEvent(hourlyDateTime, selectedEvents)) {
+                    decidedStatus = 'avoid';
                 }
 
-                // We won't schedule shifts (well) before the festival's opening time without having
-                // discussed this with the volunteer.
-                if (isSameDay(date, startDate)) {
-                    const hoursUntilOpening = hourlyDateTime.until(startDateEvent, {
-                        largestUnit: 'hours'
-                    }).hours;
-
-                    if (hoursUntilOpening > 3)
-                        return 'unavailable';
-                    else if (hoursUntilOpening > 1)
-                        return 'avoid';  // always invite volunteers to the briefing
-                }
-
-                // Similarly, we won't schedule shifts after the festival has finished. Folks are
-                // welcome to stick around, but we won't count on it.
-                if (isSameDay(date, endDate)) {
-                    const hoursUntilClosure = hourlyDateTime.until(endDateEvent, {
-                        largestUnit: 'hours'
-                    }).hours;
-
-                    if (hoursUntilClosure <= 0)
-                        return 'unavailable';
-                }
-
-                // If all else fails, the volunteer will be available.
-                return decidedStatus;
+                return getFestivalBoundaryStatus(
+                    hourlyDateTime, isFirstDay, isLastDay, startDateEvent, endDateEvent)
+                    ?? decidedStatus;
             }),
         });
     }
