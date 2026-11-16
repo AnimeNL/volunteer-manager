@@ -153,24 +153,26 @@ export function StatusCell(props: StatusCellProps) {
     }
 
     let refundIcon: React.ReactNode;
-    if (status.refundConfirmed) {
-        refundIcon = (
-            <Tooltip title="Ticket refund issued">
-                <PaidIcon color="success" fontSize="small" />
-            </Tooltip>
-        );
-    } else if (status.refundPreferences) {
-        refundIcon = (
-            <Tooltip title="Ticket refund requested">
-                <PaidIcon color="warning" fontSize="small" />
-            </Tooltip>
-        );
-    } else if (!props.listView) {
-        refundIcon = (
-            <Tooltip title="Not eligible for a refund">
-                <PaidIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
-            </Tooltip>
-        );
+    if (status.refundEnabled) {
+        if (status.refundConfirmed) {
+            refundIcon = (
+                <Tooltip title="Ticket refund issued">
+                    <PaidIcon color="success" fontSize="small" />
+                </Tooltip>
+            );
+        } else if (status.refundPreferences) {
+            refundIcon = (
+                <Tooltip title="Ticket refund requested">
+                    <PaidIcon color="warning" fontSize="small" />
+                </Tooltip>
+            );
+        } else if (!props.listView) {
+            refundIcon = (
+                <Tooltip title="Not eligible for a refund">
+                    <PaidIcon color="disabled" fontSize="small" sx={kDisabledIconSx} />
+                </Tooltip>
+            );
+        }
     }
 
     return (

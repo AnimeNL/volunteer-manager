@@ -108,6 +108,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
         hotelPreferences: z.number().optional(),
 
         refundConfirmed: z.boolean(),
+        refundEnabled: z.boolean(),
         refundPreferences: z.boolean(),
 
         ticketEligible: z.boolean(),
@@ -268,6 +269,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
                     refundConfirmed:
                         tEvents.refundEnabled.equals(/* true= */ 1).and(
                             refundsJoin.refundConfirmed.isNotNull()),
+                    refundEnabled: tEvents.refundEnabled.equals(/* true= */ 1),
                     refundPreferences:
                         tEvents.refundEnabled.equals(/* true= */ 1).and(
                             preferencesRefundsJoin.preferenceVersion.isNotNull()),
