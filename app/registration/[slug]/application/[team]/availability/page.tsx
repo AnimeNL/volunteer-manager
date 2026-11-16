@@ -28,6 +28,34 @@ import { updateAvailabilityPreferences }
 
 
 /**
+ * Parses a `"start-end"` timing preference string into numeric start and end hours.
+ */
+function parseTiming(timing?: string | null): { start: number; end: number } | undefined {
+    if (!timing)
+        return undefined;
+
+    const [ start, end ] = timing.split('-').map(value => parseInt(value, 10));
+    if (Number.isNaN(start) || Number.isNaN(end))
+        return undefined;
+
+    return { start, end };
+}
+
+/**
+ * Parses a comma-separated list of selected availability timeslot IDs.
+ */
+function parseExceptionEvents(timeslotsStr?: string | null): number[] | undefined {
+    if (!timeslotsStr)
+        return undefined;
+
+    const ids = timeslotsStr.split(',')
+        .map(value => parseInt(value, 10))
+        .filter(id => !Number.isNaN(id));
+
+    return ids.length ? ids : undefined;
+}
+
+/**
  * The <EventApplicationAvailabilityPage> component enables our volunteers to indicate when they
  * will be around at the festival, and which events they really want to attend so that we can keep
  * these preferences in mind when making our schedules.
@@ -131,9 +159,10 @@ export default async function EventApplicationAvailabilityPage(
                     eventStartTime={event.startTime}
                     eventEndTime={event.endTime}
                     eventTimezone={event.timeZone}
-                    exceptionEvents={undefined}
+                    exceptionEvents={parseExceptionEvents(
+                        detailedApplicationInfo.preferences?.timeslotsStr)}
                     exceptions={detailedApplicationInfo.preferences?.exceptions}
-                    timing={undefined} /> }
+                    timing={parseTiming(detailedApplicationInfo.preferences?.timing)} /> }
 
             { !!timeslots && <Divider sx={{ mb: 3 }} /> }
 
