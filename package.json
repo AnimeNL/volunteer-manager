@@ -53,12 +53,12 @@
     "d3-color": "^3.1.1",
     "d3-interpolate": "^3.0.2",
     "dayjs": "^1.11.23",
-    "imapflow": "^2.11.0",
+    "imapflow": "^2.12.1",
     "mariadb": "^3.5.5",
     "mui-color-input": "^9.0.0",
     "mui-markdown": "^3.0.1",
     "next": "16.4.6",
-    "nodemailer": "^10.5.0",
+    "nodemailer": "^10.6.0",
     "nuqs": "^2.10.3",
     "qrcode-with-logos": "^1.2.1",
     "react": "^19.3.1",
@@ -82,7 +82,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.7",
+    "@biomejs/biome": "^2.6.8",
     "@next/bundle-analyzer": "16.4.6",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "@testing-library/dom": "^10.4.2",
