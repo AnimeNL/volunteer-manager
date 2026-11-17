@@ -57,12 +57,12 @@ enabled and actively supported:
 
 ```
 $ npm run build
-$ npm run serve
+$ npm run dev
 ```
 
 It is recommended to run the `build` and `test` commands prior to committing a change.
 
-The `serve` command spawns a local server that features live reload and advanced debugging
+The `dev` command spawns a local server that features live reload and advanced debugging
 capabilities. This is the recommended environment for development. In order for this to work well,
 you will need to copy [`.env.development.sample`](.env.development.sample) to `.env.development` and
 fill in the details of a MySQL database, as well as various encryption passwords. Each of those

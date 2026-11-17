@@ -26,6 +26,6 @@ These three steps may run in parallel.
 
 When you've made substantial changes to a React component or something that may affect rendering of
 the page, it's imperative that you also confirm the page loads successfully in a browser. In this
-case, you must run the development server (`npm run serve`) if it's not running already, which will
+case, you must run the development server (`npm run dev`) if it's not running already, which will
 serve the application on "http://localhost:3000". Load the appropriate page, and use Chrome's MCP to
 confirm that no (client) errors are seen.
