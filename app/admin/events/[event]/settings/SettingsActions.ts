@@ -348,40 +348,14 @@ export async function updateEventIntegrations(
             case 'anplan':
                 update = {
                     eventFestivalId: data.anplanFestivalId,
-                    eventHotelRoomForm: data.anplanHotelRoomForm,
+                    eventHotelRoomForm: data.anplanHotelRoomForm?.trim() || null,
                 };
                 break;
 
             case 'weeztix': {
-                const eventGuid = data.weeztixEventGuid?.trim() || null;
-                const scannerGuid = data.weeztixScannerGuid?.trim() || null;
-
-                let companyGuid: string | null = null;
-                if (!!eventGuid) {
-                    const existingCompanyGuid = event.integrations?.weeztixCompanyGuid ?? null;
-                    const existingEventGuid = event.integrations?.weeztixGuid ?? null;
-
-                    if (eventGuid === existingEventGuid && !!existingCompanyGuid) {
-                        companyGuid = existingCompanyGuid;
-                    } else {
-                        try {
-                            const client = await createWeeztixClient();
-                            const weeztixEvent = await client.getEvent(eventGuid);
-
-                            companyGuid = weeztixEvent.company_id;
-                        } catch {
-                            return {
-                                success: false,
-                                error: 'Unable to fetch event details from Weeztix for that GUID.',
-                            };
-                        }
-                    }
-                }
-
                 update = {
-                    eventWeeztixCompanyGuid: companyGuid,
-                    eventWeeztixGuid: eventGuid,
-                    eventWeeztixScannerGuid: scannerGuid,
+                    eventWeeztixGuid: data.weeztixEventGuid?.trim() || null,
+                    eventWeeztixScannerGuid: data.weeztixScannerGuid?.trim() || null,
                 };
                 break;
             }

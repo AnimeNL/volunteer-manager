@@ -7,6 +7,7 @@ import type { TicketService } from './TicketService';
 import { Weeztix } from './backends/Weeztix';
 import { YourTicketProvider } from './backends/YourTicketProvider';
 import { getEvent } from '@lib/cache';
+import { readSetting } from '@lib/Settings';
 
 /**
  * Returns whether the given `event` has a configured ticket service.
@@ -16,7 +17,7 @@ export function isTicketServiceConfigured(
 {
     switch (event.tickets?.provider) {
         case 'Weeztix':
-            return !!event.integrations?.weeztixGuid;
+            return !!event.integrations?.weeztixEventId;
 
         case 'YourTicketProvider':
             return !!event.integrations?.yourTicketProviderEventId;
@@ -39,14 +40,13 @@ export async function createTicketService(eventIdentifier: number | string)
 
     let service: TicketService | undefined;
     switch (event.tickets?.provider) {
-        case 'Weeztix':
-            if (!!event?.integrations?.weeztixGuid) {
-                service = new Weeztix(
-                    event.integrations.weeztixGuid,
-                    event.integrations.weeztixCompanyGuid);
-            }
+        case 'Weeztix': {
+            const weeztixCompanyId = await readSetting('integration-weeztix-company-id');
+            if (!!event?.integrations?.weeztixEventId && !!weeztixCompanyId)
+                service = new Weeztix(event.integrations.weeztixEventId, weeztixCompanyId);
 
             break;
+        }
 
         case 'YourTicketProvider':
             if (!!event?.integrations?.yourTicketProviderEventId)

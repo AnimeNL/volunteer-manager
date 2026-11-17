@@ -138,7 +138,6 @@ export default async function EventSettingsConfigurationPage(
                 anplanHotelRoomForm: tEvents.eventHotelRoomForm,
 
                 // Weeztix:
-                weeztixCompanyGuid: tEvents.eventWeeztixCompanyGuid,
                 weeztixEventGuid: tEvents.eventWeeztixGuid,
                 weeztixScannerGuid: tEvents.eventWeeztixScannerGuid,
 
@@ -281,12 +280,6 @@ export default async function EventSettingsConfigurationPage(
                         <Grid size={{ xs: 12 }}>
                             <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID"
                                               fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="weeztixCompanyGuid"
-                                              label="Weeztix Company GUID (auto-determined)"
-                                              fullWidth size="small"
-                                              slotProps={{ input: { readOnly: true } }} />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextFieldElement name="weeztixScannerGuid" label="Weeztix Scanner GUID"

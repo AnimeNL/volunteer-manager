@@ -252,17 +252,17 @@ export class WeeztixClient {
     }
 
     /**
-     * Queries orders belonging to `companyGuid` using the Weeztix Elasticsearch statistics API.
+     * Queries orders using the Weeztix Elasticsearch statistics API.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Normalised list of matching order summaries sorted chronologically when possible.
      */
-    async listOrders(companyGuid: string, request: weeztix.PostStatisticsOrdersRequest)
+    async listOrders(request: weeztix.PostStatisticsOrdersRequest)
         : Promise<weeztix.Order[]>
     {
         const validatedRequest = weeztix.kPostStatisticsOrdersRequest.parse(request);
         const response = await this.issueRequest(weeztix.kPostStatisticsOrdersResponse, {
-            api: `/statistics/orders/${companyGuid}`,
+            api: `/statistics/orders/${this.#settings.companyId}`,
             operation: '/statistics/orders/<Id>',
             method: 'POST',
             body: validatedRequest,

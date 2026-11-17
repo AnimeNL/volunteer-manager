@@ -34,6 +34,7 @@ describe('WeeztixClient', () => {
         },
         clientId: 'myClientId',
         clientSecret: 'myClientSecret',
+        companyId: 'company-guid-456',
     });
 
     it('issues request successfully without refresh when access token is valid', async () => {
@@ -42,6 +43,7 @@ describe('WeeztixClient', () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
                 guid: 'event-guid',
+                company_id: 'company-guid-456',
                 name: 'Event Name',
                 location: { guid: 'loc-guid', name: 'Loc Name' },
             }
@@ -76,6 +78,7 @@ describe('WeeztixClient', () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
                 guid: 'event-guid',
+                company_id: 'company-guid-456',
                 name: 'Event Name',
                 location: { guid: 'loc-guid', name: 'Loc Name' },
             }
@@ -130,6 +133,7 @@ describe('WeeztixClient', () => {
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify([
             {
                 guid: 'event-guid',
+                company_id: 'company-guid-456',
                 name: 'Event Name',
                 location: { guid: 'loc-guid', name: 'Loc Name' },
             }
@@ -280,7 +284,7 @@ describe('WeeztixClient', () => {
             },
         }), { status: 200 }));
 
-        const orders = await client.listOrders('company-guid-456', {
+        const orders = await client.listOrders({
             offset: 0,
             limit: 100,
             timeunit: 'year',

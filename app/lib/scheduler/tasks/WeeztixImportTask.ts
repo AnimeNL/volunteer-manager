@@ -283,8 +283,7 @@ export class WeeztixImportTask extends Task {
                 name: tEvents.eventShortName,
                 endTime: tEvents.eventEndTime,
                 context: {
-                    companyGuid: tEvents.eventWeeztixCompanyGuid,
-                    eventGuid: tEvents.eventWeeztixGuid,
+                    eventId: tEvents.eventWeeztixGuid,
                 },
                 mostRecentUpdate: mostRecentUpdateSubQuery,
             })
@@ -298,16 +297,13 @@ export class WeeztixImportTask extends Task {
         }
 
         for (const event of applicableEvents) {
-            if (!event.context?.companyGuid)
-                throw new Error(`Unable to update ${event.name} data without a company GUID`);
-            if (!event.context?.eventGuid)
+            if (!event.context?.eventId)
                 throw new Error(`Unable to update ${event.name} data without an event GUID`);
 
             this.log.info(`Starting data import for ${event.name}`);
 
-            await this.importProductsAndTickets(event.context.eventGuid);
-            await this.importOrders(
-                event.context.companyGuid, event.context.eventGuid, event.mostRecentUpdate);
+            await this.importProductsAndTickets(event.context.eventId);
+            await this.importOrders(event.context.eventId, event.mostRecentUpdate);
 
             // Revalidate the financial cache, ensuring that all metrics and dashboards show the
             // most recently updated data.
@@ -505,15 +501,13 @@ export class WeeztixImportTask extends Task {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Method to import the latest orders for the given `eventGuid` belonging to `companyGuid` that
-     * were updated after the given `mostRecentUpdate`.
+     * Method to import the latest orders for the given `eventGuid` that were updated after the
+     * given `mostRecentUpdate`.
      */
     private async importOrders(
-        companyGuid: string, eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
-            : Promise<boolean>
+        eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime): Promise<boolean>
     {
-        const recentOrdersMap = await this.fetchRecentOrders(
-            companyGuid, eventGuid, mostRecentUpdate);
+        const recentOrdersMap = await this.fetchRecentOrders(eventGuid, mostRecentUpdate);
 
         if (!recentOrdersMap.size) {
             this.log.warning('[Orders] No orders were returned by the API; skipping');
@@ -648,8 +642,7 @@ export class WeeztixImportTask extends Task {
      * Fetches paginated orders from the Weeztix API updated since `mostRecentUpdate`.
      */
     private async fetchRecentOrders(
-        companyGuid: string, eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime)
-            : Promise<Map<string, Order>>
+        eventGuid: string, mostRecentUpdate?: Temporal.ZonedDateTime): Promise<Map<string, Order>>
     {
         mostRecentUpdate ||= Temporal.Now.zonedDateTimeISO('UTC').subtract({ years: 1 });
         mostRecentUpdate = mostRecentUpdate.subtract({
@@ -672,7 +665,7 @@ export class WeeztixImportTask extends Task {
                     setTimeout(resolve, this.#configuration.delayBetweenOrderPagesMs));
             }
 
-            const batch = await this.#client.listOrders(companyGuid, {
+            const batch = await this.#client.listOrders({
                 offset: page * this.#configuration.maximumOrdersPerPage,
                 limit: this.#configuration.maximumOrdersPerPage,
                 timeunit: 'year',
