@@ -157,10 +157,8 @@ export type PostStatisticsOrdersRequest = z.infer<typeof kPostStatisticsOrdersRe
  * @see https://docs.weeztix.com/api/dashboard/get-order-specific/
  */
 export const kMetadataSchema = z.object({
+    metadata_id: z.string().nonempty(),
     value: z.string().or(z.number()).or(z.boolean()),
-    meta_data: z.object({
-        name: z.string(),
-    }),
 });
 
 /**

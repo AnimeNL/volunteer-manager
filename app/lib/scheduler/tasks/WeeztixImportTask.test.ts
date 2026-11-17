@@ -21,6 +21,11 @@ vi.mock('@app/admin/events/[event]/finance/FinanceProcessor', () => ({
 
 vi.mock('@lib/integrations/weeztix', () => ({
     createWeeztixClient: async () => ({
+        metaFirstNameId: 'meta-first-name-id',
+        metaFunctionId: 'meta-function-id',
+        metaLastNameId: 'meta-last-name-id',
+        metaNicknameId: 'meta-nickname-id',
+        metaOrganisationId: 'meta-organisation-id',
         listOrders: mockListOrders,
         listTicketTypes: mockListTicketTypes,
     }),
@@ -620,19 +625,30 @@ describe('WeeztixImportTask', () => {
                             created_at: '2026-08-02T10:00:00+02:00',
                             updated_at: '2026-08-05T14:00:00+02:00',
                             meta_data: [
-                                { value: 'John', meta_data: { name: 'first_name' } },
-                                { value: 'Smith', meta_data: { name: 'last_name' } },
                                 {
+                                    metadata_id: 'meta-first-name-id',
+                                    value: 'John',
+                                    meta_data: { name: 'ignored' },
+                                },
+                                {
+                                    metadata_id: 'meta-last-name-id',
+                                    value: 'Smith',
+                                    meta_data: { name: 'ignored' },
+                                },
+                                {
+                                    metadata_id: 'meta-function-id',
                                     value: '  Steward  ',
-                                    meta_data: { name: '  Function (volunteer) ' },
+                                    meta_data: { name: 'ignored' },
                                 },
                                 {
+                                    metadata_id: 'meta-nickname-id',
                                     value: '  Johnny   S  ',
-                                    meta_data: { name: '  nickname (for badge) ' },
+                                    meta_data: { name: 'ignored' },
                                 },
                                 {
+                                    metadata_id: 'meta-organisation-id',
                                     value: '  AnimeCon  ',
-                                    meta_data: { name: 'Organisation' },
+                                    meta_data: { name: 'ignored' },
                                 },
                             ],
                             products: [
@@ -643,9 +659,21 @@ describe('WeeztixImportTask', () => {
                                     finn_price: 4200,
                                     finn_service_fee: 200,
                                     meta_data: [
-                                        { value: 'Jane', meta_data: { name: 'first_name' } },
-                                        { value: 'Doe', meta_data: { name: 'last_name' } },
-                                        { value: true, meta_data: { name: 'terms' } },
+                                        {
+                                            metadata_id: 'meta-first-name-id',
+                                            value: 'Jane',
+                                            meta_data: { name: 'first_name' },
+                                        },
+                                        {
+                                            metadata_id: 'meta-last-name-id',
+                                            value: 'Doe',
+                                            meta_data: { name: 'last_name' },
+                                        },
+                                        {
+                                            metadata_id: 'meta-terms-id',
+                                            value: true,
+                                            meta_data: { name: 'first_name' },
+                                        },
                                     ],
                                 }),
                                 sharedAddonProduct,
@@ -661,7 +689,11 @@ describe('WeeztixImportTask', () => {
                             finn_price: 2650,
                             finn_service_fee: 150,
                             meta_data: [
-                                { value: 'Jane', meta_data: { name: 'first_name' } },
+                                {
+                                    metadata_id: 'meta-first-name-id',
+                                    value: 'Jane',
+                                    meta_data: { name: 'first_name' },
+                                },
                             ],
                         }),
                     ],
@@ -808,8 +840,16 @@ describe('WeeztixImportTask', () => {
                                 buildProduct({
                                     guid: 'purchase-ticket',
                                     meta_data: [
-                                        { value: 'Jane', meta_data: { name: 'first_name' } },
-                                        { value: 'Doe', meta_data: { name: 'last_name' } },
+                                        {
+                                            metadata_id: 'meta-first-name-id',
+                                            value: 'Jane',
+                                            meta_data: { name: 'first_name' },
+                                        },
+                                        {
+                                            metadata_id: 'meta-last-name-id',
+                                            value: 'Doe',
+                                            meta_data: { name: 'last_name' },
+                                        },
                                     ],
                                 }),
                             ],
@@ -894,8 +934,16 @@ describe('WeeztixImportTask', () => {
                         buildTicket({
                             guid: 'ticket-unchanged',
                             meta_data: [
-                                { value: 'Jane', meta_data: { name: 'first_name' } },
-                                { value: 'Janie', meta_data: { name: 'NICKNAME' } },
+                                {
+                                    metadata_id: 'meta-first-name-id',
+                                    value: 'Jane',
+                                    meta_data: { name: 'first_name' },
+                                },
+                                {
+                                    metadata_id: 'meta-nickname-id',
+                                    value: 'Janie',
+                                    meta_data: { name: 'NICKNAME' },
+                                },
                             ],
                             products: [
                                 buildProduct({ guid: 'purchase-unchanged' }),
@@ -906,8 +954,16 @@ describe('WeeztixImportTask', () => {
                             invalidated_since: '2026-08-07T12:00:00Z',
                             updated_at: '2026-08-07T12:00:00Z',
                             meta_data: [
-                                { value: 'Alex', meta_data: { name: 'first_name' } },
-                                { value: 'Lee', meta_data: { name: 'last_name' } },
+                                {
+                                    metadata_id: 'meta-first-name-id',
+                                    value: 'Alex',
+                                    meta_data: { name: 'first_name' },
+                                },
+                                {
+                                    metadata_id: 'meta-last-name-id',
+                                    value: 'Lee',
+                                    meta_data: { name: 'last_name' },
+                                },
                             ],
                         }),
                     ],

@@ -126,28 +126,6 @@ function areTimestampsEqual(lhs: Temporal.ZonedDateTime, rhs: Temporal.ZonedDate
 }
 
 /**
- * Extracts the personalised holder name (`first_name` and `last_name`) from ticket or purchase
- * `metadata`, returning `null` when neither is present.
- */
-function extractHolderName(metadata: Order['tickets'][number]['meta_data']): string | null {
-    let firstName: string | undefined;
-    let lastName: string | undefined;
-
-    for (const entry of metadata) {
-        if (typeof entry.value === 'boolean')
-            continue;
-
-        if (entry.meta_data.name === 'first_name')
-            firstName = String(entry.value);
-        else if (entry.meta_data.name === 'last_name')
-            lastName = String(entry.value);
-    }
-
-    return [ firstName, lastName ]
-        .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
-}
-
-/**
  * Extracted metadata fields from a Weeztix ticket's `meta_data` array.
  */
 interface ExtractedTicketMetadata {
@@ -157,73 +135,10 @@ interface ExtractedTicketMetadata {
 }
 
 /**
- * Mapping of `ExtractedTicketMetadata` keys to their case-insensitive field name prefixes.
- */
-const kTicketMetadataFields: Record<keyof ExtractedTicketMetadata, string> = {
-    metaFunction: 'function',
-    metaNickname: 'nickname',
-    metaOrganisation: 'organisation',
-};
-
-/**
- * Extracts known metadata fields from ticket `metadata`, matching each field whose name starts with
- * the configured prefix (case-insensitive, ignoring leading whitespace), returning `null` when
- * absent.
- */
-function extractTicketMetadata(
-    metadata: Order['tickets'][number]['meta_data'],
-): ExtractedTicketMetadata {
-    const result: ExtractedTicketMetadata = {
-        metaFunction: null,
-        metaNickname: null,
-        metaOrganisation: null,
-    };
-
-    for (const entry of metadata) {
-        if (typeof entry.value === 'boolean')
-            continue;
-
-        const fieldName = entry.meta_data.name.trimStart().toLowerCase();
-        for (const [ key, prefix ] of Object.entries(kTicketMetadataFields) as
-            [ keyof ExtractedTicketMetadata, string ][]) {
-            if (result[key] !== null || !fieldName.startsWith(prefix))
-                continue;
-
-            const value = String(entry.value).replace(/\s+/g, ' ').trim();
-            if (value)
-                result[key] = value;
-        }
-    }
-
-    return result;
-}
-
-/**
  * Parses an ISO 8601 timestamp string into a UTC `Temporal.ZonedDateTime` rounded to whole seconds.
  */
 function parseTimestamp(value: string): Temporal.ZonedDateTime {
     return Temporal.Instant.from(value).round('seconds').toZonedDateTimeISO('UTC');
-}
-
-/**
- * Normalises a Weeztix `product` entry into a `LivePurchaseEntry` associated with `orderGuid` and
- * optionally `ticketGuid`.
- */
-function toLivePurchaseEntry(
-    product: Order['products'][number], orderGuid: string, ticketGuid: string | null)
-        : LivePurchaseEntry
-{
-    return {
-        guid: product.guid,
-        ticketGuid,
-        orderGuid,
-        typeGuid: product.product_id,
-        name: extractHolderName(product.meta_data),
-        price: Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
-        created: parseTimestamp(product.created_at),
-        updated: parseTimestamp(product.updated_at),
-        deleted: product.invalidated_since ? parseTimestamp(product.invalidated_since) : null,
-    };
 }
 
 /**
@@ -714,8 +629,8 @@ export class WeeztixImportTask extends Task {
                     orderGuid: order.guid,
                     typeGuid: ticket.ticket_id,
                     barcode: ticket.ticket_number,
-                    name: extractHolderName(ticket.meta_data),
-                    ...extractTicketMetadata(ticket.meta_data),
+                    name: this.extractHolderName(ticket.meta_data),
+                    ...this.extractTicketMetadata(ticket.meta_data),
                     price: Math.max(0, Math.round(ticket.finn_price - ticket.finn_service_fee)),
                     created: parseTimestamp(ticket.created_at),
                     updated: parseTimestamp(ticket.updated_at),
@@ -725,17 +640,99 @@ export class WeeztixImportTask extends Task {
 
                 for (const product of ticket.products) {
                     livePurchases.set(
-                        product.guid, toLivePurchaseEntry(product, order.guid, ticket.guid));
+                        product.guid,
+                        this.toLivePurchaseEntry(product, order.guid, ticket.guid));
                 }
             }
 
             for (const product of order.products) {
-                if (!livePurchases.has(product.guid))
-                    livePurchases.set(product.guid, toLivePurchaseEntry(product, order.guid, null));
+                if (!livePurchases.has(product.guid)) {
+                    livePurchases.set(
+                        product.guid, this.toLivePurchaseEntry(product, order.guid, null));
+                }
             }
         }
 
         return { liveOrders, liveTickets, livePurchases };
+    }
+
+    /**
+     * Extracts the personalised holder name (`first_name` and `last_name`) from ticket or purchase
+     * `metadata`, returning `null` when neither is present.
+     */
+    private extractHolderName(metadata: Order['tickets'][number]['meta_data']): string | null {
+        let firstName: string | undefined;
+        let lastName: string | undefined;
+
+        for (const entry of metadata) {
+            if (typeof entry.value === 'boolean')
+                continue;
+
+            if (entry.metadata_id === this.#client.metaFirstNameId)
+                firstName = String(entry.value);
+            else if (entry.metadata_id === this.#client.metaLastNameId)
+                lastName = String(entry.value);
+        }
+
+        return [ firstName, lastName ]
+            .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null;
+    }
+
+    /**
+     * Extracts known metadata fields from ticket `metadata` by matching `metadata_id` against the
+     * GUIDs configured on `this.#client`, returning `null` when absent.
+     */
+    private extractTicketMetadata(metadata: Order['tickets'][number]['meta_data'])
+        : ExtractedTicketMetadata
+    {
+        const result: ExtractedTicketMetadata = {
+            metaFunction: null,
+            metaNickname: null,
+            metaOrganisation: null,
+        };
+
+        const fieldMapping: [ keyof ExtractedTicketMetadata, string ][] = [
+            [ 'metaFunction', this.#client.metaFunctionId ],
+            [ 'metaNickname', this.#client.metaNicknameId ],
+            [ 'metaOrganisation', this.#client.metaOrganisationId ],
+        ];
+
+        for (const entry of metadata) {
+            if (typeof entry.value === 'boolean')
+                continue;
+
+            for (const [ key, metadataId ] of fieldMapping) {
+                if (result[key] !== null || entry.metadata_id !== metadataId)
+                    continue;
+
+                const value = String(entry.value).replace(/\s+/g, ' ').trim();
+                if (value)
+                    result[key] = value;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Normalises a Weeztix `product` entry into a `LivePurchaseEntry` associated with `orderGuid`
+     * and optionally `ticketGuid`.
+     */
+    private toLivePurchaseEntry(
+        product: Order['products'][number], orderGuid: string,ticketGuid: string | null)
+            : LivePurchaseEntry
+    {
+        return {
+            guid: product.guid,
+            ticketGuid,
+            orderGuid,
+            typeGuid: product.product_id,
+            name: this.extractHolderName(product.meta_data),
+            price: Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
+            created: parseTimestamp(product.created_at),
+            updated: parseTimestamp(product.updated_at),
+            deleted: product.invalidated_since ? parseTimestamp(product.invalidated_since) : null,
+        };
     }
 
     /**
