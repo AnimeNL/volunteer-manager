@@ -24,6 +24,7 @@ export type GetEventResponse = z.infer<typeof kGetEventResponse>;
  */
 export const kGetEventsResponse = z.array(z.object({
     guid: z.string().nonempty(),
+    company_id: z.string().nonempty(),
     name: z.string().nonempty(),
     location: z.object({
         guid: z.string().nonempty(),
@@ -35,6 +36,20 @@ export const kGetEventsResponse = z.array(z.object({
  * Expected response for the /event/{type?} API.
  */
 export type GetEventsResponse = z.infer<typeof kGetEventsResponse>;
+
+/**
+ * Expected response for the /metaData/{type?} API.
+ * @see https://docs.weeztix.com/api/dashboard/get-metadata
+ */
+export const kGetMetadataResponse = z.array(z.object({
+    guid: z.string().nonempty(),
+    name: z.string().min(1).max(255),
+}));
+
+/**
+ * Expected response for the /metaData/{type?} API.
+ */
+export type GetMetadataResponse = z.infer<typeof kGetMetadataResponse>;
 
 /**
  * Expected response for the /order/:guid API. Kept permissive with `looseObject` while live API

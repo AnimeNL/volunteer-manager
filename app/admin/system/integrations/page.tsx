@@ -98,6 +98,12 @@ export default async function IntegrationsPage() {
         'integration-weeztix-access-token',
         'integration-weeztix-client-id',
         'integration-weeztix-client-secret',
+        'integration-weeztix-company-id',
+        'integration-weeztix-meta-first-name-id',
+        'integration-weeztix-meta-function-id',
+        'integration-weeztix-meta-last-name-id',
+        'integration-weeztix-meta-nickname-id',
+        'integration-weeztix-meta-organisation-id',
         'integration-weeztix-redirect-url',
         'integration-weeztix-refresh-token',
         'integration-weeztix-refresh-token-expiration',
@@ -139,6 +145,12 @@ export default async function IntegrationsPage() {
             accessToken: settings['integration-weeztix-access-token'] ?? '',
             clientId: settings['integration-weeztix-client-id'] ?? '',
             clientSecret: settings['integration-weeztix-client-secret'] ?? '',
+            companyId: settings['integration-weeztix-company-id'] ?? '',
+            metaFirstNameId: settings['integration-weeztix-meta-first-name-id'] ?? '',
+            metaFunctionId: settings['integration-weeztix-meta-function-id'] ?? '',
+            metaLastNameId: settings['integration-weeztix-meta-last-name-id'] ?? '',
+            metaNicknameId: settings['integration-weeztix-meta-nickname-id'] ?? '',
+            metaOrganisationId: settings['integration-weeztix-meta-organisation-id'] ?? '',
             redirectUrl: settings['integration-weeztix-redirect-url'] ??
                 `https://${(await headers()).get('Host')}/admin/system/integrations/weeztix-oauth`,
             refreshToken: settings['integration-weeztix-refresh-token'] ?? '',
@@ -383,6 +395,35 @@ export default async function IntegrationsPage() {
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="Weeztix[refreshToken]" label="Refresh token" fullWidth
                                       size="small"  slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[companyId]" label="Company ID" fullWidth
+                                      size="small" slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[metaFunctionId]" label="Function meta ID"
+                                      fullWidth size="small"
+                                      slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[metaNicknameId]" label="Nickname meta ID"
+                                      fullWidth size="small"
+                                      slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[metaOrganisationId]"
+                                      label="Organisation meta ID" fullWidth size="small"
+                                      slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[metaFirstNameId]" label="First name meta ID"
+                                      fullWidth size="small"
+                                      slotProps={{ input: { disabled: true } }} />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextFieldElement name="Weeztix[metaLastNameId]" label="Last name meta ID"
+                                      fullWidth size="small"
+                                      slotProps={{ input: { disabled: true } }} />
                 </Grid>
             </FormGridSection>
 

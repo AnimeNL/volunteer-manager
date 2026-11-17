@@ -15,11 +15,12 @@ import { Instrumentation } from '@lib/integrations/Instrumentation';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SectionLoading } from '@app/admin/components/SectionLoading';
+import { type Setting, readSettings, writeSetting, writeSettings } from '@lib/Settings';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './generateWeeztixState';
-import { readSettings, writeSettings } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
+import { createWeeztixClient } from '@lib/integrations/weeztix';
 
 /**
  * Endpoint through which access tokens can be obtained.
@@ -202,6 +203,65 @@ async function Authorization(props: { code: string; userId: number }) {
         'integration-weeztix-refresh-token': refreshToken,
         'integration-weeztix-refresh-token-expiration': refreshTokenExpiration.epochMilliseconds,
     });
+
+    // ---------------------------------------------------------------------------------------------
+    // (5) Fetch event information to auto-populate our Company ID
+    // ---------------------------------------------------------------------------------------------
+
+    try {
+        const clientWithoutCompany = await createWeeztixClient(/* optionalMetadataFields= */ true);
+        {
+            const events = await clientWithoutCompany.listEvents();
+            if (!events.length)
+                throw new Error('Weeztix does not expose any events for these credentials.');
+
+            await writeSetting('integration-weeztix-company-id', events[0].company_id);
+        }
+
+        const clientWithCompany = await createWeeztixClient(/* optionalMetadataFields= */ true);
+        {
+            const metadata = await clientWithCompany.listMetadata();
+            const metadataMapping: { [k: string]: Setting } = {
+                first_name: 'integration-weeztix-meta-first-name-id',
+                function: 'integration-weeztix-meta-function-id',
+                last_name: 'integration-weeztix-meta-last-name-id',
+                nickname: 'integration-weeztix-meta-nickname-id',
+                organisation: 'integration-weeztix-meta-organisation-id',
+            };
+
+            let matchedGuidCount = 0;
+            for (const { guid, name } of metadata) {
+                const normalisedName = name.trim().toLocaleLowerCase();
+                if (!Object.hasOwn(metadataMapping, normalisedName))
+                    continue;
+
+                await writeSetting(metadataMapping[normalisedName], guid);
+                matchedGuidCount++;
+            }
+
+            const expectedGuidCount = Object.keys(metadataMapping).length;
+            if (matchedGuidCount !== expectedGuidCount)
+                throw new Error(`Expected ${expectedGuidCount} GUIDs, found ${matchedGuidCount}`);
+        }
+    } catch (error: any) {
+        console.error(error);
+        return (
+            <>
+                <Alert severity="error" variant="outlined">
+                    Unable to auto-populate our company ID and/or metadata fields.
+                </Alert>
+                <Typography variant="body2" sx={{
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere'
+                }}>
+                    { error.toString() }
+                </Typography>
+            </>
+        );
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     return (
         <>

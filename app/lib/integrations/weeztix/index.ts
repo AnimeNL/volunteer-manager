@@ -10,43 +10,56 @@ export type { WeeztixClient };
  * Gets an instance of the WeeztixClient client with either the `settings` when given, or default
  * configuration loaded from the database when omitted.
  */
-export async function createWeeztixClient(settings?: WeeztixClientSettings)
+export async function createWeeztixClient(optionalMetadataFields?: boolean)
     : Promise<WeeztixClient>
 {
-    if (!settings) {
-        const configuration = await readSettings([
-            'integration-weeztix-access-token',
-            'integration-weeztix-access-token-expiration',
-            'integration-weeztix-client-id',
-            'integration-weeztix-client-secret',
-            'integration-weeztix-refresh-token',
-            'integration-weeztix-refresh-token-expiration',
-        ]);
+    const configuration = await readSettings([
+        'integration-weeztix-access-token',
+        'integration-weeztix-access-token-expiration',
+        'integration-weeztix-client-id',
+        'integration-weeztix-client-secret',
+        'integration-weeztix-company-id',
+        'integration-weeztix-meta-first-name-id',
+        'integration-weeztix-meta-function-id',
+        'integration-weeztix-meta-last-name-id',
+        'integration-weeztix-meta-nickname-id',
+        'integration-weeztix-meta-organisation-id',
+        'integration-weeztix-refresh-token',
+        'integration-weeztix-refresh-token-expiration',
+    ]);
 
-        for (const [ key, value ] of Object.entries(configuration)) {
-            if (value !== undefined)
-                continue;
+    for (const [ key, value ] of Object.entries(configuration)) {
+        if (value !== undefined)
+            continue;
 
-            throw new Error(`Unable to instantiate the Weeztix client, missing setting ${key}`);
-        }
+        if (!!optionalMetadataFields && (key.includes('company') || key.includes('meta')))
+            continue;
 
-        settings = {
-            accessToken: {
-                token: configuration['integration-weeztix-access-token']!,
-                expiration: Temporal.Instant.fromEpochMilliseconds(
-                    configuration['integration-weeztix-access-token-expiration']!),
-            },
-            refreshToken: {
-                token: configuration['integration-weeztix-refresh-token']!,
-                expiration: Temporal.Instant.fromEpochMilliseconds(
-                    configuration['integration-weeztix-refresh-token-expiration']!),
-            },
-            clientId: configuration['integration-weeztix-client-id']!,
-            clientSecret: configuration['integration-weeztix-client-secret']!,
-        };
+        throw new Error(`Unable to instantiate the Weeztix client, missing setting ${key}`);
     }
 
-    return new WeeztixClient(settings);
+    return new WeeztixClient({
+        accessToken: {
+            token: configuration['integration-weeztix-access-token']!,
+            expiration: Temporal.Instant.fromEpochMilliseconds(
+                configuration['integration-weeztix-access-token-expiration']!),
+        },
+        refreshToken: {
+            token: configuration['integration-weeztix-refresh-token']!,
+            expiration: Temporal.Instant.fromEpochMilliseconds(
+                configuration['integration-weeztix-refresh-token-expiration']!),
+        },
+        clientId: configuration['integration-weeztix-client-id']!,
+        clientSecret: configuration['integration-weeztix-client-secret']!,
+        companyId: configuration['integration-weeztix-company-id']!,
+        meta: {
+            firstName: configuration['integration-weeztix-meta-first-name-id']!,
+            function: configuration['integration-weeztix-meta-function-id']!,
+            lastName: configuration['integration-weeztix-meta-last-name-id']!,
+            nickname: configuration['integration-weeztix-meta-nickname-id']!,
+            organisation: configuration['integration-weeztix-meta-organisation-id']!,
+        },
+    });
 }
 
 /**

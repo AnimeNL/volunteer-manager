@@ -155,6 +155,12 @@ export type Settings = {
     'integration-weeztix-access-token-expiration': number;
     'integration-weeztix-client-id': string;
     'integration-weeztix-client-secret': string;
+    'integration-weeztix-company-id': string;
+    'integration-weeztix-meta-first-name-id': string;
+    'integration-weeztix-meta-function-id': string;
+    'integration-weeztix-meta-last-name-id': string;
+    'integration-weeztix-meta-nickname-id': string;
+    'integration-weeztix-meta-organisation-id': string;
     'integration-weeztix-redirect-url': string;
     'integration-weeztix-refresh-token': string;
     'integration-weeztix-refresh-token-expiration': number;

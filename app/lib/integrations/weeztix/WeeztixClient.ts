@@ -51,6 +51,41 @@ export interface WeeztixClientSettings {
      * Secret used to authenticate our client.
      */
     clientSecret: string;
+
+    /**
+     * Company that the Weeztix integration has been associated with.
+     */
+    companyId: string;
+
+    /**
+     * GUIDs given to the metadata fields we use.
+     */
+    meta: {
+        /**
+         * First name field.
+         */
+        firstName: string;
+
+        /**
+         * Role field ("Staff", "Senior Crew", ...).
+         */
+        function: string;
+
+        /**
+         * Last name field.
+         */
+        lastName: string;
+
+        /**
+         * Nickname field, to be used instead of a person's real name.
+         */
+        nickname: string;
+
+        /**
+         * Organisation field ("HR & Security", "Events", "Tech", ...).
+         */
+        organisation: string;
+    }
 }
 
 /**
@@ -111,6 +146,40 @@ export class WeeztixClient {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Getters:
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * GUID assigned to our company by Weeztix.
+     */
+    get companyId() { return this.#settings.companyId; }
+
+    /**
+     * GUID of the first_name field.
+     */
+    get metaFirstNameId() { return this.#settings.meta.firstName; }
+
+    /**
+     * GUID of the Role field ("Staff", "Senior Crew", ...).
+     */
+    get metaFunctionId() { return this.#settings.meta.function; }
+
+    /**
+     * GUID of the last_name field.
+     */
+    get metaLastNameId() { return this.#settings.meta.lastName; }
+
+    /**
+     * GUID of the Nickname field, to be used instead of a person's real name.
+     */
+    get metaNicknameId() { return this.#settings.meta.nickname; }
+
+    /**
+     * GUID of the Organisation field ("HR & Security", "Events", "Tech", ...).
+     */
+    get metaOrganisationId() { return this.#settings.meta.organisation; }
+
+    // ---------------------------------------------------------------------------------------------
     // Public APIs:
     // ---------------------------------------------------------------------------------------------
 
@@ -165,6 +234,19 @@ export class WeeztixClient {
     async listEvents(): Promise<weeztix.GetEventsResponse> {
         return this.issueRequest(weeztix.kGetEventsResponse, {
             api: '/event/normal',
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Lists the metadata that exists for our company. Soft deleted fields will be omitted.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of events that exist in our Weeztix account.
+     */
+    async listMetadata(): Promise<weeztix.GetMetadataResponse> {
+        return this.issueRequest(weeztix.kGetMetadataResponse, {
+            api: '/metaData/normal',
             method: 'GET',
         });
     }
