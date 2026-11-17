@@ -58,13 +58,15 @@ export function TotalRevenueCard(props: TotalRevenueCardProps) {
                         </Typography>
                         { changePercentage !== undefined &&
                             <Tooltip title="Compared to the previous 7-day period">
-                                <Chip size="small"
-                                      color={ changePercentage >= 0 ? 'success' : 'error' }
-                                      label={
-                                          changePercentage > 0
-                                              ? `+${changePercentage}% w/w`
-                                              : `${changePercentage}% w/w`
-                                      } />
+                                <div>
+                                    <Chip size="small"
+                                          color={ changePercentage >= 0 ? 'success' : 'error' }
+                                          label={
+                                              changePercentage > 0
+                                                  ? `+${changePercentage}% w/w`
+                                                  : `${changePercentage}% w/w`
+                                          } />
+                                </div>
                             </Tooltip> }
                     </Stack>
                 </Stack>
@@ -80,22 +82,25 @@ export function TotalRevenueCard(props: TotalRevenueCardProps) {
                                                           sx: { color: 'text.secondary' },
                                                       },
                                                   }} />
-                                    <Tooltip title={
-                                        formatMetricReference(
-                                            entry.figure, 'revenue', props.processor.remainingDays)
-                                    }>
-                                        <Typography
-                                            color={
-                                                entry.figure === headline.figure
-                                                    ? 'textSecondary'
-                                                    : entry.figure < headline.figure
-                                                        ? 'success'
-                                                        : 'error'
-                                            }
-                                            variant="body2">
-                                            { formatDifference(headline.figure, entry.figure) }
-                                        </Typography>
-                                    </Tooltip>
+                                    <Typography
+                                        color={
+                                            entry.figure === headline.figure
+                                                ? 'textSecondary'
+                                                : entry.figure < headline.figure
+                                                    ? 'success'
+                                                    : 'error'
+                                        }
+                                        variant="body2">
+                                        <Tooltip title={
+                                            formatMetricReference(
+                                                entry.figure, 'revenue',
+                                                props.processor.remainingDays)
+                                        }>
+                                            <span>
+                                                { formatDifference(headline.figure, entry.figure) }
+                                            </span>
+                                        </Tooltip>
+                                    </Typography>
                                 </ListItem> )}
                         </List>
                     </> }
