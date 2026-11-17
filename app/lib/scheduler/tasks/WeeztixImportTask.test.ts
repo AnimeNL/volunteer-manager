@@ -128,14 +128,13 @@ describe('WeeztixImportTask', () => {
                     name: 'AnimeCon 2026',
                     endTime: formatDate(soonEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
                     context: {
-                        companyGuid: undefined,
-                        eventGuid: 'event-guid-2026',
+                        eventId: undefined,
                     },
                     mostRecentUpdate: undefined,
                 },
             ]);
 
-            await expect(task.execute()).rejects.toThrow('without a company GUID');
+            await expect(task.execute()).rejects.toThrow('without an event GUID');
 
             mockConnection.expect('selectManyRows', () => [
                 {
@@ -143,8 +142,7 @@ describe('WeeztixImportTask', () => {
                     name: 'AnimeCon 2026',
                     endTime: formatDate(soonEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
                     context: {
-                        companyGuid: 'company-guid-1',
-                        eventGuid: 'event-guid-2026',
+                        eventId: 'event-guid-2026',
                     },
                     mostRecentUpdate: '2026-08-05 00:00:00',
                 },
@@ -153,8 +151,7 @@ describe('WeeztixImportTask', () => {
                     name: 'AnimeCon 2027',
                     endTime: formatDate(laterEndTime.withTimeZone('UTC'), 'YYYY-MM-DD HH:mm:ss'),
                     context: {
-                        companyGuid: 'company-guid-2',
-                        eventGuid: 'event-guid-2027',
+                        eventId: 'event-guid-2027',
                     },
                     mostRecentUpdate: undefined,
                 },
@@ -170,13 +167,13 @@ describe('WeeztixImportTask', () => {
             expect(mockListTicketTypes).toHaveBeenNthCalledWith(2, 'event-guid-2027');
 
             expect(mockListOrders).toHaveBeenNthCalledWith(
-                1, 'company-guid-1', expect.objectContaining({
+                1, expect.objectContaining({
                     start: '2026-08-04T12:00:00+00:00',
                     sorting: { updated_at: 'asc' },
                     events: [ 'event-guid-2026' ],
                 }));
             expect(mockListOrders).toHaveBeenNthCalledWith(
-                2, 'company-guid-2', expect.objectContaining({
+                2, expect.objectContaining({
                     sorting: { updated_at: 'asc' },
                     events: [ 'event-guid-2027' ],
                 }));
@@ -520,7 +517,7 @@ describe('WeeztixImportTask', () => {
     describe('importOrders', () => {
         it('paginates with 12h compensation, deduplicates orders, and skips empty', async () => {
             mockListOrders.mockResolvedValueOnce([]);
-            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(false);
+            expect(await (task as any).importOrders('event-guid-1')).toBe(false);
 
             vi.useFakeTimers({ toFake: [ 'setTimeout' ] });
             try {
@@ -557,12 +554,12 @@ describe('WeeztixImportTask', () => {
                     Temporal.Instant.from('2026-08-05T00:00:00Z').toZonedDateTimeISO('UTC');
 
                 const resultPromise = (task as any).importOrders(
-                    'company-guid-1', 'event-guid-1', mostRecentUpdate);
+                    'event-guid-1', mostRecentUpdate);
                 await vi.runAllTimersAsync();
                 expect(await resultPromise).toBe(true);
 
                 expect(mockListOrders).toHaveBeenNthCalledWith(
-                    2, 'company-guid-1', expect.objectContaining({
+                    2, expect.objectContaining({
                         offset: 0,
                         limit: 100,
                         timeunit: 'year',
@@ -572,7 +569,7 @@ describe('WeeztixImportTask', () => {
                         events: [ 'event-guid-1' ],
                     }));
                 expect(mockListOrders).toHaveBeenNthCalledWith(
-                    3, 'company-guid-1', expect.objectContaining({
+                    3, expect.objectContaining({
                         offset: 100,
                         limit: 100,
                         sorting: { updated_at: 'asc' },
@@ -717,7 +714,7 @@ describe('WeeztixImportTask', () => {
             }
             mockConnection.expect('commit');
 
-            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
+            expect(await (task as any).importOrders('event-guid-1')).toBe(true);
 
             expect(ordersByGuid.get('order-1')?.slice(0, 11)).toEqual([
                 'order-1',
@@ -883,7 +880,7 @@ describe('WeeztixImportTask', () => {
                 },
             ]);
 
-            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
+            expect(await (task as any).importOrders('event-guid-1')).toBe(true);
         });
 
         it('updates modified records, maps invalidations, and soft-deletes omitted', async () => {
@@ -1100,7 +1097,7 @@ describe('WeeztixImportTask', () => {
             });
             mockConnection.expect('commit');
 
-            expect(await (task as any).importOrders('company-guid-1', 'event-guid-1')).toBe(true);
+            expect(await (task as any).importOrders('event-guid-1')).toBe(true);
         });
     });
 
