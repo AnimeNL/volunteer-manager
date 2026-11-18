@@ -26,6 +26,7 @@ import { VolunteerIdentitySection } from './VolunteerIdentitySection';
 import { VolunteerQuickActions } from './VolunteerQuickActions';
 import { VolunteerSchedule } from './VolunteerSchedule';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
@@ -143,7 +144,8 @@ export default async function EventTeamVolunteerPage(
                          event={event.id} user={volunteer.id} />
     );
 
-    const ticketStatus = event.tickets?.volunteerTicketId
+    const ticketService = await createTicketService(event.id);
+    const ticketStatus = ticketService?.canManageVolunteerTickets()
         ? <TicketStatusTile event={event.id} user={volunteer.id} />
         : undefined;
 

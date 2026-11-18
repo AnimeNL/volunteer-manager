@@ -179,6 +179,15 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
     const eventScope = { event: event.slug };
     const ticketService = await createTicketService(event.id);
 
+    let ticketsUrl: string | undefined;
+    if (ticketService?.canManageVolunteerTickets()) {
+        if (access.can('volunteers.tickets', 'read', eventScope))
+            ticketsUrl = `/admin/events/${event.slug}/tickets/volunteers`;
+    } else if (!!event.tickets?.provider) {
+        if (access.can('event.tickets', 'read', eventScope))
+            ticketsUrl = `/admin/events/${event.slug}/tickets/visitors`;
+    }
+
     const items: NavigationTopLevelItem[] = [
         {
             Icon: DashboardOutlinedIcon,
@@ -230,16 +239,9 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: LocalActivityOutlinedIcon,
-            condition: !!event.tickets?.provider,
+            condition: !!ticketsUrl,
             label: 'Tickets',
-            permission: {
-                permission: 'volunteers.tickets',
-                operation: 'read',
-                scope: eventScope,
-            },
-            url: ticketService?.canManageVolunteerTickets()
-                ? `/admin/events/${event.slug}/tickets/volunteers`
-                : `/admin/events/${event.slug}/tickets`,
+            url: ticketsUrl ?? `/admin/events/${event.slug}/tickets`,
             urlPrefix: `/admin/events/${event.slug}/tickets`,
         },
         {
