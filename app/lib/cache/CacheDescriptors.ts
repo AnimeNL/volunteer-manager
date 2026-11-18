@@ -157,6 +157,7 @@ interface CacheDescriptorMap {
         Parameters: string;
         Contents: {
             events?: { id: string; label: string }[];
+            order?: { email?: string };
             scanners?: { id: string; label: string }[];
             shops?: { id: string; label: string }[];
             ticketTypes?: { id: string; label: string }[];
@@ -396,7 +397,7 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
 
     TicketProvider: {
         name: 'TicketProvider',
-        description: 'Options retrieved from ticketing providers for event configuration.',
+        description: 'Options and order details retrieved from ticketing providers.',
         type: 'ttl',
         ttl: 72 * 3600,
     },

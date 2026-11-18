@@ -3,9 +3,9 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
-    Purchase, Ticket, TicketConfiguration, TicketCreateRequest, TicketFinancialSummary,
-    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
-    from './Types';
+    Purchase, PurchaseDetails, Ticket, TicketConfiguration, TicketCreateRequest,
+    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
+    TicketType, VolunteerTicket } from './Types';
 
 /**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
@@ -39,6 +39,11 @@ export interface TicketService {
     canCreateTickets(): boolean;
 
     /**
+     * Returns whether this ticket service supports fetching and updating live purchase details.
+     */
+    canFetchPurchaseDetails(): boolean;
+
+    /**
      * Returns whether this ticket service supports managing volunteer and associate tickets.
      */
     canManageVolunteerTickets(): boolean;
@@ -62,6 +67,11 @@ export interface TicketService {
      * Fetches the purchase identified by the given `purchaseId`.
      */
     fetchPurchase(purchaseId: number | string): Promise<Purchase | undefined>;
+
+    /**
+     * Fetches live details for the purchase identified by `purchaseId` from the ticketing provider.
+     */
+    fetchPurchaseDetails(purchaseId: number | string): Promise<PurchaseDetails | undefined>;
 
     /**
      * Fetches the available financial filter options (such as UTM sources and campaigns) for the
@@ -145,6 +155,11 @@ export interface TicketService {
      * Sends a purchase confirmation for the given `purchaseId` to the associated e-mail address.
      */
     sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean>;
+
+    /**
+     * Updates the e-mail address associated with the purchase identified by `purchaseId`.
+     */
+    updatePurchaseEmail(purchaseId: number | string, email: string): Promise<boolean>;
 
     /**
      * Creates or updates the configuration for `ticketTypeId` in `eventId`. Returns whether any

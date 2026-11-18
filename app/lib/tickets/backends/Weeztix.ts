@@ -3,10 +3,11 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
-    Purchase, Ticket, TicketConfiguration, TicketCreateRequest, TicketFinancialSummary,
-    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
-    from '../Types';
+    Purchase, PurchaseDetails, Ticket, TicketConfiguration, TicketCreateRequest,
+    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
+    TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
+import { Cache } from '@lib/cache';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import { fetchWeeztixFinancialFilterOptions, fetchWeeztixProductSales, fetchWeeztixProducts,
     hasWeeztixSales, kWeeztixSettledOrderStatuses } from './WeeztixFinancialData';
@@ -137,6 +138,10 @@ export class Weeztix implements TicketService {
 
     canCreateTickets(): boolean {
         return false;
+    }
+
+    canFetchPurchaseDetails(): boolean {
+        return true;
     }
 
     canManageVolunteerTickets(): boolean {
@@ -271,6 +276,29 @@ export class Weeztix implements TicketService {
                 })),
             ],
         };
+    }
+
+    async fetchPurchaseDetails(purchaseId: number | string): Promise<PurchaseDetails | undefined> {
+        const orderGuid = String(purchaseId);
+        const cache = Cache.getInstance('TicketProvider');
+
+        try {
+            const cached = await cache.getOrInsert(`weeztix/order/${orderGuid}`, async () => {
+                const client = await createWeeztixClient(/* optionalMetadataFields= */ true);
+                const order = await client.getOrder(orderGuid);
+
+                return {
+                    order: {
+                        email: order.email?.trim() || undefined,
+                    },
+                };
+            });
+
+            return cached?.order;
+        } catch (error) {
+            console.error('Unable to fetch Weeztix order details:', error);
+            return undefined;
+        }
     }
 
     formatPurchaseId(purchaseId: number | string): string {
@@ -646,6 +674,26 @@ export class Weeztix implements TicketService {
             return await client.resendConfirmationEmail(String(purchaseId));
         } catch (error) {
             console.error('Unable to resend Weeztix confirmation e-mail:', error);
+            return false;
+        }
+    }
+
+    async updatePurchaseEmail(purchaseId: number | string, email: string): Promise<boolean> {
+        const orderGuid = String(purchaseId);
+
+        try {
+            const client = await createWeeztixClient(/* optionalMetadataFields= */ true);
+            const updatedOrder = await client.updateOrderReceiver(orderGuid, { email });
+
+            Cache.getInstance('TicketProvider').set(`weeztix/order/${orderGuid}`, {
+                order: {
+                    email: updatedOrder.email?.trim() || email,
+                },
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Unable to update Weeztix order e-mail:', error);
             return false;
         }
     }

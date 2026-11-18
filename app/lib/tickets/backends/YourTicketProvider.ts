@@ -3,9 +3,9 @@
 
 import type { EventTicketCategory, EventTicketProvider } from '@lib/database/Types';
 import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, ProviderProductSales,
-    Purchase, Ticket, TicketConfiguration, TicketCreateRequest, TicketFinancialSummary,
-    TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
-    from '../Types';
+    Purchase, PurchaseDetails, Ticket, TicketConfiguration, TicketCreateRequest,
+    TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
+    TicketType, VolunteerTicket } from '../Types';
 import type { TicketService } from '../TicketService';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
@@ -56,6 +56,10 @@ export class YourTicketProvider implements TicketService {
     }
 
     canCreateTickets(): boolean {
+        return false;
+    }
+
+    canFetchPurchaseDetails(): boolean {
         return false;
     }
 
@@ -112,6 +116,10 @@ export class YourTicketProvider implements TicketService {
             })
             .groupBy(tYourTicketProviderPurchases.ytpPurchaseId)
             .executeSelectNoneOrOne() ?? undefined;
+    }
+
+    async fetchPurchaseDetails(_purchaseId: number | string): Promise<PurchaseDetails | undefined> {
+        return undefined;
     }
 
     formatPurchaseId(purchaseId: number | string): string {
@@ -335,6 +343,10 @@ export class YourTicketProvider implements TicketService {
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
+        throw new Error('Not implemented');
+    }
+
+    async updatePurchaseEmail(_purchaseId: number | string, _email: string): Promise<boolean> {
         throw new Error('Not implemented');
     }
 

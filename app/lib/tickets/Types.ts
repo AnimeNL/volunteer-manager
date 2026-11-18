@@ -90,6 +90,17 @@ export interface Purchase {
 }
 
 /**
+ * Live details about a purchase retrieved directly from the ticketing provider's API, for fields
+ * that are intentionally not persisted in the local database.
+ */
+export interface PurchaseDetails {
+    /**
+     * E-mail address associated with the order, when known.
+     */
+    email?: string;
+}
+
+/**
  * Interface that describes the information that will be obtained for each ticket.
  */
 export interface Ticket {
