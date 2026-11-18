@@ -309,6 +309,64 @@ export async function updateAssociateTicket(
 }
 
 /**
+ * Data required to update the e-mail address associated with a purchase.
+ */
+const kUpdatePurchaseEmailData = z.object({
+    email: z.email().nonempty(),
+});
+
+/**
+ * Server Action that updates the e-mail address associated with a purchase.
+ */
+export async function updatePurchaseEmail(
+    eventSlug: string, purchaseId: number | string, formData: unknown)
+{
+    return executeServerAction(formData, kUpdatePurchaseEmailData, async (data, props) => {
+        const { access, event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, {
+                permission: 'volunteers.tickets',
+                operation: 'update',
+            });
+
+        const service = await createTicketService(event.id);
+        if (!service || !service.canFetchPurchaseDetails())
+            notFound();
+
+        const purchase = await service.fetchPurchase(purchaseId);
+        if (!purchase)
+            notFound();
+
+        const containsVolunteerTicket = purchase.tickets.some(
+            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
+
+        if (!containsVolunteerTicket && !access.can('root'))
+            forbidden();
+
+        const result = await service.updatePurchaseEmail(purchaseId, data.email);
+        if (!result) {
+            return {
+                success: false,
+                error: 'Unable to update the order e-mail address at this time.',
+            };
+        }
+
+        LogBuilder.for('UpdateTicketPurchase')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+                purchaseId: String(purchaseId),
+            });
+
+        return {
+            success: true,
+            message: 'The order e-mail address has been updated.',
+            refresh: true,
+        };
+    });
+}
+
+/**
  * Data required to update a volunteer's preferred primary team for their ticket.
  */
 const kUpdateVolunteerPrimaryTeamData = z.object({
