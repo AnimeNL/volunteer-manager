@@ -442,3 +442,44 @@ export async function updateEventTicketing(eventSlug: string, formData: unknown)
         };
     });
 }
+
+/**
+ * Data that needs to be available to update an event's ticketing provider.
+ */
+const kEventTicketingProviderData = z.object({
+    provider: z.enum(kEventTicketProvider).or(z.literal('')).nullish(),
+});
+
+/**
+ * Server Action through which an event's ticketing partner can be updated.
+ */
+export async function updateEventTicketingProvider(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kEventTicketingProviderData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.settings');
+
+        const ticketsProvider = data.provider || null;
+
+        const affectedRows = await db.update(tEvents)
+            .set({
+                ticketsProvider,
+            })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                type: 'ticketing',
+            });
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}
