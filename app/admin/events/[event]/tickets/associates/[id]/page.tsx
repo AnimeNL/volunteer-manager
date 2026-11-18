@@ -10,14 +10,13 @@ import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { PurchaseIdLink } from '../../PurchaseIdLink';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tEvents, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';
 
@@ -47,7 +46,14 @@ export default async function EventTicketsAssociatesPage(
     if (!containsVolunteerTicket && !access.can('root'))
         forbidden();
 
-    const purchaseLink = service.createPurchaseLink(params.id);
+    const eventTicketTypes = await dbInstance.selectFrom(tEvents)
+        .where(tEvents.eventId.equals(event.id))
+        .select({
+            guestTicketGuid: tEvents.eventWeeztixGuestTicketGuid,
+            vendorTicketGuid: tEvents.eventWeeztixVendorTicketGuid,
+            volunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
+        })
+        .executeSelectNoneOrOne();
 
     // ---------------------------------------------------------------------------------------------
     // Functionality: Associating the ticket with a volunteer
@@ -126,11 +132,23 @@ export default async function EventTicketsAssociatesPage(
         );
     }
 
+    const ticket = purchase.tickets[0];
+    const ticketIdStr = `${ticket.ticketId}`;
+
+    let ticketType = ticket.ticketName ?? 'Unknown';
+    if (ticketIdStr === eventTicketTypes?.guestTicketGuid)
+        ticketType = 'Guest';
+    else if (ticketIdStr === eventTicketTypes?.vendorTicketGuid)
+        ticketType = 'Vendor';
+    else if (ticketIdStr === eventTicketTypes?.volunteerTicketGuid ||
+             ticketIdStr === event.tickets?.volunteerTicketId)
+        ticketType = 'Volunteer';
+
     return (
         <>
             {headerSection}
             <Section noHeader back tabs>
-                { purchase.tickets.length >= 1 &&
+                { purchase.tickets.length > 1 &&
                     <Alert severity="warning" variant="standard">
                         This purchase contains {purchase.tickets.length} tickets; only the first
                         ticket is shown below.
@@ -156,30 +174,38 @@ export default async function EventTicketsAssociatesPage(
                     </Alert> }
                 <KeyValueList items={[
                     {
-                        key: 'Purchase ID',
-                        valueTemplate: 'component',
-                        value: (
-                            <PurchaseIdLink
-                                href={purchaseLink}
-                                label={service.formatPurchaseId(purchase.id)} />
-                        ),
+                        key: 'Ticket type',
+                        value: ticketType,
                     },
                     {
-                        key: 'Event ID',
-                        value: purchase.eventId,
+                        key: 'Ticket holder',
+                        value: ticket.holder || 'Unknown',
                     },
                     {
-                        condition: !!purchase.paid,
-                        key: 'Paid',
+                        condition: !!ticket.nickname,
+                        key: 'Nickname',
+                        value: ticket.nickname,
+                    },
+                    {
+                        key: 'Function',
+                        value: ticket.function || 'Unknown',
+                    },
+                    {
+                        key: 'Organisation',
+                        value: ticket.organisation || 'Unknown',
+                    },
+                    {
+                        condition: !!purchase.created,
+                        key: 'Created',
                         valueTemplate: 'localDateTime',
-                        value: purchase.paid?.toString(),
+                        value: purchase.created?.toString(),
                     },
                     {
-                        condition: !!purchase.cancelled,
-                        key: 'Cancelled',
+                        condition: !!purchase.updated,
+                        key: 'Updated',
                         valueTemplate: 'localDateTime',
-                        value: purchase.cancelled?.toString(),
-                    }
+                        value: purchase.updated?.toString(),
+                    },
                 ]} />
             </Section>
         </>

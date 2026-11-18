@@ -212,6 +212,8 @@ export class Weeztix implements TicketService {
                 barcode: tWeeztixTickets.weeztixTicketBarcode,
                 name: tWeeztixTickets.weeztixTicketName,
                 nickname: tWeeztixTickets.weeztixTicketMetaNickname,
+                function: tWeeztixTickets.weeztixTicketMetaFunction,
+                organisation: tWeeztixTickets.weeztixTicketMetaOrganisation,
             })
             .executeSelectMany();
 
@@ -233,6 +235,8 @@ export class Weeztix implements TicketService {
                 ticketName: tWeeztixTicketTypes.weeztixTicketName,
                 barcode: parentTicketsJoin.weeztixTicketBarcode,
                 name: tWeeztixPurchases.weeztixPurchaseName,
+                function: parentTicketsJoin.weeztixTicketMetaFunction,
+                organisation: parentTicketsJoin.weeztixTicketMetaOrganisation,
                 parentTicketName: parentTicketsJoin.weeztixTicketName,
             })
             .executeSelectMany();
@@ -243,6 +247,8 @@ export class Weeztix implements TicketService {
             name: order.name?.trim() || undefined,
             cancelled: order.deleted ?? (order.status === 'cancelled' ? order.updated : undefined),
             paid: kWeeztixSettledOrderStatuses.includes(order.status) ? order.created : undefined,
+            created: order.created,
+            updated: order.updated,
             tickets: [
                 ...ticketRows.map(row => ({
                     id: row.id,
@@ -251,6 +257,8 @@ export class Weeztix implements TicketService {
                     barcode: row.barcode || undefined,
                     holder: (row.name || order.name)?.trim() || undefined,
                     nickname: row.nickname?.trim() || undefined,
+                    function: row.function?.trim() || undefined,
+                    organisation: row.organisation?.trim() || undefined,
                 })),
                 ...purchaseRows.map(row => ({
                     id: row.id,
@@ -258,6 +266,8 @@ export class Weeztix implements TicketService {
                     ticketName: row.ticketName.trim() || undefined,
                     barcode: row.barcode || undefined,
                     holder: (row.name || row.parentTicketName || order.name)?.trim() || undefined,
+                    function: row.function?.trim() || undefined,
+                    organisation: row.organisation?.trim() || undefined,
                 })),
             ],
         };

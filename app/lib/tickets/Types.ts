@@ -33,6 +33,16 @@ export interface Purchase {
     paid?: Temporal.ZonedDateTime;
 
     /**
+     * Date on which the purchase was created, if any.
+     */
+    created?: Temporal.ZonedDateTime;
+
+    /**
+     * Date on which the purchase was last updated, if any.
+     */
+    updated?: Temporal.ZonedDateTime;
+
+    /**
      * Tickets that were created as part of this purchase.
      */
     tickets: {
@@ -65,6 +75,16 @@ export interface Purchase {
          * Nickname of the holder of the ticket, when known.
          */
         nickname?: string;
+
+        /**
+         * Function of the holder of the ticket, when known.
+         */
+        function?: string;
+
+        /**
+         * Organisation of the holder of the ticket, when known.
+         */
+        organisation?: string;
 
     }[];
 }
