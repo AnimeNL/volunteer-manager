@@ -9,6 +9,7 @@ import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { CancelPurchaseQuickAction } from '../../associates/[id]/CancelPurchaseQuickAction';
+import { PurchaseDetails } from '../../PurchaseDetails';
 import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
@@ -63,10 +64,11 @@ export default async function EventTicketsVolunteerPage(
         : undefined;
 
     const purchaseId = ticketInfo?.purchaseId;
+    const purchase = purchaseId && service ? await service.fetchPurchase(purchaseId) : undefined;
 
     // ---------------------------------------------------------------------------------------------
 
-    const hasAssociatedTicket = !!purchaseId;
+    const hasBeenCancelled = !!purchase?.cancelled || !!ticketInfo?.cancelled;
 
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
@@ -86,6 +88,22 @@ export default async function EventTicketsVolunteerPage(
             ? resendPurchaseConfirmation.bind(null, event.slug, purchaseId)
             : undefined!;
 
+    const disassociateAction = canUpdateTickets && (
+        <QuickActionButton
+            action={disassociateFn}
+            icon={ <PersonRemoveOutlinedIcon /> }
+            label="Disassociate"
+            submitLabel="Disassociate"
+            title="Disassociate this ticket?"
+            description={
+                <>
+                    This action will return the ticket to the{' '}
+                    <em>associate</em> pool—it may continue to be valid for
+                    entry, but won't be associated with this volunteer anymore.
+                </>
+            } />
+    );
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> } title="Tickets"
@@ -104,40 +122,58 @@ export default async function EventTicketsVolunteerPage(
                     {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <Section noHeader back tabs>
-                { !purchaseId &&
+            { !purchaseId &&
+                <Section noHeader back tabs>
                     <Alert severity="warning" variant="outlined">
                         {participation.user.firstName} has not been issued a ticket for{' '}
                         {event.shortName} yet.
-                    </Alert> }
-                { !!ticketInfo?.cancelled &&
+                    </Alert>
+                </Section> }
+            { (!!purchaseId && (!service || !purchase)) &&
+                <Section noHeader back tabs>
                     <Alert severity="error" variant="outlined">
-                        {participation.user.firstName} has been issued a ticket that has
-                        inadvertently been cancelled.
-                        { canUpdateTickets && ' You need to disassociate their ticket below.' }
-                    </Alert> }
-                { ((canCancelPurchases || canUpdateTickets) && hasAssociatedTicket) &&
-                    <ActionBar>
-                        { canUpdateTickets &&
-                            <QuickActionButton
-                                action={disassociateFn}
-                                icon={ <PersonRemoveOutlinedIcon /> }
-                                label="Disassociate"
-                                submitLabel="Disassociate"
-                                title="Disassociate this ticket?"
-                                description={
-                                    <>
-                                        This action will return the ticket to the{' '}
-                                        <em>associate</em> pool—it may continue to be valid for
-                                        entry, but won't be associated with this volunteer anymore.
-                                    </>
-                                } /> }
-                        { canUpdateTickets &&
-                            <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                        { canCancelPurchases &&
-                            <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
-                    </ActionBar> }
-            </Section>
+                        The ticket issued to {participation.user.firstName} could not be loaded from
+                        the ticketing provider.
+                        { canUpdateTickets && ' You can disassociate their ticket below.' }
+                    </Alert>
+                    { canUpdateTickets &&
+                        <ActionBar>
+                            {disassociateAction}
+                        </ActionBar> }
+                </Section> }
+            { (!!purchase && !!service) &&
+                <PurchaseDetails
+                    event={event}
+                    purchase={purchase}
+                    service={service}
+                    readOnly
+                    ticketWarning={
+                        <Alert severity="warning" variant="outlined">
+                            This ticket is linked to {participation.user.firstName}'s account, so
+                            its details are read-only and managed through their account.
+                        </Alert>
+                    }
+                    alerts={
+                        !!ticketInfo?.cancelled && (
+                            <Alert severity="error" variant="outlined">
+                                {participation.user.firstName} has been issued a ticket that has
+                                inadvertently been cancelled.
+                                { canUpdateTickets &&
+                                    ' You need to disassociate their ticket below.' }
+                            </Alert>
+                        )
+                    }
+                    actions={
+                        (canCancelPurchases || canUpdateTickets) && (
+                            <>
+                                {disassociateAction}
+                                { (canUpdateTickets && !hasBeenCancelled) &&
+                                    <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
+                                { (canCancelPurchases && !hasBeenCancelled) &&
+                                    <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
+                            </>
+                        )
+                    } /> }
         </>
     );
 }
