@@ -3,6 +3,7 @@
 
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import GroupsIcon from '@mui/icons-material/Groups';
+import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
@@ -31,6 +32,11 @@ export default async function EventSettingsLayout(
                 Icon: GroupsIcon,
                 label: 'Teams',
                 url: `/admin/events/${event.slug}/settings/teams`,
+            },
+            {
+                Icon: LocalActivityIcon,
+                label: 'Ticketing',
+                url: `/admin/events/${event.slug}/settings/ticketing`,
             },
         ]}>
             {props.children}
