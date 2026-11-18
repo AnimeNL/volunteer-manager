@@ -15,6 +15,7 @@ import {
 export class UsersEventsTicketsTable extends Table<DBConnection, 'UsersEventsTicketsTable'> {
     userId = this.column('user_id', 'int');
     eventId = this.column('event_id', 'int');
+    teamIdPrimary = this.optionalColumnWithDefaultValue('team_id_primary', 'int');
     ticketProvider = this.column<EventTicketProvider>('ticket_provider', 'enum', 'EventTicketProvider');
     ticketProviderPurchaseId = this.column('ticket_provider_purchase_id', 'string');
 

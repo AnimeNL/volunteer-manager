@@ -3544,6 +3544,10 @@ tables:
   - name: event_id
     type: int(4) unsigned
     nullable: false
+  - name: team_id_primary
+    type: int(4) unsigned
+    nullable: true
+    default: "NULL"
   - name: ticket_provider
     type: enum('Weeztix','YourTicketProvider')
     nullable: false
@@ -3580,6 +3584,7 @@ tables:
     CREATE TABLE `users_events_tickets` (
       `user_id` int(4) unsigned NOT NULL,
       `event_id` int(4) unsigned NOT NULL,
+      `team_id_primary` int(4) unsigned DEFAULT NULL,
       `ticket_provider` enum('Weeztix','YourTicketProvider') NOT NULL,
       `ticket_provider_purchase_id` text NOT NULL,
       UNIQUE KEY `user_id` (`user_id`,`event_id`),

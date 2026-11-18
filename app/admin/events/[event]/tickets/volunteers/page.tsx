@@ -14,7 +14,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tRoles, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 /**
  * Data source for volunteer tickets granted for an event.
@@ -35,6 +35,11 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
      * The volunteer's display name, or full name.
      */
     name: z.string(),
+
+    /**
+     * Role that the volunteer fulfils.
+     */
+    role: z.string(),
 
     /**
      * Order number of the ticket that has been assigned to them, if any.
@@ -70,6 +75,8 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
         const dbInstance = db;
 
         const volunteers = await dbInstance.selectFrom(tUsersEvents)
+            .innerJoin(tRoles)
+                .on(tRoles.roleId.equals(tUsersEvents.roleId))
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tUsersEvents.userId))
             .leftJoin(usersEventsTicketsJoin)
@@ -78,11 +85,16 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
             .where(tUsersEvents.eventId.equals(context.event.id))
                 .and(tUsersEvents.registrationStatus.equals('Accepted'))
                 .and(tUsers.name.containsInsensitiveIfValue(params.search)
+                    .or(tRoles.roleName.containsInsensitiveIfValue(params.search))
                     .or(usersEventsTicketsJoin.ticketProviderPurchaseId.containsInsensitiveIfValue(
                         params.search)))
             .select({
                 id: tUsersEvents.userId,
                 name: tUsers.name,
+                roles: dbInstance.aggregateAsArray({
+                    name: tRoles.roleName,
+                    primary: usersEventsTicketsJoin.teamIdPrimary.equals(tUsersEvents.teamId),
+                }),
             })
             .groupBy(tUsersEvents.userId)
             .orderBy('name', 'asc')
@@ -100,9 +112,15 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
                 const activeTicket =
                     ticketInfo && !ticketInfo.cancelled ? ticketInfo : undefined;
 
+                const role =
+                    volunteer.roles.find(entry => entry.primary)?.name ??
+                    volunteer.roles[0]?.name ??
+                    '';
+
                 return {
                     id: volunteer.id,
                     name: volunteer.name,
+                    role,
                     order: activeTicket
                         ? service.formatPurchaseId(activeTicket.purchaseId)
                         : undefined,
@@ -148,6 +166,7 @@ export default async function EventTicketsVolunteersPage(
             template: 'text',
             templateProps: {
                 defaultValue: 'No ticket',
+                href: './volunteers/{id}',
             },
         },
         {
@@ -159,9 +178,14 @@ export default async function EventTicketsVolunteersPage(
             // TODO: Chips for the team(s) they participate in?
 
             template: 'text',
-            templateProps: {
-                href: './volunteers/{id}',
-            },
+        },
+        {
+            field: 'role',
+            headerName: 'Role',
+            sortable: false,
+            flex: 1,
+
+            template: 'text',
         },
         {
             field: 'created',
