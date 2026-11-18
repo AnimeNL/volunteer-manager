@@ -591,3 +591,20 @@ export async function updateEventTicketingWeeztixAutomation(
             };
         });
 }
+
+/**
+ * Server Action through which an event's cached Weeztix ticket types can be refreshed.
+ */
+export async function refreshEventTicketingWeeztixAutomation(eventSlug: string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.settings');
+
+        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}

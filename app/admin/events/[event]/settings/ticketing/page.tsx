@@ -105,6 +105,8 @@ export default async function EventSettingsTicketingPage(
     const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
     const refreshTicketingWeeztixFn = actions.refreshEventTicketingWeeztix.bind(null, event.slug);
+    const refreshTicketingWeeztixAutomationFn =
+        actions.refreshEventTicketingWeeztixAutomation.bind(null, event.slug);
     const updateTicketingProviderFn = actions.updateEventTicketingProvider.bind(null, event.slug);
     const updateTicketingWeeztixFn = actions.updateEventTicketingWeeztix.bind(null, event.slug);
     const updateTicketingWeeztixAutomationFn =
@@ -168,7 +170,7 @@ export default async function EventSettingsTicketingPage(
                          { label: 'Ticketing' },
                      ]}>
                 <SectionIntroduction>
-                    Ticketing configuration for {event.shortName}.
+                    Settings regarding {event.shortName}'s integration with our ticketing partners.
                 </SectionIntroduction>
             </Section>
             <FormGridSection noHeader tabs action={updateTicketingProviderFn}
@@ -208,6 +210,9 @@ export default async function EventSettingsTicketingPage(
                 </FormGridSection> }
             { showWeeztixAutomation &&
                 <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix automation"
+                                 headerAction={
+                                     <RefreshButton action={refreshTicketingWeeztixAutomationFn} />
+                                 }
                                  action={updateTicketingWeeztixAutomationFn}
                                  defaultValues={weeztixAutomationDefaultValues}>
                     { !weeztixTicketTypes &&
