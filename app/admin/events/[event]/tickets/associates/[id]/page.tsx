@@ -10,6 +10,7 @@ import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumb
 import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
+import { AssociateOrderSection } from './AssociateOrderSection';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction, ResendConfirmationQuickAction }
     from '../../PurchaseQuickActions';
@@ -25,7 +26,7 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tRoles, tTeams, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation,
-    updateAssociateTicket } from '../../TicketActions';
+    updateAssociateTicket, updatePurchaseEmail } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted to an individual associate to our team.
@@ -94,6 +95,10 @@ export default async function EventTicketsAssociatesPage(
 
     const resendConfirmationFn =
         canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
+                         : undefined;
+
+    const updateOrderEmailFn =
+        canUpdateTickets ? updatePurchaseEmail.bind(null, event.slug, purchase.id)
                          : undefined;
 
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
@@ -166,6 +171,11 @@ export default async function EventTicketsAssociatesPage(
                         </>
                     )
                 } />
+            { service.canFetchPurchaseDetails() &&
+                <AssociateOrderSection
+                    action={updateOrderEmailFn}
+                    purchaseId={purchase.id}
+                    service={service} /> }
             { (!!ticket && !!updateTicketFn) &&
                 <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
                          headerAction={
