@@ -1,11 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { Order } from '@lib/integrations/weeztix/WeeztixTypes';
+import type { GetOrderResponse, Order } from '@lib/integrations/weeztix/WeeztixTypes';
 import type { WeeztixClient } from '@lib/integrations/weeztix';
 import type { WeeztixTicketType } from '@lib/database/Types';
 import { FinanceProcessor } from '@app/admin/events/[event]/finance/FinanceProcessor';
 import { Task } from '../Task';
+import { TaskContext } from '../TaskContext';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import db, { tEvents, tWeeztixOrders, tWeeztixPurchases, tWeeztixTicketTypes, tWeeztixTickets } from '@lib/database';
 
@@ -136,6 +137,14 @@ interface ExtractedTicketMetadata {
 }
 
 /**
+ * Minimal metadata entry shape accepted by metadata extraction helpers.
+ */
+interface MetadataEntry {
+    metadata_id: string;
+    value?: string | number | boolean | null;
+}
+
+/**
  * Parses an ISO 8601 timestamp string into a UTC `Temporal.ZonedDateTime` rounded to whole seconds.
  */
 function parseTimestamp(value: string): Temporal.ZonedDateTime {
@@ -159,6 +168,20 @@ export class WeeztixImportTask extends Task {
         { maximumDays: /*  4 weeks= */ 28, intervalMs: /* 3 hours= */ 3 * 3600 * 1000 },
         { maximumDays: /* 12 weeks= */ 56, intervalMs: /* 6 hours= */ 6 * 3600 * 1000 },
     ];
+
+    /**
+     * Executes a one-off import of the given `orderGuid` in context of `eventGuid`. The order is
+     * flagged as manually updated so it does not advance the periodic sync watermark.
+     */
+    static async importOrder(
+        eventGuid: string, orderGuid: string, context?: TaskContext): Promise<boolean>
+    {
+        const taskContext = context ?? TaskContext.forEphemeralTask('WeeztixImportTask', null);
+        const task = new WeeztixImportTask(taskContext);
+        await task.initialise();
+
+        return task.importSingleOrder(eventGuid, orderGuid);
+    }
 
     #client: WeeztixClient = undefined!;
     #configuration: WeeztixImportTaskConfiguration = undefined!;
@@ -433,8 +456,39 @@ export class WeeztixImportTask extends Task {
 
         this.log.info(`[Orders] Weeztix responded with ${recentOrdersMap.size} order(s)`);
 
-        const { liveOrders, liveTickets, livePurchases } =
-            this.extractLiveEntities(recentOrdersMap);
+        return this.syncOrders(eventGuid, this.extractLiveEntities(recentOrdersMap));
+    }
+
+    /**
+     * Fetches and synchronises a single order identified by `orderGuid` for `eventGuid` as a
+     * manual one-off update.
+     */
+    private async importSingleOrder(eventGuid: string, orderGuid: string): Promise<boolean> {
+        this.log.info(`[Orders] Fetching order ${orderGuid} from the Weeztix API`);
+
+        const order = await this.#client.getOrder(orderGuid);
+        const entities = this.extractSingleOrderEntities(order);
+        if (!entities) {
+            this.log.error(`[Orders] Order ${orderGuid} is missing required fields for import`);
+            return false;
+        }
+
+        return this.syncOrders(eventGuid, entities, /* preserveUtm= */ true);
+    }
+
+    /**
+     * Diffs and persists the given normalised `entities` for `eventGuid` into the Weeztix tables.
+     */
+    private async syncOrders(
+        eventGuid: string,
+        entities: {
+            liveOrders: Map<string, LiveOrderEntry>;
+            liveTickets: Map<string, LiveTicketEntry>;
+            livePurchases: Map<string, LivePurchaseEntry>;
+        },
+        preserveUtm: boolean = false): Promise<boolean>
+    {
+        const { liveOrders, liveTickets, livePurchases } = entities;
 
         const orderGuids = [ ...liveOrders.keys() ];
         const dbInstance = db;
@@ -491,6 +545,21 @@ export class WeeztixImportTask extends Task {
                 })
                 .executeSelectMany(),
         ]);
+
+        // `GET /order/:guid` does not return `tech_data`, so retain existing UTM attribution on
+        // one-off imports rather than overwriting it with NULL.
+        if (preserveUtm) {
+            for (const known of knownOrders) {
+                const live = liveOrders.get(known.guid);
+                if (!live)
+                    continue;
+
+                live.utmSource = known.utmSource || null;
+                live.utmMedium = known.utmMedium || null;
+                live.utmCampaign = known.utmCampaign || null;
+                live.utmTerm = known.utmTerm || null;
+            }
+        }
 
         const ordersDiff = this.diffWeeztixEntities(
             knownOrders, liveOrders, false,
@@ -608,9 +677,7 @@ export class WeeztixImportTask extends Task {
     /**
      * Normalises API orders into separate maps of live orders, tickets, and purchases.
      */
-    private extractLiveEntities(
-        recentOrdersMap: Map<string, Order>, manualUpdate: boolean = false)
-    {
+    private extractLiveEntities(recentOrdersMap: Map<string, Order>) {
         const liveOrders = new Map<string, LiveOrderEntry>();
         const liveTickets = new Map<string, LiveTicketEntry>();
         const livePurchases = new Map<string, LivePurchaseEntry>();
@@ -627,7 +694,7 @@ export class WeeztixImportTask extends Task {
                 created: parseTimestamp(order.created_at),
                 updated: parseTimestamp(order.updated_at),
                 deleted: order.invalidated_since ? parseTimestamp(order.invalidated_since) : null,
-                manualUpdate,
+                manualUpdate: false,
             });
 
             for (const ticket of order.tickets) {
@@ -664,16 +731,90 @@ export class WeeztixImportTask extends Task {
     }
 
     /**
+     * Normalises a single `GET /order/:guid` response into live order, ticket, and purchase maps
+     * flagged as a manual update, returning `undefined` when required fields are absent.
+     */
+    private extractSingleOrderEntities(order: GetOrderResponse) {
+        if (!order.status || !order.created_at)
+            return undefined;
+
+        const orderCreated = parseTimestamp(order.created_at);
+        const orderUpdated = order.updated_at ? parseTimestamp(order.updated_at) : orderCreated;
+
+        const liveOrders = new Map<string, LiveOrderEntry>([[ order.guid, {
+            guid: order.guid,
+            name: (order.fullname ?? '').replace(/\s+/g, ' ').trim() || null,
+            status: order.status,
+            utmSource: null,
+            utmMedium: null,
+            utmCampaign: null,
+            utmTerm: null,
+            created: orderCreated,
+            updated: orderUpdated,
+            deleted: order.invalidated_since ? parseTimestamp(order.invalidated_since) : null,
+            manualUpdate: true,
+        } ]]);
+        const liveTickets = new Map<string, LiveTicketEntry>();
+        const livePurchases = new Map<string, LivePurchaseEntry>();
+
+        for (const ticket of order.tickets ?? []) {
+            if (!ticket.ticket?.guid)
+                return undefined;
+
+            const created = ticket.created_at ? parseTimestamp(ticket.created_at) : orderCreated;
+            const metadata = ticket.meta_data ?? [];
+            liveTickets.set(ticket.guid, {
+                guid: ticket.guid,
+                orderGuid: order.guid,
+                typeGuid: ticket.ticket.guid,
+                barcode: ticket.ticket_number ?? '',
+                name: this.extractHolderName(metadata),
+                ...this.extractTicketMetadata(metadata),
+                price: Math.max(
+                    0, Math.round((ticket.finn_price ?? 0) - (ticket.finn_service_fee ?? 0))),
+                created,
+                updated: ticket.updated_at ? parseTimestamp(ticket.updated_at) : created,
+                deleted: ticket.invalidated_since ? parseTimestamp(ticket.invalidated_since) : null,
+            });
+
+            for (const product of ticket.products ?? []) {
+                const entry = this.toSingleOrderPurchaseEntry(
+                    product, order.guid, ticket.guid, orderCreated);
+                if (!entry)
+                    return undefined;
+
+                livePurchases.set(product.guid, entry);
+            }
+        }
+
+        for (const product of order.products ?? []) {
+            if (livePurchases.has(product.guid))
+                continue;
+
+            const entry = this.toSingleOrderPurchaseEntry(product, order.guid, null, orderCreated);
+            if (!entry)
+                return undefined;
+
+            livePurchases.set(product.guid, entry);
+        }
+
+        return { liveOrders, liveTickets, livePurchases };
+    }
+
+    /**
      * Extracts the personalised holder name (`first_name` and `last_name`) from ticket or purchase
      * `metadata`, returning `null` when neither is present.
      */
-    private extractHolderName(metadata: Order['tickets'][number]['meta_data']): string | null {
+    private extractHolderName(metadata: readonly MetadataEntry[]): string | null {
         let firstName: string | undefined;
         let lastName: string | undefined;
 
         for (const entry of metadata) {
-            if (typeof entry.value === 'boolean')
+            if (entry.value === null || entry.value === undefined ||
+                typeof entry.value === 'boolean')
+            {
                 continue;
+            }
 
             if (entry.metadata_id === this.#client.metaFirstNameId)
                 firstName = String(entry.value);
@@ -689,9 +830,7 @@ export class WeeztixImportTask extends Task {
      * Extracts known metadata fields from ticket `metadata` by matching `metadata_id` against the
      * GUIDs configured on `this.#client`, returning `null` when absent.
      */
-    private extractTicketMetadata(metadata: Order['tickets'][number]['meta_data'])
-        : ExtractedTicketMetadata
-    {
+    private extractTicketMetadata(metadata: readonly MetadataEntry[]): ExtractedTicketMetadata {
         const result: ExtractedTicketMetadata = {
             metaFunction: null,
             metaNickname: null,
@@ -705,8 +844,11 @@ export class WeeztixImportTask extends Task {
         ];
 
         for (const entry of metadata) {
-            if (typeof entry.value === 'boolean')
+            if (entry.value === null || entry.value === undefined ||
+                typeof entry.value === 'boolean')
+            {
                 continue;
+            }
 
             for (const [ key, metadataId ] of fieldMapping) {
                 if (result[key] !== null || entry.metadata_id !== metadataId)
@@ -726,7 +868,7 @@ export class WeeztixImportTask extends Task {
      * and optionally `ticketGuid`.
      */
     private toLivePurchaseEntry(
-        product: Order['products'][number], orderGuid: string,ticketGuid: string | null)
+        product: Order['products'][number], orderGuid: string, ticketGuid: string | null)
             : LivePurchaseEntry
     {
         return {
@@ -738,6 +880,34 @@ export class WeeztixImportTask extends Task {
             price: Math.max(0, Math.round(product.finn_price - product.finn_service_fee)),
             created: parseTimestamp(product.created_at),
             updated: parseTimestamp(product.updated_at),
+            deleted: product.invalidated_since ? parseTimestamp(product.invalidated_since) : null,
+        };
+    }
+
+    /**
+     * Normalises a product returned by `GET /order/:guid` into a `LivePurchaseEntry`, returning
+     * `undefined` when its product type GUID is absent.
+     */
+    private toSingleOrderPurchaseEntry(
+        product: NonNullable<GetOrderResponse['products']>[number],
+        orderGuid: string,
+        ticketGuid: string | null,
+        fallbackCreated: Temporal.ZonedDateTime): LivePurchaseEntry | undefined
+    {
+        if (!product.product?.guid)
+            return undefined;
+
+        const created = product.created_at ? parseTimestamp(product.created_at) : fallbackCreated;
+        return {
+            guid: product.guid,
+            ticketGuid,
+            orderGuid,
+            typeGuid: product.product.guid,
+            name: this.extractHolderName(product.meta_data ?? []),
+            price: Math.max(
+                0, Math.round((product.finn_price ?? 0) - (product.finn_service_fee ?? 0))),
+            created,
+            updated: product.updated_at ? parseTimestamp(product.updated_at) : created,
             deleted: product.invalidated_since ? parseTimestamp(product.invalidated_since) : null,
         };
     }
