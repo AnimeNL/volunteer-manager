@@ -33,6 +33,25 @@ const kTicketingProviderOptions = [
 ];
 
 /**
+ * Builds the options list for a `<SelectElement>`, always including a "None" entry and preserving
+ * `currentValue` if it is no longer present in `options`.
+ */
+function buildSelectOptions(
+    options: { id: string; label: string }[] | undefined,
+    currentValue?: string | null)
+{
+    const result = [
+        { id: '', label: 'None' },
+        ...(options ?? []),
+    ];
+
+    if (!!currentValue && !result.some(option => option.id === currentValue))
+        result.push({ id: currentValue, label: `Unknown (${currentValue})` });
+
+    return result;
+}
+
+/**
  * Retrieves the cached Weeztix events, scanners and shops for the given `eventSlug`.
  */
 async function getWeeztixOptions(eventSlug: string) {
@@ -91,7 +110,9 @@ export default async function EventSettingsTicketingPage(
         ? await getWeeztixOptions(event.slug)
         : null;
 
-    const noneOption = { id: '', label: 'None' };
+    const events = buildSelectOptions(weeztixOptions?.events, settings.eventWeeztixGuid);
+    const scanners = buildSelectOptions(weeztixOptions?.scanners, settings.eventWeeztixScannerGuid);
+    const shops = buildSelectOptions(weeztixOptions?.shops, settings.eventWeeztixShopGuid);
 
     return (
         <>
@@ -128,18 +149,15 @@ export default async function EventSettingsTicketingPage(
                         </Grid> }
                     <Grid size={{ xs: 12 }}>
                         <SelectElement name="eventGuid" label="Event" fullWidth size="small"
-                                       options={[ noneOption, ...(weeztixOptions?.events ?? []) ]} />
+                                       options={events} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <SelectElement name="scannerGuid" label="Scanner" fullWidth size="small"
-                                       options={[
-                                           noneOption,
-                                           ...(weeztixOptions?.scanners ?? []),
-                                       ]} />
+                                       options={scanners} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <SelectElement name="shopGuid" label="Shop" fullWidth size="small"
-                                       options={[ noneOption, ...(weeztixOptions?.shops ?? []) ]} />
+                                       options={shops} />
                     </Grid>
                 </FormGridSection> }
         </>
