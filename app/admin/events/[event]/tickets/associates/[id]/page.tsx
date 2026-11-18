@@ -95,26 +95,46 @@ export default async function EventTicketsAssociatesPage(
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
     const pageTitle = purchase.name || formattedPurchaseId;
 
+    const headerSection = (
+        <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
+                 title={pageTitle} documentation="event/tickets"
+                 limited={!canDeleteTickets || !canUpdateTickets}
+                 breadcrumbs={[
+                    { label: event.shortName, href: `/admin/events/${event.slug}` },
+                    { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
+                    {
+                        label: 'Associates',
+                        href: `/admin/events/${event.slug}/tickets/associates`,
+                    },
+                    { label: pageTitle },
+                 ]}>
+            <SectionIntroduction>
+                Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
+                as part of this purchase for {event.shortName}.
+            </SectionIntroduction>
+        </Section>
+    );
+
+    if (!purchase.tickets.length) {
+        return (
+            <>
+                {headerSection}
+                <Alert severity="error" variant="filled">
+                    This purchase does not contain any tickets.
+                </Alert>
+            </>
+        );
+    }
+
     return (
         <>
-            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                     title={pageTitle} documentation="event/tickets"
-                     limited={!canDeleteTickets || !canUpdateTickets}
-                     breadcrumbs={[
-                        { label: event.shortName, href: `/admin/events/${event.slug}` },
-                        { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
-                        {
-                            label: 'Associates',
-                            href: `/admin/events/${event.slug}/tickets/associates`,
-                        },
-                        { label: pageTitle },
-                     ]}>
-                <SectionIntroduction>
-                    Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
-                    as part of this purchase for {event.shortName}.
-                </SectionIntroduction>
-            </Section>
+            {headerSection}
             <Section noHeader back tabs>
+                { purchase.tickets.length >= 1 &&
+                    <Alert severity="warning" variant="standard">
+                        This purchase contains {purchase.tickets.length} tickets; only the first
+                        ticket is shown below.
+                    </Alert> }
                 { !containsVolunteerTicket &&
                     <Alert severity="warning" variant="outlined">
                         This purchase does not contain any volunteer tickets.
