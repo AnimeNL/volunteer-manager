@@ -8,6 +8,8 @@ import { globalScheduler } from './SchedulerImpl';
 
 import db, { tTasks } from '@lib/database';
 
+import { kTaskResult } from '@lib/database/Types';
+
 /**
  * Reschedules the task identified by the given `taskId` to run again, optionally on the given
  * `scheduler`. The task will be executed immediately. Only tasks that have already executed can be
@@ -66,12 +68,9 @@ interface TaskRequest<ParamsType = unknown> {
 }
 
 /**
- * Utility function to schedule the given `task` using the scheduler. The task will be written to
- * the database and will enjoy full debugging information in the administration area.
+ * Inserts a new task into the database and returns its generated `taskId`.
  */
-export async function scheduleTask<ParamsType = unknown>(
-    task: TaskRequest<ParamsType>, scheduler?: Scheduler): Promise<number>
-{
+async function insertTask<ParamsType = unknown>(task: TaskRequest<ParamsType>): Promise<number> {
     const dbInstance = db;
 
     const delayMsConstant = dbInstance.const(task.delayMs * 1000, 'int');
@@ -80,7 +79,7 @@ export async function scheduleTask<ParamsType = unknown>(
             'customLocalDateTime', 'timestamp', 'required', TemporalTypeAdapter).sql`
                 CURRENT_TIMESTAMP() + INTERVAL ${delayMsConstant} MICROSECOND`;
 
-    const taskId = await dbInstance.insertInto(tTasks)
+    return await dbInstance.insertInto(tTasks)
         .set({
             taskName: task.taskName,
             taskParams: JSON.stringify(task.params),
@@ -90,9 +89,42 @@ export async function scheduleTask<ParamsType = unknown>(
         })
         .returningLastInsertedId()
         .executeInsert();
+}
+
+/**
+ * Utility function to schedule the given `task` using the scheduler. The task will be written to
+ * the database and will enjoy full debugging information in the administration area.
+ */
+export async function scheduleTask<ParamsType = unknown>(
+    task: TaskRequest<ParamsType>, scheduler?: Scheduler): Promise<number>
+{
+    const taskId = await insertTask(task);
 
     const actualScheduler = scheduler ?? globalScheduler;
     actualScheduler.queueTask({ taskId }, task.delayMs);
 
     return taskId;
+}
+
+/**
+ * Utility function to immediately execute the given `task` and await its completion. The task will
+ * be written to the database and will enjoy full logging, instrumentation, and debugging
+ * information in the administration area. Returns whether the task succeeded.
+ */
+export async function executeTaskNow<ParamsType = unknown>(
+    task: Omit<TaskRequest<ParamsType>, 'delayMs' | 'intervalMs'>,
+    scheduler?: Scheduler): Promise<boolean>
+{
+    const taskId = await insertTask({
+        ...task,
+        delayMs: 0,
+    });
+
+    const { TaskRunner } = await import('./TaskRunner');
+
+    const actualScheduler = scheduler ?? globalScheduler;
+    const taskRunner = TaskRunner.getOrCreateForScheduler(actualScheduler);
+    const result = await taskRunner.executeTask({ taskId });
+
+    return result === kTaskResult.TaskSuccess;
 }

@@ -5,8 +5,8 @@ import { z } from 'zod/v4';
 
 import { TaskWithParams } from '../Task';
 import { createSmtpClient } from '@lib/integrations/smtp';
+import { executeTaskNow, scheduleTask } from '@lib/scheduler';
 import { readSetting } from '@lib/Settings';
-import { scheduleTask } from '@lib/scheduler';
 
 /**
  * Parameter scheme applying to the `SendEmailTask`.
@@ -73,6 +73,17 @@ type TaskParams = z.infer<typeof kSendEmailTaskParamScheme>;
  * A task that actually sends e-mail. We use the
  */
 export class SendEmailTask extends TaskWithParams<TaskParams> {
+    /**
+     * Helper function to immediately send an e-mail and await completion, while still recording
+     * full scheduler logging and instrumentation. Returns whether the e-mail was sent.
+     */
+    static async ExecuteNow(request: TaskParams): Promise<boolean> {
+        return executeTaskNow<TaskParams>({
+            taskName: 'SendEmailTask',
+            params: request,
+        });
+    }
+
     /**
      * Helper function to schedule sending an e-mail. The message will be composed and sent beyond
      * the scope of the request during which this task is being scheduled. Returns the task Id.
