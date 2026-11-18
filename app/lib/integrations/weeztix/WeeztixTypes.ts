@@ -52,6 +52,45 @@ export const kGetMetadataResponse = z.array(z.object({
 export type GetMetadataResponse = z.infer<typeof kGetMetadataResponse>;
 
 /**
+ * Schema associated with an OrderMetadata entry attached to an order, ticket, or product.
+ */
+const kOrderMetadataSchema = z.object({
+    guid: z.string().nonempty(),
+    metadata_id: z.string().nonempty(),
+    value: z.union([ z.string(), z.number(), z.boolean() ]).nullish(),
+});
+
+/**
+ * Schema associated with a product entry returned by the /order/:guid API.
+ */
+const kGetOrderProductSchema = z.object({
+    guid: z.string().nonempty(),
+    finn_service_fee: z.number().optional(),
+    finn_price: z.number().optional(),
+    invalidated_since: z.string().nullish(),
+    created_at: z.string().nullish(),
+    updated_at: z.string().nullish(),
+    product: z.object({ guid: z.string().nonempty() }).optional(),
+    meta_data: z.array(kOrderMetadataSchema).optional(),
+});
+
+/**
+ * Schema associated with a ticket entry returned by the /order/:guid API.
+ */
+const kGetOrderTicketSchema = z.object({
+    guid: z.string().nonempty(),
+    finn_service_fee: z.number().optional(),
+    finn_price: z.number().optional(),
+    ticket_number: z.string().nullish(),
+    invalidated_since: z.string().nullish(),
+    created_at: z.string().nullish(),
+    updated_at: z.string().nullish(),
+    ticket: z.object({ guid: z.string().nonempty() }).optional(),
+    meta_data: z.array(kOrderMetadataSchema).optional(),
+    products: z.array(kGetOrderProductSchema).optional(),
+});
+
+/**
  * Expected response for the /order/:guid API.
  * @see https://docs.weeztix.com/api/dashboard/get-order-specific
  */
@@ -63,12 +102,11 @@ export const kGetOrderResponse = z.object({
     fullname: z.string().nullish(),
     locale: z.string().nullish(),
     status: z.string().nullish(),
+    invalidated_since: z.string().nullish(),
     created_at: z.string().nullish(),
     updated_at: z.string().nullish(),
-    tickets: z.array(z.object({
-        guid: z.string().nonempty(),
-        ticket_number: z.string().nullish(),
-    })).optional(),
+    products: z.array(kGetOrderProductSchema).optional(),
+    tickets: z.array(kGetOrderTicketSchema).optional(),
 });
 
 /**
@@ -168,11 +206,7 @@ export type GetTicketTypesResponse = z.infer<typeof kGetTicketTypesResponse>;
  * @see https://docs.weeztix.com/api/dashboard/create-order-ticket-metadata
  * @see https://docs.weeztix.com/api/dashboard/update-order-ticket-metadata
  */
-export const kOrderTicketMetadataResponse = z.object({
-    guid: z.string().nonempty(),
-    metadata_id: z.string().nonempty(),
-    value: z.string().nullish(),
-});
+export const kOrderTicketMetadataResponse = kOrderMetadataSchema;
 
 /**
  * Expected response for ticket OrderMetadata creation and update APIs.

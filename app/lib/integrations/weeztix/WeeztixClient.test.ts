@@ -242,11 +242,43 @@ describe('WeeztixClient', () => {
             fullname: 'Jane Doe',
             locale: 'en_GB',
             status: 'paid',
+            invalidated_since: null,
+            created_at: '2026-08-01T10:00:00+00:00',
+            updated_at: '2026-08-02T12:00:00+00:00',
             finn_price: 4500,
+            products: [
+                {
+                    guid: 'order-product-1',
+                    finn_service_fee: 50,
+                    finn_price: 1050,
+                    created_at: '2026-08-01T10:00:00+00:00',
+                    updated_at: '2026-08-02T12:00:00+00:00',
+                    product: { guid: 'product-type-1' },
+                    meta_data: [],
+                },
+            ],
             tickets: [
                 {
                     guid: 'order-ticket-1',
                     ticket_number: '9988776655',
+                    finn_service_fee: 250,
+                    finn_price: 4500,
+                    created_at: '2026-08-01T10:00:00+00:00',
+                    updated_at: '2026-08-02T12:00:00+00:00',
+                    ticket: { guid: 'ticket-type-1' },
+                    meta_data: [
+                        {
+                            guid: 'order-meta-1',
+                            metadata_id: 'meta-function-id',
+                            value: 'Steward',
+                        },
+                        {
+                            guid: 'order-meta-2',
+                            metadata_id: 'meta-terms-id',
+                            value: true,
+                        },
+                    ],
+                    products: [],
                 },
             ],
         }), { status: 200 }));
@@ -259,7 +291,22 @@ describe('WeeztixClient', () => {
         expect(order.fullname).toBe('Jane Doe');
         expect(order.locale).toBe('en_GB');
         expect(order.status).toBe('paid');
+        expect(order.products).toHaveLength(1);
+        expect(order.products?.[0].product?.guid).toBe('product-type-1');
         expect(order.tickets).toHaveLength(1);
+        expect(order.tickets?.[0].ticket?.guid).toBe('ticket-type-1');
+        expect(order.tickets?.[0].meta_data).toEqual([
+            {
+                guid: 'order-meta-1',
+                metadata_id: 'meta-function-id',
+                value: 'Steward',
+            },
+            {
+                guid: 'order-meta-2',
+                metadata_id: 'meta-terms-id',
+                value: true,
+            },
+        ]);
 
         expect(withContextSpy).toHaveBeenCalledWith({
             integration: 'Weeztix',
