@@ -285,6 +285,19 @@ export class WeeztixClient {
     }
 
     /**
+     * Lists the ticket types that have been attached to the given `shopId`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of ticket types that have been attached to the given `shopId`.
+     */
+    async listShopTicketTypes(shopId: string): Promise<weeztix.GetShopTicketTypesResponse> {
+        return this.issueRequest(weeztix.kGetScannerTypesResponse, {
+            api: `/shop/${shopId}/tickets`,
+            method: 'GET',
+        });
+    }
+
+    /**
      * Lists the shops that exist as part of our Weeztix company.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.

@@ -89,13 +89,28 @@ export const kGetScannerTypesResponse = z.array(z.object({
 export type GetScannerTypesResponse = z.infer<typeof kGetScannerTypesResponse>;
 
 /**
+ * Expected response for the /shop/:guid/tickets API.
+ * @see https://docs.weeztix.com/api/dashboard/get-shop-specific-ticket
+ */
+export const kGetShopTicketTypesResponse = z.array(z.object({
+    guid: z.string().nonempty(),
+    event_id: z.string().nonempty(),
+    name: z.string().nonempty(),
+}));
+
+/**
+ * Expected response for the /shop/:guid/tickets API.
+ * @see https://docs.weeztix.com/api/dashboard/get-shop-specific-ticket
+ */
+export type GetShopTicketTypesResponse = z.infer<typeof kGetShopsResponse>;
+
+/**
  * Expected response for the /shop/{type?} API.
  * @see https://docs.weeztix.com/api/dashboard/get-shops
  */
 export const kGetShopsResponse = z.array(z.object({
     guid: z.string().nonempty(),
     name: z.string().nonempty(),
-    description: z.string().nullish(),
 }));
 
 /**
