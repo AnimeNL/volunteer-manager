@@ -4,14 +4,22 @@
 import { forbidden, notFound } from 'next/navigation';
 
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { QrCode } from '@components/QrCode';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
+import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
@@ -208,6 +216,33 @@ export default async function EventTicketsAssociatesPage(
                     },
                 ]} />
             </Section>
+            <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                    <Paper sx={{ p: 1.5, pb: ticket.barcode ? 0 : 1.5 }}>
+                        <SectionHeader icon={ <ConfirmationNumberOutlinedIcon /> }
+                                       title={`Ticket ${service.formatTicketId(ticket.id)}`}
+                                       sx={{ pb: 1.5 }} />
+                        <Stack direction="column" spacing={0.5}>
+                            { !!ticket.ticketName &&
+                                <Typography variant="subtitle2" noWrap>
+                                    {ticket.ticketName}
+                                </Typography> }
+                            { !!ticket.holder &&
+                                <Typography variant="body2" noWrap>
+                                    {ticket.holder}
+                                </Typography> }
+                            { !!ticket.nickname &&
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                    <strong>Nickname</strong>: {ticket.nickname}
+                                </Typography> }
+                            { !!ticket.barcode &&
+                                <Box sx={{ pt: 1 }}>
+                                    <QrCode content={ticket.barcode} />
+                                </Box> }
+                        </Stack>
+                    </Paper>
+                </Grid>
+            </Grid>
         </>
     );
 }
