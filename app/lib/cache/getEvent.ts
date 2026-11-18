@@ -59,6 +59,7 @@ export async function getEvent(event: number | string): Promise<CachedEvent | un
                     enableAutoGrant: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
                     enableAutoRevoke: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
                     volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
+                    weeztixVolunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
                 },
             })
             .executeSelectNoneOrOne();

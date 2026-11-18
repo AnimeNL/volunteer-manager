@@ -70,10 +70,12 @@ function toTicket(row: RawTicketRow): Ticket {
 export class Weeztix implements TicketService {
     #companyId: string | undefined;
     #eventId: string;
+    #volunteerTicketGuid: string | undefined;
 
-    constructor(eventId: string, companyId?: string) {
+    constructor(eventId: string, companyId?: string, volunteerTicketGuid?: string) {
         this.#eventId = eventId;
         this.#companyId = companyId;
+        this.#volunteerTicketGuid = volunteerTicketGuid;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -129,6 +131,10 @@ export class Weeztix implements TicketService {
 
     canCreateTickets(): boolean {
         return false;
+    }
+
+    canManageVolunteerTickets(): boolean {
+        return !!this.#volunteerTicketGuid;
     }
 
     async cancelPurchase(purchaseId: number | string): Promise<void> {

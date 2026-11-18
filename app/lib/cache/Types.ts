@@ -135,6 +135,11 @@ export interface CachedEvent {
          * Unique ID of the ticket that volunteers should be assigned.
          */
         volunteerTicketId?: string;
+
+        /**
+         * GUID of the Weeztix ticket type assigned to volunteers.
+         */
+        weeztixVolunteerTicketGuid?: string;
     };
 }
 

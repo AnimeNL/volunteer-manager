@@ -39,6 +39,11 @@ export interface TicketService {
     canCreateTickets(): boolean;
 
     /**
+     * Returns whether this ticket service supports managing volunteer and associate tickets.
+     */
+    canManageVolunteerTickets(): boolean;
+
+    /**
      * Cancels the purchase identified by the given `purchaseId`.
      */
     cancelPurchase(purchaseId: number | string): Promise<void>;

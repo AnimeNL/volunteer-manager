@@ -42,8 +42,12 @@ export async function createTicketService(eventIdentifier: number | string)
     switch (event.tickets?.provider) {
         case 'Weeztix': {
             const weeztixCompanyId = await readSetting('integration-weeztix-company-id');
-            if (!!event?.integrations?.weeztixEventId && !!weeztixCompanyId)
-                service = new Weeztix(event.integrations.weeztixEventId, weeztixCompanyId);
+            if (!!event?.integrations?.weeztixEventId && !!weeztixCompanyId) {
+                service = new Weeztix(
+                    event.integrations.weeztixEventId,
+                    weeztixCompanyId,
+                    event.tickets?.weeztixVolunteerTicketGuid);
+            }
 
             break;
         }

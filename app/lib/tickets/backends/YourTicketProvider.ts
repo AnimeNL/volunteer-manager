@@ -59,6 +59,10 @@ export class YourTicketProvider implements TicketService {
         return false;
     }
 
+    canManageVolunteerTickets(): boolean {
+        return false;
+    }
+
     async cancelPurchase(purchaseId: number | string): Promise<void> {
         throw new Error('Not implemented');
     }
