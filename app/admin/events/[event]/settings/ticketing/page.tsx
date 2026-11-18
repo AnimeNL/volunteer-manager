@@ -12,6 +12,7 @@ import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 
 import { Cache } from '@lib/cache';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { RefreshButton } from './RefreshButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
@@ -83,6 +84,7 @@ export default async function EventSettingsTicketingPage(
 {
     const { event } = await requireAuthenticationWithEvent(props, 'event.settings');
 
+    const refreshTicketingWeeztixFn = actions.refreshEventTicketingWeeztix.bind(null, event.slug);
     const updateTicketingProviderFn = actions.updateEventTicketingProvider.bind(null, event.slug);
     const updateTicketingWeeztixFn = actions.updateEventTicketingWeeztix.bind(null, event.slug);
 
@@ -135,6 +137,7 @@ export default async function EventSettingsTicketingPage(
             </FormGridSection>
             { settings.provider === kEventTicketProvider.Weeztix &&
                 <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix"
+                                 headerAction={ <RefreshButton action={refreshTicketingWeeztixFn} /> }
                                  action={updateTicketingWeeztixFn}
                                  defaultValues={weeztixDefaultValues}>
                     <SectionIntroduction grid>

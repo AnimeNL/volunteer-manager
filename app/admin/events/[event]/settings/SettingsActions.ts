@@ -485,6 +485,23 @@ export async function updateEventTicketingProvider(eventSlug: string, formData: 
 }
 
 /**
+ * Server Action through which an event's cached Weeztix options can be refreshed.
+ */
+export async function refreshEventTicketingWeeztix(eventSlug: string) {
+    return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.settings');
+
+        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix`);
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}
+
+/**
  * Data that needs to be available to update an event's Weeztix ticketing configuration.
  */
 const kEventTicketingWeeztixData = z.object({
