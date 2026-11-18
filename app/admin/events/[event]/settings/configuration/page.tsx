@@ -209,12 +209,12 @@ export default async function EventSettingsConfigurationPage(
                                    fullWidth size="small" options={kServiceStatusOptions} />
                 </Grid>
             </FormGridSection>
-            <FormGridSection icon={ <ApiIcon />} title="Integrations"
+            <FormGridSection icon={ <ApiIcon />} title="AnPlan"
                              action={integrationsFn}
                              defaultValues={defaultValues.integrations}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
-                        Integrations with third party services to power functionality for the event.
+                        Integration with AnPlan to power functionality for the event.
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
