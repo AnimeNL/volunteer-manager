@@ -3,27 +3,19 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import { TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
-
 import Alert from '@mui/material/Alert';
-import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
-import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
-import { FormGrid } from '@app/admin/components/FormGrid';
-import { KeyValueList } from '@app/admin/components/KeyValueList';
-import { PurchaseIdLink } from '../../PurchaseIdLink';
+import { PurchaseDetails } from '../../PurchaseDetails';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { TicketQrAction } from './TicketQrAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tEvents, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation,
     updateAssociateTicket } from '../../TicketActions';
@@ -53,17 +45,6 @@ export default async function EventTicketsAssociatesPage(
 
     if (!containsVolunteerTicket && !access.can('root'))
         forbidden();
-
-    const purchaseLink = service.createPurchaseLink(purchase.id);
-
-    const eventTicketTypes = await dbInstance.selectFrom(tEvents)
-        .where(tEvents.eventId.equals(event.id))
-        .select({
-            guestTicketGuid: tEvents.eventWeeztixGuestTicketGuid,
-            vendorTicketGuid: tEvents.eventWeeztixVendorTicketGuid,
-            volunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
-        })
-        .executeSelectNoneOrOne();
 
     // ---------------------------------------------------------------------------------------------
     // Functionality: Associating the ticket with a volunteer
@@ -111,139 +92,57 @@ export default async function EventTicketsAssociatesPage(
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
     const pageTitle = purchase.name || formattedPurchaseId;
 
-    const headerSection = (
-        <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                 title={pageTitle} documentation="event/tickets"
-                 limited={!canDeleteTickets || !canUpdateTickets}
-                 breadcrumbs={[
-                    { label: event.shortName, href: `/admin/events/${event.slug}` },
-                    { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
-                    {
-                        label: 'Associates',
-                        href: `/admin/events/${event.slug}/tickets/associates`,
-                    },
-                    { label: pageTitle },
-                 ]}>
-            <SectionIntroduction>
-                Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
-                as part of this purchase for {event.shortName}.
-            </SectionIntroduction>
-        </Section>
-    );
-
-    if (!purchase.tickets.length) {
-        return (
-            <>
-                {headerSection}
-                <Alert severity="error" variant="filled">
-                    This purchase does not contain any tickets.
-                </Alert>
-            </>
-        );
-    }
-
-    const ticket = purchase.tickets[0];
-    const ticketIdStr = `${ticket.ticketId}`;
-
-    let ticketType = ticket.ticketName ?? 'Unknown';
-    if (ticketIdStr === eventTicketTypes?.guestTicketGuid)
-        ticketType = 'Guest';
-    else if (ticketIdStr === eventTicketTypes?.vendorTicketGuid)
-        ticketType = 'Vendor';
-    else if (ticketIdStr === eventTicketTypes?.volunteerTicketGuid ||
-             ticketIdStr === event.tickets?.volunteerTicketId)
-        ticketType = 'Volunteer';
-
+    const ticket = purchase.tickets.at(0);
     const updateTicketFn =
-        canUpdateTickets ? updateAssociateTicket.bind(null, event.slug, purchase.id, ticket.id)
-                         : undefined!;
+        canUpdateTickets && ticket
+            ? updateAssociateTicket.bind(null, event.slug, purchase.id, ticket.id)
+            : undefined;
 
     return (
         <>
-            {headerSection}
-            <Section noHeader back tabs>
-                { purchase.tickets.length > 1 &&
-                    <Alert severity="warning" variant="standard">
-                        This purchase contains {purchase.tickets.length} tickets; only the first
-                        ticket is shown below.
-                    </Alert> }
-                { !containsVolunteerTicket &&
-                    <Alert severity="warning" variant="outlined">
-                        This purchase does not contain any volunteer tickets.
-                    </Alert> }
-                { ((canCancelPurchases || canUpdateTickets) && !hasBeenCancelled) &&
-                    <ActionBar>
-                        { canUpdateTickets &&
-                            <AssociateQuickAction action={associatePurchaseFn}
-                                                  ticketProvider={service.id}
-                                                  volunteers={associateVolunteers} /> }
-                        { canUpdateTickets &&
-                            <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                        { canCancelPurchases &&
-                            <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
-                    </ActionBar> }
-                { !!hasBeenCancelled &&
-                    <Alert severity="error" variant="outlined">
-                        This ticket has been cancelled and is no longer valid for entry.
-                    </Alert> }
-                <KeyValueList items={[
-                    {
-                        key: 'Order',
-                        valueTemplate: 'component',
-                        value: <PurchaseIdLink href={purchaseLink} label={purchase.id} />,
-                    },
-                    {
-                        key: 'Ticket type',
-                        value: ticketType,
-                    },
-                    {
-                        condition: !!purchase.created,
-                        key: 'Created',
-                        valueTemplate: 'localDateTime',
-                        value: purchase.created?.toString(),
-                    },
-                    {
-                        condition: !!purchase.updated,
-                        key: 'Updated',
-                        valueTemplate: 'localDateTime',
-                        value: purchase.updated?.toString(),
-                    },
-                ]} />
+            <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
+                     title={pageTitle} documentation="event/tickets"
+                     limited={!canDeleteTickets || !canUpdateTickets}
+                     breadcrumbs={[
+                        { label: event.shortName, href: `/admin/events/${event.slug}` },
+                        { label: 'Tickets', href: `/admin/events/${event.slug}/tickets` },
+                        {
+                            label: 'Associates',
+                            href: `/admin/events/${event.slug}/tickets/associates`,
+                        },
+                        { label: pageTitle },
+                     ]}>
+                <SectionIntroduction>
+                    Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued
+                    as part of this purchase for {event.shortName}.
+                </SectionIntroduction>
             </Section>
-            { canUpdateTickets &&
-                <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
-                         headerAction={
-                             !!ticket.barcode &&
-                             <TicketQrAction barcode={ticket.barcode}
-                                             title={`Ticket ${service.formatTicketId(ticket.id)}`} />
-                         }>
-                    <SectionIntroduction>
-                        Changes made here will be reflected in the real ticket immediately.
-                    </SectionIntroduction>
-                    <FormGrid action={updateTicketFn} defaultValues={{
-                        holder: ticket.holder ?? '',
-                        nickname: ticket.nickname ?? '',
-                        function: ticket.function ?? '',
-                        organisation: ticket.organisation ?? '',
-                    }}>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="holder" label="Ticket holder" required
-                                              fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="nickname" label="Nickname"
-                                              fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="function" label="Function" required
-                                              fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="organisation" label="Organisation" required
-                                              fullWidth size="small" />
-                        </Grid>
-                    </FormGrid>
-                </Section> }
+            <PurchaseDetails
+                event={event}
+                purchase={purchase}
+                service={service}
+                updateTicketAction={updateTicketFn}
+                alerts={
+                    !containsVolunteerTicket && (
+                        <Alert severity="warning" variant="outlined">
+                            This purchase does not contain any volunteer tickets.
+                        </Alert>
+                    )
+                }
+                actions={
+                    (canCancelPurchases || canUpdateTickets) && !hasBeenCancelled && (
+                        <>
+                            { canUpdateTickets &&
+                                <AssociateQuickAction action={associatePurchaseFn}
+                                                      ticketProvider={service.id}
+                                                      volunteers={associateVolunteers} /> }
+                            { canUpdateTickets &&
+                                <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
+                            { canCancelPurchases &&
+                                <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
+                        </>
+                    )
+                } />
         </>
     );
 }
