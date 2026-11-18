@@ -107,6 +107,7 @@ describe('WeeztixImportTask', () => {
                 expect(query).toContain('event_weeztix_guid is not null');
                 expect(query).toContain(
                     'select max(weeztix_order_updated) as result from weeztix_orders');
+                expect(query).toContain('weeztix_order_manual_update = ?');
                 return [];
             });
 
@@ -543,6 +544,7 @@ describe('WeeztixImportTask', () => {
                         created: '2026-08-01 10:00:00',
                         updated: '2026-08-02 12:00:00',
                         deleted: undefined,
+                        manualUpdate: false,
                     })));
                 mockConnection.expect('selectManyRows', () => []);
                 mockConnection.expect('selectManyRows', () => []);
@@ -748,7 +750,7 @@ describe('WeeztixImportTask', () => {
 
             expect(await (task as any).importOrders('event-guid-1')).toBe(true);
 
-            expect(ordersByGuid.get('order-1')?.slice(0, 11)).toEqual([
+            expect(ordersByGuid.get('order-1')?.slice(0, 12)).toEqual([
                 'order-1',
                 'event-guid-1',
                 'Jane Doe',
@@ -760,8 +762,9 @@ describe('WeeztixImportTask', () => {
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
                 null,
+                0,
             ]);
-            expect(ordersByGuid.get('order-2')?.slice(0, 11)).toEqual([
+            expect(ordersByGuid.get('order-2')?.slice(0, 12)).toEqual([
                 'order-2',
                 'event-guid-1',
                 null,
@@ -773,6 +776,7 @@ describe('WeeztixImportTask', () => {
                 '2026-08-01 10:00:00',
                 '2026-08-02 12:00:00',
                 '2026-08-06 10:00:00',
+                0,
             ]);
 
             expect(ticketsByGuid.get('ticket-1')?.slice(0, 13)).toEqual([
@@ -874,6 +878,7 @@ describe('WeeztixImportTask', () => {
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
                     deleted: undefined,
+                    manualUpdate: false,
                 },
             ]);
             mockConnection.expect('selectManyRows', () => [
@@ -988,6 +993,7 @@ describe('WeeztixImportTask', () => {
                     created: '2026-08-01 10:00:00',
                     updated: '2026-08-02 12:00:00',
                     deleted: undefined,
+                    manualUpdate: false,
                 },
             ]);
             mockConnection.expect('selectManyRows', () => [
@@ -1149,6 +1155,47 @@ describe('WeeztixImportTask', () => {
                     'purchase-ticket-omitted',
                     'purchase-order-omitted',
                 ]);
+                return 1;
+            });
+            mockConnection.expect('commit');
+
+            expect(await (task as any).importOrders('event-guid-1')).toBe(true);
+        });
+
+        it('clears the manual update flag when periodic sync sees an unchanged order', async () => {
+            mockListOrders.mockResolvedValueOnce([
+                buildOrder({
+                    guid: 'order-manual',
+                    fullname: 'Jane Doe',
+                    status: 'paid',
+                }),
+            ]);
+
+            mockConnection.expect('selectManyRows', () => [
+                {
+                    guid: 'order-manual',
+                    eventGuid: 'event-guid-1',
+                    name: 'Jane Doe',
+                    status: 'paid',
+                    utmSource: undefined,
+                    utmMedium: undefined,
+                    utmCampaign: undefined,
+                    utmTerm: undefined,
+                    created: '2026-08-01 10:00:00',
+                    updated: '2026-08-02 12:00:00',
+                    deleted: undefined,
+                    manualUpdate: true,
+                },
+            ]);
+            mockConnection.expect('selectManyRows', () => []);
+            mockConnection.expect('selectManyRows', () => []);
+
+            mockConnection.expect('beginTransaction');
+            mockConnection.expect('insert', (query, params) => {
+                expect(query).toContain('insert into weeztix_orders');
+                expect(query).toContain('weeztix_order_manual_update');
+                expect(params[0]).toBe('order-manual');
+                expect(params[11]).toBe(0);
                 return 1;
             });
             mockConnection.expect('commit');

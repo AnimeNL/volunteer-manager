@@ -51,6 +51,7 @@ interface LiveOrderEntry {
     created: Temporal.ZonedDateTime;
     updated: Temporal.ZonedDateTime;
     deleted: Temporal.ZonedDateTime | null;
+    manualUpdate: boolean;
 }
 
 /**
@@ -186,6 +187,7 @@ export class WeeztixImportTask extends Task {
         const mostRecentUpdateSubQuery = dbInstance.subSelectUsing(tEvents)
             .from(tWeeztixOrders)
                 .where(tWeeztixOrders.weeztixEventGuid.equals(tEvents.eventWeeztixGuid))
+                    .and(tWeeztixOrders.weeztixOrderManualUpdate.equals(/* false= */ 0))
             .selectOneColumn(dbInstance.max(tWeeztixOrders.weeztixOrderUpdated))
             .forUseAsInlineQueryValue();
 
@@ -452,6 +454,7 @@ export class WeeztixImportTask extends Task {
                     created: tWeeztixOrders.weeztixOrderCreated,
                     updated: tWeeztixOrders.weeztixOrderUpdated,
                     deleted: tWeeztixOrders.weeztixOrderDeleted,
+                    manualUpdate: tWeeztixOrders.weeztixOrderManualUpdate.equals(/* true= */ 1),
                 })
                 .executeSelectMany(),
             dbInstance.selectFrom(tWeeztixTickets)
@@ -501,7 +504,8 @@ export class WeeztixImportTask extends Task {
                 (known.utmTerm || null) !== live.utmTerm ||
                 !areTimestampsEqual(known.created, live.created) ||
                 !areTimestampsEqual(known.updated, live.updated) ||
-                !areOptionalTimestampsEqual(known.deleted, live.deleted));
+                !areOptionalTimestampsEqual(known.deleted, live.deleted) ||
+                known.manualUpdate !== live.manualUpdate);
 
         const ticketsDiff = this.diffWeeztixEntities(
             knownTickets, liveTickets, true,
@@ -604,7 +608,9 @@ export class WeeztixImportTask extends Task {
     /**
      * Normalises API orders into separate maps of live orders, tickets, and purchases.
      */
-    private extractLiveEntities(recentOrdersMap: Map<string, Order>) {
+    private extractLiveEntities(
+        recentOrdersMap: Map<string, Order>, manualUpdate: boolean = false)
+    {
         const liveOrders = new Map<string, LiveOrderEntry>();
         const liveTickets = new Map<string, LiveTicketEntry>();
         const livePurchases = new Map<string, LivePurchaseEntry>();
@@ -621,6 +627,7 @@ export class WeeztixImportTask extends Task {
                 created: parseTimestamp(order.created_at),
                 updated: parseTimestamp(order.updated_at),
                 deleted: order.invalidated_since ? parseTimestamp(order.invalidated_since) : null,
+                manualUpdate,
             });
 
             for (const ticket of order.tickets) {
@@ -823,6 +830,7 @@ export class WeeztixImportTask extends Task {
                     weeztixOrderCreated: entry.created,
                     weeztixOrderUpdated: entry.updated,
                     weeztixOrderDeleted: entry.deleted,
+                    weeztixOrderManualUpdate: entry.manualUpdate ? 1 : 0,
                 };
 
                 await dbInstance.insertInto(tWeeztixOrders)
