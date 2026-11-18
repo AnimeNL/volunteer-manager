@@ -3,6 +3,8 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
+import { TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
+
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
@@ -15,6 +17,7 @@ import Typography from '@mui/material/Typography';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
+import { FormGrid } from '@app/admin/components/FormGrid';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { QrCode } from '@components/QrCode';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
@@ -26,7 +29,8 @@ import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
-import { associatePurchase, cancelPurchase, resendPurchaseConfirmation } from '../../TicketActions';
+import { associatePurchase, cancelPurchase, resendPurchaseConfirmation,
+    updateAssociateTicket } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted to an individual associate to our team.
@@ -152,6 +156,10 @@ export default async function EventTicketsAssociatesPage(
              ticketIdStr === event.tickets?.volunteerTicketId)
         ticketType = 'Volunteer';
 
+    const updateTicketFn =
+        canUpdateTickets ? updateAssociateTicket.bind(null, event.slug, purchase.id, ticket.id)
+                         : undefined!;
+
     return (
         <>
             {headerSection}
@@ -186,23 +194,6 @@ export default async function EventTicketsAssociatesPage(
                         value: ticketType,
                     },
                     {
-                        key: 'Ticket holder',
-                        value: ticket.holder || 'Unknown',
-                    },
-                    {
-                        condition: !!ticket.nickname,
-                        key: 'Nickname',
-                        value: ticket.nickname,
-                    },
-                    {
-                        key: 'Function',
-                        value: ticket.function || 'Unknown',
-                    },
-                    {
-                        key: 'Organisation',
-                        value: ticket.organisation || 'Unknown',
-                    },
-                    {
                         condition: !!purchase.created,
                         key: 'Created',
                         valueTemplate: 'localDateTime',
@@ -216,6 +207,36 @@ export default async function EventTicketsAssociatesPage(
                     },
                 ]} />
             </Section>
+            { canUpdateTickets &&
+                <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket">
+                    <SectionIntroduction>
+                        The ticket's information can be updated for any reason, and will be
+                        reflected in their real ticket immediately.
+                    </SectionIntroduction>
+                    <FormGrid action={updateTicketFn} defaultValues={{
+                        holder: ticket.holder ?? '',
+                        nickname: ticket.nickname ?? '',
+                        function: ticket.function ?? '',
+                        organisation: ticket.organisation ?? '',
+                    }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="holder" label="Ticket holder" required
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="nickname" label="Nickname"
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="function" label="Function"
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="organisation" label="Organisation"
+                                              fullWidth size="small" />
+                        </Grid>
+                    </FormGrid>
+                </Section> }
             <Grid container spacing={1.5}>
                 <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                     <Paper sx={{ p: 1.5, pb: ticket.barcode ? 0 : 1.5 }}>

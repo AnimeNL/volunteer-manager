@@ -278,3 +278,32 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
         };
     });
 }
+
+/**
+ * Data required to update an associate ticket's details.
+ */
+const kUpdateAssociateTicketData = z.object({
+    holder: z.string().min(1),
+    nickname: z.string().optional(),
+    function: z.string().optional(),
+    organisation: z.string().optional(),
+});
+
+/**
+ * Server Action that updates the details of an associate ticket.
+ */
+export async function updateAssociateTicket(
+    eventSlug: string, purchaseId: number | string, ticketId: number | string, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateAssociateTicketData, async (data, props) => {
+        await requireAuthenticationWithEvent(props.authenticationContext, eventSlug, {
+            permission: 'volunteers.tickets',
+            operation: 'update',
+        });
+
+        return {
+            success: true,
+            message: 'The ticket details have been updated.',
+        };
+    });
+}
