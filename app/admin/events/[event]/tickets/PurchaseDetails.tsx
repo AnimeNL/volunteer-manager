@@ -35,6 +35,11 @@ export interface PurchaseDetailsProps {
     alerts?: React.ReactNode;
 
     /**
+     * Additional content to display between the purchase summary and the ticket details section.
+     */
+    children?: React.ReactNode;
+
+    /**
      * Event for which the purchase is being displayed.
      */
     event: CachedEvent;
@@ -148,6 +153,7 @@ export async function PurchaseDetails(props: PurchaseDetailsProps) {
                     },
                 ]} />
             </Section>
+            {props.children}
             { showTicketSection &&
                 <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
                          headerAction={

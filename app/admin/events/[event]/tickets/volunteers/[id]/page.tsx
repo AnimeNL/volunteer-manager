@@ -3,12 +3,17 @@
 
 import { notFound } from 'next/navigation';
 
+import { SelectElement } from '@app/components/proxy/react-hook-form-mui';
+
 import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { CancelPurchaseQuickAction } from '../../associates/[id]/CancelPurchaseQuickAction';
+import { FormGrid } from '@app/admin/components/FormGrid';
 import { PurchaseDetails } from '../../PurchaseDetails';
 import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfirmationQuickAction';
@@ -17,10 +22,10 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsers, tUsersEvents } from '@lib/database';
+import db, { tTeams, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
-import { cancelPurchase, disassociatePurchase, resendPurchaseConfirmation }
-    from '../../TicketActions';
+import { cancelPurchase, disassociatePurchase, resendPurchaseConfirmation,
+    updateVolunteerPrimaryTeam } from '../../TicketActions';
 
 /**
  * Page that provides insight in the ticket granted for an individual volunteer. It provides options
@@ -53,10 +58,24 @@ export default async function EventTicketsVolunteerPage(
                 firstName: tUsers.displayName.valueWhenNull(tUsers.firstName),
             },
         })
+        .groupBy(tUsersEvents.userId)
         .executeSelectNoneOrOne();
 
     if (!participation)
         notFound();
+
+    const teams = await dbInstance.selectFrom(tUsersEvents)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tUsersEvents.teamId))
+        .where(tUsersEvents.eventId.equals(event.id))
+            .and(tUsersEvents.userId.equals(userId))
+            .and(tUsersEvents.registrationStatus.equals('Accepted'))
+        .select({
+            id: tTeams.teamId,
+            label: tTeams.teamName,
+        })
+        .orderBy('label', 'asc')
+        .executeSelectMany();
 
     const service = await createTicketService(event.id);
     const ticketInfo = service
@@ -65,6 +84,14 @@ export default async function EventTicketsVolunteerPage(
 
     const purchaseId = ticketInfo?.purchaseId;
     const purchase = purchaseId && service ? await service.fetchPurchase(purchaseId) : undefined;
+
+    const primaryTeamId = purchaseId
+        ? await dbInstance.selectFrom(tUsersEventsTickets)
+            .where(tUsersEventsTickets.userId.equals(userId))
+                .and(tUsersEventsTickets.eventId.equals(event.id))
+            .selectOneColumn(tUsersEventsTickets.teamIdPrimary)
+            .executeSelectNoneOrOne()
+        : undefined;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -87,6 +114,10 @@ export default async function EventTicketsVolunteerPage(
         canUpdateTickets && !!purchaseId
             ? resendPurchaseConfirmation.bind(null, event.slug, purchaseId)
             : undefined!;
+
+    const updatePrimaryTeamFn =
+        canUpdateTickets ? updateVolunteerPrimaryTeam.bind(null, event.slug, participation.user.id)
+                         : undefined!;
 
     const disassociateAction = canUpdateTickets && (
         <QuickActionButton
@@ -173,7 +204,32 @@ export default async function EventTicketsVolunteerPage(
                                     <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                             </>
                         )
-                    } /> }
+                    }>
+                    { teams.length > 1 &&
+                        <Section icon={ <GroupsOutlinedIcon /> } title="Team association">
+                            <SectionIntroduction>
+                                {participation.user.firstName} is part of multiple teams for{' '}
+                                {event.shortName}. You can optionally set a preferred team for
+                                their ticket association.
+                            </SectionIntroduction>
+                            <FormGrid action={updatePrimaryTeamFn} defaultValues={{
+                                teamIdPrimary: primaryTeamId ?? '',
+                            }}>
+                                <Grid size={{ xs: 12 }}>
+                                    <SelectElement
+                                        name="teamIdPrimary"
+                                        label="Preferred team"
+                                        fullWidth
+                                        size="small"
+                                        options={[
+                                            { id: '', label: 'Automatic (no preference)' },
+                                            ...teams,
+                                        ]}
+                                        slotProps={{ select: { readOnly: !canUpdateTickets } }} />
+                                </Grid>
+                            </FormGrid>
+                        </Section> }
+                </PurchaseDetails> }
         </>
     );
 }

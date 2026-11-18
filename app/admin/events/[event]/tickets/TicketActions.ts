@@ -307,3 +307,47 @@ export async function updateAssociateTicket(
         };
     });
 }
+
+/**
+ * Data required to update a volunteer's preferred primary team for their ticket.
+ */
+const kUpdateVolunteerPrimaryTeamData = z.object({
+    teamIdPrimary: z.union([ z.number(), z.literal('') ]).optional()
+        .transform(value => typeof value === 'number' ? value : null),
+});
+
+/**
+ * Server Action that updates the preferred primary team association for a volunteer's ticket.
+ */
+export async function updateVolunteerPrimaryTeam(
+    eventSlug: string, userId: number, formData: unknown)
+{
+    return executeServerAction(formData, kUpdateVolunteerPrimaryTeamData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, {
+                permission: 'volunteers.tickets',
+                operation: 'update',
+            });
+
+        const affectedRows = await db.update(tUsersEventsTickets)
+            .set({
+                teamIdPrimary: data.teamIdPrimary,
+            })
+            .where(tUsersEventsTickets.userId.equals(userId))
+                .and(tUsersEventsTickets.eventId.equals(event.id))
+            .executeUpdate();
+
+        if (!affectedRows) {
+            return {
+                success: false,
+                error: 'Unable to update the preferred team; does this volunteer have a ticket?',
+            };
+        }
+
+        return {
+            success: true,
+            message: 'The preferred team association has been updated.',
+            refresh: true,
+        };
+    });
+}
