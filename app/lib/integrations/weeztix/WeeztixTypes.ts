@@ -95,7 +95,7 @@ export type GetScannerTypesResponse = z.infer<typeof kGetScannerTypesResponse>;
 export const kGetShopsResponse = z.array(z.object({
     guid: z.string().nonempty(),
     name: z.string().nonempty(),
-    description: z.string(),
+    description: z.string().nullish(),
 }));
 
 /**

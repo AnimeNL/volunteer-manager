@@ -153,6 +153,15 @@ interface CacheDescriptorMap {
         Contents: TicketingPurchaseResponse;
     };
 
+    TicketProvider: {
+        Parameters: string;
+        Contents: {
+            events: { id: string; label: string }[];
+            scanners: { id: string; label: string }[];
+            shops: { id: string; label: string }[];
+        };
+    };
+
     // ---------------------------------------------------------------------------------------------
     // Caches used for test cases
     // ---------------------------------------------------------------------------------------------
@@ -382,6 +391,13 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Detailed purchase information requested from our ticketing partners.',
         type: 'ttl',
         ttl: 1800,
+    },
+
+    TicketProvider: {
+        name: 'TicketProvider',
+        description: 'Options retrieved from ticketing providers for event configuration.',
+        type: 'ttl',
+        ttl: 300,
     },
 
     // ---------------------------------------------------------------------------------------------

@@ -3,17 +3,20 @@
 
 import Link from '@app/LinkProxy';
 
-import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
+import { SelectElement } from '@proxy/react-hook-form-mui';
 
 import { default as MuiLink } from '@mui/material/Link';
+import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 
+import { Cache } from '@lib/cache';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
@@ -28,6 +31,30 @@ const kTicketingProviderOptions = [
     { id: '', label: 'None' },
     ...Object.values(kEventTicketProvider).map(provider => ({ id: provider, label: provider })),
 ];
+
+/**
+ * Retrieves the cached Weeztix events, scanners and shops for the given `eventSlug`.
+ */
+async function getWeeztixOptions(eventSlug: string) {
+    const cache = Cache.getInstance('TicketProvider');
+    return cache.getOrInsert(`${eventSlug}/weeztix`, async () => {
+        try {
+            const client = await createWeeztixClient();
+            const events = await client.listEvents();
+            const scanners = await client.listScannerTypes();
+            const shops = await client.listShops();
+
+            return {
+                events: events.map(event => ({ id: event.guid, label: event.name })),
+                scanners: scanners.map(scanner => ({ id: scanner.guid, label: scanner.name })),
+                shops: shops.map(shop => ({ id: shop.guid, label: shop.name })),
+            };
+        } catch (error: any) {
+            console.error(error);
+            return null;
+        }
+    });
+}
 
 /**
  * Page through which ticketing settings for a particular event can be configured.
@@ -60,6 +87,12 @@ export default async function EventSettingsTicketingPage(
         shopGuid: settings.eventWeeztixShopGuid ?? '',
     };
 
+    const weeztixOptions = settings.provider === kEventTicketProvider.Weeztix
+        ? await getWeeztixOptions(event.slug)
+        : null;
+
+    const noneOption = { id: '', label: 'None' };
+
     return (
         <>
             <Section icon={ <LocalActivityIcon color="primary" /> } title="Ticketing"
@@ -87,15 +120,26 @@ export default async function EventSettingsTicketingPage(
                         Integration details for {event.shortName} with{' '}
                         <MuiLink component={Link} href="https://weeztix.com/">Weeztix</MuiLink>.
                     </SectionIntroduction>
+                    { !weeztixOptions &&
+                        <Grid size={{ xs: 12 }}>
+                            <Alert severity="warning" variant="outlined">
+                                Unable to obtain available options from Weeztix.
+                            </Alert>
+                        </Grid> }
                     <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="eventGuid" label="Event" fullWidth size="small" />
+                        <SelectElement name="eventGuid" label="Event" fullWidth size="small"
+                                       options={[ noneOption, ...(weeztixOptions?.events ?? []) ]} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="scannerGuid" label="Scanner" fullWidth
-                                          size="small" />
+                        <SelectElement name="scannerGuid" label="Scanner" fullWidth size="small"
+                                       options={[
+                                           noneOption,
+                                           ...(weeztixOptions?.scanners ?? []),
+                                       ]} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="shopGuid" label="Shop" fullWidth size="small" />
+                        <SelectElement name="shopGuid" label="Shop" fullWidth size="small"
+                                       options={[ noneOption, ...(weeztixOptions?.shops ?? []) ]} />
                     </Grid>
                 </FormGridSection> }
         </>
