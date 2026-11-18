@@ -13,7 +13,6 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
-import { createWeeztixClient } from '@lib/integrations/weeztix';
 
 /**
  * Data required to associate a purchase with a volunteer.

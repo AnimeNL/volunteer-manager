@@ -69,13 +69,16 @@ export default async function EventTicketsVolunteerPage(
             .on(tTeams.teamId.equals(tUsersEvents.teamId))
         .where(tUsersEvents.eventId.equals(event.id))
             .and(tUsersEvents.userId.equals(userId))
-            .and(tUsersEvents.registrationStatus.equals('Accepted'))
         .select({
             id: tTeams.teamId,
             label: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            accepted: tUsersEvents.registrationStatus.equals('Accepted'),
         })
         .orderBy('label', 'asc')
         .executeSelectMany();
+
+    const acceptedTeams = teams.filter(team => team.accepted);
 
     const service = await createTicketService(event.id);
     const ticketInfo = service
@@ -94,6 +97,24 @@ export default async function EventTicketsVolunteerPage(
         : undefined;
 
     // ---------------------------------------------------------------------------------------------
+
+    const primaryTeamSlug =
+        acceptedTeams.find(team => team.id === primaryTeamId)?.slug
+            ?? acceptedTeams.at(0)?.slug
+            ?? teams.at(0)?.slug;
+
+    const canAccessVolunteer =
+        !!primaryTeamSlug && access.can('volunteers.participation', 'read', {
+            event: event.slug,
+            team: primaryTeamSlug,
+        });
+
+    const ticketHolder = {
+        name: participation.user.name,
+        href: canAccessVolunteer
+            ? `/admin/events/${event.slug}/${primaryTeamSlug}/volunteers/${participation.user.id}`
+            : undefined,
+    };
 
     const hasBeenCancelled = !!purchase?.cancelled || !!ticketInfo?.cancelled;
 
@@ -178,6 +199,7 @@ export default async function EventTicketsVolunteerPage(
                     purchase={purchase}
                     service={service}
                     readOnly
+                    ticketHolder={ticketHolder}
                     ticketWarning={
                         <Alert severity="warning" variant="outlined">
                             This ticket is linked to {participation.user.firstName}'s account, so
@@ -205,7 +227,7 @@ export default async function EventTicketsVolunteerPage(
                             </>
                         )
                     }>
-                    { teams.length > 1 &&
+                    { acceptedTeams.length > 1 &&
                         <Section icon={ <GroupsOutlinedIcon /> } title="Team association">
                             <SectionIntroduction>
                                 {participation.user.firstName} is part of multiple teams for{' '}
@@ -223,7 +245,7 @@ export default async function EventTicketsVolunteerPage(
                                         size="small"
                                         options={[
                                             { id: '', label: 'Automatic (no preference)' },
-                                            ...teams,
+                                            ...acceptedTeams.map(({ id, label }) => ({ id, label })),
                                         ]}
                                         slotProps={{ select: { readOnly: !canUpdateTickets } }} />
                                 </Grid>

@@ -1,8 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import Link from '@app/LinkProxy';
+
 import { TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
 
+import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Grid from '@mui/material/Grid';
@@ -58,6 +61,14 @@ export interface PurchaseDetailsProps {
      * Ticket service instance for formatting IDs and creating provider links.
      */
     service: TicketService;
+
+    /**
+     * Information about the volunteer holding this ticket, when applicable.
+     */
+    ticketHolder?: {
+        href?: string;
+        name: string;
+    };
 
     /**
      * Optional warning or notice to display in the ticket section.
@@ -138,6 +149,17 @@ export async function PurchaseDetails(props: PurchaseDetailsProps) {
                     {
                         key: 'Ticket type',
                         value: ticketType,
+                    },
+                    {
+                        condition: !!props.ticketHolder,
+                        key: 'Ticket holder',
+                        value: props.ticketHolder?.href
+                            ? (
+                                <MuiLink component={Link} href={props.ticketHolder.href}>
+                                    {props.ticketHolder.name}
+                                </MuiLink>
+                            )
+                            : props.ticketHolder?.name,
                     },
                     {
                         condition: !!purchase.created,
