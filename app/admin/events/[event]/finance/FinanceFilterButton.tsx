@@ -3,11 +3,12 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import Badge from '@mui/material/Badge';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
@@ -46,9 +47,17 @@ export function FinanceFilterButton(props: FinanceFilterButtonProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    const anchorRef = useRef<HTMLSpanElement>(null);
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
+    const [ tooltipOpen, setTooltipOpen ] = useState(false);
 
     const hasActiveFilter = Boolean(filter.utmSource || filter.utmCampaign);
+
+    const activeFilterLabels: string[] = [];
+    if (filter.utmSource)
+        activeFilterLabels.push(`utm_source: ${filter.utmSource}`);
+    if (filter.utmCampaign)
+        activeFilterLabels.push(`utm_campaign: ${filter.utmCampaign}`);
 
     const updateFilter = useCallback((next: FinancialFilter) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -66,20 +75,36 @@ export function FinanceFilterButton(props: FinanceFilterButtonProps) {
         router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }, [ pathname, router, searchParams ]);
 
+    const handleOpen = useCallback(() => {
+        setTooltipOpen(false);
+        setAnchorEl(anchorRef.current);
+    }, []);
+
     const handleClear = useCallback(() => {
         updateFilter({});
+        setTooltipOpen(false);
         setAnchorEl(null);
     }, [ updateFilter ]);
 
     return (
         <>
-            <Tooltip title="Filter sales data">
-                <IconButton size="small" color={hasActiveFilter ? 'primary' : 'default'}
-                            onClick={event => setAnchorEl(event.currentTarget)}>
-                    <Badge variant="dot" color="primary" invisible={!hasActiveFilter}>
-                        <FilterListIcon fontSize="small" />
-                    </Badge>
-                </IconButton>
+            <Tooltip title="Filter sales data"
+                     open={tooltipOpen && !anchorEl}
+                     onOpen={() => setTooltipOpen(true)}
+                     onClose={() => setTooltipOpen(false)}>
+                <Box component="span" ref={anchorRef} sx={{ display: 'inline-flex' }}>
+                    { hasActiveFilter ? (
+                        <Chip size="small" color="primary"
+                              icon={<FilterListIcon />}
+                              label={activeFilterLabels.join(', ')}
+                              onClick={handleOpen}
+                              onDelete={handleClear} />
+                    ) : (
+                        <IconButton size="small" onClick={handleOpen}>
+                            <FilterListIcon fontSize="small" />
+                        </IconButton>
+                    ) }
+                </Box>
             </Tooltip>
             <Popover open={Boolean(anchorEl)} anchorEl={anchorEl}
                      onClose={() => setAnchorEl(null)}
