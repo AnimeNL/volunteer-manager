@@ -11,6 +11,7 @@ import { PopulateSchedulerTask } from './tasks/PopulateSchedulerTask';
 import { SendEmailTask } from './tasks/SendEmailTask';
 import { SendSmsTask } from './tasks/SendSmsTask';
 import { SendWhatsappTask } from './tasks/SendWhatsappTask';
+import { UpdateTicketTask } from './tasks/UpdateTicketTask';
 import { WeeztixImportTask } from './tasks/WeeztixImportTask';
 import { YourTicketProviderImportTask } from './tasks/YourTicketProviderImportTask';
 
@@ -30,6 +31,7 @@ export const kTaskRegistry = {
     SendEmailTask,
     SendSmsTask,
     SendWhatsappTask,
+    UpdateTicketTask,
     WeeztixImportTask,
     YourTicketProviderImportTask,
 };
@@ -63,6 +65,7 @@ export const kTaskFormatFn: { [k in RegisteredTasks | DeprecatedTasks]: TaskForm
     SendEmailTask: params => `Send e-mail task (to: ${params.message.to})`,
     SendSmsTask: params => `Send SMS task (to: ${params.to})`,
     SendWhatsappTask: params => `Send WhatsApp task (to: ${params.to})`,
+    UpdateTicketTask: params => `Update ticket (order: ${params.orderId})`,
     WeeztixImportTask: () => 'Import data from Weeztix',
     YourTicketProviderImportTask: () => 'Import data from YourTicketProvider',
 
