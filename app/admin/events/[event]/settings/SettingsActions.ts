@@ -608,3 +608,47 @@ export async function refreshEventTicketingWeeztixAutomation(eventSlug: string) 
         };
     });
 }
+
+/**
+ * Data that needs to be available to update an event's ticketing automation toggle.
+ */
+const kEventTicketingAutomationToggleData = z.object({
+    enabled: z.literal([ 0, 1 ]),
+});
+
+/**
+ * Server Action through which an event's ticketing automation toggles can be updated.
+ */
+export async function updateEventTicketingAutomationToggle(
+    eventSlug: string, type: 'autoGrant' | 'autoRevoke', formData: unknown)
+{
+    return executeServerAction(
+        formData, kEventTicketingAutomationToggleData, async (data, props) => {
+            const { event } = await requireAuthenticationWithEvent(
+                props.authenticationContext, eventSlug, 'event.settings');
+
+            const update: UpdatableRow<typeof tEvents> = type === 'autoGrant'
+                ? { ticketsAutoGrantEnabled: data.enabled }
+                : { ticketsAutoRevokeEnabled: data.enabled };
+
+            const affectedRows = await db.update(tEvents)
+                .set(update)
+                .where(tEvents.eventId.equals(event.id))
+                .executeUpdate();
+
+            await invalidateEventCache(event.id);
+
+            LogBuilder.for('UpdateEventSettings')
+                .withCondition(!!affectedRows)
+                .withInitiatorUser(props.user)
+                .record({
+                    event: event.shortName,
+                    type: 'ticketing',
+                });
+
+            return {
+                success: true,
+                refresh: true,
+            };
+        });
+}

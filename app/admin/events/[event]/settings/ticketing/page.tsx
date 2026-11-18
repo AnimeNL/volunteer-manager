@@ -26,6 +26,14 @@ import { kEventTicketProvider } from '@lib/database/Types';
 import * as actions from '../SettingsActions';
 
 /**
+ * Options available for the user to select whether the automation should be enabled.
+ */
+const kEnableAutomationOptions = [
+    { id: 0, label: 'Disabled' },
+    { id: 1, label: 'Enabled' },
+];
+
+/**
  * Ticket provider options that are integrated with the portal.
  */
 const kTicketingProviderOptions = [
@@ -111,11 +119,15 @@ export default async function EventSettingsTicketingPage(
     const updateTicketingWeeztixFn = actions.updateEventTicketingWeeztix.bind(null, event.slug);
     const updateTicketingWeeztixAutomationFn =
         actions.updateEventTicketingWeeztixAutomation.bind(null, event.slug);
+    const updateAutomationToggleFn =
+        actions.updateEventTicketingAutomationToggle.bind(null, event.slug);
 
     const settings = await db.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
         .select({
             provider: tEvents.ticketsProvider,
+            ticketsAutoGrantEnabled: tEvents.ticketsAutoGrantEnabled,
+            ticketsAutoRevokeEnabled: tEvents.ticketsAutoRevokeEnabled,
             eventWeeztixGuid: tEvents.eventWeeztixGuid,
             eventWeeztixScannerGuid: tEvents.eventWeeztixScannerGuid,
             eventWeeztixShopGuid: tEvents.eventWeeztixShopGuid,
@@ -215,6 +227,9 @@ export default async function EventSettingsTicketingPage(
                                  }
                                  action={updateTicketingWeeztixAutomationFn}
                                  defaultValues={weeztixAutomationDefaultValues}>
+                    <SectionIntroduction grid>
+                        Ticket selection for automation features available in the Volunteer Manager.
+                    </SectionIntroduction>
                     { !weeztixTicketTypes &&
                         <Grid size={{ xs: 12 }}>
                             <Alert severity="warning" variant="outlined">
@@ -234,6 +249,41 @@ export default async function EventSettingsTicketingPage(
                                        size="small" options={volunteerTickets} />
                     </Grid>
                 </FormGridSection> }
+            { (showWeeztixAutomation && !!settings.eventWeeztixVolunteerTicketGuid) &&
+                <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                        <FormGridSection icon={ <LocalActivityIcon color="primary" /> }
+                                         title="Automatically grant tickets"
+                                         action={updateAutomationToggleFn.bind(null, 'autoGrant')}
+                                         defaultValues={{
+                                             enabled: settings.ticketsAutoGrantEnabled,
+                                         }}>
+                            <SectionIntroduction grid>
+                                Automatically grant volunteer tickets when volunteers are approved.
+                            </SectionIntroduction>
+                            <Grid size={{ xs: 12 }}>
+                                <SelectElement name="enabled" label="Status" required fullWidth
+                                               size="small" options={kEnableAutomationOptions} />
+                            </Grid>
+                        </FormGridSection>
+                    </Grid>
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                        <FormGridSection icon={ <LocalActivityIcon color="primary" /> }
+                                         title="Automatically revoke tickets"
+                                         action={updateAutomationToggleFn.bind(null, 'autoRevoke')}
+                                         defaultValues={{
+                                             enabled: settings.ticketsAutoRevokeEnabled,
+                                         }}>
+                            <SectionIntroduction grid>
+                                Automatically revoke volunteer tickets when volunteers cancel.
+                            </SectionIntroduction>
+                            <Grid size={{ xs: 12 }}>
+                                <SelectElement name="enabled" label="Status" required fullWidth
+                                               size="small" options={kEnableAutomationOptions} />
+                            </Grid>
+                        </FormGridSection>
+                    </Grid>
+                </Grid> }
         </>
     );
 }
