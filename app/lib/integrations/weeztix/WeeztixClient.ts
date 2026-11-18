@@ -293,6 +293,7 @@ export class WeeztixClient {
     async listShopTicketTypes(shopId: string): Promise<weeztix.GetShopTicketTypesResponse> {
         return this.issueRequest(weeztix.kGetScannerTypesResponse, {
             api: `/shop/${shopId}/tickets`,
+            operation: '/shop/<Id>/tickets',
             method: 'GET',
         });
     }
@@ -311,28 +312,28 @@ export class WeeztixClient {
     }
 
     /**
-     * Lists the ticket types that have been associated with the given `eventGuid`.
+     * Lists the ticket types that have been associated with the given `eventId`.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.
      * @returns Array of tickets that exist in our Weeztix account for this event.
      */
-    async listTicketTypes(eventGuid: string): Promise<weeztix.GetTicketTypesResponse> {
+    async listTicketTypes(eventId: string): Promise<weeztix.GetTicketTypesResponse> {
         return this.issueRequest(weeztix.kGetTicketTypesResponse, {
-            api: `/event/${eventGuid}/ticket/products`,
+            api: `/event/${eventId}/ticket/products`,
             operation: '/event/<Id>/ticket/products',
             method: 'GET',
         });
     }
 
     /**
-     * Lists the tickets that have been issued for the given `eventGuid` and `ticketTypeGuid`.
-     *
-     * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Array of tickets that exist in our Weeztix account for this event.
+     * Resend the confirmation e-mail for the given `orderId`.
      */
-    async listTicketsForType(eventGuid: string, ticketTypeGuid: string) {
-        // TODO: Implement this method.
-        return [];
+    async resendConfirmationEmail(orderId: string): Promise<boolean> {
+        return this.issueRequest(/* no response schema= */ undefined, {
+            api: `/order/${orderId}/resend`,
+            operation: '/order/<Id>/resend',
+            method: 'GET',
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -346,14 +347,21 @@ export class WeeztixClient {
      * be attempted to obtain a new access token using the refresh token, which will be persisted in
      * settings when successful.
      *
-     * The response will be validated based on the given `schema`, where failures will be considered
-     * fatal and will thus throw an exception. The validated `T` will be returned.
+     * When `schema` is provided, the response will be validated based on it, where failures will be
+     * considered fatal and will thus throw an exception. When `schema` is `undefined`, the
+     * response body is ignored and `true` is returned upon an OK HTTP status code.
      *
-     * @param schema Schema to validate Weeztix' response with.
+     * @param schema Schema to validate Weeztix' response with, or `undefined` to ignore the body.
      * @param request Request to issue to Weeztix' endpoint.
-     * @returns Validated response given by the Weeztix server.
+     * @returns Validated response given by the Weeztix server, or `true` when `schema` is omitted.
      */
-    private async issueRequest<T>(schema: z.ZodType<T>, request: WeeztixRequest): Promise<T> {
+    private async issueRequest(schema: undefined, request: WeeztixRequest): Promise<boolean>;
+    private async issueRequest<T>(schema: z.ZodType<T>, request: WeeztixRequest): Promise<T>;
+    private async issueRequest<T>(schema: z.ZodType<T> | undefined, request: WeeztixRequest)
+        : Promise<T | boolean>;
+    private async issueRequest<T>(schema: z.ZodType<T> | undefined, request: WeeztixRequest)
+        : Promise<T | boolean>
+    {
         const currentInstant = Temporal.Now.instant();
         const expirationInstant = currentInstant.subtract({ minutes: 5 });
 
@@ -397,6 +405,9 @@ export class WeeztixClient {
             });
         }
 
+        if (!schema)
+            return true;
+
         const unverifiedResponseJson = await response.json();
 
         // Validate the |unverifiedResponseJson| in accordance with the |schema| given to this
@@ -413,7 +424,9 @@ export class WeeztixClient {
      * @param request Original request to issue to Weeztix' endpoint after token refresh.
      * @returns Validated response given by the Weeztix server if token renewal was successful.
      */
-    private async refreshToken<T>(schema: z.ZodType<T>, request: WeeztixRequest): Promise<T> {
+    private async refreshToken<T>(schema: z.ZodType<T> | undefined, request: WeeztixRequest)
+        : Promise<T | boolean>
+    {
         if (request.retry)
             throw new Error(`Multiple token refresh attempts for ${request.api}, aborting`);
 

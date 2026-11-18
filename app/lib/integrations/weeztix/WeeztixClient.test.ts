@@ -323,4 +323,26 @@ describe('WeeztixClient', () => {
             operation: 'https://api.weeztix.com/statistics/orders/<Id>',
         });
     });
+
+    it('returns true for empty OK responses when schema is undefined', async () => {
+        const client = new WeeztixClient(createSettings(100));
+        const issueRequest = (client as unknown as {
+            issueRequest: (
+                schema: undefined,
+                request: { api: string; method: 'GET' },
+            ) => Promise<boolean>;
+        }).issueRequest.bind(client);
+
+        fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
+        await expect(issueRequest(undefined, {
+            api: '/order/order-guid-789/resend',
+            method: 'GET',
+        })).resolves.toBe(true);
+
+        fetchSpy.mockResolvedValueOnce(new Response('Server Error', { status: 500 }));
+        await expect(issueRequest(undefined, {
+            api: '/order/order-guid-789/resend',
+            method: 'GET',
+        })).rejects.toThrow('Received HTTP 500 response');
+    });
 });
