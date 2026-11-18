@@ -493,6 +493,7 @@ export async function refreshEventTicketingWeeztix(eventSlug: string) {
             props.authenticationContext, eventSlug, 'event.settings');
 
         Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix`);
+        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
 
         return {
             success: true,
@@ -528,6 +529,7 @@ export async function updateEventTicketingWeeztix(eventSlug: string, formData: u
             .executeUpdate();
 
         await invalidateEventCache(event.id);
+        Cache.getInstance('TicketProvider').delete(`${event.slug}/weeztix/ticketTypes`);
 
         LogBuilder.for('UpdateEventSettings')
             .withCondition(!!affectedRows)
@@ -542,4 +544,50 @@ export async function updateEventTicketingWeeztix(eventSlug: string, formData: u
             refresh: true,
         };
     });
+}
+
+/**
+ * Data that needs to be available to update an event's Weeztix automation configuration.
+ */
+const kEventTicketingWeeztixAutomationData = z.object({
+    guestTicketGuid: z.string().nullish(),
+    vendorTicketGuid: z.string().nullish(),
+    volunteerTicketGuid: z.string().nullish(),
+});
+
+/**
+ * Server Action through which an event's Weeztix automation configuration can be updated.
+ */
+export async function updateEventTicketingWeeztixAutomation(
+    eventSlug: string, formData: unknown)
+{
+    return executeServerAction(
+        formData, kEventTicketingWeeztixAutomationData, async (data, props) => {
+            const { event } = await requireAuthenticationWithEvent(
+                props.authenticationContext, eventSlug, 'event.settings');
+
+            const affectedRows = await db.update(tEvents)
+                .set({
+                    eventWeeztixGuestTicketGuid: data.guestTicketGuid || null,
+                    eventWeeztixVendorTicketGuid: data.vendorTicketGuid || null,
+                    eventWeeztixVolunteerTicketGuid: data.volunteerTicketGuid || null,
+                })
+                .where(tEvents.eventId.equals(event.id))
+                .executeUpdate();
+
+            await invalidateEventCache(event.id);
+
+            LogBuilder.for('UpdateEventSettings')
+                .withCondition(!!affectedRows)
+                .withInitiatorUser(props.user)
+                .record({
+                    event: event.shortName,
+                    type: 'Weeztix',
+                });
+
+            return {
+                success: true,
+                refresh: true,
+            };
+        });
 }

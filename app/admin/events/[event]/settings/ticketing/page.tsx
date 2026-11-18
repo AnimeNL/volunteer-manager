@@ -59,7 +59,7 @@ async function getWeeztixOptions(eventSlug: string) {
     const cache = Cache.getInstance('TicketProvider');
     return cache.getOrInsert(`${eventSlug}/weeztix`, async () => {
         try {
-            const client = await createWeeztixClient();
+            const client = await createWeeztixClient(/* optionalMetadataFields= */ true);
             const events = await client.listEvents();
             const scanners = await client.listScannerTypes();
             const shops = await client.listShops();
@@ -68,6 +68,26 @@ async function getWeeztixOptions(eventSlug: string) {
                 events: events.map(event => ({ id: event.guid, label: event.name })),
                 scanners: scanners.map(scanner => ({ id: scanner.guid, label: scanner.name })),
                 shops: shops.map(shop => ({ id: shop.guid, label: shop.name })),
+            };
+        } catch (error: any) {
+            console.error(error);
+            return null;
+        }
+    });
+}
+
+/**
+ * Retrieves the cached Weeztix ticket types for the given `eventSlug` and `shopGuid`.
+ */
+async function getWeeztixTicketTypes(eventSlug: string, shopGuid: string) {
+    const cache = Cache.getInstance('TicketProvider');
+    return cache.getOrInsert(`${eventSlug}/weeztix/ticketTypes`, async () => {
+        try {
+            const client = await createWeeztixClient(/* optionalMetadataFields= */ true);
+            const ticketTypes = await client.listShopTicketTypes(shopGuid);
+
+            return {
+                ticketTypes: ticketTypes.map(type => ({ id: type.guid, label: type.name })),
             };
         } catch (error: any) {
             console.error(error);
@@ -87,6 +107,8 @@ export default async function EventSettingsTicketingPage(
     const refreshTicketingWeeztixFn = actions.refreshEventTicketingWeeztix.bind(null, event.slug);
     const updateTicketingProviderFn = actions.updateEventTicketingProvider.bind(null, event.slug);
     const updateTicketingWeeztixFn = actions.updateEventTicketingWeeztix.bind(null, event.slug);
+    const updateTicketingWeeztixAutomationFn =
+        actions.updateEventTicketingWeeztixAutomation.bind(null, event.slug);
 
     const settings = await db.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
@@ -95,6 +117,9 @@ export default async function EventSettingsTicketingPage(
             eventWeeztixGuid: tEvents.eventWeeztixGuid,
             eventWeeztixScannerGuid: tEvents.eventWeeztixScannerGuid,
             eventWeeztixShopGuid: tEvents.eventWeeztixShopGuid,
+            eventWeeztixGuestTicketGuid: tEvents.eventWeeztixGuestTicketGuid,
+            eventWeeztixVendorTicketGuid: tEvents.eventWeeztixVendorTicketGuid,
+            eventWeeztixVolunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
         })
         .executeSelectOne();
 
@@ -108,13 +133,31 @@ export default async function EventSettingsTicketingPage(
         shopGuid: settings.eventWeeztixShopGuid ?? '',
     };
 
-    const weeztixOptions = settings.provider === kEventTicketProvider.Weeztix
-        ? await getWeeztixOptions(event.slug)
+    const weeztixAutomationDefaultValues = {
+        guestTicketGuid: settings.eventWeeztixGuestTicketGuid ?? '',
+        vendorTicketGuid: settings.eventWeeztixVendorTicketGuid ?? '',
+        volunteerTicketGuid: settings.eventWeeztixVolunteerTicketGuid ?? '',
+    };
+
+    const showWeeztix = settings.provider === kEventTicketProvider.Weeztix;
+    const showWeeztixAutomation =
+        showWeeztix && !!settings.eventWeeztixGuid && !!settings.eventWeeztixShopGuid;
+
+    const weeztixOptions = showWeeztix ? await getWeeztixOptions(event.slug) : null;
+    const weeztixTicketTypes = showWeeztixAutomation
+        ? await getWeeztixTicketTypes(event.slug, settings.eventWeeztixShopGuid!)
         : null;
 
     const events = buildSelectOptions(weeztixOptions?.events, settings.eventWeeztixGuid);
     const scanners = buildSelectOptions(weeztixOptions?.scanners, settings.eventWeeztixScannerGuid);
     const shops = buildSelectOptions(weeztixOptions?.shops, settings.eventWeeztixShopGuid);
+
+    const guestTickets =
+        buildSelectOptions(weeztixTicketTypes?.ticketTypes, settings.eventWeeztixGuestTicketGuid);
+    const vendorTickets =
+        buildSelectOptions(weeztixTicketTypes?.ticketTypes, settings.eventWeeztixVendorTicketGuid);
+    const volunteerTickets = buildSelectOptions(
+        weeztixTicketTypes?.ticketTypes, settings.eventWeeztixVolunteerTicketGuid);
 
     return (
         <>
@@ -135,7 +178,7 @@ export default async function EventSettingsTicketingPage(
                                    options={kTicketingProviderOptions} fullWidth size="small" />
                 </Grid>
             </FormGridSection>
-            { settings.provider === kEventTicketProvider.Weeztix &&
+            { showWeeztix &&
                 <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix"
                                  headerAction={ <RefreshButton action={refreshTicketingWeeztixFn} /> }
                                  action={updateTicketingWeeztixFn}
@@ -161,6 +204,29 @@ export default async function EventSettingsTicketingPage(
                     <Grid size={{ xs: 12 }}>
                         <SelectElement name="shopGuid" label="Shop" fullWidth size="small"
                                        options={shops} />
+                    </Grid>
+                </FormGridSection> }
+            { showWeeztixAutomation &&
+                <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix automation"
+                                 action={updateTicketingWeeztixAutomationFn}
+                                 defaultValues={weeztixAutomationDefaultValues}>
+                    { !weeztixTicketTypes &&
+                        <Grid size={{ xs: 12 }}>
+                            <Alert severity="warning" variant="outlined">
+                                Unable to obtain available ticket types from Weeztix.
+                            </Alert>
+                        </Grid> }
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="guestTicketGuid" label="Guest ticket" fullWidth
+                                       size="small" options={guestTickets} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="vendorTicketGuid" label="Vendor ticket" fullWidth
+                                       size="small" options={vendorTickets} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <SelectElement name="volunteerTicketGuid" label="Volunteer ticket" fullWidth
+                                       size="small" options={volunteerTickets} />
                     </Grid>
                 </FormGridSection> }
         </>
