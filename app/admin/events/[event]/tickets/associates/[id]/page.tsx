@@ -93,11 +93,12 @@ export default async function EventTicketsAssociatesPage(
                          : undefined!;
 
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
+    const pageTitle = purchase.name || formattedPurchaseId;
 
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
-                     title={formattedPurchaseId} documentation="event/tickets"
+                     title={pageTitle} documentation="event/tickets"
                      limited={!canDeleteTickets || !canUpdateTickets}
                      breadcrumbs={[
                         { label: event.shortName, href: `/admin/events/${event.slug}` },
@@ -106,7 +107,7 @@ export default async function EventTicketsAssociatesPage(
                             label: 'Associates',
                             href: `/admin/events/${event.slug}/tickets/associates`,
                         },
-                        { label: formattedPurchaseId },
+                        { label: pageTitle },
                      ]}>
                 <SectionIntroduction>
                     Information about the ticket{purchase.tickets.length === 1 ? '' : 's'} issued

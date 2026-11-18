@@ -240,6 +240,7 @@ export class Weeztix implements TicketService {
         return {
             id: order.id,
             eventId: order.eventId,
+            name: order.name?.trim() || undefined,
             cancelled: order.deleted ?? (order.status === 'cancelled' ? order.updated : undefined),
             paid: kWeeztixSettledOrderStatuses.includes(order.status) ? order.created : undefined,
             tickets: [

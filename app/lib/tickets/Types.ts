@@ -18,6 +18,11 @@ export interface Purchase {
     eventId: number | string;
 
     /**
+     * Name of the person who owns the order, when known.
+     */
+    name?: string;
+
+    /**
      * Date on which the purchase has been cancelled, if any.
      */
     cancelled?: Temporal.ZonedDateTime;
