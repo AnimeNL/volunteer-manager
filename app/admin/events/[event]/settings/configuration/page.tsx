@@ -1,8 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { Suspense } from 'react';
-
 import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
@@ -11,33 +9,26 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import Grid from '@mui/material/Grid';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
-import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Typography from '@mui/material/Typography';
 
 import type { EventAvailabilityStatus } from '@lib/database/Types';
-import type { TicketService } from '@lib/tickets/TicketService';
 import { ActionBar } from '@app/admin/components/ActionBar';
 import { AnonymizeRefundsButton } from './AnonymizeRefundsButton';
 import { ChangeImageQuickAction } from './ChangeImageQuickAction';
 import { ChangeSlugQuickAction } from './ChangeSlugQuickAction';
-import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
 import { EventSettingsForm } from './EventSettingsForm';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { GridCollapse } from '@components/GridCollapse';
 import { PublishQuickAction } from './PublishQuickAction';
 import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { SectionLoading } from '@app/admin/components/SectionLoading';
-import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tStorage } from '@lib/database';
 
-import { kEventAvailabilityStatus, kEventTicketProvider } from '@lib/database/Types';
+import { kEventAvailabilityStatus } from '@lib/database/Types';
 
 import * as actions from '../SettingsActions';
 
@@ -60,14 +51,6 @@ const kAvailabilityStatusOptions = [
 ] satisfies { id: EventAvailabilityStatus; label: string }[];
 
 /**
- * Options available for the user to select whether the automation should be enabled.
- */
-const kEnableAutomationOptions = [
-    { id: 0, label: 'Disabled' },
-    { id: 1, label: 'Enabled' },
-];
-
-/**
  * Options that can be presented regarding publishing event timing information.
  */
 const kEventTimingPublishedOptions = [
@@ -86,14 +69,6 @@ const kServiceStatusOptions = [
 ] satisfies { id: number; label: string }[];
 
 /**
- * Ticket provider options that are integrated with the portal.
- */
-const kTicketingProviderOptions = [
-    { id: '', label: 'None' },
-    ...Object.values(kEventTicketProvider).map(provider => ({ id: provider, label: provider })),
-];
-
-/**
  * Page through which the primary configuration associated with a particular event can be adjusted.
  */
 export default async function EventSettingsConfigurationPage(
@@ -104,7 +79,6 @@ export default async function EventSettingsConfigurationPage(
     const featuresFn = actions.updateEventFeatures.bind(null, event.slug);
     const identityFn = actions.updateEventIdentity.bind(null, event.slug);
     const integrationsFn = actions.updateEventIntegrations.bind(null, event.slug);
-    const ticketingFn = actions.updateEventTicketing.bind(null, event.slug);
 
     const storageJoin = tStorage.forUseInLeftJoin();
 
@@ -133,29 +107,12 @@ export default async function EventSettingsConfigurationPage(
                 availabilityTearDown: tEvents.availabilityTearDown,
             },
             integrations: {
-                // AnPlan:
                 anplanFestivalId: tEvents.eventFestivalId,
                 anplanHotelRoomForm: tEvents.eventHotelRoomForm,
-
-                // Weeztix:
-                weeztixEventGuid: tEvents.eventWeeztixGuid,
-                weeztixScannerGuid: tEvents.eventWeeztixScannerGuid,
-
-                // YourTicketProvider:
-                ytpEventId: tEvents.eventYtpEventId,
-                ytpExternalEventId: tEvents.eventYtpExternalEventId,
-            },
-            tickets: {
-                provider: tEvents.ticketsProvider,
-                autoGrant: tEvents.ticketsAutoGrantEnabled,
-                autoRevoke: tEvents.ticketsAutoRevokeEnabled,
-                volunteerTicketId: tEvents.ticketsAutoGrantTicketId,
             },
             identityHash: storageJoin.fileHash,
         })
         .executeSelectOne();
-
-    const service = await createTicketService(event.slug);
 
     const anonymizeRefundsFn = access.can('root')
         ? actions.anonymizeRefundRequests.bind(null, event.slug)
@@ -253,7 +210,7 @@ export default async function EventSettingsConfigurationPage(
                 </Grid>
             </FormGridSection>
             <FormGridSection icon={ <ApiIcon />} title="Integrations"
-                             action={integrationsFn.bind(null, 'anplan')}
+                             action={integrationsFn}
                              defaultValues={defaultValues.integrations}>
                 <Grid size={{ xs: 12 }}>
                     <Typography variant="body2">
@@ -269,72 +226,6 @@ export default async function EventSettingsConfigurationPage(
                                       fullWidth size="small" />
                 </Grid>
             </FormGridSection>
-            <Grid container spacing={1.5}>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                    <FormGridSection icon={ <WeeztixIcon /> } title="Weeztix"
-                                     action={integrationsFn.bind(null, 'weeztix')}
-                                     defaultValues={defaultValues.integrations}>
-                        <SectionIntroduction grid>
-                            Integration with Weeztix for ticketing.
-                        </SectionIntroduction>
-                        <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="weeztixEventGuid" label="Weeztix Event GUID"
-                                              fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="weeztixScannerGuid" label="Weeztix Scanner GUID"
-                                              fullWidth size="small" />
-                        </Grid>
-                    </FormGridSection>
-                </Grid>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                    <FormGridSection icon={ <CmComIcon /> } title="YourTicketProvider"
-                                     action={integrationsFn.bind(null, 'ytp')}
-                                     defaultValues={defaultValues.integrations}>
-                        <SectionIntroduction grid>
-                            Integration with YourTicketProvider for ticketing.
-                        </SectionIntroduction>
-                        <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="ytpEventId" label="YourTicketProvider Event ID"
-                                              type="number" fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <TextFieldElement name="ytpExternalEventId"
-                                              label="YourTicketProvider External Event ID"
-                                              fullWidth size="small" />
-                        </Grid>
-                    </FormGridSection>
-                </Grid>
-            </Grid>
-            { (!!defaultValues.integrations?.ytpEventId ||
-                   !!defaultValues.integrations?.weeztixEventGuid) &&
-                <FormGridSection icon={ <LocalActivityOutlinedIcon />} title="Ticketing"
-                                 action={ticketingFn} defaultValues={defaultValues.tickets}>
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant="body2">
-                            Automation available based on integration with our ticketing partners.
-                        </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <SelectElement name="provider" label="Ticketing partner"
-                                       options={kTicketingProviderOptions} fullWidth size="small" />
-                    </Grid>
-                    <GridCollapse in={!!service} size={{ xs: 12 }}>
-                        <Suspense fallback={ <SectionLoading /> }>
-                            { !!service && <TicketSettings service={service} /> }
-                        </Suspense>
-                    </GridCollapse>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <SelectElement name="autoGrant" label="Automatically grant tickets"
-                                       required options={kEnableAutomationOptions} fullWidth
-                                       size="small" disabled={!service} />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <SelectElement name="autoRevoke" label="Automatically revoke tickets"
-                                       required options={kEnableAutomationOptions} fullWidth
-                                       size="small" disabled={!service} />
-                    </Grid>
-                </FormGridSection> }
             { (!!anonymizeRefundsFn || !!anonymizeTicketsFn) &&
                 <Section icon={ <ReportOutlinedIcon color="error" /> } title="Danger zone">
                     <SectionIntroduction>
@@ -358,31 +249,6 @@ export default async function EventSettingsConfigurationPage(
                             } /> }
                 </Section> }
         </>
-    );
-}
-
-/**
- * Component that fetches ticket settings from the `service` and then displays a form grid through
- * which settings can be amended. Loading is deferred until the service responds.
- */
-async function TicketSettings(props: { service: TicketService }) {
-    const types = await props.service.listTicketTypes();
-    if (!types.length) {
-        return (
-            <Alert severity="warning" variant="outlined">
-                Unable to obtain available ticket types from the ticketing partner.
-            </Alert>
-        );
-    }
-
-    const typeOptions = [
-        { id: '', label: 'None' },
-        ...types.map(type => ({ id: `${type.id}`, label: type.name })),
-    ];
-
-    return (
-        <SelectElement name="volunteerTicketId" label="Volunteer ticket type"
-                       options={typeOptions} fullWidth size="small" />
     );
 }
 

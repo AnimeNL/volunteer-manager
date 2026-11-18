@@ -320,59 +320,23 @@ export async function updateEventIdentity(eventSlug: string, formData: unknown) 
  * Data that needs to be available to update an event's associated services.
  */
 const kEventIntegrationsData = z.object({
-    // AnPlan:
     anplanFestivalId: z.number().nullish(),
     anplanHotelRoomForm: z.url().nullish(),
-
-    // Weeztix:
-    weeztixEventGuid: z.string().nullish(),
-    weeztixScannerGuid: z.string().nullish(),
-
-    // YourTicketProvider:
-    ytpEventId: z.number().nullish(),
-    ytpExternalEventId: z.string().nullish(),
 });
 
 /**
  * Server Action through which an event's integrations can be updated.
  */
-export async function updateEventIntegrations(
-    eventSlug: string, type: 'anplan' | 'weeztix' | 'ytp', formData: unknown)
-{
+export async function updateEventIntegrations(eventSlug: string, formData: unknown) {
     return executeServerAction(formData, kEventIntegrationsData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'event.settings');
 
-        let update: UpdatableRow<typeof tEvents>;
-        switch (type) {
-            case 'anplan':
-                update = {
-                    eventFestivalId: data.anplanFestivalId,
-                    eventHotelRoomForm: data.anplanHotelRoomForm?.trim() || null,
-                };
-                break;
-
-            case 'weeztix': {
-                update = {
-                    eventWeeztixGuid: data.weeztixEventGuid?.trim() || null,
-                    eventWeeztixScannerGuid: data.weeztixScannerGuid?.trim() || null,
-                };
-                break;
-            }
-
-            case 'ytp':
-                update = {
-                    eventYtpEventId: data.ytpEventId,
-                    eventYtpExternalEventId: data.ytpExternalEventId,
-                };
-                break;
-
-            default:
-                throw new Error(`Invalid integration selected: ${type}`);
-        }
-
         const affectedRows = await db.update(tEvents)
-            .set(update)
+            .set({
+                eventFestivalId: data.anplanFestivalId,
+                eventHotelRoomForm: data.anplanHotelRoomForm?.trim() || null,
+            })
             .where(tEvents.eventId.equals(event.id))
             .executeUpdate();
 
@@ -389,56 +353,6 @@ export async function updateEventIntegrations(
         return {
             success: true,
             refresh: true,  // menu items might change
-        };
-    });
-}
-
-/**
- * Data that needs to be available to update an event's ticketing settings.
- */
-const kEventTicketingData = z.object({
-    provider: z.enum(kEventTicketProvider).or(z.literal('')),
-    volunteerTicketId: z.string().optional(),
-    autoGrant: z.literal([ 0, 1 ]).optional(),
-    autoRevoke: z.literal([ 0, 1 ]).optional(),
-});
-
-/**
- * Server Action through which an event's ticketing settings can be updated.
- */
-export async function updateEventTicketing(eventSlug: string, formData: unknown) {
-    return executeServerAction(formData, kEventTicketingData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, 'event.settings');
-
-        const ticketsProvider = data.provider || null;
-        const ticketsAutoGrantTicketId = ticketsProvider ? (data.volunteerTicketId || null) : null;
-        const ticketsAutoGrantEnabled = (ticketsAutoGrantTicketId && data.autoGrant) ? 1 : 0;
-        const ticketsAutoRevokeEnabled = (ticketsAutoGrantTicketId && data.autoRevoke) ? 1 : 0;
-
-        const affectedRows = await db.update(tEvents)
-            .set({
-                ticketsAutoGrantEnabled,
-                ticketsAutoGrantTicketId,
-                ticketsAutoRevokeEnabled,
-                ticketsProvider,
-            })
-            .where(tEvents.eventId.equals(event.id))
-            .executeUpdate();
-
-        await invalidateEventCache(event.id);
-
-        LogBuilder.for('UpdateEventSettings')
-            .withCondition(!!affectedRows)
-            .withInitiatorUser(props.user)
-            .record({
-                event: event.shortName,
-                type: 'ticketing',
-            });
-
-        return {
-            success: true,
-            refresh: true,  // menu items and form options might change
         };
     });
 }
