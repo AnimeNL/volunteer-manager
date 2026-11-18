@@ -5,6 +5,7 @@ import { z } from 'zod/v4';
 
 import { Cache } from '@lib/cache';
 import { TaskWithParams } from '../Task';
+import { WeeztixImportTask } from './WeeztixImportTask';
 import { createTicketService } from '@lib/tickets';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeTaskNow } from '@lib/scheduler';
@@ -106,7 +107,8 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
         switch (service.id) {
             case 'Weeztix':
                 return this.updateWeeztixTicket(
-                    String(params.orderId), String(params.ticketId), params);
+                    String(service.eventId), String(params.orderId), String(params.ticketId),
+                    params);
 
             default:
                 this.log.error(`Updating tickets is not supported for provider "${service.id}".`);
@@ -115,11 +117,13 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
     }
 
     /**
-     * Updates ticket metadata and order receiver information for a Weeztix ticket. Ticket metadata
-     * is updated before receiver information so Weeztix's ticket PDF rebuild includes the changes.
+     * Updates ticket metadata and order receiver information for a Weeztix ticket, then runs a
+     * one-off import to reflect the updated order locally. Ticket metadata is updated before
+     * receiver information so Weeztix's ticket PDF rebuild includes the changes.
      */
     private async updateWeeztixTicket(
-        orderGuid: string, ticketGuid: string, params: TaskParams): Promise<boolean>
+        eventGuid: string, orderGuid: string, ticketGuid: string, params: TaskParams)
+            : Promise<boolean>
     {
         const client = await createWeeztixClient();
 
@@ -175,6 +179,13 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
                 email: updatedOrder.email?.trim() || params.email,
             },
         });
+
+        this.log.info(`Synchronising updated Weeztix order ${orderGuid} into the local database.`);
+        const imported = await WeeztixImportTask.importOrder(eventGuid, orderGuid);
+        if (!imported) {
+            this.log.error(`Failed to synchronise updated Weeztix order ${orderGuid}.`);
+            return false;
+        }
 
         return true;
     }
