@@ -28,6 +28,8 @@ interface RawTicketRow {
     barcode?: string;
     name?: string;
     nickname?: string;
+    function?: string;
+    organisation?: string;
     parentTicketName?: string;
     price: number;
     created: Temporal.ZonedDateTime;
@@ -45,6 +47,8 @@ interface RawTicketRow {
 function toTicket(row: RawTicketRow): Ticket {
     const holder = (row.name || row.parentTicketName || row.orderName)?.trim() || undefined;
     const nickname = row.nickname?.trim() || undefined;
+    const func = row.function?.trim() || undefined;
+    const organisation = row.organisation?.trim() || undefined;
     const paid = kWeeztixSettledOrderStatuses.includes(row.orderStatus) ? row.created : undefined;
     const cancelled =
         row.deleted ?? row.parentTicketDeleted ?? row.orderDeleted ??
@@ -57,6 +61,8 @@ function toTicket(row: RawTicketRow): Ticket {
         barcode: row.barcode || undefined,
         holder,
         nickname,
+        function: func,
+        organisation,
         complimentary: row.price === 0,
         cancelled,
         paid,
@@ -424,6 +430,8 @@ export class Weeztix implements TicketService {
                     barcode: tWeeztixTickets.weeztixTicketBarcode,
                     name: tWeeztixTickets.weeztixTicketName,
                     nickname: tWeeztixTickets.weeztixTicketMetaNickname,
+                    function: tWeeztixTickets.weeztixTicketMetaFunction,
+                    organisation: tWeeztixTickets.weeztixTicketMetaOrganisation,
                     price: tWeeztixTickets.weeztixTicketPrice,
                     created: tWeeztixTickets.weeztixTicketCreated,
                     deleted: tWeeztixTickets.weeztixTicketDeleted,
@@ -453,6 +461,8 @@ export class Weeztix implements TicketService {
                 ticketId: tWeeztixPurchases.weeztixPurchaseTypeGuid,
                 barcode: ticketsJoin.weeztixTicketBarcode,
                 name: tWeeztixPurchases.weeztixPurchaseName,
+                function: ticketsJoin.weeztixTicketMetaFunction,
+                organisation: ticketsJoin.weeztixTicketMetaOrganisation,
                 parentTicketName: ticketsJoin.weeztixTicketName,
                 price: tWeeztixPurchases.weeztixPurchasePrice,
                 created: tWeeztixPurchases.weeztixPurchaseCreated,

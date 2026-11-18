@@ -55,9 +55,14 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
     order: z.string(),
 
     /**
-     * Date at which the ticket was created, if any.
+     * Function of the person who holds the ticket, when known.
      */
-    created: z.iso.datetime().optional(),
+    function: z.string().optional(),
+
+    /**
+     * Organisation of the person who holds the ticket, when known.
+     */
+    organisation: z.string().optional(),
 
     /**
      * Whether the ticket has been cancelled,
@@ -102,10 +107,15 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
                 return false;  // the |ticket| is associated with a current volunteer
 
             if (!searchQuery)
-                return true;  // the |ticket| does not match the search query
+                return true;
 
-            return ticket.barcode?.toLocaleLowerCase().includes(searchQuery) ||
+            const status = ticket.cancelled ? 'cancelled' : 'issued';
+
+            return status === searchQuery ||
+                   ticket.barcode?.toLocaleLowerCase().includes(searchQuery) ||
                    ticket.holder?.toLocaleLowerCase().includes(searchQuery) ||
+                   ticket.function?.toLocaleLowerCase().includes(searchQuery) ||
+                   ticket.organisation?.toLocaleLowerCase().includes(searchQuery) ||
                    service.formatPurchaseId(ticket.purchaseId)
                        .toLocaleLowerCase().includes(searchQuery);
         });
@@ -114,10 +124,27 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
             if (lhs.cancelled !== rhs.cancelled)
                 return lhs.cancelled ? 1 : -1;  // sort cancelled tickets last
 
-            if (lhs.holder && rhs.holder)
-                return lhs.holder.localeCompare(rhs.holder);  // sort by name when known
+            let comparison = 0;
+            switch (params.sort.field) {
+                case 'order':
+                    comparison = service.formatPurchaseId(lhs.purchaseId).localeCompare(
+                        service.formatPurchaseId(rhs.purchaseId));
+                    break;
 
-            return 0;
+                case 'holder':
+                    comparison = (lhs.holder ?? '').localeCompare(rhs.holder ?? '');
+                    break;
+
+                case 'function':
+                    comparison = (lhs.function ?? '').localeCompare(rhs.function ?? '');
+                    break;
+
+                case 'organisation':
+                    comparison = (lhs.organisation ?? '').localeCompare(rhs.organisation ?? '');
+                    break;
+            }
+
+            return params.sort.direction === 'asc' ? comparison : -comparison;
         });
 
         const selectedTickets = sortedTickets.slice(
@@ -129,8 +156,9 @@ const eventAssociateTicketDataSource = createDataSource('event/tickets/associate
                 id: ticket.id,
                 purchaseId: ticket.purchaseId,
                 holder: ticket.holder ?? '(Unclaimed ticket)',
+                function: ticket.function,
+                organisation: ticket.organisation,
                 order: service.formatPurchaseId(ticket.purchaseId),
-                created: ticket.paid?.toString(),
                 cancelled: !!ticket.cancelled,
             })),
         };
@@ -174,8 +202,13 @@ export default async function EventTicketsAssociatesPage(
         {
             field: 'order',
             headerName: 'Order',
-            sortable: false,
+            sortable: true,
             width: 150,
+
+            template: 'text',
+            templateProps: {
+                href: './associates/{purchaseId}',
+            },
         },
         {
             field: 'holder',
@@ -186,16 +219,23 @@ export default async function EventTicketsAssociatesPage(
             template: 'text',
             templateProps: {
                 defaultValue: 'Identity unknown…',
-                href: './associates/{purchaseId}',
             },
         },
         {
-            field: 'created',
-            headerName: 'Created',
+            field: 'function',
+            headerName: 'Function',
             sortable: true,
-            width: 150,
+            flex: 1,
 
-            template: 'date',
+            template: 'text',
+        },
+        {
+            field: 'organisation',
+            headerName: 'Organisation',
+            sortable: true,
+            flex: 1,
+
+            template: 'text',
         },
     ];
 

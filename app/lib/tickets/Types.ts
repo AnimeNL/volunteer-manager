@@ -99,6 +99,16 @@ export interface Ticket {
     nickname?: string;
 
     /**
+     * Function of the holder of the ticket, when known.
+     */
+    function?: string;
+
+    /**
+     * Organisation of the holder of the ticket, when known.
+     */
+    organisation?: string;
+
+    /**
      * Whether the ticket was complimentary, i.e. issued without requiring payment.
      */
     complimentary?: boolean;
