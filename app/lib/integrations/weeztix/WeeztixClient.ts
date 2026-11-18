@@ -275,11 +275,24 @@ export class WeeztixClient {
      * Lists the scanner types accessible to the authenticated user.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.
-     * @returns Array of tickets that exist in our Weeztix account across event.
+     * @returns Array of scanners that exist in our Weeztix account, across event.
      */
     async listScannerTypes(): Promise<weeztix.GetScannerTypesResponse> {
         return this.issueRequest(weeztix.kGetScannerTypesResponse, {
             api: `/scanner/normal`,
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Lists the shops that exist as part of our Weeztix company.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Array of shops that exist in our Weeztix account, across event.
+     */
+    async listShops(): Promise<weeztix.GetShopsResponse> {
+        return this.issueRequest(weeztix.kGetShopsResponse, {
+            api: `/shop/normal`,
             method: 'GET',
         });
     }
