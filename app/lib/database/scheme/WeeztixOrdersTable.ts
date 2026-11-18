@@ -24,6 +24,7 @@ export class WeeztixOrdersTable extends Table<DBConnection, 'WeeztixOrdersTable'
     weeztixOrderCreated = this.column<Temporal.ZonedDateTime>('weeztix_order_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderUpdated = this.column<Temporal.ZonedDateTime>('weeztix_order_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('weeztix_order_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    weeztixOrderManualUpdate = this.columnWithDefaultValue('weeztix_order_manual_update', 'int');
 
     constructor() {
         super('weeztix_orders');

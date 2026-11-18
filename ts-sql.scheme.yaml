@@ -1639,6 +1639,10 @@ tables:
     type: datetime
     nullable: true
     default: "NULL"
+  - name: weeztix_order_manual_update
+    type: tinyint(1) unsigned
+    nullable: false
+    default: "0"
   indexes:
   - name: weeztix_event_updated
     def: KEY weeztix_event_updated (weeztix_event_guid, weeztix_order_updated) USING BTREE
@@ -1671,6 +1675,7 @@ tables:
       `weeztix_order_created` datetime NOT NULL,
       `weeztix_order_updated` datetime NOT NULL,
       `weeztix_order_deleted` datetime DEFAULT NULL,
+      `weeztix_order_manual_update` tinyint(1) unsigned NOT NULL DEFAULT 0,
       UNIQUE KEY `weeztix_guid` (`weeztix_guid`),
       KEY `weeztix_event_updated` (`weeztix_event_guid`,`weeztix_order_updated`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci
