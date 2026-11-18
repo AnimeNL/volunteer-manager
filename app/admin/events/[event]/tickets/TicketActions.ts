@@ -285,8 +285,8 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
 const kUpdateAssociateTicketData = z.object({
     holder: z.string().min(1),
     nickname: z.string().optional(),
-    function: z.string().optional(),
-    organisation: z.string().optional(),
+    function: z.string().nonempty(),
+    organisation: z.string().nonempty(),
 });
 
 /**

@@ -15,6 +15,7 @@ import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { KeyValueList } from '@app/admin/components/KeyValueList';
+import { PurchaseIdLink } from '../../PurchaseIdLink';
 import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -52,6 +53,8 @@ export default async function EventTicketsAssociatesPage(
 
     if (!containsVolunteerTicket && !access.can('root'))
         forbidden();
+
+    const purchaseLink = service.createPurchaseLink(purchase.id);
 
     const eventTicketTypes = await dbInstance.selectFrom(tEvents)
         .where(tEvents.eventId.equals(event.id))
@@ -185,6 +188,11 @@ export default async function EventTicketsAssociatesPage(
                     </Alert> }
                 <KeyValueList items={[
                     {
+                        key: 'Order',
+                        valueTemplate: 'component',
+                        value: <PurchaseIdLink href={purchaseLink} label={purchase.id} />,
+                    },
+                    {
                         key: 'Ticket type',
                         value: ticketType,
                     },
@@ -210,8 +218,7 @@ export default async function EventTicketsAssociatesPage(
                                              title={`Ticket ${service.formatTicketId(ticket.id)}`} />
                          }>
                     <SectionIntroduction>
-                        The ticket's information can be updated for any reason, and will be
-                        reflected in their real ticket immediately.
+                        Changes made here will be reflected in the real ticket immediately.
                     </SectionIntroduction>
                     <FormGrid action={updateTicketFn} defaultValues={{
                         holder: ticket.holder ?? '',
@@ -228,11 +235,11 @@ export default async function EventTicketsAssociatesPage(
                                               fullWidth size="small" />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="function" label="Function"
+                            <TextFieldElement name="function" label="Function" required
                                               fullWidth size="small" />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="organisation" label="Organisation"
+                            <TextFieldElement name="organisation" label="Organisation" required
                                               fullWidth size="small" />
                         </Grid>
                     </FormGrid>
