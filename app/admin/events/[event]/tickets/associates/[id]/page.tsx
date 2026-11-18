@@ -3,15 +3,21 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
+import { TextFieldElement } from '@app/components/proxy/react-hook-form-mui';
+
 import Alert from '@mui/material/Alert';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 
 import { AssociateQuickAction } from './AssociateQuickAction';
-import { CancelPurchaseQuickAction } from './CancelPurchaseQuickAction';
-import { PurchaseDetails } from '../../PurchaseDetails';
-import { ResendConfirmationQuickAction } from './ResendConfirmationQuickAction';
+import { CancelPurchaseQuickAction, ResendConfirmationQuickAction }
+    from '../../PurchaseQuickActions';
+import { FormGrid } from '@app/admin/components/FormGrid';
+import { PurchaseSummary } from '../../PurchaseSummary';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TicketQrAction } from '../../TicketQrAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -79,15 +85,15 @@ export default async function EventTicketsAssociatesPage(
 
     const associatePurchaseFn =
         canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)
-                         : undefined!;
+                         : undefined;
 
     const cancelPurchaseFn =
         canCancelPurchases ? cancelPurchase.bind(null, event.slug, purchase.id)
-                           : undefined!;
+                           : undefined;
 
     const resendConfirmationFn =
         canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
-                         : undefined!;
+                         : undefined;
 
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
     const pageTitle = purchase.name || formattedPurchaseId;
@@ -117,11 +123,10 @@ export default async function EventTicketsAssociatesPage(
                     as part of this purchase for {event.shortName}.
                 </SectionIntroduction>
             </Section>
-            <PurchaseDetails
+            <PurchaseSummary
                 event={event}
                 purchase={purchase}
                 service={service}
-                updateTicketAction={updateTicketFn}
                 alerts={
                     !containsVolunteerTicket && (
                         <Alert severity="warning" variant="outlined">
@@ -132,17 +137,52 @@ export default async function EventTicketsAssociatesPage(
                 actions={
                     (canCancelPurchases || canUpdateTickets) && !hasBeenCancelled && (
                         <>
-                            { canUpdateTickets &&
+                            { !!associatePurchaseFn &&
                                 <AssociateQuickAction action={associatePurchaseFn}
                                                       ticketProvider={service.id}
                                                       volunteers={associateVolunteers} /> }
-                            { canUpdateTickets &&
+                            { !!resendConfirmationFn &&
                                 <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                            { canCancelPurchases &&
+                            { !!cancelPurchaseFn &&
                                 <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
                         </>
                     )
                 } />
+            { (!!ticket && !!updateTicketFn) &&
+                <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
+                         headerAction={
+                             !!ticket.barcode &&
+                             <TicketQrAction
+                                 barcode={ticket.barcode}
+                                 title={`Ticket ${service.formatTicketId(ticket.id)}`} />
+                         }>
+                    <SectionIntroduction>
+                        Changes made here will be reflected in the real ticket immediately.
+                    </SectionIntroduction>
+                    <FormGrid action={updateTicketFn} defaultValues={{
+                        holder: ticket.holder ?? '',
+                        nickname: ticket.nickname ?? '',
+                        function: ticket.function ?? '',
+                        organisation: ticket.organisation ?? '',
+                    }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="holder" label="Ticket holder" required
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="nickname" label="Nickname"
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="function" label="Function" required
+                                              fullWidth size="small" />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextFieldElement name="organisation" label="Organisation" required
+                                              fullWidth size="small" />
+                        </Grid>
+                    </FormGrid>
+                </Section> }
         </>
     );
 }

@@ -6,19 +6,22 @@ import { notFound } from 'next/navigation';
 import { SelectElement } from '@app/components/proxy/react-hook-form-mui';
 
 import Alert from '@mui/material/Alert';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Grid from '@mui/material/Grid';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
 import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
+import TextField from '@mui/material/TextField';
 
 import { ActionBar } from '@app/admin/components/ActionBar';
-import { CancelPurchaseQuickAction } from '../../associates/[id]/CancelPurchaseQuickAction';
+import { CancelPurchaseQuickAction, ResendConfirmationQuickAction }
+    from '../../PurchaseQuickActions';
 import { FormGrid } from '@app/admin/components/FormGrid';
-import { PurchaseDetails } from '../../PurchaseDetails';
+import { PurchaseSummary } from '../../PurchaseSummary';
 import { QuickActionButton } from '@app/admin/components/QuickActionButton';
-import { ResendConfirmationQuickAction } from '../../associates/[id]/ResendConfirmationQuickAction';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { TicketQrAction } from '../../TicketQrAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -123,24 +126,24 @@ export default async function EventTicketsVolunteerPage(
     const canCancelPurchases = !!service?.canCancelPurchases() && canDeleteTickets;
 
     const cancelPurchaseFn =
-        canCancelPurchases && !!purchaseId
+        canCancelPurchases && !!purchaseId && !hasBeenCancelled
             ? cancelPurchase.bind(null, event.slug, purchaseId)
-            : undefined!;
+            : undefined;
 
     const disassociateFn =
         canUpdateTickets ? disassociatePurchase.bind(null, event.slug, participation.user.id)
-                         : undefined!;
+                         : undefined;
 
     const resendConfirmationFn =
-        canUpdateTickets && !!purchaseId
+        canUpdateTickets && !!purchaseId && !hasBeenCancelled
             ? resendPurchaseConfirmation.bind(null, event.slug, purchaseId)
-            : undefined!;
+            : undefined;
 
     const updatePrimaryTeamFn =
         canUpdateTickets ? updateVolunteerPrimaryTeam.bind(null, event.slug, participation.user.id)
                          : undefined!;
 
-    const disassociateAction = canUpdateTickets && (
+    const disassociateAction = !!disassociateFn && (
         <QuickActionButton
             action={disassociateFn}
             icon={ <PersonRemoveOutlinedIcon /> }
@@ -155,6 +158,8 @@ export default async function EventTicketsVolunteerPage(
                 </>
             } />
     );
+
+    const ticket = purchase?.tickets.at(0);
 
     return (
         <>
@@ -194,39 +199,34 @@ export default async function EventTicketsVolunteerPage(
                         </ActionBar> }
                 </Section> }
             { (!!purchase && !!service) &&
-                <PurchaseDetails
-                    event={event}
-                    purchase={purchase}
-                    service={service}
-                    readOnly
-                    ticketHolder={ticketHolder}
-                    ticketWarning={
-                        <Alert severity="warning" variant="outlined">
-                            This ticket is linked to {participation.user.firstName}'s account, so
-                            its details are read-only and managed through their account.
-                        </Alert>
-                    }
-                    alerts={
-                        !!ticketInfo?.cancelled && (
-                            <Alert severity="error" variant="outlined">
-                                {participation.user.firstName} has been issued a ticket that has
-                                inadvertently been cancelled.
-                                { canUpdateTickets &&
-                                    ' You need to disassociate their ticket below.' }
-                            </Alert>
-                        )
-                    }
-                    actions={
-                        (canCancelPurchases || canUpdateTickets) && (
-                            <>
-                                {disassociateAction}
-                                { (canUpdateTickets && !hasBeenCancelled) &&
-                                    <ResendConfirmationQuickAction action={resendConfirmationFn} /> }
-                                { (canCancelPurchases && !hasBeenCancelled) &&
-                                    <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
-                            </>
-                        )
-                    }>
+                <>
+                    <PurchaseSummary
+                        event={event}
+                        purchase={purchase}
+                        service={service}
+                        ticketHolder={ticketHolder}
+                        alerts={
+                            !!ticketInfo?.cancelled && (
+                                <Alert severity="error" variant="outlined">
+                                    {participation.user.firstName} has been issued a ticket that has
+                                    inadvertently been cancelled.
+                                    { canUpdateTickets &&
+                                        ' You need to disassociate their ticket below.' }
+                                </Alert>
+                            )
+                        }
+                        actions={
+                            (canCancelPurchases || canUpdateTickets) && (
+                                <>
+                                    {disassociateAction}
+                                    { !!resendConfirmationFn &&
+                                        <ResendConfirmationQuickAction
+                                            action={resendConfirmationFn} /> }
+                                    { !!cancelPurchaseFn &&
+                                        <CancelPurchaseQuickAction action={cancelPurchaseFn} /> }
+                                </>
+                            )
+                        } />
                     { acceptedTeams.length > 1 &&
                         <Section icon={ <GroupsOutlinedIcon /> } title="Team association">
                             <SectionIntroduction>
@@ -251,7 +251,43 @@ export default async function EventTicketsVolunteerPage(
                                 </Grid>
                             </FormGrid>
                         </Section> }
-                </PurchaseDetails> }
+                    { !!ticket &&
+                        <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
+                                 headerAction={
+                                     !!ticket.barcode &&
+                                     <TicketQrAction
+                                         barcode={ticket.barcode}
+                                         title={`Ticket ${service.formatTicketId(ticket.id)}`} />
+                                 }>
+                            <Alert severity="warning" variant="outlined">
+                                This ticket is linked to {participation.user.firstName}'s account,
+                                so its details are read-only and managed through their account.
+                            </Alert>
+                            <Grid container spacing={2}>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextField label="Ticket holder" value={ticket.holder ?? ''}
+                                               fullWidth size="small"
+                                               slotProps={{ input: { readOnly: true } }} />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextField label="Nickname" value={ticket.nickname ?? ''}
+                                               fullWidth size="small"
+                                               slotProps={{ input: { readOnly: true } }} />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextField label="Function" value={ticket.function ?? ''}
+                                               fullWidth size="small"
+                                               slotProps={{ input: { readOnly: true } }} />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextField label="Organisation"
+                                               value={ticket.organisation ?? ''}
+                                               fullWidth size="small"
+                                               slotProps={{ input: { readOnly: true } }} />
+                                </Grid>
+                            </Grid>
+                        </Section> }
+                </> }
         </>
     );
 }
