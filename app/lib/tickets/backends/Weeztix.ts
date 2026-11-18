@@ -7,7 +7,7 @@ import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, Provider
     TicketSearchRequest, TicketSearchResults, TicketStatistics, TicketType, VolunteerTicket }
     from '../Types';
 import type { TicketService } from '../TicketService';
-import { computeWeeztixTicketCapacity } from '@lib/integrations/weeztix';
+import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import { fetchWeeztixFinancialFilterOptions, fetchWeeztixProductSales, fetchWeeztixProducts,
     hasWeeztixSales, kWeeztixSettledOrderStatuses } from './WeeztixFinancialData';
 import { kTicketSearchSortFieldMap, listTicketConfigurationsByProvider,
@@ -641,7 +641,13 @@ export class Weeztix implements TicketService {
     }
 
     async sendPurchaseConfirmation(purchaseId: number | string): Promise<boolean> {
-        return false;
+        try {
+            const client = await createWeeztixClient(/* optionalMetadataFields= */ true);
+            return await client.resendConfirmationEmail(String(purchaseId));
+        } catch (error) {
+            console.error('Unable to resend Weeztix confirmation e-mail:', error);
+            return false;
+        }
     }
 
     async upsertTicketConfiguration(

@@ -13,6 +13,7 @@ import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEventsTickets } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';
+import { createWeeztixClient } from '@lib/integrations/weeztix';
 
 /**
  * Data required to associate a purchase with a volunteer.
@@ -254,7 +255,7 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.canCancelPurchases() || !event.tickets?.volunteerTicketId)
+        if (!service || !event.tickets?.volunteerTicketId)
             notFound();
 
         const result = await service.sendPurchaseConfirmation(purchaseId);

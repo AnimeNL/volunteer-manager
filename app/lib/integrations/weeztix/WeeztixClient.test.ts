@@ -345,4 +345,20 @@ describe('WeeztixClient', () => {
             method: 'GET',
         })).rejects.toThrow('Received HTTP 500 response');
     });
+
+    it('resends confirmation e-mails for a given orderId', async () => {
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
+        await expect(client.resendConfirmationEmail('order-guid-789')).resolves.toBe(true);
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.weeztix.com/order/order-guid-789/resend',
+            expect.objectContaining({
+                method: 'GET',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                },
+            }));
+    });
 });
