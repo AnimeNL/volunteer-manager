@@ -6,6 +6,7 @@ import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined
 import PublicIcon from '@mui/icons-material/Public';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
+import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
@@ -19,16 +20,21 @@ export default async function EventTicketsLayout(
         operation: 'read',
     });
 
+    const service = await createTicketService(event.id);
+    const canManageVolunteerTickets = !!service?.canManageVolunteerTickets();
+
     return (
         <SectionTabContext access={access} tabs={[
             {
                 Icon: LocalActivityOutlinedIcon,
+                condition: canManageVolunteerTickets,
                 label: 'Volunteers',
                 url: `/admin/events/${event.slug}/tickets/volunteers`,
                 urlMatchMode: 'prefix',
             },
             {
                 Icon: Diversity1Icon,
+                condition: canManageVolunteerTickets,
                 label: 'Associates',
                 url: `/admin/events/${event.slug}/tickets/associates`,
                 urlMatchMode: 'prefix',
