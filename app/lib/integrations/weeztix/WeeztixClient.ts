@@ -336,6 +336,25 @@ export class WeeztixClient {
         });
     }
 
+    /**
+     * Updates the receiver information (e.g. e-mail address, name, or locale) for the order
+     * identified by `orderGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Updated details about the order.
+     */
+    async updateOrderReceiver(orderGuid: string, request: weeztix.PutOrderReceiverRequest)
+        : Promise<weeztix.PutOrderReceiverResponse>
+    {
+        const validatedRequest = weeztix.kPutOrderReceiverRequest.parse(request);
+        return this.issueRequest(weeztix.kPutOrderReceiverResponse, {
+            api: `/order/${orderGuid}`,
+            operation: '/order/<Id>',
+            method: 'PUT',
+            body: validatedRequest,
+        });
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Internal behaviour:
     // ---------------------------------------------------------------------------------------------

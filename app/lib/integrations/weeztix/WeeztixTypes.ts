@@ -52,16 +52,20 @@ export const kGetMetadataResponse = z.array(z.object({
 export type GetMetadataResponse = z.infer<typeof kGetMetadataResponse>;
 
 /**
- * Expected response for the /order/:guid API. Kept permissive with `looseObject` while live API
- * responses are inspected to determine the database model.
+ * Expected response for the /order/:guid API.
  * @see https://docs.weeztix.com/api/dashboard/get-order-specific
  */
-export const kGetOrderResponse = z.looseObject({
+export const kGetOrderResponse = z.object({
     guid: z.string().nonempty(),
+    email: z.string().nullish(),
+    firstName: z.string().nullish(),
+    lastName: z.string().nullish(),
+    fullname: z.string().nullish(),
+    locale: z.string().nullish(),
     status: z.string().nullish(),
     created_at: z.string().nullish(),
     updated_at: z.string().nullish(),
-    tickets: z.array(z.looseObject({
+    tickets: z.array(z.object({
         guid: z.string().nonempty(),
         ticket_number: z.string().nullish(),
     })).optional(),
@@ -282,6 +286,43 @@ export const kPostStatisticsOrdersResponse = z.object({
  * Response payload for the POST /statistics/orders/:company_guid API.
  */
 export type PostStatisticsOrdersResponse = z.infer<typeof kPostStatisticsOrdersResponse>;
+
+/**
+ * Request payload for the PUT /order/:guid API.
+ * @see https://docs.weeztix.com/api/dashboard/update-order-receiver-information
+ */
+export const kPutOrderReceiverRequest = z.object({
+    email: z.email().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    locale: z.string().optional(),
+});
+
+/**
+ * Request payload for the PUT /order/:guid API.
+ */
+export type PutOrderReceiverRequest = z.infer<typeof kPutOrderReceiverRequest>;
+
+/**
+ * Expected response for the PUT /order/:guid API.
+ * @see https://docs.weeztix.com/api/dashboard/update-order-receiver-information
+ */
+export const kPutOrderReceiverResponse = z.object({
+    guid: z.string().nonempty(),
+    email: z.string().nullish(),
+    firstName: z.string().nullish(),
+    lastName: z.string().nullish(),
+    fullname: z.string().nullish(),
+    locale: z.string().nullish(),
+    status: z.string().nullish(),
+    created_at: z.string().nullish(),
+    updated_at: z.string().nullish(),
+});
+
+/**
+ * Expected response for the PUT /order/:guid API.
+ */
+export type PutOrderReceiverResponse = z.infer<typeof kPutOrderReceiverResponse>;
 
 /**
  * Expected response when refreshing the OAuth token.

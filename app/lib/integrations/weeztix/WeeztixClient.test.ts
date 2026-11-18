@@ -236,6 +236,11 @@ describe('WeeztixClient', () => {
 
         fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
             guid: 'order-guid-789',
+            email: 'jane.doe@example.com',
+            firstName: 'Jane',
+            lastName: 'Doe',
+            fullname: 'Jane Doe',
+            locale: 'en_GB',
             status: 'paid',
             finn_price: 4500,
             tickets: [
@@ -248,9 +253,13 @@ describe('WeeztixClient', () => {
 
         const order = await client.getOrder('order-guid-789');
         expect(order.guid).toBe('order-guid-789');
+        expect(order.email).toBe('jane.doe@example.com');
+        expect(order.firstName).toBe('Jane');
+        expect(order.lastName).toBe('Doe');
+        expect(order.fullname).toBe('Jane Doe');
+        expect(order.locale).toBe('en_GB');
         expect(order.status).toBe('paid');
         expect(order.tickets).toHaveLength(1);
-        expect((order as Record<string, unknown>).finn_price).toBe(4500);
 
         expect(withContextSpy).toHaveBeenCalledWith({
             integration: 'Weeztix',
@@ -360,5 +369,51 @@ describe('WeeztixClient', () => {
                     Authorization: 'Bearer initial-access-token',
                 },
             }));
+    });
+
+    it('updates order receiver information with generalised instrumentation paths', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            guid: 'order-guid-789',
+            email: 'updated@example.com',
+            firstName: 'Jane',
+            lastName: 'Doe',
+            fullname: 'Jane Doe',
+            status: 'paid',
+        }), { status: 200 }));
+
+        const order = await client.updateOrderReceiver('order-guid-789', {
+            email: 'updated@example.com',
+        });
+
+        expect(order.guid).toBe('order-guid-789');
+        expect(order.email).toBe('updated@example.com');
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.weeztix.com/order/order-guid-789',
+            expect.objectContaining({
+                method: 'PUT',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                    'Content-Type': 'application/json',
+                },
+            }));
+
+        expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+            email: 'updated@example.com',
+        });
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/order/<Id>',
+        });
+
+        await expect(client.updateOrderReceiver('order-guid-789', {
+            email: 'not-an-email',
+        })).rejects.toThrow();
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 });
