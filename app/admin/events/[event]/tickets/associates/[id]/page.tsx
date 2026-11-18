@@ -14,6 +14,7 @@ import { AssociateQuickAction } from './AssociateQuickAction';
 import { CancelPurchaseQuickAction, ResendConfirmationQuickAction }
     from '../../PurchaseQuickActions';
 import { FormGrid } from '@app/admin/components/FormGrid';
+import { FreeSoloAutocompleteElement } from '@app/admin/components/FreeSoloAutocompleteElement';
 import { PurchaseSummary } from '../../PurchaseSummary';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -21,7 +22,7 @@ import { TicketQrAction } from '../../TicketQrAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
+import db, { tRoles, tTeams, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { associatePurchase, cancelPurchase, resendPurchaseConfirmation,
     updateAssociateTicket } from '../../TicketActions';
@@ -104,6 +105,23 @@ export default async function EventTicketsAssociatesPage(
             ? updateAssociateTicket.bind(null, event.slug, purchase.id, ticket.id)
             : undefined;
 
+    const knownRoles = updateTicketFn
+        ? await dbInstance.selectFrom(tRoles)
+            .selectOneColumn(tRoles.roleName)
+            .orderBy(tRoles.roleName, 'asc')
+            .executeSelectMany()
+        : [];
+
+    const knownDepartments = updateTicketFn
+        ? (await dbInstance.selectFrom(tTeams)
+            .where(tTeams.teamDeleted.isNull())
+                .and(tTeams.teamDepartment.isNotNull())
+            .selectOneColumn(tTeams.teamDepartment)
+            .groupBy(tTeams.teamDepartment)
+            .orderBy(tTeams.teamDepartment, 'asc')
+            .executeSelectMany()).filter((department): department is string => !!department)
+        : [];
+
     return (
         <>
             <Section icon={ <LocalActivityOutlinedIcon color="primary" /> }
@@ -174,12 +192,13 @@ export default async function EventTicketsAssociatesPage(
                                               fullWidth size="small" />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="function" label="Function" required
-                                              fullWidth size="small" />
+                            <FreeSoloAutocompleteElement
+                                name="function" label="Function" options={knownRoles} required />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="organisation" label="Organisation" required
-                                              fullWidth size="small" />
+                            <FreeSoloAutocompleteElement
+                                name="organisation" label="Organisation"
+                                options={knownDepartments} required />
                         </Grid>
                     </FormGrid>
                 </Section> }
