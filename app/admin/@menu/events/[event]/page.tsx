@@ -25,7 +25,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
-import { isTicketServiceConfigured } from '@lib/tickets';
+import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tEvents, tEventsTeams, tHotels, tHotelsBookings, tRoles, tShifts, tTeams,
     tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsersEventsPreferencesHotel,
@@ -177,6 +177,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         notFound();
 
     const eventScope = { event: event.slug };
+    const ticketService = await createTicketService(event.id);
 
     const items: NavigationTopLevelItem[] = [
         {
@@ -229,14 +230,16 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
         },
         {
             Icon: LocalActivityOutlinedIcon,
-            condition: !!event.tickets?.volunteerTicketId,
+            condition: !!event.tickets?.provider,
             label: 'Tickets',
             permission: {
                 permission: 'volunteers.tickets',
                 operation: 'read',
                 scope: eventScope,
             },
-            url: `/admin/events/${event.slug}/tickets/volunteers`,
+            url: ticketService?.canManageVolunteerTickets()
+                ? `/admin/events/${event.slug}/tickets/volunteers`
+                : `/admin/events/${event.slug}/tickets`,
             urlPrefix: `/admin/events/${event.slug}/tickets`,
         },
         {
