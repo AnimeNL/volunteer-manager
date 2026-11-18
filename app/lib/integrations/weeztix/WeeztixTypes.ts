@@ -164,6 +164,36 @@ export const kGetTicketTypesResponse = z.array(z.object({
 export type GetTicketTypesResponse = z.infer<typeof kGetTicketTypesResponse>;
 
 /**
+ * Expected response for ticket OrderMetadata creation and update APIs.
+ * @see https://docs.weeztix.com/api/dashboard/create-order-ticket-metadata
+ * @see https://docs.weeztix.com/api/dashboard/update-order-ticket-metadata
+ */
+export const kOrderTicketMetadataResponse = z.object({
+    guid: z.string().nonempty(),
+    metadata_id: z.string().nonempty(),
+    value: z.string().nullish(),
+});
+
+/**
+ * Expected response for ticket OrderMetadata creation and update APIs.
+ */
+export type OrderTicketMetadataResponse = z.infer<typeof kOrderTicketMetadataResponse>;
+
+/**
+ * Request payload for the POST /order/:guid/tickets/:order_ticket_guid/metadata API.
+ * @see https://docs.weeztix.com/api/dashboard/create-order-ticket-metadata
+ */
+export const kPostOrderTicketMetadataRequest = z.object({
+    metadata_id: z.string().nonempty(),
+    value: z.string(),
+});
+
+/**
+ * Request payload for the POST /order/:guid/tickets/:order_ticket_guid/metadata API.
+ */
+export type PostOrderTicketMetadataRequest = z.infer<typeof kPostOrderTicketMetadataRequest>;
+
+/**
  * Request payload for the POST /statistics/orders/:company_guid API.
  * @see https://docs.weeztix.com/api/dashboard/get-company-orders
  */
@@ -323,6 +353,19 @@ export const kPutOrderReceiverResponse = z.object({
  * Expected response for the PUT /order/:guid API.
  */
 export type PutOrderReceiverResponse = z.infer<typeof kPutOrderReceiverResponse>;
+
+/**
+ * Request payload for the PUT /order/:guid/tickets/:ticket_guid/metadata/:metadata_guid API.
+ * @see https://docs.weeztix.com/api/dashboard/update-order-ticket-metadata
+ */
+export const kPutOrderTicketMetadataRequest = z.object({
+    value: z.string(),
+});
+
+/**
+ * Request payload for the PUT /order/:guid/tickets/:ticket_guid/metadata/:metadata_guid API.
+ */
+export type PutOrderTicketMetadataRequest = z.infer<typeof kPutOrderTicketMetadataRequest>;
 
 /**
  * Expected response when refreshing the OAuth token.

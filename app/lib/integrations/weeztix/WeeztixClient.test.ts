@@ -416,4 +416,88 @@ describe('WeeztixClient', () => {
 
         expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('creates and updates ticket metadata with generalised instrumentation paths', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            guid: 'order-metadata-guid-1',
+            metadata_id: 'meta-nickname-id',
+            value: 'Kira',
+        }), { status: 200 }));
+
+        const created = await client.createOrderTicketMetadata('order-guid-789', 'ticket-guid-1', {
+            metadata_id: 'meta-nickname-id',
+            value: 'Kira',
+        });
+
+        expect(created).toEqual({
+            guid: 'order-metadata-guid-1',
+            metadata_id: 'meta-nickname-id',
+            value: 'Kira',
+        });
+
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+            1,
+            'https://api.weeztix.com/order/order-guid-789/tickets/ticket-guid-1/metadata',
+            expect.objectContaining({
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                    'Content-Type': 'application/json',
+                },
+            }));
+
+        expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+            metadata_id: 'meta-nickname-id',
+            value: 'Kira',
+        });
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/order/<Id>/tickets/<Id>/metadata',
+        });
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            guid: 'order-metadata-guid-1',
+            metadata_id: 'meta-nickname-id',
+            value: '',
+        }), { status: 200 }));
+
+        const updated = await client.updateOrderTicketMetadata(
+            'order-guid-789', 'ticket-guid-1', 'order-metadata-guid-1', { value: '' });
+
+        expect(updated).toEqual({
+            guid: 'order-metadata-guid-1',
+            metadata_id: 'meta-nickname-id',
+            value: '',
+        });
+
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+            2,
+            'https://api.weeztix.com/order/order-guid-789/tickets/ticket-guid-1/metadata/' +
+                'order-metadata-guid-1',
+            expect.objectContaining({
+                method: 'PUT',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                    'Content-Type': 'application/json',
+                },
+            }));
+
+        expect(JSON.parse(fetchSpy.mock.calls[1][1].body)).toEqual({ value: '' });
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/order/<Id>/tickets/<Id>/metadata/<Id>',
+        });
+
+        await expect(client.createOrderTicketMetadata('order-guid-789', 'ticket-guid-1', {
+            metadata_id: '',
+            value: 'Kira',
+        })).rejects.toThrow();
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
 });

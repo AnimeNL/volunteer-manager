@@ -184,6 +184,25 @@ export class WeeztixClient {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * Creates a new metadata entry for the ticket identified by `ticketGuid` within `orderGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Created ticket metadata entry.
+     */
+    async createOrderTicketMetadata(
+        orderGuid: string, ticketGuid: string, request: weeztix.PostOrderTicketMetadataRequest)
+            : Promise<weeztix.OrderTicketMetadataResponse>
+    {
+        const validatedRequest = weeztix.kPostOrderTicketMetadataRequest.parse(request);
+        return this.issueRequest(weeztix.kOrderTicketMetadataResponse, {
+            api: `/order/${orderGuid}/tickets/${ticketGuid}/metadata`,
+            operation: '/order/<Id>/tickets/<Id>/metadata',
+            method: 'POST',
+            body: validatedRequest,
+        });
+    }
+
+    /**
      * Creates a new ticket with the Weeztix backend based on the given `request`.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.
@@ -350,6 +369,27 @@ export class WeeztixClient {
         return this.issueRequest(weeztix.kPutOrderReceiverResponse, {
             api: `/order/${orderGuid}`,
             operation: '/order/<Id>',
+            method: 'PUT',
+            body: validatedRequest,
+        });
+    }
+
+    /**
+     * Updates an existing metadata entry identified by `orderMetadataGuid` for `ticketGuid` within
+     * `orderGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Updated ticket metadata entry.
+     */
+    async updateOrderTicketMetadata(
+        orderGuid: string, ticketGuid: string, orderMetadataGuid: string,
+        request: weeztix.PutOrderTicketMetadataRequest)
+            : Promise<weeztix.OrderTicketMetadataResponse>
+    {
+        const validatedRequest = weeztix.kPutOrderTicketMetadataRequest.parse(request);
+        return this.issueRequest(weeztix.kOrderTicketMetadataResponse, {
+            api: `/order/${orderGuid}/tickets/${ticketGuid}/metadata/${orderMetadataGuid}`,
+            operation: '/order/<Id>/tickets/<Id>/metadata/<Id>',
             method: 'PUT',
             body: validatedRequest,
         });
