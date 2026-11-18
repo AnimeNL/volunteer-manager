@@ -17,6 +17,11 @@ import { kWeeztixTicketType } from '@lib/database/Types';
 export const kWeeztixSettledOrderStatuses = [ 'paid', 'swapped' ];
 
 /**
+ * Test UTM filter values that should be excluded from discovered financial filter options.
+ */
+const kIgnoredUtmFilterValues = new Set([ 'peter', 'peter2', 'peter3' ]);
+
+/**
  * Raw daily sale row returned by the Weeztix ticket and purchase queries.
  */
 interface RawWeeztixSaleRow {
@@ -87,9 +92,9 @@ export async function fetchWeeztixFinancialFilterOptions(weeztixGuid: string)
     const utmCampaigns = new Set<string>();
 
     for (const row of rows) {
-        if (row.utmSource)
+        if (row.utmSource && !kIgnoredUtmFilterValues.has(row.utmSource.toLowerCase()))
             utmSources.add(row.utmSource);
-        if (row.utmCampaign)
+        if (row.utmCampaign && !kIgnoredUtmFilterValues.has(row.utmCampaign.toLowerCase()))
             utmCampaigns.add(row.utmCampaign);
     }
 
