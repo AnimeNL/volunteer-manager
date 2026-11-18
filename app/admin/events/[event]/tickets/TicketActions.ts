@@ -7,6 +7,7 @@ import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
+import { UpdateTicketTask } from '@lib/scheduler/tasks/UpdateTicketTask';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -283,10 +284,10 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
  * Data required to update an associate ticket's details.
  */
 const kUpdateAssociateTicketData = z.object({
-    holder: z.string().min(1),
-    nickname: z.string().optional(),
-    function: z.string().nonempty(),
-    organisation: z.string().nonempty(),
+    holder: z.string().trim().min(1),
+    nickname: z.string().trim().optional(),
+    function: z.string().trim().nonempty(),
+    organisation: z.string().trim().nonempty(),
 });
 
 /**
@@ -296,14 +297,71 @@ export async function updateAssociateTicket(
     eventSlug: string, purchaseId: number | string, ticketId: number | string, formData: unknown)
 {
     return executeServerAction(formData, kUpdateAssociateTicketData, async (data, props) => {
-        await requireAuthenticationWithEvent(props.authenticationContext, eventSlug, {
-            permission: 'volunteers.tickets',
-            operation: 'update',
+        const { access, event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, {
+                permission: 'volunteers.tickets',
+                operation: 'update',
+            });
+
+        const service = await createTicketService(event.id);
+        if (!service || !service.canFetchPurchaseDetails())
+            notFound();
+
+        const purchase = await service.fetchPurchase(purchaseId);
+        if (!purchase)
+            notFound();
+
+        const containsVolunteerTicket = purchase.tickets.some(
+            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
+
+        if (!containsVolunteerTicket && !access.can('root'))
+            forbidden();
+
+        const containsTicket = purchase.tickets.some(
+            ticket => `${ticket.id}` === `${ticketId}`);
+
+        if (!containsTicket)
+            notFound();
+
+        const details = await service.fetchPurchaseDetails(purchaseId);
+        if (!details?.email) {
+            return {
+                success: false,
+                error: 'Unable to determine the order e-mail address at this time.',
+            };
+        }
+
+        const result = await UpdateTicketTask.ExecuteNow({
+            event: event.id,
+            orderId: purchaseId,
+            ticketId,
+            name: data.holder,
+            email: details.email,
+            function: data.function,
+            organisation: data.organisation,
+            nickname: data.nickname || undefined,
         });
+
+        if (!result) {
+            return {
+                success: false,
+                error: 'Unable to update the ticket details at this time.',
+            };
+        }
+
+        LogBuilder.for('UpdateAssociateTicket')
+            .withInitiatorUser(props.user)
+            .withSeverity('Warning')
+            .record({
+                event: event.shortName,
+                recipient: data.holder,
+                purchaseId,
+            });
 
         return {
             success: true,
             message: 'The ticket details have been updated.',
+            refresh: true,
         };
     });
 }
