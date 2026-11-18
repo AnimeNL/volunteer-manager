@@ -626,6 +626,10 @@ tables:
     type: char(36)
     nullable: true
     default: "NULL"
+  - name: event_weeztix_shop_guid
+    type: char(36)
+    nullable: true
+    default: "NULL"
   - name: event_weeztix_company_guid
     type: char(36)
     nullable: true
@@ -681,6 +685,7 @@ tables:
       `event_ytp_external_event_id` text DEFAULT NULL,
       `event_weeztix_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
       `event_weeztix_scanner_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
+      `event_weeztix_shop_guid` char(36) DEFAULT NULL,
       `event_weeztix_company_guid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci DEFAULT NULL,
       PRIMARY KEY (`event_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

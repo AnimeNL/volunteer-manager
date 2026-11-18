@@ -410,7 +410,7 @@ interface LogTypeParameterMap {
 
     UpdateEventSettings: {
         event: string;  // short name
-        type: 'basic' | 'feature' | 'integration' | 'ticketing';
+        type: 'basic' | 'feature' | 'integration' | 'ticketing' | 'Weeztix';
     };
 
     UpdateEventSlug: {

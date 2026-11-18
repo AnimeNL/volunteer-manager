@@ -483,3 +483,46 @@ export async function updateEventTicketingProvider(eventSlug: string, formData: 
         };
     });
 }
+
+/**
+ * Data that needs to be available to update an event's Weeztix ticketing configuration.
+ */
+const kEventTicketingWeeztixData = z.object({
+    eventGuid: z.string().nullish(),
+    scannerGuid: z.string().nullish(),
+    shopGuid: z.string().nullish(),
+});
+
+/**
+ * Server Action through which an event's Weeztix configuration can be updated.
+ */
+export async function updateEventTicketingWeeztix(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kEventTicketingWeeztixData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.settings');
+
+        const affectedRows = await db.update(tEvents)
+            .set({
+                eventWeeztixGuid: data.eventGuid || null,
+                eventWeeztixScannerGuid: data.scannerGuid || null,
+                eventWeeztixShopGuid: data.shopGuid || null,
+            })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                type: 'Weeztix',
+            });
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}

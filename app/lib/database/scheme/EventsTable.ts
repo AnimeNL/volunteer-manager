@@ -53,7 +53,8 @@ export class EventsTable extends Table<DBConnection, 'EventsTable'> {
     eventYtpExternalEventId = this.optionalColumnWithDefaultValue('event_ytp_external_event_id', 'string');
     eventWeeztixGuid = this.optionalColumnWithDefaultValue('event_weeztix_guid', 'string');
     eventWeeztixScannerGuid = this.optionalColumnWithDefaultValue('event_weeztix_scanner_guid', 'string');
-    eventWeeztixCompanyGuid = this.optionalColumnWithDefaultValue('event_weeztix_company_guid', 'string');
+    eventWeeztixShopGuid = this.optionalColumnWithDefaultValue('event_weeztix_shop_guid', 'string');
+    //eventWeeztixCompanyGuid = this.optionalColumnWithDefaultValue('event_weeztix_company_guid', 'string');
 
     constructor() {
         super('events');
