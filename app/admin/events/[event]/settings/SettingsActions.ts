@@ -610,6 +610,47 @@ export async function refreshEventTicketingWeeztixAutomation(eventSlug: string) 
 }
 
 /**
+ * Data that needs to be available to update an event's YourTicketProvider configuration.
+ */
+const kEventTicketingYtpData = z.object({
+    ytpEventId: z.number().or(z.literal('')).nullish(),
+    ytpExternalEventId: z.string().nullish(),
+});
+
+/**
+ * Server Action through which an event's YourTicketProvider configuration can be updated.
+ */
+export async function updateEventTicketingYtp(eventSlug: string, formData: unknown) {
+    return executeServerAction(formData, kEventTicketingYtpData, async (data, props) => {
+        const { event } = await requireAuthenticationWithEvent(
+            props.authenticationContext, eventSlug, 'event.settings');
+
+        const affectedRows = await db.update(tEvents)
+            .set({
+                eventYtpEventId: data.ytpEventId || null,
+                eventYtpExternalEventId: data.ytpExternalEventId || null,
+            })
+            .where(tEvents.eventId.equals(event.id))
+            .executeUpdate();
+
+        await invalidateEventCache(event.id);
+
+        LogBuilder.for('UpdateEventSettings')
+            .withCondition(!!affectedRows)
+            .withInitiatorUser(props.user)
+            .record({
+                event: event.shortName,
+                type: 'ticketing',
+            });
+
+        return {
+            success: true,
+            refresh: true,
+        };
+    });
+}
+
+/**
  * Data that needs to be available to update an event's ticketing automation toggle.
  */
 const kEventTicketingAutomationToggleData = z.object({

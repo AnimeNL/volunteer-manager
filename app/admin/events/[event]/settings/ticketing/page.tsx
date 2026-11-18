@@ -3,7 +3,7 @@
 
 import Link from '@app/LinkProxy';
 
-import { SelectElement } from '@proxy/react-hook-form-mui';
+import { SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import { default as MuiLink } from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
@@ -11,6 +11,7 @@ import Grid from '@mui/material/Grid';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 
 import { Cache } from '@lib/cache';
+import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { RefreshButton } from './RefreshButton';
 import { Section } from '@app/admin/components/Section';
@@ -119,6 +120,7 @@ export default async function EventSettingsTicketingPage(
     const updateTicketingWeeztixFn = actions.updateEventTicketingWeeztix.bind(null, event.slug);
     const updateTicketingWeeztixAutomationFn =
         actions.updateEventTicketingWeeztixAutomation.bind(null, event.slug);
+    const updateTicketingYtpFn = actions.updateEventTicketingYtp.bind(null, event.slug);
     const updateAutomationToggleFn =
         actions.updateEventTicketingAutomationToggle.bind(null, event.slug);
 
@@ -134,6 +136,8 @@ export default async function EventSettingsTicketingPage(
             eventWeeztixGuestTicketGuid: tEvents.eventWeeztixGuestTicketGuid,
             eventWeeztixVendorTicketGuid: tEvents.eventWeeztixVendorTicketGuid,
             eventWeeztixVolunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
+            eventYtpEventId: tEvents.eventYtpEventId,
+            eventYtpExternalEventId: tEvents.eventYtpExternalEventId,
         })
         .executeSelectOne();
 
@@ -153,9 +157,15 @@ export default async function EventSettingsTicketingPage(
         volunteerTicketGuid: settings.eventWeeztixVolunteerTicketGuid ?? '',
     };
 
+    const ytpDefaultValues = {
+        ytpEventId: settings.eventYtpEventId,
+        ytpExternalEventId: settings.eventYtpExternalEventId ?? '',
+    };
+
     const showWeeztix = settings.provider === kEventTicketProvider.Weeztix;
     const showWeeztixAutomation =
         showWeeztix && !!settings.eventWeeztixGuid && !!settings.eventWeeztixShopGuid;
+    const showYtp = settings.provider === kEventTicketProvider.YourTicketProvider;
 
     const weeztixOptions = showWeeztix ? await getWeeztixOptions(event.slug) : null;
     const weeztixTicketTypes = showWeeztixAutomation
@@ -284,6 +294,25 @@ export default async function EventSettingsTicketingPage(
                         </FormGridSection>
                     </Grid>
                 </Grid> }
+            { showYtp &&
+                <FormGridSection icon={ <CmComIcon /> } title="YourTicketProvider"
+                                 action={updateTicketingYtpFn}
+                                 defaultValues={ytpDefaultValues}>
+                    <SectionIntroduction grid>
+                        Integration details for {event.shortName} with{' '}
+                        <MuiLink component={Link} href="https://www.yourticketprovider.nl/">
+                            YourTicketProvider
+                        </MuiLink>.
+                    </SectionIntroduction>
+                    <Grid size={{ xs: 12 }}>
+                        <TextFieldElement name="ytpEventId" label="Event ID" type="number"
+                                          fullWidth size="small" />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <TextFieldElement name="ytpExternalEventId" label="External Event ID"
+                                          fullWidth size="small" />
+                    </Grid>
+                </FormGridSection> }
         </>
     );
 }
