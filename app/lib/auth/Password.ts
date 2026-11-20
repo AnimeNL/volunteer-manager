@@ -1,95 +1,247 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import 'server-only';
 import crypto from 'node:crypto';
+import { promisify } from 'node:util';
+
+const scryptAsync = promisify<string, string, number, crypto.ScryptOptions, Buffer>(
+    crypto.scrypt as any);
 
 /**
- * Securely hashes the given |sha256Password|, considering the application's salt, so that it's
- * safe to store at rest. This function accepts a sha256 hash of the password rather than the real
- * password as the client should never send us a plaintext password in either case.
- *
- * Based on OWASP recommendations, scrypt is used to hash the passwords:
- * https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
- * http://www.tarsnap.com/scrypt/scrypt.pdf
- *
- * @param sha256Password SHA256 hash of the password.
- * @return A promise that will be returned once the password has been hashed.
+ * Current OWASP-recommended Argon2id parameters (19 MiB memory, 2 passes, 1 lane, 32-byte tag).
+ * @see https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+ */
+const kArgon2MemoryKiB = 19_456;
+const kArgon2Passes = 2;
+const kArgon2Parallelism = 1;
+const kArgon2SaltLengthBytes = 16;
+const kArgon2TagLengthBytes = 32;
+
+/**
+ * Password length bounds enforced on creation and verification to prevent DoS on oversized inputs.
+ */
+const kMinimumPasswordLength = 8;
+const kMaximumPasswordLength = 128;
+
+/**
+ * Prefix marking legacy v0 (client-SHA256 + static-salted scrypt) hashes that have been wrapped
+ * offline with Argon2id + a per-user salt to eliminate cross-account hash correlation at rest.
+ */
+const kLegacyWrappedPrefix = '$legacy-v0';
+
+/**
+ * Patterns matching legacy v0 (64 hex chars) and standard Argon2id PHC strings.
+ */
+const kLegacyHexHashPattern = /^[0-9a-f]{64}$/;
+const kArgon2PhcPattern =
+    /^\$argon2id\$v=19\$m=(\d+),t=(\d+),p=(\d+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
+
+/**
+ * Legacy scrypt parameters used before the migration to Argon2id.
+ */
+const kLegacyScryptN = 2 ** 14;
+const kLegacyScryptR = 8;
+const kLegacyScryptP = 5;
+const kLegacyScryptKeyLength = 32;
+
+/**
+ * Result returned by `verifyPassword()`, indicating both whether the password matched and whether
+ * the stored credential should be silently upgraded via `hashPassword()`.
+ */
+export interface PasswordVerificationResult {
+    valid: boolean;
+    needsUpgrade: boolean;
+}
+
+/**
+ * Encodes raw bytes as unpadded Base64, matching the standard PHC string specification.
+ */
+function toPhcBase64(bytes: Buffer): string {
+    return bytes.toString('base64').replace(/=+$/, '');
+}
+
+/**
+ * Computes an Argon2id derived key asynchronously on Node's libuv threadpool.
+ */
+function deriveArgon2id(
+    message: string, nonce: Buffer, memory: number, passes: number, parallelism: number,
+    tagLength: number): Promise<Buffer>
+{
+    return new Promise((resolve, reject) => {
+        crypto.argon2('argon2id', {
+            message,
+            nonce,
+            memory,
+            passes,
+            parallelism,
+            tagLength,
+        }, (error, derivedKey) => {
+            error ? reject(error)
+                  : resolve(derivedKey);
+        });
+    });
+}
+
+/**
+ * Hashes `message` with Argon2id using current parameters and a fresh random salt, returning a
+ * self-describing PHC string.
+ */
+async function hashArgon2id(message: string): Promise<string> {
+    const salt = crypto.randomBytes(kArgon2SaltLengthBytes);
+    const derived = await deriveArgon2id(
+        message, salt, kArgon2MemoryKiB, kArgon2Passes, kArgon2Parallelism, kArgon2TagLengthBytes);
+
+    return `$argon2id$v=19$m=${kArgon2MemoryKiB},t=${kArgon2Passes},p=${kArgon2Parallelism}` +
+        `$${toPhcBase64(salt)}$${toPhcBase64(derived)}`;
+}
+
+/**
+ * Verifies `message` against an Argon2id PHC string using constant-time comparison.
+ */
+async function verifyArgon2id(message: string, phcHash: string)
+    : Promise<{ valid: boolean; currentParams: boolean }>
+{
+    const match = kArgon2PhcPattern.exec(phcHash);
+    if (!match)
+        return { valid: false, currentParams: false };
+
+    const memory = Number.parseInt(match[1], 10);
+    const passes = Number.parseInt(match[2], 10);
+    const parallelism = Number.parseInt(match[3], 10);
+    const salt = Buffer.from(match[4], 'base64');
+    const expected = Buffer.from(match[5], 'base64');
+
+    if (memory <= 0 || passes <= 0 || parallelism <= 0 || expected.length === 0)
+        return { valid: false, currentParams: false };
+
+    const actual = await deriveArgon2id(
+        message, salt, memory, passes, parallelism, expected.length);
+
+    const valid = actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+    const currentParams =
+        memory >= kArgon2MemoryKiB &&
+        passes >= kArgon2Passes &&
+        parallelism >= kArgon2Parallelism &&
+        expected.length >= kArgon2TagLengthBytes;
+
+    return { valid, currentParams };
+}
+
+/**
+ * Computes the legacy v0 hash (`scrypt(sha256(plaintext), APP_PASSWORD_SALT)`) asynchronously.
+ */
+async function computeLegacyHash(plaintext: string): Promise<string> {
+    if (!Object.hasOwn(process.env, 'APP_PASSWORD_SALT') || !process.env.APP_PASSWORD_SALT)
+        throw new Error('APP_PASSWORD_SALT must be configured to verify legacy password hashes.');
+
+    const sha256Hex = crypto.createHash('sha256').update(plaintext, 'utf8').digest('hex');
+    const derived = await scryptAsync(
+        sha256Hex,
+        process.env.APP_PASSWORD_SALT,
+        kLegacyScryptKeyLength,
+        {
+            N: kLegacyScryptN,
+            r: kLegacyScryptR,
+            p: kLegacyScryptP,
+            maxmem: Math.max(32 * 1024 * 1024, 256 * kLegacyScryptN * kLegacyScryptR),
+        });
+
+    return derived.toString('hex');
+}
+
+/**
+ * Validates that a newly chosen plaintext password satisfies server-side strength requirements.
+ * Returns a human-readable error message on failure, or `undefined` when valid.
+ */
+export function validatePasswordStrength(plaintext: string): string | undefined {
+    if (plaintext.length < kMinimumPasswordLength ||
+        !/[a-z]/.test(plaintext) ||
+        !/[A-Z]/.test(plaintext) ||
+        !/[0-9]/.test(plaintext))
+    {
+        return 'Your password must be at least 8 characters long, contain at least one number, ' +
+            'one lowercase character and one uppercase character.';
+    }
+
+    if (plaintext.length > kMaximumPasswordLength)
+        return `Your password must be at most ${kMaximumPasswordLength} characters long.`;
+
+    return undefined;
+}
+
+/**
+ * Hashes a plaintext password using Argon2id with a unique per-password random salt.
+ */
+export async function hashPassword(plaintext: string): Promise<string> {
+    return hashArgon2id(plaintext);
+}
+
+/**
+ * Verifies a plaintext password against any supported stored hash format (current Argon2id PHC,
+ * offline-wrapped `$legacy-v0$argon2id$...`, or raw 64-hex legacy scrypt). When `needsUpgrade` is
+ * true, callers should silently re-hash `plaintext` with `hashPassword()` and persist it.
+ */
+export async function verifyPassword(
+    plaintext: string, storedHash: string): Promise<PasswordVerificationResult>
+{
+    if (!plaintext.length || plaintext.length > kMaximumPasswordLength)
+        return { valid: false, needsUpgrade: false };
+
+    if (storedHash.startsWith('$argon2id$')) {
+        const { valid, currentParams } = await verifyArgon2id(plaintext, storedHash);
+        return { valid, needsUpgrade: valid && !currentParams };
+    }
+
+    if (storedHash.startsWith(`${kLegacyWrappedPrefix}$argon2id$`)) {
+        const legacyHex = await computeLegacyHash(plaintext);
+        const innerPhc = storedHash.slice(kLegacyWrappedPrefix.length);
+        const { valid } = await verifyArgon2id(legacyHex, innerPhc);
+        return { valid, needsUpgrade: valid };
+    }
+
+    if (kLegacyHexHashPattern.test(storedHash)) {
+        const legacyHex = await computeLegacyHash(plaintext);
+        const valid = crypto.timingSafeEqual(
+            Buffer.from(legacyHex, 'hex'),
+            Buffer.from(storedHash, 'hex'));
+
+        return { valid, needsUpgrade: valid };
+    }
+
+    return { valid: false, needsUpgrade: false };
+}
+
+/**
+ * Wraps a raw legacy v0 64-hex password hash with Argon2id and a unique random salt so dormant
+ * accounts gain per-user salting at rest before they ever sign in again.
+ */
+export async function wrapLegacyPasswordHash(legacyHexHash: string): Promise<string> {
+    if (!kLegacyHexHashPattern.test(legacyHexHash))
+        throw new Error('Only 64-character hex legacy hashes can be wrapped.');
+
+    return `${kLegacyWrappedPrefix}${await hashArgon2id(legacyHexHash)}`;
+}
+
+/**
+ * Legacy client-SHA256 + static-salt synchronous scrypt helper retained temporarily while existing
+ * `/api/auth/*` endpoints are being migrated to Server Actions.
  */
 export function securePasswordHash(sha256Password: string): string {
-    if (!Object.hasOwn(process.env, 'APP_PASSWORD_SALT'))
+    if (!Object.hasOwn(process.env, 'APP_PASSWORD_SALT') || !process.env.APP_PASSWORD_SALT)
         throw new Error('A salt must be known to the application in order for hashing to work.');
 
-    return securePasswordHashWithSalt(sha256Password, process.env.APP_PASSWORD_SALT!);
-}
-
-/**
- * Securely hashes the given |sha256Password| considering the given |salt|.
- *
- * @param sha256Password SHA256 hash of the password.
- * @param salt The salt that should be considered when hashing the password.
- * @return A promise that will be returned once the password has been hashed.
- */
-export function securePasswordHashWithSalt(sha256Password: string, salt: string): string {
-    if (sha256Password.length !== /* length of a sha256 encoded string= */ 64)
+    if (sha256Password.length !== 64)
         throw new Error('The given password must be a SHA256 hash already.');
 
-    return securePasswordHashWithRequest({ sha256Password, salt });
-}
-
-/**
- * Request parameters for a scrypt hashing operation. Defaults will be used based on the OWASP
- * recommendations for most usage, but testing requires lower level interaction with the API.
- */
-interface SecurePasswordHashRequest {
-    /**
-     * Length of the key that is to be derived from this request.
-     */
-    dkLen?: number;
-
-    /**
-     * The scrypt minimum CPU/memory cost parameter.
-     */
-    N?: number;
-
-    /**
-     * The scrypt parallelism parameter.
-     */
-    p?: number;
-
-    /**
-     * The scrypt blocksize parameter.
-     */
-    r?: number;
-
-    /**
-     * The salt that should be included in the hash.
-     */
-    salt: string;
-
-    /**
-     * The SHA256-encoded password that should be hashed.
-     */
-    sha256Password: string;
-}
-
-/**
- * Securely hashes the given |request| with the appropriate parameters. Primarily exists to enable
- * testing, actual application code should use `securePasswordHash` instead.
- *
- * @param request The secure password hashing request.
- * @return A promise that will be returned once the password has been hashed.
- */
-export function securePasswordHashWithRequest(request: SecurePasswordHashRequest): string {
-    const { sha256Password, salt } = request;
-
-    const N = request.N ?? 2 ** 14;
-    const r = request.r ?? 8;
-    const p = request.p ?? 5;
-    const dkLen = request.dkLen ?? /* 32 bytes, or 64 bytes when HEX-encoded= */ 32;
-
-    const hash = crypto.scryptSync(sha256Password, salt, dkLen, {
-        N, r, p,
-        maxmem: Math.max(32 * 1024 * 1024, 256 * N * r),
-    });
-    return hash.toString('hex');
+    return crypto.scryptSync(
+        sha256Password,
+        process.env.APP_PASSWORD_SALT,
+        kLegacyScryptKeyLength,
+        {
+            N: kLegacyScryptN,
+            r: kLegacyScryptR,
+            p: kLegacyScryptP,
+            maxmem: Math.max(32 * 1024 * 1024, 256 * kLegacyScryptN * kLegacyScryptR),
+        }).toString('hex');
 }
