@@ -1,80 +1,84 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { NextRequest } from 'next/server';
-import { forbidden } from 'next/navigation';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 
-import { type ActionProps, executeAction } from '../Action';
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { TaskRunner } from '@lib/scheduler/TaskRunner';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 
 import { kTaskResult } from '@lib/database/Types';
 
 /**
- * Interface definition for the Scheduler API, exposed through /api/scheduler.
+ * Request schema for the Scheduler API, exposed through /api/scheduler.
  */
-const kSchedulerDefinition = z.object({
-    request: z.object({
-        /**
-         * The password required to execute the scheduler.
-         */
-        password: z.string(),
+const kSchedulerRequest = z.object({
+    /**
+     * The password required to execute the scheduler.
+     */
+    password: z.string(),
 
+    /**
+     * Execution can be requested either by a task Id, information for which will be fetched
+     * from the database, or by the task's absolute name.
+     */
+}).and(z.union([
+    z.object({
         /**
-         * Execution can be requested either by a task Id, information for which will be fetched
-         * from the database, or by the task's absolute name.
+         * Unique ID of the task that should be executed by the scheduler.
          */
-    }).and(z.union([
-        z.object({
-            /**
-             * Unique ID of the task that should be executed by the scheduler.
-             */
-            taskId: z.number(),
-        }),
-        z.object({
-            /**
-             * Unique name of the task that should be executed by the scheduler.
-             */
-            taskName: z.string(),
-        }),
-    ])),
-    response: z.object({
-        /**
-         * Whether the task run was successful.
-         */
-        success: z.boolean(),
+        taskId: z.number(),
     }),
-});
-
-type SchedulerDefinition = z.infer<typeof kSchedulerDefinition>;
-
-/**
- * The scheduler password used for this build of the Volunteer Manager API.
- */
-const kSchedulerPassword = process.env.APP_SCHEDULER_PASSWORD;
-
-type Request = SchedulerDefinition['request'];
-type Response = SchedulerDefinition['response'];
+    z.object({
+        /**
+         * Unique name of the task that should be executed by the scheduler.
+         */
+        taskName: z.string(),
+    }),
+]));
 
 /**
  * API that powers the scheduler. While time keeping is done outside of Next.js, we want the actual
  * tasks to be executed within Next.js' context, hence issuing them as API calls.
  */
-async function scheduler(request: Request, props: ActionProps): Promise<Response> {
-    if (!kSchedulerPassword?.length || request.password !== kSchedulerPassword)
-        forbidden();
+export async function POST(request: NextRequest): Promise<NextResponse> {
+    let body: unknown;
+    try {
+        body = await request.json();
+    } catch {
+        return NextResponse.json({ success: false }, { status: 400 });
+    }
 
-    const taskRunner = TaskRunner.getOrCreateForScheduler(globalScheduler);
-    const success = await taskRunner.executeTask(
-        'taskId' in request ? { taskId: request.taskId }
-                            : { taskName: request.taskName });
+    const parsed = kSchedulerRequest.safeParse(body);
+    if (!parsed.success)
+        return NextResponse.json({ success: false }, { status: 400 });
 
-    return {
-        success: success === kTaskResult.TaskSuccess,
-    };
+    const schedulerPassword = process.env.APP_SCHEDULER_PASSWORD;
+    if (!schedulerPassword?.length || parsed.data.password !== schedulerPassword)
+        return NextResponse.json({ success: false }, { status: 403 });
+
+    try {
+        const taskRunner = TaskRunner.getOrCreateForScheduler(globalScheduler);
+        const result = await taskRunner.executeTask(
+            'taskId' in parsed.data ? { taskId: parsed.data.taskId }
+                                    : { taskName: parsed.data.taskName });
+
+        return NextResponse.json({
+            success: result === kTaskResult.TaskSuccess,
+        });
+
+    } catch (error: any) {
+        if (!process.env.VITEST_POOL_ID)
+            console.error(`Scheduler API (${request.nextUrl.pathname}) threw an exception:`, error);
+
+        RecordErrorLog({
+            error,
+            requestUrl: request.nextUrl,
+            severity: kLogSeverity.Error,
+            user: undefined,
+        });
+
+        return NextResponse.json({ success: false }, { status: 500 });
+    }
 }
-
-// The /api/scheduler route only provides a single API - call it straight away.
-export const POST = (request: NextRequest) =>
-    executeAction(request, kSchedulerDefinition, scheduler);
