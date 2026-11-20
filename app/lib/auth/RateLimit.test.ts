@@ -3,16 +3,31 @@
 
 import { vi } from 'vitest';
 
+import * as Log from '@lib/Log';
 import { checkRateLimit, clearRateLimits, normalizeClientIp, resetRateLimit } from './RateLimit';
 
 describe('RateLimit', () => {
-    beforeEach(() => clearRateLimits());
-    afterEach(() => vi.useRealTimers());
+    let errorLogDelegateInvocations = 0;
+
+    beforeEach(() => {
+        clearRateLimits();
+        errorLogDelegateInvocations = 0;
+        Log.SetRecordErrorLogDeferDelegate(() => {
+            errorLogDelegateInvocations++;
+        });
+    });
+
+    afterEach(() => {
+        Log.SetRecordErrorLogDeferDelegate(/* delegate= */ undefined);
+        vi.restoreAllMocks();
+        vi.useRealTimers();
+    });
 
     it('allows requests up to the limit and rejects excess attempts in the window', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
 
+        const recordErrorLogSpy = vi.spyOn(Log, 'RecordErrorLog');
         const policy = { limit: 3, windowSeconds: 60 };
 
         expect(checkRateLimit('signIn', 'Alice@Example.com', policy)).toEqual({ allowed: true });
@@ -20,18 +35,31 @@ describe('RateLimit', () => {
         expect(checkRateLimit('signIn', 'alice@example.com', policy)).toEqual({ allowed: true });
         vi.advanceTimersByTime(10_000);
         expect(checkRateLimit('signIn', 'alice@example.com', policy)).toEqual({ allowed: true });
+        expect(recordErrorLogSpy).not.toHaveBeenCalled();
+        expect(errorLogDelegateInvocations).toBe(0);
 
         // 4th attempt within the 60s window is rejected; oldest attempt expires in 40s:
         const blocked = checkRateLimit('signIn', 'alice@example.com', policy);
         expect(blocked).toEqual({ allowed: false, retryAfterSeconds: 40 });
+        expect(recordErrorLogSpy).toHaveBeenCalledTimes(1);
+        expect(recordErrorLogSpy).toHaveBeenCalledWith({
+            error: {
+                name: 'RateLimitExceeded',
+                message: 'Rate limit reached for "signIn" (3 requests per 60s; retry after 40s)',
+            },
+            severity: Log.kLogSeverity.Info,
+        });
+        expect(errorLogDelegateInvocations).toBe(1);
 
         // Different keys and buckets remain unaffected:
         expect(checkRateLimit('signIn', 'bob@example.com', policy)).toEqual({ allowed: true });
         expect(checkRateLimit('reset', 'alice@example.com', policy)).toEqual({ allowed: true });
+        expect(errorLogDelegateInvocations).toBe(1);
 
         // Once the oldest attempt falls outside the window, a new attempt succeeds:
         vi.advanceTimersByTime(40_000);
         expect(checkRateLimit('signIn', 'alice@example.com', policy)).toEqual({ allowed: true });
+        expect(errorLogDelegateInvocations).toBe(1);
     });
 
     it('clears tracked attempts when resetRateLimit is called', () => {

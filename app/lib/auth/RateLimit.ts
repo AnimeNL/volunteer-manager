@@ -3,6 +3,8 @@
 
 import 'server-only';
 
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+
 declare namespace globalThis {
     let animeConRateLimitStorage: Map<string, number[]> | undefined;
 }
@@ -98,6 +100,16 @@ export function checkRateLimit(
         storage.set(compositeKey, active);
 
         const retryAfterSeconds = Math.max(1, Math.ceil((active[0] + windowMs - now) / 1000));
+
+        RecordErrorLog({
+            error: {
+                name: 'RateLimitExceeded',
+                message: `Rate limit reached for "${bucket}" (${policy.limit} requests ` +
+                    `per ${policy.windowSeconds}s; retry after ${retryAfterSeconds}s)`,
+            },
+            severity: kLogSeverity.Info,
+        });
+
         return { allowed: false, retryAfterSeconds };
     }
 
