@@ -37,6 +37,69 @@ export async function getAuthRequestMetadata(): Promise<AuthRequestMetadata> {
 }
 
 /**
+ * Validates that an optional redirect URL is a safe relative path (starts with a single `/`,
+ * rejecting protocol-relative `//...` and absolute URLs). Returns `undefined` when invalid.
+ */
+export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
+    if (typeof url === 'string' && /^\/(?!\/)/.test(url))
+        return url;
+
+    return undefined;
+}
+
+/**
+ * Input required to create a new unactivated user account with an Argon2id password hash.
+ */
+export interface CreateAccountWithPasswordData {
+    username: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    gender: string;
+    birthdate: string;
+    phoneNumber: string;
+    discordHandle?: string;
+}
+
+/**
+ * Creates a new unactivated account and stores an Argon2id hash of `data.password` in `users_auth`.
+ */
+export async function createAccountWithPassword(
+    data: CreateAccountWithPasswordData): Promise<number | undefined>
+{
+    const hashedPassword = await hashPassword(data.password);
+    let userId: number | undefined;
+
+    const dbInstance = db;
+    await dbInstance.transaction(async () => {
+        userId = await dbInstance.insertInto(tUsers)
+            .set({
+                username: data.username,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                gender: data.gender,
+                birthdate: Temporal.PlainDate.from(data.birthdate),
+                phoneNumber: data.phoneNumber,
+                discordHandle: data.discordHandle || null,
+                discordHandleUpdated:
+                    data.discordHandle ? dbInstance.currentZonedDateTime() : null,
+            })
+            .returningLastInsertedId()
+            .executeInsert();
+
+        await dbInstance.insertInto(tUsersAuth)
+            .set({
+                userId,
+                authType: kAuthType.password,
+                authValue: hashedPassword,
+            })
+            .executeInsert();
+    });
+
+    return userId;
+}
+
+/**
  * Options controlling session invalidation when replacing a user's password.
  */
 export interface SetUserPasswordOptions {

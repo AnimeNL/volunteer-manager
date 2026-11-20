@@ -13,7 +13,6 @@ import { PromptFactory } from '@lib/ai/PromptFactory';
 import { authenticateUser, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { createAndWriteUserSessionCookie, revokeAllUserSessions } from '@lib/auth/SessionStore';
-import { determineEnvironment } from '@lib/Environment';
 import { executeServerAction } from '@lib/serverAction';
 import { hashPassword } from '@lib/auth/Password';
 import { invalidateUserAuthCache, requireAuthenticationContext }
@@ -489,10 +488,8 @@ export async function resetPassword(userId: number, formData: unknown) {
             .withSeverity('Error')
             .record();
 
-        const environment = await determineEnvironment();
-        const domain = environment?.domain ?? 'animecon.team';
         const passwordResetLink =
-            `https://${domain}/?password-reset-request=${passwordResetRequest}`;
+            `https://${props.host}/?password-reset-request=${passwordResetRequest}`;
 
         return { success: true, message: passwordResetLink };
     });
