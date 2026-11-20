@@ -12,7 +12,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { clearAuthCache, executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 
@@ -155,6 +155,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
                 grants: [ /* no grants */ ],
                 revokes: [ /* no revokes */ ],
             });
+            clearAuthCache();
         }
 
         LogBuilder.for('CreatePermissionRole')
@@ -181,8 +182,10 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             .where(tPermissionsRoles.permissionRoleId.equals(row.id))
             .executeDelete();
 
-        if (affectedRows)
+        if (affectedRows) {
             Cache.getInstance('PermissionRoles').delete(row.id);
+            clearAuthCache();
+        }
 
         LogBuilder.for('DeletePermissionRole')
             .withCondition(!!affectedRows)

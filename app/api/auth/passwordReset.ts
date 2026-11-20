@@ -8,6 +8,7 @@ import type { ActionProps } from '../Action';
 import { RecordLog, kLogType } from '@lib/Log';
 
 import { authenticateUser, getUserSessionToken } from '@lib/auth/Authentication';
+import { invalidateUserAuthCache } from '@lib/auth/AuthenticationContext';
 import { securePasswordHash } from '@lib/auth/Password';
 import { unsealPasswordResetRequest } from '@lib/auth/PasswordReset';
 import { writeSealedSessionCookie } from '@lib/auth/Session';
@@ -84,6 +85,9 @@ export async function updateUserPassword(
                 .executeUpdate(/* min= */ 0, /* max= */ 1);
         }
     });
+
+    if (incrementSession)
+        invalidateUserAuthCache(userId);
 }
 
 /**

@@ -8,7 +8,7 @@ import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
-import { executeAccessCheck} from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck, invalidateUserAuthCache } from '@lib/auth/AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
@@ -72,6 +72,7 @@ export async function updateAvatar(request: Request, props: ActionProps): Promis
             .executeUpdate();
 
         if (!!affectedRows) {
+            invalidateUserAuthCache(subjectUserId);
             if (request.overrideUserId) {
                 LogBuilder.for('AdminUpdateAvatar')
                     .withInitiatorUser(props.user)

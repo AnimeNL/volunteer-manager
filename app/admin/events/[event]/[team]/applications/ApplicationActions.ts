@@ -8,6 +8,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
+import { invalidateUserAuthCache } from '@lib/auth/AuthenticationContext';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
@@ -120,6 +121,9 @@ export async function decideApplication(
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
+
+        if (affectedRows)
+            invalidateUserAuthCache(userId);
 
         LogBuilder.for('DecideApplication')
             .withCondition(!!affectedRows)

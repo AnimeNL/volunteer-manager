@@ -8,6 +8,7 @@ import type { ActionProps } from '../Action';
 import type { ApiDefinition, ApiRequest, ApiResponse } from '../Types';
 import { RecordLog, kLogType } from '@lib/Log';
 import { formatDate } from '@lib/Temporal';
+import { invalidateUserAuthCache } from '@lib/auth/AuthenticationContext';
 import db, { tUsers } from '@lib/database';
 
 import { kCommunicationLanguage } from '@lib/database/Types';
@@ -160,6 +161,8 @@ export async function updateAccount(request: Request, props: ActionProps): Promi
         })
         .where(tUsers.userId.equals(props.user.id))
         .executeUpdate();
+
+    invalidateUserAuthCache(props.user.id);
 
     RecordLog({
         type: kLogType.AccountUpdate,

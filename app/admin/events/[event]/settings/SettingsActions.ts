@@ -6,13 +6,13 @@
 import type { UpdatableRow } from 'ts-sql-query';
 import { z } from 'zod/v4';
 
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
-import { storeBlobData } from '@lib/database/BlobStore';
 import { LogBuilder } from '@lib/log/index';
+import { clearAuthCache } from '@lib/auth/AuthenticationContext';
 import { createTicketService } from '@lib/tickets';
-import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
 import { kEventAvailabilityStatus, kEventTicketProvider, kFileType } from '@lib/database/Types';
@@ -166,6 +166,7 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
         // thus URL, may have changed.
         Cache.getInstance('AdminNavigationActiveEvents').clear();
         Cache.getInstance('AdminNavigationMenuCache').clear();
+        clearAuthCache();
 
         LogBuilder.for('UpdateEventSlug')
             .withCondition(!!affectedRows)
@@ -202,6 +203,7 @@ export async function publishEvent(eventSlug: string) {
         // Active events in the navigation area now has to consider the updated status of |event|,
         // for which the cache has to be manually cleared.
         Cache.getInstance('AdminNavigationActiveEvents').clear();
+        clearAuthCache();
 
         LogBuilder.for('UpdateEventPublicationStatus')
             .withCondition(!!affectedRows)
