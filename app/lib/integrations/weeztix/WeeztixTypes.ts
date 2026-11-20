@@ -4,6 +4,72 @@
 import { z } from 'zod/v4';
 
 /**
+ * Request payload for the DELETE /order/:guid/custom_refund API.
+ * @see https://docs.weeztix.com/api/dashboard/order-custom-refund
+ */
+export const kDeleteOrderCustomRefundRequest = z.object({
+    refund: z.boolean().optional(),
+    comment: z.string().nonempty().max(255),
+    includes_fees: z.boolean(),
+    entire_order: z.boolean(),
+    items: z.array(z.object({
+        guid: z.string().nonempty(),
+        type: z.enum([ 'payment', 'ticket', 'product' ]),
+    })),
+    arbitrary: z.object({
+        amount: z.number().int(),
+        vat: z.number().int(),
+    }).optional(),
+});
+
+/**
+ * Request payload for the DELETE /order/:guid/custom_refund API.
+ */
+export type DeleteOrderCustomRefundRequest = z.infer<typeof kDeleteOrderCustomRefundRequest>;
+
+/**
+ * Recursive fatal, error, or notice entry returned by the custom refund API.
+ */
+interface OrderRefundMessage {
+    subjectType?: string;
+    guid?: string;
+    reservation?: string | null;
+    reason?: string | null;
+    extra?: Record<string, unknown> | null;
+    parentOf?: OrderRefundMessage | null;
+}
+
+const kOrderRefundMessageSchema: z.ZodType<OrderRefundMessage> = z.object({
+    subjectType: z.string().optional(),
+    guid: z.string().optional(),
+    reservation: z.string().nullish(),
+    reason: z.string().nullish(),
+    extra: z.record(z.string(), z.unknown()).nullish(),
+    parentOf: z.lazy(() => kOrderRefundMessageSchema).nullish(),
+});
+
+const kOrderRefundMessagesSchema =
+    z.union([ kOrderRefundMessageSchema, z.array(kOrderRefundMessageSchema) ]).nullish();
+
+/**
+ * Expected response for the DELETE /order/:guid/custom_refund API.
+ * @see https://docs.weeztix.com/api/dashboard/order-custom-refund
+ */
+export const kDeleteOrderCustomRefundResponse = z.object({
+    fatals: kOrderRefundMessagesSchema,
+    errors: kOrderRefundMessagesSchema,
+    notices: kOrderRefundMessagesSchema,
+    redirectUrl: z.string().nullish(),
+    amount: z.number().nullish(),
+    order_id: z.string().nullish(),
+});
+
+/**
+ * Expected response for the DELETE /order/:guid/custom_refund API.
+ */
+export type DeleteOrderCustomRefundResponse = z.infer<typeof kDeleteOrderCustomRefundResponse>;
+
+/**
  * Expected response for the /event/:guid API.
  * @see https://docs.weeztix.com/api/dashboard/get-event-specific
  */

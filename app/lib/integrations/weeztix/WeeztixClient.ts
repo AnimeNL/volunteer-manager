@@ -184,6 +184,25 @@ export class WeeztixClient {
     // ---------------------------------------------------------------------------------------------
 
     /**
+     * Cancels and optionally refunds an order, or specific items within it, identified by
+     * `orderGuid`.
+     *
+     * @throws An exception when the network request fails, or the response cannot be validated.
+     * @returns Cancellation and refund result returned by Weeztix.
+     */
+    async cancelOrder(orderGuid: string, request: weeztix.DeleteOrderCustomRefundRequest)
+        : Promise<weeztix.DeleteOrderCustomRefundResponse>
+    {
+        const validatedRequest = weeztix.kDeleteOrderCustomRefundRequest.parse(request);
+        return this.issueRequest(weeztix.kDeleteOrderCustomRefundResponse, {
+            api: `/order/${orderGuid}/custom_refund`,
+            operation: '/order/<Id>/custom_refund',
+            method: 'DELETE',
+            body: validatedRequest,
+        });
+    }
+
+    /**
      * Creates a new metadata entry for the ticket identified by `ticketGuid` within `orderGuid`.
      *
      * @throws An exception when the network request fails, or the response cannot be validated.

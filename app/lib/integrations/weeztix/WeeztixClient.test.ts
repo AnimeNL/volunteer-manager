@@ -547,4 +547,61 @@ describe('WeeztixClient', () => {
 
         expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
+
+    it('cancels an order with generalised instrumentation paths', async () => {
+        const withContextSpy = vi.spyOn(Instrumentation, 'withContext');
+        const client = new WeeztixClient(createSettings(100));
+
+        fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({
+            errors: {},
+            notices: {},
+            order_id: 'order-guid-789',
+        }), { status: 200 }));
+
+        const result = await client.cancelOrder('order-guid-789', {
+            refund: false,
+            comment: 'Cancellation',
+            includes_fees: false,
+            entire_order: true,
+            items: [
+                { guid: 'ticket-guid-1', type: 'ticket' },
+            ],
+        });
+
+        expect(result.order_id).toBe('order-guid-789');
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.weeztix.com/order/order-guid-789/custom_refund',
+            expect.objectContaining({
+                method: 'DELETE',
+                headers: {
+                    Authorization: 'Bearer initial-access-token',
+                    'Content-Type': 'application/json',
+                },
+            }));
+
+        expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+            refund: false,
+            comment: 'Cancellation',
+            includes_fees: false,
+            entire_order: true,
+            items: [
+                { guid: 'ticket-guid-1', type: 'ticket' },
+            ],
+        });
+
+        expect(withContextSpy).toHaveBeenCalledWith({
+            integration: 'Weeztix',
+            operation: 'https://api.weeztix.com/order/<Id>/custom_refund',
+        });
+
+        await expect(client.cancelOrder('order-guid-789', {
+            comment: '',
+            includes_fees: false,
+            entire_order: true,
+            items: [],
+        })).rejects.toThrow();
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
 });
