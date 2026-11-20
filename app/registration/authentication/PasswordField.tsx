@@ -56,7 +56,8 @@ function validatePasswordCasingRequirement(password: string): boolean {
  * Validates that the given `password` is at least eight characters in length.
  */
 function validatePasswordLengthRequirement(password: string): boolean {
-    return password.length >= /* minimum length: */ 8;
+    return password.length >= /* minimum length: */ 8 &&
+           password.length <= /* maximum length: */ 128;
 }
 
 /**
@@ -115,6 +116,7 @@ export function PasswordField(props: TextFieldElementProps) {
             <TextFieldElement onChange={onChange}
                               slotProps={{
                                   htmlInput: {
+                                      maxLength: 128,
                                       minLength: 8,
                                       passwordrules: kPasswordRules,
                                   },

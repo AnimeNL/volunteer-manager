@@ -17,7 +17,8 @@ import Typography from '@mui/material/Typography';
 
 import type { User } from '@lib/auth/User';
 import { Avatar } from '@components/Avatar';
-import { callApi } from '@lib/callApi';
+
+import { updateAvatarAction } from '@lib/auth/ProfileActions';
 
 /**
  * Props accepted by the <IdentityDialog> component.
@@ -80,18 +81,10 @@ export function IdentityDialog(props: IdentityDialogProps) {
 
     const requestAvatarUpdate = useCallback(async (avatar: Blob) => {
         try {
-            const base64Header = 'data:image/png;base64,';
-            const base64Avatar = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onloadend =
-                    () => resolve((reader.result as string).substring(base64Header.length));
-                reader.readAsDataURL(avatar);
-            });
+            const formData = new FormData();
+            formData.set('avatar', avatar);
 
-            const response = await callApi('post', '/api/auth/update-avatar', {
-                avatar: base64Avatar as string,
-            });
-
+            const response = await updateAvatarAction(formData);
             if (response.success)
                 router.refresh();
 

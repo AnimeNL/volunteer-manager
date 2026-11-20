@@ -25,10 +25,12 @@ import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import Skeleton from '@mui/material/Skeleton';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { ListPasskeysDefinition } from '@app/api/auth/passkeys/listPasskeys';
-import { callApi } from '@lib/callApi';
+import type { PasskeyListEntry } from '@lib/auth/PasskeyActions';
 
-type Passkeys = ListPasskeysDefinition['response']['passkeys'];
+import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
+    registerPasskeyAction } from '@lib/auth/PasskeyActions';
+
+type Passkeys = PasskeyListEntry[];
 
 /**
  * Creates a friendly name for the passkey that's about to be created. We use the Bowser library to
@@ -70,14 +72,14 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
         setError(undefined);
         setSuccess(undefined);
         try {
-            const challenge = await callApi('post', '/api/auth/passkeys/create-challenge', { });
+            const challenge = await createPasskeyChallengeAction();
             if (!challenge.success || !challenge.options)
                 throw new Error(challenge.error ?? 'Unable to create a passkey challenge');
 
             const registration = await startRegistration(challenge.options);
-            const response = await callApi('post', '/api/auth/passkeys/register', {
+            const response = await registerPasskeyAction({
                 name: createFriendlyPasskeyName(),
-                registration
+                registration,
             });
 
             if (!response.success)
@@ -111,7 +113,7 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
         }
 
         try {
-            const response = await callApi('delete', '/api/auth/passkeys/delete', {
+            const response = await deletePasskeyAction({
                 id: deletionCandidate,
             });
 
@@ -134,7 +136,7 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
     // biome-ignore lint/correctness/useExhaustiveDependencies: used for invalidation
     useEffect(() => {
         setPasskeysLoading(true);
-        callApi('get', '/api/auth/passkeys/list', { /* no props */ }).then(response => {
+        listPasskeysAction().then(response => {
             if (response.success)
                 setPasskeys(response.passkeys);
             else
@@ -142,8 +144,6 @@ export function IdentityPasskeysDialog(props: IdentityPasskeysDialogProps) {
         }).catch(error => {
             setError(error.message);
         }).finally(() => setPasskeysLoading(false));
-
-
     }, [ counter ]);
 
     return (

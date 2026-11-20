@@ -12,8 +12,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Skeleton from '@mui/material/Skeleton';
 
-import { callApi } from '@lib/callApi';
-
+import { registerActivateAction } from '@lib/auth/AccountAuthActions';
 
 /**
  * Props accepted by the <RegisterCompleteDialog> component.
@@ -53,7 +52,7 @@ export function RegisterCompleteDialog(props: RegisterCompleteDialogProps) {
     // Verify the registration request through the authentication endpoint, which will also tell
     // us about the user's first name to display in the dialog and signs the user in.
     useEffect(() => {
-        callApi('post', '/api/auth/register-activate', {
+        registerActivateAction({
             registrationRequest,
         }).then(response => {
             setTimeout(() => {

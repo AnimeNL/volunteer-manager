@@ -28,10 +28,11 @@ import { alpha, styled } from '@mui/material/styles';
 import { DarkModeMenuItem } from './DarkModeMenuItem';
 import { ScheduleContext } from '../ScheduleContext';
 import { SearchResults } from './SearchResults';
-import { callApi } from '@lib/callApi';
 import { useTitle } from '../ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
+
+import { signOutAction } from '@lib/auth/AuthActions';
 
 /**
  * Containing element for the search field. Provides relative positioning, and a hover effect on
@@ -247,9 +248,11 @@ export function ApplicationBar() {
     // Signs the user out of their account, and forwards them back to the home page since the
     // schedule app is only available to signed in and participating volunteers.
     const handleSignOut = useCallback(async () => {
-        const response = await callApi('post', '/api/auth/sign-out', { /* no params */ });
-        if (response.success)
+        const response = await signOutAction();
+        if (response.success) {
+            router.refresh();
             router.push(response.returnUrl ?? '/');
+        }
 
     }, [ router ]);
 

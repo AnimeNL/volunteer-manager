@@ -16,8 +16,9 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 
 import { RegisterForm } from './RegisterForm';
-import { callApi } from '@lib/callApi';
 import { dayjs } from '@lib/DateTime';
+
+import { getOwnAccountAction, updateOwnAccountAction } from '@lib/auth/ProfileActions';
 
 /**
  * Props accepted by the <IdentityAccountDialog> component.
@@ -46,18 +47,16 @@ export function IdentityAccountDialog(props: IdentityAccountDialogProps) {
     const handleSubmit = useCallback(async (data: FieldValues) => {
         setLoading(true);
         setError(undefined);
-        setSuccess(true);
+        setSuccess(false);
         try {
-            const response = await callApi('post', '/api/auth/update-account', {
-                update: {
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    language: data.language,
-                    gender: data.gender,
-                    birthdate: dayjs(data.rawBirthdate).format('YYYY-MM-DD'),
-                    phoneNumber: data.phoneNumber,
-                    discordHandle: data.discordHandle,
-                },
+            const response = await updateOwnAccountAction({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                language: data.language,
+                gender: data.gender,
+                birthdate: dayjs(data.rawBirthdate).format('YYYY-MM-DD'),
+                phoneNumber: data.phoneNumber,
+                discordHandle: data.discordHandle,
             });
 
             if (!response.success)
@@ -76,7 +75,7 @@ export function IdentityAccountDialog(props: IdentityAccountDialogProps) {
     const [ loaded, setLoaded ] = useState<boolean>(false);
 
     useEffect(() => {
-        callApi('post', '/api/auth/update-account', { /* no params */ }).then(response => {
+        getOwnAccountAction().then(response => {
             if (!response || !response.account)
                 throw new Error;
 
@@ -91,7 +90,7 @@ export function IdentityAccountDialog(props: IdentityAccountDialogProps) {
             console.warn(error);
             setError('Unable to load your account information.');
         });
-    }, [ form ])
+    }, [ form ]);
 
     return (
         <FormContainer formContext={form} onSuccess={handleSubmit}>

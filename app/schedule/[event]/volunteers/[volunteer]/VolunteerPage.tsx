@@ -36,13 +36,13 @@ import { NotesCard } from '../../components/NotesCard';
 import { ScheduleContext } from '../../ScheduleContext';
 import { SetTitle } from '../../components/SetTitle';
 import { SubHeader } from '../../components/SubHeader';
-import { callApi } from '@lib/callApi';
 import { currentTimestamp, toZonedDateTime } from '../../CurrentTime';
 import { formatDate } from '@lib/Temporal';
 
 import { kEnforceSingleLine } from '../../Constants';
 import { kLogicalDayChangeHour } from '../../lib/isDifferentDay';
 
+import { updateAvatarAction } from '@lib/auth/ProfileActions';
 import { updateVolunteerNotes } from './VolunteerActions';
 
 const NotesEditorDialog = dynamic(() => import('../../components/NotesEditorDialog'), {
@@ -335,19 +335,11 @@ export function VolunteerPage(props: VolunteerPageProps) {
     // Called when a new avatar has been selected that hsould be uploaded to the server.
     const handleAvatarChange = useCallback(async (avatar: Blob) => {
         try {
-            const base64Header = 'data:image/png;base64,';
-            const base64Avatar = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onloadend =
-                    () => resolve((reader.result as string).substring(base64Header.length));
-                reader.readAsDataURL(avatar);
-            });
+            const formData = new FormData();
+            formData.set('avatar', avatar);
+            formData.set('overrideUserId', props.userId);
 
-            const response = await callApi('post', '/api/auth/update-avatar', {
-                avatar: base64Avatar as string,
-                overrideUserId: parseInt(props.userId, /* radix= */ 10),
-            });
-
+            const response = await updateAvatarAction(formData);
             if (response.success) {
                 refresh?.();
                 router.refresh();

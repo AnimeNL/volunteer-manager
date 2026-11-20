@@ -15,7 +15,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Skeleton from '@mui/material/Skeleton';
 
 import { PasswordField } from './PasswordField';
-import { callApi } from '@lib/callApi';
+
+import { verifyPasswordResetAction } from '@lib/auth/AccountAuthActions';
 
 /**
  * Props accepted by the <LostPasswordResetDialog> component.
@@ -51,7 +52,7 @@ export function LostPasswordResetDialog(props: LostPasswordResetDialogProps) {
     // Verify the password reset request through the authentication endpoint, which will also tell
     // us about the user's first name to display in the dialog.
     useEffect(() => {
-        callApi('post', '/api/auth/password-reset-verify', {
+        verifyPasswordResetAction({
             request: passwordResetRequest,
         }).then(response => {
             setTimeout(() => {

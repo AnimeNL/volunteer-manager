@@ -10,7 +10,6 @@ import type { Theme } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
 
 import type { User } from '@lib/auth/User';
-import { callApi } from '@lib/callApi';
 
 import { ActivationReminderDialog } from './authentication/ActivationReminderDialog';
 import { IdentityDialog } from './authentication/IdentityDialog';
@@ -28,6 +27,11 @@ import { RegisterConfirmDialog } from './authentication/RegisterConfirmDialog';
 import { UsernameDialog } from './authentication/UsernameDialog';
 import { validatePassword } from './authentication/PasswordField';
 
+import { changePasswordAction, completePasswordResetAction, registerAction,
+    requestPasswordResetAction } from '@lib/auth/AccountAuthActions';
+import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
+    signInPasswordUpdateAction, signOutAction } from '@lib/auth/AuthActions';
+
 /**
  * Styles used by the various components that make up the authentication flow.
  */
@@ -40,19 +44,6 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
         },
     },
 };
-
-/**
- * Creates a SHA256 hash of the given |password|, the result of which will be 64 characters in
- * length. This is done client side as we don't want to transmit plaintext passwords at all.
- */
-async function SHA256HashPassword(password: string): Promise<string> {
-    const passwordBuffer = new TextEncoder().encode(password);
-    const passwordHashedBuffer = await crypto.subtle.digest('SHA-256', passwordBuffer);
-
-    return [ ...new Uint8Array(passwordHashedBuffer) ]
-        .map(byte => byte.toString(16).padStart(2, '0'))
-        .join('');
-}
 
 /**
  * Progress in the authentication flow, influenced by the user's actions.
@@ -125,9 +116,8 @@ export interface AuthenticationFlowProps {
  * - Recovery of lost passwords, including a password reset,
  * - Registration of new accounts, including verification of their e-mail address.
  *
- * Any passwords entered during the authentication flow will be hashed using SHA-256 prior to being
- * send to the server. The server will apply an additional hash over the password prior to storing
- * it, to make sure that the hashes cannot be reversed.
+ * Passwords are transmitted directly over HTTPS to server actions and hashed server-side with
+ * Argon2id (with transparent upgrades for legacy accounts).
  */
 function AuthenticationFlow(props: AuthenticationFlowProps) {
     const { onClose, open, passwordResetRequest, registrationRedirectUrl,
@@ -181,7 +171,9 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     // Supporting callbacks for the 'username' state:
     // ---------------------------------------------------------------------------------------------
     const onSubmitUsername = useCallback(async (username: string) => {
-        const response = await callApi('post', '/api/auth/confirm-identity', { username });
+        const response = await confirmIdentityAction({ username });
+        if (response.error)
+            throw new Error(response.error);
 
         setUsername(username);
 
@@ -189,14 +181,15 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
             if (!!response.authenticationOptions && browserSupportsWebAuthn()) {
                 try {
                     const result = await startAuthentication(response.authenticationOptions);
-                    const verification = await callApi('post', '/api/auth/sign-in-passkey', {
+                    const verification = await signInPasskeyAction({
                         username,
-                        verification: result
+                        verification: result,
                     });
 
                     if (verification.success) {
                         router.refresh();
                         onRequestClose(/* forceState= */ 'identity');
+                        return;
                     } else if (verification.error) {
                         console.error('Unable to use a passkey:', verification.error);
                     }
@@ -218,13 +211,15 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     const onLostPassword = useCallback(() => setAuthFlowState('lost-password'), [ /* no deps */ ]);
 
     const onSubmitPassword = useCallback(async (plaintextPassword: string) => {
-        const response = await callApi('post', '/api/auth/sign-in-password', {
+        const response = await signInPasswordAction({
             username: username!,
-            password: await SHA256HashPassword(plaintextPassword),
+            password: plaintextPassword,
         });
 
-        if (!response.success)
-            throw new Error('That is not the password we\'ve got on file. Try again?');
+        if (!response.success) {
+            throw new Error(
+                response.error || 'That is not the password we\'ve got on file. Try again?');
+        }
 
         // The server can require the user to update their password, in which case they will not be
         // logged in just yet. Advance them to the update page when this is the case.
@@ -240,26 +235,25 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     }, [ onRequestClose, router, username ]);
 
     const onSubmitUpdatePassword = useCallback(async (plaintextPassword: string) => {
-        const response = await callApi('post', '/api/auth/sign-in-password-update', {
-            username: username!,
-            password: await SHA256HashPassword(plaintextPassword),
+        const response = await signInPasswordUpdateAction({
+            password: plaintextPassword,
             passwordResetRequest: passwordUpdateToken!,
         });
 
         if (!response.success)
-            throw new Error('Your password could not be updated. Try again?');
+            throw new Error(response.error || 'Your password could not be updated. Try again?');
 
         router.refresh();
         onRequestClose(/* forceState= */ 'identity');
 
-    }, [ onRequestClose, passwordUpdateToken, router, username ]);
+    }, [ onRequestClose, passwordUpdateToken, router ]);
 
     // ---------------------------------------------------------------------------------------------
     // Supporting callbacks for the 'lost-password' and 'lost-password-reset' states:
     // ---------------------------------------------------------------------------------------------
     const onRequestPasswordReset = useCallback(async () => {
-        const response = await callApi('post', '/api/auth/password-reset-request', {
-            username: username!
+        const response = await requestPasswordResetAction({
+            username: username!,
         });
 
         return response.success;
@@ -269,13 +263,15 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     const onPasswordReset = useCallback(async (request: string, plaintextPassword: string) => {
         validatePassword(plaintextPassword, /* throwOnFailure= */ true);
 
-        const response = await callApi('post', '/api/auth/password-reset', {
-            password: await SHA256HashPassword(plaintextPassword),
+        const response = await completePasswordResetAction({
+            password: plaintextPassword,
             request,
         });
 
-        if (!response.success)
-            throw new Error('The server was not able to save the new password. Try again?');
+        if (!response.success) {
+            throw new Error(
+                response.error || 'The server was not able to save the new password. Try again?');
+        }
 
         router.refresh();
         router.replace('/');
@@ -290,11 +286,11 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
         = useCallback(async (plaintextPassword: string, request: PartialRegistrationRequest) =>
         {
             validatePassword(plaintextPassword, /* throwOnFailure= */ true);
-            const response = await callApi('post', '/api/auth/register', {
+            const response = await registerAction({
                 ...request,
 
                 username: username!,
-                password: await SHA256HashPassword(plaintextPassword),
+                password: plaintextPassword,
 
                 // The URL the user should be redirected to after confirming their e-mail address.
                 redirectUrl: registrationRedirectUrl,
@@ -318,16 +314,16 @@ function AuthenticationFlow(props: AuthenticationFlowProps) {
     const onRequestPasswordChange = useCallback(
         async (currentPlaintextPassword: string, newPlaintextPassword: string) => {
             validatePassword(newPlaintextPassword, /* throwOnFailure= */ true);
-            const response = await callApi('post', '/api/auth/password-change', {
-                currentPassword: await SHA256HashPassword(currentPlaintextPassword),
-                newPassword: await SHA256HashPassword(newPlaintextPassword),
+            const response = await changePasswordAction({
+                currentPassword: currentPlaintextPassword,
+                newPassword: newPlaintextPassword,
             });
 
             return !!response.success;
         }, [ /* no dependencies */ ]);
 
     const onRequestSignOut = useCallback(async () => {
-        const response = await callApi('post', '/api/auth/sign-out', { /* no params */ });
+        const response = await signOutAction();
 
         router.refresh();
         if (response.returnUrl)
