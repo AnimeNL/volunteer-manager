@@ -10,7 +10,6 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
-import { authenticateUser } from '../Authentication';
 import { checkRateLimit } from '../RateLimit';
 import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
     from '../AccountStore';
@@ -20,7 +19,8 @@ import { getAuthRequestMetadata, sanitizeRelativeRedirectUrl } from './ActionHel
 import { getSessionFromCookieStore } from '../getSession';
 import { getStaticContent } from '@lib/Content';
 import { isPersistentSessionData } from '../Session';
-import { requireAuthenticationContext } from '../AuthenticationContext';
+import { loadUserAuthenticationContext, requireAuthenticationContext }
+    from '../AuthenticationContext';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
 import { sealRegistrationRequest, unsealRegistrationRequest } from '../RegistrationRequest';
 import { validatePasswordStrength } from '../Password';
@@ -228,7 +228,10 @@ export async function registerActivateAction(
         return { success: false };
     }
 
-    const { user } = await authenticateUser({ type: 'userId', userId: registrationRequest.id });
+    const { user } = await loadUserAuthenticationContext({
+        type: 'userId',
+        userId: registrationRequest.id,
+    });
     if (!user)
         return { success: false };
 
@@ -351,7 +354,7 @@ export async function verifyPasswordResetAction(
         return { success: false };
     }
 
-    const { user } = await authenticateUser({ type: 'session', ...resetRequest });
+    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
     if (!user)
         return { success: false };
 
@@ -389,7 +392,7 @@ export async function completePasswordResetAction(
         return { success: false, error: 'This password reset link has expired.' };
     }
 
-    const { user } = await authenticateUser({ type: 'session', ...resetRequest });
+    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
     if (!user)
         return { success: false, error: 'This password reset link is no longer valid.' };
 

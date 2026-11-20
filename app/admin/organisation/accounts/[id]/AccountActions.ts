@@ -10,12 +10,11 @@ import type { CommunicationLanguage } from '@lib/database/Types';
 import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
-import { authenticateUser } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { createAndWriteUserSessionCookie, revokeAllUserSessions } from '@lib/auth/SessionStore';
 import { executeServerAction } from '@lib/serverAction';
 import { hashPassword } from '@lib/auth/Password';
-import { invalidateUserAuthCache, requireAuthenticationContext }
+import { invalidateUserAuthCache, loadUserAuthenticationContext, requireAuthenticationContext }
     from '@lib/auth/AuthenticationContext';
 import { isUsernameAvailable } from '@lib/auth/AccountStore';
 import { nanoid } from '@lib/nanoid';
@@ -432,7 +431,8 @@ export async function impersonate(userId: number, formData: unknown) {
         const { user: adminUser } = await requireAuthenticationContext(
             'organisation.impersonation', undefined, { bypassCache: true });
 
-        const { user: impersonatedUser } = await authenticateUser({ type: 'userId', userId });
+        const { user: impersonatedUser } =
+            await loadUserAuthenticationContext({ type: 'userId', userId });
         if (!impersonatedUser)
             notFound();
 

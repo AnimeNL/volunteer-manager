@@ -12,14 +12,18 @@ import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthentic
     from './AuthenticationContextTypes';
 import type { LegacySessionData, PersistentSessionData, SessionData } from './Session';
 import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
-import { AccessControl, type AccessScope } from './access/AccessControl';
+import type { User } from './User';
+import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
 import { and, checkPermission, or } from './access/PermissionCheck';
-import { authenticateUser } from './Authentication';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
+import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
 import { hashSessionSecret, touchUserSession, verifyUserSession } from './SessionStore';
 import { isPersistentSessionData } from './Session';
+import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
+
+import { kAuthType, kRegistrationStatus } from '../database/Types';
 
 export type {
     AuthenticationContext,
@@ -30,6 +34,184 @@ export type {
 };
 
 export { and, checkPermission, or };
+
+/**
+ * Row shape returned by the user authentication query in `loadUserAuthenticationContext()`.
+ * Exported for test helpers that mock the query.
+ */
+export interface AuthenticationResult {
+    // AuthenticationContext.accessControl:
+    accessControl?: {
+        grants?: string;
+        revokes?: string;
+        events?: string;
+        teams?: string;
+    };
+
+    // UserAuthenticationContext.events:
+    events: {
+        event?: string;
+        grant?: string;
+        team?: string;
+        isEventHidden?: number;
+    }[];
+
+    // UserAuthenticationContext.user:
+    userId: number;
+    username?: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    avatarFileHash?: string;
+}
+
+/**
+ * Type of input that can be used to load a user's `AuthenticationContext` from the database.
+ */
+type LoadUserAuthenticationContextParams =
+    { type: 'session' } & LegacySessionData |
+    { type: 'userId', userId: number };
+
+/**
+ * Loads the `AuthenticationContext` for the user identified by `params` from the database. Returns
+ * a visitor (guest) context when the user does not exist, is not activated, or is anonymized.
+ */
+export async function loadUserAuthenticationContext(
+    params: LoadUserAuthenticationContextParams): Promise<AuthenticationContext>
+{
+    const eventsJoin = tEvents.forUseInLeftJoin();
+    const rolesJoin = tRoles.forUseInLeftJoin();
+    const storageJoin = tStorage.forUseInLeftJoin();
+    const teamsJoin = tTeams.forUseInLeftJoin();
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const dbInstance = db;
+    const baseUserSelect = {
+        // AuthenticationContext.accessControl:
+        accessControl: {
+            grants: tUsers.permissionsGrants,
+            revokes: tUsers.permissionsRevokes,
+            events: tUsers.permissionsEvents,
+            teams: tUsers.permissionsTeams,
+        },
+
+        // UserAuthenticationContext.events:
+        events: dbInstance.aggregateAsArray({
+            event: eventsJoin.eventSlug,
+            grant: rolesJoin.rolePermissionGrant,
+            team: teamsJoin.teamSlug,
+
+            // TODO: Figure out if we can do this filtering in the query somehow...
+            isEventHidden: eventsJoin.eventHidden,
+        }),
+
+        // UserAuthenticationContext.user:
+        userId: tUsers.userId,
+        username: tUsers.username,
+        firstName: tUsers.firstName,
+        lastName: tUsers.lastName,
+        displayName: tUsers.displayName,
+        avatarFileHash: storageJoin.fileHash,
+    };
+
+    const userSelectFrom = dbInstance.selectFrom(tUsers)
+        .leftJoin(storageJoin)
+            .on(storageJoin.fileId.equals(tUsers.avatarId))
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.userId.equals(tUsers.userId))
+            .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .leftJoin(eventsJoin)
+            .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
+        .leftJoin(teamsJoin)
+            .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
+        .leftJoin(rolesJoin)
+            .on(rolesJoin.roleId.equals(usersEventsJoin.roleId));
+
+    let authenticationResult: AuthenticationResult | null;
+
+    switch (params.type) {
+        case 'session':
+            authenticationResult = await userSelectFrom
+                .groupBy(tUsers.userId)
+                .select(baseUserSelect)
+                .where(tUsers.userId.equals(params.id))
+                    .and(tUsers.sessionToken.equals(params.token))
+                    .and(tUsers.activated.equals(/* true= */ 1))
+                    .and(tUsers.anonymized.isNull())
+                .executeSelectNoneOrOne();
+
+            break;
+
+        case 'userId':
+            authenticationResult = await userSelectFrom
+                .groupBy(tUsers.userId)
+                .select(baseUserSelect)
+                .where(tUsers.userId.equals(params.userId))
+                    .and(tUsers.activated.equals(/* true= */ 1))
+                    .and(tUsers.anonymized.isNull())
+                .executeSelectNoneOrOne();
+
+            break;
+
+        default:
+            throw new Error('Invalid authentication type was provided');
+    }
+
+    if (!authenticationResult) {
+        return {
+            access: new AccessControl({ /* no grants */ }),
+            user: /* guest= */ undefined,
+        };
+    }
+
+    const authType = kAuthType.password;
+    const events: UserAuthenticationContext['events'] = new Map();
+    const user: User = {
+        id: authenticationResult.userId,
+        username: authenticationResult.username,
+        name: authenticationResult.displayName ||
+            `${authenticationResult.firstName} ${authenticationResult.lastName}`,
+        nameOrFirstName: authenticationResult.displayName || authenticationResult.firstName,
+        firstName: authenticationResult.firstName,
+        lastName: authenticationResult.lastName,
+        displayName: authenticationResult.displayName,
+        avatarUrl:
+            authenticationResult.avatarFileHash ? getBlobUrl(authenticationResult.avatarFileHash)
+                                                : undefined,
+    };
+
+    const grants: Grant[] = [ /* no grants */ ];
+
+    if (!!authenticationResult.accessControl?.grants)
+        grants.push(authenticationResult.accessControl.grants);
+
+    for (const entry of authenticationResult.events) {
+        if (!entry.event || !entry.team)
+            continue;  // incomplete data
+
+        if (entry.isEventHidden)
+            continue;  // the event has been suspended
+
+        if (!!entry.grant) {
+            grants.push({
+                permission: entry.grant,
+                event: entry.event,
+                team: entry.team,
+            });
+        }
+
+        events.set(entry.event, entry.team);
+    }
+
+    const accessControl = new AccessControl({
+        grants,
+        revokes: authenticationResult.accessControl?.revokes,
+        events: authenticationResult.accessControl?.events,
+        teams: authenticationResult.accessControl?.teams,
+    });
+
+    return { access: accessControl, authType, events, user };
+}
 
 /**
  * Executes the given `permission` check. A HTTP 401 Unauthorized or HTTP 403 Forbidden error will
@@ -129,7 +311,7 @@ async function resolvePersistentSession(
     if (!verified || verified.userId !== sessionData.userId)
         return { access: new AccessControl({ /* no grants */ }), user: undefined };
 
-    const context = await authenticateUser({ type: 'userId', userId: verified.userId });
+    const context = await loadUserAuthenticationContext({ type: 'userId', userId: verified.userId });
     if (!context.user)
         return context;
 
@@ -163,7 +345,7 @@ async function resolveLegacySession(
     if (!bypassCache && cached && cached.sessionToken === sessionData.token)
         return cached.context;
 
-    const context = await authenticateUser({ type: 'session', ...sessionData });
+    const context = await loadUserAuthenticationContext({ type: 'session', ...sessionData });
     if (context.user) {
         authCache.set(sessionData.id, {
             context,

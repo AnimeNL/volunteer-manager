@@ -1,7 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AuthenticationResult } from './Authentication';
+import type { AuthenticationResult } from './AuthenticationContext';
 import type { AuthType } from '../database/Types';
 import type { User } from './User';
 import type { useMockConnection } from '@lib/database/Connection';

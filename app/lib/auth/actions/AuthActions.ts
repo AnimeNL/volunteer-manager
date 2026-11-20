@@ -13,7 +13,6 @@ import { z } from 'zod/v4';
 
 import type { StoredPasskeyCredential } from '../PasskeyStore';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { authenticateUser } from '../Authentication';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
@@ -21,6 +20,7 @@ import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
 import { getAuthRequestMetadata } from './ActionHelpers';
 import { getUserSessionToken, isValidActivatedUser, setUserPassword, verifyUserCredentials }
     from '../AccountStore';
+import { loadUserAuthenticationContext } from '../AuthenticationContext';
 import { retrieveUserPasskeys, updatePasskeyCounter } from '../PasskeyStore';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
 import { validatePasswordStrength } from '../Password';
@@ -286,7 +286,7 @@ export async function signInPasswordUpdateAction(
         return { success: false, error: 'Your password update session has expired. Try again?' };
     }
 
-    const { user } = await authenticateUser({ type: 'session', ...resetRequest });
+    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
     if (!user)
         return { success: false, error: 'Your password update session is no longer valid.' };
 
