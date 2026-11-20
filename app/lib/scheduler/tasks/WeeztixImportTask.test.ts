@@ -761,8 +761,8 @@ describe('WeeztixImportTask', () => {
                 null,
                 '2026-08-02 08:00:00',
                 '2026-08-05 12:00:00',
-                null,
                 0,
+                null,
             ]);
             expect(ordersByGuid.get('order-2')?.slice(0, 12)).toEqual([
                 'order-2',
@@ -775,8 +775,8 @@ describe('WeeztixImportTask', () => {
                 null,
                 '2026-08-01 10:00:00',
                 '2026-08-02 12:00:00',
-                '2026-08-06 10:00:00',
                 0,
+                '2026-08-06 10:00:00',
             ]);
 
             expect(ticketsByGuid.get('ticket-1')?.slice(0, 13)).toEqual([
@@ -1120,7 +1120,7 @@ describe('WeeztixImportTask', () => {
                 expect(query).toContain('insert into weeztix_orders');
                 expect(params[0]).toBe('order-1');
                 expect(params[3]).toBe('cancelled');
-                expect(params[10]).toBe('2026-08-07 12:00:00');
+                expect(params[11]).toBe('2026-08-07 12:00:00');
                 return 1;
             });
             mockConnection.expect('insert', (query, params) => {
@@ -1195,7 +1195,7 @@ describe('WeeztixImportTask', () => {
                 expect(query).toContain('insert into weeztix_orders');
                 expect(query).toContain('weeztix_order_updated_manual');
                 expect(params[0]).toBe('order-manual');
-                expect(params[11]).toBe(0);
+                expect(params[10]).toBe(0);
                 return 1;
             });
             mockConnection.expect('commit');
