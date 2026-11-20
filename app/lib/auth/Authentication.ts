@@ -385,6 +385,7 @@ export async function isValidActivatedUser(username: string): Promise<ValidUserD
             activated: tUsers.activated.equals(/* true= */ 1)
         })
         .where(tUsers.username.equals(username))
+            .and(tUsers.anonymized.isNull())
         .executeSelectNoneOrOne() ?? undefined;
 }
 
