@@ -123,10 +123,13 @@ export default async function EventTicketsVolunteerPage(
 
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
-    const canCancelPurchases = !!service?.canCancelPurchases() && canDeleteTickets;
+
+    const canCancelOrder = !!service?.capabilities.canCancelOrder && canDeleteTickets;
+    const canResendConfirmation =
+        !!service?.capabilities.canResendConfirmation && canUpdateTickets;
 
     const cancelPurchaseFn =
-        canCancelPurchases && !!purchaseId && !hasBeenCancelled
+        canCancelOrder && !!purchaseId && !hasBeenCancelled
             ? cancelPurchase.bind(null, event.slug, purchaseId)
             : undefined;
 
@@ -135,7 +138,7 @@ export default async function EventTicketsVolunteerPage(
                          : undefined;
 
     const resendConfirmationFn =
-        canUpdateTickets && !!purchaseId && !hasBeenCancelled
+        canResendConfirmation && !!purchaseId && !hasBeenCancelled
             ? resendPurchaseConfirmation.bind(null, event.slug, purchaseId)
             : undefined;
 
@@ -216,7 +219,8 @@ export default async function EventTicketsVolunteerPage(
                             )
                         }
                         actions={
-                            (canCancelPurchases || canUpdateTickets) && (
+                            (!!disassociateAction || !!resendConfirmationFn ||
+                                    !!cancelPurchaseFn) && (
                                 <>
                                     {disassociateAction}
                                     { !!resendConfirmationFn &&

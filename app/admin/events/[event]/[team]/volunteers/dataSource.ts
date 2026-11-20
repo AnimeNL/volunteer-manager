@@ -298,7 +298,7 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
             .executeSelectPage();
 
         const service = await createTicketService(context.event.id);
-        const canManageVolunteerTickets = !!service?.canManageVolunteerTickets();
+        const canManageVolunteerTickets = !!service?.capabilities.canManageVolunteerTickets;
         const volunteerTickets = (service && canManageVolunteerTickets)
             ? await service.listVolunteerTickets(
                   context.event.id, volunteers.data.map(volunteer => volunteer.id))

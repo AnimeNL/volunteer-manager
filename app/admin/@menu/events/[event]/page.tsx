@@ -180,7 +180,7 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
     const ticketService = await createTicketService(event.id);
 
     let ticketsUrl: string | undefined;
-    if (ticketService?.canManageVolunteerTickets()) {
+    if (ticketService?.capabilities.canManageVolunteerTickets) {
         if (access.can('volunteers.tickets', 'read', eventScope))
             ticketsUrl = `/admin/events/${event.slug}/tickets/volunteers`;
     } else if (!!event.tickets?.provider) {

@@ -8,6 +8,42 @@ import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, Provider
     TicketType, VolunteerTicket } from './Types';
 
 /**
+ * Capabilities exposed by a `TicketService` implementation, used to gate UI controls and server
+ * actions according to what the underlying ticketing provider and event configuration support.
+ */
+export interface TicketServiceCapabilities {
+    /**
+     * Whether this ticket service supports cancelling existing orders.
+     */
+    readonly canCancelOrder: boolean;
+
+    /**
+     * Whether this ticket service supports creating new orders/tickets.
+     */
+    readonly canCreateOrder: boolean;
+
+    /**
+     * Whether this ticket service supports fetching live order details from the provider.
+     */
+    readonly canFetchOrderDetails: boolean;
+
+    /**
+     * Whether this ticket service supports managing volunteer and associate tickets.
+     */
+    readonly canManageVolunteerTickets: boolean;
+
+    /**
+     * Whether this ticket service supports re-sending order confirmation e-mails.
+     */
+    readonly canResendConfirmation: boolean;
+
+    /**
+     * Whether this ticket service supports updating order and ticket details.
+     */
+    readonly canUpdateOrder: boolean;
+}
+
+/**
  * The `TicketService` is the interface that must be implemented for each ticket service that the
  * Volunteer Manager integrates with. This abstraction layer exists in case we switch providers.
  */
@@ -23,30 +59,15 @@ export interface TicketService {
     get eventId(): number | string;
 
     /**
+     * Structured capabilities supported by this ticket service instance.
+     */
+    get capabilities(): TicketServiceCapabilities;
+
+    /**
      * Anonymizes personally identifiable information stored for non-complimentary visitor tickets
      * for this event. Returns the number of database rows affected.
      */
     anonymizeTickets(): Promise<number>;
-
-    /**
-     * Returns whether this ticket service supports cancelling purchases.
-     */
-    canCancelPurchases(): boolean;
-
-    /**
-     * Returns whether this ticket service supports creating new tickets.
-     */
-    canCreateTickets(): boolean;
-
-    /**
-     * Returns whether this ticket service supports fetching and updating live purchase details.
-     */
-    canFetchPurchaseDetails(): boolean;
-
-    /**
-     * Returns whether this ticket service supports managing volunteer and associate tickets.
-     */
-    canManageVolunteerTickets(): boolean;
 
     /**
      * Cancels the purchase identified by the given `purchaseId`.

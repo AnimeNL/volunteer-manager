@@ -83,30 +83,33 @@ export default async function EventTicketsAssociatesPage(
 
     const canDeleteTickets = access.can('volunteers.tickets', 'delete', { event: event.slug });
     const canUpdateTickets = access.can('volunteers.tickets', 'update', { event: event.slug });
-    const canCancelPurchases = service.canCancelPurchases() && canDeleteTickets;
+
+    const canCancelOrder = service.capabilities.canCancelOrder && canDeleteTickets;
+    const canResendConfirmation = service.capabilities.canResendConfirmation && canUpdateTickets;
+    const canUpdateOrder = service.capabilities.canUpdateOrder && canUpdateTickets;
 
     const associatePurchaseFn =
         canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)
                          : undefined;
 
     const cancelPurchaseFn =
-        canCancelPurchases ? cancelPurchase.bind(null, event.slug, purchase.id)
-                           : undefined;
+        canCancelOrder ? cancelPurchase.bind(null, event.slug, purchase.id)
+                       : undefined;
 
     const resendConfirmationFn =
-        canUpdateTickets ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
-                         : undefined;
+        canResendConfirmation ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)
+                              : undefined;
 
     const updateOrderEmailFn =
-        canUpdateTickets ? updatePurchaseEmail.bind(null, event.slug, purchase.id)
-                         : undefined;
+        canUpdateOrder ? updatePurchaseEmail.bind(null, event.slug, purchase.id)
+                       : undefined;
 
     const formattedPurchaseId = service.formatPurchaseId(purchase.id);
     const pageTitle = purchase.name || formattedPurchaseId;
 
     const ticket = purchase.tickets.at(0);
     const updateTicketFn =
-        canUpdateTickets && ticket
+        canUpdateOrder && ticket
             ? updateAssociateTicket.bind(null, event.slug, purchase.id, ticket.id)
             : undefined;
 
@@ -157,7 +160,8 @@ export default async function EventTicketsAssociatesPage(
                     )
                 }
                 actions={
-                    (canCancelPurchases || canUpdateTickets) && !hasBeenCancelled && (
+                    (!!associatePurchaseFn || !!resendConfirmationFn || !!cancelPurchaseFn) &&
+                            !hasBeenCancelled && (
                         <>
                             { !!associatePurchaseFn &&
                                 <AssociateQuickAction action={associatePurchaseFn}
@@ -170,7 +174,7 @@ export default async function EventTicketsAssociatesPage(
                         </>
                     )
                 } />
-            { service.canFetchPurchaseDetails() &&
+            { service.capabilities.canFetchOrderDetails &&
                 <AssociateOrderSection
                     action={updateOrderEmailFn}
                     purchaseId={purchase.id}

@@ -488,6 +488,11 @@ export interface VolunteerTicket {
     purchaseId: number | string;
 
     /**
+     * Barcode through which the ticket can be scanned, when available.
+     */
+    barcode?: string;
+
+    /**
      * Date/time string when the purchase was paid, if settled.
      */
     paid?: string;

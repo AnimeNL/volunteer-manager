@@ -145,7 +145,7 @@ export default async function EventTeamVolunteerPage(
     );
 
     const ticketService = await createTicketService(event.id);
-    const ticketStatus = ticketService?.canManageVolunteerTickets()
+    const ticketStatus = ticketService?.capabilities.canManageVolunteerTickets
         ? <TicketStatusTile event={event.id} user={volunteer.id} />
         : undefined;
 

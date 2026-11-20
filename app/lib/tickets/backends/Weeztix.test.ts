@@ -34,6 +34,28 @@ describe('Weeztix', () => {
         consoleErrorSpy.mockRestore();
     });
 
+    it('exposes structured capabilities reflecting the event configuration', () => {
+        const withoutVolunteerTicket = new Weeztix('event-guid-1');
+        expect(withoutVolunteerTicket.capabilities).toEqual({
+            canCancelOrder: false,
+            canCreateOrder: false,
+            canFetchOrderDetails: true,
+            canManageVolunteerTickets: false,
+            canResendConfirmation: true,
+            canUpdateOrder: true,
+        });
+
+        const withVolunteerTicket = new Weeztix('event-guid-1', 'company-guid', 'ticket-guid');
+        expect(withVolunteerTicket.capabilities).toEqual({
+            canCancelOrder: false,
+            canCreateOrder: false,
+            canFetchOrderDetails: true,
+            canManageVolunteerTickets: true,
+            canResendConfirmation: true,
+            canUpdateOrder: true,
+        });
+    });
+
     it('fetches and caches purchase details in the TicketProvider cache', async () => {
         const service = new Weeztix('event-guid-1');
 

@@ -21,7 +21,7 @@ export default async function EventTicketsLayout(
     });
 
     const service = await createTicketService(event.id);
-    const canManageVolunteerTickets = !!service?.canManageVolunteerTickets();
+    const canManageVolunteerTickets = !!service?.capabilities.canManageVolunteerTickets;
 
     return (
         <SectionTabContext access={access} tabs={[

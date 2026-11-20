@@ -6,7 +6,7 @@ import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, Provider
     Purchase, PurchaseDetails, Ticket, TicketConfiguration, TicketCreateRequest,
     TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
     TicketType, VolunteerTicket } from '../Types';
-import type { TicketService } from '../TicketService';
+import type { TicketService, TicketServiceCapabilities } from '../TicketService';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { fetchYourTicketProviderProductSales, fetchYourTicketProviderProducts,
     hasYourTicketProviderSales } from './YourTicketProviderFinancialData';
@@ -34,6 +34,17 @@ export class YourTicketProvider implements TicketService {
     get id(): EventTicketProvider { return 'YourTicketProvider' };
     get eventId(): number | string { return this.#eventId; }
 
+    get capabilities(): TicketServiceCapabilities {
+        return {
+            canCancelOrder: false,
+            canCreateOrder: false,
+            canFetchOrderDetails: false,
+            canManageVolunteerTickets: false,
+            canResendConfirmation: false,
+            canUpdateOrder: false,
+        } as const;
+    }
+
     async anonymizeTickets(): Promise<number> {
         return db.update(tYourTicketProviderPurchases)
             .set({
@@ -49,22 +60,6 @@ export class YourTicketProvider implements TicketService {
     createPurchaseLink(purchaseId: number | string): string | undefined {
         const baseUrl = 'https://www.yourticketprovider.nl/account/events/manage/guests';
         return `${baseUrl}/purchaseitems.aspx?y=${this.#eventId}&purchaseid=${purchaseId}`;
-    }
-
-    canCancelPurchases(): boolean {
-        return false;
-    }
-
-    canCreateTickets(): boolean {
-        return false;
-    }
-
-    canFetchPurchaseDetails(): boolean {
-        return false;
-    }
-
-    canManageVolunteerTickets(): boolean {
-        return false;
     }
 
     async cancelPurchase(purchaseId: number | string): Promise<void> {
@@ -279,6 +274,7 @@ export class YourTicketProvider implements TicketService {
             .select({
                 userId: tUsersEventsTickets.userId,
                 purchaseId: tYourTicketProviderPurchases.ytpPurchaseId,
+                barcode: tYourTicketProviderPurchases.ytpPurchaseItemBarcode,
                 paid: dbInstance.dateTimeAsString(
                     tYourTicketProviderPurchases.ytpPurchaseDatePaid),
                 cancelled: tYourTicketProviderPurchases.ytpPurchaseDateCancelled.isNotNull(),
@@ -290,6 +286,7 @@ export class YourTicketProvider implements TicketService {
         for (const row of rows) {
             tickets.set(row.userId, {
                 purchaseId: row.purchaseId,
+                barcode: row.barcode || undefined,
                 paid: row.paid,
                 cancelled: row.cancelled,
             });

@@ -83,7 +83,7 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.canCancelPurchases() || !event.tickets?.volunteerTicketId)
+        if (!service || !service.capabilities.canCancelOrder || !event.tickets?.volunteerTicketId)
             notFound();
 
         // Confirm that the |purchaseId| corresponds to a ticket that contains a volunteering
@@ -169,7 +169,7 @@ export async function createAssociateTicket(eventSlug: string, formData: unknown
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.canCreateTickets() || !event.tickets?.volunteerTicketId)
+        if (!service || !service.capabilities.canCreateOrder || !event.tickets?.volunteerTicketId)
             notFound();
 
         const ticket = await service.createTicket({
@@ -255,8 +255,11 @@ export async function resendPurchaseConfirmation(eventSlug: string, purchaseId: 
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !event.tickets?.volunteerTicketId)
+        if (!service || !service.capabilities.canResendConfirmation ||
+                !event.tickets?.volunteerTicketId)
+        {
             notFound();
+        }
 
         const result = await service.sendPurchaseConfirmation(purchaseId);
         if (!result) {
@@ -304,7 +307,7 @@ export async function updateAssociateTicket(
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.canFetchPurchaseDetails())
+        if (!service || !service.capabilities.canUpdateOrder)
             notFound();
 
         const purchase = await service.fetchPurchase(purchaseId);
@@ -389,7 +392,7 @@ export async function updatePurchaseEmail(
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.canFetchPurchaseDetails())
+        if (!service || !service.capabilities.canUpdateOrder)
             notFound();
 
         const purchase = await service.fetchPurchase(purchaseId);

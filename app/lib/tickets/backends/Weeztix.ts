@@ -6,7 +6,7 @@ import type { FinancialFilter, FinancialFilterOptions, ProviderProduct, Provider
     Purchase, PurchaseDetails, Ticket, TicketConfiguration, TicketCreateRequest,
     TicketFinancialSummary, TicketSearchRequest, TicketSearchResults, TicketStatistics,
     TicketType, VolunteerTicket } from '../Types';
-import type { TicketService } from '../TicketService';
+import type { TicketService, TicketServiceCapabilities } from '../TicketService';
 import { Cache } from '@lib/cache';
 import { computeWeeztixTicketCapacity, createWeeztixClient } from '@lib/integrations/weeztix';
 import { fetchWeeztixFinancialFilterOptions, fetchWeeztixProductSales, fetchWeeztixProducts,
@@ -92,6 +92,17 @@ export class Weeztix implements TicketService {
     get id(): EventTicketProvider { return 'Weeztix' };
     get eventId(): number | string { return this.#eventId; }
 
+    get capabilities(): TicketServiceCapabilities {
+        return {
+            canCancelOrder: false,
+            canCreateOrder: false,
+            canFetchOrderDetails: true,
+            canManageVolunteerTickets: !!this.#volunteerTicketGuid,
+            canResendConfirmation: true,
+            canUpdateOrder: true,
+        } as const;
+    }
+
     async anonymizeTickets(): Promise<number> {
         return db.transaction(async () => {
             const ticketRows = await db.update(tWeeztixTickets)
@@ -130,22 +141,6 @@ export class Weeztix implements TicketService {
 
             return ticketRows + purchaseRows + orderRows;
         });
-    }
-
-    canCancelPurchases(): boolean {
-        return false;
-    }
-
-    canCreateTickets(): boolean {
-        return false;
-    }
-
-    canFetchPurchaseDetails(): boolean {
-        return true;
-    }
-
-    canManageVolunteerTickets(): boolean {
-        return !!this.#volunteerTicketGuid;
     }
 
     async cancelPurchase(purchaseId: number | string): Promise<void> {
@@ -524,18 +519,24 @@ export class Weeztix implements TicketService {
             return new Map();
 
         const dbInstance = db;
+        const ticketsJoin = tWeeztixTickets.forUseInLeftJoin();
 
         const rows = await dbInstance.selectFrom(tUsersEventsTickets)
             .innerJoin(tWeeztixOrders)
                 .on(tWeeztixOrders.weeztixEventGuid.equals(this.#eventId))
                     .and(tWeeztixOrders.weeztixGuid.equals(
                         tUsersEventsTickets.ticketProviderPurchaseId))
+            .leftJoin(ticketsJoin)
+                .on(ticketsJoin.weeztixEventGuid.equals(this.#eventId))
+                    .and(ticketsJoin.weeztixOrderGuid.equals(tWeeztixOrders.weeztixGuid))
+                    .and(ticketsJoin.weeztixTicketDeleted.isNull())
             .where(tUsersEventsTickets.eventId.equals(eventId))
                 .and(tUsersEventsTickets.ticketProvider.equals('Weeztix'))
                 .and(tUsersEventsTickets.userId.inIfValue(userIds))
             .select({
                 userId: tUsersEventsTickets.userId,
                 purchaseId: tWeeztixOrders.weeztixGuid,
+                barcode: ticketsJoin.weeztixTicketBarcode,
                 paid: dbInstance.dateTimeAsString(tWeeztixOrders.weeztixOrderCreated),
                 orderStatus: tWeeztixOrders.weeztixOrderStatus,
                 cancelled: tWeeztixOrders.weeztixOrderDeleted.isNotNull().or(
@@ -545,8 +546,13 @@ export class Weeztix implements TicketService {
 
         const tickets = new Map<number, VolunteerTicket>();
         for (const row of rows) {
+            const existing = tickets.get(row.userId);
+            if (existing?.barcode)
+                continue;
+
             tickets.set(row.userId, {
                 purchaseId: row.purchaseId,
+                barcode: row.barcode || undefined,
                 paid: kWeeztixSettledOrderStatuses.includes(row.orderStatus) ? row.paid : undefined,
                 cancelled: row.cancelled,
             });
