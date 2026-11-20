@@ -86,6 +86,7 @@ const kGetOrderTicketSchema = z.object({
     created_at: z.string().nullish(),
     updated_at: z.string().nullish(),
     ticket: z.object({ guid: z.string().nonempty() }).optional(),
+    metadata: z.array(kOrderMetadataSchema).optional(),
     meta_data: z.array(kOrderMetadataSchema).optional(),
     products: z.array(kGetOrderProductSchema).optional(),
 });

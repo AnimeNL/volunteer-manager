@@ -210,7 +210,7 @@ export class WeeztixImportTask extends Task {
         const mostRecentUpdateSubQuery = dbInstance.subSelectUsing(tEvents)
             .from(tWeeztixOrders)
                 .where(tWeeztixOrders.weeztixEventGuid.equals(tEvents.eventWeeztixGuid))
-                    .and(tWeeztixOrders.weeztixOrderManualUpdate.equals(/* false= */ 0))
+                    .and(tWeeztixOrders.weeztixOrderUpdatedManual.equals(/* false= */ 0))
             .selectOneColumn(dbInstance.max(tWeeztixOrders.weeztixOrderUpdated))
             .forUseAsInlineQueryValue();
 

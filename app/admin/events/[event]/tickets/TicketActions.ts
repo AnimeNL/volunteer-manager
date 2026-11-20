@@ -332,14 +332,16 @@ export async function updateAssociateTicket(
         }
 
         const result = await UpdateTicketTask.ExecuteNow({
-            event: event.id,
+            event: event.slug,
             orderId: purchaseId,
             ticketId,
-            name: data.holder,
-            email: details.email,
-            function: data.function,
-            organisation: data.organisation,
-            nickname: data.nickname || undefined,
+            details: {
+                name: data.holder,
+                email: details.email,
+                function: data.function,
+                organisation: data.organisation,
+                nickname: data.nickname || undefined,
+            },
         });
 
         if (!result) {

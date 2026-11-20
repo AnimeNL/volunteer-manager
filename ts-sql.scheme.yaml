@@ -1635,6 +1635,10 @@ tables:
   - name: weeztix_order_updated
     type: datetime
     nullable: false
+  - name: weeztix_order_updated_manual
+    type: tinyint(1)
+    nullable: false
+    default: "0"
   - name: weeztix_order_deleted
     type: datetime
     nullable: true
@@ -1674,6 +1678,7 @@ tables:
       `weeztix_order_utm_term` text DEFAULT NULL,
       `weeztix_order_created` datetime NOT NULL,
       `weeztix_order_updated` datetime NOT NULL,
+      `weeztix_order_updated_manual` tinyint(1) NOT NULL DEFAULT 0,
       `weeztix_order_deleted` datetime DEFAULT NULL,
       `weeztix_order_manual_update` tinyint(1) unsigned NOT NULL DEFAULT 0,
       UNIQUE KEY `weeztix_guid` (`weeztix_guid`),

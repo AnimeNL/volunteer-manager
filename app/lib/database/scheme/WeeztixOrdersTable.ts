@@ -23,6 +23,7 @@ export class WeeztixOrdersTable extends Table<DBConnection, 'WeeztixOrdersTable'
     weeztixOrderUtmTerm = this.optionalColumnWithDefaultValue('weeztix_order_utm_term', 'string');
     weeztixOrderCreated = this.column<Temporal.ZonedDateTime>('weeztix_order_created', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderUpdated = this.column<Temporal.ZonedDateTime>('weeztix_order_updated', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
+    weeztixOrderUpdatedManual = this.columnWithDefaultValue('weeztix_order_updated_manual', 'int');
     weeztixOrderDeleted = this.optionalColumnWithDefaultValue<Temporal.ZonedDateTime>('weeztix_order_deleted', 'customLocalDateTime', 'dateTime', TemporalTypeAdapter);
     weeztixOrderManualUpdate = this.columnWithDefaultValue('weeztix_order_manual_update', 'int');
 

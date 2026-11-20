@@ -5,19 +5,19 @@ import { z } from 'zod/v4';
 
 import { Cache } from '@lib/cache';
 import { TaskWithParams } from '../Task';
-import { WeeztixImportTask } from './WeeztixImportTask';
 import { createTicketService } from '@lib/tickets';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeTaskNow } from '@lib/scheduler';
+import db, { tWeeztixOrders, tWeeztixTickets } from '@lib/database';
 
 /**
  * Parameter scheme applying to the `UpdateTicketTask`.
  */
 const kUpdateTicketTaskParamScheme = z.object({
     /**
-     * Event ID or slug used to resolve the configured ticketing provider.
+     * Event slug used to resolve the configured ticketing provider.
      */
-    event: z.union([ z.number(), z.string().nonempty() ]),
+    event: z.string(),
 
     /**
      * Unique ID of the order containing the ticket to update.
@@ -30,30 +30,35 @@ const kUpdateTicketTaskParamScheme = z.object({
     ticketId: z.union([ z.number(), z.string().nonempty() ]),
 
     /**
-     * Full name of the ticket holder.
+     * Details about the ticket that should be updated.
      */
-    name: z.string().trim().nonempty(),
+    details: z.object({
+        /**
+         * Full name of the ticket holder.
+         */
+        name: z.string().trim().nonempty(),
 
-    /**
-     * E-mail address associated with the order receiver.
-     */
-    email: z.email(),
+        /**
+         * E-mail address associated with the ticket and/or order.
+         */
+        email: z.email(),
 
-    /**
-     * Function (role) to assign to the ticket holder.
-     */
-    function: z.string().trim().nonempty(),
+        /**
+         * Function (role) to assign to the ticket holder.
+         */
+        function: z.string().trim().nonempty(),
 
-    /**
-     * Organisation (department) to assign to the ticket holder.
-     */
-    organisation: z.string().trim().nonempty(),
+        /**
+         * Organisation (department) to assign to the ticket holder.
+         */
+        organisation: z.string().trim().nonempty(),
 
-    /**
-     * Optional nickname for the ticket holder. Omitting or passing an empty string clears any
-     * existing nickname on the ticket.
-     */
-    nickname: z.string().trim().optional(),
+        /**
+         * Optional nickname for the ticket holder.
+         */
+        nickname: z.string().trim().optional(),
+
+    }),
 });
 
 /**
@@ -107,8 +112,7 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
         switch (service.id) {
             case 'Weeztix':
                 return this.updateWeeztixTicket(
-                    String(service.eventId), String(params.orderId), String(params.ticketId),
-                    params);
+                    String(params.orderId), String(params.ticketId), params);
 
             default:
                 this.log.error(`Updating tickets is not supported for provider "${service.id}".`);
@@ -121,9 +125,8 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
      * one-off import to reflect the updated order locally. Ticket metadata is updated before
      * receiver information so Weeztix's ticket PDF rebuild includes the changes.
      */
-    private async updateWeeztixTicket(
-        eventGuid: string, orderGuid: string, ticketGuid: string, params: TaskParams)
-            : Promise<boolean>
+    private async updateWeeztixTicket(orderGuid: string, ticketGuid: string, params: TaskParams)
+        : Promise<boolean>
     {
         const client = await createWeeztixClient();
 
@@ -136,30 +139,37 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
             return false;
         }
 
-        const existingMetadata = new Map(
-            (ticket.meta_data ?? []).map(entry => [ entry.metadata_id, entry ]));
+        const existingMetadata = ticket.metadata ?? ticket.meta_data ?? [];
+        const existingMetadataMap = new Map(existingMetadata.map(entry => [
+            entry.metadata_id,
+            entry
+        ]));
 
-        const { firstName, lastName } = splitFullName(params.name);
-        const desiredMetadata: [ string, string ][] = [
-            [ client.metaFirstNameId, firstName ],
-            [ client.metaLastNameId, lastName ],
-            [ client.metaFunctionId, params.function ],
-            [ client.metaOrganisationId, params.organisation ],
-            [ client.metaNicknameId, params.nickname ?? '' ],
+        const { firstName, lastName } = splitFullName(params.details.name);
+        const desiredMetadata: [ string, string, string ][] = [
+            [ 'first_name', client.metaFirstNameId, firstName ],
+            [ 'last_name', client.metaLastNameId, lastName ],
+            [ 'function', client.metaFunctionId, params.details.function ],
+            [ 'organisation', client.metaOrganisationId, params.details.organisation ],
+            [ 'nickname', client.metaNicknameId, params.details.nickname ?? '' ],
         ];
 
-        for (const [ metadataId, desiredValue ] of desiredMetadata) {
-            const existing = existingMetadata.get(metadataId);
+        for (const [ metadataLabel, metadataId, desiredValue ] of desiredMetadata) {
+            const existing = existingMetadataMap.get(metadataId);
             const currentValue = existing?.value != null ? String(existing.value) : '';
 
             if (existing) {
                 if (currentValue === desiredValue)
                     continue;
 
-                await client.updateOrderTicketMetadata(orderGuid, ticketGuid, existing.guid, {
-                    value: desiredValue,
-                });
+                this.log.info(`Updating ticket metadata for ${metadataLabel} (${existing.guid})`);
+
+                await client.updateOrderTicketMetadata(
+                    orderGuid, ticketGuid, existing.guid, { value: desiredValue, });
+
             } else if (desiredValue.length > 0) {
+                this.log.info(`Creating ticket metadata for ${metadataLabel}`);
+
                 await client.createOrderTicketMetadata(orderGuid, ticketGuid, {
                     metadata_id: metadataId,
                     value: desiredValue,
@@ -167,25 +177,49 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
             }
         }
 
-        this.log.info(`Updating receiver information for Weeztix order ${orderGuid}.`);
-        const updatedOrder = await client.updateOrderReceiver(orderGuid, {
-            email: params.email,
-            firstName,
-            lastName,
-        });
+        if (order.email !== params.details.email || order.firstName !== firstName
+                || order.lastName !== lastName)
+        {
+            this.log.info(`Updating receiver information for Weeztix order ${orderGuid}.`);
+
+            await client.updateOrderReceiver(orderGuid, {
+                email: params.details.email,
+                firstName,
+                lastName,
+            });
+        }
 
         Cache.getInstance('TicketProvider').set(`weeztix/order/${orderGuid}`, {
             order: {
-                email: updatedOrder.email?.trim() || params.email,
+                email: params.details.email,
             },
         });
 
         this.log.info(`Synchronising updated Weeztix order ${orderGuid} into the local database.`);
-        const imported = await WeeztixImportTask.importOrder(eventGuid, orderGuid);
-        if (!imported) {
-            this.log.error(`Failed to synchronise updated Weeztix order ${orderGuid}.`);
-            return false;
-        }
+
+        const dbInstance = db;
+        await dbInstance.transaction(async () => {
+            await dbInstance.update(tWeeztixOrders)
+                .set({
+                    weeztixOrderName: params.details.name,
+                    weeztixOrderUpdated: dbInstance.currentZonedDateTime(),
+                    weeztixOrderUpdatedManual: 1,
+                })
+                .where(tWeeztixOrders.weeztixGuid.equals(orderGuid))
+                .executeUpdate();
+
+            await dbInstance.update(tWeeztixTickets)
+                .set({
+                    weeztixTicketMetaFunction: params.details.function,
+                    weeztixTicketMetaNickname: params.details.nickname || null,
+                    weeztixTicketMetaOrganisation: params.details.organisation,
+                    weeztixTicketName: params.details.name,
+                    weeztixTicketUpdated: dbInstance.currentZonedDateTime(),
+                })
+                .where(tWeeztixTickets.weeztixGuid.equals(ticketGuid))
+                    .and(tWeeztixTickets.weeztixOrderGuid.equals(orderGuid))
+                .executeUpdate();
+        });
 
         return true;
     }
