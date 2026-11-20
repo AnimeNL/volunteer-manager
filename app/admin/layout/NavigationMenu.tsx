@@ -5,7 +5,7 @@ import type { AccessControl } from '@lib/auth/access';
 import type { NavigationItem, NavigationTopLevelItem } from './NavigationItem';
 import type { NavigationMenuId } from './NavigationMenuId';
 import { NavigationMenuClient } from './NavigationMenuClient';
-import { checkPermission, or } from '@lib/auth';
+import { checkPermission, or } from '@lib/auth/access';
 import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
 
 /**

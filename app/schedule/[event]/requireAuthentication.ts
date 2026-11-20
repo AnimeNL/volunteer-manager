@@ -3,10 +3,9 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import type { AccessScope } from '@lib/auth/access';
+import type { AccessScope, PermissionAccessCheck, PermissionSet } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
-import type { PermissionAccessCheck, PermissionSet, UserAuthenticationContext }
-    from '@lib/auth';
+import type { UserAuthenticationContext } from '@lib/auth';
 import { getEvent } from '@lib/cache';
 import { requireAuthenticationContext } from '@lib/auth';
 

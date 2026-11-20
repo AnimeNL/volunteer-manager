@@ -3,10 +3,8 @@
 
 export type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
     from './AuthenticationContextTypes';
-export type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
 export type { User } from './User';
 
-export { and, checkPermission, or } from './access/PermissionCheck';
 export { clearAuthCache, executeAccessCheck, getAuthenticationContext,
     getAuthenticationContextFromHeaders, invalidateUserAuthCache, loadUserAuthenticationContext,
     requireAuthenticationContext } from './AuthenticationContext';

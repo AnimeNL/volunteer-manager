@@ -15,7 +15,7 @@ import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCh
 import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
-import { and, checkPermission, or } from './access/PermissionCheck';
+import { checkPermission } from './access/PermissionCheck';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
@@ -27,13 +27,9 @@ import { kAuthType, kRegistrationStatus } from '../database/Types';
 
 export type {
     AuthenticationContext,
-    PermissionAccessCheck,
-    PermissionSet,
     UserAuthenticationContext,
     VisitorAuthenticationContext,
 };
-
-export { and, checkPermission, or };
 
 /**
  * Row shape returned by the user authentication query in `loadUserAuthenticationContext()`.

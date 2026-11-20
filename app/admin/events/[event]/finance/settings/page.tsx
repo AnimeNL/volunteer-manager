@@ -14,9 +14,10 @@ import { FinanceProcessor } from '../FinanceProcessor';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { and } from '@lib/auth/access';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck, and } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 

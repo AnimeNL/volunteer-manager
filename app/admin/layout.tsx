@@ -7,7 +7,7 @@ import { AdminClientProviders } from './AdminClientProviders';
 import { Cache } from '@lib/cache';
 import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
-import { checkPermission } from '@lib/auth';
+import { checkPermission } from '@lib/auth/access';
 import { computePalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
 import { readUserSettings } from '@lib/UserSettings';

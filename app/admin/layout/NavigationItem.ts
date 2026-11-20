@@ -3,7 +3,7 @@
 
 import type SvgIcon from '@mui/material/SvgIcon';
 
-import type { PermissionAccessCheck } from '@lib/auth';
+import type { PermissionAccessCheck } from '@lib/auth/access';
 
 /**
  * Individual item to include in a navigation section.
