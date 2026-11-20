@@ -168,7 +168,6 @@ export default async function EventTicketsAssociatesPage(
                         <>
                             { !!associatePurchaseFn &&
                                 <AssociateQuickAction action={associatePurchaseFn}
-                                                      ticketProvider={service.id}
                                                       volunteers={associateVolunteers} /> }
                             { !!resendConfirmationFn &&
                                 <ResendConfirmationQuickAction action={resendConfirmationFn} /> }

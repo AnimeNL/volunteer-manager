@@ -6,6 +6,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { CancelTicketTask } from '@lib/scheduler/tasks/CancelTicketTask';
 import { LogBuilder } from '@lib/log/index';
 import { UpdateTicketTask } from '@lib/scheduler/tasks/UpdateTicketTask';
@@ -14,13 +15,44 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEventsTickets } from '@lib/database';
 
-import { kEventTicketProvider } from '@lib/database/Types';
+/**
+ * Authenticates the request, verifies the ticket service supports |capability|, fetches the
+ * purchase identified by |purchaseId|, and confirms the caller has access to it.
+ */
+async function requireMutablePurchase(
+    authenticationContext: AuthenticationContext,
+    eventSlug: string,
+    purchaseId: number | string,
+    operation: 'delete' | 'update',
+    capability: 'canCancelOrder' | 'canUpdateOrder')
+{
+    const { access, event } = await requireAuthenticationWithEvent(
+        authenticationContext, eventSlug, {
+            permission: 'volunteers.tickets',
+            operation,
+        });
+
+    const service = await createTicketService(event.id);
+    if (!service || !service.capabilities[capability])
+        notFound();
+
+    const purchase = await service.fetchPurchase(purchaseId);
+    if (!purchase)
+        notFound();
+
+    const containsVolunteerTicket = purchase.tickets.some(
+        ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
+
+    if (!containsVolunteerTicket && !access.can('root'))
+        forbidden();
+
+    return { event, service, purchase };
+}
 
 /**
  * Data required to associate a purchase with a volunteer.
  */
 const kAssociatePurchaseData = z.object({
-    ticketProvider: z.enum(kEventTicketProvider),
     userId: z.number(),
 });
 
@@ -77,25 +109,8 @@ export async function associatePurchase(
  */
 export async function cancelPurchase(eventSlug: string, purchaseId: number | string) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
-        const { access, event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, {
-                permission: 'volunteers.tickets',
-                operation: 'delete',
-            });
-
-        const service = await createTicketService(event.id);
-        if (!service || !service.capabilities.canCancelOrder)
-            notFound();
-
-        const purchase = await service.fetchPurchase(purchaseId);
-        if (!purchase)
-            notFound();
-
-        const containsVolunteerTicket = purchase.tickets.some(
-            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
-
-        if (!containsVolunteerTicket && !access.can('root'))
-            forbidden();
+        const { event, purchase } = await requireMutablePurchase(
+            props.authenticationContext, eventSlug, purchaseId, 'delete', 'canCancelOrder');
 
         if (!!purchase.cancelled) {
             return {
@@ -316,25 +331,8 @@ export async function updateAssociateTicket(
     eventSlug: string, purchaseId: number | string, ticketId: number | string, formData: unknown)
 {
     return executeServerAction(formData, kUpdateAssociateTicketData, async (data, props) => {
-        const { access, event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, {
-                permission: 'volunteers.tickets',
-                operation: 'update',
-            });
-
-        const service = await createTicketService(event.id);
-        if (!service || !service.capabilities.canUpdateOrder)
-            notFound();
-
-        const purchase = await service.fetchPurchase(purchaseId);
-        if (!purchase)
-            notFound();
-
-        const containsVolunteerTicket = purchase.tickets.some(
-            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
-
-        if (!containsVolunteerTicket && !access.can('root'))
-            forbidden();
+        const { event, service, purchase } = await requireMutablePurchase(
+            props.authenticationContext, eventSlug, purchaseId, 'update', 'canUpdateOrder');
 
         if (!!purchase.cancelled) {
             return {
@@ -408,25 +406,8 @@ export async function updatePurchaseEmail(
     eventSlug: string, purchaseId: number | string, formData: unknown)
 {
     return executeServerAction(formData, kUpdatePurchaseEmailData, async (data, props) => {
-        const { access, event } = await requireAuthenticationWithEvent(
-            props.authenticationContext, eventSlug, {
-                permission: 'volunteers.tickets',
-                operation: 'update',
-            });
-
-        const service = await createTicketService(event.id);
-        if (!service || !service.capabilities.canUpdateOrder)
-            notFound();
-
-        const purchase = await service.fetchPurchase(purchaseId);
-        if (!purchase)
-            notFound();
-
-        const containsVolunteerTicket = purchase.tickets.some(
-            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
-
-        if (!containsVolunteerTicket && !access.can('root'))
-            forbidden();
+        const { event, service, purchase } = await requireMutablePurchase(
+            props.authenticationContext, eventSlug, purchaseId, 'update', 'canUpdateOrder');
 
         if (!!purchase.cancelled) {
             return {

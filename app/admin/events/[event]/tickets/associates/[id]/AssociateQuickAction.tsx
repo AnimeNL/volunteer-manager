@@ -1,14 +1,10 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-'use client';
-
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 
-import type { EventTicketProvider } from '@lib/database/Types';
 import type { ServerAction } from '@lib/serverAction';
 import { AutocompleteElementWithDisabledOptions } from '@app/admin/components/AutocompleteElementWithDisabledOptions';
-import { HiddenInput } from '@components/HiddenInput';
 import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 
 /**
@@ -18,12 +14,7 @@ interface AssociateQuickActionProps {
     /**
      * Server Action through which the association can be created.
      */
-    action: ServerAction<{ ticketProvider: EventTicketProvider, userId: number }>;
-
-    /**
-     * Name of the ticketing partner used for this event.
-     */
-    ticketProvider: EventTicketProvider;
+    action: ServerAction<{ userId: number }>;
 
     /**
      * Volunteers who participate in the event.
@@ -56,7 +47,6 @@ export function AssociateQuickAction(props: AssociateQuickActionProps) {
     return (
         <QuickActionButton
             action={props.action}
-            defaultValues={{ ticketProvider: props.ticketProvider }}
             icon={ <PersonAddAltOutlinedIcon /> }
             label="Associate with volunteer"
             submitLabel="Associate"
@@ -68,7 +58,6 @@ export function AssociateQuickAction(props: AssociateQuickActionProps) {
                 </>
             }>
 
-            <HiddenInput name="ticketProvider" />
             <AutocompleteElementWithDisabledOptions
                 name="userId" label="Volunteer" options={props.volunteers} required
                 matchId autocompleteProps={{ fullWidth: true, size: 'small' }} />
