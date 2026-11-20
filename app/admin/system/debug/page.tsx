@@ -23,7 +23,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { markdownToHtml } from '@components/Markdown';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
-import { kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 /**
  * Zod scheme that the debug action will be validated against.

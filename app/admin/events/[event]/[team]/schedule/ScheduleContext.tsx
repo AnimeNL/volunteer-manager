@@ -27,7 +27,6 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { ChangeEventContext, ScheduleEvent } from '@app/admin/components/Schedule';
 import type { GetScheduleResult } from './ScheduleActions';
-import type { PageInfoWithTeam } from '@app/admin/events/verifyAccessAndFetchPageInfo';
 import { DocumentationButton } from '@app/admin/components/Documentation';
 import { ScheduleHighlightDialog } from './ScheduleHighlightDialog';
 import { SectionHeader } from '@app/admin/components/SectionHeader';
@@ -98,12 +97,19 @@ interface ScheduleContextImplProps {
     /**
      * Information about the event for which the schedule is being shown.
      */
-    event: PageInfoWithTeam['event'];
+    event: {
+        slug: string;
+        startTime: string;
+        endTime: string;
+    };
 
     /**
      * Information about the team for which the schedule is being shown.
      */
-    team: PageInfoWithTeam['team'];
+    team: {
+        slug: string;
+        name: string;
+    };
 
     /**
      * Default values that should be set in the context.

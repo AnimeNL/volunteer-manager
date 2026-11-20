@@ -18,7 +18,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
-import { verifyAccessAndFetchPageInfo } from '@app/admin/events/verifyAccessAndFetchPageInfo';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tSchedule, tScheduleLogs, tShifts, tUsers } from '@lib/database';
 
 import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';
@@ -234,11 +234,12 @@ const kExpandSection = z.record(z.string(), z.boolean());
 export default async function EventTeamSchedulePage(
     props: PageProps<'/admin/events/[event]/[team]/schedule'>)
 {
-    const { access, event, team, user } = await verifyAccessAndFetchPageInfo(props.params);
-    if (!access.can('volunteers.schedules', 'read', { event: event.slug, team: team.slug }))
-        notFound();
+    const { access, event, team, user } = await requireAuthenticationWithEventAndTeam(props, {
+        permission: 'volunteers.schedules',
+        operation: 'read',
+    });
 
-    if (!team.flagEnableScheduling)
+    if (!team.flags.enableScheduling)
         notFound();
 
     const userSettings = await readUserSettings(user.id, [
@@ -281,7 +282,17 @@ export default async function EventTeamSchedulePage(
                     Please ask your Staff member to add you to the scheduling team if you would like
                     to be able to make any changes.
                 </Paper> }
-            <ScheduleContextImpl event={event} team={team} defaultContext={defaultContext}>
+            <ScheduleContextImpl
+                event={{
+                    slug: event.slug,
+                    startTime: event.startTime.toString(),
+                    endTime: event.endTime.toString(),
+                }}
+                team={{
+                    slug: team.slug,
+                    name: team.name,
+                }}
+                defaultContext={defaultContext}>
 
                 <ScheduleImpl readOnly={readOnly} sections={sections}
                               historyContext={{ event: event.slug, team: team.slug }}

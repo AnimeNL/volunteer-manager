@@ -2,12 +2,11 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { z } from 'zod/v4';
-import { forbidden, notFound } from 'next/navigation';
 
 import type { AccessControl } from '@lib/auth/AccessControl';
-import type { ActionProps } from '../../Action';
-import type { ApiRequest, ApiResponse } from '../../Types';
 import type { DBConnection } from '@lib/database/Connection';
+import type { PublicSchedule } from './PublicSchedule';
+import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { FavouriteCache } from './FavouriteCache';
 import { ScheduleCache } from './ScheduleCache';
 import { createTicketService } from '@lib/tickets';
@@ -24,23 +23,8 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTim
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
 import { kAnyTeam } from '@lib/auth/AccessList';
 import { kAvailabilityException } from '@app/admin/events/[event]/[team]/schedule/fn/determineAvailability';
-import { kPublicSchedule } from './PublicSchedule';
 
-/**
- * Interface definition for the public Schedule API, exposed through /api/event/schedule.
- */
-export const kPublicScheduleDefinition = z.object({
-    request: z.object({
-        /**
-         * Unique slug of the event for which the schedule should be requested.
-         */
-        event: z.string(),
-    }),
-    response: kPublicSchedule,
-});
-
-type Request = ApiRequest<typeof kPublicScheduleDefinition>;
-type Response = ApiResponse<typeof kPublicScheduleDefinition>;
+type Response = PublicSchedule;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -954,28 +938,29 @@ async function populateTicket(schedule: Response, eventId: number) {
 
 // -------------------------------------------------------------------------------------------------
 
+export type GetScheduleResult = PublicSchedule | 'forbidden' | 'not-found';
+
 /**
  * API through which volunteers can request the latest schedule of one of the AnimeCon events. This
  * is a comprehensive API that returns all necessary information, with as much computing as possible
  * offloaded to the server.
  */
-export async function getSchedule(request: Request, props: ActionProps): Promise<Response> {
-    if (!props.user || !props.authenticationContext.user)
-        notFound();
-
-    const event = await getEventBySlug(request.event);
+export async function getSchedule(
+    eventSlug: string, context: UserAuthenticationContext): Promise<GetScheduleResult>
+{
+    const event = await getEventBySlug(eventSlug);
     if (!event || !event.festivalId)
-        notFound();
+        return 'not-found';
 
-    const { access } = props;
+    const { access, user } = context;
 
     let team: string | undefined;  // slug
 
-    if (props.authenticationContext.events.has(event.slug)) {
-        team = props.authenticationContext.events.get(event.slug)!;
+    if (context.events.has(event.slug)) {
+        team = context.events.get(event.slug)!;
     } else {
         if (!access.can('event.schedule.access', { event: event.slug }))
-            forbidden();
+            return 'forbidden';
     }
 
     const notesAccess = access.can('volunteers.participation', 'read', {
@@ -1010,7 +995,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         'schedule-vendor-security-card',
     ]);
 
-    const schedule: Response = {
+    const schedule: PublicSchedule = {
         event: event.shortName,
         slug: event.slug,
         config: {
@@ -1040,7 +1025,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         schedule: { /* empty */ },
         shifts: { /* empty */ },
         teams: { /* empty */ },
-        userId: props.user.id,
+        userId: user.id,
         vendors: { /* empty */ },
         volunteersActive: 0,
         volunteers: { /* empty */ },

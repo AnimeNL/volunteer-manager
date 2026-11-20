@@ -14,7 +14,7 @@ import db, { tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/api/Types';
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
     from './AvailabilitySettings';

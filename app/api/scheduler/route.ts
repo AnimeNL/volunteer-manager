@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 
@@ -39,6 +40,18 @@ const kSchedulerRequest = z.object({
 ]));
 
 /**
+ * Compares two UTF-8 strings in constant time.
+ */
+function timingSafeEqualStrings(left: string, right: string): boolean {
+    const leftBuffer = Buffer.from(left, 'utf8');
+    const rightBuffer = Buffer.from(right, 'utf8');
+    if (leftBuffer.byteLength !== rightBuffer.byteLength)
+        return false;
+
+    return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+/**
  * API that powers the scheduler. While time keeping is done outside of Next.js, we want the actual
  * tasks to be executed within Next.js' context, hence issuing them as API calls.
  */
@@ -55,8 +68,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ success: false }, { status: 400 });
 
     const schedulerPassword = process.env.APP_SCHEDULER_PASSWORD;
-    if (!schedulerPassword?.length || parsed.data.password !== schedulerPassword)
+    if (!schedulerPassword?.length ||
+        !timingSafeEqualStrings(parsed.data.password, schedulerPassword))
+    {
         return NextResponse.json({ success: false }, { status: 403 });
+    }
 
     try {
         const taskRunner = TaskRunner.getOrCreateForScheduler(globalScheduler);

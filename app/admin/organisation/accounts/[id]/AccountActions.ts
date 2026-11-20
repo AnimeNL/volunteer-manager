@@ -27,7 +27,7 @@ import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptio
     tUsersAuth, tUsersPasskeys, tUsersSessions } from '@lib/database';
 
 import { kAuthType, kCommunicationLanguage, kFileType } from '@lib/database/Types';
-import { kTemporalPlainDate } from '@app/api/Types';
+import { kTemporalPlainDate } from '@app/admin/lib/ZodTransformers';
 
 /**
  * Unambiguous 32-character alphabet used for one-time access codes (excludes 0/O and 1/I/L).
