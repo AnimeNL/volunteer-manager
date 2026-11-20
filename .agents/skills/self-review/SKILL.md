@@ -60,3 +60,7 @@ an import from `next/link`. This is a workaround caused by a Next.js issue. Cons
 All entries within a block are strictly alphabetised, with two exceptions: first, type-only imports
 in a block come before all others, and second, the import from "@lib/database", when it includes the
 `db` symbol, comes last in the block.
+
+When wrapping long import statements, pack as many specifiers onto each line as fit within ~100
+characters (continuing onto the next line indented by 4 spaces, or placing `from '...'` on the next
+line). Never format imports with one specifier per line.
