@@ -20,7 +20,7 @@ import Typography from '@mui/material/Typography';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import type { RegistrationStatus } from '@lib/database/Types';
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { ApplicationAvailabilityForm } from './ApplicationParticipation';
 import { AuthenticationContext } from '../../AuthenticationContext';
 import { Avatar } from '@components/Avatar';

@@ -7,12 +7,12 @@ import { DataTable, createDataSource, kEventTransformer, withContext, withRowMod
     type ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@app/lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { readSetting } from '@lib/Settings';
 import db, { tVendors } from '@lib/database';
 
 import type { ShirtFit, ShirtSize, VendorTeam } from '@lib/database/Types';
-import { kAnyTeam } from '@lib/auth/access/AccessControl';
+import { kAnyTeam } from '@lib/auth/access';
 import { kShirtFit, kShirtSize, kVendorGender, kVendorTeam } from '@lib/database/Types';
 
 /**

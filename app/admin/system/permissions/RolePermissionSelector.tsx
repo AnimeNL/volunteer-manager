@@ -5,7 +5,7 @@ import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 
 import type { ServerAction } from '@lib/serverAction';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import { AccessControl } from '@lib/auth/access';
 import { PermissionSelector } from './PermissionSelector';
 
 /**

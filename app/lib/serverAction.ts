@@ -7,11 +7,11 @@ import { unauthorized } from 'next/navigation';
 import type { ZodError, ZodType, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
 
-import type { User } from './auth/User';
-import { AccessControl } from './auth/access/AccessControl';
+import type { User } from './auth';
+import { AccessControl } from './auth/access';
 import { RecordErrorLog, kLogSeverity } from './Log';
 import { getAuthenticationContextFromHeaders, type AuthenticationContext }
-    from './auth/AuthenticationContext';
+    from './auth';
 import { runWithUserContext } from './integrations/Instrumentation';
 
 import { kAuthType } from './database/Types';

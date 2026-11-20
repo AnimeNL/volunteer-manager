@@ -10,7 +10,7 @@ import { z } from 'zod/v4';
 import type { DisplayHelpRequestStatus } from '@lib/database/Types';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
-import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from '@lib/auth/DisplaySession';
+import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from '@lib/auth';
 import { isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tDisplays, tDisplaysRequests,

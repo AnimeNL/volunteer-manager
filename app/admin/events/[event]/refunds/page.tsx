@@ -24,7 +24,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tRefunds, tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 

@@ -3,7 +3,7 @@
 
 import { notFound, redirect } from 'next/navigation';
 
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import db, { tDutyBook, tEvents, tUsersEvents, tTeams } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

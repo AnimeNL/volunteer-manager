@@ -7,7 +7,7 @@ import { AdminClientProviders } from './AdminClientProviders';
 import { Cache } from '@lib/cache';
 import { MuiLicense } from '../components/MuiLicense';
 import { ResponsiveLayout } from './layout/ResponsiveLayout';
-import { checkPermission } from '@lib/auth/AuthenticationContext';
+import { checkPermission } from '@lib/auth';
 import { computePalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
 import { readUserSettings } from '@lib/UserSettings';
@@ -15,7 +15,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
-import { kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyTeam } from '@lib/auth/access';
 
 /**
  * Layout of the administration section of the Volunteer Manager. The layout is the same for every

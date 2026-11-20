@@ -14,7 +14,7 @@ import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleContextManager } from './ScheduleContextManager';
 import { ScheduleTheme } from './ScheduleTheme';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import { getEventBySlug } from '@lib/EventLoader';
 import { isAfter } from '@lib/Temporal';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';

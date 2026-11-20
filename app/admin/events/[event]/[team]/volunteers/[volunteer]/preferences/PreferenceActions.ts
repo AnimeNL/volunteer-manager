@@ -6,7 +6,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { LogBuilder } from '@lib/log/index';
 import { requireVolunteerAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';

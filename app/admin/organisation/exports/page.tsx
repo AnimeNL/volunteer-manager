@@ -11,7 +11,7 @@ import { ExportAvailabilityCell } from './ExportsRowComponents';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 

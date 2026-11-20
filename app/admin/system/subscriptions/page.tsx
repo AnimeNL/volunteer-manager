@@ -13,9 +13,9 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTestAction } from './SubscriptionTestAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { publishSubscriptionTest } from './SubscriptionActions';
-import { queryUsersWithPermission } from '@lib/auth/access/AccessQuery';
+import { queryUsersWithPermission } from '@lib/auth/access';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 /**

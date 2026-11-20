@@ -1,9 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AccessControl } from '@lib/auth/access/AccessControl';
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
-import type { User } from '@lib/auth/User';
+import type { AccessControl } from '@lib/auth/access';
+import type { AuthenticationContext, User } from '@lib/auth';
 
 /**
  * Props made available to methods on the data source.

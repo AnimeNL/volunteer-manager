@@ -12,7 +12,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { clearAuthCache, executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { clearAuthCache, executeAccessCheck } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 

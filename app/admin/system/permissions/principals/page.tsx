@@ -4,11 +4,11 @@
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import WorkspacesOutlinedIcon from '@mui/icons-material/WorkspacesOutlined';
 
-import type { AccessDescriptor, AccessOperation } from '@lib/auth/access/AccessDescriptor';
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
+import type { AccessDescriptor, AccessOperation, BooleanPermission, CRUDPermission }
+    from '@lib/auth/access';
 import type { PrincipalRecord, PrincipalScopeGroup, PrincipalSubgroup, PrincipalUser }
     from './PrincipalsAccordions';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import { AccessControl } from '@lib/auth/access';
 import { PrincipalsAccordion } from './PrincipalsAccordions';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -19,9 +19,8 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tPermissions, tPermissionsRoles, tRoles, tStorage, tTeams, tUsers,
     tUsersEvents } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessControl';
+import { kAnyEvent, kAnyTeam, kPermissions } from '@lib/auth/access';
 import { kCrudOperations } from '../toPermissionList';
-import { kPermissions } from '@lib/auth/access/Access';
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kRootRole } from '../Root';
 

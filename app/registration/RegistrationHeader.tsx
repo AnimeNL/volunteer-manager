@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { darken } from '@mui/material/styles';
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { AuthenticationHeaderChip } from './AuthenticationHeaderChip';
 import { determineInitials } from '@components/Avatar';
 

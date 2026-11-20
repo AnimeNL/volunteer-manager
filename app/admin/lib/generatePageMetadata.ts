@@ -4,11 +4,11 @@
 import type { Metadata } from 'next';
 
 import { Cache, getEvent, getTeam } from '@lib/cache';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import db, { tActivities, tContent, tEmailAccounts, tEnvironments, tInboxThreads,
     tPermissionsRoles, tShifts, tUsers } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 import { kRootRole } from '@app/admin/system/permissions/Root';
 
 /**

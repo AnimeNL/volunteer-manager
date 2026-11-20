@@ -7,10 +7,10 @@ import { z } from 'zod/v4';
 
 import { LicenseInfo } from '@mui/x-license';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { AuthenticationContext } from '@lib/auth';
 import type { Column } from './Column';
 import { default as DataTable } from './DataTableClient';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import { AccessControl } from '@lib/auth/access';
 import { createDataSource } from './createDataSource';
 import { withRowModel } from './';
 
@@ -23,7 +23,7 @@ vi.mock('@app/admin/lib/useIsMobile', () => ({
     useIsMobile: () => mocks.useIsMobile(),
 }));
 
-vi.mock('@lib/auth/AuthenticationContext', () => ({
+vi.mock('@lib/auth', () => ({
     getAuthenticationContext: async () => mocks.authenticationContext(),
 }));
 

@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 
 import Paper from '@mui/material/Paper';
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { AuthenticationContext } from './AuthenticationContext';
 import { LazyAuthenticationFlow } from '../registration/LazyAuthenticationFlow';
 import { RegistrationHeader } from './RegistrationHeader';

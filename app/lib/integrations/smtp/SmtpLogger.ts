@@ -7,7 +7,7 @@ import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { Readable } from 'node:stream';
 
 import type { SendMessageRequest } from './SendMessageRequest';
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import db, { tOutboxEmail } from '@lib/database';
 
 /**

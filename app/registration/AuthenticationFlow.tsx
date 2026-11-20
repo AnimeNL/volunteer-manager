@@ -9,7 +9,7 @@ import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 
 import { ActivationReminderDialog } from './authentication/ActivationReminderDialog';
 import { IdentityDialog } from './authentication/IdentityDialog';
@@ -27,10 +27,9 @@ import { RegisterConfirmDialog } from './authentication/RegisterConfirmDialog';
 import { UsernameDialog } from './authentication/UsernameDialog';
 import { validatePassword } from './authentication/PasswordField';
 
-import { changePasswordAction, completePasswordResetAction, registerAction,
-    requestPasswordResetAction } from '@lib/auth/actions/AccountAuthActions';
-import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
-    signInPasswordUpdateAction, signOutAction } from '@lib/auth/actions/AuthActions';
+import { changePasswordAction, completePasswordResetAction, confirmIdentityAction, registerAction,
+    requestPasswordResetAction, signInPasskeyAction, signInPasswordAction,
+    signInPasswordUpdateAction, signOutAction } from '@lib/auth/actions';
 
 /**
  * Styles used by the various components that make up the authentication flow.

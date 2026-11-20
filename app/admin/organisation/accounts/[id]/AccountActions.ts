@@ -11,17 +11,14 @@ import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { createAndWriteUserSessionCookie, revokeAllUserSessions } from '@lib/auth/SessionStore';
+import { createAndWriteUserSessionCookie, hashPassword, invalidateUserAuthCache,
+    isUsernameAvailable, loadUserAuthenticationContext, normalizeClientIp,
+    requireAuthenticationContext, revokeAllUserSessions, sealPasswordResetRequest }
+    from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
-import { hashPassword } from '@lib/auth/Password';
-import { invalidateUserAuthCache, loadUserAuthenticationContext, requireAuthenticationContext }
-    from '@lib/auth/AuthenticationContext';
-import { isUsernameAvailable } from '@lib/auth/AccountStore';
 import { nanoid } from '@lib/nanoid';
-import { normalizeClientIp } from '@lib/auth/RateLimit';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
     tUsersAuth, tUsersPasskeys, tUsersSessions } from '@lib/database';

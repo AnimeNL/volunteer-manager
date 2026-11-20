@@ -15,10 +15,10 @@ import Grid from '@mui/material/Grid';
 import PasswordIcon from '@mui/icons-material/Password';
 import Typography from '@mui/material/Typography';
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { Avatar } from '@components/Avatar';
 
-import { updateAvatarAction } from '@lib/auth/actions/ProfileActions';
+import { updateAvatarAction } from '@lib/auth/actions';
 
 /**
  * Props accepted by the <IdentityDialog> component.

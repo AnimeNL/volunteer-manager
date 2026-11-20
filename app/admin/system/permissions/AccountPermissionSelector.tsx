@@ -8,14 +8,14 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { Grant } from '@lib/auth/access/AccessControl';
+import type { Grant } from '@lib/auth/access';
 import type { ServerAction } from '@lib/serverAction';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import { AccessControl } from '@lib/auth/access';
 import { PermissionSelector } from './PermissionSelector';
 import db, {
     tEvents, tPermissionsRoles, tRoles, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessControl';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 import { kRegistrationStatus } from '@lib/database/Types';
 import { kRootRole } from './Root';
 

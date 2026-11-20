@@ -17,7 +17,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { isBefore } from '@lib/Temporal';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';

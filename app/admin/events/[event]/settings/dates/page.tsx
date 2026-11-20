@@ -15,7 +15,7 @@ import { OwnerCell } from './DatesCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEventsDates, tUsers } from '@lib/database';

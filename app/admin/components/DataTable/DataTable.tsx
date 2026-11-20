@@ -5,7 +5,7 @@ import type { DataSourceInterface } from './DataSourceInterface';
 import type { DataTableClientProps } from './DataTableClient';
 import { default as DataTableClient } from './DataTableClient';
 import { authorizeDataSource } from './createDataSource';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 
 /**
  * The <DataTable> component is a wrapped implementation of the MUI X `<DataGrid>` component with

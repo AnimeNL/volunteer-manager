@@ -12,8 +12,8 @@ import { EligibilityCell, EligibilityHeader } from '../../InboxCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
-import { queryUsersWithPermission } from '@lib/auth/access/AccessQuery';
+import { executeAccessCheck } from '@lib/auth';
+import { queryUsersWithPermission } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 

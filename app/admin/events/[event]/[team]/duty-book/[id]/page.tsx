@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VisibilityToggle } from './VisibilityToggle';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';

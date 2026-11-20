@@ -12,7 +12,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Skeleton from '@mui/material/Skeleton';
 
-import { registerActivateAction } from '@lib/auth/actions/AccountAuthActions';
+import { registerActivateAction } from '@lib/auth/actions';
 
 /**
  * Props accepted by the <RegisterCompleteDialog> component.

@@ -4,16 +4,16 @@
 import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { AuthenticationContext, PermissionAccessCheck, PermissionSet,
-    UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+    UserAuthenticationContext } from '@lib/auth';
+import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth';
 import { type CachedEvent, type CachedTeam, getEvent, getTeam } from '@lib/cache';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 
 /**
  * Re-export the and() and or() helpers for permission sets.
  */
-export { and, or } from '@lib/auth/AuthenticationContext';
+export { and, or } from '@lib/auth';
 
 /**
  * Type representing an event identifier (either numeric database ID or string slug).

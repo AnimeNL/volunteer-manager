@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 
 import type { GridGetRowsParams, GridRowModel } from '@mui/x-data-grid-premium';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { AuthenticationContext } from '@lib/auth';
 import type { DataSource, DataSourceOperation } from './DataSource';
 import type { DataSourceInterface } from './DataSourceInterface';
 import type { OmitSymbols } from './Types';

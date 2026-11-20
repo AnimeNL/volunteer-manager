@@ -7,11 +7,11 @@ import { notFound, unauthorized } from 'next/navigation';
 import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
     from '@mui/x-data-grid-premium';
 
-import type { AccessOperation } from '@lib/auth/access/AccessDescriptor';
+import type { AccessOperation } from '@lib/auth/access';
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 import { RecordErrorLog } from '@lib/Log';
-import { getAuthenticationContext, type AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext, type AuthenticationContext } from '@lib/auth';
 
 /**
  * Zod validator used to verify that the `GridGetRowsParams` information we get for the `list()`

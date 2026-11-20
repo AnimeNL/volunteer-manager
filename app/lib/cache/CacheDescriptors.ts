@@ -7,7 +7,7 @@ import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { TicketingPurchaseResponse }
     from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
-import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContextTypes';
+import type { UserAuthenticationContext } from '@lib/auth';
 
 /**
  * Contents of each of the caches known to the system.

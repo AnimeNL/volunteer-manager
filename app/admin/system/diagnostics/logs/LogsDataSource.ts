@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import db, { tLogs, tLogsFormat, tUsers } from '@lib/database';
 import { resolveTemplate } from '@app/admin/components/DataTable/Utilities';
 

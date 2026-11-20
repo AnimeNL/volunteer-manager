@@ -3,7 +3,7 @@
 
 import { z, type ZodType } from 'zod/v4';
 
-import type { User } from './auth/User';
+import type { User } from './auth';
 import { SetRecordErrorLogDeferDelegate } from './Log';
 import { executeServerAction, type ServerActionImplementation } from './serverAction';
 

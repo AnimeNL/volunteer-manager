@@ -10,7 +10,7 @@ import { ExportLayout } from '@app/(tools)/exports/[slug]/ExportLayout';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from './registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import { getStaticContent } from '@lib/Content';
 
 /**

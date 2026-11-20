@@ -18,7 +18,7 @@ vi.mock('next/headers', () => ({
     headers: async () => new Headers(),
 }));
 
-vi.mock('@lib/auth/AuthenticationContext', async importOriginal => {
+vi.mock('@lib/auth', async importOriginal => {
     const actual = await importOriginal<typeof import('@lib/auth/AuthenticationContext')>();
     const { buildAuthenticationContext: buildContext } =
         await import('@lib/auth/AuthenticationTestHelpers');

@@ -17,7 +17,7 @@ import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots,

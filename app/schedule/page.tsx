@@ -3,7 +3,7 @@
 
 import { redirect } from 'next/navigation';
 
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
 /**

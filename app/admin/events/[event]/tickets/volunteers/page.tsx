@@ -12,7 +12,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { IssuedCell, IssuedHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tRoles, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 

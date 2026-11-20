@@ -13,12 +13,12 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissions } from '@lib/database';
 
 import { kCrudOperations } from '../toPermissionList';
-import { kPermissions } from '@lib/auth/access/Access';
+import { kPermissions } from '@lib/auth/access';
 
 /**
  * Row model representing a permission in the data table.

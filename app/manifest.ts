@@ -6,10 +6,10 @@ import { notFound } from 'next/navigation';
 
 import { Cache } from '@lib/cache';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { getAuthenticationContext } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 
 /**
  * Generates the Web App Manifest file for the Volunteer Manager. We'll consider both the site's

@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck, and } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck, and } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs } from '@lib/database';
 

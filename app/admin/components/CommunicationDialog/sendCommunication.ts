@@ -1,7 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { LogBuilder } from '@lib/log/index';
 import { PromptFactory, type CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';

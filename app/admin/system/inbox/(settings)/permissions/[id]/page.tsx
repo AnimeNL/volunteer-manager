@@ -25,7 +25,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { queryUsersWithPermission } from '@lib/auth/access/AccessQuery';
+import { queryUsersWithPermission } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 

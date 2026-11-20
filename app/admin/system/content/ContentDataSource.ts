@@ -4,20 +4,19 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { AuthenticationContext, User } from '@lib/auth';
 import type { ContentScope } from './ContentScope';
 import type { ContentType } from '@lib/database/Types';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
-import type { User } from '@lib/auth/User';
 import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { getEvent } from '@lib/cache';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyTeam } from '@lib/auth/access';
 import { kContentType } from '@lib/database/Types';
 
 /**

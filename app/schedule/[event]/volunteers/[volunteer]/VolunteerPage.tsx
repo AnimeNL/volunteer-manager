@@ -42,7 +42,7 @@ import { formatDate } from '@lib/Temporal';
 import { kEnforceSingleLine } from '../../Constants';
 import { kLogicalDayChangeHour } from '../../lib/isDifferentDay';
 
-import { updateAvatarAction } from '@lib/auth/actions/ProfileActions';
+import { updateAvatarAction } from '@lib/auth/actions';
 import { updateVolunteerNotes } from './VolunteerActions';
 
 const NotesEditorDialog = dynamic(() => import('../../components/NotesEditorDialog'), {

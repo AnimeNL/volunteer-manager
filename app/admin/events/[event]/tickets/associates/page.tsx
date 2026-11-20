@@ -17,7 +17,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ValidityCell, ValidityHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tUsersEvents, tUsersEventsTickets } from '@lib/database';
 

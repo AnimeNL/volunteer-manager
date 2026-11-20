@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Task } from '../Task';
-import { pruneExpiredSessions } from '@lib/auth/SessionStore';
+import { pruneExpiredSessions } from '@lib/auth';
 import { readSetting } from '@lib/Settings';
 
 /**

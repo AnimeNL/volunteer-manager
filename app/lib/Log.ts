@@ -4,7 +4,7 @@
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import db, { tErrorLogs, tLogs, truncateToByteLength } from '@lib/database';
 
 import { kErrorSource, type ErrorSource } from './database/Types';

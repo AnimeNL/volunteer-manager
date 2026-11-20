@@ -5,7 +5,7 @@ import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import type { NavigationTopLevelItem } from './NavigationItem';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import { AccessControl } from '@lib/auth/access';
 import { NavigationMenu } from './NavigationMenu';
 import { NavigationMenuClient } from './NavigationMenuClient';
 

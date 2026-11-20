@@ -3,9 +3,9 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { UserAuthenticationContext } from '@lib/auth';
 import { Cache } from '@lib/cache';
-import { queryUsersWithPermission } from '@lib/auth/access/AccessQuery';
+import { queryUsersWithPermission } from '@lib/auth/access';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 
 /**

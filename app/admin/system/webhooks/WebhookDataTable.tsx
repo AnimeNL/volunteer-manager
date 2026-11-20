@@ -7,7 +7,7 @@ import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
 import { WebhookServiceCell, WebhookSizeCell } from './WebhookRowComponents';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import db, { tTwilioWebhookCalls } from '@lib/database';
 
 /**

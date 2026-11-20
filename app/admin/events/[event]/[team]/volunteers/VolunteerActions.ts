@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';

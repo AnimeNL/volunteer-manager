@@ -17,7 +17,7 @@ import { OutgoingCell, OutgoingHeader } from '../../InboxCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';

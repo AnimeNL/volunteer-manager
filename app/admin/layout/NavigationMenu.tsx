@@ -1,11 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AccessControl } from '@lib/auth/access/AccessControl';
+import type { AccessControl } from '@lib/auth/access';
 import type { NavigationItem, NavigationTopLevelItem } from './NavigationItem';
 import type { NavigationMenuId } from './NavigationMenuId';
 import { NavigationMenuClient } from './NavigationMenuClient';
-import { checkPermission, or } from '@lib/auth/AuthenticationContext';
+import { checkPermission, or } from '@lib/auth';
 import { fetchMenuStateFromDatabase, updateMenuState } from './NavigationMenuState';
 
 /**

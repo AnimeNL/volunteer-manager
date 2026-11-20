@@ -6,8 +6,8 @@ import { z } from 'zod/v4';
 
 import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { AccessControl } from '@lib/auth/access/AccessControl';
+import type { AuthenticationContext } from '@lib/auth';
+import { AccessControl } from '@lib/auth/access';
 import { DataSourceWrapper } from './DataSourceWrapper';
 import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
 import { withContext, withRowModel } from './Types';
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
     authenticationContext: vi.fn(),
 }));
 
-vi.mock('@lib/auth/AuthenticationContext', () => ({
+vi.mock('@lib/auth', () => ({
     getAuthenticationContext: async () => mocks.authenticationContext(),
 }));
 

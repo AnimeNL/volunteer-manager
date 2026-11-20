@@ -6,7 +6,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { AuthenticationContext } from '@lib/auth';
 import { CancelTicketTask } from '@lib/scheduler/tasks/CancelTicketTask';
 import { LogBuilder } from '@lib/log/index';
 import { UpdateTicketTask } from '@lib/scheduler/tasks/UpdateTicketTask';

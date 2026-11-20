@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { clearAuthCache } from '@lib/auth/AuthenticationContext';
+import { clearAuthCache } from '@lib/auth';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';

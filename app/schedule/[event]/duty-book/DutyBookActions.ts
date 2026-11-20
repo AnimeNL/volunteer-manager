@@ -6,7 +6,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
+import type { AuthenticationContext } from '@lib/auth';
 import { DutyBookSummaryTask } from '@lib/scheduler/tasks/DutyBookSummaryTask';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
@@ -14,7 +14,7 @@ import { getTeam } from '@lib/cache';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyTeam } from '@lib/auth/access';
 
 /**
  * Authenticates the volunteer for `eventSlug` and verifies that they have access to the Duty Book.

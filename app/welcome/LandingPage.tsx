@@ -14,7 +14,7 @@ import { RegistrationLayout } from '@app/registration/RegistrationLayout';
 import { StatisticsCard } from './landing/StatisticsCard';
 import { getEnvironmentContext } from '@lib/EnvironmentContext';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 
 /**
  * Props accepted by the <LandingPage> component.

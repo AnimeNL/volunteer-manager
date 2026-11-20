@@ -14,7 +14,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { AccessControl } from '@lib/auth/access/AccessControl';
+import type { AccessControl } from '@lib/auth/access';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
 import { EventCardHighlight } from './EventCardHighlight';
@@ -22,7 +22,7 @@ import { formatDate } from '@lib/Temporal';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import db, { tEvents, tStorage } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyTeam } from '@lib/auth/access';
 
 /**
  * Number of days for which the previous event highlight should remain visible on the card.

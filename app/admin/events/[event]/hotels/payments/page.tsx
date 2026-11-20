@@ -15,7 +15,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tHotels, tHotelsBookings, tHotelsPayments, tRoles, tTeams, tUsers, tUsersEvents }
     from '@lib/database';

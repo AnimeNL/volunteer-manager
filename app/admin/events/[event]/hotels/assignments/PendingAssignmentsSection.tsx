@@ -11,7 +11,7 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { readUserSetting } from '@lib/UserSettings';
 import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesHotel } from '@lib/database';

@@ -4,7 +4,7 @@
 import type { LogPayloadAllowedTypes, LogDifferences } from './LogTypes';
 import type { LogTypeParameters, LogType } from './LogDescriptors';
 import type { LogSeverity } from '@lib/database/Types';
-import type { User } from '../auth/User';
+import type { User } from '../auth';
 import { LogMessage } from './LogMessage';
 import { RecordAfterRequestFinished, RecordImmediately } from './LogRecorder';
 

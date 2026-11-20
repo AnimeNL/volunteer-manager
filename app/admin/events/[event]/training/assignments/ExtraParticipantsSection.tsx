@@ -15,7 +15,7 @@ import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { LogBuilder } from '@lib/log/index';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingSessionCell } from './TrainingAssignmentCells';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { readUserSetting } from '@lib/UserSettings';
 import db, { tTrainingsAssignments, tTrainingsExtra } from '@lib/database';
 

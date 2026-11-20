@@ -19,7 +19,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import type { EnvironmentContext, EnvironmentContextEventAccess } from '@lib/EnvironmentContext';
 import type { RegistrationStatus } from '@lib/database/Types';
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { formatDate, isAfter, isBefore } from '@lib/Temporal';
 import db, { tEvents, tHotels, tHotelsBookings, tRefunds, tRoles, tTrainings,

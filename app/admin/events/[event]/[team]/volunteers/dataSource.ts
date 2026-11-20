@@ -7,7 +7,7 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, kEventTransformer, kTeamTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { isBefore } from '@lib/Temporal';
 import db, { tEvents, tHotelsBookings, tRefunds, tRoles, tSchedule, tShifts, tShiftsCategories,
     tTrainingsAssignments, tUsers, tUsersCommunication, tUsersEvents,

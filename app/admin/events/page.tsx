@@ -13,7 +13,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tEventsTeams, tTeams } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessControl';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access';
 
 import { createEvent } from './EventsActions';
 

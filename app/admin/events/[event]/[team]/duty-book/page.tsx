@@ -17,7 +17,7 @@ import { SummaryAction } from './SummaryAction';
 import { VisibilityHeaderCell, VisibilityCell } from './VisibilityCell';
 import { createAiClient } from '@lib/integrations/genai';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';

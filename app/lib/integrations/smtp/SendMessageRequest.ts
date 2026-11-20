@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SmtpMessage } from './SmtpMessage';
-import type { User } from '@lib/auth/User';
+import type { User } from '@lib/auth';
 
 /**
  * Options that can be provided when sending an e-mail.

@@ -16,7 +16,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TicketSearchBar } from '../TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**

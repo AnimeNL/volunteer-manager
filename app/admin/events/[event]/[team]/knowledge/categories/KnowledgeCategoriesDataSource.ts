@@ -7,10 +7,10 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import db, { tContent, tContentCategories } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access/AccessList';
+import { kAnyTeam } from '@lib/auth/access';
 import { kContentType } from '@lib/database/Types';
 import { kEventTransformer } from '@app/admin/components/DataTable';
 

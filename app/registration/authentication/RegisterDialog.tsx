@@ -17,7 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { RegisterActionInput } from '@lib/auth/actions/AccountAuthActions';
+import type { RegisterActionInput } from '@lib/auth/actions';
 import { PasswordField } from './PasswordField';
 import { RegisterForm } from './RegisterForm';
 import { dayjs } from '@lib/DateTime';

@@ -10,7 +10,7 @@ import type { CommunicationPromptId } from './PromptFactory';
 import type { Language } from './Language';
 import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { markdownToJsx } from '@components/Markdown';
 import { queryActivityContext } from './prompts/context/ActivityContextParameters';

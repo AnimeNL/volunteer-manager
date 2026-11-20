@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
-import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
+import { executeAccessCheck } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { writeSettings } from '@lib/Settings';
 

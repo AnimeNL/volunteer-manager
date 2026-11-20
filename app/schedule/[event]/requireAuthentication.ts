@@ -3,12 +3,12 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import type { AccessScope } from '@lib/auth/access/AccessControl';
+import type { AccessScope } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
 import type { PermissionAccessCheck, PermissionSet, UserAuthenticationContext }
-    from '@lib/auth/AuthenticationContext';
+    from '@lib/auth';
 import { getEvent } from '@lib/cache';
-import { requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
+import { requireAuthenticationContext } from '@lib/auth';
 
 /**
  * Type representing an event identifier (either numeric database ID or string slug).

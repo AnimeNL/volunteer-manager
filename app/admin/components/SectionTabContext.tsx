@@ -1,9 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AccessControl } from '@lib/auth/access/AccessControl';
+import type { AccessControl } from '@lib/auth/access';
 import { checkPermission, type PermissionAccessCheck, type PermissionSet }
-    from '@lib/auth/AuthenticationContext';
+    from '@lib/auth';
 
 import { type SectionTabContextClientProps, SectionTabContextClient } from './SectionTabContextClient';
 
