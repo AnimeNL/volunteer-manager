@@ -16,11 +16,18 @@ import { NardoAdviceCard } from './components/NardoAdviceCard';
 import { OverviewVendorCard } from './components/OverviewVendorCard';
 import { ScheduleContext } from './ScheduleContext';
 import { SetTitle } from './components/SetTitle';
+import { TicketCard } from './components/TicketCard';
+import { UpcomingShiftCard } from './components/UpcomingShiftCard';
 import { currentTimestamp } from './CurrentTime';
 import { useIsMobile } from './lib/useIsMobile';
-import { UpcomingShiftCard } from './components/UpcomingShiftCard';
 
 import { kVendorTeam } from '@lib/database/Types';
+
+/**
+ * Duration after the volunteer's first shift ends during which the ticket card remains visible on
+ * the overview page, in seconds.
+ */
+const kTicketCardVisibilityGraceSeconds = /* one hour= */ 60 * 60;
 
 /**
  * Displays the portal's overview page, which contains a series of cards displaying key information
@@ -31,19 +38,30 @@ export function OverviewPage() {
 
     const isMobile = useIsMobile();
 
-    const [ activeShift, upcomingShift, shiftCount ] = useMemo(() => {
+    const [ activeShift, upcomingShift, shiftCount, showTicketCard ] = useMemo(() => {
         let activeShift: VolunteerShiftInfo | undefined;
         let upcomingShift: VolunteerShiftInfo | undefined;
 
-        if (!schedule || !schedule.volunteers.hasOwnProperty(`${schedule.userId}`))
-            return [ activeShift, upcomingShift, /* shiftCount= */ 0 ];
+        if (!schedule)
+            return [ activeShift, upcomingShift, /* shiftCount= */ 0, /* showTicketCard= */ false ];
+
+        const hasTicket = !!schedule.ticketBarcode;
+        if (!Object.hasOwn(schedule.volunteers, `${schedule.userId}`))
+            return [ activeShift, upcomingShift, /* shiftCount= */ 0, hasTicket ];
 
         const currentTime = currentTimestamp();
-
         const volunteer = schedule.volunteers[`${schedule.userId}`];
+
+        let firstShiftStart: number | undefined;
+        let firstShiftEnd: number | undefined;
 
         for (const scheduledShiftId of volunteer.schedule) {
             const scheduledShift = schedule.schedule[scheduledShiftId];
+            if (firstShiftStart === undefined || scheduledShift.start < firstShiftStart) {
+                firstShiftStart = scheduledShift.start;
+                firstShiftEnd = scheduledShift.end;
+            }
+
             if (scheduledShift.end < currentTime)
                 continue;  // this shift has already ended
 
@@ -79,7 +97,12 @@ export function OverviewPage() {
             }
         }
 
-        return [ activeShift, upcomingShift, volunteer.schedule.length ];
+        const showTicketCard = hasTicket && (
+            firstShiftEnd === undefined ||
+            currentTime < firstShiftEnd + kTicketCardVisibilityGraceSeconds
+        );
+
+        return [ activeShift, upcomingShift, volunteer.schedule.length, showTicketCard ];
 
     }, [ schedule ]);
 
@@ -94,6 +117,8 @@ export function OverviewPage() {
                 <ActiveShiftCard shift={activeShift} slug={schedule.slug} /> }
             { (!!upcomingShift && !!schedule) &&
                 <UpcomingShiftCard shift={upcomingShift} slug={schedule.slug} /> }
+            { (!!showTicketCard && !!schedule) &&
+                <TicketCard event={schedule.event} slug={schedule.slug} /> }
             { /* TODO: Available back-up volunteers */ }
             { /* TODO: Available senior volunteers */ }
             { (!!isMobile && !!schedule?.config.enableDutyBook) &&
