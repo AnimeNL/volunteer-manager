@@ -13,7 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeAccessCheck } from '@lib/auth';
-import { queryUsersWithPermission } from '@lib/auth/access';
+import { queryUsersWithPermission } from '@app/admin/lib/queryUsersWithPermission';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tUsers } from '@lib/database';
 

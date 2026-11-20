@@ -15,7 +15,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeAccessCheck } from '@lib/auth';
 import { publishSubscriptionTest } from './SubscriptionActions';
-import { queryUsersWithPermission } from '@lib/auth/access';
+import { queryUsersWithPermission } from '@app/admin/lib/queryUsersWithPermission';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 /**

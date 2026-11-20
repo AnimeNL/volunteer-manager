@@ -1,10 +1,10 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { PermissionAccessCheck } from './PermissionCheck';
-import { AccessControl, type Grant } from './AccessControl';
-import { checkPermission } from './PermissionCheck';
-import { ensurePermissionRolesInitialised } from './PermissionRoles';
+import type { Grant } from '@lib/auth/access';
+import type { PermissionAccessCheck } from '@lib/auth';
+import { AccessControl } from '@lib/auth/access';
+import { checkPermission } from '@lib/auth';
 import db, { tEvents, tRoles, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -32,8 +32,6 @@ type UserResult = {
 export async function queryUsersWithPermission(permission: PermissionAccessCheck)
     : Promise<UserResult[]>
 {
-    await ensurePermissionRolesInitialised();
-
     const dbInstance = db;
 
     const eventsJoin = tEvents.forUseInLeftJoin();

@@ -6,7 +6,6 @@ export type { AccessResult, AccessScope, Grant } from './AccessControl';
 export type { BooleanPermission, CRUDPermission } from './Access';
 
 export { AccessControl } from './AccessControl';
-export { queryUsersWithPermission } from './AccessQuery';
 
 export { kAnyEvent, kAnyTeam } from './AccessList';
 export { kPermissions } from './Access';
