@@ -8,7 +8,7 @@ import type { AuthenticationContext, PermissionAccessCheck, PermissionSet,
 import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import { type CachedEvent, type CachedTeam, getEvent, getTeam } from '@lib/cache';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
 
 /**
  * Re-export the and() and or() helpers for permission sets.

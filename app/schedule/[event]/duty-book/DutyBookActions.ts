@@ -14,7 +14,7 @@ import { getTeam } from '@lib/cache';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 
 /**
  * Authenticates the volunteer for `eventSlug` and verifies that they have access to the Duty Book.

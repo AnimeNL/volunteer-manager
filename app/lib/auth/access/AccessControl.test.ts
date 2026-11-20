@@ -3,7 +3,7 @@
 
 import { AccessControl, kAnyEvent, kAnyTeam, kPermissionPattern } from './AccessControl';
 import { Cache } from '@lib/cache';
-import { initialisePermissionRoles } from './AuthenticationContext';
+import { initialisePermissionRoles } from '../AuthenticationContext';
 
 describe('AccessControl', () => {
     it.each([

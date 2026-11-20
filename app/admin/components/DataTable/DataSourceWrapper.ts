@@ -7,7 +7,7 @@ import { notFound, unauthorized } from 'next/navigation';
 import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
     from '@mui/x-data-grid-premium';
 
-import type { AccessOperation } from '@lib/auth/AccessDescriptor';
+import type { AccessOperation } from '@lib/auth/access/AccessDescriptor';
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
 import { RecordErrorLog } from '@lib/Log';

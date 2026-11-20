@@ -8,7 +8,7 @@ import type { ZodError, ZodType, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
 
 import type { User } from './auth/User';
-import { AccessControl } from './auth/AccessControl';
+import { AccessControl } from './auth/access/AccessControl';
 import { RecordErrorLog, kLogSeverity } from './Log';
 import { getAuthenticationContextFromHeaders, type AuthenticationContext }
     from './auth/AuthenticationContext';

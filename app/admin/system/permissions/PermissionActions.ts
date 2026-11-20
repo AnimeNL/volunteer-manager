@@ -6,7 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { AccessControl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/access/AccessControl';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
 import { clearAuthCache, executeAccessCheck, invalidateUserAuthCache }
@@ -15,7 +15,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessControl';
 
 /**
  * Data associated with an account permission update.

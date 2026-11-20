@@ -3,7 +3,7 @@
 
 import { forbidden, notFound } from 'next/navigation';
 
-import type { AccessScope } from '@lib/auth/AccessControl';
+import type { AccessScope } from '@lib/auth/access/AccessControl';
 import type { CachedEvent } from '@lib/cache';
 import type { PermissionAccessCheck, PermissionSet, UserAuthenticationContext }
     from '@lib/auth/AuthenticationContext';

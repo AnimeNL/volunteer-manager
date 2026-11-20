@@ -1,9 +1,9 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { PermissionAccessCheck } from './AuthenticationContext';
+import type { PermissionAccessCheck } from '../AuthenticationContext';
 import { AccessControl, type Grant } from './AccessControl';
-import { checkPermission, ensurePermissionRolesInitialised } from './AuthenticationContext';
+import { checkPermission, ensurePermissionRolesInitialised } from '../AuthenticationContext';
 import db, { tEvents, tRoles, tTeams, tUsersEvents, tUsers } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

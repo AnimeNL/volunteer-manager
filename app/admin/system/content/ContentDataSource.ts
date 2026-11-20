@@ -17,7 +17,7 @@ import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import { getEvent } from '@lib/cache';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 import { kContentType } from '@lib/database/Types';
 
 /**

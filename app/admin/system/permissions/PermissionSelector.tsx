@@ -4,19 +4,19 @@
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 
-import type { AccessDescriptor } from '@lib/auth/AccessDescriptor';
-import type { AccessResult } from '@lib/auth/AccessControl';
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
+import type { AccessDescriptor } from '@lib/auth/access/AccessDescriptor';
+import type { AccessResult } from '@lib/auth/access/AccessControl';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
 import type { PermissionSelectorStatus } from './PermissionSelectorTable';
 import type { ServerAction } from '@lib/serverAction';
-import { AccessControl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/access/AccessControl';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { PermissionSelectorTable } from './PermissionSelectorTable';
 import { isRestricted, parseCrudOperations } from './toPermissionList';
 import db, { tPermissions } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessControl';
-import { kPermissions } from '@lib/auth/Access';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessControl';
+import { kPermissions } from '@lib/auth/access/Access';
 import { kSelfSuffix } from './toPermissionList';
 
 /**

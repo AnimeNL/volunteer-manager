@@ -14,7 +14,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import type { AccessControl } from '@lib/auth/AccessControl';
+import type { AccessControl } from '@lib/auth/access/AccessControl';
 import { DashboardCard } from './DashboardCard';
 import { DashboardCardHeader } from './DashboardCardHeader';
 import { InlineAccountLink } from '../components/InlineAccountLink';

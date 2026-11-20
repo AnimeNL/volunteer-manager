@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import type { AccessControl } from '@lib/auth/AccessControl';
+import type { AccessControl } from '@lib/auth/access/AccessControl';
 import type { DBConnection } from '@lib/database/Connection';
 import type { PublicSchedule } from './PublicSchedule';
 import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContext';
@@ -21,7 +21,7 @@ import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTim
     from '@lib/database';
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 import { kAvailabilityException } from '@app/admin/events/[event]/[team]/schedule/fn/determineAvailability';
 
 type Response = PublicSchedule;

@@ -6,7 +6,7 @@ import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
 import { requireAuthentication } from '../requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 
 /**
  * The <DutyBookPage> component displays an overview of the Duty Book entries, including the ability

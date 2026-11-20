@@ -8,7 +8,7 @@ import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tActivities, tContent, tEmailAccounts, tEnvironments, tInboxThreads,
     tPermissionsRoles, tShifts, tUsers } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
 import { kRootRole } from '@app/admin/system/permissions/Root';
 
 /**

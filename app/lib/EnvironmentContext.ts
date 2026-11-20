@@ -10,7 +10,7 @@ import { isBefore } from '@lib/Temporal';
 import db, { tEnvironmentsEvents, tEvents, tEventsTeams, tTeams, tUsersEvents }
     from '@lib/database';
 
-import { kAnyTeam } from './auth/AccessList';
+import { kAnyTeam } from './auth/access/AccessList';
 
 /**
  * Status of an availability window within an event context.

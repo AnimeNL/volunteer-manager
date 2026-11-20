@@ -9,7 +9,7 @@ import { determineEnvironment } from '@lib/Environment';
 import { getAuthenticationContext } from '@lib/auth/AuthenticationContext';
 import db, { tEvents } from '@lib/database';
 
-import { kAnyEvent, kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyEvent, kAnyTeam } from '@lib/auth/access/AccessList';
 
 /**
  * Generates the Web App Manifest file for the Volunteer Manager. We'll consider both the site's

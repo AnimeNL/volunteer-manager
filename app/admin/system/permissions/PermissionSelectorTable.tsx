@@ -19,7 +19,7 @@ import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import type { AccessResult } from '@lib/auth/AccessControl';
+import type { AccessResult } from '@lib/auth/access/AccessControl';
 import { ResponsiveDialog } from '@app/admin/components/ResponsiveDialog';
 
 /**

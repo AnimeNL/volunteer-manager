@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
 
 import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
-import { AccessControl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/access/AccessControl';
 import { DataSourceWrapper } from './DataSourceWrapper';
 import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
 import { withContext, withRowModel } from './Types';

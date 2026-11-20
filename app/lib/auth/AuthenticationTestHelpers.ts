@@ -3,7 +3,7 @@
 
 import type { User } from './User';
 import type { useMockConnection } from '@lib/database/Connection';
-import { AccessControl } from './AccessControl';
+import { AccessControl } from './access/AccessControl';
 import { type AuthType, kAuthType } from '../database/Types';
 
 /**

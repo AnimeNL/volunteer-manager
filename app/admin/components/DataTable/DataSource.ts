@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
 
-import type { AccessOperation } from '@lib/auth/AccessDescriptor';
+import type { AccessOperation } from '@lib/auth/access/AccessDescriptor';
 import type { DataSourceProps } from './DataSourceProps';
 
 export type DataSourceOperation = 'create' | 'delete' | 'list' | 'reorder' | 'update';

@@ -5,7 +5,7 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 
 import type { CachedEvent, CachedTeam } from '@lib/cache';
-import { AccessControl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/access/AccessControl';
 import { Cache } from '@lib/cache';
 import { buildAuthenticationContext } from '@lib/auth/AuthenticationTestHelpers';
 import {

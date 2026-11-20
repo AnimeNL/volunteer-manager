@@ -1,12 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { AccessControl } from '@lib/auth/AccessControl';
+import type { AccessControl } from '@lib/auth/access/AccessControl';
 import type { AccessDescriptor, AccessOperation, AccessRestriction }
-    from '@lib/auth/AccessDescriptor';
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
+    from '@lib/auth/access/AccessDescriptor';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
 
-import { kPermissions } from '@lib/auth/Access';
+import { kPermissions } from '@lib/auth/access/Access';
 
 /**
  * Supported operations for CRUD permissions, in canonical order.

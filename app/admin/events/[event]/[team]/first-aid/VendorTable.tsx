@@ -12,7 +12,7 @@ import { readSetting } from '@lib/Settings';
 import db, { tVendors } from '@lib/database';
 
 import type { ShirtFit, ShirtSize, VendorTeam } from '@lib/database/Types';
-import { kAnyTeam } from '@lib/auth/AccessControl';
+import { kAnyTeam } from '@lib/auth/access/AccessControl';
 import { kShirtFit, kShirtSize, kVendorGender, kVendorTeam } from '@lib/database/Types';
 
 /**

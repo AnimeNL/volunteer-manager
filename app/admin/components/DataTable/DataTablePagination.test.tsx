@@ -10,7 +10,7 @@ import { LicenseInfo } from '@mui/x-license';
 import type { AuthenticationContext } from '@lib/auth/AuthenticationContext';
 import type { Column } from './Column';
 import { default as DataTable } from './DataTableClient';
-import { AccessControl } from '@lib/auth/AccessControl';
+import { AccessControl } from '@lib/auth/access/AccessControl';
 import { createDataSource } from './createDataSource';
 import { withRowModel } from './';
 

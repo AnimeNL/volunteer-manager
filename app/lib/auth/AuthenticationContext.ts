@@ -8,11 +8,11 @@ import { forbidden, unauthorized } from 'next/navigation';
 // https://github.com/vercel/next.js/discussions/44270
 const headers = import('next/headers');
 
-import type { AccessOperation } from '@lib/auth/AccessDescriptor';
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
+import type { AccessOperation } from '@lib/auth/access/AccessDescriptor';
+import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
 import type { LegacySessionData, PersistentSessionData, SessionData } from './Session';
 
-import { AccessControl, type AccessScope } from './AccessControl';
+import { AccessControl, type AccessScope } from './access/AccessControl';
 import { Cache } from '@lib/cache';
 import { authenticateUser } from './Authentication';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
@@ -20,7 +20,7 @@ import { hashSessionSecret, touchUserSession, verifyUserSession } from './Sessio
 import { isPersistentSessionData } from './Session';
 import db, { tPermissionsRoles } from '@lib/database';
 
-import { kPermissionGroups } from './Access';
+import { kPermissionGroups } from './access/Access';
 
 import type {
     AuthenticationContext,

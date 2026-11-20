@@ -18,7 +18,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissions } from '@lib/database';
 
 import { kCrudOperations } from '../toPermissionList';
-import { kPermissions } from '@lib/auth/Access';
+import { kPermissions } from '@lib/auth/access/Access';
 
 /**
  * Row model representing a permission in the data table.

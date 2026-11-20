@@ -10,7 +10,7 @@ import { createDataSource, withContext, withRowModel } from '@app/admin/componen
 import { executeAccessCheck } from '@lib/auth/AuthenticationContext';
 import db, { tContent, tContentCategories } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 import { kContentType } from '@lib/database/Types';
 import { kEventTransformer } from '@app/admin/components/DataTable';
 

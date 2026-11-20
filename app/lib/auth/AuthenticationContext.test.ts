@@ -7,7 +7,7 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
 import { stringifySetCookie } from 'cookie';
 
 import type { SessionData } from './Session';
-import { AccessControl } from './AccessControl';
+import { AccessControl } from './access/AccessControl';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
 import {
     clearAuthCache,

@@ -15,7 +15,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';
-import { kAnyTeam } from '@lib/auth/AccessList';
+import { kAnyTeam } from '@lib/auth/access/AccessList';
 
 /**
  * Layout of the administration section of the Volunteer Manager. The layout is the same for every
