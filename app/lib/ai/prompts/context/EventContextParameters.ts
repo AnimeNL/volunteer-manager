@@ -16,6 +16,8 @@ export type EventContextParameters<FieldName extends string = 'event'> = {
         shortName: string;
         slug: string;
         startDate: string;
+        ticketsAutoGrantEnabled: boolean;
+        ticketsAutoRevokeEnabled: boolean;
         trainingEnabled: boolean;
     };
 };
@@ -31,6 +33,8 @@ export const kEventContextExampleParameters: EventContextParameters['event'] = {
     shortName: 'AnimeCon 2026',
     slug: '2026',
     startDate: '2026-04-17',
+    ticketsAutoGrantEnabled: true,
+    ticketsAutoRevokeEnabled: true,
     trainingEnabled: true,
 };
 
@@ -51,6 +55,8 @@ export async function queryEventContext(db: DBConnection, eventId: number)
             shortName: tEvents.eventShortName,
             slug: tEvents.eventSlug,
             startDate: db.dateTimeAsDateString(tEvents.eventStartTime),
+            ticketsAutoGrantEnabled: tEvents.ticketsAutoGrantEnabled.equals(/* true= */ 1),
+            ticketsAutoRevokeEnabled: tEvents.ticketsAutoRevokeEnabled.equals(/* true= */ 1),
             trainingEnabled: tEvents.trainingEnabled.equals(/* true= */ 1),
         })
         .executeSelectOne();
