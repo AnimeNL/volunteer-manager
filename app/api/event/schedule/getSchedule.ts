@@ -10,6 +10,7 @@ import type { ApiRequest, ApiResponse } from '../../Types';
 import type { DBConnection } from '@lib/database/Connection';
 import { FavouriteCache } from './FavouriteCache';
 import { ScheduleCache } from './ScheduleCache';
+import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getEventBySlug } from '@lib/EventLoader';
 import { isAfter, isBefore } from '@lib/Temporal';
@@ -934,6 +935,26 @@ async function populateVolunteers(
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Populates the signed in volunteer's ticket barcode in the `schedule`, when a valid, non-cancelled
+ * ticket has been issued to them for the given `eventId`.
+ */
+async function populateTicket(schedule: Response, eventId: number) {
+    const service = await createTicketService(eventId);
+    if (!service)
+        return;
+
+    const tickets = await service.listVolunteerTickets(eventId, [ schedule.userId ]);
+    const ticket = tickets.get(schedule.userId);
+
+    if (!ticket || ticket.cancelled || !ticket.barcode)
+        return;
+
+    schedule.ticketBarcode = ticket.barcode;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
  * API through which volunteers can request the latest schedule of one of the AnimeCon events. This
  * is a comprehensive API that returns all necessary information, with as much computing as possible
  * offloaded to the server.
@@ -1080,6 +1101,7 @@ export async function getSchedule(request: Request, props: ActionProps): Promise
         phoneNumberAccess, teamAccess, team);
 
     await populateKnowledgeBase(dbInstance, access, schedule, event.id);
+    await populateTicket(schedule, event.id);
 
     if (access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
         schedule.config.enableDutyBook = true;

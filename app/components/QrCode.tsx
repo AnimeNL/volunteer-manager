@@ -92,8 +92,14 @@ const QrCodeContainer = styled('div')(({ theme }) => ({
         width: '100%',
         height: '100%',
     },
-    '& > div > svg > circle': { fill: theme.vars?.palette.primary.main },
-    '& > div > svg > circle[stroke="#000"]': { stroke: theme.vars?.palette.primary.main },
+    '& > div > svg > circle': {
+        fill: theme.vars?.palette.primary.main ?? theme.palette.primary.main,
+    },
+    '& > div > svg > circle[stroke="#000"]': {
+        stroke: theme.vars?.palette.primary.main ?? theme.palette.primary.main,
+    },
     '& > div > svg > rect': { fill: 'transparent' },
-    '& > div > svg > g > path[fill="none"]': { stroke: theme.vars?.palette.primary.main },
+    '& > div > svg > g > path[fill="none"]': {
+        stroke: theme.vars?.palette.primary.main ?? theme.palette.primary.main,
+    },
 }));

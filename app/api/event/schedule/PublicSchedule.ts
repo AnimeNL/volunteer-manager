@@ -458,6 +458,11 @@ export const kPublicSchedule = z.strictObject({
     })),
 
     /**
+     * Barcode of the event ticket issued to the signed in volunteer, when available.
+     */
+    ticketBarcode: z.string().optional(),
+
+    /**
      * Unique ID of the user to whom this schedule has been issued.
      */
     userId: z.number(),
