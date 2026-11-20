@@ -17,6 +17,7 @@ export type Settings = {
     // ---------------------------------------------------------------------------------------------
 
     'integration-logs-retention-days': number;
+    'session-cleanup-interval-days': number;
     'system-role-account-user-id': number;
 
     // ---------------------------------------------------------------------------------------------

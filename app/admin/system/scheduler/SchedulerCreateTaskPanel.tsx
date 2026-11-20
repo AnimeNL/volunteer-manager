@@ -78,6 +78,7 @@ function CreateNoopComplexTaskPanel() {
  * Set of tasks that can be created using the Web interface.
  */
 const kTaskOptions = [
+    { id: 'CleanUpExpiredSessionsTask', label: 'Clean Up Expired Sessions' },
     { id: 'CleanUpIntegrationLogsTask', label: 'Clean Up Integration Logs' },
     { id: 'DutyBookSummaryTask', label: 'Generate Duty Book Summary' },
     { id: 'ImportActivitiesTask', label: 'Import Activities (AnPlan)' },

@@ -47,6 +47,16 @@ export default async function SettingsPage() {
                         'should be retained. Set to 0 to disable cleanup.',
                 },
                 {
+                    setting: 'session-cleanup-interval-days',
+                    type: 'number',
+                    defaultValue: 3,
+
+                    label: 'Expired session cleanup interval',
+                    description:
+                        'Interval, in days, at which expired user sessions are pruned from the ' +
+                        'database. Set to 0 to disable cleanup.',
+                },
+                {
                     setting: 'system-role-account-user-id',
                     type: 'number',
                     defaultValue: 1,

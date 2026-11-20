@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { CancelTicketTask } from './tasks/CancelTicketTask';
+import { CleanUpExpiredSessionsTask } from './tasks/CleanUpExpiredSessionsTask';
 import { CleanUpIntegrationLogsTask } from './tasks/CleanUpIntegrationLogsTask';
 import { DutyBookSummaryTask } from './tasks/DutyBookSummaryTask';
 import { ImportActivitiesTask } from './tasks/ImportActivitiesTask';
@@ -23,6 +24,7 @@ import { YourTicketProviderImportTask } from './tasks/YourTicketProviderImportTa
  */
 export const kTaskRegistry = {
     CancelTicketTask,
+    CleanUpExpiredSessionsTask,
     CleanUpIntegrationLogsTask,
     DutyBookSummaryTask,
     ImportActivitiesTask,
@@ -58,6 +60,7 @@ type TaskFormatFn = (params: any) => string;
  */
 export const kTaskFormatFn: { [k in RegisteredTasks | DeprecatedTasks]: TaskFormatFn } = {
     CancelTicketTask: params => `Cancel ticket (order: ${params.orderId})`,
+    CleanUpExpiredSessionsTask: () => 'Clean up expired user sessions',
     CleanUpIntegrationLogsTask: () => 'Clean up old integration logs',
     DutyBookSummaryTask: params => `Generate AI summary for a Duty Book entry (id: ${params.id})`,
     ImportActivitiesTask: () => 'Import activities from AnPlan',
