@@ -45,7 +45,7 @@ export function AssociateOrderSection(props: AssociateOrderSectionProps) {
     return (
         <Section icon={ <ReceiptOutlinedIcon /> } title="Order">
             <SectionIntroduction>
-                The name associated with the orderwill automatically update to match the ticket
+                The name associated with the order will automatically update to match the ticket
                 holder.
             </SectionIntroduction>
             <Suspense fallback={ <SectionLoading /> }>
