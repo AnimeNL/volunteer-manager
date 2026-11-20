@@ -11,16 +11,17 @@ import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@si
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
-import type { StoredPasskeyCredential } from '../AuthHelpers';
+import type { StoredPasskeyCredential } from '../PasskeyStore';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { authenticateUser, getUserSessionToken, isValidActivatedUser, verifyUserCredentials }
-    from '../Authentication';
+import { authenticateUser } from '../Authentication';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
     from '../SessionStore';
-import { getAuthRequestMetadata, retrieveUserPasskeys, setUserPassword, updatePasskeyCounter }
-    from '../AuthHelpers';
+import { getAuthRequestMetadata } from './ActionHelpers';
+import { getUserSessionToken, isValidActivatedUser, setUserPassword, verifyUserCredentials }
+    from '../AccountStore';
+import { retrieveUserPasskeys, updatePasskeyCounter } from '../PasskeyStore';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
 import { validatePasswordStrength } from '../Password';
 

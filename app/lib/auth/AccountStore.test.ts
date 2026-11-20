@@ -3,11 +3,11 @@
 
 import { hashPassword } from './Password';
 import { useMockConnection } from '../database/Connection';
-import { verifyUserCredentials } from './Authentication';
+import { verifyUserCredentials } from './AccountStore';
 
 import { kAuthType } from '../database/Types';
 
-describe('Authentication.verifyUserCredentials', () => {
+describe('AccountStore.verifyUserCredentials', () => {
     const mockConnection = useMockConnection();
 
     afterEach(() => {

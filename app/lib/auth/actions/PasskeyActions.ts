@@ -13,10 +13,10 @@ import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
-import { deleteUserPasskey, getAuthRequestMetadata, retrieveUserPasskeys, storeUserPasskey }
-    from '../AuthHelpers';
+import { deleteUserPasskey, retrieveUserPasskeys, storeUserPasskey } from '../PasskeyStore';
 import { determineEnvironment } from '@lib/Environment';
 import { formatDate } from '@lib/Temporal';
+import { getAuthRequestMetadata } from './ActionHelpers';
 import { requireAuthenticationContext } from '../AuthenticationContext';
 
 const kRegisterPasskeyInput = z.object({

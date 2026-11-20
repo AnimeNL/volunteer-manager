@@ -11,7 +11,7 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { executeAccessCheck, invalidateUserAuthCache, requireAuthenticationContext }
     from '../AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
-import { getAuthRequestMetadata } from '../AuthHelpers';
+import { getAuthRequestMetadata } from './ActionHelpers';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 

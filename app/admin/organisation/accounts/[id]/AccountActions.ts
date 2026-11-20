@@ -10,13 +10,14 @@ import type { CommunicationLanguage } from '@lib/database/Types';
 import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
-import { authenticateUser, isUsernameAvailable } from '@lib/auth/Authentication';
+import { authenticateUser } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { createAndWriteUserSessionCookie, revokeAllUserSessions } from '@lib/auth/SessionStore';
 import { executeServerAction } from '@lib/serverAction';
 import { hashPassword } from '@lib/auth/Password';
 import { invalidateUserAuthCache, requireAuthenticationContext }
     from '@lib/auth/AuthenticationContext';
+import { isUsernameAvailable } from '@lib/auth/AccountStore';
 import { nanoid } from '@lib/nanoid';
 import { normalizeClientIp } from '@lib/auth/RateLimit';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';

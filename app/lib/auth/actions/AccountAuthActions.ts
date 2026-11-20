@@ -10,12 +10,13 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
-import { authenticateUser, isUsernameAvailable, verifyUserCredentials } from '../Authentication';
+import { authenticateUser } from '../Authentication';
 import { checkRateLimit } from '../RateLimit';
-import { createAccountWithPassword, getAuthRequestMetadata, sanitizeRelativeRedirectUrl,
-    setUserPassword } from '../AuthHelpers';
+import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
+    from '../AccountStore';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
+import { getAuthRequestMetadata, sanitizeRelativeRedirectUrl } from './ActionHelpers';
 import { getSessionFromCookieStore } from '../getSession';
 import { getStaticContent } from '@lib/Content';
 import { isPersistentSessionData } from '../Session';

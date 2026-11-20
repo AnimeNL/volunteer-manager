@@ -62,7 +62,7 @@ import { hashPassword } from '../Password';
 import { hashSessionSecret } from '../SessionStore';
 import { initialisePermissionRoles } from '../access/PermissionRoles';
 import { kSessionCookieName, sealSession, unsealSession } from '../Session';
-import { sanitizeRelativeRedirectUrl } from '../AuthHelpers';
+import { sanitizeRelativeRedirectUrl } from './ActionHelpers';
 import { sealPasswordResetRequest } from '../PasswordReset';
 import { sealRegistrationRequest } from '../RegistrationRequest';
 import { useMockConnection } from '../../database/Connection';
