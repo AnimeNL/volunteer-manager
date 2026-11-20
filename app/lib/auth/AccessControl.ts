@@ -77,6 +77,54 @@ export type AccessResult = Result & {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Collects permission revocations inherited from any permission roles referenced by `rawGrants`,
+ * preserving each grant's event/team scope.
+ */
+function collectRoleRevokes(
+    rawGrants: Grant | Grant[] | undefined,
+    roleMap: Map<string, { grants: string[]; revokes: string[] }>): Grant[]
+{
+    if (!rawGrants)
+        return [];
+
+    const grants = Array.isArray(rawGrants) ? rawGrants : [ rawGrants ];
+    const collected: Grant[] = [];
+
+    for (const entry of grants) {
+        const grant = typeof entry === 'string' ? { permission: entry } : entry;
+        const queue = grant.permission.split(',').map(p => p.trim()).filter(Boolean);
+        const seen = new Set<string>();
+
+        for (const permission of queue) {
+            if (seen.has(permission))
+                continue;
+
+            seen.add(permission);
+
+            const role = roleMap.get(permission);
+            if (!role)
+                continue;
+
+            for (const nested of role.grants) {
+                if (nested)
+                    queue.push(nested);
+            }
+
+            for (const revoked of role.revokes) {
+                if (!revoked)
+                    continue;
+
+                collected.push(grant.event || grant.team
+                    ? { permission: revoked, event: grant.event, team: grant.team }
+                    : revoked);
+            }
+        }
+    }
+
+    return collected;
+}
+
+/**
  * The `AccessControl` object enables consistent access checks throughout the Volunteer Manager
  * system. Our permissions are hierarchical, resource-based and follow CRUD patterns. Furthermore,
  * the permissions themselves are predefined in the `Access.ts` file.
@@ -88,20 +136,29 @@ export type AccessResult = Result & {
  * Individual permissions have hierarchical names, each scope separated by a dot, with the most
  * significant scope being the left-most entry. CRUD permissions can further have modifiers on the
  * permission that indicate the scope, e.g. "foo.bar:update".
- *
- * @todo Support role-based permission revokes in expansions, rather than just grants.
  */
 export class AccessControl {
     #grants: AccessList;
     #revokes: AccessList;
 
     constructor(grants: AccessControlParams) {
-        const expansions =
-            Object.fromEntries([ ...Cache.getInstance('PermissionRoles').entries() ].map(
-                ([ role, permissions ]) => [ role, permissions?.grants || [ /* no grants */ ] ]));
+        const roleMap = new Map<string, { grants: string[]; revokes: string[] }>();
+        for (const [ role, permissions ] of Cache.getInstance('PermissionRoles').entries()) {
+            if (permissions)
+                roleMap.set(role, permissions);
+        }
+
+        const expansions = Object.fromEntries(
+            [ ...roleMap.entries() ].map(([ role, permissions ]) =>
+                [ role, permissions.grants.filter(Boolean) ]));
+
+        const explicitRevokes = !grants.revokes
+            ? []
+            : Array.isArray(grants.revokes) ? grants.revokes : [ grants.revokes ];
+        const roleRevokes = collectRoleRevokes(grants.grants, roleMap);
 
         this.#revokes = new AccessList({
-            grants: grants.revokes,
+            grants: [ ...explicitRevokes, ...roleRevokes ],
             requireSpecificScope: true,
         });
 

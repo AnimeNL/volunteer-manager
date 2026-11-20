@@ -294,6 +294,38 @@ describe('AccessControl', () => {
         });
     });
 
+    it('should expand role-based permission revokes while respecting scopes', () => {
+        Cache.getInstance('PermissionRoles').set('restricted-role', {
+            grants: [ 'test' ],
+            revokes: [ 'test.boolean', 'test.crud:delete' ],
+        });
+
+        Cache.getInstance('PermissionRoles').set('parent-role', {
+            grants: [ 'restricted-role' ],
+            revokes: [],
+        });
+
+        // Global role grant inherits its revokes:
+        const globalAccess = new AccessControl({ grants: 'parent-role' });
+        expect(globalAccess.can('test.crud', 'read')).toBeTruthy();
+        expect(globalAccess.can('test.crud', 'delete')).toBeFalsy();
+        expect(globalAccess.can('test.boolean')).toBeFalsy();
+
+        // Scoped role grant only applies its revokes within that scope:
+        const scopedAccess = new AccessControl({
+            grants: [
+                'test',
+                { permission: 'restricted-role', event: '2026', team: 'crew' },
+            ],
+            events: kAnyEvent,
+            teams: kAnyTeam,
+        });
+
+        expect(scopedAccess.can('test.boolean', { event: '2025', team: 'crew' })).toBeTruthy();
+        expect(scopedAccess.can('test.boolean', { event: '2026', team: 'crew' })).toBeFalsy();
+        expect(scopedAccess.can('test.boolean', { event: '2026', team: 'hosts' })).toBeTruthy();
+    });
+
     it('should be able to reduce access queries to a boolean result', () => {
         const accessControl = new AccessControl({
             grants: 'test.boolean',
