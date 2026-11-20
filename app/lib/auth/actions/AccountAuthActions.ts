@@ -10,22 +10,22 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
-import { authenticateUser, isUsernameAvailable, verifyUserCredentials } from './Authentication';
-import { checkRateLimit } from './RateLimit';
+import { authenticateUser, isUsernameAvailable, verifyUserCredentials } from '../Authentication';
+import { checkRateLimit } from '../RateLimit';
 import { createAccountWithPassword, getAuthRequestMetadata, sanitizeRelativeRedirectUrl,
-    setUserPassword } from './AuthHelpers';
-import { createAndWriteUserSessionCookie } from './SessionStore';
+    setUserPassword } from '../AuthHelpers';
+import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
-import { getSessionFromCookieStore } from './getSession';
+import { getSessionFromCookieStore } from '../getSession';
 import { getStaticContent } from '@lib/Content';
-import { isPersistentSessionData } from './Session';
-import { requireAuthenticationContext } from './AuthenticationContext';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from './PasswordReset';
-import { sealRegistrationRequest, unsealRegistrationRequest } from './RegistrationRequest';
-import { validatePasswordStrength } from './Password';
+import { isPersistentSessionData } from '../Session';
+import { requireAuthenticationContext } from '../AuthenticationContext';
+import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
+import { sealRegistrationRequest, unsealRegistrationRequest } from '../RegistrationRequest';
+import { validatePasswordStrength } from '../Password';
 import db, { tUsers } from '@lib/database';
 
-import { kAuthRateLimits } from './RateLimit';
+import { kAuthRateLimits } from '../RateLimit';
 
 const kEmailSenderName = 'AnimeCon Volunteering Teams';
 

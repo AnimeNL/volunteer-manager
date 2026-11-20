@@ -32,7 +32,7 @@ import { useTitle } from '../ScheduleTitle';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx, kEnforceSingleLine } from '../Constants';
 
-import { signOutAction } from '@lib/auth/AuthActions';
+import { signOutAction } from '@lib/auth/actions/AuthActions';
 
 /**
  * Containing element for the search field. Provides relative positioning, and a hover effect on

@@ -36,12 +36,12 @@ vi.mock('@lib/database/BlobStore', () => ({
     storeBlobData: (...args: any[]) => (mockStoreBlobData as any)(...args),
 }));
 
-import { clearAuthCache, initialisePermissionRoles } from './AuthenticationContext';
-import { expectAuthenticationQuery } from './AuthenticationTestHelpers';
+import { clearAuthCache, initialisePermissionRoles } from '../AuthenticationContext';
+import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { getOwnAccountAction, updateAvatarAction, updateOwnAccountAction } from './ProfileActions';
-import { hashSessionSecret } from './SessionStore';
-import { kSessionCookieName, sealSession } from './Session';
-import { useMockConnection } from '../database/Connection';
+import { hashSessionSecret } from '../SessionStore';
+import { kSessionCookieName, sealSession } from '../Session';
+import { useMockConnection } from '../../database/Connection';
 
 describe('ProfileActions', () => {
     const mockConnection = useMockConnection();

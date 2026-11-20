@@ -55,18 +55,18 @@ vi.mock('@lib/subscriptions', () => ({
 
 import { changePasswordAction, completePasswordResetAction, registerAction,
     registerActivateAction, verifyPasswordResetAction } from './AccountAuthActions';
-import { clearAuthCache, initialisePermissionRoles } from './AuthenticationContext';
-import { clearRateLimits } from './RateLimit';
-import { expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { hashPassword } from './Password';
-import { hashSessionSecret } from './SessionStore';
-import { kSessionCookieName, sealSession, unsealSession } from './Session';
-import { sanitizeRelativeRedirectUrl } from './AuthHelpers';
-import { sealPasswordResetRequest } from './PasswordReset';
-import { sealRegistrationRequest } from './RegistrationRequest';
-import { useMockConnection } from '../database/Connection';
+import { clearAuthCache, initialisePermissionRoles } from '../AuthenticationContext';
+import { clearRateLimits } from '../RateLimit';
+import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
+import { hashPassword } from '../Password';
+import { hashSessionSecret } from '../SessionStore';
+import { kSessionCookieName, sealSession, unsealSession } from '../Session';
+import { sanitizeRelativeRedirectUrl } from '../AuthHelpers';
+import { sealPasswordResetRequest } from '../PasswordReset';
+import { sealRegistrationRequest } from '../RegistrationRequest';
+import { useMockConnection } from '../../database/Connection';
 
-import { kAuthType } from '../database/Types';
+import { kAuthType } from '../../database/Types';
 
 describe('AccountAuthActions', () => {
     const mockConnection = useMockConnection();

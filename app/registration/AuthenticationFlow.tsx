@@ -28,9 +28,9 @@ import { UsernameDialog } from './authentication/UsernameDialog';
 import { validatePassword } from './authentication/PasswordField';
 
 import { changePasswordAction, completePasswordResetAction, registerAction,
-    requestPasswordResetAction } from '@lib/auth/AccountAuthActions';
+    requestPasswordResetAction } from '@lib/auth/actions/AccountAuthActions';
 import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
-    signInPasswordUpdateAction, signOutAction } from '@lib/auth/AuthActions';
+    signInPasswordUpdateAction, signOutAction } from '@lib/auth/actions/AuthActions';
 
 /**
  * Styles used by the various components that make up the authentication flow.

@@ -11,20 +11,20 @@ import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@si
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
-import type { StoredPasskeyCredential } from './AuthHelpers';
+import type { StoredPasskeyCredential } from '../AuthHelpers';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { authenticateUser, getUserSessionToken, isValidActivatedUser, verifyUserCredentials }
-    from './Authentication';
-import { checkRateLimit, resetRateLimit } from './RateLimit';
-import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from './PasskeyChallenge';
+    from '../Authentication';
+import { checkRateLimit, resetRateLimit } from '../RateLimit';
+import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
-    from './SessionStore';
+    from '../SessionStore';
 import { getAuthRequestMetadata, retrieveUserPasskeys, setUserPassword, updatePasskeyCounter }
-    from './AuthHelpers';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from './PasswordReset';
-import { validatePasswordStrength } from './Password';
+    from '../AuthHelpers';
+import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
+import { validatePasswordStrength } from '../Password';
 
-import { kAuthRateLimits } from './RateLimit';
+import { kAuthRateLimits } from '../RateLimit';
 
 const kConfirmIdentityInput = z.object({
     username: z.string().trim().pipe(z.email()),

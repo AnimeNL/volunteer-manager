@@ -25,10 +25,10 @@ import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import Skeleton from '@mui/material/Skeleton';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { PasskeyListEntry } from '@lib/auth/PasskeyActions';
+import type { PasskeyListEntry } from '@lib/auth/actions/PasskeyActions';
 
 import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
-    registerPasskeyAction } from '@lib/auth/PasskeyActions';
+    registerPasskeyAction } from '@lib/auth/actions/PasskeyActions';
 
 type Passkeys = PasskeyListEntry[];
 

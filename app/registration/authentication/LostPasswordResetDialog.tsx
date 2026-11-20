@@ -16,7 +16,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import { PasswordField } from './PasswordField';
 
-import { verifyPasswordResetAction } from '@lib/auth/AccountAuthActions';
+import { verifyPasswordResetAction } from '@lib/auth/actions/AccountAuthActions';
 
 /**
  * Props accepted by the <LostPasswordResetDialog> component.

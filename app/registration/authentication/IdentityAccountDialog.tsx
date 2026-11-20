@@ -18,7 +18,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { RegisterForm } from './RegisterForm';
 import { dayjs } from '@lib/DateTime';
 
-import { getOwnAccountAction, updateOwnAccountAction } from '@lib/auth/ProfileActions';
+import { getOwnAccountAction, updateOwnAccountAction } from '@lib/auth/actions/ProfileActions';
 
 /**
  * Props accepted by the <IdentityAccountDialog> component.

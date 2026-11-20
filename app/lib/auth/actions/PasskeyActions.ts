@@ -12,12 +12,12 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
-import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from './PasskeyChallenge';
+import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { deleteUserPasskey, getAuthRequestMetadata, retrieveUserPasskeys, storeUserPasskey }
-    from './AuthHelpers';
+    from '../AuthHelpers';
 import { determineEnvironment } from '@lib/Environment';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationContext } from './AuthenticationContext';
+import { requireAuthenticationContext } from '../AuthenticationContext';
 
 const kRegisterPasskeyInput = z.object({
     name: z.string().trim().max(128).optional(),

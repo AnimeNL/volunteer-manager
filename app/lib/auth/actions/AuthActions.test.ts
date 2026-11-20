@@ -29,17 +29,17 @@ vi.mock('next/server', () => ({
     after: () => {},
 }));
 
-import { clearRateLimits } from './RateLimit';
+import { clearRateLimits } from '../RateLimit';
 import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
     signInPasswordUpdateAction, signOutAction } from './AuthActions';
-import { expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { hashPassword } from './Password';
-import { hashSessionSecret } from './SessionStore';
-import { kSessionCookieName, unsealSession } from './Session';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from './PasswordReset';
-import { useMockConnection } from '../database/Connection';
+import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
+import { hashPassword } from '../Password';
+import { hashSessionSecret } from '../SessionStore';
+import { kSessionCookieName, unsealSession } from '../Session';
+import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
+import { useMockConnection } from '../../database/Connection';
 
-import { kAuthType } from '../database/Types';
+import { kAuthType } from '../../database/Types';
 
 describe('AuthActions', () => {
     const mockConnection = useMockConnection();

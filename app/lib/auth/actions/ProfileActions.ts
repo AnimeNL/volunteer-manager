@@ -9,9 +9,9 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
 import { executeAccessCheck, invalidateUserAuthCache, requireAuthenticationContext }
-    from './AuthenticationContext';
+    from '../AuthenticationContext';
 import { formatDate } from '@lib/Temporal';
-import { getAuthRequestMetadata } from './AuthHelpers';
+import { getAuthRequestMetadata } from '../AuthHelpers';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
