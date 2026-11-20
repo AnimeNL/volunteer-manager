@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 
 import { hashPassword, verifyPassword } from './Password';
 import { revokeAllUserSessions } from './SessionStore';
+import { sealPasswordResetRequest } from './PasswordReset';
 import db, { tUsers, tUsersAuth } from '../database';
 
 import { kAuthType } from '../database/Types';
@@ -231,4 +232,57 @@ export async function isUsernameAvailable(username: string): Promise<boolean> {
         .executeSelectNoneOrOne();
 
     return !user;
+}
+
+/**
+ * Unambiguous 32-character alphabet used for one-time access codes (excludes 0/O and 1/I/L).
+ */
+const kAccessCodeAlphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+/**
+ * Generates an 8-character cryptographically random access code formatted as `XXXX-XXXX` (40 bits
+ * of entropy).
+ */
+function generateAccessCode(): string {
+    const pick = () => kAccessCodeAlphabet[crypto.randomInt(kAccessCodeAlphabet.length)];
+    return `${pick()}${pick()}${pick()}${pick()}-${pick()}${pick()}${pick()}${pick()}`;
+}
+
+/**
+ * Generates a new one-time access code for `userId`, replaces any existing code with its Argon2id
+ * hash in `users_auth`, and returns the plaintext code (or `undefined` on failure).
+ */
+export async function createUserAccessCode(userId: number): Promise<string | undefined> {
+    const accessCode = generateAccessCode();
+    const hashedAccessCode = await hashPassword(accessCode);
+
+    const dbInstance = db;
+    const inserted = await dbInstance.transaction(async () => {
+        await dbInstance.deleteFrom(tUsersAuth)
+            .where(tUsersAuth.userId.equals(userId))
+                .and(tUsersAuth.authType.equals(kAuthType.code))
+            .executeDelete();
+
+        return dbInstance.insertInto(tUsersAuth)
+            .values({
+                userId,
+                authType: kAuthType.code,
+                authValue: hashedAccessCode,
+            })
+            .executeInsert();
+    });
+
+    return inserted ? accessCode : undefined;
+}
+
+/**
+ * Creates a sealed password-reset token for `userId`, or returns `undefined` if the user does not
+ * exist.
+ */
+export async function createPasswordResetToken(userId: number): Promise<string | undefined> {
+    const sessionToken = await getUserSessionToken(userId);
+    if (sessionToken === null)
+        return undefined;
+
+    return sealPasswordResetRequest({ id: userId, token: sessionToken });
 }

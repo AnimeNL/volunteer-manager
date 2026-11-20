@@ -1,8 +1,6 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import crypto from 'node:crypto';
-import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -11,10 +9,8 @@ import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { createAndWriteUserSessionCookie, hashPassword, invalidateUserAuthCache,
-    isUsernameAvailable, loadUserAuthenticationContext, normalizeClientIp,
-    requireAuthenticationContext, revokeAllUserSessions, sealPasswordResetRequest }
-    from '@lib/auth';
+import { createPasswordResetToken, createUserAccessCode, impersonateUser, invalidateUserAuthCache,
+    isUsernameAvailable, requireAuthenticationContext, revokeAllUserSessions } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
@@ -23,22 +19,8 @@ import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
     tUsersAuth, tUsersPasskeys, tUsersSessions } from '@lib/database';
 
-import { kAuthType, kCommunicationLanguage, kFileType } from '@lib/database/Types';
+import { kCommunicationLanguage, kFileType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/admin/lib/ZodTransformers';
-
-/**
- * Unambiguous 32-character alphabet used for one-time access codes (excludes 0/O and 1/I/L).
- */
-const kAccessCodeAlphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-
-/**
- * Generates an 8-character cryptographically random access code formatted as `XXXX-XXXX` (40 bits
- * of entropy).
- */
-function generateAccessCode(): string {
-    const pick = () => kAccessCodeAlphabet[crypto.randomInt(kAccessCodeAlphabet.length)];
-    return `${pick()}${pick()}${pick()}${pick()}-${pick()}${pick()}${pick()}${pick()}`;
-}
 
 /**
  * Zod type that describes that no data is expected.
@@ -241,25 +223,8 @@ export async function createAccessCode(userId: number, formData: unknown) {
             operation: 'update',
         });
 
-        const accessCode = generateAccessCode();
-        const hashedAccessCode = await hashPassword(accessCode);
-
-        const insertedAccessCode = await db.transaction(async () => {
-            await db.deleteFrom(tUsersAuth)
-                .where(tUsersAuth.userId.equals(userId))
-                    .and(tUsersAuth.authType.equals(kAuthType.code))
-                .executeDelete();
-
-            return db.insertInto(tUsersAuth)
-                .values({
-                    userId: userId,
-                    authType: kAuthType.code,
-                    authValue: hashedAccessCode,
-                })
-                .executeInsert();
-        });
-
-        if (!insertedAccessCode)
+        const accessCode = await createUserAccessCode(userId);
+        if (!accessCode)
             return { success: false, error: 'Unable to create a new access code…' };
 
         LogBuilder.for('AdminResetAccessCode')
@@ -428,19 +393,14 @@ export async function impersonate(userId: number, formData: unknown) {
         const { user: adminUser } = await requireAuthenticationContext(
             'organisation.impersonation', undefined, { bypassCache: true });
 
-        const { user: impersonatedUser } =
-            await loadUserAuthenticationContext({ type: 'userId', userId });
+        const impersonatedUser = await impersonateUser(userId, {
+            impersonatorUserId: adminUser.id,
+            returnUrl: `/admin/organisation/accounts/${userId}`,
+            ip: props.ip,
+        });
+
         if (!impersonatedUser)
             notFound();
-
-        const requestHeaders = await headers();
-        await createAndWriteUserSessionCookie(await cookies(), {
-            userId: impersonatedUser.id,
-            impersonatorUserId: adminUser.id,
-            impersonatorReturnUrl: `/admin/organisation/accounts/${impersonatedUser.id}`,
-            ip: normalizeClientIp(props.ip),
-            userAgent: requestHeaders.get('user-agent') ?? undefined,
-        });
 
         LogBuilder.for('AdminImpersonateVolunteer')
             .withInitiatorUser(adminUser)
@@ -467,18 +427,9 @@ export async function resetPassword(userId: number, formData: unknown) {
             operation: 'update',
         });
 
-        const user = await db.selectFrom(tUsers)
-            .select({ sessionToken: tUsers.sessionToken })
-            .where(tUsers.userId.equals(userId))
-            .executeSelectNoneOrOne();
-
-        if (!user)
+        const passwordResetRequest = await createPasswordResetToken(userId);
+        if (!passwordResetRequest)
             notFound();
-
-        const passwordResetRequest = await sealPasswordResetRequest({
-            id: userId,
-            token: user.sessionToken
-        });
 
         LogBuilder.for('AdminResetPasswordLink')
             .withInitiatorUser(props.user)

@@ -6,12 +6,8 @@ export type { AuthenticationContext, UserAuthenticationContext, VisitorAuthentic
 export type { User } from './User';
 
 export { clearAuthCache, executeAccessCheck, getAuthenticationContext,
-    getAuthenticationContextFromHeaders, invalidateUserAuthCache, loadUserAuthenticationContext,
+    getAuthenticationContextFromHeaders, impersonateUser, invalidateUserAuthCache,
     requireAuthenticationContext } from './AuthenticationContext';
-export { createAndWriteUserSessionCookie, pruneExpiredSessions, revokeAllUserSessions }
-    from './SessionStore';
+export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
 export { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from './DisplaySession';
-export { hashPassword } from './Password';
-export { isUsernameAvailable } from './AccountStore';
-export { normalizeClientIp } from './RateLimit';
-export { sealPasswordResetRequest } from './PasswordReset';
+export { pruneExpiredSessions, revokeAllUserSessions } from './SessionStore';

@@ -16,11 +16,13 @@ import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
 import { checkPermission } from './access/PermissionCheck';
+import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, verifyUserSession }
+    from './SessionStore';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
-import { hashSessionSecret, touchUserSession, verifyUserSession } from './SessionStore';
 import { isPersistentSessionData } from './Session';
+import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
 import { kAuthType, kRegistrationStatus } from '../database/Types';
@@ -402,3 +404,42 @@ async function loadAuthenticationContext(bypassCache: boolean): Promise<Authenti
  */
 export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> =>
     loadAuthenticationContext(/* bypassCache= */ false));
+
+/**
+ * Options for `impersonateUser()`.
+ */
+export interface ImpersonateUserOptions {
+    impersonatorUserId: number;
+    returnUrl: string;
+    ip?: string;
+}
+
+/**
+ * Signs the current request into the account identified by `userId` as an impersonation session,
+ * writing the session cookie. Returns the impersonated `User`, or `undefined` if the target account
+ * does not exist or cannot be signed into.
+ */
+export async function impersonateUser(
+    userId: number, options: ImpersonateUserOptions): Promise<User | undefined>
+{
+    const { user: impersonatedUser } = await loadUserAuthenticationContext({
+        type: 'userId',
+        userId,
+    });
+
+    if (!impersonatedUser)
+        return undefined;
+
+    const nextHeaders = await headers;
+    const requestHeaders = await nextHeaders.headers();
+
+    await createAndWriteUserSessionCookie(await nextHeaders.cookies(), {
+        userId: impersonatedUser.id,
+        impersonatorUserId: options.impersonatorUserId,
+        impersonatorReturnUrl: options.returnUrl,
+        ip: normalizeClientIp(options.ip),
+        userAgent: requestHeaders.get('user-agent') ?? undefined,
+    });
+
+    return impersonatedUser;
+}
