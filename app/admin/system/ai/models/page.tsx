@@ -85,6 +85,7 @@ export default async function ModelsAiPage() {
     return (
         <>
             <Section icon={ <GeminiIcon /> } title="Models"
+                     documentation="system/ai"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI', href: '/admin/system/ai' },

@@ -18,6 +18,7 @@ export default async function ArtificialIntelligencePage() {
     return (
         <>
             <Section icon={ <AutoAwesomeIcon color="primary" /> } title="Artificial Intelligence"
+                     documentation="system/ai"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI' },

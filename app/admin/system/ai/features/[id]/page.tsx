@@ -87,6 +87,7 @@ export default async function AiFeaturesPromptPage(
     return (
         <>
             <Section icon={ <PromptIcon id={prompt.metadata.id} /> } title={prompt.metadata.label}
+                     documentation="system/ai"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI', href: '/admin/system/ai' },

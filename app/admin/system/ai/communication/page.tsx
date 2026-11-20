@@ -77,6 +77,7 @@ export default async function CommunicationAiPage() {
     return (
         <>
             <Section icon={ <QuestionAnswerOutlinedIcon color="primary" /> } title="Communication"
+                     documentation="system/ai"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI', href: '/admin/system/ai' },

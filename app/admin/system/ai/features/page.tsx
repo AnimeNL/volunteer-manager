@@ -37,6 +37,7 @@ export default async function AiFeaturesPage() {
     return (
         <>
             <Section icon={ <SmartToyIcon color="primary" /> } title="Features"
+                     documentation="system/ai"
                      breadcrumbs={[
                         { label: 'System', href: '/admin/system' },
                         { label: 'AI', href: '/admin/system/ai' },
