@@ -209,6 +209,16 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
                 })
                 .executeInsert();
 
+            await dbInstance.update(tUsersEventsPreferencesAvailability)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesAvailability.userId.equals(data.userId))
+                    .and(tUsersEventsPreferencesAvailability.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesAvailability.teamId.equals(team.id))
+                    .and(tUsersEventsPreferencesAvailability.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
+
             await dbInstance.insertInto(tUsersEventsPreferencesAvailability)
                 .set({
                     userId: data.userId,
@@ -223,6 +233,15 @@ export async function createApplication(eventSlug: string, teamSlug: string, for
                     availabilityRemarks: data.preferences,
                 })
                 .executeInsert();
+
+            await dbInstance.update(tUsersEventsPreferencesParticipation)
+                .set({
+                    preferenceVersionIsLatest: 0,
+                })
+                .where(tUsersEventsPreferencesParticipation.userId.equals(data.userId))
+                    .and(tUsersEventsPreferencesParticipation.eventId.equals(event.id))
+                    .and(tUsersEventsPreferencesParticipation.preferenceVersionIsLatest.equals(1))
+                .executeUpdate();
 
             await dbInstance.insertInto(tUsersEventsPreferencesParticipation)
                 .set({
