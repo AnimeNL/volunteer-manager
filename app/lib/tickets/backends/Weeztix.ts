@@ -94,7 +94,7 @@ export class Weeztix implements TicketService {
 
     get capabilities(): TicketServiceCapabilities {
         return {
-            canCancelOrder: false,
+            canCancelOrder: true,
             canCreateOrder: false,
             canFetchOrderDetails: true,
             canManageVolunteerTickets: !!this.#volunteerTicketGuid,

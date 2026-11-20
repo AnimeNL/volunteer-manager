@@ -93,8 +93,9 @@ export default async function EventTicketsAssociatesPage(
                          : undefined;
 
     const cancelPurchaseFn =
-        canCancelOrder ? cancelPurchase.bind(null, event.slug, purchase.id)
-                       : undefined;
+        canCancelOrder && !hasBeenCancelled
+            ? cancelPurchase.bind(null, event.slug, purchase.id)
+            : undefined;
 
     const resendConfirmationFn =
         canResendConfirmation ? resendPurchaseConfirmation.bind(null, event.slug, purchase.id)

@@ -37,7 +37,7 @@ describe('Weeztix', () => {
     it('exposes structured capabilities reflecting the event configuration', () => {
         const withoutVolunteerTicket = new Weeztix('event-guid-1');
         expect(withoutVolunteerTicket.capabilities).toEqual({
-            canCancelOrder: false,
+            canCancelOrder: true,
             canCreateOrder: false,
             canFetchOrderDetails: true,
             canManageVolunteerTickets: false,
@@ -47,7 +47,7 @@ describe('Weeztix', () => {
 
         const withVolunteerTicket = new Weeztix('event-guid-1', 'company-guid', 'ticket-guid');
         expect(withVolunteerTicket.capabilities).toEqual({
-            canCancelOrder: false,
+            canCancelOrder: true,
             canCreateOrder: false,
             canFetchOrderDetails: true,
             canManageVolunteerTickets: true,

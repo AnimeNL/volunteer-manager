@@ -6,6 +6,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import { CancelTicketTask } from '@lib/scheduler/tasks/CancelTicketTask';
 import { LogBuilder } from '@lib/log/index';
 import { UpdateTicketTask } from '@lib/scheduler/tasks/UpdateTicketTask';
 import { createTicketService } from '@lib/tickets';
@@ -76,37 +77,35 @@ export async function associatePurchase(
  */
 export async function cancelPurchase(eventSlug: string, purchaseId: number | string) {
     return executeServerAction({ /* none */ }, z.object(), async (data, props) => {
-        const { event } = await requireAuthenticationWithEvent(
+        const { access, event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, {
                 permission: 'volunteers.tickets',
                 operation: 'delete',
             });
 
         const service = await createTicketService(event.id);
-        if (!service || !service.capabilities.canCancelOrder || !event.tickets?.volunteerTicketId)
+        if (!service || !service.capabilities.canCancelOrder)
             notFound();
 
-        // Confirm that the |purchaseId| corresponds to a ticket that contains a volunteering
-        // ticket. While not technically required, it's a safeguard to avoid cancelling arbitrary
-        // tickets—whoever needs to do so can use YourTicketProvider or Weeztix directly.
         const purchase = await service.fetchPurchase(purchaseId);
         if (!purchase)
             notFound();
 
-        let includesVolunteerTicket: boolean = false;
-        for (const ticket of purchase.tickets) {
-            if (event.tickets.volunteerTicketId === `${ticket.ticketId}`)
-                includesVolunteerTicket = true;
-        }
+        const containsVolunteerTicket = purchase.tickets.some(
+            ticket => `${ticket.ticketId}` === event.tickets?.volunteerTicketId);
 
-        if (!includesVolunteerTicket)
+        if (!containsVolunteerTicket && !access.can('root'))
             forbidden();
 
-        // Cancel the ticket with the ticketing partner. Only proceed when this succeeds.
-        await service.cancelPurchase(purchaseId);
+        if (!!purchase.cancelled) {
+            return {
+                success: false,
+                error: 'This purchase has already been cancelled.',
+            };
+        }
 
-        // Write log entries for the affected tickets; associate them with a particular user when
-        // it involves a known volunteer, otherwise assume that this is an associate ticket.
+        // Disassociate the purchase from any linked volunteer(s) before cancelling with the
+        // ticketing partner.
         const affectedUsers = await db.selectFrom(tUsersEventsTickets)
             .where(tUsersEventsTickets.ticketProviderPurchaseId.equals(purchaseId.toString()))
             .selectOneColumn(tUsersEventsTickets.userId)
@@ -116,7 +115,24 @@ export async function cancelPurchase(eventSlug: string, purchaseId: number | str
             await db.deleteFrom(tUsersEventsTickets)
                 .where(tUsersEventsTickets.ticketProviderPurchaseId.equals(purchaseId.toString()))
                 .executeDelete();
+        }
 
+        const result = await CancelTicketTask.ExecuteNow({
+            event: event.slug,
+            orderId: purchaseId,
+            reason: 'Manual',
+        });
+
+        if (!result) {
+            return {
+                success: false,
+                error: 'Unable to cancel this purchase at this time.',
+            };
+        }
+
+        // Write log entries for the affected tickets; associate them with a particular user when
+        // it involves a known volunteer, otherwise assume that this is an associate ticket.
+        if (!!affectedUsers.length) {
             for (const affectedUserId of affectedUsers) {
                 LogBuilder.for('CancelVolunteerTicket')
                     .withInitiatorUser(props.user)
