@@ -10,6 +10,7 @@ import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import AppBar from '@mui/material/AppBar';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Divider from '@mui/material/Divider';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import IconButton from '@mui/material/IconButton';
@@ -234,6 +235,15 @@ export function ApplicationBar() {
 
     }, [ router, schedule ]);
 
+    const navigateToTicket = useCallback(() => {
+        if (!schedule || !schedule.slug)
+            return;  // the portal has not finished loading yet
+
+        setUserMenuOpen(false);
+        router.push(`/schedule/${schedule.slug}/ticket`);
+
+    }, [ router, schedule ]);
+
     // Signs the user out of their account, and forwards them back to the home page since the
     // schedule app is only available to signed in and participating volunteers.
     const handleSignOut = useCallback(async () => {
@@ -280,6 +290,16 @@ export function ApplicationBar() {
                   open={userMenuOpen}>
 
                 <DarkModeMenuItem />
+
+                { !!schedule?.ticketBarcode &&
+                    <MenuItem onClick={navigateToTicket}>
+                        <ListItemIcon>
+                            <ConfirmationNumberOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>
+                            Your ticket
+                        </ListItemText>
+                    </MenuItem> }
 
                 <MenuItem onClick={navigateToFeedback}>
                     <ListItemIcon>
