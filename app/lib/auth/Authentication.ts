@@ -1,13 +1,15 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import crypto from 'node:crypto';
+
 import type { AuthenticationContext, UserAuthenticationContext } from './AuthenticationContextTypes';
 import type { AuthenticationResult } from './AuthenticationTestHelpers';
 import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type Grant } from './AccessControl';
 import { getBlobUrl } from '../database/BlobStore';
-import { securePasswordHash } from './Password';
+import { hashPassword, securePasswordHash, verifyPassword } from './Password';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersAuth, tUsersEvents }
     from '../database';
 
@@ -81,9 +83,35 @@ export async function authenticateUser(params: AuthenticateUserParams)
     const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
     const dbInstance = db;
-    const authenticationBaseSelect = dbInstance.selectFrom(tUsers)
-        .innerJoin(tUsersAuth)
-            .on(tUsersAuth.userId.equals(tUsers.userId))
+    const baseUserSelect = {
+        // AuthenticationContext.accessControl:
+        accessControl: {
+            grants: tUsers.permissionsGrants,
+            revokes: tUsers.permissionsRevokes,
+            events: tUsers.permissionsEvents,
+            teams: tUsers.permissionsTeams,
+        },
+
+        // UserAuthenticationContext.events:
+        events: dbInstance.aggregateAsArray({
+            event: eventsJoin.eventSlug,
+            grant: rolesJoin.rolePermissionGrant,
+            team: teamsJoin.teamSlug,
+
+            // TODO: Figure out if we can do this filtering in the query somehow...
+            isEventHidden: eventsJoin.eventHidden,
+        }),
+
+        // UserAuthenticationContext.user:
+        userId: tUsers.userId,
+        username: tUsers.username,
+        firstName: tUsers.firstName,
+        lastName: tUsers.lastName,
+        displayName: tUsers.displayName,
+        avatarFileHash: storageJoin.fileHash,
+    };
+
+    const userSelectFrom = dbInstance.selectFrom(tUsers)
         .leftJoin(storageJoin)
             .on(storageJoin.fileId.equals(tUsers.avatarId))
         .leftJoin(usersEventsJoin)
@@ -94,47 +122,24 @@ export async function authenticateUser(params: AuthenticateUserParams)
         .leftJoin(teamsJoin)
             .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
         .leftJoin(rolesJoin)
-            .on(rolesJoin.roleId.equals(usersEventsJoin.roleId))
-        .groupBy(tUsers.userId)
-        .select({
-            // AuthenticationContext.accessControl:
-            accessControl: {
-                grants: tUsers.permissionsGrants,
-                revokes: tUsers.permissionsRevokes,
-                events: tUsers.permissionsEvents,
-                teams: tUsers.permissionsTeams,
-            },
+            .on(rolesJoin.roleId.equals(usersEventsJoin.roleId));
 
-            // UserAuthenticationContext.authType:
-            authType: tUsersAuth.authType,
-
-            // UserAuthenticationContext.events:
-            events: dbInstance.aggregateAsArray({
-                event: eventsJoin.eventSlug,
-                grant: rolesJoin.rolePermissionGrant,
-                team: teamsJoin.teamSlug,
-
-                // TODO: Figure out if we can do this filtering in the query somehow...
-                isEventHidden: eventsJoin.eventHidden,
-            }),
-
-            // UserAuthenticationContext.user:
-            userId: tUsers.userId,
-            username: tUsers.username,
-            firstName: tUsers.firstName,
-            lastName: tUsers.lastName,
-            displayName: tUsers.displayName,
-            avatarFileHash: storageJoin.fileHash,
-        });
-
-    let authenticationQuery: ReturnType<typeof authenticationBaseSelect['executeSelectNoneOrOne']>;
+    let authenticationResult: AuthenticationResult | null;
 
     switch (params.type) {
         case 'password': {
             const securelyHashedPassword = await securePasswordHash(params.sha256Password);
-            authenticationQuery = authenticationBaseSelect
+            authenticationResult = await userSelectFrom
+                .innerJoin(tUsersAuth)
+                    .on(tUsersAuth.userId.equals(tUsers.userId))
+                .groupBy(tUsers.userId)
+                .select({
+                    ...baseUserSelect,
+                    authType: tUsersAuth.authType,
+                })
                 .where(tUsers.username.equals(params.username))
                     .and(tUsers.activated.equals(/* true= */ 1))
+                    .and(tUsers.anonymized.isNull())
                     .and(tUsersAuth.authType.equals(kAuthType.password)
                              .and(tUsersAuth.authValue.equals(securelyHashedPassword))
                         .or(tUsersAuth.authType.equals(kAuthType.code)
@@ -148,15 +153,21 @@ export async function authenticateUser(params: AuthenticateUserParams)
         }
 
         case 'session':
-            authenticationQuery = authenticationBaseSelect
+            authenticationResult = await userSelectFrom
+                .groupBy(tUsers.userId)
+                .select(baseUserSelect)
                 .where(tUsers.userId.equals(params.id))
                     .and(tUsers.sessionToken.equals(params.token))
+                    .and(tUsers.activated.equals(/* true= */ 1))
+                    .and(tUsers.anonymized.isNull())
                 .executeSelectNoneOrOne();
 
             break;
 
         case 'userId':
-            authenticationQuery = authenticationBaseSelect
+            authenticationResult = await userSelectFrom
+                .groupBy(tUsers.userId)
+                .select(baseUserSelect)
                 .where(tUsers.userId.equals(params.userId))
                 .executeSelectNoneOrOne();
 
@@ -166,7 +177,6 @@ export async function authenticateUser(params: AuthenticateUserParams)
             throw new Error('Invalid authentication type was provided');
     }
 
-    const authenticationResult: AuthenticationResult | null = await authenticationQuery;
     if (!authenticationResult) {
         return {
             access: new AccessControl({ /* no grants */ }),
@@ -174,7 +184,7 @@ export async function authenticateUser(params: AuthenticateUserParams)
         };
     }
 
-    const authType = authenticationResult.authType;
+    const authType = authenticationResult.authType ?? kAuthType.password;
     const events: UserAuthenticationContext['events'] = new Map();
     const user: User = {
         id: authenticationResult.userId,
@@ -221,6 +231,92 @@ export async function authenticateUser(params: AuthenticateUserParams)
     });
 
     return { access: accessControl, authType, events, user };
+}
+
+/**
+ * Result of verifying a user's plaintext password or one-time access code.
+ */
+export type CredentialVerificationResult =
+    { authenticated: false } |
+    { authenticated: true; authType: 'code' | 'password'; userId: number };
+
+/**
+ * Compares a plaintext access code against a stored code value (either Argon2id-hashed or legacy
+ * plaintext) in constant time.
+ */
+async function verifyAccessCode(plaintext: string, storedValue: string): Promise<boolean> {
+    if (storedValue.startsWith('$argon2id$'))
+        return (await verifyPassword(plaintext, storedValue)).valid;
+
+    const inputBuffer = Buffer.from(plaintext, 'utf8');
+    const storedBuffer = Buffer.from(storedValue, 'utf8');
+    if (inputBuffer.length !== storedBuffer.length)
+        return false;
+
+    return crypto.timingSafeEqual(inputBuffer, storedBuffer);
+}
+
+/**
+ * Silently upgrades a user's legacy password hash to Argon2id. Matches on the previous hash value
+ * so a concurrent password change or reset is never overwritten.
+ */
+async function upgradeUserPasswordHash(
+    userId: number, previousHash: string, plaintextPassword: string): Promise<void>
+{
+    const upgradedHash = await hashPassword(plaintextPassword);
+    await db.update(tUsersAuth)
+        .set({ authValue: upgradedHash })
+        .where(tUsersAuth.userId.equals(userId))
+            .and(tUsersAuth.authType.equals(kAuthType.password))
+            .and(tUsersAuth.authValue.equals(previousHash))
+        .executeUpdate();
+}
+
+/**
+ * Verifies a plaintext `password` (or one-time access code) for the activated, non-anonymized user
+ * identified by `username`. Silently upgrades legacy password hashes to Argon2id on success.
+ */
+export async function verifyUserCredentials(
+    username: string, plaintextPassword: string): Promise<CredentialVerificationResult>
+{
+    const userId = await db.selectFrom(tUsers)
+        .where(tUsers.username.equals(username))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
+        .selectOneColumn(tUsers.userId)
+        .executeSelectNoneOrOne();
+
+    if (!userId)
+        return { authenticated: false };
+
+    const credentials = await db.selectFrom(tUsersAuth)
+        .where(tUsersAuth.userId.equals(userId))
+            .and(tUsersAuth.authType.in([ kAuthType.password, kAuthType.code ]))
+        .select({
+            authType: tUsersAuth.authType,
+            authValue: tUsersAuth.authValue,
+        })
+        .executeSelectMany();
+
+    for (const credential of credentials) {
+        if (credential.authType === kAuthType.password) {
+            const result = await verifyPassword(plaintextPassword, credential.authValue);
+            if (!result.valid)
+                continue;
+
+            if (result.needsUpgrade)
+                await upgradeUserPasswordHash(userId, credential.authValue, plaintextPassword);
+
+            return { authenticated: true, authType: 'password', userId };
+        }
+
+        if (credential.authType === kAuthType.code) {
+            if (await verifyAccessCode(plaintextPassword, credential.authValue))
+                return { authenticated: true, authType: 'code', userId };
+        }
+    }
+
+    return { authenticated: false };
 }
 
 type UserLike = { id: number };

@@ -20,7 +20,7 @@ export interface AuthenticationResult {
     };
 
     // UserAuthenticationContext.authType:
-    authType: AuthType,
+    authType?: AuthType,
 
     // UserAuthenticationContext.events:
     events: {
