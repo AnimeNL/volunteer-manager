@@ -1,28 +1,48 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { cookies } from 'next/headers';
+import crypto from 'node:crypto';
+import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { CommunicationLanguage } from '@lib/database/Types';
 import { LogBuilder } from '@lib/log/index';
-import { executeServerAction } from '@lib/serverAction';
-import { authenticateUser, getUserSessionToken, isUsernameAvailable } from '@lib/auth/Authentication';
+import { PromptExecutor } from '@lib/ai/PromptExecutor';
+import { PromptFactory } from '@lib/ai/PromptFactory';
+import { authenticateUser, isUsernameAvailable } from '@lib/auth/Authentication';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { invalidateUserAuthCache } from '@lib/auth/AuthenticationContext';
+import { createAndWriteUserSessionCookie, revokeAllUserSessions } from '@lib/auth/SessionStore';
+import { determineEnvironment } from '@lib/Environment';
+import { executeServerAction } from '@lib/serverAction';
+import { hashPassword } from '@lib/auth/Password';
+import { invalidateUserAuthCache, requireAuthenticationContext }
+    from '@lib/auth/AuthenticationContext';
 import { nanoid } from '@lib/nanoid';
+import { normalizeClientIp } from '@lib/auth/RateLimit';
+import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { sealPasswordResetRequest } from '@lib/auth/PasswordReset';
-import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
-import { writeSealedSessionCookieToStore } from '@lib/auth/Session';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
-    tUsersAuth } from '@lib/database';
+    tUsersAuth, tUsersPasskeys, tUsersSessions } from '@lib/database';
 
-import { kAuthType, kCommunicationLanguage, kFileType, type CommunicationLanguage } from '@lib/database/Types';
+import { kAuthType, kCommunicationLanguage, kFileType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/api/Types';
-import { PromptFactory } from '@lib/ai/PromptFactory';
-import { PromptExecutor } from '@lib/ai/PromptExecutor';
+
+/**
+ * Unambiguous 32-character alphabet used for one-time access codes (excludes 0/O and 1/I/L).
+ */
+const kAccessCodeAlphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+/**
+ * Generates an 8-character cryptographically random access code formatted as `XXXX-XXXX` (40 bits
+ * of entropy).
+ */
+function generateAccessCode(): string {
+    const pick = () => kAccessCodeAlphabet[crypto.randomInt(kAccessCodeAlphabet.length)];
+    return `${pick()}${pick()}${pick()}${pick()}-${pick()}${pick()}${pick()}${pick()}`;
+}
 
 /**
  * Zod type that describes that no data is expected.
@@ -81,11 +101,11 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         /* Nardo= */ 4,
     ];
 
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'delete',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'delete' },
+            undefined,
+            { bypassCache: true });
 
         if (kUnanonymizableUserIds.includes(userId))
             return { success: false, error: 'This account is not allowed to be anonymized.' };
@@ -115,7 +135,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
                     challenge: null,
                     activated: /* false= */ 0,
                     anonymized: dbInstance.currentZonedDateTime(),
-                    sessionToken: /* sign out= */ 100,
+                    sessionToken: tUsers.sessionToken.add(1),
                 })
                 .where(tUsers.userId.equals(userId))
                 .executeUpdate();
@@ -135,12 +155,24 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
                 .where(tNardoPersonalised.nardoPersonalisedUserId.equals(userId))
                 .executeDelete();
 
-            await db.deleteFrom(tStorage)
+            await dbInstance.deleteFrom(tStorage)
                 .where(tStorage.userId.equals(userId))
                 .executeDelete();
 
-            await db.deleteFrom(tSubscriptions)
+            await dbInstance.deleteFrom(tSubscriptions)
                 .where(tSubscriptions.subscriptionUserId.equals(userId))
+                .executeDelete();
+
+            await dbInstance.deleteFrom(tUsersAuth)
+                .where(tUsersAuth.userId.equals(userId))
+                .executeDelete();
+
+            await dbInstance.deleteFrom(tUsersPasskeys)
+                .where(tUsersPasskeys.userId.equals(userId))
+                .executeDelete();
+
+            await dbInstance.deleteFrom(tUsersSessions)
+                .where(tUsersSessions.userId.equals(userId))
                 .executeDelete();
 
             return affectedRows;
@@ -152,7 +184,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         invalidateUserAuthCache(userId);
 
         LogBuilder.for('AdminAnonymizeAccount')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Error')
             .record();
@@ -213,26 +245,26 @@ export async function createAccessCode(userId: number, formData: unknown) {
             operation: 'update',
         });
 
-        let accessCode = await db.selectFrom(tUsersAuth)
-            .where(tUsersAuth.userId.equals(userId))
-                .and(tUsersAuth.authType.equals(kAuthType.code))
-            .selectOneColumn(tUsersAuth.authValue)
-            .executeSelectNoneOrOne();
+        const accessCode = generateAccessCode();
+        const hashedAccessCode = await hashPassword(accessCode);
 
-        if (!accessCode) {
-            accessCode = `${Math.floor(Math.random() * (9999 - 1000) + 1000)}`;
+        const insertedAccessCode = await db.transaction(async () => {
+            await db.deleteFrom(tUsersAuth)
+                .where(tUsersAuth.userId.equals(userId))
+                    .and(tUsersAuth.authType.equals(kAuthType.code))
+                .executeDelete();
 
-            const insertedAccessCode = await db.insertInto(tUsersAuth)
+            return db.insertInto(tUsersAuth)
                 .values({
                     userId: userId,
                     authType: kAuthType.code,
-                    authValue: `${accessCode}`,
+                    authValue: hashedAccessCode,
                 })
                 .executeInsert();
+        });
 
-            if (!insertedAccessCode)
-                return { success: false, message: 'Unable to create a new access code…' };
-        }
+        if (!insertedAccessCode)
+            return { success: false, error: 'Unable to create a new access code…' };
 
         LogBuilder.for('AdminResetAccessCode')
             .withInitiatorUser(props.user)
@@ -240,7 +272,7 @@ export async function createAccessCode(userId: number, formData: unknown) {
             .withSeverity('Error')
             .record();
 
-        return { success: true, message: `Their access code is: **${accessCode}**`}
+        return { success: true, message: `Their access code is: **${accessCode}**` };
     });
 }
 
@@ -311,7 +343,8 @@ export async function deactivateAccount(userId: number, formData: unknown) {
 
         const affectedRows = await db.update(tUsers)
             .set({
-                activated: /* false= */ 0
+                activated: /* false= */ 0,
+                sessionToken: tUsers.sessionToken.add(1),
             })
             .where(tUsers.userId.equals(userId))
             .executeUpdate();
@@ -319,7 +352,7 @@ export async function deactivateAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to deactivate their account…' };
 
-        invalidateUserAuthCache(userId);
+        await revokeAllUserSessions(userId);
 
         LogBuilder.for('AdminUpdateActivation')
             .withInitiatorUser(props.user)
@@ -395,28 +428,25 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
  */
 export async function impersonate(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, 'organisation.impersonation');
+    return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            'organisation.impersonation', undefined, { bypassCache: true });
 
         const { user: impersonatedUser } = await authenticateUser({ type: 'userId', userId });
-
-        const impersonatedUserSessionToken = await getUserSessionToken(userId);
-        const userSessionToken = await getUserSessionToken(props.user.id);
-
-        if (!impersonatedUser || !impersonatedUserSessionToken || !userSessionToken)
+        if (!impersonatedUser)
             notFound();
 
-        await writeSealedSessionCookieToStore({
-            id: impersonatedUser.id,
-            token: impersonatedUserSessionToken,
-            parent: {
-                id: props.user.id,
-                token: userSessionToken,
-            },
-        }, await cookies());
+        const requestHeaders = await headers();
+        await createAndWriteUserSessionCookie(await cookies(), {
+            userId: impersonatedUser.id,
+            impersonatorUserId: adminUser.id,
+            impersonatorReturnUrl: `/admin/organisation/accounts/${impersonatedUser.id}`,
+            ip: normalizeClientIp(props.ip),
+            userAgent: requestHeaders.get('user-agent') ?? undefined,
+        });
 
         LogBuilder.for('AdminImpersonateVolunteer')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(impersonatedUser)
             .withSeverity('Error')
             .record();
@@ -459,8 +489,10 @@ export async function resetPassword(userId: number, formData: unknown) {
             .withSeverity('Error')
             .record();
 
+        const environment = await determineEnvironment();
+        const domain = environment?.domain ?? 'animecon.team';
         const passwordResetLink =
-            `https://${props.host}/?password-reset-request=${passwordResetRequest}`;
+            `https://${domain}/?password-reset-request=${passwordResetRequest}`;
 
         return { success: true, message: passwordResetLink };
     });
