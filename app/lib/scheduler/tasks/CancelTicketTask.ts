@@ -5,8 +5,9 @@ import { z } from 'zod/v4';
 
 import { TaskWithParams } from '../Task';
 import { createTicketService } from '@lib/tickets';
+import { createWeeztixClient } from '@lib/integrations/weeztix';
 import { executeTaskNow, scheduleTask } from '@lib/scheduler';
-import db, { tEvents, tWeeztixTickets } from '@lib/database';
+import db, { tEvents, tWeeztixOrders, tWeeztixPurchases, tWeeztixTickets } from '@lib/database';
 
 /**
  * Parameter scheme applying to the `CancelTicketTask`.
@@ -32,6 +33,19 @@ const kCancelTicketTaskParamScheme = z.object({
  * Type definition of the parameter scheme, to be used by TypeScript.
  */
 type TaskParams = z.infer<typeof kCancelTicketTaskParamScheme>;
+
+/**
+ * Returns whether a Weeztix `fatals` or `errors` field contains any reported issues.
+ */
+function hasRefundMessages(value: unknown): boolean {
+    if (!value)
+        return false;
+
+    if (Array.isArray(value))
+        return value.length > 0;
+
+    return typeof value === 'object' && Object.keys(value).length > 0;
+}
 
 /**
  * Task that cancels the tickets associated with an order with the event's configured ticketing
@@ -134,10 +148,64 @@ export class CancelTicketTask extends TaskWithParams<TaskParams> {
         }
 
         this.log.info(
-            `Found ${tickets.length} cancellable ticket(s) for Weeztix order ${orderGuid} ` +
+            `Cancelling Weeztix order ${orderGuid} with ${tickets.length} ticket(s) ` +
             `(reason: ${params.reason}).`);
 
-        // TODO: Cancel the order and its tickets with Weeztix.
+        const client = await createWeeztixClient();
+        const response = await client.cancelOrder(orderGuid, {
+            refund: false,
+            comment: params.reason === 'Cancellation'
+                ? 'Cancelled via AnimeCon Volunteer Manager (volunteer cancellation)'
+                : 'Cancelled via AnimeCon Volunteer Manager (manual)',
+            includes_fees: false,
+            entire_order: true,
+            items: tickets.map(ticket => ({
+                guid: ticket.guid,
+                type: 'ticket',
+            })),
+        });
+
+        if (hasRefundMessages(response.fatals) || hasRefundMessages(response.errors)) {
+            this.log.error(
+                `Weeztix reported errors while cancelling order ${orderGuid}: ` +
+                JSON.stringify({ fatals: response.fatals, errors: response.errors }));
+            return false;
+        }
+
+        this.log.info(`Synchronising cancelled Weeztix order ${orderGuid} into the local database.`);
+
+        await dbInstance.transaction(async () => {
+            const now = dbInstance.currentZonedDateTime();
+
+            await dbInstance.update(tWeeztixOrders)
+                .set({
+                    weeztixOrderStatus: 'cancelled',
+                    weeztixOrderUpdated: now,
+                    weeztixOrderUpdatedManual: 1,
+                    weeztixOrderDeleted: now,
+                })
+                .where(tWeeztixOrders.weeztixGuid.equals(orderGuid))
+                .executeUpdate();
+
+            await dbInstance.update(tWeeztixTickets)
+                .set({
+                    weeztixTicketUpdated: now,
+                    weeztixTicketDeleted: now,
+                })
+                .where(tWeeztixTickets.weeztixOrderGuid.equals(orderGuid))
+                    .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
+                .executeUpdate();
+
+            await dbInstance.update(tWeeztixPurchases)
+                .set({
+                    weeztixPurchaseUpdated: now,
+                    weeztixPurchaseDeleted: now,
+                })
+                .where(tWeeztixPurchases.weeztixOrderGuid.equals(orderGuid))
+                    .and(tWeeztixPurchases.weeztixPurchaseDeleted.isNull())
+                .executeUpdate();
+        });
+
         return true;
     }
 }
