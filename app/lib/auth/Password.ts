@@ -222,26 +222,3 @@ export async function wrapLegacyPasswordHash(legacyHexHash: string): Promise<str
 
     return `${kLegacyWrappedPrefix}${await hashArgon2id(legacyHexHash)}`;
 }
-
-/**
- * Legacy client-SHA256 + static-salt synchronous scrypt helper retained temporarily while existing
- * `/api/auth/*` endpoints are being migrated to Server Actions.
- */
-export function securePasswordHash(sha256Password: string): string {
-    if (!Object.hasOwn(process.env, 'APP_PASSWORD_SALT') || !process.env.APP_PASSWORD_SALT)
-        throw new Error('A salt must be known to the application in order for hashing to work.');
-
-    if (sha256Password.length !== 64)
-        throw new Error('The given password must be a SHA256 hash already.');
-
-    return crypto.scryptSync(
-        sha256Password,
-        process.env.APP_PASSWORD_SALT,
-        kLegacyScryptKeyLength,
-        {
-            N: kLegacyScryptN,
-            r: kLegacyScryptR,
-            p: kLegacyScryptP,
-            maxmem: Math.max(32 * 1024 * 1024, 256 * kLegacyScryptN * kLegacyScryptR),
-        }).toString('hex');
-}

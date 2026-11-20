@@ -17,7 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import type { RegisterDefinition } from '@app/api/auth/register';
+import type { RegisterActionInput } from '@lib/auth/AccountAuthActions';
 import { PasswordField } from './PasswordField';
 import { RegisterForm } from './RegisterForm';
 import { dayjs } from '@lib/DateTime';
@@ -27,7 +27,7 @@ import { dayjs } from '@lib/DateTime';
  * the server in order to finalize a user's registration.
  */
 export type PartialRegistrationRequest =
-    Omit<RegisterDefinition['request'], 'username' | 'password' | 'redirect'>;
+    Omit<RegisterActionInput, 'username' | 'password' | 'redirectUrl'>;
 
 /**
  * Props accepted by the <RegisterDialog> component.

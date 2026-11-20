@@ -3,19 +3,10 @@
 
 import crypto from 'node:crypto';
 
-import {
-    hashPassword,
-    securePasswordHash,
-    validatePasswordStrength,
-    verifyPassword,
-    wrapLegacyPasswordHash,
-} from './Password';
+import { hashPassword, validatePasswordStrength, verifyPassword, wrapLegacyPasswordHash }
+    from './Password';
 
 describe('Password', () => {
-    function sha256(input: string): string {
-        return crypto.createHash('sha256').update(input).digest('hex');
-    }
-
     afterEach(() => {
         delete process.env.APP_PASSWORD_SALT;
     });
@@ -61,7 +52,6 @@ describe('Password', () => {
 
         // Known reference vector from the legacy scrypt(sha256(pw), 'FirstSalt') implementation:
         const legacyHash = 'ca21cf41529f899ba3e54d17691608525e28b78e1083b017764060d51532e30d';
-        expect(securePasswordHash(sha256('changeme1234'))).toEqual(legacyHash);
 
         await expect(verifyPassword('changeme1234', legacyHash))
             .resolves.toEqual({ valid: true, needsUpgrade: true });

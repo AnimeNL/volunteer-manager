@@ -9,62 +9,16 @@ import type { LegacySessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type Grant } from './AccessControl';
 import { getBlobUrl } from '../database/BlobStore';
-import { hashPassword, securePasswordHash, verifyPassword } from './Password';
+import { hashPassword, verifyPassword } from './Password';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersAuth, tUsersEvents }
     from '../database';
 
 import { kAuthType, kRegistrationStatus } from '../database/Types';
 
 /**
- * Interface containing all the information that must be known when creating a new account.
- */
-interface AccountCreationData {
-    /**
-     * The username of the account that should be created.
-     */
-    username: string;
-
-    /**
-     * The password associated with that account, SHA256 hashed.
-     */
-    password: string;
-
-    /**
-     * The user's first name.
-     */
-    firstName: string;
-
-    /**
-     * The user's last name.
-     */
-    lastName: string;
-
-    /**
-     * Gender of the user. A string because we don't care.
-     */
-    gender: string;
-
-    /**
-     * Date on which the user was born. (YYYY-MM-DD)
-     */
-    birthdate: string;
-
-    /**
-     * Phone number of the user, in an undefined format.
-     */
-    phoneNumber: string;
-
-    /**
-     * Discord handle owned by the user, when provided, in an undefined format.
-     */
-    discordHandle?: string;
-}
-
-/**
  * Type of input that can be used to authenticate users. Used by `authenticateUser()`.
  */
 type AuthenticateUserParams =
-    { type: 'password', username: string, sha256Password: string } |
     { type: 'session' } & LegacySessionData |
     { type: 'userId', userId: number };
 
@@ -127,31 +81,6 @@ export async function authenticateUser(params: AuthenticateUserParams)
     let authenticationResult: AuthenticationResult | null;
 
     switch (params.type) {
-        case 'password': {
-            const securelyHashedPassword = await securePasswordHash(params.sha256Password);
-            authenticationResult = await userSelectFrom
-                .innerJoin(tUsersAuth)
-                    .on(tUsersAuth.userId.equals(tUsers.userId))
-                .groupBy(tUsers.userId)
-                .select({
-                    ...baseUserSelect,
-                    authType: tUsersAuth.authType,
-                })
-                .where(tUsers.username.equals(params.username))
-                    .and(tUsers.activated.equals(/* true= */ 1))
-                    .and(tUsers.anonymized.isNull())
-                    .and(tUsersAuth.authType.equals(kAuthType.password)
-                             .and(tUsersAuth.authValue.equals(securelyHashedPassword))
-                        .or(tUsersAuth.authType.equals(kAuthType.code)
-                                .and(dbInstance.fragmentWithType('boolean', 'required').sql`
-                                    SHA2(${tUsersAuth.authValue}, 256) =
-                                         ${dbInstance.const(params.sha256Password, 'string')}`))
-                    )
-                .executeSelectNoneOrOne();
-
-            break;
-        }
-
         case 'session':
             authenticationResult = await userSelectFrom
                 .groupBy(tUsers.userId)
@@ -332,45 +261,6 @@ export async function getUserSessionToken(user: UserLike | number): Promise<numb
         .where(tUsers.userId.equals(typeof user === 'number' ? user : user.id))
         .selectOneColumn(tUsers.sessionToken)
         .executeSelectNoneOrOne();
-}
-
-/**
- * Creates an account based on the given `data`. Will return a number indicating user ID when the
- * account was created successfully, or undefined. Failure only happens when the SQL queries fail.
- */
-export async function createAccount(data: AccountCreationData): Promise<number | undefined> {
-    let userId: number | undefined;
-
-    const dbInstance = db;
-    await dbInstance.transaction(async () => {
-        const securelyHashedPassword = await securePasswordHash(data.password);
-
-        userId = await dbInstance.insertInto(tUsers)
-            .set({
-                username: data.username,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                gender: data.gender,
-                birthdate: Temporal.PlainDate.from(data.birthdate),
-                phoneNumber: data.phoneNumber,
-                discordHandle: data.discordHandle,
-                discordHandleUpdated:
-                    !!data.discordHandle ? dbInstance.currentZonedDateTime()
-                                         : null
-            })
-            .returningLastInsertedId()
-            .executeInsert();
-
-        await dbInstance.insertInto(tUsersAuth)
-            .set({
-                userId: userId,
-                authType: kAuthType.password,
-                authValue: securelyHashedPassword,
-            })
-            .executeInsert();
-    });
-
-    return userId;
 }
 
 type ValidUserData = { id: number; activated: boolean };
