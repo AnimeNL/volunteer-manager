@@ -36,10 +36,11 @@ vi.mock('@lib/database/BlobStore', () => ({
     storeBlobData: (...args: any[]) => (mockStoreBlobData as any)(...args),
 }));
 
-import { clearAuthCache, initialisePermissionRoles } from '../AuthenticationContext';
+import { clearAuthCache } from '../AuthenticationContext';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { getOwnAccountAction, updateAvatarAction, updateOwnAccountAction } from './ProfileActions';
 import { hashSessionSecret } from '../SessionStore';
+import { initialisePermissionRoles } from '../access/PermissionRoles';
 import { kSessionCookieName, sealSession } from '../Session';
 import { useMockConnection } from '../../database/Connection';
 

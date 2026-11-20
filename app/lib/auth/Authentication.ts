@@ -4,7 +4,6 @@
 import crypto from 'node:crypto';
 
 import type { AuthenticationContext, UserAuthenticationContext } from './AuthenticationContextTypes';
-import type { AuthenticationResult } from './AuthenticationTestHelpers';
 import type { LegacySessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type Grant } from './access/AccessControl';
@@ -14,6 +13,36 @@ import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersAuth, tUsersEvents
     from '../database';
 
 import { kAuthType, kRegistrationStatus } from '../database/Types';
+
+/**
+ * Row shape returned by the user authentication query in `authenticateUser()`. Exported for
+ * test helpers that mock the query.
+ */
+export interface AuthenticationResult {
+    // AuthenticationContext.accessControl:
+    accessControl?: {
+        grants?: string;
+        revokes?: string;
+        events?: string;
+        teams?: string;
+    };
+
+    // UserAuthenticationContext.events:
+    events: {
+        event?: string;
+        grant?: string;
+        team?: string;
+        isEventHidden?: number;
+    }[];
+
+    // UserAuthenticationContext.user:
+    userId: number;
+    username?: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    avatarFileHash?: string;
+}
 
 /**
  * Type of input that can be used to authenticate users. Used by `authenticateUser()`.
@@ -115,7 +144,7 @@ export async function authenticateUser(params: AuthenticateUserParams)
         };
     }
 
-    const authType = authenticationResult.authType ?? kAuthType.password;
+    const authType = kAuthType.password;
     const events: UserAuthenticationContext['events'] = new Map();
     const user: User = {
         id: authenticationResult.userId,

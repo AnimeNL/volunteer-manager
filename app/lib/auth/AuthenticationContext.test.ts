@@ -9,14 +9,10 @@ import { stringifySetCookie } from 'cookie';
 import type { SessionData } from './Session';
 import { AccessControl } from './access/AccessControl';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import {
-    clearAuthCache,
-    executeAccessCheck,
-    getAuthenticationContextFromHeaders,
-    initialisePermissionRoles,
-    invalidateUserAuthCache,
-} from './AuthenticationContext';
+import { clearAuthCache, executeAccessCheck, getAuthenticationContextFromHeaders,
+    invalidateUserAuthCache } from './AuthenticationContext';
 import { hashSessionSecret } from './SessionStore';
+import { initialisePermissionRoles } from './access/PermissionRoles';
 import { kSessionCookieName, sealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 

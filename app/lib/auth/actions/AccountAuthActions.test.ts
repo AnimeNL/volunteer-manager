@@ -55,11 +55,12 @@ vi.mock('@lib/subscriptions', () => ({
 
 import { changePasswordAction, completePasswordResetAction, registerAction,
     registerActivateAction, verifyPasswordResetAction } from './AccountAuthActions';
-import { clearAuthCache, initialisePermissionRoles } from '../AuthenticationContext';
+import { clearAuthCache } from '../AuthenticationContext';
 import { clearRateLimits } from '../RateLimit';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { hashPassword } from '../Password';
 import { hashSessionSecret } from '../SessionStore';
+import { initialisePermissionRoles } from '../access/PermissionRoles';
 import { kSessionCookieName, sealSession, unsealSession } from '../Session';
 import { sanitizeRelativeRedirectUrl } from '../AuthHelpers';
 import { sealPasswordResetRequest } from '../PasswordReset';

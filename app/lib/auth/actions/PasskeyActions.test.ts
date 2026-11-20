@@ -44,11 +44,12 @@ vi.mock('@lib/Log', async (importOriginal) => {
     return { ...actual, RecordLog: (...args: any[]) => mockRecordLog(...args) };
 });
 
-import { clearAuthCache, initialisePermissionRoles } from '../AuthenticationContext';
+import { clearAuthCache } from '../AuthenticationContext';
 import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
     registerPasskeyAction } from './PasskeyActions';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { hashSessionSecret } from '../SessionStore';
+import { initialisePermissionRoles } from '../access/PermissionRoles';
 import { kLogType } from '@lib/Log';
 import { kSessionCookieName, sealSession } from '../Session';
 import { useMockConnection } from '../../database/Connection';

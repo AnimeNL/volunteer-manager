@@ -8,108 +8,28 @@ import { forbidden, unauthorized } from 'next/navigation';
 // https://github.com/vercel/next.js/discussions/44270
 const headers = import('next/headers');
 
-import type { AccessOperation } from '@lib/auth/access/AccessDescriptor';
-import type { BooleanPermission, CRUDPermission } from '@lib/auth/access/Access';
+import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
+    from './AuthenticationContextTypes';
 import type { LegacySessionData, PersistentSessionData, SessionData } from './Session';
-
+import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
 import { AccessControl, type AccessScope } from './access/AccessControl';
 import { Cache } from '@lib/cache';
+import { and, checkPermission, or } from './access/PermissionCheck';
 import { authenticateUser } from './Authentication';
+import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
 import { hashSessionSecret, touchUserSession, verifyUserSession } from './SessionStore';
 import { isPersistentSessionData } from './Session';
-import db, { tPermissionsRoles } from '@lib/database';
-
-import { kPermissionGroups } from './access/Access';
-
-import type {
-    AuthenticationContext,
-    UserAuthenticationContext,
-} from './AuthenticationContextTypes';
 
 export type {
     AuthenticationContext,
+    PermissionAccessCheck,
+    PermissionSet,
     UserAuthenticationContext,
+    VisitorAuthenticationContext,
 };
 
-declare namespace globalThis {
-    let animeConRolesInitialised: boolean | undefined;
-}
-
-/**
- * Access check for a specific permission. May be a simple boolean permission, or a CRUD permission
- * which requires a specific operation to be allowed.
- */
-export type PermissionAccessCheck =
-    BooleanPermission |
-    {
-        permission: BooleanPermission;
-        scope?: AccessScope;
-    } |
-    {
-        permission: CRUDPermission;
-        operation: AccessOperation;
-        scope?: AccessScope;
-    };
-
-/**
- * A set of permission checks, either where all ("and") or any ("or") of the checks must pass.
- */
-export type PermissionSet = {
-    type: 'and' | 'or';
-    checks: PermissionAccessCheck[];
-};
-
-export function and(...permissions: PermissionAccessCheck[]): PermissionSet {
-    return { type: 'and', checks: permissions };
-}
-
-export function or(...permissions: PermissionAccessCheck[]): PermissionSet {
-    return { type: 'or', checks: permissions };
-}
-
-/**
- * Executes a permission `check` on the given `access` object.
- */
-function checkIndividualPermission(
-    access: AccessControl, check: PermissionAccessCheck, scope?: AccessScope): boolean
-{
-    if (typeof check === 'string')
-        return access.can(check as BooleanPermission, scope);
-
-    if ('operation' in check) {
-        const permission = check.permission as CRUDPermission;
-        if (access.can(permission, check.operation, check.scope ?? scope))
-            return true;  // permission has been granted
-
-    } else {
-        const permission = check.permission as BooleanPermission;
-        if (access.can(permission, check.scope ?? scope))
-            return true;  // permission has been granted
-    }
-
-    return false;
-}
-
-/**
- * Executes a permission `check` on the given `access` object, which may also be a set of checks
- * that should be executed with a particular result in mind.
- */
-export function checkPermission(
-    access: AccessControl, permission: PermissionAccessCheck | PermissionSet, scope?: AccessScope)
-        : boolean
-{
-    if (typeof permission !== 'string' && 'type' in permission) {
-        let count = 0;
-        for (const individualPermission of permission.checks)
-            count += checkIndividualPermission(access, individualPermission, scope) ? 1 : 0;
-
-        return permission.type === 'and' ? /* && */ count === permission.checks.length
-                                         : /* || */ count > 0;
-    }
-
-    return checkIndividualPermission(access, permission, scope);
-}
+export { and, checkPermission, or };
 
 /**
  * Executes the given `permission` check. A HTTP 401 Unauthorized or HTTP 403 Forbidden error will
@@ -304,45 +224,3 @@ async function loadAuthenticationContext(bypassCache: boolean): Promise<Authenti
  */
 export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> =>
     loadAuthenticationContext(/* bypassCache= */ false));
-
-/**
- * Ability to explicitly set the roles that the system should be initialised with for tests.
- */
-type RolesForTesting = { role: string; grants?: string; revokes?: string; }[];
-
-/**
- * Ensures that permission roles have been loaded into the `PermissionRoles` cache at least once.
- */
-export async function ensurePermissionRolesInitialised(): Promise<void> {
-    if (!globalThis.animeConRolesInitialised)
-        await initialisePermissionRoles();
-}
-
-/**
- * Provides one-off initialisation of permission roles by fetching them from the database and
- * storing them in the Cache. Any further modifications will be synchronised in the Cache directly.
- */
-export async function initialisePermissionRoles(rolesForTesting?: RolesForTesting) {
-    const cache = Cache.getInstance('PermissionRoles');
-    const roles = rolesForTesting || await db.selectFrom(tPermissionsRoles)
-        .select({
-            role: tPermissionsRoles.permissionRoleId,
-            grants: tPermissionsRoles.permissionRoleGrants,
-            revokes: tPermissionsRoles.permissionRoleRevokes,
-        })
-        .executeSelectMany();
-
-    for (const { role, grants, revokes } of roles) {
-        cache.set(role, {
-            grants: grants?.split(',') || [ /* no grants */ ],
-            revokes: revokes?.split(',') || [ /* no revokes */ ],
-        });
-    }
-
-    cache.set('root', {
-        grants: kPermissionGroups,
-        revokes: [ /* no revokes */ ],
-    });
-
-    globalThis.animeConRolesInitialised = true;
-}
