@@ -117,14 +117,13 @@ export default async function EventTicketsAssociatesPage(
             .executeSelectMany()
         : [];
 
-    const knownDepartments = updateTicketFn
-        ? (await dbInstance.selectFrom(tTeams)
+    const knownTeams = updateTicketFn
+        ? await dbInstance.selectFrom(tTeams)
             .where(tTeams.teamDeleted.isNull())
-                .and(tTeams.teamDepartment.isNotNull())
-            .selectOneColumn(tTeams.teamDepartment)
-            .groupBy(tTeams.teamDepartment)
-            .orderBy(tTeams.teamDepartment, 'asc')
-            .executeSelectMany()).filter((department): department is string => !!department)
+            .selectOneColumn(tTeams.teamName)
+            .groupBy(tTeams.teamName)
+            .orderBy(tTeams.teamName, 'asc')
+            .executeSelectMany()
         : [];
 
     return (
@@ -209,7 +208,7 @@ export default async function EventTicketsAssociatesPage(
                         <Grid size={{ xs: 12, md: 6 }}>
                             <FreeSoloAutocompleteElement
                                 name="organisation" label="Organisation"
-                                options={knownDepartments} required />
+                                options={knownTeams} required />
                         </Grid>
                     </FormGrid>
                 </Section> }
