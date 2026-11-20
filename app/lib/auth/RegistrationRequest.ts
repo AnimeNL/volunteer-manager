@@ -1,7 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { seal, unseal } from './Iron';
+import { sealToken, unsealToken } from './SealedToken';
 
 /**
  * The password through which registration requests will be sealed. This must be set in the global
@@ -41,8 +41,8 @@ export interface RegistrationRequest {
  * @returns The sealed registration request, as a string.
  */
 export async function sealRegistrationRequest(request: RegistrationRequest): Promise<string> {
-    return encodeURIComponent(
-        await seal(request, kRegistrationRequestPassword, kRegistrationRequestExpirySeconds));
+    return sealToken(
+        request, 'registration', kRegistrationRequestPassword, kRegistrationRequestExpirySeconds);
 }
 
 /**
@@ -52,6 +52,6 @@ export async function sealRegistrationRequest(request: RegistrationRequest): Pro
  * @returns The registration request in plaintext form.
  */
 export async function unsealRegistrationRequest(request: string): Promise<RegistrationRequest> {
-    return await unseal(decodeURIComponent(request), kRegistrationRequestPassword) as
-        RegistrationRequest;
+    return unsealToken<RegistrationRequest>(
+        request, 'registration', kRegistrationRequestPassword);
 }

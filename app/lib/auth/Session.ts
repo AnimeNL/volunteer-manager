@@ -1,8 +1,12 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { seal, unseal } from './Iron';
 import { stringifySetCookie } from 'cookie';
+
+import { isSealedToken, sealToken, unsealToken } from './SealedToken';
+import { unseal } from './Iron';
+
+import { kSecureCookie } from './Constants';
 
 /**
  * The password through which the session will be sealed. A start-up exception will be thrown when
@@ -54,7 +58,7 @@ export interface SessionData {
  * @returns The sealed session data, as a string.
  */
 export async function sealSession(session: SessionData): Promise<string> {
-    return await seal(session, kSessionPassword, kSessionExpirationTimeSeconds);
+    return sealToken(session, 'session', kSessionPassword, kSessionExpirationTimeSeconds);
 }
 
 /**
@@ -65,6 +69,9 @@ export async function sealSession(session: SessionData): Promise<string> {
  * @returns The plaintext session data in its original format.
  */
 export async function unsealSession(sealedSession: string): Promise<SessionData> {
+    if (isSealedToken(sealedSession))
+        return unsealToken<SessionData>(sealedSession, 'session', kSessionPassword);
+
     return await unseal(sealedSession, kSessionPassword) as SessionData;
 }
 
@@ -78,6 +85,8 @@ export async function writeEmptySessionCookie(headers: Headers): Promise<void> {
         httpOnly: true,
         maxAge: 0,
         path: '/',
+        sameSite: 'lax',
+        secure: kSecureCookie,
     }));
 }
 
@@ -93,6 +102,8 @@ export async function writeSealedSessionCookie(session: SessionData, headers: He
         httpOnly: true,
         maxAge: kSessionExpirationTimeSeconds,
         path: '/',
+        sameSite: 'lax',
+        secure: kSecureCookie,
     }));
 }
 
@@ -106,5 +117,7 @@ export async function writeSealedSessionCookieToStore(session: SessionData, cook
         httpOnly: true,
         maxAge: kSessionExpirationTimeSeconds,
         path: '/',
+        sameSite: 'lax',
+        secure: kSecureCookie,
     });
 }

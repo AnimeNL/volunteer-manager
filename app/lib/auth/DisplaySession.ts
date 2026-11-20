@@ -3,7 +3,10 @@
 
 import type { cookies } from 'next/headers';
 
-import { seal, unseal } from './Iron';
+import { isSealedToken, sealToken, unsealToken } from './SealedToken';
+import { unseal } from './Iron';
+
+import { kSecureCookie } from './Constants';
 
 /**
  * The password through which the display session will be sealed. A start-up exception will be
@@ -31,8 +34,9 @@ const kDisplaySessionExpirationTimeSeconds = 399 * 24 * 60 * 60;
  * @param session The plaintext session data in its original format.
  * @returns The sealed session data, as a string.
  */
-async function sealDisplaySession(session: any): Promise<string> {
-    return await seal(session, kDisplaySessionPassword, kDisplaySessionExpirationTimeSeconds);
+async function sealDisplaySession(session: { id: number }): Promise<string> {
+    return sealToken(
+        session, 'display', kDisplaySessionPassword, kDisplaySessionExpirationTimeSeconds);
 }
 
 /**
@@ -42,8 +46,15 @@ async function sealDisplaySession(session: any): Promise<string> {
  * @param sealedSession The sealed session data to unseal, as a string.
  * @returns The plaintext session data in its original format.
  */
-async function unsealDisplaySession(sealedSession: string): Promise<any> {
-    return await unseal(sealedSession, kDisplaySessionPassword);
+async function unsealDisplaySession(sealedSession: string): Promise<{ id: number }> {
+    if (isSealedToken(sealedSession))
+        return unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
+
+    const legacy = await unseal(sealedSession, kDisplaySessionPassword) as Record<string, unknown>;
+    if (!legacy || typeof legacy.id !== 'number' || 'token' in legacy)
+        throw new Error('Invalid legacy display session payload.');
+
+    return { id: legacy.id };
 }
 
 /**
@@ -74,5 +85,7 @@ export async function writeDisplayIdToCookieStore(
         httpOnly: true,
         maxAge: kDisplaySessionExpirationTimeSeconds,
         path: '/',
+        sameSite: 'lax',
+        secure: kSecureCookie,
     });
 }

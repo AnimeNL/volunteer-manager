@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { SessionData } from './Session';
-import { seal, unseal } from './Iron';
+import { sealToken, unsealToken } from './SealedToken';
 
 /**
  * The password through which password reset requests will be sealed. This must be set in the global
@@ -15,7 +15,7 @@ if (!kPasswordResetRequestPassword || !kPasswordResetRequestPassword.length)
 /**
  * Number of seconds that a password reset request is valid for.
  */
-const kPasswordResetRequestExpirySeconds = 7 * 86400;  // one day
+const kPasswordResetRequestExpirySeconds = 3 * 3600;  // three hours
 
 /**
  * Interface describing the information contained within a password reset request. This will be
@@ -32,8 +32,9 @@ export type PasswordResetRequest = SessionData;
  * @returns The sealed password reset request, as a string.
  */
 export async function sealPasswordResetRequest(request: PasswordResetRequest): Promise<string> {
-    return encodeURIComponent(
-        await seal(request, kPasswordResetRequestPassword, kPasswordResetRequestExpirySeconds));
+    return sealToken(
+        request, 'password-reset', kPasswordResetRequestPassword,
+        kPasswordResetRequestExpirySeconds);
 }
 
 /**
@@ -43,6 +44,6 @@ export async function sealPasswordResetRequest(request: PasswordResetRequest): P
  * @returns The password request in plaintext form.
  */
 export async function unsealPasswordResetRequest(request: string): Promise<PasswordResetRequest> {
-    return await unseal(decodeURIComponent(request), kPasswordResetRequestPassword) as
-        PasswordResetRequest;
+    return unsealToken<PasswordResetRequest>(
+        request, 'password-reset', kPasswordResetRequestPassword);
 }
