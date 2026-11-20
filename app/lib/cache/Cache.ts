@@ -354,8 +354,12 @@ export class Cache<T extends CacheType> {
             lastAccessTime: performance.now(),
         });
 
-        if (descriptor.type === 'lru') {
-            while (this.#entries.size > descriptor.maxSize) {
+        const maxSize = descriptor.type === 'lru' || descriptor.type === 'ttl'
+            ? descriptor.maxSize
+            : undefined;
+
+        if (maxSize !== undefined) {
+            while (this.#entries.size > maxSize) {
                 const firstKey = this.#entries.keys().next().value;
                 if (firstKey !== undefined)
                     this.#entries.delete(firstKey);
@@ -401,7 +405,10 @@ export class Cache<T extends CacheType> {
         entry.accessCount++;
         entry.lastAccessTime = performance.now();
 
-        if (this.#descriptor.type === 'lru') {
+        const hasMaxSize = this.#descriptor.type === 'lru' ||
+            (this.#descriptor.type === 'ttl' && this.#descriptor.maxSize !== undefined);
+
+        if (hasMaxSize) {
             this.#entries.delete(key);
             this.#entries.set(key, entry);
         }

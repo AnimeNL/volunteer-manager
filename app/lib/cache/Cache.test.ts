@@ -281,6 +281,27 @@ describe('Cache', () => {
 
             entries = Array.from(cache);
         });
+
+        it('should enforce LRU maxSize alongside TTL when configured', () => {
+            const cache = Cache.getInstance('TestCacheWithBoundedTTL');
+            cache.clear();
+
+            cache.set({ key: '1' }, 'data1');
+            cache.set({ key: '2' }, 'data2');
+
+            // Touch '1' so '2' becomes the least recently used entry:
+            expect(cache.get({ key: '1' })).toBe('data1');
+
+            cache.set({ key: '3' }, 'data3');
+            expect(cache.has({ key: '1' })).toBeTruthy();
+            expect(cache.has({ key: '2' })).toBeFalsy();
+            expect(cache.has({ key: '3' })).toBeTruthy();
+
+            // Remaining entries still expire once the TTL elapses:
+            vi.advanceTimersByTime(10_000);
+            expect(cache.has({ key: '1' })).toBeFalsy();
+            expect(cache.has({ key: '3' })).toBeFalsy();
+        });
     });
 
     describe('metadata()', () => {

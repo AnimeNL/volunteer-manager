@@ -7,6 +7,7 @@ import type { CachedEvent, CachedTeam } from './Types';
 import type { EnvironmentPurpose } from '../database/Types';
 import type { TicketingPurchaseResponse }
     from '@lib/integrations/yourticketprovider/YourTicketProviderTypes';
+import type { UserAuthenticationContext } from '@lib/auth/AuthenticationContextTypes';
 
 /**
  * Contents of each of the caches known to the system.
@@ -15,6 +16,14 @@ interface CacheDescriptorMap {
     // ---------------------------------------------------------------------------------------------
     // Shared caches
     // ---------------------------------------------------------------------------------------------
+
+    Authentication: {
+        Parameters: number;  // user ID
+        Contents: {
+            context: UserAuthenticationContext;
+            sessionToken: number;
+        };
+    };
 
     Blob: {
         Parameters: string;
@@ -193,6 +202,14 @@ interface CacheDescriptorMap {
         Contents: string;
     };
 
+    TestCacheWithBoundedTTL: {
+        Parameters: {
+            key: string;
+        };
+
+        Contents: string;
+    };
+
 }
 
 /**
@@ -243,7 +260,8 @@ export type CacheDescriptor<T extends CacheType> = {
     } |
     {
         /**
-         * Time-to-live cache: entries expire after `ttl` seconds.
+         * Time-to-live cache: entries expire after `ttl` seconds, and may optionally enforce an
+         * LRU `maxSize` cap to bound memory usage.
          */
         type: 'ttl';
 
@@ -251,6 +269,11 @@ export type CacheDescriptor<T extends CacheType> = {
          * Number of seconds entries should expire after.
          */
         ttl: number;
+
+        /**
+         * Optional maximum number of entries retained in the cache (LRU eviction when exceeded).
+         */
+        maxSize?: number;
     } |
     {
         /**
@@ -272,6 +295,14 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
     // ---------------------------------------------------------------------------------------------
     // Shared caches
     // ---------------------------------------------------------------------------------------------
+
+    Authentication: {
+        name: 'Authentication',
+        description: 'Authenticated user sessions and resolved access control contexts.',
+        type: 'ttl',
+        ttl: 900,  // 15 minutes
+        maxSize: 1000,
+    },
 
     Blob: {
         name: 'Blob',
@@ -427,6 +458,15 @@ export const kCacheDescriptor: { [k in CacheType]: CacheDescriptor<k> } = {
         description: 'Internal cache used for testing',
         type: 'ttl',
         ttl: 10,
+    },
+
+    TestCacheWithBoundedTTL: {
+        internal: true,
+        name: 'TestCacheWithBoundedTTL',
+        description: 'Internal cache used for testing',
+        type: 'ttl',
+        ttl: 10,
+        maxSize: 2,
     },
 
 };
