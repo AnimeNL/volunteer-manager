@@ -2,7 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { DBConnection } from '@lib/database/Connection';
-import { tActivities, tUsers } from '@lib/database';
+import { tActivities, tTeams, tUsers, tUsersEvents } from '@lib/database';
+
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Parameters relaying context about the recipient of the message that's been generated.
@@ -51,4 +53,26 @@ export async function queryActivityRecipientContext(db: DBConnection, activityId
         .executeSelectOne();
 
     return { name: name! };
+}
+
+/**
+ * Queries the other teams in which the given `userId` is actively participating (i.e. accepted)
+ * during the given `eventId`, excluding `teamId`. Returns a comma-separated list of team titles,
+ * or `undefined` when they are not participating in any other teams.
+ */
+export async function queryRecipientOtherTeams(
+    db: DBConnection, userId: number, eventId: number, teamId: number): Promise<string | undefined>
+{
+    const teams = await db.selectFrom(tUsersEvents)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tUsersEvents.teamId))
+        .where(tUsersEvents.userId.equals(userId))
+            .and(tUsersEvents.eventId.equals(eventId))
+            .and(tUsersEvents.teamId.notEquals(teamId))
+            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .selectOneColumn(tTeams.teamTitle)
+        .orderBy(tTeams.teamTitle, 'asc')
+        .executeSelectMany();
+
+    return teams.length > 0 ? teams.join(', ') : undefined;
 }

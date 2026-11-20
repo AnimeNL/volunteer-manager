@@ -11,7 +11,11 @@ import { type TeamContextParameters, kTeamContextExampleParameters } from './con
  */
 export type TeamCommunicationParameters =
     AuthorContextParameters & EventContextParameters & RecipientContextParameters &
-    TeamContextParameters;
+    TeamContextParameters & {
+        recipient: {
+            otherTeams?: string;
+        };
+    };
 
 /**
  * Example values for the common team communication parameters.
@@ -19,6 +23,9 @@ export type TeamCommunicationParameters =
 export const kTeamCommunicationExampleParameters = {
     author: kAuthorContextExampleParameters,
     event: kEventContextExampleParameters,
-    recipient: kRecipientContextExampleParameters,
+    recipient: {
+        ...kRecipientContextExampleParameters,
+        otherTeams: 'Volunteering Crew',
+    },
     team: kTeamContextExampleParameters,
 };

@@ -17,7 +17,7 @@ import { queryActivityContext } from './prompts/context/ActivityContextParameter
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
 import { queryEventContext } from './prompts/context/EventContextParameters';
 import { queryHotelBookingContext } from './prompts/context/HotelBookingContextParameters';
-import { queryActivityRecipientContext, queryRecipientContext } from './prompts/context/RecipientContextParameters';
+import { queryActivityRecipientContext, queryRecipientContext, queryRecipientOtherTeams } from './prompts/context/RecipientContextParameters';
 import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
 import { queryTrainingContext } from './prompts/context/TrainingContextParameters';
@@ -145,7 +145,11 @@ export async function executeCommunicationPrompt(
                 parameters = {
                     author,
                     event: await queryEventContext(dbInstance, data.eventId),
-                    recipient,
+                    recipient: {
+                        ...recipient,
+                        otherTeams: await queryRecipientOtherTeams(
+                            dbInstance, recipientId!, data.eventId, data.teamId),
+                    },
                     team: await queryTeamContext(dbInstance, data.eventId, data.teamId),
                 } satisfies GetPromptParameters<prompts.ParticipationCancelledPrompt>;
 
