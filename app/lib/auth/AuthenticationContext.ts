@@ -126,15 +126,47 @@ export function executeAccessCheck(
 }
 
 /**
+ * Invalidates any cached authentication context for the user identified by `userId`. Call this
+ * whenever a user's profile, permissions, event participations, activation status, or session
+ * token changes.
+ */
+export function invalidateUserAuthCache(userId: number): void {
+    Cache.getInstance('Authentication').delete(userId);
+}
+
+/**
+ * Clears all cached authentication contexts. Call this when global authorization inputs change,
+ * such as permission role definitions, role permission grants, or event visibility.
+ */
+export function clearAuthCache(): void {
+    Cache.getInstance('Authentication').clear();
+}
+
+/**
+ * Options accepted by `requireAuthenticationContext()`.
+ */
+export interface RequireAuthenticationOptions {
+    /**
+     * When true, bypasses the server-side `Authentication` cache and verifies the session directly
+     * against the database. Use for high-risk security mutations.
+     */
+    bypassCache?: boolean;
+}
+
+/**
  * Determines the authentication context from the cookies included with the current request, and
  * will issue a HTTP 401 Unauthorized error when none could be loaded. May only be used by
  * server-side components, as authentication requires a database query.
  */
 export async function requireAuthenticationContext(
     permission?: PermissionAccessCheck | PermissionSet,
-    scope?: AccessScope): Promise<UserAuthenticationContext>
+    scope?: AccessScope,
+    options?: RequireAuthenticationOptions): Promise<UserAuthenticationContext>
 {
-    const authenticationContext = await getAuthenticationContext();
+    const authenticationContext = options?.bypassCache
+        ? await loadAuthenticationContext(/* bypassCache= */ true)
+        : await getAuthenticationContext();
+
     if (!authenticationContext.user)
         unauthorized();
 
@@ -145,14 +177,26 @@ export async function requireAuthenticationContext(
 }
 
 /**
- * Actually gets the authentication context from the given `sessionData`.
+ * Actually gets the authentication context from the given `sessionData`, consulting the
+ * server-side `Authentication` cache unless `bypassCache` is true.
  */
-async function getAuthenticationContextFromSessionData(sessionData: SessionData)
-    : Promise<AuthenticationContext>
+async function getAuthenticationContextFromSessionData(
+    sessionData: SessionData, bypassCache = false): Promise<AuthenticationContext>
 {
     await ensurePermissionRolesInitialised();
 
-    return authenticateUser({ type: 'session', ...sessionData });
+    const authCache = Cache.getInstance('Authentication');
+    if (!bypassCache) {
+        const cached = authCache.get(sessionData.id);
+        if (cached && cached.sessionToken === sessionData.token)
+            return cached.context;
+    }
+
+    const context = await authenticateUser({ type: 'session', ...sessionData });
+    if (context.user)
+        authCache.set(sessionData.id, { context, sessionToken: sessionData.token });
+
+    return context;
 }
 
 /**
@@ -161,29 +205,35 @@ async function getAuthenticationContextFromSessionData(sessionData: SessionData)
  * @param headers The Headers object from the request.
  */
 export async function getAuthenticationContextFromHeaders(
-    headers: Headers): Promise<AuthenticationContext>
+    headers: Headers, bypassCache = false): Promise<AuthenticationContext>
 {
     const sessionData = await getSessionFromHeaders(headers);
     if (!sessionData)
         return { access: new AccessControl({ /* no grants */ }), user: undefined };
 
-    return getAuthenticationContextFromSessionData(sessionData);
+    return getAuthenticationContextFromSessionData(sessionData, bypassCache);
+}
+
+/**
+ * Resolves the `AuthenticationContext` for the current request from Next.js cookies.
+ */
+async function loadAuthenticationContext(bypassCache: boolean): Promise<AuthenticationContext> {
+    const sessionData = await getSessionFromCookieStore((await headers).cookies());
+    if (sessionData)
+        return getAuthenticationContextFromSessionData(sessionData, bypassCache);
+
+    return {
+        access: new AccessControl({ /* no grants */ }),
+        user: /* guest= */ undefined,
+    };
 }
 
 /**
  * Returns the `AuthenticationContext` for the current user. May return a context for a visitor, who
  * does not have any privileges assigned to them.
  */
-export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> => {
-    const sessionData = await getSessionFromCookieStore((await headers).cookies());
-    if (sessionData)
-        return getAuthenticationContextFromSessionData(sessionData);
-
-    return {
-        access: new AccessControl({ /* no grants */ }),
-        user: /* guest= */ undefined,
-    };
-});
+export const getAuthenticationContext = cache(async (): Promise<AuthenticationContext> =>
+    loadAuthenticationContext(/* bypassCache= */ false));
 
 /**
  * Ability to explicitly set the roles that the system should be initialised with for tests.

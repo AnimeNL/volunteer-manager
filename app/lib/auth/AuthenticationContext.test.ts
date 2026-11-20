@@ -4,18 +4,26 @@
 import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 
-import { AccessControl } from './AccessControl';
-import { type SessionData, kSessionCookieName, sealSession } from './Session';
-import { executeAccessCheck, getAuthenticationContextFromHeaders, initialisePermissionRoles }
-    from './AuthenticationContext';
-import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
 import { stringifySetCookie } from 'cookie';
+
+import type { SessionData } from './Session';
+import { AccessControl } from './AccessControl';
+import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
+import {
+    clearAuthCache,
+    executeAccessCheck,
+    getAuthenticationContextFromHeaders,
+    initialisePermissionRoles,
+    invalidateUserAuthCache,
+} from './AuthenticationContext';
+import { kSessionCookieName, sealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 
 describe('AuthenticationContext', () => {
     const mockConnection = useMockConnection();
 
     beforeEach(async () => {
+        clearAuthCache();
         await initialisePermissionRoles([]);
     });
 
@@ -47,6 +55,51 @@ describe('AuthenticationContext', () => {
 
         expect(user?.firstName).toEqual('Joe');
         expect(user?.lastName).toEqual('Example');
+    });
+
+    it('caches authenticated sessions and supports targeted and global invalidation', async () => {
+        const makeHeaders = async (session: SessionData) => new Headers([[
+            'Cookie',
+            stringifySetCookie({
+                name: kSessionCookieName,
+                value: await sealSession(session),
+                httpOnly: true,
+            }),
+        ]]);
+
+        const headersV1 = await makeHeaders({ id: 42, token: 1 });
+
+        // First call populates the cache from the database:
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        const first = await getAuthenticationContextFromHeaders(headersV1);
+        expect(first.user?.firstName).toBe('Alice');
+
+        // Repeat call hits the cache with no database query:
+        const second = await getAuthenticationContextFromHeaders(headersV1);
+        expect(second.user?.firstName).toBe('Alice');
+
+        // bypassCache forces a fresh database query:
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Updated' });
+        const bypassed = await getAuthenticationContextFromHeaders(headersV1, true);
+        expect(bypassed.user?.firstName).toBe('Alice Updated');
+
+        // Targeted invalidation forces a fresh database query:
+        invalidateUserAuthCache(42);
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Reloaded' });
+        const reloaded = await getAuthenticationContextFromHeaders(headersV1);
+        expect(reloaded.user?.firstName).toBe('Alice Reloaded');
+
+        // Token mismatch falls through to the database rather than trusting stale cache:
+        const headersV2 = await makeHeaders({ id: 42, token: 2 });
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Rotated' });
+        const rotated = await getAuthenticationContextFromHeaders(headersV2);
+        expect(rotated.user?.firstName).toBe('Alice Rotated');
+
+        // Global clear evicts all cached entries:
+        clearAuthCache();
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Fresh' });
+        const fresh = await getAuthenticationContextFromHeaders(headersV2);
+        expect(fresh.user?.firstName).toBe('Alice Fresh');
     });
 
     it('is able to execute permission access checks', () => {
