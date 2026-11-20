@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import { TaskWithParams } from '../Task';
 import { createTicketService } from '@lib/tickets';
 import { executeTaskNow, scheduleTask } from '@lib/scheduler';
-import db, { tWeeztixTickets } from '@lib/database';
+import db, { tEvents, tWeeztixTickets } from '@lib/database';
 
 /**
  * Parameter scheme applying to the `CancelTicketTask`.
@@ -86,19 +86,55 @@ export class CancelTicketTask extends TaskWithParams<TaskParams> {
      * Cancels the tickets associated with a Weeztix order.
      */
     private async cancelWeeztixOrder(orderGuid: string, params: TaskParams): Promise<boolean> {
-        const ticketGuids = await db.selectFrom(tWeeztixTickets)
+        const dbInstance = db;
+
+        const eventTickets = await dbInstance.selectFrom(tEvents)
+            .where(tEvents.eventSlug.equals(params.event))
+            .select({
+                guestTicketGuid: tEvents.eventWeeztixGuestTicketGuid,
+                vendorTicketGuid: tEvents.eventWeeztixVendorTicketGuid,
+                volunteerTicketGuid: tEvents.eventWeeztixVolunteerTicketGuid,
+            })
+            .executeSelectNoneOrOne();
+
+        const allowedTicketTypes = new Set(
+            [
+                eventTickets?.guestTicketGuid,
+                eventTickets?.vendorTicketGuid,
+                eventTickets?.volunteerTicketGuid,
+            ].filter((guid): guid is string => !!guid),
+        );
+
+        if (!allowedTicketTypes.size) {
+            this.log.error(
+                `No volunteer, vendor, or guest Weeztix ticket types configured for event ` +
+                `"${params.event}".`);
+            return false;
+        }
+
+        const tickets = await dbInstance.selectFrom(tWeeztixTickets)
             .where(tWeeztixTickets.weeztixOrderGuid.equals(orderGuid))
                 .and(tWeeztixTickets.weeztixTicketDeleted.isNull())
-            .selectOneColumn(tWeeztixTickets.weeztixGuid)
+            .select({
+                guid: tWeeztixTickets.weeztixGuid,
+                typeGuid: tWeeztixTickets.weeztixTicketTypeGuid,
+            })
             .executeSelectMany();
 
-        if (!ticketGuids.length) {
+        if (!tickets.length) {
             this.log.warning(`No active tickets found for Weeztix order ${orderGuid}.`);
             return false;
         }
 
+        if (!tickets.every(ticket => allowedTicketTypes.has(ticket.typeGuid))) {
+            this.log.error(
+                `Refusing to cancel Weeztix order ${orderGuid}: it contains tickets other than ` +
+                `volunteer, vendor, or guest tickets.`);
+            return false;
+        }
+
         this.log.info(
-            `Found ${ticketGuids.length} ticket(s) for Weeztix order ${orderGuid} ` +
+            `Found ${tickets.length} cancellable ticket(s) for Weeztix order ${orderGuid} ` +
             `(reason: ${params.reason}).`);
 
         // TODO: Cancel the order and its tickets with Weeztix.
