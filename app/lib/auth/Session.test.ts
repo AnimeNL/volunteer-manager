@@ -5,9 +5,14 @@ import { vi } from 'vitest';
 
 import type { SessionData } from './Session';
 import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from './DisplaySession';
+import {
+    isPersistentSessionData,
+    sealSession,
+    unsealSession,
+    writeSealedSessionCookie,
+} from './Session';
 import { isSealedToken } from './SealedToken';
 import { seal } from './Iron';
-import { sealSession, unsealSession, writeSealedSessionCookie } from './Session';
 
 describe('Session', () => {
     it('should be able to seal and unseal sessions', async () => {
@@ -21,6 +26,18 @@ describe('Session', () => {
 
         const unsealedSession = await unsealSession(sealedSession);
         expect(unsealedSession).toEqual(plaintextSession);
+        expect(isPersistentSessionData(unsealedSession)).toBe(false);
+
+        const persistentSession: SessionData = {
+            sessionId: 77,
+            userId: 9001,
+            secret: 'random-per-device-secret',
+        };
+
+        const sealedPersistent = await sealSession(persistentSession);
+        const unsealedPersistent = await unsealSession(sealedPersistent);
+        expect(unsealedPersistent).toEqual(persistentSession);
+        expect(isPersistentSessionData(unsealedPersistent)).toBe(true);
     });
 
     it('continues to unseal legacy Iron-sealed session cookies', async () => {

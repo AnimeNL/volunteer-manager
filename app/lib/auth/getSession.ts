@@ -6,13 +6,15 @@ import { parseCookie } from 'cookie';
 
 import { type SessionData, kSessionCookieName, unsealSession } from './Session';
 
+type CookieStoreLike = ReturnType<typeof cookies> | Awaited<ReturnType<typeof cookies>>;
+
 /**
  * Returns the unsealed Session that was included in the cookies included in the HTTP request, or
  * undefined in case they don't have a (valid) session.
  *
  * @returns SessionData when the session is valid and exists, or undefined otherwise.
  */
-export async function getSessionFromCookieStore(cookieStore: ReturnType<typeof cookies>)
+export async function getSessionFromCookieStore(cookieStore: CookieStoreLike)
     : Promise<SessionData | undefined>
 {
     const sessionCookie = (await cookieStore).get(kSessionCookieName);

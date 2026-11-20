@@ -1,7 +1,6 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { SessionData } from './Session';
 import { sealToken, unsealToken } from './SealedToken';
 
 /**
@@ -21,7 +20,18 @@ const kPasswordResetRequestExpirySeconds = 3 * 3600;  // three hours
  * Interface describing the information contained within a password reset request. This will be
  * cryptographically sealed by our server to control genuinity.
  */
-export type PasswordResetRequest = SessionData;
+export interface PasswordResetRequest {
+    /**
+     * Unique ID of the user whose password is being reset.
+     */
+    id: number;
+
+    /**
+     * Current `users.session_token` for the account, rotated once the reset completes so tokens are
+     * strictly single-use.
+     */
+    token: number;
+}
 
 /**
  * Creates a sealed password reset request containing the information from the `request`. This is

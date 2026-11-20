@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import crypto from 'node:crypto';
 import { cache } from 'react';
 import { forbidden, unauthorized } from 'next/navigation';
 
@@ -9,12 +10,14 @@ const headers = import('next/headers');
 
 import type { AccessOperation } from '@lib/auth/AccessDescriptor';
 import type { BooleanPermission, CRUDPermission } from '@lib/auth/Access';
-import type { SessionData } from './Session';
+import type { LegacySessionData, PersistentSessionData, SessionData } from './Session';
 
 import { AccessControl, type AccessScope } from './AccessControl';
 import { Cache } from '@lib/cache';
 import { authenticateUser } from './Authentication';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
+import { hashSessionSecret, touchUserSession, verifyUserSession } from './SessionStore';
+import { isPersistentSessionData } from './Session';
 import db, { tPermissionsRoles } from '@lib/database';
 
 import { kPermissionGroups } from './Access';
@@ -177,6 +180,82 @@ export async function requireAuthenticationContext(
 }
 
 /**
+ * Compares two hex-encoded digests in constant time.
+ */
+function timingSafeEqualHex(a: string, b: string): boolean {
+    const bufferA = Buffer.from(a, 'hex');
+    const bufferB = Buffer.from(b, 'hex');
+    return bufferA.length === bufferB.length && crypto.timingSafeEqual(bufferA, bufferB);
+}
+
+/**
+ * Resolves a server-backed per-device session from `users_sessions`, using the `Authentication`
+ * cache unless `bypassCache` is true.
+ */
+async function resolvePersistentSession(
+    sessionData: PersistentSessionData, bypassCache: boolean): Promise<AuthenticationContext>
+{
+    const authCache = Cache.getInstance('Authentication');
+    const secretHash = hashSessionSecret(sessionData.secret);
+    const cached = authCache.get(sessionData.userId);
+
+    if (!bypassCache && cached?.sessions) {
+        const cachedHash = cached.sessions.get(sessionData.sessionId);
+        if (cachedHash && timingSafeEqualHex(cachedHash, secretHash))
+            return cached.context;
+    }
+
+    const verified = await verifyUserSession(sessionData.sessionId, sessionData.secret);
+    if (!verified || verified.userId !== sessionData.userId)
+        return { access: new AccessControl({ /* no grants */ }), user: undefined };
+
+    const context = await authenticateUser({ type: 'userId', userId: verified.userId });
+    if (!context.user)
+        return context;
+
+    try {
+        await touchUserSession(verified.sessionId);
+    } catch { /* non-fatal: session_last_seen is best-effort audit metadata */ }
+
+    const sessions = !bypassCache && cached?.sessions
+        ? new Map(cached.sessions)
+        : new Map<number, string>();
+
+    sessions.set(verified.sessionId, secretHash);
+    authCache.set(verified.userId, {
+        context,
+        sessionToken: bypassCache ? undefined : cached?.sessionToken,
+        sessions,
+    });
+
+    return context;
+}
+
+/**
+ * Resolves a legacy cookie session keyed by `users.session_token`, using the `Authentication` cache
+ * unless `bypassCache` is true.
+ */
+async function resolveLegacySession(
+    sessionData: LegacySessionData, bypassCache: boolean): Promise<AuthenticationContext>
+{
+    const authCache = Cache.getInstance('Authentication');
+    const cached = authCache.get(sessionData.id);
+    if (!bypassCache && cached && cached.sessionToken === sessionData.token)
+        return cached.context;
+
+    const context = await authenticateUser({ type: 'session', ...sessionData });
+    if (context.user) {
+        authCache.set(sessionData.id, {
+            context,
+            sessionToken: sessionData.token,
+            sessions: bypassCache ? undefined : cached?.sessions,
+        });
+    }
+
+    return context;
+}
+
+/**
  * Actually gets the authentication context from the given `sessionData`, consulting the
  * server-side `Authentication` cache unless `bypassCache` is true.
  */
@@ -185,18 +264,9 @@ async function getAuthenticationContextFromSessionData(
 {
     await ensurePermissionRolesInitialised();
 
-    const authCache = Cache.getInstance('Authentication');
-    if (!bypassCache) {
-        const cached = authCache.get(sessionData.id);
-        if (cached && cached.sessionToken === sessionData.token)
-            return cached.context;
-    }
-
-    const context = await authenticateUser({ type: 'session', ...sessionData });
-    if (context.user)
-        authCache.set(sessionData.id, { context, sessionToken: sessionData.token });
-
-    return context;
+    return isPersistentSessionData(sessionData)
+        ? resolvePersistentSession(sessionData, bypassCache)
+        : resolveLegacySession(sessionData, bypassCache);
 }
 
 /**

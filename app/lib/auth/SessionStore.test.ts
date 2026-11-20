@@ -1,8 +1,17 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { createUserSession, hashSessionSecret, pruneExpiredSessions, revokeAllUserSessions,
-    revokeUserSession, verifyUserSession } from './SessionStore';
+import {
+    createAndWriteUserSessionCookie,
+    createUserSession,
+    hashSessionSecret,
+    pruneExpiredSessions,
+    revokeAllUserSessions,
+    revokeAndClearCurrentSessionCookie,
+    revokeUserSession,
+    verifyUserSession,
+} from './SessionStore';
+import { kSessionCookieName, unsealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 
 describe('SessionStore', () => {
@@ -73,5 +82,67 @@ describe('SessionStore', () => {
 
         mockConnection.expect('delete', () => 5);
         await expect(pruneExpiredSessions()).resolves.toBe(5);
+    });
+
+    it('writes persistent session cookies and restores impersonator sessions on sign-out',
+        async () =>
+    {
+        const jar = new Map<string, { value: string; options: any }>();
+        const cookieStore = {
+            get: (name: string) => {
+                const entry = jar.get(name);
+                return entry ? { name, value: entry.value } : undefined;
+            },
+            set: (name: string, value: string, options: any) => {
+                jar.set(name, { value, options });
+            },
+        } as any;
+
+        // Create an impersonation session cookie:
+        mockConnection.expect('insertReturningLastInsertedId', () => 88);
+        const impersonation = await createAndWriteUserSessionCookie(cookieStore, {
+            userId: 42,
+            impersonatorUserId: 1,
+            impersonatorReturnUrl: '/admin/organisation/accounts/42',
+        });
+
+        expect(jar.get(kSessionCookieName)?.options.httpOnly).toBe(true);
+        expect(jar.get(kSessionCookieName)?.options.sameSite).toBe('lax');
+
+        // Signing out revokes the impersonation session and restores the impersonator:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 88,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret(impersonation.secret),
+            impersonatorUserId: 1,
+            impersonatorReturnUrl: '/admin/organisation/accounts/42',
+        }));
+        mockConnection.expect('delete', () => 1);
+        mockConnection.expect('selectOneColumnOneRow', () => 1);
+        mockConnection.expect('insertReturningLastInsertedId', () => 89);
+
+        const restored = await revokeAndClearCurrentSessionCookie(cookieStore);
+        expect(restored).toEqual({
+            restoredImpersonator: true,
+            returnUrl: '/admin/organisation/accounts/42',
+        });
+
+        const restoredCookie = await unsealSession(jar.get(kSessionCookieName)!.value);
+        expect(restoredCookie).toMatchObject({ sessionId: 89, userId: 1 });
+
+        // Signing out again (non-impersonated) clears the cookie completely:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 89,
+            userId: 1,
+            sessionTokenHash: hashSessionSecret((restoredCookie as any).secret),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        mockConnection.expect('delete', () => 1);
+
+        const signedOut = await revokeAndClearCurrentSessionCookie(cookieStore);
+        expect(signedOut).toEqual({ restoredImpersonator: false });
+        expect(jar.get(kSessionCookieName)?.value).toBe('');
+        expect(jar.get(kSessionCookieName)?.options.maxAge).toBe(0);
     });
 });

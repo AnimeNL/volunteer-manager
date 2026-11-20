@@ -3,11 +3,20 @@
 
 import 'server-only';
 import crypto from 'node:crypto';
+import type { cookies } from 'next/headers';
 
-import { invalidateUserAuthCache } from './AuthenticationContext';
-import db, { tUsersSessions } from '../database';
+import { Cache } from '@lib/cache';
+import { getSessionFromCookieStore } from './getSession';
+import {
+    isPersistentSessionData,
+    writeEmptySessionCookieToStore,
+    writeSealedSessionCookieToStore,
+} from './Session';
+import db, { tUsers, tUsersSessions } from '../database';
 
 import { kSessionExpirationTimeSeconds } from './Constants';
+
+type CookieStore = Awaited<ReturnType<typeof cookies>>;
 
 /**
  * Number of random bytes generated for each per-device session secret (256 bits of entropy).
@@ -146,7 +155,7 @@ export async function revokeUserSession(sessionId: number, userId?: number): Pro
         .executeDelete();
 
     if (userId !== undefined)
-        invalidateUserAuthCache(userId);
+        Cache.getInstance('Authentication').delete(userId);
 }
 
 /**
@@ -161,7 +170,7 @@ export async function revokeAllUserSessions(
             .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
         .executeDelete();
 
-    invalidateUserAuthCache(userId);
+    Cache.getInstance('Authentication').delete(userId);
 }
 
 /**
@@ -172,4 +181,73 @@ export async function pruneExpiredSessions(): Promise<number> {
     return await dbInstance.deleteFrom(tUsersSessions)
         .where(tUsersSessions.sessionExpires.lessOrEqual(dbInstance.currentZonedDateTime()))
         .executeDelete();
+}
+
+/**
+ * Result returned when revoking and clearing the current session cookie.
+ */
+export interface RevokeSessionResult {
+    restoredImpersonator: boolean;
+    returnUrl?: string;
+}
+
+/**
+ * Checks whether the account identified by `userId` is currently activated and not anonymized.
+ */
+async function isActiveUser(userId: number): Promise<boolean> {
+    const existing = await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(userId))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
+        .selectOneColumn(tUsers.userId)
+        .executeSelectNoneOrOne();
+
+    return existing === userId;
+}
+
+/**
+ * Creates a persistent session in `users_sessions` and writes it as a sealed cookie to
+ * `cookieStore`.
+ */
+export async function createAndWriteUserSessionCookie(
+    cookieStore: CookieStore, params: CreateSessionParams): Promise<CreatedSession>
+{
+    const session = await createUserSession(params);
+    await writeSealedSessionCookieToStore(session, cookieStore);
+    return session;
+}
+
+/**
+ * Revokes the current session in `cookieStore` (if any) and clears the cookie, or restores the
+ * impersonator's session when signing out from an impersonation session.
+ */
+export async function revokeAndClearCurrentSessionCookie(
+    cookieStore: CookieStore,
+    metadata?: Pick<CreateSessionParams, 'ip' | 'userAgent'>): Promise<RevokeSessionResult>
+{
+    const session = await getSessionFromCookieStore(cookieStore);
+    if (session && isPersistentSessionData(session)) {
+        const verified = await verifyUserSession(session.sessionId, session.secret);
+        await revokeUserSession(session.sessionId, session.userId);
+
+        if (verified?.impersonatorUserId && await isActiveUser(verified.impersonatorUserId)) {
+            await createAndWriteUserSessionCookie(cookieStore, {
+                userId: verified.impersonatorUserId,
+                ip: metadata?.ip,
+                userAgent: metadata?.userAgent,
+            });
+            return { restoredImpersonator: true, returnUrl: verified.impersonatorReturnUrl };
+        }
+
+        writeEmptySessionCookieToStore(cookieStore);
+        return { restoredImpersonator: false };
+    }
+
+    if (session && !isPersistentSessionData(session) && session.parent) {
+        await writeSealedSessionCookieToStore(session.parent, cookieStore);
+        return { restoredImpersonator: true, returnUrl: session.parent.returnUrl };
+    }
+
+    writeEmptySessionCookieToStore(cookieStore);
+    return { restoredImpersonator: false };
 }

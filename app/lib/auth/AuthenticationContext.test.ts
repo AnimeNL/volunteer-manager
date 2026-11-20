@@ -16,6 +16,7 @@ import {
     initialisePermissionRoles,
     invalidateUserAuthCache,
 } from './AuthenticationContext';
+import { hashSessionSecret } from './SessionStore';
 import { kSessionCookieName, sealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 
@@ -100,6 +101,74 @@ describe('AuthenticationContext', () => {
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Fresh' });
         const fresh = await getAuthenticationContextFromHeaders(headersV2);
         expect(fresh.user?.firstName).toBe('Alice Fresh');
+    });
+
+    it('authenticates and caches server-backed per-device sessions across multiple devices',
+        async () =>
+    {
+        const makeHeaders = async (session: SessionData) => new Headers([[
+            'Cookie',
+            stringifySetCookie({
+                name: kSessionCookieName,
+                value: await sealSession(session),
+                httpOnly: true,
+            }),
+        ]]);
+
+        const deviceA = await makeHeaders({ sessionId: 101, userId: 42, secret: 'secret-a' });
+        const deviceB = await makeHeaders({ sessionId: 102, userId: 42, secret: 'secret-b' });
+
+        // Device A misses cache: verifies session row, loads user, touches last_seen:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 101,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret('secret-a'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        mockConnection.expect('update', () => 1);
+
+        const firstA = await getAuthenticationContextFromHeaders(deviceA);
+        expect(firstA.user?.firstName).toBe('Alice');
+
+        // Repeat request from Device A hits cache with zero DB queries:
+        const secondA = await getAuthenticationContextFromHeaders(deviceA);
+        expect(secondA.user?.firstName).toBe('Alice');
+
+        // Device B verifies once and merges into the user's cached session map without evicting A:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 102,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret('secret-b'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        mockConnection.expect('update', () => 1);
+
+        const firstB = await getAuthenticationContextFromHeaders(deviceB);
+        expect(firstB.user?.firstName).toBe('Alice');
+
+        // Both Device A and Device B now hit cache with zero DB queries:
+        expect((await getAuthenticationContextFromHeaders(deviceA)).user?.firstName).toBe('Alice');
+        expect((await getAuthenticationContextFromHeaders(deviceB)).user?.firstName).toBe('Alice');
+
+        // Wrong secret does not hit cache and fails DB verification:
+        const forgedA = await makeHeaders({ sessionId: 101, userId: 42, secret: 'wrong-secret' });
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 101,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret('secret-a'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expect((await getAuthenticationContextFromHeaders(forgedA)).user).toBeUndefined();
+
+        // Targeted invalidation forces Device A to re-verify against the database:
+        invalidateUserAuthCache(42);
+        mockConnection.expect('selectOneRow', () => undefined);
+        expect((await getAuthenticationContextFromHeaders(deviceA)).user).toBeUndefined();
     });
 
     it('is able to execute permission access checks', () => {

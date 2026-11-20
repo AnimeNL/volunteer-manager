@@ -1,12 +1,15 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import type { cookies } from 'next/headers';
 import { stringifySetCookie } from 'cookie';
 
 import { isSealedToken, sealToken, unsealToken } from './SealedToken';
 import { unseal } from './Iron';
 
 import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
+
+type CookieStore = Awaited<ReturnType<typeof cookies>>;
 
 /**
  * The password through which the session will be sealed. A start-up exception will be thrown when
@@ -22,10 +25,30 @@ if (!kSessionPassword || !kSessionPassword.length)
 export const kSessionCookieName = 'auth';
 
 /**
- * The data that will be stored in the cookie. This data will be send to the server during every
- * HTTP request, which means that we should attempt to keep it as light as possible.
+ * Server-backed per-device session data stored in `users_sessions`.
  */
-export interface SessionData {
+export interface PersistentSessionData {
+    /**
+     * Primary key of the session row in `users_sessions`.
+     */
+    sessionId: number;
+
+    /**
+     * Unique ID of the user who owns this session. Verified against `users_sessions` on cache miss.
+     */
+    userId: number;
+
+    /**
+     * Per-device random secret whose SHA-256 hash is stored in `users_sessions`.
+     */
+    secret: string;
+}
+
+/**
+ * Legacy session data format keyed by `users.session_token`. Retained temporarily so users with
+ * existing cookies remain signed in across deployment until their sessions roll over.
+ */
+export interface LegacySessionData {
     /**
      * Unique ID of the user who is currently signed in to this account.
      */
@@ -41,7 +64,20 @@ export interface SessionData {
      * Session data can optionally be nested. When signing out such a user, the nested session data
      * will be restored instead. Optionally a return URL may be specified as well.
      */
-    parent?: SessionData & { returnUrl?: string; };
+    parent?: LegacySessionData & { returnUrl?: string; };
+}
+
+/**
+ * The data that will be stored in the cookie. This data will be sent to the server during every
+ * HTTP request, which means that we should attempt to keep it as light as possible.
+ */
+export type SessionData = PersistentSessionData | LegacySessionData;
+
+/**
+ * Type guard that distinguishes server-backed per-device sessions from legacy cookie sessions.
+ */
+export function isPersistentSessionData(session: SessionData): session is PersistentSessionData {
+    return 'sessionId' in session && 'secret' in session;
 }
 
 /**
@@ -102,10 +138,23 @@ export async function writeSealedSessionCookie(session: SessionData, headers: He
 }
 
 /**
+ * Writes an empty session cookie to the given `cookieStore`.
+ */
+export function writeEmptySessionCookieToStore(cookieStore: CookieStore): void {
+    cookieStore.set(kSessionCookieName, '', {
+        httpOnly: true,
+        maxAge: 0,
+        path: '/',
+        sameSite: 'lax',
+        secure: kSecureCookie,
+    });
+}
+
+/**
  * Writes the given `session` in sealed format to the given `cookieStore`.
  */
-export async function writeSealedSessionCookieToStore(session: SessionData, cookieStore: any)
-    : Promise<void>
+export async function writeSealedSessionCookieToStore(
+    session: SessionData, cookieStore: CookieStore): Promise<void>
 {
     cookieStore.set(kSessionCookieName, await sealSession(session), {
         httpOnly: true,
