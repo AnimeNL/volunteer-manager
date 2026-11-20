@@ -6,7 +6,7 @@ import { stringifySetCookie } from 'cookie';
 import { isSealedToken, sealToken, unsealToken } from './SealedToken';
 import { unseal } from './Iron';
 
-import { kSecureCookie } from './Constants';
+import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
 
 /**
  * The password through which the session will be sealed. A start-up exception will be thrown when
@@ -20,12 +20,6 @@ if (!kSessionPassword || !kSessionPassword.length)
  * Name of the cookie in which session data will be stored.
  */
 export const kSessionCookieName = 'auth';
-
-/**
- * Number of seconds after which the authentication cookie should expire. Currently set to half a
- * year to make sure people sign in again at least once per conference.
- */
-const kSessionExpirationTimeSeconds = 180 * 24 * 60 * 60;
 
 /**
  * The data that will be stored in the cookie. This data will be send to the server during every

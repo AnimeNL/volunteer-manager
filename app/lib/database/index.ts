@@ -72,6 +72,7 @@ export { tUsersEventsPreferencesRefunds } from './scheme/UsersEventsPreferencesR
 export { tUsersEventsPreferencesTraining } from './scheme/UsersEventsPreferencesTrainingTable';
 export { tUsersEventsTickets } from './scheme/UsersEventsTicketsTable';
 export { tUsersPasskeys } from './scheme/UsersPasskeysTable';
+export { tUsersSessions } from './scheme/UsersSessionsTable';
 export { tUsersSettings } from './scheme/UsersSettingsTable';
 export { tVendorsSchedule } from './scheme/VendorsScheduleTable';
 export { tVendors } from './scheme/VendorsTable';

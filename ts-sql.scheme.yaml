@@ -1877,6 +1877,123 @@ tables:
       CONSTRAINT `users_events_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`team_id`),
       CONSTRAINT `users_events_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+- name: users_sessions
+  type: BASE TABLE
+  columns:
+  - name: session_id
+    type: int(8) unsigned
+    nullable: false
+    extraDef: auto_increment
+  - name: user_id
+    type: int(8) unsigned
+    nullable: false
+  - name: session_token_hash
+    type: char(64)
+    nullable: false
+  - name: impersonator_user_id
+    type: int(8) unsigned
+    nullable: true
+    default: "NULL"
+  - name: impersonator_return_url
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  - name: session_created
+    type: datetime
+    nullable: false
+    default: current_timestamp()
+  - name: session_expires
+    type: datetime
+    nullable: false
+  - name: session_last_seen
+    type: datetime
+    nullable: true
+    default: "NULL"
+  - name: session_ip
+    type: varchar(64)
+    nullable: true
+    default: "NULL"
+  - name: session_user_agent
+    type: varchar(255)
+    nullable: true
+    default: "NULL"
+  indexes:
+  - name: session_expires
+    def: KEY session_expires (session_expires) USING BTREE
+    table: users_sessions
+    columns:
+    - session_expires
+  - name: users_sessions_impersonator_user_id
+    def: KEY users_sessions_impersonator_user_id (impersonator_user_id) USING BTREE
+    table: users_sessions
+    columns:
+    - impersonator_user_id
+  - name: user_id
+    def: KEY user_id (user_id) USING BTREE
+    table: users_sessions
+    columns:
+    - user_id
+  - name: PRIMARY
+    def: PRIMARY KEY (session_id) USING BTREE
+    table: users_sessions
+    columns:
+    - session_id
+  - name: session_token_hash
+    def: UNIQUE KEY session_token_hash (session_token_hash) USING BTREE
+    table: users_sessions
+    columns:
+    - session_token_hash
+  constraints:
+  - name: PRIMARY
+    type: PRIMARY KEY
+    def: PRIMARY KEY (session_id)
+    table: users_sessions
+    columns:
+    - session_id
+  - name: session_token_hash
+    type: UNIQUE
+    def: UNIQUE KEY session_token_hash (session_token_hash)
+    table: users_sessions
+    columns:
+    - session_token_hash
+  - name: users_sessions_impersonator_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (impersonator_user_id) REFERENCES users (user_id)
+    table: users_sessions
+    referencedTable: users
+    columns:
+    - impersonator_user_id
+    referencedColumns:
+    - user_id
+  - name: users_sessions_user_id
+    type: FOREIGN KEY
+    def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+    table: users_sessions
+    referencedTable: users
+    columns:
+    - user_id
+    referencedColumns:
+    - user_id
+  def: |-
+    CREATE TABLE `users_sessions` (
+      `session_id` int(8) unsigned NOT NULL AUTO_INCREMENT,
+      `user_id` int(8) unsigned NOT NULL,
+      `session_token_hash` char(64) NOT NULL,
+      `impersonator_user_id` int(8) unsigned DEFAULT NULL,
+      `impersonator_return_url` varchar(255) DEFAULT NULL,
+      `session_created` datetime NOT NULL DEFAULT current_timestamp(),
+      `session_expires` datetime NOT NULL,
+      `session_last_seen` datetime DEFAULT NULL,
+      `session_ip` varchar(64) DEFAULT NULL,
+      `session_user_agent` varchar(255) DEFAULT NULL,
+      PRIMARY KEY (`session_id`),
+      UNIQUE KEY `session_token_hash` (`session_token_hash`),
+      KEY `user_id` (`user_id`),
+      KEY `session_expires` (`session_expires`),
+      KEY `users_sessions_impersonator_user_id` (`impersonator_user_id`),
+      CONSTRAINT `users_sessions_impersonator_user_id` FOREIGN KEY (`impersonator_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+      CONSTRAINT `users_sessions_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: inbox_email_attachments
   type: BASE TABLE
   columns:
@@ -6536,6 +6653,26 @@ relations:
   def: FOREIGN KEY (team_id) REFERENCES teams (team_id)
   virtual: false
 - table: users_events
+  columns:
+  - user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: exactly_one
+  def: FOREIGN KEY (user_id) REFERENCES users (user_id)
+  virtual: false
+- table: users_sessions
+  columns:
+  - impersonator_user_id
+  cardinality: zero_or_more
+  parentTable: users
+  parentColumns:
+  - user_id
+  parentCardinality: zero_or_one
+  def: FOREIGN KEY (impersonator_user_id) REFERENCES users (user_id)
+  virtual: false
+- table: users_sessions
   columns:
   - user_id
   cardinality: zero_or_more

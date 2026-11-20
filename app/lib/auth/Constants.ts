@@ -6,3 +6,9 @@
  * traffic is served over HTTPS, while still allowing local HTTP development.
  */
 export const kSecureCookie = process.env.NODE_ENV === 'production';
+
+/**
+ * Number of seconds after which an authentication session expires (180 days, ensuring people sign
+ * in again at least once per conference cycle).
+ */
+export const kSessionExpirationTimeSeconds = 180 * 24 * 60 * 60;
