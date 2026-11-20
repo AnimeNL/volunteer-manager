@@ -9,6 +9,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/LogBuilder';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
+import { maybeRevokeVolunteerTicket } from '@lib/tickets/maybeRevokeVolunteerTicket';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
@@ -67,6 +68,14 @@ export async function updateVolunteerStatus(
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
+
+        if (isCancelled && !!affectedRows) {
+            await maybeRevokeVolunteerTicket({
+                event,
+                initiatorUserId: props.user.id,
+                userId,
+            });
+        }
 
         LogBuilder.for('UpdateVolunteerStatus')
             .withCondition(!!affectedRows)
