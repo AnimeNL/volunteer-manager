@@ -260,7 +260,7 @@ export default async function EventTicketsAssociatesPage(
                 <DataTable columns={columns} source={eventAssociateTicketDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'holder', sort: 'asc' }}
-                           subject="ticket"
+                           search="prominent" subject="ticket"
                            listViewProps={{
                                primaryField: 'holder',
                                secondaryTemplate: '{order}',

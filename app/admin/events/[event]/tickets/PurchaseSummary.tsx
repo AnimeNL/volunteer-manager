@@ -106,7 +106,7 @@ export async function PurchaseSummary(props: PurchaseSummaryProps) {
                 </ActionBar> }
             { hasBeenCancelled &&
                 <Alert severity="error" variant="outlined">
-                    This ticket has been cancelled and is no longer valid for entry.
+                    This order has been cancelled and is no longer valid for entry.
                 </Alert> }
             <KeyValueList items={[
                 {

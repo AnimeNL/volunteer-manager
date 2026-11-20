@@ -214,7 +214,7 @@ export default async function EventTicketsVolunteersPage(
                 <DataTable columns={columns} source={eventTicketDataSource}
                            context={{ event: event.slug }}
                            defaultSort={{ field: 'name', sort: 'asc' }}
-                           subject="ticket"
+                           search="prominent" subject="ticket"
                            listViewProps={{
                                primaryField: 'name',
                                secondaryField: 'order',
