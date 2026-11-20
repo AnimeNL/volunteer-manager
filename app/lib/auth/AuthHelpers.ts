@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
+import type { VerifiedRegistrationResponse } from '@simplewebauthn/server';
 import { headers } from 'next/headers';
 
 import { hashPassword } from './Password';
@@ -194,4 +195,40 @@ export async function updatePasskeyCounter(
         .where(tUsersPasskeys.userId.equals(userId))
             .and(tUsersPasskeys.userPasskeyId.equals(passkeyId))
         .executeUpdate();
+}
+
+type PasskeyRegistrationInfo = NonNullable<VerifiedRegistrationResponse['registrationInfo']>;
+
+/**
+ * Stores a newly verified WebAuthn passkey registration for `userId` under `rpId`.
+ */
+export async function storeUserPasskey(
+    userId: number, rpId: string, name: string | undefined, registration: PasskeyRegistrationInfo)
+        : Promise<void>
+{
+    await db.insertInto(tUsersPasskeys)
+        .set({
+            userId,
+            credentialId: Buffer.from(registration.credential.id, 'base64url'),
+            credentialRpid: rpId,
+            credentialFormat: registration.fmt,
+            credentialName: name || null,
+            credentialOrigin: registration.origin,
+            credentialPublicKey: Buffer.from(registration.credential.publicKey),
+            credentialDeviceType: registration.credentialDeviceType,
+            credentialBackedUp: registration.credentialBackedUp ? 1 : 0,
+            credentialTransport: registration.credential.transports?.join(', ') ?? null,
+            counter: BigInt(registration.credential.counter),
+        })
+        .executeInsert();
+}
+
+/**
+ * Deletes a registered passkey owned by `userId`. Returns whether a row was removed.
+ */
+export async function deleteUserPasskey(userId: number, passkeyId: number): Promise<boolean> {
+    return await db.deleteFrom(tUsersPasskeys)
+        .where(tUsersPasskeys.userId.equals(userId))
+            .and(tUsersPasskeys.userPasskeyId.equals(passkeyId))
+        .executeDelete() > 0;
 }
