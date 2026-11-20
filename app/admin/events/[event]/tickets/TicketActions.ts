@@ -336,6 +336,13 @@ export async function updateAssociateTicket(
         if (!containsVolunteerTicket && !access.can('root'))
             forbidden();
 
+        if (!!purchase.cancelled) {
+            return {
+                success: false,
+                error: 'Cancelled tickets cannot be updated.',
+            };
+        }
+
         const containsTicket = purchase.tickets.some(
             ticket => `${ticket.id}` === `${ticketId}`);
 
@@ -420,6 +427,13 @@ export async function updatePurchaseEmail(
 
         if (!containsVolunteerTicket && !access.can('root'))
             forbidden();
+
+        if (!!purchase.cancelled) {
+            return {
+                success: false,
+                error: 'Cancelled orders cannot be updated.',
+            };
+        }
 
         const result = await service.updatePurchaseEmail(purchaseId, data.email);
         if (!result) {

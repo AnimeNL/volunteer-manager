@@ -9,6 +9,7 @@ import Alert from '@mui/material/Alert';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import Grid from '@mui/material/Grid';
 import LocalActivityOutlinedIcon from '@mui/icons-material/LocalActivityOutlined';
+import TextField from '@mui/material/TextField';
 
 import { AssociateOrderSection } from './AssociateOrderSection';
 import { AssociateQuickAction } from './AssociateQuickAction';
@@ -86,7 +87,8 @@ export default async function EventTicketsAssociatesPage(
 
     const canCancelOrder = service.capabilities.canCancelOrder && canDeleteTickets;
     const canResendConfirmation = service.capabilities.canResendConfirmation && canUpdateTickets;
-    const canUpdateOrder = service.capabilities.canUpdateOrder && canUpdateTickets;
+    const canUpdateOrder =
+        service.capabilities.canUpdateOrder && canUpdateTickets && !hasBeenCancelled;
 
     const associatePurchaseFn =
         canUpdateTickets ? associatePurchase.bind(null, event.slug, purchase.id)
@@ -180,10 +182,10 @@ export default async function EventTicketsAssociatesPage(
                     action={updateOrderEmailFn}
                     purchaseId={purchase.id}
                     service={service} /> }
-            { (!!ticket && !!updateTicketFn) &&
+            { !!ticket &&
                 <Section icon={ <ConfirmationNumberOutlinedIcon /> } title="Ticket"
                          headerAction={
-                             !!ticket.barcode &&
+                             !!ticket.barcode && !hasBeenCancelled &&
                              <TicketQrAction
                                  barcode={ticket.barcode}
                                  title={ticket.holder
@@ -192,30 +194,58 @@ export default async function EventTicketsAssociatesPage(
                     <SectionIntroduction>
                         Changes made here will be reflected in the real ticket immediately.
                     </SectionIntroduction>
-                    <FormGrid action={updateTicketFn} defaultValues={{
-                        holder: ticket.holder ?? '',
-                        nickname: ticket.nickname ?? '',
-                        function: ticket.function ?? '',
-                        organisation: ticket.organisation ?? '',
-                    }}>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="holder" label="Ticket holder" required
-                                              fullWidth size="small" />
+                    { !!updateTicketFn ? (
+                        <>
+                            <FormGrid action={updateTicketFn} defaultValues={{
+                                holder: ticket.holder ?? '',
+                                nickname: ticket.nickname ?? '',
+                                function: ticket.function ?? '',
+                                organisation: ticket.organisation ?? '',
+                            }}>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextFieldElement name="holder" label="Ticket holder" required
+                                                      fullWidth size="small" />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <TextFieldElement name="nickname" label="Nickname"
+                                                      fullWidth size="small" />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <FreeSoloAutocompleteElement
+                                        name="function" label="Function" options={knownRoles}
+                                        required />
+                                </Grid>
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <FreeSoloAutocompleteElement
+                                        name="organisation" label="Organisation"
+                                        options={knownTeams} required />
+                                </Grid>
+                            </FormGrid>
+                        </>
+                    ) : (
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextField label="Ticket holder" value={ticket.holder ?? ''}
+                                           fullWidth size="small"
+                                           slotProps={{ input: { readOnly: true } }} />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextField label="Nickname" value={ticket.nickname ?? ''}
+                                           fullWidth size="small"
+                                           slotProps={{ input: { readOnly: true } }} />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextField label="Function" value={ticket.function ?? ''}
+                                           fullWidth size="small"
+                                           slotProps={{ input: { readOnly: true } }} />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextField label="Organisation" value={ticket.organisation ?? ''}
+                                           fullWidth size="small"
+                                           slotProps={{ input: { readOnly: true } }} />
+                            </Grid>
                         </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextFieldElement name="nickname" label="Nickname"
-                                              fullWidth size="small" />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <FreeSoloAutocompleteElement
-                                name="function" label="Function" options={knownRoles} required />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <FreeSoloAutocompleteElement
-                                name="organisation" label="Organisation"
-                                options={knownTeams} required />
-                        </Grid>
-                    </FormGrid>
+                    ) }
                 </Section> }
         </>
     );
