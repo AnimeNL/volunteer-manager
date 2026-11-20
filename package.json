@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@AnimeNL/volunteer-manager-timeline": "git+https://git@github.com/AnimeNL/volunteer-manager-timeline.git#3.1.2",
-    "@google/genai": "^3.6.0",
+    "@google/genai": "^3.6.1",
     "@mdxeditor/editor": "^4.5.0",
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
@@ -77,7 +77,7 @@
     "swr": "^2.5.1",
     "temporal-polyfill": "^1.0.8",
     "ts-sql-query": "2.0.0-beta.2",
-    "twilio": "^6.3.0",
+    "twilio": "^6.3.1",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.2.0",
     "zod": "^4.6.7"
