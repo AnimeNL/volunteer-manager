@@ -825,8 +825,8 @@ export class WeeztixImportTask extends Task {
                     weeztixOrderUtmTerm: entry.utmTerm,
                     weeztixOrderCreated: entry.created,
                     weeztixOrderUpdated: entry.updated,
-                    weeztixOrderDeleted: entry.deleted,
                     weeztixOrderUpdatedManual: 0,
+                    weeztixOrderDeleted: entry.deleted,
                 };
 
                 await dbInstance.insertInto(tWeeztixOrders)

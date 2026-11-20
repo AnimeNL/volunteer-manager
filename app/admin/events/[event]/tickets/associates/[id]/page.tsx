@@ -182,7 +182,8 @@ export default async function EventTicketsAssociatesPage(
                              !!ticket.barcode &&
                              <TicketQrAction
                                  barcode={ticket.barcode}
-                                 title={`Ticket ${service.formatTicketId(ticket.id)}`} />
+                                 title={ticket.holder
+                                            ?? `Ticket ${service.formatTicketId(ticket.id)}`} />
                          }>
                     <SectionIntroduction>
                         Changes made here will be reflected in the real ticket immediately.

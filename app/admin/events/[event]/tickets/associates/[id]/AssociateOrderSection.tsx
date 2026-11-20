@@ -45,9 +45,8 @@ export function AssociateOrderSection(props: AssociateOrderSectionProps) {
     return (
         <Section icon={ <ReceiptOutlinedIcon /> } title="Order">
             <SectionIntroduction>
-                { props.action
-                    ? 'Changes made here will be reflected in the real order immediately.'
-                    : 'Information about the order associated with this ticket.' }
+                The name associated with the orderwill automatically update to match the ticket
+                holder.
             </SectionIntroduction>
             <Suspense fallback={ <SectionLoading /> }>
                 <AssociateOrderDetails
