@@ -13,7 +13,6 @@ vi.mock('next/server', () => ({ after: () => {} }));
 import { checkRateLimit } from '../RateLimit';
 import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
     signInPasswordUpdateAction, signOutAction } from './AuthActions';
-import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { expectSetUserPassword, getMockHeaders, mockCookieJar, resetAuthActionTestState }
     from './ActionTestHelpers';
 import { hashPassword } from '../Password';
@@ -148,7 +147,7 @@ describe('AuthActions', () => {
 
         // Valid update writes Argon2id hash, revokes sessions, and creates a persistent session:
         let storedHash: string | undefined;
-        expectAuthenticationQuery(mockConnection, { userId: 42 });
+        mockConnection.expect('selectOneRow', () => ({ id: 42, firstName: 'Alice' }));
         expectSetUserPassword(mockConnection, { onInsertHash: hash => { storedHash = hash; } });
         mockConnection.expect('insertReturningLastInsertedId', () => 201);
 

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
-import crypto from 'node:crypto';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
@@ -14,8 +13,8 @@ import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
-import { createAndWriteUserSessionCookie, hashSessionSecret, revokeUserSession, touchUserSession,
-    verifyUserSession } from './SessionStore';
+import { createAndWriteUserSessionCookie, hashSessionSecret, revokeUserSession,
+    timingSafeEqualHex, touchUserSession, verifyUserSession } from './SessionStore';
 import { executeAccessCheck } from './access/PermissionCheck';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore } from './Session';
@@ -56,19 +55,10 @@ export interface AuthenticationResult {
 }
 
 /**
- * Type of input that can be used to load a user's `AuthenticationContext` from the database.
- */
-type LoadUserAuthenticationContextParams =
-    { type: 'session'; id: number; token: number } |
-    { type: 'userId'; userId: number };
-
-/**
- * Loads the `AuthenticationContext` for the user identified by `params` from the database. Returns
+ * Loads the `AuthenticationContext` for the user identified by `userId` from the database. Returns
  * a visitor (guest) context when the user does not exist, is not activated, or is anonymized.
  */
-export async function loadUserAuthenticationContext(
-    params: LoadUserAuthenticationContextParams): Promise<AuthenticationContext>
-{
+async function loadUserAuthenticationContext(userId: number): Promise<AuthenticationContext> {
     if (!Cache.getInstance('PermissionRoles').has('root'))
         await initialisePermissionRoles();
 
@@ -97,9 +87,7 @@ export async function loadUserAuthenticationContext(
     const authenticationResult = await dbInstance.selectFrom(tUsers)
         .leftJoin(storageJoin)
             .on(storageJoin.fileId.equals(tUsers.avatarId))
-        .where(tUsers.userId.equals(params.type === 'session' ? params.id : params.userId))
-            .and(tUsers.sessionToken.equalsIfValue(
-                params.type === 'session' ? params.token : undefined))
+        .where(tUsers.userId.equals(userId))
             .and(tUsers.activated.equals(/* true= */ 1))
             .and(tUsers.anonymized.isNull())
         .select({
@@ -221,15 +209,6 @@ export async function requireAuthenticationContext(
 }
 
 /**
- * Compares two hex-encoded digests in constant time.
- */
-function timingSafeEqualHex(a: string, b: string): boolean {
-    const bufferA = Buffer.from(a, 'hex');
-    const bufferB = Buffer.from(b, 'hex');
-    return bufferA.length === bufferB.length && crypto.timingSafeEqual(bufferA, bufferB);
-}
-
-/**
  * Resolves a server-backed per-device session from `users_sessions`, consulting the server-side
  * `Authentication` cache unless `bypassCache` is true.
  */
@@ -257,7 +236,7 @@ async function getAuthenticationContextFromSessionData(
         return { access: new AccessControl({ /* no grants */ }), user: undefined };
     }
 
-    const context = await loadUserAuthenticationContext({ type: 'userId', userId: verified.userId });
+    const context = await loadUserAuthenticationContext(verified.userId);
     if (!context.user)
         return context;
 
@@ -326,10 +305,7 @@ export async function impersonateUser(
     if (verifiedPrevious?.impersonatorUserId !== undefined)
         return undefined;
 
-    const { user: impersonatedUser } = await loadUserAuthenticationContext({
-        type: 'userId',
-        userId,
-    });
+    const { user: impersonatedUser } = await loadUserAuthenticationContext(userId);
 
     if (!impersonatedUser)
         return undefined;

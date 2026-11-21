@@ -3,8 +3,8 @@
 
 /**
  * Interface describing the information we maintain on an individual user. Instances of these
- * objects can be obtained through the `loadUserAuthenticationContext()` function. Tests may mimic their own
- * users, but be sure to type it correctly to avoid unexpected breakages.
+ * objects can be obtained through `getAuthenticationContext()` or `requireAuthenticationContext()`.
+ * Tests may mimic their own users, but be sure to type it correctly to avoid unexpected breakages.
  */
 export interface User {
     /**

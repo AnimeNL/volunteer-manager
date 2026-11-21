@@ -294,6 +294,26 @@ async function getUserSessionToken(userId: number): Promise<number | null> {
         .executeSelectNoneOrOne();
 }
 
+/**
+ * Returns minimal identity fields for an activated, non-anonymized account matching `userId`
+ * (and `expectedSessionToken` when provided), or `undefined` if no match exists.
+ */
+export async function findActiveUser(
+    userId: number, expectedSessionToken?: number)
+    : Promise<{ id: number; firstName: string } | undefined>
+{
+    return await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(userId))
+            .and(tUsers.sessionToken.equalsIfValue(expectedSessionToken))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
+        .select({
+            id: tUsers.userId,
+            firstName: tUsers.firstName,
+        })
+        .executeSelectNoneOrOne() ?? undefined;
+}
+
 type ValidUserData = { id: number; activated: boolean };
 
 /**

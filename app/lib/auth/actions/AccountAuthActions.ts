@@ -13,14 +13,13 @@ import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate }
     from './ActionHelpers';
-import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
-    from '../AccountStore';
+import { createAccountWithPassword, findActiveUser, isUsernameAvailable, setUserPassword,
+    verifyUserCredentials } from '../AccountStore';
 import { createAndWriteUserSessionCookie, sanitizeRelativeRedirectUrl } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
 import { getSessionFromCookieStore } from '../Session';
 import { getStaticContent } from '@lib/Content';
-import { loadUserAuthenticationContext, requireAuthenticationContext }
-    from '../AuthenticationContext';
+import { requireAuthenticationContext } from '../AuthenticationContext';
 import { sealPasswordResetRequest, sealRegistrationRequest, unsealPasswordResetRequest,
     unsealRegistrationRequest } from '../Tokens';
 import { validatePasswordStrength } from '../Password';
@@ -234,10 +233,7 @@ export async function registerActivateAction(
         return { success: false };
     }
 
-    const { user } = await loadUserAuthenticationContext({
-        type: 'userId',
-        userId: registrationRequest.id,
-    });
+    const user = await findActiveUser(registrationRequest.id);
     if (!user)
         return { success: false };
 
@@ -249,7 +245,7 @@ export async function registerActivateAction(
 
     RecordLog({
         type: kLogType.AccountActivate,
-        sourceUser: user,
+        sourceUser: user.id,
         data: { ip: meta.ip },
     });
 
@@ -362,7 +358,7 @@ export async function verifyPasswordResetAction(
         return { success: false };
     }
 
-    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
+    const user = await findActiveUser(resetRequest.id, resetRequest.token);
     if (!user)
         return { success: false };
 

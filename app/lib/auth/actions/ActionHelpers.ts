@@ -6,9 +6,8 @@ import { cookies, headers } from 'next/headers';
 
 import { RecordLog } from '@lib/Log';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
-import { loadUserAuthenticationContext } from '../AuthenticationContext';
+import { findActiveUser, setUserPassword } from '../AccountStore';
 import { normalizeClientIp } from '../RateLimit';
-import { setUserPassword } from '../AccountStore';
 import { unsealPasswordResetRequest } from '../Tokens';
 import { validatePasswordStrength } from '../Password';
 
@@ -85,7 +84,7 @@ export async function completePasswordUpdateWithToken(
         return { success: false, error: params.expiredError };
     }
 
-    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
+    const user = await findActiveUser(resetRequest.id, resetRequest.token);
     if (!user)
         return { success: false, error: params.invalidError };
 
@@ -105,7 +104,7 @@ export async function completePasswordUpdateWithToken(
 
     RecordLog({
         type: params.logType,
-        sourceUser: user,
+        sourceUser: user.id,
         data: { ip: params.meta.ip },
     });
 

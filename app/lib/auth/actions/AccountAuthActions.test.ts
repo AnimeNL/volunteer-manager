@@ -39,7 +39,6 @@ import { changePasswordAction, completePasswordResetAction, registerAction,
     registerActivateAction, requestPasswordResetAction, verifyPasswordResetAction }
     from './AccountAuthActions';
 import { checkRateLimit } from '../RateLimit';
-import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { expectSetUserPassword, getMockHeaders, mockCookieJar, resetAuthActionTestState,
     signInTestUser } from './ActionTestHelpers';
 import { hashPassword } from '../Password';
@@ -132,7 +131,7 @@ describe('AccountAuthActions', () => {
             updateParams = params;
             return 1;
         });
-        expectAuthenticationQuery(mockConnection, { userId: 91, firstName: 'Jane' });
+        mockConnection.expect('selectOneRow', () => ({ id: 91, firstName: 'Jane' }));
         mockConnection.expect('insertReturningLastInsertedId', () => 401);
 
         const result = await registerActivateAction({ registrationRequest: token });
@@ -207,12 +206,12 @@ describe('AccountAuthActions', () => {
             .resolves.toEqual({ success: false });
 
         // Valid token returns firstName:
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        mockConnection.expect('selectOneRow', () => ({ id: 42, firstName: 'Alice' }));
         await expect(verifyPasswordResetAction({ request: token }))
             .resolves.toEqual({ success: true, firstName: 'Alice' });
 
         // Completing reset updates password to Argon2id, revokes sessions, and signs in:
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        mockConnection.expect('selectOneRow', () => ({ id: 42, firstName: 'Alice' }));
         expectSetUserPassword(mockConnection, { revokedCount: 2 });
         mockConnection.expect('insertReturningLastInsertedId', () => 501);
 
@@ -227,7 +226,7 @@ describe('AccountAuthActions', () => {
         // Concurrent replay where `session_token` was already rotated aborts atomically:
         mockCookieJar.clear();
 
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+        mockConnection.expect('selectOneRow', () => ({ id: 42, firstName: 'Alice' }));
 
         mockConnection.expect('beginTransaction');
         mockConnection.expect('update', (_query, params) => {

@@ -63,6 +63,15 @@ export function hashSessionSecret(secret: string): string {
 }
 
 /**
+ * Compares two hex-encoded digests in constant time.
+ */
+export function timingSafeEqualHex(a: string, b: string): boolean {
+    const bufferA = Buffer.from(a, 'hex');
+    const bufferB = Buffer.from(b, 'hex');
+    return bufferA.length === bufferB.length && crypto.timingSafeEqual(bufferA, bufferB);
+}
+
+/**
  * Validates that an optional redirect URL is a safe relative path (starts with a single `/`,
  * rejecting protocol-relative `//...`, backslashes, control characters, and absolute URLs).
  * Returns `undefined` when invalid.
@@ -135,16 +144,8 @@ export async function verifyUserSession(
         })
         .executeSelectNoneOrOne();
 
-    if (!row)
+    if (!row || !timingSafeEqualHex(row.sessionTokenHash, hashSessionSecret(secret)))
         return undefined;
-
-    const expectedHash = Buffer.from(row.sessionTokenHash, 'hex');
-    const actualHash = Buffer.from(hashSessionSecret(secret), 'hex');
-    if (expectedHash.length !== actualHash.length ||
-        !crypto.timingSafeEqual(expectedHash, actualHash))
-    {
-        return undefined;
-    }
 
     return {
         sessionId: row.sessionId,
