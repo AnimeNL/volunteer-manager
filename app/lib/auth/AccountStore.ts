@@ -12,6 +12,11 @@ import db, { tUsers, tUsersAuth } from '../database';
 import { kAuthType } from '../database/Types';
 
 /**
+ * Lifetime of newly issued one-time access codes, in seconds (24 hours).
+ */
+const kAccessCodeExpirySeconds = 24 * 3600;
+
+/**
  * Result of verifying a user's plaintext password or one-time access code.
  */
 type CredentialVerificationResult =
@@ -19,10 +24,29 @@ type CredentialVerificationResult =
     { authenticated: true; authType: 'code' | 'password'; userId: number };
 
 /**
- * Compares a plaintext access code against a stored code value (either Argon2id-hashed or legacy
- * plaintext) in constant time.
+ * Options accepted by `verifyUserCredentials()`.
+ */
+interface VerifyCredentialsOptions {
+    /**
+     * Whether one-time access codes should be accepted alongside the user's password. Defaults to
+     * `true`.
+     */
+    allowAccessCode?: boolean;
+}
+
+/**
+ * Compares a plaintext access code against a stored code value (`$exp=<unix>$argon2id$...`, legacy
+ * `$argon2id$...`, or legacy plaintext) in constant time.
  */
 async function verifyAccessCode(plaintext: string, storedValue: string): Promise<boolean> {
+    const expiringMatch = /^\$exp=(\d+)(\$argon2id\$.+)$/.exec(storedValue);
+    if (expiringMatch) {
+        if (Number.parseInt(expiringMatch[1], 10) * 1000 <= Date.now())
+            return false;
+
+        return (await verifyPassword(plaintext, expiringMatch[2])).valid;
+    }
+
     if (storedValue.startsWith('$argon2id$'))
         return (await verifyPassword(plaintext, storedValue)).valid;
 
@@ -32,6 +56,30 @@ async function verifyAccessCode(plaintext: string, storedValue: string): Promise
         return false;
 
     return crypto.timingSafeEqual(inputBuffer, storedBuffer);
+}
+
+/**
+ * Atomically consumes a matched access code row, returning whether it was still present.
+ */
+async function consumeAccessCode(userId: number, storedValue: string): Promise<boolean> {
+    const deleted = await db.deleteFrom(tUsersAuth)
+        .where(tUsersAuth.userId.equals(userId))
+            .and(tUsersAuth.authType.equals(kAuthType.code))
+            .and(tUsersAuth.authValue.equals(storedValue))
+        .executeDelete();
+
+    return deleted > 0;
+}
+
+/**
+ * Deletes any outstanding one-time access code for `userId` (e.g. after a successful password
+ * login).
+ */
+async function clearUserAccessCode(userId: number): Promise<void> {
+    await db.deleteFrom(tUsersAuth)
+        .where(tUsersAuth.userId.equals(userId))
+            .and(tUsersAuth.authType.equals(kAuthType.code))
+        .executeDelete();
 }
 
 /**
@@ -51,11 +99,13 @@ async function upgradeUserPasswordHash(
 }
 
 /**
- * Verifies a plaintext `password` (or one-time access code) for the activated, non-anonymized user
- * identified by `username`. Silently upgrades legacy password hashes to Argon2id on success.
+ * Verifies a plaintext `password` (or one-time access code, when permitted) for the activated,
+ * non-anonymized user identified by `username`. Silently upgrades legacy password hashes to
+ * Argon2id and consumes/clears one-time access codes on success.
  */
 export async function verifyUserCredentials(
-    username: string, plaintextPassword: string): Promise<CredentialVerificationResult>
+    username: string, plaintextPassword: string, options?: VerifyCredentialsOptions)
+        : Promise<CredentialVerificationResult>
 {
     const userId = await db.selectFrom(tUsers)
         .where(tUsers.username.equals(username))
@@ -67,14 +117,20 @@ export async function verifyUserCredentials(
     if (!userId)
         return { authenticated: false };
 
+    const allowedTypes = options?.allowAccessCode === false
+        ? [ kAuthType.password ]
+        : [ kAuthType.password, kAuthType.code ];
+
     const credentials = await db.selectFrom(tUsersAuth)
         .where(tUsersAuth.userId.equals(userId))
-            .and(tUsersAuth.authType.in([ kAuthType.password, kAuthType.code ]))
+            .and(tUsersAuth.authType.in(allowedTypes))
         .select({
             authType: tUsersAuth.authType,
             authValue: tUsersAuth.authValue,
         })
         .executeSelectMany();
+
+    const hasAccessCode = credentials.some(entry => entry.authType === kAuthType.code);
 
     for (const credential of credentials) {
         if (credential.authType === kAuthType.password) {
@@ -85,12 +141,18 @@ export async function verifyUserCredentials(
             if (result.needsUpgrade)
                 await upgradeUserPasswordHash(userId, credential.authValue, plaintextPassword);
 
+            if (hasAccessCode)
+                await clearUserAccessCode(userId);
+
             return { authenticated: true, authType: 'password', userId };
         }
 
         if (credential.authType === kAuthType.code) {
-            if (await verifyAccessCode(plaintextPassword, credential.authValue))
+            if (await verifyAccessCode(plaintextPassword, credential.authValue) &&
+                await consumeAccessCode(userId, credential.authValue))
+            {
                 return { authenticated: true, authType: 'code', userId };
+            }
         }
     }
 
@@ -249,12 +311,14 @@ function generateAccessCode(): string {
 }
 
 /**
- * Generates a new one-time access code for `userId`, replaces any existing code with its Argon2id
- * hash in `users_auth`, and returns the plaintext code (or `undefined` on failure).
+ * Generates a new 24-hour one-time access code for `userId`, replaces any existing code with its
+ * expiry-prefixed Argon2id hash in `users_auth`, and returns the plaintext code (or `undefined` on
+ * failure).
  */
 export async function createUserAccessCode(userId: number): Promise<string | undefined> {
     const accessCode = generateAccessCode();
-    const hashedAccessCode = await hashPassword(accessCode);
+    const expiresAt = Math.floor(Date.now() / 1000) + kAccessCodeExpirySeconds;
+    const hashedAccessCode = `$exp=${expiresAt}${await hashPassword(accessCode)}`;
 
     const dbInstance = db;
     const inserted = await dbInstance.transaction(async () => {

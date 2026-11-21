@@ -428,9 +428,13 @@ export async function changePasswordAction(
         };
     }
 
-    const verification = await verifyUserCredentials(user.username, parsed.data.currentPassword);
-    if (!verification.authenticated || verification.userId !== user.id)
+    const verification = await verifyUserCredentials(
+        user.username, parsed.data.currentPassword, { allowAccessCode: false });
+    if (!verification.authenticated || verification.authType !== 'password' ||
+        verification.userId !== user.id)
+    {
         return { success: false, error: 'That is not your current password…' };
+    }
 
     resetRateLimit('password-change-user', userKey);
 

@@ -90,12 +90,13 @@ describe('AuthActions', () => {
         const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 105, userId: 42 });
 
-        // Access code sign-in returns a sealed password update token without signing in yet:
+        // Access code sign-in consumes the code and returns a sealed password update token:
         const codeHash = await hashPassword('ABCD-2345');
         mockConnection.expect('selectOneColumnOneRow', () => 42);
         mockConnection.expect('selectManyRows', () => [
             { authType: kAuthType.code, authValue: codeHash },
         ]);
+        mockConnection.expect('delete', () => 1);
         mockConnection.expect('selectOneColumnOneRow', () => 7);
 
         const codeResult = await signInPasswordAction({
