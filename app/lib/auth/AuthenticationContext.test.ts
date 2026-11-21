@@ -219,6 +219,13 @@ describe('AuthenticationContext', () => {
         cookieStoreData.set(kSessionCookieName, await sealSession({
             sessionId: 300, userId: 1, secret: 'admin-secret',
         }));
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 300,
+            userId: 1,
+            sessionTokenHash: hashSessionSecret('admin-secret'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
         expectAuthenticationQuery(mockConnection, { userId: 55, firstName: 'Target' });
         mockConnection.expect('delete', (_query, params) => {
             expect(params).toEqual([ 300, 1 ]);
@@ -239,5 +246,33 @@ describe('AuthenticationContext', () => {
         const session = await unsealSession(sealedCookie!);
         expect(session.sessionId).toBe(303);
         expect(session.userId).toBe(55);
+
+        // Self-impersonation is rejected with zero DB queries and preserves the existing cookie:
+        const selfAttempt = await impersonateUser(1, {
+            impersonatorUserId: 1,
+            returnUrl: '/admin',
+        });
+        expect(selfAttempt).toBeUndefined();
+        expect(cookieStoreData.get(kSessionCookieName)).toBe(sealedCookie);
+
+        // Nested impersonation is rejected without revoking or overwriting the existing cookie:
+        const nestedCookie = await sealSession({
+            sessionId: 301, userId: 2, secret: 'imp-secret',
+        });
+        cookieStoreData.set(kSessionCookieName, nestedCookie);
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 301,
+            userId: 2,
+            sessionTokenHash: hashSessionSecret('imp-secret'),
+            impersonatorUserId: 1,
+            impersonatorReturnUrl: '/admin',
+        }));
+
+        const nestedAttempt = await impersonateUser(55, {
+            impersonatorUserId: 2,
+            returnUrl: '/admin',
+        });
+        expect(nestedAttempt).toBeUndefined();
+        expect(cookieStoreData.get(kSessionCookieName)).toBe(nestedCookie);
     });
 });

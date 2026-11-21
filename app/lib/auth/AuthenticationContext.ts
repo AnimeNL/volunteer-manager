@@ -304,11 +304,24 @@ interface ImpersonateUserOptions {
 /**
  * Signs the current request into the account identified by `userId` as an impersonation session,
  * writing the session cookie. Returns the impersonated `User`, or `undefined` if the target account
- * does not exist or cannot be signed into.
+ * does not exist, matches the impersonator, is requested from an existing impersonation session, or
+ * cannot be signed into.
  */
 export async function impersonateUser(
     userId: number, options: ImpersonateUserOptions): Promise<User | undefined>
 {
+    if (userId === options.impersonatorUserId)
+        return undefined;
+
+    const cookieStore = await cookies();
+    const previousSession = await getSessionFromCookieStore(cookieStore);
+    const verifiedPrevious = previousSession
+        ? await verifyUserSession(previousSession.sessionId, previousSession.secret)
+        : undefined;
+
+    if (verifiedPrevious?.impersonatorUserId !== undefined)
+        return undefined;
+
     const { user: impersonatedUser } = await loadUserAuthenticationContext({
         type: 'userId',
         userId,
@@ -317,18 +330,19 @@ export async function impersonateUser(
     if (!impersonatedUser)
         return undefined;
 
-    const cookieStore = await cookies();
-    const previousSession = await getSessionFromCookieStore(cookieStore);
-    if (previousSession)
-        await revokeUserSession(previousSession.sessionId, previousSession.userId);
+    if (verifiedPrevious && verifiedPrevious.userId === previousSession?.userId)
+        await revokeUserSession(verifiedPrevious.sessionId, verifiedPrevious.userId);
 
     const requestHeaders = await headers();
+    const rawIp = options.ip?.trim() || requestHeaders.get('x-forwarded-for')?.trim();
+    const normalizedIp = rawIp ? normalizeClientIp(rawIp) : undefined;
+    const ip = normalizedIp && normalizedIp !== 'unknown' ? normalizedIp : undefined;
 
     await createAndWriteUserSessionCookie(cookieStore, {
         userId: impersonatedUser.id,
         impersonatorUserId: options.impersonatorUserId,
         impersonatorReturnUrl: options.returnUrl,
-        ip: normalizeClientIp(options.ip),
+        ip,
         userAgent: requestHeaders.get('user-agent') ?? undefined,
     });
 
