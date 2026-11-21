@@ -6,7 +6,7 @@ evaluation across three entry points:
 - `@lib/auth` — Request authentication context, cache invalidation, impersonation, display
   cookies, and admin account/session lifecycle helpers.
 - `@lib/auth/access` — Hierarchical, scoped RBAC/ABAC permission evaluation (`AccessControl`,
-  `checkPermission`, `and`/`or`).
+  `checkPermission`, `executeAccessCheck`, `and`/`or`).
 - `@lib/auth/actions` — Next.js Server Actions for sign-in, registration, passkeys, password
   management, and self-service profile updates.
 

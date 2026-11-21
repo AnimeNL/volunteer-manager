@@ -6,7 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tActivities, tActivitiesLogs, tEvents } from '@lib/database';

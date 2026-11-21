@@ -1,8 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden, unauthorized } from 'next/navigation';
+
 import type { AccessControl, AccessScope } from './AccessControl';
 import type { AccessOperation } from './AccessDescriptor';
+import type { AuthenticationContext } from '../AuthenticationContextTypes';
 import type { BooleanPermission, CRUDPermission } from './Access';
 
 /**
@@ -78,4 +81,19 @@ export function checkPermission(
     }
 
     return checkIndividualPermission(access, permission, scope);
+}
+
+/**
+ * Executes the given `permission` check. An HTTP 401 Unauthorized or HTTP 403 Forbidden error will
+ * be thrown when the access check fails.
+ */
+export function executeAccessCheck(
+    context: AuthenticationContext,
+    permission: PermissionAccessCheck | PermissionSet,
+    scope?: AccessScope): void | never
+{
+    if (!checkPermission(context.access, permission, scope)) {
+        !!context.user ? forbidden()
+                       : unauthorized();
+    }
 }

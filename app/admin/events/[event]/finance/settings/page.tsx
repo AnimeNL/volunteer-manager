@@ -17,7 +17,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { and } from '@lib/auth/access';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 

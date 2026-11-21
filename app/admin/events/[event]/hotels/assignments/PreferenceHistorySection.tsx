@@ -10,7 +10,7 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { readUserSetting } from '@lib/UserSettings';
 import db, { tHotels, tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesHotel }
     from '@lib/database';

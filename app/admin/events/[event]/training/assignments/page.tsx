@@ -23,7 +23,7 @@ import {
     TrainingCommunicationCell, TrainingCommunicationHeaderCell, TrainingParticipantCell,
     TrainingSessionCell } from './TrainingAssignmentCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';

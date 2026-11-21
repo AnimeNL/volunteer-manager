@@ -24,7 +24,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftSettingsForm } from './ShiftSettingsForm';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';

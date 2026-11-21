@@ -13,7 +13,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import type { SubscriptionType } from '@lib/subscriptions';
 import { LogBuilder } from '@lib/log/index';
 import { Publish } from '@lib/subscriptions';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tSubscriptions, tTeams } from '@lib/database';
 

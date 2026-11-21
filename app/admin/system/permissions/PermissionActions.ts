@@ -9,8 +9,8 @@ import { z } from 'zod/v4';
 import { AccessControl } from '@lib/auth/access';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { clearAuthCache, executeAccessCheck, invalidateUserAuthCache }
-    from '@lib/auth';
+import { clearAuthCache, invalidateUserAuthCache } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';

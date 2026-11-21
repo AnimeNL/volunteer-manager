@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import db, { tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';

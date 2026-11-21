@@ -7,7 +7,7 @@ import { DataTable, createDataSource, kEventTransformer, withContext, withRowMod
     type ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@app/lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { readSetting } from '@lib/Settings';
 import db, { tVendors } from '@lib/database';
 

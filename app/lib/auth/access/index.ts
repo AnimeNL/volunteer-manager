@@ -7,7 +7,7 @@ export type { BooleanPermission, CRUDPermission } from './Access';
 export type { PermissionAccessCheck, PermissionSet } from './PermissionCheck';
 
 export { AccessControl } from './AccessControl';
-export { and, checkPermission, or } from './PermissionCheck';
+export { and, checkPermission, executeAccessCheck, or } from './PermissionCheck';
 
 export { kAnyEvent, kAnyTeam } from './AccessList';
 export { kPermissions } from './Access';

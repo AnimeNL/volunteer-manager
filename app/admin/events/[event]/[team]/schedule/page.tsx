@@ -15,7 +15,7 @@ import { ScheduleHistoryTable } from './ScheduleHistoryTable';
 import { ScheduleImpl } from './ScheduleImpl';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';

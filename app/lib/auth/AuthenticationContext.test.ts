@@ -22,8 +22,9 @@ vi.mock('next/headers', () => ({
 import type { SessionData } from './Session';
 import { AccessControl } from './access/AccessControl';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { clearAuthCache, executeAccessCheck, getAuthenticationContext, impersonateUser,
-    invalidateUserAuthCache, requireAuthenticationContext } from './AuthenticationContext';
+import { clearAuthCache, getAuthenticationContext, impersonateUser, invalidateUserAuthCache,
+    requireAuthenticationContext } from './AuthenticationContext';
+import { executeAccessCheck } from './access/PermissionCheck';
 import { hashSessionSecret } from './SessionStore';
 import { initialisePermissionRoles } from './access/PermissionRoles';
 import { kSessionCookieName, sealSession, unsealSession } from './Session';

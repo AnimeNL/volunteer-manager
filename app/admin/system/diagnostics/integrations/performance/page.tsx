@@ -10,7 +10,7 @@ import { IntegrationPerformanceGraph, type IntegrationPerformancePoint }
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication, and } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs } from '@lib/database';

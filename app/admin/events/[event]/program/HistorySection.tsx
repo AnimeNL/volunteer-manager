@@ -11,7 +11,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SeverityCell } from '@app/admin/components/DataTable/cells/SeverityCell';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs,
     tUsers } from '@lib/database';
 

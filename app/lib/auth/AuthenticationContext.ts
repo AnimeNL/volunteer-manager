@@ -4,7 +4,7 @@
 import crypto from 'node:crypto';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
-import { forbidden, unauthorized } from 'next/navigation';
+import { unauthorized } from 'next/navigation';
 
 import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
     from './AuthenticationContextTypes';
@@ -13,10 +13,10 @@ import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
-import { checkPermission } from './access/PermissionCheck';
 import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, verifyUserSession }
     from './SessionStore';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
+import { executeAccessCheck } from './access/PermissionCheck';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore } from './Session';
 import { normalizeClientIp } from './RateLimit';
@@ -205,23 +205,6 @@ export async function loadUserAuthenticationContext(
     });
 
     return { access: accessControl, events, user };
-}
-
-/**
- * Executes the given `permission` check. A HTTP 401 Unauthorized or HTTP 403 Forbidden error will
- * be thrown when the access check fails.
- *
- * @note Access checks can be done inline when requiring an authentication context to exist.
- */
-export function executeAccessCheck(
-    context: AuthenticationContext,
-    permission: PermissionAccessCheck | PermissionSet,
-    scope?: AccessScope): void | never
-{
-    if (!checkPermission(context.access, permission, scope)) {
-        !!context.user ? forbidden()
-                       : unauthorized();
-    }
 }
 
 /**

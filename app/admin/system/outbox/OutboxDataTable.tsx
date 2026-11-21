@@ -7,7 +7,7 @@ import type { DataSourceInterface } from '@app/admin/components/DataTable/DataSo
 import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel, type Column }
     from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import db, { tOutboxTwilio, tUsers } from '@lib/database';
 
 import { kTwilioOutboxType, type TwilioOutboxType } from '@lib/database/Types';

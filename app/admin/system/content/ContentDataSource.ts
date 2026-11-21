@@ -12,7 +12,7 @@ import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { getEvent } from '@lib/cache';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 

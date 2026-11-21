@@ -5,7 +5,8 @@ import { forbidden, notFound, unauthorized } from 'next/navigation';
 
 import type { AuthenticationContext, UserAuthenticationContext } from '@lib/auth';
 import type { PermissionAccessCheck, PermissionSet } from '@lib/auth/access';
-import { executeAccessCheck, requireAuthenticationContext } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
+import { requireAuthenticationContext } from '@lib/auth';
 import { type CachedEvent, type CachedTeam, getEvent, getTeam } from '@lib/cache';
 
 import { kAnyEvent, kAnyTeam } from '@lib/auth/access';

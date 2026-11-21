@@ -8,10 +8,10 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
-import { executeAccessCheck, invalidateUserAuthCache, requireAuthenticationContext }
-    from '../AuthenticationContext';
+import { executeAccessCheck } from '../access/PermissionCheck';
 import { formatDate } from '@lib/Temporal';
 import { getAuthRequestMetadata } from './ActionHelpers';
+import { invalidateUserAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
