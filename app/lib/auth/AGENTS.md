@@ -11,9 +11,10 @@
   code should import through these barrel files rather than deep-importing internal modules.
 
 ## Deliberate Design Decisions
-- **Retain legacy password verification**: Legacy non-Argon2id password hashes (`scrypt` and
-  wrapped `legacy-v0`) *must* remain verifiable so returning annual volunteers silently upgrade to
-  Argon2id on sign-in.
+- **Retain legacy password verification**: The production database still contains raw `scrypt`
+  password hashes and will for at least another year. Raw `scrypt` verification, offline
+  `wrapLegacyPasswordHash()`, and `$legacy-v0` verification *must* remain intact until migrated or
+  aged out so returning annual volunteers silently upgrade to Argon2id on sign-in.
 - **`users.session_token` is for single-use e-mail tokens only**: Browser sessions live exclusively
   in `users_sessions`. `users.session_token` is retained solely to bind sealed password-reset and
   registration-activation tokens (rotated on activation, deactivation, and password changes) — do
