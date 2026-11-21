@@ -3,33 +3,14 @@
 
 import { vi } from 'vitest';
 
-const mockJar = new Map<string, { value: string; options: any }>();
-const mockCookieStore = {
-    get: (name: string) => {
-        const entry = mockJar.get(name);
-        return entry ? { name, value: entry.value } : undefined;
-    },
-    set: (name: string, value: string, options: any) => {
-        mockJar.set(name, { value, options });
-    },
-};
-
-const mockRequestHeaders = new Headers({
-    host: 'animecon.team',
-    'x-forwarded-for': '203.0.113.30',
-    'user-agent': 'Vitest/1.0',
-});
-
 const mockRecordLog = vi.fn();
 
-vi.mock('next/headers', () => ({
-    cookies: async () => mockCookieStore,
-    headers: async () => mockRequestHeaders,
-}));
+vi.mock('next/headers', async () => {
+    const { getMockHeaders, mockCookieStore } = await import('./ActionTestHelpers');
+    return { cookies: async () => mockCookieStore, headers: async () => getMockHeaders() };
+});
 
-vi.mock('next/server', () => ({
-    after: () => {},
-}));
+vi.mock('next/server', () => ({ after: () => {} }));
 
 vi.mock('@lib/Environment', () => ({
     determineEnvironment: async () => ({
@@ -44,44 +25,23 @@ vi.mock('@lib/Log', async (importOriginal) => {
     return { ...actual, RecordLog: (...args: any[]) => mockRecordLog(...args) };
 });
 
-import { clearAuthCache } from '../AuthenticationContext';
 import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
     registerPasskeyAction } from './PasskeyActions';
-import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
-import { hashSessionSecret } from '../SessionStore';
-import { initialisePermissionRoles } from '../access/PermissionRoles';
-import { kLogType } from '@lib/Log';
-import { kSessionCookieName, sealSession } from '../Session';
+import { mockCookieJar, resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
+
+import { kLogType } from '@lib/Log';
 
 describe('PasskeyActions', () => {
     const mockConnection = useMockConnection();
 
-    async function signInAs(userId: number) {
-        const secret = 'passkey-test-secret';
-        const cookie = await sealSession({ sessionId: 55, userId, secret });
-        mockJar.set(kSessionCookieName, { value: cookie, options: {} });
-
-        mockConnection.expect('selectOneRow', () => ({
-            sessionId: 55,
-            userId,
-            sessionTokenHash: hashSessionSecret(secret),
-            impersonatorUserId: null,
-            impersonatorReturnUrl: null,
-        }));
-        expectAuthenticationQuery(mockConnection, { userId, username: 'alice@example.com' });
-        mockConnection.expect('update', () => 1);
-    }
-
     beforeEach(async () => {
-        mockJar.clear();
         mockRecordLog.mockClear();
-        clearAuthCache();
-        await initialisePermissionRoles([]);
+        await resetAuthActionTestState('203.0.113.30');
     });
 
     it('lists registered passkeys formatted for the current RP ID', async () => {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42 });
         mockConnection.expect('selectManyRows', () => [
             {
                 passkeyId: 9,
@@ -108,18 +68,18 @@ describe('PasskeyActions', () => {
     });
 
     it('creates a passkey registration challenge stored in a sealed HttpOnly cookie', async () => {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42 });
         mockConnection.expect('selectManyRows', () => []);
 
         const result = await createPasskeyChallengeAction();
         expect(result.success).toBe(true);
         expect(result.options?.optionsJSON.rp.id).toBe('animecon.team');
-        expect(mockJar.get('passkey_challenge')?.value).toBeTruthy();
-        expect(mockJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
+        expect(mockCookieJar.get('passkey_challenge')?.value).toBeTruthy();
+        expect(mockCookieJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
     });
 
     it('rejects passkey registration when no challenge cookie is present', async () => {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42 });
 
         const result = await registerPasskeyAction({
             name: 'YubiKey',
@@ -131,7 +91,7 @@ describe('PasskeyActions', () => {
     });
 
     it('deletes passkeys and logs AccountPasskeyDelete', async () => {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42 });
         mockConnection.expect('delete', () => 1);
 
         const result = await deletePasskeyAction({ id: 9 });

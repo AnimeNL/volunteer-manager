@@ -3,36 +3,18 @@
 
 import { vi } from 'vitest';
 
-const mockJar = new Map<string, { value: string; options: any }>();
-const mockCookieStore = {
-    get: (name: string) => {
-        const entry = mockJar.get(name);
-        return entry ? { name, value: entry.value } : undefined;
-    },
-    set: (name: string, value: string, options: any) => {
-        mockJar.set(name, { value, options });
-    },
-};
-
-let mockRequestHeaders = new Headers({
-    host: 'animecon.team',
-    'x-forwarded-for': '203.0.113.10',
-    'user-agent': 'Vitest/1.0',
+vi.mock('next/headers', async () => {
+    const { getMockHeaders, mockCookieStore } = await import('./ActionTestHelpers');
+    return { cookies: async () => mockCookieStore, headers: async () => getMockHeaders() };
 });
 
-vi.mock('next/headers', () => ({
-    cookies: async () => mockCookieStore,
-    headers: async () => mockRequestHeaders,
-}));
+vi.mock('next/server', () => ({ after: () => {} }));
 
-vi.mock('next/server', () => ({
-    after: () => {},
-}));
-
-import { clearRateLimits } from '../RateLimit';
 import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
     signInPasswordUpdateAction, signOutAction } from './AuthActions';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
+import { expectSetUserPassword, mockCookieJar, resetAuthActionTestState }
+    from './ActionTestHelpers';
 import { hashPassword } from '../Password';
 import { hashSessionSecret } from '../SessionStore';
 import { kSessionCookieName, unsealSession } from '../Session';
@@ -44,15 +26,7 @@ import { kAuthType } from '../../database/Types';
 describe('AuthActions', () => {
     const mockConnection = useMockConnection();
 
-    beforeEach(() => {
-        mockJar.clear();
-        clearRateLimits();
-        mockRequestHeaders = new Headers({
-            host: 'animecon.team',
-            'x-forwarded-for': '203.0.113.10',
-            'user-agent': 'Vitest/1.0',
-        });
-    });
+    beforeEach(() => resetAuthActionTestState('203.0.113.10'));
 
     it('confirms identity and issues a sealed passkey challenge cookie when passkeys exist',
         async () =>
@@ -89,8 +63,8 @@ describe('AuthActions', () => {
         expect(result.success).toBe(true);
         expect(result.activated).toBe(true);
         expect(result.authenticationOptions?.optionsJSON.rpId).toBe('animecon.team');
-        expect(mockJar.get('passkey_challenge')?.value).toBeTruthy();
-        expect(mockJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
+        expect(mockCookieJar.get('passkey_challenge')?.value).toBeTruthy();
+        expect(mockCookieJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
     });
 
     it('authenticates plaintext passwords and one-time access codes with rate limiting',
@@ -111,7 +85,7 @@ describe('AuthActions', () => {
         });
         expect(passwordResult).toEqual({ success: true });
 
-        const cookie = await unsealSession(mockJar.get(kSessionCookieName)!.value);
+        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 105, userId: 42 });
 
         // Access code sign-in returns a sealed password update token without signing in yet:
@@ -154,15 +128,7 @@ describe('AuthActions', () => {
         // Valid update writes Argon2id hash, revokes sessions, and creates a persistent session:
         let storedHash: string | undefined;
         expectAuthenticationQuery(mockConnection, { userId: 42 });
-        mockConnection.expect('beginTransaction');
-        mockConnection.expect('delete', () => 1);
-        mockConnection.expect('insert', (_query: string, params: any[]) => {
-            storedHash = params[2];
-            return 1;
-        });
-        mockConnection.expect('update', () => 1);
-        mockConnection.expect('commit');
-        mockConnection.expect('delete', () => 0);
+        expectSetUserPassword(mockConnection, { onInsertHash: hash => { storedHash = hash; } });
         mockConnection.expect('insertReturningLastInsertedId', () => 201);
 
         const updated = await signInPasswordUpdateAction({
@@ -172,7 +138,7 @@ describe('AuthActions', () => {
         expect(updated).toEqual({ success: true });
         expect(storedHash).toMatch(/^\$argon2id\$v=19\$/);
 
-        const cookie = await unsealSession(mockJar.get(kSessionCookieName)!.value);
+        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 201, userId: 42 });
     });
 
@@ -208,7 +174,7 @@ describe('AuthActions', () => {
         mockConnection.expect('insertReturningLastInsertedId', () => 301);
 
         await signInPasswordAction({ username: 'alice@example.com', password: 'CorrectHorse1' });
-        const sealedCookie = await unsealSession(mockJar.get(kSessionCookieName)!.value) as any;
+        const sealedCookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value) as any;
 
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 301,
@@ -221,6 +187,6 @@ describe('AuthActions', () => {
 
         const signedOut = await signOutAction();
         expect(signedOut).toEqual({ success: true, returnUrl: undefined });
-        expect(mockJar.get(kSessionCookieName)?.value).toBe('');
+        expect(mockCookieJar.get(kSessionCookieName)?.value).toBe('');
     });
 });

@@ -3,79 +3,34 @@
 
 import { vi } from 'vitest';
 
-const mockJar = new Map<string, { value: string; options: any }>();
-const mockCookieStore = {
-    get: (name: string) => {
-        const entry = mockJar.get(name);
-        return entry ? { name, value: entry.value } : undefined;
-    },
-    set: (name: string, value: string, options: any) => {
-        mockJar.set(name, { value, options });
-    },
-};
-
-const mockRequestHeaders = new Headers({
-    host: 'animecon.team',
-    'x-forwarded-for': '203.0.113.40',
-    'user-agent': 'Vitest/1.0',
-});
-
 const mockStoreBlobData = vi.fn(async () => 999);
 
-vi.mock('next/headers', () => ({
-    cookies: async () => mockCookieStore,
-    headers: async () => mockRequestHeaders,
-}));
+vi.mock('next/headers', async () => {
+    const { getMockHeaders, mockCookieStore } = await import('./ActionTestHelpers');
+    return { cookies: async () => mockCookieStore, headers: async () => getMockHeaders() };
+});
 
-vi.mock('next/server', () => ({
-    after: () => {},
-}));
+vi.mock('next/server', () => ({ after: () => {} }));
 
 vi.mock('@lib/database/BlobStore', () => ({
     getBlobUrl: (hash: string) => `/blob/${hash}.png`,
     storeBlobData: (...args: any[]) => (mockStoreBlobData as any)(...args),
 }));
 
-import { clearAuthCache } from '../AuthenticationContext';
-import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { getOwnAccountAction, updateAvatarAction, updateOwnAccountAction } from './ProfileActions';
-import { hashSessionSecret } from '../SessionStore';
-import { initialisePermissionRoles } from '../access/PermissionRoles';
-import { kSessionCookieName, sealSession } from '../Session';
+import { resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
 
 describe('ProfileActions', () => {
     const mockConnection = useMockConnection();
 
-    async function signInAs(userId: number, grants?: string) {
-        const secret = 'profile-test-secret';
-        const cookie = await sealSession({ sessionId: 66, userId, secret });
-        mockJar.set(kSessionCookieName, { value: cookie, options: {} });
-
-        mockConnection.expect('selectOneRow', () => ({
-            sessionId: 66,
-            userId,
-            sessionTokenHash: hashSessionSecret(secret),
-            impersonatorUserId: null,
-            impersonatorReturnUrl: null,
-        }));
-        expectAuthenticationQuery(mockConnection, {
-            userId,
-            username: 'alice@example.com',
-            accessControl: grants ? { grants } : undefined,
-        });
-        mockConnection.expect('update', () => 1);
-    }
-
     beforeEach(async () => {
-        mockJar.clear();
         mockStoreBlobData.mockClear();
-        clearAuthCache();
-        await initialisePermissionRoles([]);
+        await resetAuthActionTestState('203.0.113.40');
     });
 
     it('retrieves and updates the signed-in user profile', async () => {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42, sessionId: 66 });
         mockConnection.expect('selectOneRow', () => ({
             firstName: 'Alice',
             lastName: 'Example',
@@ -140,7 +95,7 @@ describe('ProfileActions', () => {
     it('validates PNG uploads and enforces permissions for overrideUserId in updateAvatarAction',
         async () =>
     {
-        await signInAs(42);
+        await signInTestUser(mockConnection, { userId: 42, sessionId: 66 });
 
         // Rejects non-PNG payload:
         const invalidForm = new FormData();

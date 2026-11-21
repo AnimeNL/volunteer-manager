@@ -3,31 +3,12 @@
 
 import { vi } from 'vitest';
 
-const mockJar = new Map<string, { value: string; options: any }>();
-const mockCookieStore = {
-    get: (name: string) => {
-        const entry = mockJar.get(name);
-        return entry ? { name, value: entry.value } : undefined;
-    },
-    set: (name: string, value: string, options: any) => {
-        mockJar.set(name, { value, options });
-    },
-};
-
-let mockRequestHeaders = new Headers({
-    host: 'animecon.team',
-    'x-forwarded-for': '203.0.113.20',
-    'user-agent': 'Vitest/1.0',
+vi.mock('next/headers', async () => {
+    const { getMockHeaders, mockCookieStore } = await import('./ActionTestHelpers');
+    return { cookies: async () => mockCookieStore, headers: async () => getMockHeaders() };
 });
 
-vi.mock('next/headers', () => ({
-    cookies: async () => mockCookieStore,
-    headers: async () => mockRequestHeaders,
-}));
-
-vi.mock('next/server', () => ({
-    after: () => {},
-}));
+vi.mock('next/server', () => ({ after: () => {} }));
 
 vi.mock('@lib/Environment', () => ({
     determineEnvironment: async () => ({
@@ -55,13 +36,11 @@ vi.mock('@lib/subscriptions', () => ({
 
 import { changePasswordAction, completePasswordResetAction, registerAction,
     registerActivateAction, verifyPasswordResetAction } from './AccountAuthActions';
-import { clearAuthCache } from '../AuthenticationContext';
-import { clearRateLimits } from '../RateLimit';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
+import { expectSetUserPassword, mockCookieJar, resetAuthActionTestState, signInTestUser }
+    from './ActionTestHelpers';
 import { hashPassword } from '../Password';
-import { hashSessionSecret } from '../SessionStore';
-import { initialisePermissionRoles } from '../access/PermissionRoles';
-import { kSessionCookieName, sealSession, unsealSession } from '../Session';
+import { kSessionCookieName, unsealSession } from '../Session';
 import { sanitizeRelativeRedirectUrl } from './ActionHelpers';
 import { sealPasswordResetRequest, sealRegistrationRequest } from '../Tokens';
 import { useMockConnection } from '../../database/Connection';
@@ -71,17 +50,7 @@ import { kAuthType } from '../../database/Types';
 describe('AccountAuthActions', () => {
     const mockConnection = useMockConnection();
 
-    beforeEach(async () => {
-        mockJar.clear();
-        clearAuthCache();
-        clearRateLimits();
-        await initialisePermissionRoles([]);
-        mockRequestHeaders = new Headers({
-            host: 'animecon.team',
-            'x-forwarded-for': '203.0.113.20',
-            'user-agent': 'Vitest/1.0',
-        });
-    });
+    beforeEach(() => resetAuthActionTestState('203.0.113.20'));
 
     it('sanitizes relative redirect URLs to prevent open redirects', () => {
         expect(sanitizeRelativeRedirectUrl('/registration/2026')).toBe('/registration/2026');
@@ -148,7 +117,7 @@ describe('AccountAuthActions', () => {
             redirectUrl: '/registration',
         });
 
-        const cookie = await unsealSession(mockJar.get(kSessionCookieName)!.value);
+        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 401, userId: 91 });
 
         // Tampered token fails cleanly without throwing:
@@ -172,12 +141,7 @@ describe('AccountAuthActions', () => {
 
         // Completing reset updates password to Argon2id, revokes sessions, and signs in:
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
-        mockConnection.expect('beginTransaction');
-        mockConnection.expect('delete', () => 1);
-        mockConnection.expect('insert', () => 1);
-        mockConnection.expect('update', () => 1);
-        mockConnection.expect('commit');
-        mockConnection.expect('delete', () => 2);
+        expectSetUserPassword(mockConnection, { revokedCount: 2 });
         mockConnection.expect('insertReturningLastInsertedId', () => 501);
 
         const completed = await completePasswordResetAction({
@@ -185,7 +149,7 @@ describe('AccountAuthActions', () => {
             password: 'NewStrongPassword1',
         });
         expect(completed).toEqual({ success: true });
-        const cookie = await unsealSession(mockJar.get(kSessionCookieName)!.value);
+        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 501, userId: 42 });
     });
 
@@ -193,20 +157,7 @@ describe('AccountAuthActions', () => {
         async () =>
     {
         const currentHash = await hashPassword('OldPassword1');
-        const secret = 'active-device-secret';
-        const sealedCookie = await sealSession({ sessionId: 77, userId: 42, secret });
-        mockJar.set(kSessionCookieName, { value: sealedCookie, options: {} });
-
-        // requireAuthenticationContext({ bypassCache: true }) verifies persistent session:
-        mockConnection.expect('selectOneRow', () => ({
-            sessionId: 77,
-            userId: 42,
-            sessionTokenHash: hashSessionSecret(secret),
-            impersonatorUserId: null,
-            impersonatorReturnUrl: null,
-        }));
-        expectAuthenticationQuery(mockConnection, { userId: 42, username: 'alice@example.com' });
-        mockConnection.expect('update', () => 1);  // touchUserSession
+        await signInTestUser(mockConnection, { userId: 42, sessionId: 77 });
 
         // verifyUserCredentials checks current password:
         mockConnection.expect('selectOneColumnOneRow', () => 42);
@@ -216,14 +167,9 @@ describe('AccountAuthActions', () => {
 
         // setUserPassword updates hash, bumps sessionToken, revokes OTHER sessions:
         let revokeParams: any[] = [];
-        mockConnection.expect('beginTransaction');
-        mockConnection.expect('delete', () => 1);
-        mockConnection.expect('insert', () => 1);
-        mockConnection.expect('update', () => 1);
-        mockConnection.expect('commit');
-        mockConnection.expect('delete', (_query: string, params: any[]) => {
-            revokeParams = params;
-            return 2;
+        expectSetUserPassword(mockConnection, {
+            revokedCount: 2,
+            onRevokeParams: params => { revokeParams = params; },
         });
 
         const result = await changePasswordAction({
