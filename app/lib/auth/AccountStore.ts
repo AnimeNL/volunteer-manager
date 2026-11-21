@@ -220,19 +220,35 @@ export async function createAccountWithPassword(
 interface SetUserPasswordOptions {
     revokeSessions?: boolean;
     exceptSessionId?: number;
+    expectedSessionToken?: number;
 }
 
 /**
  * Replaces the password (and removes any one-time access code) for `userId` with an Argon2id hash
- * of `plaintextPassword`. Optionally rotates `session_token` and revokes existing sessions.
+ * of `plaintextPassword`. Optionally enforces `expectedSessionToken` atomically, rotates
+ * `session_token`, and revokes existing sessions. Returns `false` if `expectedSessionToken` no
+ * longer matches.
  */
 export async function setUserPassword(
-    userId: number, plaintextPassword: string, options?: SetUserPasswordOptions): Promise<void>
+    userId: number, plaintextPassword: string, options?: SetUserPasswordOptions): Promise<boolean>
 {
     const hashedPassword = await hashPassword(plaintextPassword);
+    const rotateSessionToken =
+        !!options?.revokeSessions || options?.expectedSessionToken !== undefined;
 
     const dbInstance = db;
-    await dbInstance.transaction(async () => {
+    const updated = await dbInstance.transaction(async () => {
+        if (rotateSessionToken) {
+            const affectedRows = await dbInstance.update(tUsers)
+                .set({ sessionToken: tUsers.sessionToken.add(1) })
+                .where(tUsers.userId.equals(userId))
+                    .and(tUsers.sessionToken.equalsIfValue(options?.expectedSessionToken))
+                .executeUpdate(/* min= */ 0, /* max= */ 1);
+
+            if (!affectedRows)
+                return false;
+        }
+
         await dbInstance.deleteFrom(tUsersAuth)
             .where(tUsersAuth.userId.equals(userId))
                 .and(tUsersAuth.authType.in([ kAuthType.code, kAuthType.password ]))
@@ -246,16 +262,16 @@ export async function setUserPassword(
             })
             .executeInsert();
 
-        if (options?.revokeSessions) {
-            await dbInstance.update(tUsers)
-                .set({ sessionToken: tUsers.sessionToken.add(1) })
-                .where(tUsers.userId.equals(userId))
-                .executeUpdate(/* min= */ 0, /* max= */ 1);
-        }
+        return true;
     });
+
+    if (!updated)
+        return false;
 
     if (options?.revokeSessions)
         await revokeAllUserSessions(userId, options.exceptSessionId);
+
+    return true;
 }
 
 /**

@@ -83,7 +83,14 @@ export async function completePasswordUpdateWithToken(
     if (!user)
         return { success: false, error: params.invalidError };
 
-    await setUserPassword(user.id, params.password, { revokeSessions: true });
+    const updated = await setUserPassword(user.id, params.password, {
+        revokeSessions: true,
+        expectedSessionToken: resetRequest.token,
+    });
+
+    if (!updated)
+        return { success: false, error: params.invalidError };
+
     await createAndWriteUserSessionCookie(await cookies(), {
         userId: user.id,
         ip: params.meta.ip,

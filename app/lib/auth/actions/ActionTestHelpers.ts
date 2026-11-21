@@ -99,12 +99,12 @@ export function expectSetUserPassword(
     }): void
 {
     mockConnection.expect('beginTransaction');
+    mockConnection.expect('update', () => 1);
     mockConnection.expect('delete', () => 1);
     mockConnection.expect('insert', (_query: string, params: any[]) => {
         options?.onInsertHash?.(params[2]);
         return 1;
     });
-    mockConnection.expect('update', () => 1);
     mockConnection.expect('commit');
     mockConnection.expect('selectOneColumnManyRows', () => []);
     mockConnection.expect('delete', (_query: string, params: any[]) => {

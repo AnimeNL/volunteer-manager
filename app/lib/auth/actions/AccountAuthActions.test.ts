@@ -165,6 +165,31 @@ describe('AccountAuthActions', () => {
         expect(completed).toEqual({ success: true });
         const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 501, userId: 42 });
+
+        // Concurrent replay where `session_token` was already rotated aborts atomically:
+        mockCookieJar.clear();
+
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
+
+        mockConnection.expect('beginTransaction');
+        mockConnection.expect('update', (_query, params) => {
+            expect(params).toEqual([ 1, 42, 5 ]);
+            return 0;
+        });
+
+        mockConnection.expect('commit');
+
+        const raced = await completePasswordResetAction({
+            request: token,
+            password: 'AnotherStrongPassword1',
+        });
+
+        expect(raced).toEqual({
+            success: false,
+            error: 'This password reset link is no longer valid.',
+        });
+
+        expect(mockCookieJar.has(kSessionCookieName)).toBe(false);
     });
 
     it('changes password while preserving the current persistent session and revoking others',
