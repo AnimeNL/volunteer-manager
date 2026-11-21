@@ -102,10 +102,17 @@ describe('AccountAuthActions', () => {
     it('activates accounts atomically and sanitizes untrusted redirect URLs', async () => {
         const token = await sealRegistrationRequest({
             id: 91,
+            token: 1,
             redirectUrl: '//evil.example.com/phish',
         });
 
-        mockConnection.expect('update', () => 1);
+        let updateQuery = '';
+        let updateParams: any[] = [];
+        mockConnection.expect('update', (query, params) => {
+            updateQuery = query;
+            updateParams = params;
+            return 1;
+        });
         expectAuthenticationQuery(mockConnection, { userId: 91, firstName: 'Jane' });
         mockConnection.expect('insertReturningLastInsertedId', () => 401);
 
@@ -116,9 +123,16 @@ describe('AccountAuthActions', () => {
             teamName: 'Volunteering Crew',
             redirectUrl: '/registration',
         });
+        expect(updateQuery).toContain('session_token');
+        expect(updateParams).toContain(1);
 
         const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 401, userId: 91 });
+
+        // Replaying the activation token after deactivation (`session_token` rotated) fails:
+        mockConnection.expect('update', () => 0);
+        await expect(registerActivateAction({ registrationRequest: token }))
+            .resolves.toEqual({ success: false });
 
         // Tampered token fails cleanly without throwing:
         await expect(registerActivateAction({ registrationRequest: 'v1.bad.token' }))

@@ -115,9 +115,11 @@ interface CreateAccountWithPasswordData {
  * Creates a new unactivated account and stores an Argon2id hash of `data.password` in `users_auth`.
  */
 export async function createAccountWithPassword(
-    data: CreateAccountWithPasswordData): Promise<number | undefined>
+    data: CreateAccountWithPasswordData)
+        : Promise<{ userId: number; sessionToken: number } | undefined>
 {
     const hashedPassword = await hashPassword(data.password);
+    const sessionToken = 1;
     let userId: number | undefined;
 
     const dbInstance = db;
@@ -133,6 +135,7 @@ export async function createAccountWithPassword(
                 discordHandle: data.discordHandle || null,
                 discordHandleUpdated:
                     data.discordHandle ? dbInstance.currentZonedDateTime() : null,
+                sessionToken,
             })
             .returningLastInsertedId()
             .executeInsert();
@@ -146,7 +149,7 @@ export async function createAccountWithPassword(
             .executeInsert();
     });
 
-    return userId;
+    return userId ? { userId, sessionToken } : undefined;
 }
 
 /**

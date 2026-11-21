@@ -25,11 +25,15 @@ describe('Tokens', () => {
     });
 
     it('seals and unseals registration requests with and without redirectUrl', () => {
-        const partial = sealRegistrationRequest({ id: 9001 });
-        expect(unsealRegistrationRequest(partial)).toEqual({ id: 9001 });
+        const partial = sealRegistrationRequest({ id: 9001, token: 1 });
+        expect(unsealRegistrationRequest(partial)).toEqual({ id: 9001, token: 1 });
 
-        const full = sealRegistrationRequest({ id: 9001, redirectUrl: '/foo/bar' });
-        expect(unsealRegistrationRequest(full)).toEqual({ id: 9001, redirectUrl: '/foo/bar' });
+        const full = sealRegistrationRequest({ id: 9001, token: 2, redirectUrl: '/foo/bar' });
+        expect(unsealRegistrationRequest(full)).toEqual({
+            id: 9001,
+            token: 2,
+            redirectUrl: '/foo/bar',
+        });
 
         expect(() => unsealRegistrationRequest('foobar')).toThrow();
     });

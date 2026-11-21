@@ -14,9 +14,10 @@
 - **Retain legacy password verification**: Legacy non-Argon2id password hashes (`scrypt` and
   wrapped `legacy-v0`) *must* remain verifiable so returning annual volunteers silently upgrade to
   Argon2id on sign-in.
-- **`users.session_token` is for password resets only**: Browser sessions live exclusively in
-  `users_sessions`. `users.session_token` is retained solely to make sealed password-reset tokens
-  single-use (rotated on password updates/resets) — do not remove it or repurpose it for sessions.
+- **`users.session_token` is for single-use e-mail tokens only**: Browser sessions live exclusively
+  in `users_sessions`. `users.session_token` is retained solely to bind sealed password-reset and
+  registration-activation tokens (rotated on activation, deactivation, and password changes) — do
+  not remove it or repurpose it for sessions.
 - **Auth cache & `bypassCache`**: Any mutation changing a user's profile, permissions, event
   participations, activation status, or credentials must call
   `invalidateAuthCache(/* forUserId= */ userId)` (or `invalidateAuthCache()` for global role/event

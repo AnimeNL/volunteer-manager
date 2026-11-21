@@ -49,6 +49,13 @@ interface RegistrationRequest {
     id: number;
 
     /**
+     * Expected `users.session_token` for the account, rotated upon activation and deactivation so
+     * tokens cannot reactivate admin-deactivated accounts. Optional on unseal so in-flight tokens
+     * issued before this field was introduced remain valid until expiry.
+     */
+    token?: number;
+
+    /**
      * Optional relative URL to redirect the user to after activation.
      */
     redirectUrl?: string;
@@ -74,7 +81,9 @@ export function unsealPasswordResetRequest(request: string): PasswordResetReques
 /**
  * Seals an account registration confirmation token valid for `kRegistrationRequestExpirySeconds`.
  */
-export function sealRegistrationRequest(request: RegistrationRequest): string {
+export function sealRegistrationRequest(
+    request: RegistrationRequest & { token: number }): string
+{
     return sealToken(
         request, 'registration', kRegistrationRequestPassword, kRegistrationRequestExpirySeconds);
 }

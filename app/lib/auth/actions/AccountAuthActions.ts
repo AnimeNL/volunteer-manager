@@ -121,7 +121,7 @@ export async function registerAction(input: RegisterActionInput): Promise<Accoun
     if (!await isUsernameAvailable(data.username))
         return { success: false, error: 'There already is an account with that username.' };
 
-    const userId = await createAccountWithPassword({
+    const account = await createAccountWithPassword({
         username: data.username,
         password: data.password,
         firstName: data.firstName,
@@ -132,12 +132,14 @@ export async function registerAction(input: RegisterActionInput): Promise<Accoun
         discordHandle: data.discordHandle,
     });
 
-    if (!userId)
+    if (!account)
         return { success: false, error: 'The server was unable to create an account.' };
 
+    const { userId, sessionToken } = account;
     const safeRedirectUrl = sanitizeRelativeRedirectUrl(data.redirectUrl);
     const registrationRequest = await sealRegistrationRequest({
         id: userId,
+        token: sessionToken,
         redirectUrl: safeRedirectUrl,
     });
 
@@ -199,7 +201,7 @@ export async function registerActivateAction(
     if (!rateLimit.allowed)
         return { success: false };
 
-    let registrationRequest: { id: number; redirectUrl?: string };
+    let registrationRequest: { id: number; token?: number; redirectUrl?: string };
     try {
         registrationRequest = await unsealRegistrationRequest(parsed.data.registrationRequest);
     } catch {
@@ -211,8 +213,12 @@ export async function registerActivateAction(
         return { success: false };
 
     const affectedRows = await db.update(tUsers)
-        .set({ activated: /* true= */ 1 })
+        .set({
+            activated: /* true= */ 1,
+            sessionToken: tUsers.sessionToken.add(1),
+        })
         .where(tUsers.userId.equals(registrationRequest.id))
+            .and(tUsers.sessionToken.equalsIfValue(registrationRequest.token))
             .and(tUsers.activated.equals(/* false= */ 0))
             .and(tUsers.anonymized.isNull())
         .executeUpdate(/* min= */ 0, /* max= */ 1);
