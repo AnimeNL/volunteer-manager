@@ -170,16 +170,6 @@ export async function revokeAllUserSessions(
 }
 
 /**
- * Removes expired session rows from `users_sessions`.
- */
-export async function pruneExpiredSessions(): Promise<number> {
-    const dbInstance = db;
-    return await dbInstance.deleteFrom(tUsersSessions)
-        .where(tUsersSessions.sessionExpires.lessOrEqual(dbInstance.currentZonedDateTime()))
-        .executeDelete();
-}
-
-/**
  * Result returned when revoking and clearing the current session cookie.
  */
 export interface RevokeSessionResult {

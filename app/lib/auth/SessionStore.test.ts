@@ -1,16 +1,9 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import {
-    createAndWriteUserSessionCookie,
-    createUserSession,
-    hashSessionSecret,
-    pruneExpiredSessions,
-    revokeAllUserSessions,
-    revokeAndClearCurrentSessionCookie,
-    revokeUserSession,
-    verifyUserSession,
-} from './SessionStore';
+import { createAndWriteUserSessionCookie, createUserSession, hashSessionSecret,
+    revokeAllUserSessions, revokeAndClearCurrentSessionCookie, revokeUserSession,
+    verifyUserSession } from './SessionStore';
 import { kSessionCookieName, unsealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 
@@ -73,15 +66,12 @@ describe('SessionStore', () => {
         await expect(verifyUserSession(999, secret)).resolves.toBeUndefined();
     });
 
-    it('revokes individual sessions, all user sessions, and expired sessions', async () => {
+    it('revokes individual sessions and all user sessions', async () => {
         mockConnection.expect('delete', () => 1);
         await revokeUserSession(77, 42);
 
         mockConnection.expect('delete', () => 3);
         await revokeAllUserSessions(42, 77);
-
-        mockConnection.expect('delete', () => 5);
-        await expect(pruneExpiredSessions()).resolves.toBe(5);
     });
 
     it('writes persistent session cookies and restores impersonator sessions on sign-out',

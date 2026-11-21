@@ -2,8 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { Task } from '../Task';
-import { pruneExpiredSessions } from '@lib/auth';
 import { readSetting } from '@lib/Settings';
+import db, { tUsersSessions } from '@lib/database';
 
 /**
  * Number of milliseconds in a single day.
@@ -35,7 +35,11 @@ export class CleanUpExpiredSessionsTask extends Task {
             return true;
         }
 
-        const prunedCount = await pruneExpiredSessions();
+        const dbInstance = db;
+        const prunedCount = await dbInstance.deleteFrom(tUsersSessions)
+            .where(tUsersSessions.sessionExpires.lessOrEqual(dbInstance.currentZonedDateTime()))
+            .executeDelete();
+
         this.log.info(`Cleaned up ${prunedCount} expired session(s).`);
 
         return true;
