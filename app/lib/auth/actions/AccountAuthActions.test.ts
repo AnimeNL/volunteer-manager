@@ -34,23 +34,30 @@ vi.mock('@lib/subscriptions', () => ({
     kSubscriptionType: { Registration: 'registration' },
 }));
 
+import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { changePasswordAction, completePasswordResetAction, registerAction,
-    registerActivateAction, verifyPasswordResetAction } from './AccountAuthActions';
+    registerActivateAction, requestPasswordResetAction, verifyPasswordResetAction }
+    from './AccountAuthActions';
+import { checkRateLimit } from '../RateLimit';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
-import { expectSetUserPassword, mockCookieJar, resetAuthActionTestState, signInTestUser }
-    from './ActionTestHelpers';
+import { expectSetUserPassword, getMockHeaders, mockCookieJar, resetAuthActionTestState,
+    signInTestUser } from './ActionTestHelpers';
 import { hashPassword } from '../Password';
 import { kSessionCookieName, unsealSession } from '../Session';
 import { sanitizeRelativeRedirectUrl } from '../SessionStore';
 import { sealPasswordResetRequest, sealRegistrationRequest } from '../Tokens';
 import { useMockConnection } from '../../database/Connection';
 
+import { kAuthRateLimits } from '../RateLimit';
 import { kAuthType } from '../../database/Types';
 
 describe('AccountAuthActions', () => {
     const mockConnection = useMockConnection();
 
-    beforeEach(() => resetAuthActionTestState('203.0.113.20'));
+    beforeEach(async () => {
+        await resetAuthActionTestState('203.0.113.20');
+        vi.mocked(SendEmailTask.Schedule).mockClear();
+    });
 
     it('sanitizes relative redirect URLs to prevent open redirects', () => {
         expect(sanitizeRelativeRedirectUrl('/')).toBe('/');
@@ -149,6 +156,45 @@ describe('AccountAuthActions', () => {
         // Tampered token fails cleanly without throwing:
         await expect(registerActivateAction({ registrationRequest: 'v1.bad.token' }))
             .resolves.toEqual({ success: false });
+    });
+
+    it('requests password resets without enumerating accounts and enforces IP limits first',
+        async () =>
+    {
+        // Unknown, unactivated, or anonymized accounts return `{ success: true }` with no e-mail:
+        mockConnection.expect('selectOneRow', () => undefined);
+        const unknown = await requestPasswordResetAction({ username: 'missing@example.com' });
+        expect(unknown).toEqual({ success: true });
+        expect(SendEmailTask.Schedule).not.toHaveBeenCalled();
+
+        // Active accounts return `{ success: true }` and schedule a reset e-mail:
+        mockConnection.expect('selectOneRow', () => ({
+            userId: 42,
+            sessionToken: 5,
+            firstName: 'Alice',
+        }));
+        const active = await requestPasswordResetAction({ username: 'alice@example.com' });
+        expect(active).toEqual({ success: true });
+        expect(SendEmailTask.Schedule).toHaveBeenCalledTimes(1);
+        expect(SendEmailTask.Schedule).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.objectContaining({ to: 'alice@example.com' }),
+        }));
+
+        // IP rate limit is evaluated before the per-account bucket so a throttled IP cannot lock
+        // out another user's account bucket:
+        for (let i = 0; i < kAuthRateLimits.passwordResetByIp.limit; ++i)
+            checkRateLimit('password-reset-ip', '198.51.100.77', kAuthRateLimits.passwordResetByIp);
+
+        getMockHeaders().set('x-forwarded-for', '198.51.100.77');
+        const throttled = await requestPasswordResetAction({ username: 'victim@example.com' });
+        expect(throttled).toEqual({
+            success: false,
+            error: expect.stringContaining('Too many'),
+        });
+
+        expect(checkRateLimit(
+            'password-reset-account', 'victim@example.com', { limit: 1, windowSeconds: 60 })
+            .allowed).toBe(true);
     });
 
     it('verifies and completes password resets with Argon2id and full session revocation',

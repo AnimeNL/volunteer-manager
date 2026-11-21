@@ -298,7 +298,7 @@ export async function requestPasswordResetAction(
         .executeSelectNoneOrOne();
 
     if (!passwordResetData)
-        return { success: false };
+        return { success: true };
 
     const token = await sealPasswordResetRequest({
         id: passwordResetData.userId,
