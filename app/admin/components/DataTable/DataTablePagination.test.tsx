@@ -41,7 +41,6 @@ describe('DataTable - Pagination', () => {
                 nameOrFirstName: 'John Doe',
                 lastName: 'Doe'
             },
-            authType: 'passkey',
             events: new Map(),
         } satisfies AuthenticationContext);
 

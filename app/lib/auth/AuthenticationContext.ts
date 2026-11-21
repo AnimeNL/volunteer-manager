@@ -20,11 +20,11 @@ import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, v
     from './SessionStore';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getBlobUrl } from '../database/BlobStore';
-import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
+import { getSessionFromCookieStore } from './getSession';
 import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
-import { kAuthType, kRegistrationStatus } from '../database/Types';
+import { kRegistrationStatus } from '../database/Types';
 
 export type {
     AuthenticationContext,
@@ -161,7 +161,6 @@ export async function loadUserAuthenticationContext(
         };
     }
 
-    const authType = kAuthType.password;
     const events: UserAuthenticationContext['events'] = new Map();
     const user: User = {
         id: authenticationResult.userId,
@@ -207,7 +206,7 @@ export async function loadUserAuthenticationContext(
         teams: authenticationResult.accessControl?.teams,
     });
 
-    return { access: accessControl, authType, events, user };
+    return { access: accessControl, events, user };
 }
 
 /**
@@ -326,21 +325,6 @@ async function getAuthenticationContextFromSessionData(
     authCache.set(verified.userId, { context, sessions });
 
     return context;
-}
-
-/**
- * Determines the authentication context based on the request headers. Only for use in tests.
- *
- * @param headers The Headers object from the request.
- */
-export async function getAuthenticationContextFromHeaders(
-    headers: Headers, bypassCache = false): Promise<AuthenticationContext>
-{
-    const sessionData = await getSessionFromHeaders(headers);
-    if (!sessionData)
-        return { access: new AccessControl({ /* no grants */ }), user: undefined };
-
-    return getAuthenticationContextFromSessionData(sessionData, bypassCache);
 }
 
 /**

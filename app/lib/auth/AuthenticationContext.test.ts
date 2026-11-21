@@ -4,13 +4,26 @@
 import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 
-import { stringifySetCookie } from 'cookie';
+const cookieStoreData = new Map<string, string>();
+
+vi.mock('next/headers', () => ({
+    cookies: async () => ({
+        get: (name: string) => {
+            const value = cookieStoreData.get(name);
+            return value !== undefined ? { name, value } : undefined;
+        },
+        set: (name: string, value: string) => {
+            cookieStoreData.set(name, value);
+        },
+    }),
+    headers: async () => new Headers(),
+}));
 
 import type { SessionData } from './Session';
 import { AccessControl } from './access/AccessControl';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { clearAuthCache, executeAccessCheck, getAuthenticationContextFromHeaders,
-    invalidateUserAuthCache } from './AuthenticationContext';
+import { clearAuthCache, executeAccessCheck, getAuthenticationContext, invalidateUserAuthCache,
+    requireAuthenticationContext } from './AuthenticationContext';
 import { hashSessionSecret } from './SessionStore';
 import { initialisePermissionRoles } from './access/PermissionRoles';
 import { kSessionCookieName, sealSession } from './Session';
@@ -20,6 +33,7 @@ describe('AuthenticationContext', () => {
     const mockConnection = useMockConnection();
 
     beforeEach(async () => {
+        cookieStoreData.clear();
         clearAuthCache();
         await initialisePermissionRoles([]);
     });
@@ -27,19 +41,15 @@ describe('AuthenticationContext', () => {
     it('authenticates and caches server-backed per-device sessions across multiple devices',
         async () =>
     {
-        const makeHeaders = async (session: SessionData) => new Headers([[
-            'Cookie',
-            stringifySetCookie({
-                name: kSessionCookieName,
-                value: await sealSession(session),
-                httpOnly: true,
-            }),
-        ]]);
+        const setSessionCookie = async (session: SessionData) => {
+            cookieStoreData.set(kSessionCookieName, await sealSession(session));
+        };
 
-        const deviceA = await makeHeaders({ sessionId: 101, userId: 42, secret: 'secret-a' });
-        const deviceB = await makeHeaders({ sessionId: 102, userId: 42, secret: 'secret-b' });
+        const deviceA: SessionData = { sessionId: 101, userId: 42, secret: 'secret-a' };
+        const deviceB: SessionData = { sessionId: 102, userId: 42, secret: 'secret-b' };
 
         // Device A misses cache: verifies session row, loads user, touches last_seen:
+        await setSessionCookie(deviceA);
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 101,
             userId: 42,
@@ -50,11 +60,11 @@ describe('AuthenticationContext', () => {
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
         mockConnection.expect('update', () => 1);
 
-        const firstA = await getAuthenticationContextFromHeaders(deviceA);
+        const firstA = await getAuthenticationContext();
         expect(firstA.user?.firstName).toBe('Alice');
 
         // Repeat request from Device A hits cache with zero DB queries:
-        const secondA = await getAuthenticationContextFromHeaders(deviceA);
+        const secondA = await getAuthenticationContext();
         expect(secondA.user?.firstName).toBe('Alice');
 
         // bypassCache forces a fresh database verification and reload:
@@ -68,10 +78,12 @@ describe('AuthenticationContext', () => {
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Updated' });
         mockConnection.expect('update', () => 1);
 
-        const bypassed = await getAuthenticationContextFromHeaders(deviceA, true);
-        expect(bypassed.user?.firstName).toBe('Alice Updated');
+        const bypassed = await requireAuthenticationContext(
+            undefined, undefined, { bypassCache: true });
+        expect(bypassed.user.firstName).toBe('Alice Updated');
 
         // Device B verifies once and merges into the user's cached session map without evicting A:
+        await setSessionCookie(deviceB);
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 102,
             userId: 42,
@@ -82,15 +94,17 @@ describe('AuthenticationContext', () => {
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
         mockConnection.expect('update', () => 1);
 
-        const firstB = await getAuthenticationContextFromHeaders(deviceB);
+        const firstB = await getAuthenticationContext();
         expect(firstB.user?.firstName).toBe('Alice');
 
         // Both Device A and Device B now hit cache with zero DB queries:
-        expect((await getAuthenticationContextFromHeaders(deviceA)).user?.firstName).toBe('Alice');
-        expect((await getAuthenticationContextFromHeaders(deviceB)).user?.firstName).toBe('Alice');
+        await setSessionCookie(deviceA);
+        expect((await getAuthenticationContext()).user?.firstName).toBe('Alice');
+        await setSessionCookie(deviceB);
+        expect((await getAuthenticationContext()).user?.firstName).toBe('Alice');
 
         // Wrong secret does not hit cache and fails DB verification:
-        const forgedA = await makeHeaders({ sessionId: 101, userId: 42, secret: 'wrong-secret' });
+        await setSessionCookie({ sessionId: 101, userId: 42, secret: 'wrong-secret' });
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 101,
             userId: 42,
@@ -98,17 +112,19 @@ describe('AuthenticationContext', () => {
             impersonatorUserId: null,
             impersonatorReturnUrl: null,
         }));
-        expect((await getAuthenticationContextFromHeaders(forgedA)).user).toBeUndefined();
+        expect((await getAuthenticationContext()).user).toBeUndefined();
 
         // Targeted invalidation forces Device A to re-verify against the database:
+        await setSessionCookie(deviceA);
         invalidateUserAuthCache(42);
         mockConnection.expect('selectOneRow', () => undefined);
-        expect((await getAuthenticationContextFromHeaders(deviceA)).user).toBeUndefined();
+        expect((await getAuthenticationContext()).user).toBeUndefined();
 
         // Global clear evicts all cached entries:
+        await setSessionCookie(deviceB);
         clearAuthCache();
         mockConnection.expect('selectOneRow', () => undefined);
-        expect((await getAuthenticationContextFromHeaders(deviceB)).user).toBeUndefined();
+        expect((await getAuthenticationContext()).user).toBeUndefined();
     });
 
     it('is able to execute permission access checks', () => {

@@ -7,14 +7,12 @@ import { unauthorized } from 'next/navigation';
 import type { ZodError, ZodType, z } from 'zod/v4';
 import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodTypeDef } from 'zod/v4/core';
 
-import type { User } from './auth';
+import type { AuthenticationContext, User } from './auth';
 import { AccessControl } from './auth/access';
 import { RecordErrorLog, kLogSeverity } from './Log';
-import { getAuthenticationContextFromHeaders, type AuthenticationContext }
-    from './auth';
+import { getAuthenticationContext } from './auth';
 import { runWithUserContext } from './integrations/Instrumentation';
 
-import { kAuthType } from './database/Types';
 
 /**
  * Type description for the information available regarding the signed in user, if any.
@@ -305,14 +303,19 @@ export async function executeServerAction<T extends ZodType,
         // -----------------------------------------------------------------------------------------
 
         authenticationContext =
+            userForTesting === null ?
+                {
+                    access: new AccessControl({ /* visitor */ }),
+                    user: undefined,
+
+                } :
             userForTesting ?
                 {
                     access: new AccessControl({ /* todo? */ }),
-                    authType: kAuthType.password,
                     events: new Map,
                     user: userForTesting
 
-                } : await getAuthenticationContextFromHeaders(requestHeaders);
+                } : await getAuthenticationContext();
 
         if (!allowVisitors && !authenticationContext.user)
             unauthorized();

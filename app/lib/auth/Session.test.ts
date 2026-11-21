@@ -3,12 +3,31 @@
 
 import { vi } from 'vitest';
 
+const cookieStoreData = new Map<string, { value: string; options?: Record<string, unknown> }>();
+
+vi.mock('next/headers', () => ({
+    cookies: async () => ({
+        get: (name: string) => {
+            const entry = cookieStoreData.get(name);
+            return entry ? { name, value: entry.value } : undefined;
+        },
+        set: (name: string, value: string, options?: Record<string, unknown>) => {
+            cookieStoreData.set(name, { value, options });
+        },
+    }),
+}));
+
 import type { SessionData } from './Session';
-import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from './DisplaySession';
-import { sealSession, unsealSession, writeSealedSessionCookie } from './Session';
+import { getDisplayId, setDisplayId } from './DisplaySession';
+import { kSessionCookieName, sealSession, unsealSession, writeEmptySessionCookieToStore,
+    writeSealedSessionCookieToStore } from './Session';
 import { sealToken } from './SealedToken';
 
 describe('Session', () => {
+    beforeEach(() => {
+        cookieStoreData.clear();
+    });
+
     it('should be able to seal and unseal sessions and reject invalid payloads', async () => {
         const persistentSession: SessionData = {
             sessionId: 77,
@@ -33,42 +52,40 @@ describe('Session', () => {
             secret: 'secret',
         });
 
-        const makeCookieStore = (value: string) => ({
-            get: (name: string) => name === 'display' ? { name, value } : undefined,
-            set: () => {},
-        }) as any;
+        cookieStoreData.set('display', { value: userSessionCookie });
 
         const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         try {
-            await expect(getDisplayIdFromCookieStore(makeCookieStore(userSessionCookie)))
-                .resolves.toBeUndefined();
+            await expect(getDisplayId()).resolves.toBeUndefined();
         } finally {
             consoleErrorSpy.mockRestore();
         }
 
         // Valid display cookies still roundtrip properly:
+        await setDisplayId(17);
+        expect(cookieStoreData.get('display')?.options?.httpOnly).toBe(true);
+        expect(cookieStoreData.get('display')?.options?.sameSite).toBe('lax');
+        await expect(getDisplayId()).resolves.toBe(17);
+    });
+
+    it('sets HttpOnly and SameSite=Lax on written and cleared session cookies', async () => {
         const stored: Record<string, { value: string; options: any }> = {};
-        const writableStore = {
-            get: (name: string) => stored[name] ? { name, value: stored[name].value } : undefined,
+        const cookieStore = {
             set: (name: string, value: string, options: any) => {
                 stored[name] = { value, options };
             },
         } as any;
 
-        await writeDisplayIdToCookieStore(writableStore, 17);
-        expect(stored.display.options.httpOnly).toBe(true);
-        expect(stored.display.options.sameSite).toBe('lax');
-        await expect(getDisplayIdFromCookieStore(writableStore)).resolves.toBe(17);
-    });
+        await writeSealedSessionCookieToStore(
+            { sessionId: 77, userId: 42, secret: 'secret' }, cookieStore);
 
-    it('sets HttpOnly and SameSite=Lax on written session cookies', async () => {
-        const headers = new Headers();
-        await writeSealedSessionCookie(
-            { sessionId: 77, userId: 42, secret: 'secret' }, headers);
+        expect(stored[kSessionCookieName].options.httpOnly).toBe(true);
+        expect(stored[kSessionCookieName].options.sameSite).toBe('lax');
+        expect(stored[kSessionCookieName].options.path).toBe('/');
+        expect(stored[kSessionCookieName].value.length).toBeGreaterThan(0);
 
-        const setCookie = headers.get('Set-Cookie') ?? '';
-        expect(setCookie).toContain('HttpOnly');
-        expect(setCookie).toContain('SameSite=Lax');
-        expect(setCookie).toContain('Path=/');
+        writeEmptySessionCookieToStore(cookieStore);
+        expect(stored[kSessionCookieName].value).toBe('');
+        expect(stored[kSessionCookieName].options.maxAge).toBe(0);
     });
 });

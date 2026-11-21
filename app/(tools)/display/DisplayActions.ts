@@ -3,14 +3,13 @@
 
 'use server';
 
-import { cookies } from 'next/headers';
 import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { DisplayHelpRequestStatus } from '@lib/database/Types';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
-import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from '@lib/auth';
+import { getDisplayId, setDisplayId } from '@lib/auth';
 import { isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tDisplays, tDisplaysRequests,
@@ -227,14 +226,13 @@ export async function getDisplayContext() {
             seconds: settings['display-time-offset-seconds'] ?? 0,
         });
 
-        const cookieStore = await cookies();
         const dbInstance = db;
 
         // -----------------------------------------------------------------------------------------
         // Step 1: Ensure that the device that's checking in is represented in our system
         // -----------------------------------------------------------------------------------------
 
-        let displayId = await getDisplayIdFromCookieStore(cookieStore);
+        let displayId = await getDisplayId();
         if (!!displayId) {
             const affectedRows = await dbInstance.update(tDisplays)
                 .set({
@@ -260,7 +258,7 @@ export async function getDisplayContext() {
                 .returningLastInsertedId()
                 .executeInsert();
 
-            await writeDisplayIdToCookieStore(cookieStore, displayId);
+            await setDisplayId(displayId);
         }
 
         // -----------------------------------------------------------------------------------------
@@ -504,7 +502,7 @@ export async function requestHelp(formData: unknown) {
         if (!props.ip)
             forbidden();
 
-        const displayId = await getDisplayIdFromCookieStore(await cookies());
+        const displayId = await getDisplayId();
         if (!displayId)
             forbidden();
 

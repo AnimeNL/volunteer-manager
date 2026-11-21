@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { cookies } from 'next/headers';
-import { stringifySetCookie } from 'cookie';
 
 import { sealToken, unsealToken } from './SealedToken';
 
@@ -68,38 +67,6 @@ export async function unsealSession(sealedSession: string): Promise<SessionData>
         userId: data.userId,
         secret: data.secret,
     };
-}
-
-/**
- * Writes an empty session cookie to the given `headers`.
- */
-export async function writeEmptySessionCookie(headers: Headers): Promise<void> {
-    headers.append('Set-Cookie', stringifySetCookie({
-        name: kSessionCookieName,
-        value: '',
-        httpOnly: true,
-        maxAge: 0,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    }));
-}
-
-/**
- * Writes the given `session` in sealed format to the given `headers`.
- */
-export async function writeSealedSessionCookie(session: SessionData, headers: Headers)
-    : Promise<void>
-{
-    headers.append('Set-Cookie', stringifySetCookie({
-        name: kSessionCookieName,
-        value: await sealSession(session),
-        httpOnly: true,
-        maxAge: kSessionExpirationTimeSeconds,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    }));
 }
 
 /**

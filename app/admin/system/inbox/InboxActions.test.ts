@@ -19,13 +19,13 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('@lib/auth', async importOriginal => {
-    const actual = await importOriginal<typeof import('@lib/auth/AuthenticationContext')>();
+    const actual = await importOriginal<typeof import('@lib/auth')>();
     const { buildAuthenticationContext: buildContext } =
         await import('@lib/auth/AuthenticationTestHelpers');
 
     return {
         ...actual,
-        getAuthenticationContextFromHeaders: async () => buildContext({
+        getAuthenticationContext: async () => buildContext({
             access: {
                 grants: 'event.visible,system.inbox.eligible',
                 events: '*',

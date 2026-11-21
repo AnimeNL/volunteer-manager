@@ -2,12 +2,9 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { AuthenticationResult } from './AuthenticationContext';
-import type { AuthType } from '../database/Types';
 import type { User } from './User';
 import type { useMockConnection } from '@lib/database/Connection';
 import { AccessControl } from './access/AccessControl';
-
-import { kAuthType } from '../database/Types';
 
 /**
  * Parameters that can be provided when building an authentication context. All missing information
@@ -21,7 +18,6 @@ interface BuildAuthenticationContextParams {
         teams?: string;
     }>;
     user?: Partial<User>;
-    authType?: AuthType;
     events?: Map</* eventSlug= */ string, /* teamSlug= */ string>;
 }
 
@@ -44,7 +40,6 @@ export function buildAuthenticationContext(params?: BuildAuthenticationContextPa
 
             ...params.user,
         },
-        authType: params.authType ?? kAuthType.password,
         events: params.events ?? new Map,
     };
 }

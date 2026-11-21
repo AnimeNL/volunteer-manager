@@ -3,7 +3,6 @@
 
 import type { AccessControl } from './access/AccessControl';
 import type { User } from './User';
-import type { AuthType } from '@lib/database/Types';
 
 /**
  * Authentication Context specific to signed in users. Includes the user, as well as an overview of
@@ -19,11 +18,6 @@ export interface UserAuthenticationContext {
      * The user who is currently signed in to their account.
      */
     user: User;
-
-    /**
-     * Authentication type that was used to sign the user in.
-     */
-    authType: AuthType;
 
     /**
      * Context regarding the user's access to events. Keyed by event slug ("2024"), and valued by

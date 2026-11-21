@@ -1,7 +1,8 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { cookies } from 'next/headers';
+import 'server-only';
+import { cookies } from 'next/headers';
 
 import { sealToken, unsealToken } from './SealedToken';
 
@@ -50,11 +51,11 @@ async function unsealDisplaySession(sealedSession: string): Promise<{ id: number
 }
 
 /**
- * Returns the unsealed DisplaySession that was included in the given `cookieStore`.
+ * Returns the unsealed display ID from the current request's cookies, or `undefined` when missing
+ * or invalid.
  */
-export async function getDisplayIdFromCookieStore(
-    cookieStore: Awaited<ReturnType<typeof cookies>>): Promise<number | undefined>
-{
+export async function getDisplayId(): Promise<number | undefined> {
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(kDisplaySessionCookieName);
     if (sessionCookie) {
         try {
@@ -68,11 +69,10 @@ export async function getDisplayIdFromCookieStore(
 }
 
 /**
- * Writes the given `displayId` as an encrypted representation to `cookieStore`.
+ * Writes the given `displayId` as an encrypted `HttpOnly` cookie on the current response.
  */
-export async function writeDisplayIdToCookieStore(
-    cookieStore: Awaited<ReturnType<typeof cookies>>, displayId: number)
-{
+export async function setDisplayId(displayId: number): Promise<void> {
+    const cookieStore = await cookies();
     cookieStore.set(kDisplaySessionCookieName, await sealDisplaySession({ id: displayId }), {
         httpOnly: true,
         maxAge: kDisplaySessionExpirationTimeSeconds,
