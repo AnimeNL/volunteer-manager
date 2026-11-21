@@ -47,9 +47,10 @@ management) bypass the cache so revoked sessions cannot escalate. Callers mutati
 authorization state must invalidate the auth cache.
 
 ### Rate limiting & redirect safety
-Memory-bounded sliding-window rate limits are dual-keyed by IP and account, with per-IP budgets
-sized for many volunteers sharing convention Wi-Fi NAT; triggered limits are logged for visibility.
-Post-authentication redirects accept only single-slash relative paths to prevent open redirects.
+Memory-bounded sliding-window rate limits are dual-keyed by IP (bucketing IPv6 addresses by `/64`
+prefix and unwrapping IPv4-mapped IPv6) and account, with per-IP budgets sized for many volunteers
+sharing convention Wi-Fi NAT; triggered limits are logged for visibility. Post-authentication
+redirects accept only single-slash relative paths to prevent open redirects.
 
 ## Authorization Model
 

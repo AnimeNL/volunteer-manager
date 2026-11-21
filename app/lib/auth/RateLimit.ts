@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import 'server-only';
+import net from 'node:net';
 
 import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 
@@ -13,6 +14,17 @@ declare namespace globalThis {
  * Maximum number of distinct bucket+key entries retained in memory to prevent unbounded growth.
  */
 const kMaximumTrackedKeys = 10_000;
+
+/**
+ * Distinct rate limit buckets for authentication flows.
+ */
+type RateLimitBucket =
+    'confirm-identity-ip' |
+    'password-reset-account' |
+    'password-reset-ip' |
+    'register-ip' |
+    'signin-account' |
+    'signin-ip';
 
 /**
  * Sliding-window rate limit configuration.
@@ -66,10 +78,35 @@ function getStorage(): Map<string, number[]> {
 }
 
 /**
+ * Normalizes a rate limit key. IPv4-mapped IPv6 addresses are unwrapped to IPv4, and IPv6
+ * addresses are bucketed by their `/64` network prefix so rotating interface identifiers within a
+ * residential or mobile allocation cannot bypass per-IP limits.
+ */
+function normalizeRateLimitKey(key: string): string {
+    const normalized = key.trim().toLowerCase();
+    if (!net.isIPv6(normalized))
+        return normalized;
+
+    if (normalized.startsWith('::ffff:') && net.isIPv4(normalized.slice(7)))
+        return normalized.slice(7);
+
+    const [ leftPart, rightPart ] = normalized.split('::');
+    const left = leftPart ? leftPart.split(':') : [];
+    const right = rightPart ? rightPart.split(':') : [];
+    const rightCount = right.length + (right.at(-1)?.includes('.') ? 1 : 0);
+    const missing = rightPart !== undefined ? Math.max(0, 8 - left.length - rightCount) : 0;
+    const prefix = [ ...left, ...Array<string>(missing).fill('0'), ...right ]
+        .slice(0, 4)
+        .map(group => Number.parseInt(group, 16).toString(16));
+
+    return `${prefix.join(':')}::/64`;
+}
+
+/**
  * Builds the composite map key for a bucket and identifier.
  */
-function toCompositeKey(bucket: string, key: string): string {
-    return `${bucket}:${key.trim().toLowerCase()}`;
+function toCompositeKey(bucket: RateLimitBucket, key: string): string {
+    return `${bucket}:${normalizeRateLimitKey(key)}`;
 }
 
 /**
@@ -84,7 +121,7 @@ export function normalizeClientIp(forwardedFor?: string): string {
  * Evaluates and records a sliding-window rate limit attempt for `bucket` + `key`.
  */
 export function checkRateLimit(
-    bucket: string, key: string, policy: RateLimitPolicy): RateLimitResult
+    bucket: RateLimitBucket, key: string, policy: RateLimitPolicy): RateLimitResult
 {
     const storage = getStorage();
     const compositeKey = toCompositeKey(bucket, key);
@@ -131,7 +168,7 @@ export function checkRateLimit(
 /**
  * Clears recorded attempts for a single `bucket` + `key` (e.g. after a successful sign-in).
  */
-export function resetRateLimit(bucket: string, key: string): void {
+export function resetRateLimit(bucket: RateLimitBucket, key: string): void {
     getStorage().delete(toCompositeKey(bucket, key));
 }
 
