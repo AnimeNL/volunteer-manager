@@ -25,6 +25,17 @@ const kMinimumPasswordLength = 8;
 const kMaximumPasswordLength = 128;
 
 /**
+ * Safety bounds applied when parsing stored Argon2id PHC strings to prevent resource exhaustion or
+ * OpenSSL errors if a database credential row is malformed.
+ */
+const kMaxArgon2MemoryKiB = 262_144;
+const kMaxArgon2Passes = 16;
+const kMaxArgon2Parallelism = 8;
+const kMinArgon2SaltLengthBytes = 8;
+const kMinArgon2TagLengthBytes = 4;
+const kMaxArgon2TagLengthBytes = 64;
+
+/**
  * Prefix marking legacy v0 (client-SHA256 + static-salted scrypt) hashes that have been wrapped
  * offline with Argon2id + a per-user salt to eliminate cross-account hash correlation at rest.
  */
@@ -112,8 +123,15 @@ async function verifyArgon2id(message: string, phcHash: string)
     const salt = Buffer.from(match[4], 'base64');
     const expected = Buffer.from(match[5], 'base64');
 
-    if (memory <= 0 || passes <= 0 || parallelism <= 0 || expected.length === 0)
+    if (parallelism <= 0 || parallelism > kMaxArgon2Parallelism ||
+        memory < 8 * parallelism || memory > kMaxArgon2MemoryKiB ||
+        passes <= 0 || passes > kMaxArgon2Passes ||
+        salt.length < kMinArgon2SaltLengthBytes ||
+        expected.length < kMinArgon2TagLengthBytes ||
+        expected.length > kMaxArgon2TagLengthBytes)
+    {
         return { valid: false, currentParams: false };
+    }
 
     const actual = await deriveArgon2id(
         message, salt, memory, passes, parallelism, expected.length);
@@ -155,6 +173,9 @@ async function computeLegacyHash(plaintext: string): Promise<string> {
  * Returns a human-readable error message on failure, or `undefined` when valid.
  */
 export function validatePasswordStrength(plaintext: string): string | undefined {
+    if (plaintext.length > kMaximumPasswordLength)
+        return `Your password must be at most ${kMaximumPasswordLength} characters long.`;
+
     if (plaintext.length < kMinimumPasswordLength ||
         !/[a-z]/.test(plaintext) ||
         !/[A-Z]/.test(plaintext) ||
@@ -164,9 +185,6 @@ export function validatePasswordStrength(plaintext: string): string | undefined 
             'one lowercase character and one uppercase character.';
     }
 
-    if (plaintext.length > kMaximumPasswordLength)
-        return `Your password must be at most ${kMaximumPasswordLength} characters long.`;
-
     return undefined;
 }
 
@@ -174,6 +192,11 @@ export function validatePasswordStrength(plaintext: string): string | undefined 
  * Hashes a plaintext password using Argon2id with a unique per-password random salt.
  */
 export async function hashPassword(plaintext: string): Promise<string> {
+    if (!plaintext.length || plaintext.length > kMaximumPasswordLength) {
+        throw new Error(
+            `Password length must be between 1 and ${kMaximumPasswordLength} characters.`);
+    }
+
     return hashArgon2id(plaintext);
 }
 

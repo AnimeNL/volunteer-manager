@@ -28,6 +28,7 @@ export async function GET(request: NextRequest, context: RouteContext<'/blob/[[.
                     [ 'Cache-Control', 'max-age=31536000, immutable'],
                     [ 'Content-Type', data.mimeType ],
                     [ 'Pragma', 'public' ],
+                    [ 'X-Content-Type-Options', 'nosniff' ],
                 ],
             });
         }

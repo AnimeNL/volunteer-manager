@@ -80,11 +80,17 @@ describe('Password', () => {
     it('rejects empty, oversized, and malformed inputs cleanly', async () => {
         const hash = await hashPassword('CorrectHorse1');
 
+        await expect(hashPassword('')).rejects.toThrow();
+        await expect(hashPassword('A'.repeat(129))).rejects.toThrow();
+
         await expect(verifyPassword('', hash))
             .resolves.toEqual({ valid: false, needsUpgrade: false });
         await expect(verifyPassword('A'.repeat(129), hash))
             .resolves.toEqual({ valid: false, needsUpgrade: false });
         await expect(verifyPassword('CorrectHorse1', 'corrupted-hash'))
+            .resolves.toEqual({ valid: false, needsUpgrade: false });
+        await expect(verifyPassword(
+            'CorrectHorse1', '$argon2id$v=19$m=9999999,t=99,p=1$c2FsdHNhbHQ$dGFndGFn'))
             .resolves.toEqual({ valid: false, needsUpgrade: false });
     });
 

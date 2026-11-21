@@ -48,6 +48,23 @@ export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
     return undefined;
 }
 
+const kBirthdatePattern = /^(?:19|20)\d{2}-\d{2}-\d{2}$/;
+
+/**
+ * Parses a strict `YYYY-MM-DD` birthdate string (1900-2099) into a `Temporal.PlainDate`,
+ * returning `undefined` when malformed or calendar-invalid instead of throwing `RangeError`.
+ */
+export function parseBirthdate(value?: string): Temporal.PlainDate | undefined {
+    if (!value || !kBirthdatePattern.test(value))
+        return undefined;
+
+    try {
+        return Temporal.PlainDate.from(value, { overflow: 'reject' });
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Parameters for completing a token-authenticated password update (access-code sign-in or password
  * reset).

@@ -57,7 +57,7 @@ describe('ProfileActions', () => {
             },
         });
 
-        // Invalid phone number rejected before DB query:
+        // Invalid phone number, impossible calendar date, and oversized fields rejected before DB:
         const invalid = await updateOwnAccountAction({
             firstName: 'Alice',
             lastName: 'Example',
@@ -66,6 +66,24 @@ describe('ProfileActions', () => {
             phoneNumber: '123',
         });
         expect(invalid.success).toBe(false);
+
+        const impossibleDate = await updateOwnAccountAction({
+            firstName: 'Alice',
+            lastName: 'Example',
+            gender: 'Female',
+            birthdate: '2026-02-31',
+            phoneNumber: '+31612345678',
+        });
+        expect(impossibleDate.success).toBe(false);
+
+        const malformedDate = await updateOwnAccountAction({
+            firstName: 'Alice',
+            lastName: 'Example',
+            gender: 'Female',
+            birthdate: '|999-01-01',
+            phoneNumber: '+31612345678',
+        });
+        expect(malformedDate.success).toBe(false);
 
         // Valid update writes to database and invalidates auth cache:
         mockConnection.expect('selectOneRow', () => ({
@@ -123,5 +141,16 @@ describe('ProfileActions', () => {
             mimeType: 'image/png',
             userId: 42,
         }));
+
+        // Authorized override rejects missing/anonymized target before storing blob data:
+        mockStoreBlobData.mockClear();
+        await resetAuthActionTestState('203.0.113.41');
+        await signInTestUser(
+            mockConnection, { userId: 7, sessionId: 88, grants: 'organisation.avatars' });
+        mockConnection.expect('selectOneColumnOneRow', () => undefined);
+
+        const missingTarget = await updateAvatarAction(overrideForm);
+        expect(missingTarget.success).toBe(false);
+        expect(mockStoreBlobData).not.toHaveBeenCalled();
     });
 });

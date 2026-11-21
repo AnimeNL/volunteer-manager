@@ -11,12 +11,12 @@ import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
+import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate,
+    sanitizeRelativeRedirectUrl } from './ActionHelpers';
 import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
     from '../AccountStore';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
-import { completePasswordUpdateWithToken, getAuthRequestMetadata, sanitizeRelativeRedirectUrl }
-    from './ActionHelpers';
 import { getSessionFromCookieStore } from '../Session';
 import { getStaticContent } from '@lib/Content';
 import { loadUserAuthenticationContext, requireAuthenticationContext }
@@ -31,16 +31,16 @@ import { kAuthRateLimits } from '../RateLimit';
 const kEmailSenderName = 'AnimeCon Volunteering Teams';
 
 const kRegisterInput = z.object({
-    username: z.string().trim().pipe(z.email()),
+    username: z.string().trim().max(255).pipe(z.email()),
     password: z.string(),
-    firstName: z.string().trim().min(1),
-    lastName: z.string().trim().min(1),
-    gender: z.string().trim().min(1),
-    birthdate: z.string().regex(/^[1|2](\d{3})-(\d{2})-(\d{2})$/),
-    phoneNumber: z.string().trim().min(1),
-    discordHandle: z.string().trim().optional(),
+    firstName: z.string().trim().min(1).max(128),
+    lastName: z.string().trim().min(1).max(128),
+    gender: z.string().trim().min(1).max(64),
+    birthdate: z.string().refine(value => !!parseBirthdate(value)),
+    phoneNumber: z.string().trim().min(1).max(64),
+    discordHandle: z.string().trim().max(64).optional(),
     gdpr: z.boolean().optional(),
-    redirectUrl: z.string().optional(),
+    redirectUrl: z.string().max(512).optional(),
 });
 
 const kRegisterActivateInput = z.object({

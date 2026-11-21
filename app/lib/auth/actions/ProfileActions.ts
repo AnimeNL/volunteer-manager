@@ -11,7 +11,7 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { checkRateLimit } from '../RateLimit';
 import { executeAccessCheck } from '../access/PermissionCheck';
 import { formatDate } from '@lib/Temporal';
-import { getAuthRequestMetadata } from './ActionHelpers';
+import { getAuthRequestMetadata, parseBirthdate } from './ActionHelpers';
 import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
@@ -30,13 +30,13 @@ const kMaxAvatarBytes = 5 * 1024 * 1024;
 const kPngSignature = [ 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A ] as const;
 
 const kOwnAccountFields = z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    username: z.string().optional(),
-    gender: z.string(),
-    birthdate: z.string().regex(/^[1|2](\d{3})-(\d{2})-(\d{2})$/).optional(),
-    phoneNumber: z.string().optional(),
-    discordHandle: z.string().optional(),
+    firstName: z.string().max(128),
+    lastName: z.string().max(128),
+    username: z.string().max(255).optional(),
+    gender: z.string().max(64),
+    birthdate: z.string().refine(value => !!parseBirthdate(value)).optional(),
+    phoneNumber: z.string().max(64).optional(),
+    discordHandle: z.string().max(64).optional(),
     language: z.enum(kCommunicationLanguage).optional(),
 });
 
@@ -127,7 +127,8 @@ export async function updateOwnAccountAction(
         return { success: false, error: 'You need to fill in your last name.' };
     if (!update.gender.trim().length)
         return { success: false, error: 'You need to fill in your gender.' };
-    if (update.birthdate?.length !== 10)
+    const birthdate = parseBirthdate(update.birthdate);
+    if (!birthdate)
         return { success: false, error: 'You need to fill in your date of birth.' };
     if (!update.phoneNumber || update.phoneNumber.length < 8)
         return { success: false, error: 'You need to fill in your phone number.' };
@@ -162,7 +163,7 @@ export async function updateOwnAccountAction(
             lastName: update.lastName.trim(),
             language: update.language ?? null,
             gender: update.gender.trim(),
-            birthdate: Temporal.PlainDate.from(update.birthdate),
+            birthdate,
             phoneNumber: update.phoneNumber,
             discordHandle: normalizedDiscord,
             discordHandleUpdated,
@@ -183,6 +184,29 @@ export async function updateOwnAccountAction(
 }
 
 /**
+ * Resolves and authorizes the target user ID for an avatar upload, returning an error string when
+ * `overrideUserId` is malformed.
+ */
+function resolveAvatarSubject(
+    context: Awaited<ReturnType<typeof requireAuthenticationContext>>,
+    overrideEntry: FormDataEntryValue | null)
+    : { subjectUserId: number; isOverride: boolean } | { error: string }
+{
+    if (overrideEntry === null || !String(overrideEntry).length)
+        return { subjectUserId: context.user.id, isOverride: false };
+
+    const overrideUserId = Number(overrideEntry);
+    if (!Number.isInteger(overrideUserId) || overrideUserId <= 0)
+        return { error: 'Invalid user identifier.' };
+
+    if (overrideUserId === context.user.id)
+        return { subjectUserId: context.user.id, isOverride: false };
+
+    executeAccessCheck(context, 'organisation.avatars');
+    return { subjectUserId: overrideUserId, isOverride: true };
+}
+
+/**
  * Updates an avatar from a `FormData` payload containing a PNG `avatar` blob and an optional
  * `overrideUserId` (requiring `organisation.avatars` permission when updating another user).
  */
@@ -196,21 +220,9 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
         return { success: false, error: 'Please provide a valid PNG avatar image.' };
     }
 
-    let subjectUserId = context.user.id;
-    let isOverride = false;
-
-    const overrideEntry = formData.get('overrideUserId');
-    if (overrideEntry !== null && String(overrideEntry).length > 0) {
-        const overrideUserId = Number(overrideEntry);
-        if (!Number.isInteger(overrideUserId) || overrideUserId <= 0)
-            return { success: false, error: 'Invalid user identifier.' };
-
-        if (overrideUserId !== context.user.id) {
-            executeAccessCheck(context, 'organisation.avatars');
-            subjectUserId = overrideUserId;
-            isOverride = true;
-        }
-    }
+    const subject = resolveAvatarSubject(context, formData.get('overrideUserId'));
+    if ('error' in subject)
+        return { success: false, error: subject.error };
 
     const bytes = new Uint8Array(await avatarEntry.arrayBuffer());
     if (!hasPngSignature(bytes))
@@ -221,11 +233,22 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
     if (!uploadLimit.allowed)
         return { success: false, error: 'Too many avatar uploads. Please try again later.' };
 
+    if (subject.isOverride) {
+        const targetUserId = await db.selectFrom(tUsers)
+            .where(tUsers.userId.equals(subject.subjectUserId))
+                .and(tUsers.anonymized.isNull())
+            .selectOneColumn(tUsers.userId)
+            .executeSelectNoneOrOne();
+
+        if (!targetUserId)
+            return { success: false, error: 'The target account could not be found.' };
+    }
+
     const avatarId = await storeBlobData({
         bytes,
         mimeType: 'image/png',
         type: kFileType.Avatar,
-        userId: subjectUserId,
+        userId: subject.subjectUserId,
     });
 
     if (!avatarId)
@@ -233,18 +256,19 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
 
     const affectedRows = await db.update(tUsers)
         .set({ avatarId })
-        .where(tUsers.userId.equals(subjectUserId))
+        .where(tUsers.userId.equals(subject.subjectUserId))
+            .and(tUsers.anonymized.isNull())
         .executeUpdate();
 
     if (!affectedRows)
         return { success: false };
 
-    invalidateAuthCache(/* forUserId= */ subjectUserId);
+    invalidateAuthCache(/* forUserId= */ subject.subjectUserId);
 
-    if (isOverride) {
+    if (subject.isOverride) {
         LogBuilder.for('AdminUpdateAvatar')
             .withInitiatorUser(context.user)
-            .withAffectedUser(subjectUserId)
+            .withAffectedUser(subject.subjectUserId)
             .withSeverity('Warning')
             .record();
     } else {
