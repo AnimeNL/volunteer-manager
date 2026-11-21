@@ -74,8 +74,21 @@ describe('PasskeyActions', () => {
         const result = await createPasskeyChallengeAction();
         expect(result.success).toBe(true);
         expect(result.options?.optionsJSON.rp.id).toBe('animecon.team');
+        expect(result.options?.optionsJSON.authenticatorSelection?.userVerification)
+            .toBe('required');
         expect(mockCookieJar.get('passkey_challenge')?.value).toBeTruthy();
         expect(mockCookieJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
+
+        // Malformed registration payload with a valid challenge fails gracefully without throwing:
+        await signInTestUser(mockConnection, { userId: 42 });
+        const invalidRegistration = await registerPasskeyAction({
+            name: 'YubiKey',
+            registration: { id: 'cred-1', rawId: 'mismatch', type: 'public-key' } as any,
+        });
+        expect(invalidRegistration).toEqual({
+            success: false,
+            error: 'The passkey registration could not be verified',
+        });
     });
 
     it('rejects passkey registration when no challenge cookie is present', async () => {

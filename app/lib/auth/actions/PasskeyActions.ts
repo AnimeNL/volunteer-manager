@@ -11,7 +11,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse } from '@simple
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { deleteUserPasskey, retrieveUserPasskeys, storeUserPasskey } from '../PasskeyStore';
 import { determineEnvironment } from '@lib/Environment';
@@ -125,7 +125,7 @@ export async function createPasskeyChallengeAction(): Promise<CreatePasskeyChall
         })),
         authenticatorSelection: {
             residentKey: 'preferred',
-            userVerification: 'preferred',
+            userVerification: 'required',
         },
     });
 
@@ -173,12 +173,24 @@ export async function registerPasskeyAction(
     if (!expectedChallenge)
         return { success: false, error: 'You are not currently in a passkey registration flow' };
 
-    const verification = await verifyRegistrationResponse({
-        response: parsed.data.registration,
-        expectedChallenge,
-        expectedOrigin: meta.origin,
-        expectedRPID: meta.rpId,
-    });
+    let verification: Awaited<ReturnType<typeof verifyRegistrationResponse>>;
+    try {
+        verification = await verifyRegistrationResponse({
+            response: parsed.data.registration,
+            expectedChallenge,
+            expectedOrigin: meta.origin,
+            expectedRPID: meta.rpId,
+        });
+    } catch (error: unknown) {
+        RecordErrorLog({
+            error: error instanceof Error ? error : new Error(String(error)),
+            requestUrl: { pathname: '/register-passkey' },
+            severity: kLogSeverity.Warning,
+            user,
+        });
+
+        return { success: false, error: 'The passkey registration could not be verified' };
+    }
 
     if (!verification.verified || !verification.registrationInfo)
         return { success: false, error: 'The passkey registration could not be verified' };

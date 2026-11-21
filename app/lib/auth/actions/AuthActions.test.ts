@@ -65,6 +65,7 @@ describe('AuthActions', () => {
         expect(result.success).toBe(true);
         expect(result.activated).toBe(true);
         expect(result.authenticationOptions?.optionsJSON.rpId).toBe('animecon.team');
+        expect(result.authenticationOptions?.optionsJSON.userVerification).toBe('required');
         expect(mockCookieJar.get('passkey_challenge')?.value).toBeTruthy();
         expect(mockCookieJar.get('passkey_challenge')?.options.httpOnly).toBe(true);
     });
@@ -181,6 +182,44 @@ describe('AuthActions', () => {
         });
         expect(noChallenge.success).toBe(false);
         expect(noChallenge.error).toContain('expired');
+
+        // Malformed WebAuthn assertion fails gracefully rather than throwing an unhandled error:
+        const credBytes = Buffer.from('cred-id-bytes');
+        const credBase64Url = credBytes.toString('base64url');
+        mockConnection.expect('selectOneRow', () => ({ id: 42, activated: true }));
+        mockConnection.expect('selectManyRows', () => [
+            {
+                passkeyId: 5,
+                name: 'Laptop',
+                credentialId: credBytes,
+                credentialPublicKey: Buffer.from('pub-key-bytes'),
+                counter: 1n,
+                created: '2026-06-01 12:00:00',
+                lastUsed: null,
+            },
+        ]);
+        await confirmIdentityAction({ username: 'alice@example.com' });
+
+        mockConnection.expect('selectOneRow', () => ({ id: 42, activated: true }));
+        mockConnection.expect('selectManyRows', () => [
+            {
+                passkeyId: 5,
+                name: 'Laptop',
+                credentialId: credBytes,
+                credentialPublicKey: Buffer.from('pub-key-bytes'),
+                counter: 1n,
+                created: '2026-06-01 12:00:00',
+                lastUsed: null,
+            },
+        ]);
+        const malformed = await signInPasskeyAction({
+            username: 'alice@example.com',
+            verification: { id: credBase64Url, rawId: 'mismatch', type: 'public-key' } as any,
+        });
+        expect(malformed).toEqual({
+            success: false,
+            error: 'Unable to verify the authentication response.',
+        });
     });
 
     it('revokes persistent sessions on signOutAction', async () => {

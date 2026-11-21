@@ -12,7 +12,7 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
 import type { StoredPasskeyCredential } from '../PasskeyStore';
-import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { completePasswordUpdateWithToken, getAuthRequestMetadata } from './ActionHelpers';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
@@ -163,6 +163,7 @@ export async function confirmIdentityAction(
         if (credentials.length > 0) {
             const options = await generateAuthenticationOptions({
                 rpID: meta.rpId,
+                userVerification: 'required',
                 allowCredentials: credentials.map(credential => ({
                     id: isoBase64URL.fromBuffer(credential.credentialId),
                 })),
@@ -314,13 +315,25 @@ export async function signInPasskeyAction(
     if (!match)
         return { success: false, error: 'Unable to find the used credential Id.' };
 
-    const verification = await verifyAuthenticationResponse({
-        response: parsed.data.verification,
-        expectedChallenge: challenge,
-        expectedOrigin: meta.origin,
-        expectedRPID: meta.rpId,
-        credential: match.credential,
-    });
+    let verification: Awaited<ReturnType<typeof verifyAuthenticationResponse>>;
+    try {
+        verification = await verifyAuthenticationResponse({
+            response: parsed.data.verification,
+            expectedChallenge: challenge,
+            expectedOrigin: meta.origin,
+            expectedRPID: meta.rpId,
+            credential: match.credential,
+        });
+    } catch (error: unknown) {
+        RecordErrorLog({
+            error: error instanceof Error ? error : new Error(String(error)),
+            requestUrl: { pathname: '/signin-passkey' },
+            severity: kLogSeverity.Warning,
+            user: user.id,
+        });
+
+        return { success: false, error: 'Unable to verify the authentication response.' };
+    }
 
     if (!verification.verified)
         return { success: false, error: 'Unable to verify the authentication response.' };
