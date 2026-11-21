@@ -53,10 +53,22 @@ describe('AccountAuthActions', () => {
     beforeEach(() => resetAuthActionTestState('203.0.113.20'));
 
     it('sanitizes relative redirect URLs to prevent open redirects', () => {
+        expect(sanitizeRelativeRedirectUrl('/')).toBe('/');
         expect(sanitizeRelativeRedirectUrl('/registration/2026')).toBe('/registration/2026');
+        expect(sanitizeRelativeRedirectUrl('/registration/2026?tab=1#top'))
+            .toBe('/registration/2026?tab=1#top');
+
         expect(sanitizeRelativeRedirectUrl('//evil.example.com')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/\\evil.example.com')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/foo\\bar')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/\t/evil.example.com')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/\n/evil.example.com')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/\r/evil.example.com')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/foo\r\nSet-Cookie: a=1')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('/foo\0bar')).toBeUndefined();
         expect(sanitizeRelativeRedirectUrl('https://evil.example.com')).toBeUndefined();
         expect(sanitizeRelativeRedirectUrl('javascript:alert(1)')).toBeUndefined();
+        expect(sanitizeRelativeRedirectUrl('')).toBeUndefined();
         expect(sanitizeRelativeRedirectUrl(undefined)).toBeUndefined();
     });
 

@@ -64,13 +64,24 @@ export function hashSessionSecret(secret: string): string {
 
 /**
  * Validates that an optional redirect URL is a safe relative path (starts with a single `/`,
- * rejecting protocol-relative `//...` and absolute URLs). Returns `undefined` when invalid.
+ * rejecting protocol-relative `//...`, backslashes, control characters, and absolute URLs).
+ * Returns `undefined` when invalid.
  */
 export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
-    if (typeof url === 'string' && /^\/(?!\/)/.test(url))
-        return url;
+    if (typeof url !== 'string' || !/^\/(?![/\\])/.test(url) ||
+        /[\u0000-\u001f\u007f\\]/.test(url))
+    {
+        return undefined;
+    }
 
-    return undefined;
+    try {
+        if (new URL(url, 'https://animecon.invalid').origin !== 'https://animecon.invalid')
+            return undefined;
+    } catch {
+        return undefined;
+    }
+
+    return url;
 }
 
 /**
