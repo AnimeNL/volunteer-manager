@@ -21,8 +21,7 @@ interface CacheDescriptorMap {
         Parameters: number;  // user ID
         Contents: {
             context: UserAuthenticationContext;
-            sessionToken?: number;
-            sessions?: Map<number, string>;  // sessionId -> SHA-256 hash of secret
+            sessions: Map<number, string>;  // sessionId -> SHA-256 hash of secret
         };
     };
 

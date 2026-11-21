@@ -24,81 +24,6 @@ describe('AuthenticationContext', () => {
         await initialisePermissionRoles([]);
     });
 
-    it('is able to authenticate users based on valid session data', async () => {
-        const sessionData: SessionData = {
-            id: 42,
-            token: 9001,
-        };
-
-        const sealedSession = await sealSession(sessionData);
-        expect(sealedSession.length).toBeGreaterThan(0);
-
-        const sealedCookie = stringifySetCookie({
-            name: kSessionCookieName,
-            value: sealedSession,
-            httpOnly: true
-        });
-        expect(sealedCookie.length).toBeGreaterThan(0);
-
-        const headers = new Headers([ ['Cookie', sealedCookie ] ]);
-        expect(headers.has('Cookie')).toBeTruthy();
-
-        // Intercepts the authentication SQL query that will be fired in order to validate the
-        // information contained within the `sessionData`. Validate the parameters, otherwise pass.
-        expectAuthenticationQuery(mockConnection);
-
-        const { user } = await getAuthenticationContextFromHeaders(headers);
-        expect(user).not.toBeUndefined();
-
-        expect(user?.firstName).toEqual('Joe');
-        expect(user?.lastName).toEqual('Example');
-    });
-
-    it('caches authenticated sessions and supports targeted and global invalidation', async () => {
-        const makeHeaders = async (session: SessionData) => new Headers([[
-            'Cookie',
-            stringifySetCookie({
-                name: kSessionCookieName,
-                value: await sealSession(session),
-                httpOnly: true,
-            }),
-        ]]);
-
-        const headersV1 = await makeHeaders({ id: 42, token: 1 });
-
-        // First call populates the cache from the database:
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice' });
-        const first = await getAuthenticationContextFromHeaders(headersV1);
-        expect(first.user?.firstName).toBe('Alice');
-
-        // Repeat call hits the cache with no database query:
-        const second = await getAuthenticationContextFromHeaders(headersV1);
-        expect(second.user?.firstName).toBe('Alice');
-
-        // bypassCache forces a fresh database query:
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Updated' });
-        const bypassed = await getAuthenticationContextFromHeaders(headersV1, true);
-        expect(bypassed.user?.firstName).toBe('Alice Updated');
-
-        // Targeted invalidation forces a fresh database query:
-        invalidateUserAuthCache(42);
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Reloaded' });
-        const reloaded = await getAuthenticationContextFromHeaders(headersV1);
-        expect(reloaded.user?.firstName).toBe('Alice Reloaded');
-
-        // Token mismatch falls through to the database rather than trusting stale cache:
-        const headersV2 = await makeHeaders({ id: 42, token: 2 });
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Rotated' });
-        const rotated = await getAuthenticationContextFromHeaders(headersV2);
-        expect(rotated.user?.firstName).toBe('Alice Rotated');
-
-        // Global clear evicts all cached entries:
-        clearAuthCache();
-        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Fresh' });
-        const fresh = await getAuthenticationContextFromHeaders(headersV2);
-        expect(fresh.user?.firstName).toBe('Alice Fresh');
-    });
-
     it('authenticates and caches server-backed per-device sessions across multiple devices',
         async () =>
     {
@@ -131,6 +56,20 @@ describe('AuthenticationContext', () => {
         // Repeat request from Device A hits cache with zero DB queries:
         const secondA = await getAuthenticationContextFromHeaders(deviceA);
         expect(secondA.user?.firstName).toBe('Alice');
+
+        // bypassCache forces a fresh database verification and reload:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 101,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret('secret-a'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Updated' });
+        mockConnection.expect('update', () => 1);
+
+        const bypassed = await getAuthenticationContextFromHeaders(deviceA, true);
+        expect(bypassed.user?.firstName).toBe('Alice Updated');
 
         // Device B verifies once and merges into the user's cached session map without evicting A:
         mockConnection.expect('selectOneRow', () => ({
@@ -165,6 +104,11 @@ describe('AuthenticationContext', () => {
         invalidateUserAuthCache(42);
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContextFromHeaders(deviceA)).user).toBeUndefined();
+
+        // Global clear evicts all cached entries:
+        clearAuthCache();
+        mockConnection.expect('selectOneRow', () => undefined);
+        expect((await getAuthenticationContextFromHeaders(deviceB)).user).toBeUndefined();
     });
 
     it('is able to execute permission access checks', () => {

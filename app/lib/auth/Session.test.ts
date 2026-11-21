@@ -5,29 +5,11 @@ import { vi } from 'vitest';
 
 import type { SessionData } from './Session';
 import { getDisplayIdFromCookieStore, writeDisplayIdToCookieStore } from './DisplaySession';
-import {
-    isPersistentSessionData,
-    sealSession,
-    unsealSession,
-    writeSealedSessionCookie,
-} from './Session';
-import { isSealedToken } from './SealedToken';
-import { seal } from './Iron';
+import { sealSession, unsealSession, writeSealedSessionCookie } from './Session';
+import { sealToken } from './SealedToken';
 
 describe('Session', () => {
-    it('should be able to seal and unseal sessions', async () => {
-        const plaintextSession: SessionData = {
-            id: 9001,
-            token: 1234,
-        };
-
-        const sealedSession = await sealSession(plaintextSession);
-        expect(isSealedToken(sealedSession)).toBeTruthy();
-
-        const unsealedSession = await unsealSession(sealedSession);
-        expect(unsealedSession).toEqual(plaintextSession);
-        expect(isPersistentSessionData(unsealedSession)).toBe(false);
-
+    it('should be able to seal and unseal sessions and reject invalid payloads', async () => {
         const persistentSession: SessionData = {
             sessionId: 77,
             userId: 9001,
@@ -37,21 +19,19 @@ describe('Session', () => {
         const sealedPersistent = await sealSession(persistentSession);
         const unsealedPersistent = await unsealSession(sealedPersistent);
         expect(unsealedPersistent).toEqual(persistentSession);
-        expect(isPersistentSessionData(unsealedPersistent)).toBe(true);
-    });
 
-    it('continues to unseal legacy Iron-sealed session cookies', async () => {
-        const plaintextSession: SessionData = { id: 42, token: 77 };
-        const legacySession = await seal(plaintextSession, process.env.APP_COOKIE_PASSWORD!, 3600);
-
-        expect(isSealedToken(legacySession)).toBeFalsy();
-        await expect(unsealSession(legacySession)).resolves.toEqual(plaintextSession);
+        // Legacy { id, token } payloads are rejected even if sealed with the current key:
+        const legacyPayload = sealToken(
+            { id: 9001, token: 1234 }, 'session', process.env.APP_COOKIE_PASSWORD!, 3600);
+        await expect(unsealSession(legacyPayload)).rejects.toThrow(/Invalid session payload/);
     });
 
     it('isolates user session cookies from display session cookies', async () => {
-        const userSessionCookie = await sealSession({ id: 5, token: 123 });
-        const legacyUserSessionCookie = await seal(
-            { id: 5, token: 123 }, process.env.APP_COOKIE_PASSWORD!, 3600);
+        const userSessionCookie = await sealSession({
+            sessionId: 77,
+            userId: 5,
+            secret: 'secret',
+        });
 
         const makeCookieStore = (value: string) => ({
             get: (name: string) => name === 'display' ? { name, value } : undefined,
@@ -61,8 +41,6 @@ describe('Session', () => {
         const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         try {
             await expect(getDisplayIdFromCookieStore(makeCookieStore(userSessionCookie)))
-                .resolves.toBeUndefined();
-            await expect(getDisplayIdFromCookieStore(makeCookieStore(legacyUserSessionCookie)))
                 .resolves.toBeUndefined();
         } finally {
             consoleErrorSpy.mockRestore();
@@ -85,7 +63,8 @@ describe('Session', () => {
 
     it('sets HttpOnly and SameSite=Lax on written session cookies', async () => {
         const headers = new Headers();
-        await writeSealedSessionCookie({ id: 42, token: 9001 }, headers);
+        await writeSealedSessionCookie(
+            { sessionId: 77, userId: 42, secret: 'secret' }, headers);
 
         const setCookie = headers.get('Set-Cookie') ?? '';
         expect(setCookie).toContain('HttpOnly');

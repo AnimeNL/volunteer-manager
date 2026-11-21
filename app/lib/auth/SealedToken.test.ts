@@ -3,7 +3,7 @@
 
 import { vi } from 'vitest';
 
-import { isSealedToken, sealToken, unsealToken } from './SealedToken';
+import { sealToken, unsealToken } from './SealedToken';
 
 describe('SealedToken', () => {
     const kPrimarySecret = 'F4y%8wsHR(,fRML4Dg;ilT4{H2J5sSf<';
@@ -27,12 +27,9 @@ describe('SealedToken', () => {
 
         for (const sample of samples) {
             const sealed = sealToken(sample, 'session', kPrimarySecret, 60);
-            expect(isSealedToken(sealed)).toBeTruthy();
             expect(sealed).toMatch(/^v1\.[A-Za-z0-9_-]{8}\.[A-Za-z0-9_-]+$/);
             expect(unsealToken(sealed, 'session', kPrimarySecret)).toEqual(sample);
         }
-
-        expect(isSealedToken('Fe26.2**legacy')).toBeFalsy();
     });
 
     it('produces distinct ciphertexts for identical payloads', () => {

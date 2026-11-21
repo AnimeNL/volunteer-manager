@@ -18,7 +18,6 @@ import { determineEnvironment } from '@lib/Environment';
 import { getAuthRequestMetadata, sanitizeRelativeRedirectUrl } from './ActionHelpers';
 import { getSessionFromCookieStore } from '../getSession';
 import { getStaticContent } from '@lib/Content';
-import { isPersistentSessionData } from '../Session';
 import { loadUserAuthenticationContext, requireAuthenticationContext }
     from '../AuthenticationContext';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
@@ -441,7 +440,7 @@ export async function changePasswordAction(
     const cookieStore = await cookies();
     const currentSession = await getSessionFromCookieStore(cookieStore);
 
-    if (currentSession && isPersistentSessionData(currentSession)) {
+    if (currentSession) {
         await setUserPassword(user.id, parsed.data.newPassword, {
             revokeSessions: true,
             exceptSessionId: currentSession.sessionId,

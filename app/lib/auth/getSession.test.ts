@@ -8,8 +8,9 @@ import { stringifySetCookie } from 'cookie';
 describe('getSession', () => {
     it('is able to get session information from NextJS cookies store', async () => {
         const sessionData: SessionData = {
-            id: 42,
-            token: 9001,
+            sessionId: 7,
+            userId: 42,
+            secret: 'per-device-secret',
         };
 
         const sealedSession = await sealSession(sessionData);
@@ -33,8 +34,9 @@ describe('getSession', () => {
 
     it('is able to get session information from HTTP headers', async () => {
         const sessionData: SessionData = {
-            id: 42,
-            token: 9001,
+            sessionId: 7,
+            userId: 42,
+            secret: 'per-device-secret',
         };
 
         const sealedSession = await sealSession(sessionData);

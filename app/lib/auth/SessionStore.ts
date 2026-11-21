@@ -7,11 +7,7 @@ import type { cookies } from 'next/headers';
 
 import { Cache } from '@lib/cache';
 import { getSessionFromCookieStore } from './getSession';
-import {
-    isPersistentSessionData,
-    writeEmptySessionCookieToStore,
-    writeSealedSessionCookieToStore,
-} from './Session';
+import { writeEmptySessionCookieToStore, writeSealedSessionCookieToStore } from './Session';
 import db, { tUsers, tUsersSessions } from '../database';
 
 import { kSessionExpirationTimeSeconds } from './Constants';
@@ -226,7 +222,7 @@ export async function revokeAndClearCurrentSessionCookie(
     metadata?: Pick<CreateSessionParams, 'ip' | 'userAgent'>): Promise<RevokeSessionResult>
 {
     const session = await getSessionFromCookieStore(cookieStore);
-    if (session && isPersistentSessionData(session)) {
+    if (session) {
         const verified = await verifyUserSession(session.sessionId, session.secret);
         await revokeUserSession(session.sessionId, session.userId);
 
@@ -238,14 +234,6 @@ export async function revokeAndClearCurrentSessionCookie(
             });
             return { restoredImpersonator: true, returnUrl: verified.impersonatorReturnUrl };
         }
-
-        writeEmptySessionCookieToStore(cookieStore);
-        return { restoredImpersonator: false };
-    }
-
-    if (session && !isPersistentSessionData(session) && session.parent) {
-        await writeSealedSessionCookieToStore(session.parent, cookieStore);
-        return { restoredImpersonator: true, returnUrl: session.parent.returnUrl };
     }
 
     writeEmptySessionCookieToStore(cookieStore);

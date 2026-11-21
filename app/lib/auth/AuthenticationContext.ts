@@ -10,8 +10,8 @@ const headers = import('next/headers');
 
 import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
     from './AuthenticationContextTypes';
-import type { LegacySessionData, PersistentSessionData, SessionData } from './Session';
 import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
+import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
@@ -21,7 +21,6 @@ import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, v
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore, getSessionFromHeaders } from './getSession';
-import { isPersistentSessionData } from './Session';
 import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
@@ -67,8 +66,8 @@ export interface AuthenticationResult {
  * Type of input that can be used to load a user's `AuthenticationContext` from the database.
  */
 type LoadUserAuthenticationContextParams =
-    { type: 'session' } & LegacySessionData |
-    { type: 'userId', userId: number };
+    { type: 'session'; id: number; token: number } |
+    { type: 'userId'; userId: number };
 
 /**
  * Loads the `AuthenticationContext` for the user identified by `params` from the database. Returns
@@ -289,17 +288,19 @@ function timingSafeEqualHex(a: string, b: string): boolean {
 }
 
 /**
- * Resolves a server-backed per-device session from `users_sessions`, using the `Authentication`
- * cache unless `bypassCache` is true.
+ * Resolves a server-backed per-device session from `users_sessions`, consulting the server-side
+ * `Authentication` cache unless `bypassCache` is true.
  */
-async function resolvePersistentSession(
-    sessionData: PersistentSessionData, bypassCache: boolean): Promise<AuthenticationContext>
+async function getAuthenticationContextFromSessionData(
+    sessionData: SessionData, bypassCache = false): Promise<AuthenticationContext>
 {
+    await ensurePermissionRolesInitialised();
+
     const authCache = Cache.getInstance('Authentication');
     const secretHash = hashSessionSecret(sessionData.secret);
     const cached = authCache.get(sessionData.userId);
 
-    if (!bypassCache && cached?.sessions) {
+    if (!bypassCache && cached) {
         const cachedHash = cached.sessions.get(sessionData.sessionId);
         if (cachedHash && timingSafeEqualHex(cachedHash, secretHash))
             return cached.context;
@@ -317,56 +318,14 @@ async function resolvePersistentSession(
         await touchUserSession(verified.sessionId);
     } catch { /* non-fatal: session_last_seen is best-effort audit metadata */ }
 
-    const sessions = !bypassCache && cached?.sessions
+    const sessions = !bypassCache && cached
         ? new Map(cached.sessions)
         : new Map<number, string>();
 
     sessions.set(verified.sessionId, secretHash);
-    authCache.set(verified.userId, {
-        context,
-        sessionToken: bypassCache ? undefined : cached?.sessionToken,
-        sessions,
-    });
+    authCache.set(verified.userId, { context, sessions });
 
     return context;
-}
-
-/**
- * Resolves a legacy cookie session keyed by `users.session_token`, using the `Authentication` cache
- * unless `bypassCache` is true.
- */
-async function resolveLegacySession(
-    sessionData: LegacySessionData, bypassCache: boolean): Promise<AuthenticationContext>
-{
-    const authCache = Cache.getInstance('Authentication');
-    const cached = authCache.get(sessionData.id);
-    if (!bypassCache && cached && cached.sessionToken === sessionData.token)
-        return cached.context;
-
-    const context = await loadUserAuthenticationContext({ type: 'session', ...sessionData });
-    if (context.user) {
-        authCache.set(sessionData.id, {
-            context,
-            sessionToken: sessionData.token,
-            sessions: bypassCache ? undefined : cached?.sessions,
-        });
-    }
-
-    return context;
-}
-
-/**
- * Actually gets the authentication context from the given `sessionData`, consulting the
- * server-side `Authentication` cache unless `bypassCache` is true.
- */
-async function getAuthenticationContextFromSessionData(
-    sessionData: SessionData, bypassCache = false): Promise<AuthenticationContext>
-{
-    await ensurePermissionRolesInitialised();
-
-    return isPersistentSessionData(sessionData)
-        ? resolvePersistentSession(sessionData, bypassCache)
-        : resolveLegacySession(sessionData, bypassCache);
 }
 
 /**

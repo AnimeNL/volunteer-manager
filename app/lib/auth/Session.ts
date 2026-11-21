@@ -4,8 +4,7 @@
 import type { cookies } from 'next/headers';
 import { stringifySetCookie } from 'cookie';
 
-import { isSealedToken, sealToken, unsealToken } from './SealedToken';
-import { unseal } from './Iron';
+import { sealToken, unsealToken } from './SealedToken';
 
 import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
 
@@ -25,9 +24,9 @@ if (!kSessionPassword || !kSessionPassword.length)
 export const kSessionCookieName = 'auth';
 
 /**
- * Server-backed per-device session data stored in `users_sessions`.
+ * Server-backed per-device session data stored in `users_sessions` and sealed into the auth cookie.
  */
-export interface PersistentSessionData {
+export interface SessionData {
     /**
      * Primary key of the session row in `users_sessions`.
      */
@@ -45,64 +44,30 @@ export interface PersistentSessionData {
 }
 
 /**
- * Legacy session data format keyed by `users.session_token`. Retained temporarily so users with
- * existing cookies remain signed in across deployment until their sessions roll over.
- */
-export interface LegacySessionData {
-    /**
-     * Unique ID of the user who is currently signed in to this account.
-     */
-    id: number;
-
-    /**
-     * Session token for the user. This is used to allow users to invalidate all remote sessions in
-     * case they believe their account has been compromised.
-     */
-    token: number;
-
-    /**
-     * Session data can optionally be nested. When signing out such a user, the nested session data
-     * will be restored instead. Optionally a return URL may be specified as well.
-     */
-    parent?: LegacySessionData & { returnUrl?: string; };
-}
-
-/**
- * The data that will be stored in the cookie. This data will be sent to the server during every
- * HTTP request, which means that we should attempt to keep it as light as possible.
- */
-export type SessionData = PersistentSessionData | LegacySessionData;
-
-/**
- * Type guard that distinguishes server-backed per-device sessions from legacy cookie sessions.
- */
-export function isPersistentSessionData(session: SessionData): session is PersistentSessionData {
-    return 'sessionId' in session && 'secret' in session;
-}
-
-/**
- * Seals the given |session| in a format that can safely be shared with users without expecting them
+ * Seals the given `session` in a format that can safely be shared with users without expecting them
  * to be able to tamper with the data.
- *
- * @param request The plaintext session data in its original format.
- * @returns The sealed session data, as a string.
  */
 export async function sealSession(session: SessionData): Promise<string> {
     return sealToken(session, 'session', kSessionPassword, kSessionExpirationTimeSeconds);
 }
 
 /**
- * Unseals the given |sealedSession| back to its original format. An exception will be thrown when
- * the data cannot be unsealed successfully.
- *
- * @param sealedSession The sealed session data to unseal, as a string.
- * @returns The plaintext session data in its original format.
+ * Unseals the given `sealedSession` back to its original format. An exception will be thrown when
+ * the data cannot be unsealed successfully or does not match the current session shape.
  */
 export async function unsealSession(sealedSession: string): Promise<SessionData> {
-    if (isSealedToken(sealedSession))
-        return unsealToken<SessionData>(sealedSession, 'session', kSessionPassword);
+    const data = unsealToken<Partial<SessionData>>(sealedSession, 'session', kSessionPassword);
+    if (!data || typeof data.sessionId !== 'number' || typeof data.userId !== 'number' ||
+        typeof data.secret !== 'string' || !data.secret.length)
+    {
+        throw new Error('Invalid session payload.');
+    }
 
-    return await unseal(sealedSession, kSessionPassword) as SessionData;
+    return {
+        sessionId: data.sessionId,
+        userId: data.userId,
+        secret: data.secret,
+    };
 }
 
 /**

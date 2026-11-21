@@ -4,7 +4,6 @@
 import { vi } from 'vitest';
 
 import type { PasswordResetRequest } from './PasswordReset';
-import { isSealedToken } from './SealedToken';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from './PasswordReset';
 
 describe('PasswordReset', () => {
@@ -19,8 +18,6 @@ describe('PasswordReset', () => {
         };
 
         const sealedRequest = await sealPasswordResetRequest(plaintextRequest);
-        expect(isSealedToken(sealedRequest)).toBeTruthy();
-
         const unsealedRequest = await unsealPasswordResetRequest(sealedRequest);
         expect(unsealedRequest).toEqual(plaintextRequest);
     });

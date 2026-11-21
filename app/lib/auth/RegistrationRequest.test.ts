@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { RegistrationRequest } from './RegistrationRequest';
-import { isSealedToken } from './SealedToken';
 import { sealRegistrationRequest, unsealRegistrationRequest } from './RegistrationRequest';
 
 describe('RegistrationRequest', () => {
@@ -14,8 +13,6 @@ describe('RegistrationRequest', () => {
             };
 
             const sealedRequest = await sealRegistrationRequest(plaintextRequest);
-            expect(isSealedToken(sealedRequest)).toBeTruthy();
-
             const unsealedRequest = await unsealRegistrationRequest(sealedRequest);
             expect(unsealedRequest).toEqual(plaintextRequest);
         }

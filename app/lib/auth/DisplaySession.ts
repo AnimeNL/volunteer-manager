@@ -3,8 +3,7 @@
 
 import type { cookies } from 'next/headers';
 
-import { isSealedToken, sealToken, unsealToken } from './SealedToken';
-import { unseal } from './Iron';
+import { sealToken, unsealToken } from './SealedToken';
 
 import { kSecureCookie } from './Constants';
 
@@ -47,14 +46,7 @@ async function sealDisplaySession(session: { id: number }): Promise<string> {
  * @returns The plaintext session data in its original format.
  */
 async function unsealDisplaySession(sealedSession: string): Promise<{ id: number }> {
-    if (isSealedToken(sealedSession))
-        return unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
-
-    const legacy = await unseal(sealedSession, kDisplaySessionPassword) as Record<string, unknown>;
-    if (!legacy || typeof legacy.id !== 'number' || 'token' in legacy)
-        throw new Error('Invalid legacy display session payload.');
-
-    return { id: legacy.id };
+    return unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
 }
 
 /**

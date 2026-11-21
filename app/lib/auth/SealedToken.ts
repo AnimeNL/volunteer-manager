@@ -100,13 +100,6 @@ function buildAad(purpose: SealedTokenPurpose, keyId: string): Buffer {
 }
 
 /**
- * Returns whether the given string uses the `SealedToken` wire format.
- */
-export function isSealedToken(token: string): boolean {
-    return token.startsWith(`${kTokenVersion}.`);
-}
-
-/**
  * Encrypts and authenticates `data` for the given `purpose` using AES-256-GCM with an HKDF-derived
  * key. The returned token is URL-safe (`v1.<kid>.<payload>`) and valid for `ttlSeconds`.
  */
