@@ -8,22 +8,10 @@ import db, { tPermissionsRoles } from '@lib/database';
 
 import { kPermissionGroups } from './Access';
 
-declare namespace globalThis {
-    let animeConRolesInitialised: boolean | undefined;
-}
-
 /**
  * Ability to explicitly set the roles that the system should be initialised with for tests.
  */
 type RolesForTesting = { role: string; grants?: string; revokes?: string; }[];
-
-/**
- * Ensures that permission roles have been loaded into the `PermissionRoles` cache at least once.
- */
-export async function ensurePermissionRolesInitialised(): Promise<void> {
-    if (!globalThis.animeConRolesInitialised)
-        await initialisePermissionRoles();
-}
 
 /**
  * Provides one-off initialisation of permission roles by fetching them from the database and
@@ -50,6 +38,4 @@ export async function initialisePermissionRoles(rolesForTesting?: RolesForTestin
         grants: kPermissionGroups,
         revokes: [ /* no revokes */ ],
     });
-
-    globalThis.animeConRolesInitialised = true;
 }

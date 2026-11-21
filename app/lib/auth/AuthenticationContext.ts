@@ -15,10 +15,10 @@ import { AccessControl, type AccessScope, type Grant } from './access/AccessCont
 import { Cache } from '@lib/cache';
 import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, verifyUserSession }
     from './SessionStore';
-import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { executeAccessCheck } from './access/PermissionCheck';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore } from './Session';
+import { initialisePermissionRoles } from './access/PermissionRoles';
 import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
@@ -264,7 +264,8 @@ function timingSafeEqualHex(a: string, b: string): boolean {
 async function getAuthenticationContextFromSessionData(
     sessionData: SessionData, bypassCache = false): Promise<AuthenticationContext>
 {
-    await ensurePermissionRolesInitialised();
+    if (!Cache.getInstance('PermissionRoles').has('root'))
+        await initialisePermissionRoles();
 
     const authCache = Cache.getInstance('Authentication');
     const secretHash = hashSessionSecret(sessionData.secret);
