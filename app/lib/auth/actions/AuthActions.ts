@@ -126,6 +126,10 @@ function findMatchingPasskey(
  * Confirms whether an account exists for `input.username`. When the account is active and has
  * passkeys registered for the current RP ID, issues a WebAuthn challenge in a sealed `HttpOnly`
  * cookie and returns the corresponding authentication options.
+ *
+ * Intentionally discloses account existence, activation state, and passkey availability to power
+ * the identifier-first `<AuthenticationFlow>` UI; protected against bulk enumeration by
+ * `confirm-identity-ip` rate limiting.
  */
 export async function confirmIdentityAction(
     input: { username: string }): Promise<ConfirmIdentityResult>

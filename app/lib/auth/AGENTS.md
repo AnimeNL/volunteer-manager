@@ -31,6 +31,12 @@
   validates `Host` against configured virtual hosts and overwrites `X-Forwarded-For` with the
   connecting client IP. Auth actions and rate limiters may rely on both headers directly without
   re-validating `Host` against the database or walking proxy hops.
+- **Intentional identifier-first lookup (`confirmIdentityAction`)**: `confirmIdentityAction` and
+  `registerAction` deliberately disclose whether an e-mail address corresponds to an existing or
+  activated account (and whether passkeys are enrolled) to drive the single-dialog
+  `<AuthenticationFlow>` UX. Do not replace these with generic non-enumerable responses; bulk
+  enumeration is mitigated via IP rate limiting (`confirm-identity-ip` and `register-ip`), while
+  `requestPasswordResetAction` remains non-enumerable.
 
 ## Testing Gotchas
 - **Avoid importing `next/headers` inside `vi.mock('next/headers')` factories**: In Vitest,
