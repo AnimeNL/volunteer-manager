@@ -15,6 +15,21 @@ const kTokenVersion = 'v1';
 const kMinimumSecretLength = 32;
 
 /**
+ * Reads a sealing secret from `process.env[envName]` at module startup, throwing immediately when
+ * missing or shorter than `kMinimumSecretLength` characters.
+ */
+export function requireSealingSecret(envName: string): string {
+    const secret = process.env[envName];
+    if (!secret || secret.length < kMinimumSecretLength) {
+        throw new Error(
+            `Unable to start the Volunteer Manager: ${envName} must be at least ` +
+            `${kMinimumSecretLength} characters long.`);
+    }
+
+    return secret;
+}
+
+/**
  * Cryptographic parameter sizes for AES-256-GCM.
  */
 const kKeyLengthBytes = 32;

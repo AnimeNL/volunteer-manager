@@ -4,17 +4,14 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 
-import { sealToken, unsealToken } from './SealedToken';
+import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
 import { kSecureCookie } from './Constants';
 
 /**
- * The password through which the display session will be sealed. A start-up exception will be
- * thrown when this value is not available, as we would not be able to provide security.
+ * The password through which the display session will be sealed. Validated at module start-up.
  */
-const kDisplaySessionPassword = process.env.APP_COOKIE_PASSWORD!;
-if (!kDisplaySessionPassword || !kDisplaySessionPassword.length)
-    throw new Error('Unable to start the Volunteer Manager without a set APP_COOKIE_PASSWORD');
+const kDisplaySessionPassword = requireSealingSecret('APP_COOKIE_PASSWORD');
 
 /**
  * Name of the cookie in which display session data will be stored.

@@ -41,7 +41,7 @@ import { expectSetUserPassword, mockCookieJar, resetAuthActionTestState, signInT
     from './ActionTestHelpers';
 import { hashPassword } from '../Password';
 import { kSessionCookieName, unsealSession } from '../Session';
-import { sanitizeRelativeRedirectUrl } from './ActionHelpers';
+import { sanitizeRelativeRedirectUrl } from '../SessionStore';
 import { sealPasswordResetRequest, sealRegistrationRequest } from '../Tokens';
 import { useMockConnection } from '../../database/Connection';
 

@@ -11,11 +11,11 @@ import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
-import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate,
-    sanitizeRelativeRedirectUrl } from './ActionHelpers';
+import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate }
+    from './ActionHelpers';
 import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
     from '../AccountStore';
-import { createAndWriteUserSessionCookie } from '../SessionStore';
+import { createAndWriteUserSessionCookie, sanitizeRelativeRedirectUrl } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
 import { getSessionFromCookieStore } from '../Session';
 import { getStaticContent } from '@lib/Content';

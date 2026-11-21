@@ -1,6 +1,7 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import 'server-only';
 import crypto from 'node:crypto';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';

@@ -63,6 +63,17 @@ export function hashSessionSecret(secret: string): string {
 }
 
 /**
+ * Validates that an optional redirect URL is a safe relative path (starts with a single `/`,
+ * rejecting protocol-relative `//...` and absolute URLs). Returns `undefined` when invalid.
+ */
+export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
+    if (typeof url === 'string' && /^\/(?!\/)/.test(url))
+        return url;
+
+    return undefined;
+}
+
+/**
  * Creates a new per-device session row in `users_sessions` and returns its identifier and secret.
  */
 export async function createUserSession(params: CreateSessionParams): Promise<CreatedSession> {
@@ -76,7 +87,8 @@ export async function createUserSession(params: CreateSessionParams): Promise<Cr
             userId: params.userId,
             sessionTokenHash,
             impersonatorUserId: params.impersonatorUserId ?? null,
-            impersonatorReturnUrl: params.impersonatorReturnUrl?.slice(0, 255) ?? null,
+            impersonatorReturnUrl:
+                sanitizeRelativeRedirectUrl(params.impersonatorReturnUrl)?.slice(0, 255) ?? null,
             sessionExpires,
             sessionLastSeen: now,
             sessionIp: params.ip?.slice(0, kMaxIpLength) ?? null,
@@ -233,7 +245,10 @@ export async function revokeAndClearCurrentSessionCookie(
                 ip: metadata?.ip,
                 userAgent: metadata?.userAgent,
             });
-            return { restoredImpersonator: true, returnUrl: verified.impersonatorReturnUrl };
+            return {
+                restoredImpersonator: true,
+                returnUrl: sanitizeRelativeRedirectUrl(verified.impersonatorReturnUrl),
+            };
         }
     }
 

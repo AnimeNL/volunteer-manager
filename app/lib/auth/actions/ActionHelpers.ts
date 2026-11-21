@@ -37,17 +37,6 @@ export async function getAuthRequestMetadata(): Promise<AuthRequestMetadata> {
     return { host, origin, rpId, ip, userAgent };
 }
 
-/**
- * Validates that an optional redirect URL is a safe relative path (starts with a single `/`,
- * rejecting protocol-relative `//...` and absolute URLs). Returns `undefined` when invalid.
- */
-export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
-    if (typeof url === 'string' && /^\/(?!\/)/.test(url))
-        return url;
-
-    return undefined;
-}
-
 const kBirthdatePattern = /^(?:19|20)\d{2}-\d{2}-\d{2}$/;
 
 /**

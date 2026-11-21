@@ -3,19 +3,14 @@
 
 import 'server-only';
 
-import { sealToken, unsealToken } from './SealedToken';
+import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
 /**
- * Secrets used to seal password-reset and registration confirmation tokens. Both must be
- * configured in the environment at start-up.
+ * Secrets used to seal password-reset and registration confirmation tokens. Both are validated at
+ * module start-up.
  */
-const kPasswordResetRequestPassword = process.env.APP_PASSRESET_PASSWORD!;
-if (!kPasswordResetRequestPassword || !kPasswordResetRequestPassword.length)
-    throw new Error('Unable to start the Volunteer Manager without a set APP_PASSRESET_PASSWORD');
-
-const kRegistrationRequestPassword = process.env.APP_REGISTRATION_PASSWORD!;
-if (!kRegistrationRequestPassword || !kRegistrationRequestPassword.length)
-    throw new Error('Unable to start the Volunteer Manager without a APP_REGISTRATION_PASSWORD');
+const kPasswordResetRequestPassword = requireSealingSecret('APP_PASSRESET_PASSWORD');
+const kRegistrationRequestPassword = requireSealingSecret('APP_REGISTRATION_PASSWORD');
 
 /**
  * Token lifetimes, in seconds.

@@ -4,7 +4,7 @@
 import 'server-only';
 import type { cookies } from 'next/headers';
 
-import { sealToken, unsealToken } from './SealedToken';
+import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
 import { kSecureCookie } from './Constants';
 
@@ -22,9 +22,7 @@ const kPasskeyChallengeTtlSeconds = 5 * 60;
  * Secret used to seal passkey challenges. Cryptographically isolated from session cookies via
  * SealedToken's per-purpose HKDF key derivation and AAD.
  */
-const kPasskeyChallengePassword = process.env.APP_COOKIE_PASSWORD!;
-if (!kPasskeyChallengePassword || !kPasskeyChallengePassword.length)
-    throw new Error('Unable to start the Volunteer Manager without a set APP_COOKIE_PASSWORD');
+const kPasskeyChallengePassword = requireSealingSecret('APP_COOKIE_PASSWORD');
 
 /**
  * Payload bound to a single WebAuthn ceremony in a sealed cookie.

@@ -3,17 +3,24 @@
 
 import { vi } from 'vitest';
 
-import { sealToken, unsealToken } from './SealedToken';
+import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
 describe('SealedToken', () => {
     const kPrimarySecret = 'F4y%8wsHR(,fRML4Dg;ilT4{H2J5sSf<';
     const kSecondarySecret = '0ySycf@=slZNkn.R9zX.n+OL2+H<=YQW';
 
     afterEach(() => {
+        delete process.env.TEST_SEALING_SECRET;
         vi.useRealTimers();
     });
 
     it('enforces secret length and positive TTL validation', () => {
+        expect(() => requireSealingSecret('TEST_SEALING_SECRET')).toThrow(/at least 32/);
+        process.env.TEST_SEALING_SECRET = 'too-short';
+        expect(() => requireSealingSecret('TEST_SEALING_SECRET')).toThrow(/at least 32/);
+        process.env.TEST_SEALING_SECRET = kPrimarySecret;
+        expect(requireSealingSecret('TEST_SEALING_SECRET')).toBe(kPrimarySecret);
+
         expect(() => sealToken({}, 'session', 'too-short', 60)).toThrow(/at least 32/);
         expect(() => sealToken({}, 'session', [], 60)).toThrow(/At least one/);
         expect(() => sealToken({}, 'session', kPrimarySecret, 0)).toThrow(/positive/);

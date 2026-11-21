@@ -21,6 +21,7 @@ describe('SessionStore', () => {
 
         const created = await createUserSession({
             userId: 42,
+            impersonatorReturnUrl: 'https://evil.example.com',
             ip: '203.0.113.5',
             userAgent: 'TestAgent/1.0',
         });
@@ -30,6 +31,7 @@ describe('SessionStore', () => {
         expect(created.secret.length).toBeGreaterThanOrEqual(40);
         expect(insertedParams).toContain(hashSessionSecret(created.secret));
         expect(insertedParams).not.toContain(created.secret);
+        expect(insertedParams).not.toContain('https://evil.example.com');
     });
 
     it('verifies matching secrets and rejects mismatched or missing sessions', async () => {
@@ -151,5 +153,27 @@ describe('SessionStore', () => {
         expect(signedOut).toEqual({ restoredImpersonator: false });
         expect(jar.get(kSessionCookieName)?.value).toBe('');
         expect(jar.get(kSessionCookieName)?.options.maxAge).toBe(0);
+
+        // Pre-existing unsafe impersonatorReturnUrl in DB is sanitized to undefined on restore:
+        mockConnection.expect('insertReturningLastInsertedId', () => 90);
+        const unsafeSession = await createAndWriteUserSessionCookie(cookieStore, {
+            userId: 42,
+            impersonatorUserId: 1,
+        });
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 90,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret(unsafeSession.secret),
+            impersonatorUserId: 1,
+            impersonatorReturnUrl: '//evil.example.com/phish',
+        }));
+        mockConnection.expect('delete', () => 1);
+        mockConnection.expect('selectOneColumnOneRow', () => 1);
+        mockConnection.expect('insertReturningLastInsertedId', () => 91);
+
+        await expect(revokeAndClearCurrentSessionCookie(cookieStore)).resolves.toEqual({
+            restoredImpersonator: true,
+            returnUrl: undefined,
+        });
     });
 });

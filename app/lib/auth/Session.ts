@@ -1,9 +1,10 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import 'server-only';
 import type { cookies } from 'next/headers';
 
-import { sealToken, unsealToken } from './SealedToken';
+import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
 import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
 
@@ -11,12 +12,9 @@ type CookieStore = Awaited<ReturnType<typeof cookies>>;
 type CookieStoreLike = ReturnType<typeof cookies> | CookieStore;
 
 /**
- * The password through which the session will be sealed. A start-up exception will be thrown when
- * this value is not available, as we would not be able to provide security to our visitors.
+ * The password through which the session will be sealed. Validated at module start-up.
  */
-const kSessionPassword = process.env.APP_COOKIE_PASSWORD!;
-if (!kSessionPassword || !kSessionPassword.length)
-    throw new Error('Unable to start the Volunteer Manager without a set APP_COOKIE_PASSWORD');
+const kSessionPassword = requireSealingSecret('APP_COOKIE_PASSWORD');
 
 /**
  * Name of the cookie in which session data will be stored.
