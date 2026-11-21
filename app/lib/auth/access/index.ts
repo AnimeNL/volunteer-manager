@@ -2,7 +2,8 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 export type { AccessDescriptor, AccessOperation, AccessRestriction } from './AccessDescriptor';
-export type { AccessResult, AccessScope, Grant } from './AccessControl';
+export type { AccessResult } from './AccessControl';
+export type { AccessScope, Grant } from './AccessList';
 export type { BooleanPermission, CRUDPermission } from './Access';
 export type { PermissionAccessCheck, PermissionSet } from './PermissionCheck';
 

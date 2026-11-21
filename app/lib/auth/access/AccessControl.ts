@@ -6,16 +6,10 @@ import { forbidden } from 'next/navigation';
 import type { AccessDescriptor, AccessOperation } from './AccessDescriptor';
 import type { AccessScope, Grant, Result } from './AccessList';
 import type { BooleanPermission, CRUDPermission } from './Access';
-import { AccessList, kAnyEvent, kAnyTeam } from './AccessList';
+import { AccessList } from './AccessList';
 import { Cache } from '@lib/cache';
 
 import { kPermissions } from './Access';
-
-/**
- * Re-export types from the underlying `AccessList` mechanism that are useful elsewhere.
- */
-export type { AccessScope, Grant };
-export { kAnyEvent, kAnyTeam };
 
 /**
  * Pattern that defines the valid syntax for an individual permission, which are single-word alpha-

@@ -1,10 +1,12 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { AccessControl, kAnyEvent, kAnyTeam, kPermissionPattern } from './AccessControl';
+import { AccessControl, kPermissionPattern } from './AccessControl';
 import { Cache } from '@lib/cache';
 import { and, checkPermission, or } from './PermissionCheck';
 import { initialisePermissionRoles } from './PermissionRoles';
+
+import { kAnyEvent, kAnyTeam } from './AccessList';
 
 describe('AccessControl', () => {
     it('validates permission syntax and rejects unknown or underscoped permissions', () => {

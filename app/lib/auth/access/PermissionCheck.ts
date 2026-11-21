@@ -3,8 +3,9 @@
 
 import { forbidden, unauthorized } from 'next/navigation';
 
-import type { AccessControl, AccessScope } from './AccessControl';
+import type { AccessControl } from './AccessControl';
 import type { AccessOperation } from './AccessDescriptor';
+import type { AccessScope } from './AccessList';
 import type { AuthenticationContext } from '../AuthenticationContextTypes';
 import type { BooleanPermission, CRUDPermission } from './Access';
 

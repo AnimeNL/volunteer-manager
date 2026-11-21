@@ -6,12 +6,13 @@ import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
 
+import type { AccessScope, Grant } from './access/AccessList';
 import type { AuthenticationContext, UserAuthenticationContext }
     from './AuthenticationContextTypes';
 import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
 import type { SessionData } from './Session';
 import type { User } from './User';
-import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
+import { AccessControl } from './access/AccessControl';
 import { Cache } from '@lib/cache';
 import { createAndWriteUserSessionCookie, hashSessionSecret, revokeUserSession,
     timingSafeEqualHex, touchUserSession, verifyUserSession } from './SessionStore';
