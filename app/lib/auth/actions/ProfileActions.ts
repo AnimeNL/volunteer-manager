@@ -9,7 +9,6 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
 import { checkRateLimit } from '../RateLimit';
-import { executeAccessCheck } from '../access/PermissionCheck';
 import { formatDate } from '@lib/Temporal';
 import { getAuthRequestMetadata, parseBirthdate } from './ActionHelpers';
 import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
@@ -29,21 +28,27 @@ const kMaxAvatarBytes = 5 * 1024 * 1024;
  */
 const kPngSignature = [ 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A ] as const;
 
-const kOwnAccountFields = z.object({
+const kUpdateOwnAccountInput = z.object({
     firstName: z.string().max(128),
     lastName: z.string().max(128),
-    username: z.string().max(255).optional(),
     gender: z.string().max(64),
-    birthdate: z.string().refine(value => !!parseBirthdate(value)).optional(),
+    birthdate: z.string().optional(),
     phoneNumber: z.string().max(64).optional(),
     discordHandle: z.string().max(64).optional(),
     language: z.enum(kCommunicationLanguage).optional(),
 });
 
 /**
- * Editable profile fields for the signed-in volunteer.
+ * Editable profile fields accepted by `updateOwnAccountAction()`.
  */
-type OwnAccountFields = z.infer<typeof kOwnAccountFields>;
+type UpdateOwnAccountInput = z.infer<typeof kUpdateOwnAccountInput>;
+
+/**
+ * Profile fields returned by `getOwnAccountAction()`.
+ */
+interface OwnAccountProfile extends UpdateOwnAccountInput {
+    username?: string;
+}
 
 /**
  * Result returned by `getOwnAccountAction()`.
@@ -51,7 +56,7 @@ type OwnAccountFields = z.infer<typeof kOwnAccountFields>;
 interface GetOwnAccountResult {
     success: boolean;
     error?: string;
-    account?: OwnAccountFields;
+    account?: OwnAccountProfile;
 }
 
 /**
@@ -113,10 +118,10 @@ export async function getOwnAccountAction(): Promise<GetOwnAccountResult> {
  * Updates the signed-in user's own profile fields and invalidates their auth cache.
  */
 export async function updateOwnAccountAction(
-    input: OwnAccountFields): Promise<ProfileMutationResult>
+    input: UpdateOwnAccountInput): Promise<ProfileMutationResult>
 {
     const { user } = await requireAuthenticationContext();
-    const parsed = kOwnAccountFields.safeParse(input);
+    const parsed = kUpdateOwnAccountInput.safeParse(input);
     if (!parsed.success)
         return { success: false, error: 'Please check the account information you entered.' };
 
@@ -130,7 +135,8 @@ export async function updateOwnAccountAction(
     const birthdate = parseBirthdate(update.birthdate);
     if (!birthdate)
         return { success: false, error: 'You need to fill in your date of birth.' };
-    if (!update.phoneNumber || update.phoneNumber.length < 8)
+    const phoneNumber = update.phoneNumber?.trim();
+    if (!phoneNumber || phoneNumber.length < 8)
         return { success: false, error: 'You need to fill in your phone number.' };
 
     const dbInstance = db;
@@ -164,7 +170,7 @@ export async function updateOwnAccountAction(
             language: update.language ?? null,
             gender: update.gender.trim(),
             birthdate,
-            phoneNumber: update.phoneNumber,
+            phoneNumber,
             discordHandle: normalizedDiscord,
             discordHandleUpdated,
         })
@@ -187,10 +193,10 @@ export async function updateOwnAccountAction(
  * Resolves and authorizes the target user ID for an avatar upload, returning an error string when
  * `overrideUserId` is malformed.
  */
-function resolveAvatarSubject(
+async function resolveAvatarSubject(
     context: Awaited<ReturnType<typeof requireAuthenticationContext>>,
     overrideEntry: FormDataEntryValue | null)
-    : { subjectUserId: number; isOverride: boolean } | { error: string }
+    : Promise<{ subjectUserId: number; isOverride: boolean } | { error: string }>
 {
     if (overrideEntry === null || !String(overrideEntry).length)
         return { subjectUserId: context.user.id, isOverride: false };
@@ -202,7 +208,7 @@ function resolveAvatarSubject(
     if (overrideUserId === context.user.id)
         return { subjectUserId: context.user.id, isOverride: false };
 
-    executeAccessCheck(context, 'organisation.avatars');
+    await requireAuthenticationContext('organisation.avatars', undefined, { bypassCache: true });
     return { subjectUserId: overrideUserId, isOverride: true };
 }
 
@@ -220,18 +226,18 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
         return { success: false, error: 'Please provide a valid PNG avatar image.' };
     }
 
-    const subject = resolveAvatarSubject(context, formData.get('overrideUserId'));
+    const subject = await resolveAvatarSubject(context, formData.get('overrideUserId'));
     if ('error' in subject)
         return { success: false, error: subject.error };
-
-    const bytes = new Uint8Array(await avatarEntry.arrayBuffer());
-    if (!hasPngSignature(bytes))
-        return { success: false, error: 'Avatar uploads must be in PNG format.' };
 
     const uploadLimit = checkRateLimit(
         'avatar-upload-user', String(context.user.id), kAuthRateLimits.avatarUploadByUser);
     if (!uploadLimit.allowed)
         return { success: false, error: 'Too many avatar uploads. Please try again later.' };
+
+    const bytes = new Uint8Array(await avatarEntry.arrayBuffer());
+    if (!hasPngSignature(bytes))
+        return { success: false, error: 'Avatar uploads must be in PNG format.' };
 
     if (subject.isOverride) {
         const targetUserId = await db.selectFrom(tUsers)

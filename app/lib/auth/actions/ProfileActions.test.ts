@@ -17,9 +17,12 @@ vi.mock('@lib/database/BlobStore', () => ({
     storeBlobData: (...args: any[]) => (mockStoreBlobData as any)(...args),
 }));
 
+import { checkRateLimit } from '../RateLimit';
 import { getOwnAccountAction, updateAvatarAction, updateOwnAccountAction } from './ProfileActions';
 import { resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
+
+import { kAuthRateLimits } from '../RateLimit';
 
 describe('ProfileActions', () => {
     const mockConnection = useMockConnection();
@@ -66,6 +69,15 @@ describe('ProfileActions', () => {
             phoneNumber: '123',
         });
         expect(invalid.success).toBe(false);
+
+        const whitespacePhone = await updateOwnAccountAction({
+            firstName: 'Alice',
+            lastName: 'Example',
+            gender: 'Female',
+            birthdate: '1995-04-10',
+            phoneNumber: '        ',
+        });
+        expect(whitespacePhone.success).toBe(false);
 
         const impossibleDate = await updateOwnAccountAction({
             firstName: 'Alice',
@@ -128,6 +140,7 @@ describe('ProfileActions', () => {
         overrideForm.set('avatar', new Blob([ pngBytes ], { type: 'image/png' }));
         overrideForm.set('overrideUserId', '99');
 
+        await signInTestUser(mockConnection, { userId: 42, sessionId: 66 });
         await expect(updateAvatarAction(overrideForm)).rejects.toThrow();
 
         // Accepts valid PNG for self:
@@ -147,10 +160,31 @@ describe('ProfileActions', () => {
         await resetAuthActionTestState('203.0.113.41');
         await signInTestUser(
             mockConnection, { userId: 7, sessionId: 88, grants: 'organisation.avatars' });
+        await signInTestUser(
+            mockConnection, { userId: 7, sessionId: 88, grants: 'organisation.avatars' });
         mockConnection.expect('selectOneColumnOneRow', () => undefined);
 
         const missingTarget = await updateAvatarAction(overrideForm);
         expect(missingTarget.success).toBe(false);
         expect(mockStoreBlobData).not.toHaveBeenCalled();
+
+        // Rate limit is enforced before reading the uploaded blob into memory:
+        for (let i = 0; i < kAuthRateLimits.avatarUploadByUser.limit; ++i)
+            checkRateLimit('avatar-upload-user', '7', kAuthRateLimits.avatarUploadByUser);
+
+        const limitedForm = new FormData();
+        limitedForm.set('avatar', new Blob([ pngBytes ], { type: 'image/png' }));
+        const arrayBufferSpy = vi.spyOn(Blob.prototype, 'arrayBuffer');
+        try {
+            const limited = await updateAvatarAction(limitedForm);
+            expect(limited).toEqual({
+                success: false,
+                error: expect.stringContaining('Too many'),
+            });
+            expect(arrayBufferSpy).not.toHaveBeenCalled();
+            expect(mockStoreBlobData).not.toHaveBeenCalled();
+        } finally {
+            arrayBufferSpy.mockRestore();
+        }
     });
 });
