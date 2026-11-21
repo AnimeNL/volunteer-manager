@@ -5,9 +5,10 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { Cache, invalidateTeamCache } from '@lib/cache';
-import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { LogBuilder } from '@lib/log/index';
+import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateAuthCache } from '@lib/auth';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -323,6 +324,7 @@ export async function toggleTeamEnabled(teamId: number, enabled: boolean, formDa
             return { success: false, error: 'Unable to update the team state in the database…' };
 
         await invalidateTeamCache(teamId);
+        invalidateAuthCache();
 
         Cache.getInstance('AdminNavigationMenuCache').clear();
 

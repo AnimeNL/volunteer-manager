@@ -99,6 +99,13 @@ export type Result = Pick<Access, 'expanded' | 'global'> & {
 // -------------------------------------------------------------------------------------------------
 
 /**
+ * Splits a comma-separated string into trimmed, non-empty entries.
+ */
+function splitCommaSeparatedList(value?: string): string[] {
+    return value ? value.split(',').map(entry => entry.trim()).filter(Boolean) : [];
+}
+
+/**
  * The access list takes a sequence of grants (defined by the `Grant` type) and enables queries to
  * be ran against those grants, to understand whether they are captured by this access list. Access
  * lists can be used to track both positive grants and revokes.
@@ -125,7 +132,7 @@ export class AccessList {
                                                             : stringOrObjectGrant;
 
                 const seen = new Set<string>();
-                const permissions = grant.permission.split(',').map(permission => ({
+                const permissions = splitCommaSeparatedList(grant.permission).map(permission => ({
                     expanded: false,
                     permission,
                 }));
@@ -169,11 +176,8 @@ export class AccessList {
             }
         }
 
-        if (!!params?.events && !!params.events.length)
-            this.#events = new Set<string>(params.events.split(','));
-
-        if (!!params?.teams && !!params.teams.length)
-            this.#teams = new Set<string>(params.teams.split(','));
+        this.#events = new Set<string>(splitCommaSeparatedList(params?.events));
+        this.#teams = new Set<string>(splitCommaSeparatedList(params?.teams));
     }
 
     /**

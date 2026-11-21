@@ -23,6 +23,8 @@ describe('AccessControl', () => {
         const access = new AccessControl({ grants: 'test' });
         expect(() => access.query('bad,syntax' as any)).toThrow(/Invalid syntax/);
         expect(() => access.query('unknown.permission' as any)).toThrow(/Unrecognised/);
+        expect(() => access.query('test.crud' as any)).toThrow(/Invalid operation/);
+        expect(() => access.query('test.crud', 'invalid' as any)).toThrow(/Invalid operation/);
 
         // Required event/team scope enforcement:
         expect(() => access.query('test.boolean.required.both')).toThrow();
@@ -255,5 +257,8 @@ describe('AccessControl', () => {
             'test.boolean',
             { permission: 'test.crud', operation: 'delete' },
         ))).toBe(false);
+
+        expect(checkPermission(access, and())).toBe(false);
+        expect(checkPermission(access, or())).toBe(false);
     });
 });

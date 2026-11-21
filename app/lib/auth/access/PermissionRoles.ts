@@ -29,8 +29,8 @@ export async function initialisePermissionRoles(rolesForTesting?: RolesForTestin
 
     for (const { role, grants, revokes } of roles) {
         cache.set(role, {
-            grants: grants?.split(',') || [ /* no grants */ ],
-            revokes: revokes?.split(',') || [ /* no revokes */ ],
+            grants: grants ? grants.split(',').map(entry => entry.trim()).filter(Boolean) : [],
+            revokes: revokes ? revokes.split(',').map(entry => entry.trim()).filter(Boolean) : [],
         });
     }
 

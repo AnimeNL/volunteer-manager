@@ -25,6 +25,11 @@ export { kAnyEvent, kAnyTeam };
  */
 export const kPermissionPattern = /^[a-z][\w-]*(?:\.[\w-]+)*(?:\:(create|read|update|delete))*$/;
 
+/**
+ * Valid runtime operations accepted when querying a CRUD permission.
+ */
+const kValidOperations = new Set<AccessOperation>([ 'create', 'read', 'update', 'delete' ]);
+
 // -------------------------------------------------------------------------------------------------
 
 /**
@@ -218,6 +223,9 @@ export class AccessControl {
             throw new Error(`Unrecognised permission: "${permission}"`);
 
         const descriptor: AccessDescriptor = kPermissions[permission];
+        if (descriptor.type === 'crud' && !kValidOperations.has(second))
+            throw new Error(`Invalid operation "${second}" when checking "${permission}" access`);
+
         const accessScope: AccessScope | undefined = descriptor.type === 'crud' ? third : second;
 
         if (descriptor.requireEvent && !accessScope?.event)

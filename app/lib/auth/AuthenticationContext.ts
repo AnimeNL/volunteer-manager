@@ -68,6 +68,9 @@ type LoadUserAuthenticationContextParams =
 export async function loadUserAuthenticationContext(
     params: LoadUserAuthenticationContextParams): Promise<AuthenticationContext>
 {
+    if (!Cache.getInstance('PermissionRoles').has('root'))
+        await initialisePermissionRoles();
+
     const storageJoin = tStorage.forUseInLeftJoin();
 
     const dbInstance = db;
@@ -78,6 +81,7 @@ export async function loadUserAuthenticationContext(
                 .and(tEvents.eventHidden.equals(/* false= */ 0))
         .innerJoin(tTeams)
             .on(tTeams.teamId.equals(tUsersEvents.teamId))
+                .and(tTeams.teamDeleted.isNull())
         .innerJoin(tRoles)
             .on(tRoles.roleId.equals(tUsersEvents.roleId))
         .where(tUsersEvents.userId.equals(tUsers.userId))

@@ -72,6 +72,9 @@ export function checkPermission(
         : boolean
 {
     if (typeof permission !== 'string' && 'type' in permission) {
+        if (!permission.checks.length)
+            return false;
+
         let count = 0;
         for (const individualPermission of permission.checks)
             count += checkIndividualPermission(access, individualPermission, scope) ? 1 : 0;

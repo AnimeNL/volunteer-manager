@@ -13,7 +13,7 @@ describe('AccessList', () => {
         expect(single.query('foo.bar', { event: '2024', team: 'crew' }))
             .toEqual({ expanded: false, global: true, scope: 'global' });
 
-        const comma = new AccessList({ grants: 'foo.bar,foo.baz' });
+        const comma = new AccessList({ grants: 'foo.bar, foo.baz , ' });
         const array = new AccessList({ grants: [ 'foo.bar', 'foo.baz' ] });
         expect(comma.query('foo.bar')).toEqual(array.query('foo.bar'));
         expect(comma.query('foo.baz')).toEqual(array.query('foo.baz'));
