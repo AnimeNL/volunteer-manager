@@ -54,6 +54,14 @@ export function parseBirthdate(value?: string): Temporal.PlainDate | undefined {
 }
 
 /**
+ * Standard result returned by authentication mutations.
+ */
+export interface AuthActionResult {
+    success: boolean;
+    error?: string;
+}
+
+/**
  * Parameters for completing a token-authenticated password update (access-code sign-in or password
  * reset).
  */
@@ -71,7 +79,7 @@ interface CompletePasswordUpdateParams {
  * password (revoking prior sessions), writes a fresh session cookie, and records an audit log.
  */
 export async function completePasswordUpdateWithToken(
-    params: CompletePasswordUpdateParams): Promise<{ success: boolean; error?: string }>
+    params: CompletePasswordUpdateParams): Promise<AuthActionResult>
 {
     const strengthError = validatePasswordStrength(params.password);
     if (strengthError)

@@ -6,6 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
+import type { AuthActionResult } from './ActionHelpers';
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
 import { checkRateLimit } from '../RateLimit';
@@ -60,14 +61,6 @@ interface GetOwnAccountResult {
 }
 
 /**
- * Result returned by `updateOwnAccountAction()` and `updateAvatarAction()`.
- */
-interface ProfileMutationResult {
-    success: boolean;
-    error?: string;
-}
-
-/**
  * Returns whether `bytes` begins with a valid PNG file signature.
  */
 function hasPngSignature(bytes: Uint8Array): boolean {
@@ -118,7 +111,7 @@ export async function getOwnAccountAction(): Promise<GetOwnAccountResult> {
  * Updates the signed-in user's own profile fields and invalidates their auth cache.
  */
 export async function updateOwnAccountAction(
-    input: UpdateOwnAccountInput): Promise<ProfileMutationResult>
+    input: UpdateOwnAccountInput): Promise<AuthActionResult>
 {
     const { user } = await requireAuthenticationContext();
     const parsed = kUpdateOwnAccountInput.safeParse(input);
@@ -216,7 +209,7 @@ async function resolveAvatarSubject(
  * Updates an avatar from a `FormData` payload containing a PNG `avatar` blob and an optional
  * `overrideUserId` (requiring `organisation.avatars` permission when updating another user).
  */
-export async function updateAvatarAction(formData: FormData): Promise<ProfileMutationResult> {
+export async function updateAvatarAction(formData: FormData): Promise<AuthActionResult> {
     const context = await requireAuthenticationContext();
 
     const avatarEntry = formData.get('avatar');

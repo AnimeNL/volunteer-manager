@@ -69,7 +69,7 @@ export async function signInTestUser(
 {
     const sessionId = options.sessionId ?? 55;
     const secret = options.secret ?? 'action-test-secret';
-    const cookie = await sealSession({ sessionId, userId: options.userId, secret });
+    const cookie = sealSession({ sessionId, userId: options.userId, secret });
     mockCookieJar.set(kSessionCookieName, { value: cookie, options: {} });
 
     mockConnection.expect('selectOneRow', () => ({

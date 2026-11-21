@@ -265,7 +265,7 @@ export async function createAndWriteUserSessionCookie(
     }
 
     const session = await createUserSession(params);
-    await writeSealedSessionCookieToStore(session, cookieStore);
+    writeSealedSessionCookieToStore(session, cookieStore);
     return session;
 }
 

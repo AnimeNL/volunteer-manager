@@ -145,7 +145,7 @@ describe('SessionStore', () => {
             returnUrl: '/admin/organisation/accounts/42',
         });
 
-        const restoredCookie = await unsealSession(jar.get(kSessionCookieName)!.value);
+        const restoredCookie = unsealSession(jar.get(kSessionCookieName)!.value);
         expect(restoredCookie).toMatchObject({ sessionId: 89, userId: 1 });
 
         // Signing out again (non-impersonated) clears the cookie completely:
@@ -205,7 +205,7 @@ describe('SessionStore', () => {
 
         const secret = 'concurrent-sign-out-secret';
         jar.set(kSessionCookieName, {
-            value: await sealSession({ sessionId: 95, userId: 42, secret }),
+            value: sealSession({ sessionId: 95, userId: 42, secret }),
             options: {},
         });
 
@@ -231,7 +231,7 @@ describe('SessionStore', () => {
         // Expired or revoked session clears the cookie without deleting or evicting auth cache:
         authCache.set(42, { context: {} as any, sessions: new Map() });
         jar.set(kSessionCookieName, {
-            value: await sealSession({ sessionId: 96, userId: 42, secret }),
+            value: sealSession({ sessionId: 96, userId: 42, secret }),
             options: {},
         });
 
@@ -261,7 +261,7 @@ describe('SessionStore', () => {
         } as any;
 
         jar.set(kSessionCookieName, {
-            value: await sealSession({ sessionId: 70, userId: 11, secret: 'old-secret' }),
+            value: sealSession({ sessionId: 70, userId: 11, secret: 'old-secret' }),
             options: {},
         });
 
@@ -273,7 +273,7 @@ describe('SessionStore', () => {
 
         const replaced = await createAndWriteUserSessionCookie(cookieStore, { userId: 42 });
         expect(replaced.sessionId).toBe(71);
-        expect(await unsealSession(jar.get(kSessionCookieName)!.value))
+        expect(unsealSession(jar.get(kSessionCookieName)!.value))
             .toMatchObject({ sessionId: 71, userId: 42 });
 
         // Passing `{ revokeExisting: false }` skips deleting the existing session row:
@@ -282,7 +282,7 @@ describe('SessionStore', () => {
         const kept = await createAndWriteUserSessionCookie(
             cookieStore, { userId: 42 }, { revokeExisting: false });
         expect(kept.sessionId).toBe(72);
-        expect(await unsealSession(jar.get(kSessionCookieName)!.value))
+        expect(unsealSession(jar.get(kSessionCookieName)!.value))
             .toMatchObject({ sessionId: 72, userId: 42 });
     });
 });

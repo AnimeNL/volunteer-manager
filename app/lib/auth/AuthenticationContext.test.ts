@@ -53,7 +53,7 @@ describe('AuthenticationContext', () => {
         async () =>
     {
         const setSessionCookie = async (session: SessionData) => {
-            cookieStoreData.set(kSessionCookieName, await sealSession(session));
+            cookieStoreData.set(kSessionCookieName, sealSession(session));
         };
 
         const deviceA: SessionData = { sessionId: 101, userId: 42, secret: 'secret-a' };
@@ -183,7 +183,7 @@ describe('AuthenticationContext', () => {
         // requireAuthenticationContext() throws 401 for visitors, 403 for missing permission:
         await expectHttpStatus(() => requireAuthenticationContext(), 401);
 
-        cookieStoreData.set(kSessionCookieName, await sealSession({
+        cookieStoreData.set(kSessionCookieName, sealSession({
             sessionId: 201, userId: 7, secret: 'req-secret',
         }));
         mockConnection.expect('selectOneRow', () => ({
@@ -224,7 +224,7 @@ describe('AuthenticationContext', () => {
         expect(cookieStoreData.has(kSessionCookieName)).toBe(false);
 
         // Active target revokes the admin's prior session and writes an impersonation cookie:
-        cookieStoreData.set(kSessionCookieName, await sealSession({
+        cookieStoreData.set(kSessionCookieName, sealSession({
             sessionId: 300, userId: 1, secret: 'admin-secret',
         }));
         mockConnection.expect('selectOneRow', () => ({
@@ -251,7 +251,7 @@ describe('AuthenticationContext', () => {
 
         const sealedCookie = cookieStoreData.get(kSessionCookieName);
         expect(sealedCookie).toBeDefined();
-        const session = await unsealSession(sealedCookie!);
+        const session = unsealSession(sealedCookie!);
         expect(session.sessionId).toBe(303);
         expect(session.userId).toBe(55);
 
@@ -264,7 +264,7 @@ describe('AuthenticationContext', () => {
         expect(cookieStoreData.get(kSessionCookieName)).toBe(sealedCookie);
 
         // Nested impersonation is rejected without revoking or overwriting the existing cookie:
-        const nestedCookie = await sealSession({
+        const nestedCookie = sealSession({
             sessionId: 301, userId: 2, secret: 'imp-secret',
         });
         cookieStoreData.set(kSessionCookieName, nestedCookie);

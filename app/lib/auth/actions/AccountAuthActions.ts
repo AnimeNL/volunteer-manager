@@ -6,6 +6,7 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod/v4';
 
+import type { AuthActionResult } from './ActionHelpers';
 import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
@@ -70,14 +71,6 @@ const kChangePasswordInput = z.object({
 export type RegisterActionInput = z.input<typeof kRegisterInput>;
 
 /**
- * Standard result returned by account authentication mutations.
- */
-interface AccountAuthResult {
-    success: boolean;
-    error?: string;
-}
-
-/**
  * Result returned by `registerActivateAction()`.
  */
 interface RegisterActivateResult {
@@ -99,7 +92,7 @@ interface VerifyPasswordResetResult {
  * Creates a new unactivated volunteer account with an Argon2id password hash and schedules a
  * registration confirmation e-mail containing a sealed activation token.
  */
-export async function registerAction(input: RegisterActionInput): Promise<AccountAuthResult> {
+export async function registerAction(input: RegisterActionInput): Promise<AuthActionResult> {
     const parsed = kRegisterInput.safeParse(input);
     if (!parsed.success)
         return { success: false, error: 'Please complete all required registration fields.' };
@@ -136,7 +129,7 @@ export async function registerAction(input: RegisterActionInput): Promise<Accoun
 
     const { userId, sessionToken } = account;
     const safeRedirectUrl = sanitizeRelativeRedirectUrl(data.redirectUrl);
-    const registrationRequest = await sealRegistrationRequest({
+    const registrationRequest = sealRegistrationRequest({
         id: userId,
         token: sessionToken,
         redirectUrl: safeRedirectUrl,
@@ -202,7 +195,7 @@ export async function registerActivateAction(
 
     let registrationRequest: { id: number; token?: number; redirectUrl?: string };
     try {
-        registrationRequest = await unsealRegistrationRequest(parsed.data.registrationRequest);
+        registrationRequest = unsealRegistrationRequest(parsed.data.registrationRequest);
     } catch {
         return { success: false };
     }
@@ -263,7 +256,7 @@ export async function registerActivateAction(
  * account matching `input.username`.
  */
 export async function requestPasswordResetAction(
-    input: { username: string }): Promise<AccountAuthResult>
+    input: { username: string }): Promise<AuthActionResult>
 {
     const parsed = kPasswordResetRequestInput.safeParse(input);
     if (!parsed.success)
@@ -296,7 +289,7 @@ export async function requestPasswordResetAction(
     if (!passwordResetData)
         return { success: true };
 
-    const token = await sealPasswordResetRequest({
+    const token = sealPasswordResetRequest({
         id: passwordResetData.userId,
         token: passwordResetData.sessionToken,
     });
@@ -353,7 +346,7 @@ export async function verifyPasswordResetAction(
 
     let resetRequest: { id: number; token: number };
     try {
-        resetRequest = await unsealPasswordResetRequest(parsed.data.request);
+        resetRequest = unsealPasswordResetRequest(parsed.data.request);
     } catch {
         return { success: false };
     }
@@ -373,7 +366,7 @@ export async function verifyPasswordResetAction(
  * signs the user in with a new persistent session cookie.
  */
 export async function completePasswordResetAction(
-    input: { request: string; password: string }): Promise<AccountAuthResult>
+    input: { request: string; password: string }): Promise<AuthActionResult>
 {
     const parsed = kCompletePasswordResetInput.safeParse(input);
     if (!parsed.success)
@@ -400,7 +393,7 @@ export async function completePasswordResetAction(
  * all other device sessions while keeping the current session signed in.
  */
 export async function changePasswordAction(
-    input: { currentPassword: string; newPassword: string }): Promise<AccountAuthResult>
+    input: { currentPassword: string; newPassword: string }): Promise<AuthActionResult>
 {
     const { user } = await requireAuthenticationContext(
         undefined, undefined, { bypassCache: true });

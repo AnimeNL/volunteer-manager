@@ -87,7 +87,7 @@ describe('AuthActions', () => {
         });
         expect(passwordResult).toEqual({ success: true });
 
-        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
+        const cookie = unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 105, userId: 42 });
 
         // Access code sign-in consumes the code and returns a sealed password update token:
@@ -106,7 +106,7 @@ describe('AuthActions', () => {
         expect(codeResult.success).toBe(true);
         expect(codeResult.requiredPasswordUpdateToken).toBeTruthy();
 
-        const unsealed = await unsealPasswordResetRequest(codeResult.requiredPasswordUpdateToken!);
+        const unsealed = unsealPasswordResetRequest(codeResult.requiredPasswordUpdateToken!);
         expect(unsealed).toEqual({ id: 42, token: 7 });
 
         // Once an IP hits `signin-ip`, further requests short-circuit without locking out accounts:
@@ -128,7 +128,7 @@ describe('AuthActions', () => {
     });
 
     it('enforces password strength and token validity in signInPasswordUpdateAction', async () => {
-        const token = await sealPasswordResetRequest({ id: 42, token: 7 });
+        const token = sealPasswordResetRequest({ id: 42, token: 7 });
 
         // Weak password rejected before any DB query:
         const weak = await signInPasswordUpdateAction({
@@ -158,7 +158,7 @@ describe('AuthActions', () => {
         expect(updated).toEqual({ success: true });
         expect(storedHash).toMatch(/^\$argon2id\$v=19\$/);
 
-        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
+        const cookie = unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 201, userId: 42 });
     });
 
@@ -232,7 +232,7 @@ describe('AuthActions', () => {
         mockConnection.expect('insertReturningLastInsertedId', () => 301);
 
         await signInPasswordAction({ username: 'alice@example.com', password: 'CorrectHorse1' });
-        const sealedCookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value) as any;
+        const sealedCookie = unsealSession(mockCookieJar.get(kSessionCookieName)!.value) as any;
 
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 301,

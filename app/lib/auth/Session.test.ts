@@ -28,25 +28,25 @@ describe('Session', () => {
         cookieStoreData.clear();
     });
 
-    it('should be able to seal and unseal sessions and reject invalid payloads', async () => {
+    it('should be able to seal and unseal sessions and reject invalid payloads', () => {
         const persistentSession: SessionData = {
             sessionId: 77,
             userId: 9001,
             secret: 'random-per-device-secret',
         };
 
-        const sealedPersistent = await sealSession(persistentSession);
-        const unsealedPersistent = await unsealSession(sealedPersistent);
+        const sealedPersistent = sealSession(persistentSession);
+        const unsealedPersistent = unsealSession(sealedPersistent);
         expect(unsealedPersistent).toEqual(persistentSession);
 
         // Legacy { id, token } payloads are rejected even if sealed with the current key:
         const legacyPayload = sealToken(
             { id: 9001, token: 1234 }, 'session', process.env.APP_COOKIE_PASSWORD!, 3600);
-        await expect(unsealSession(legacyPayload)).rejects.toThrow(/Invalid session payload/);
+        expect(() => unsealSession(legacyPayload)).toThrow(/Invalid session payload/);
     });
 
     it('isolates user session cookies from display session cookies', async () => {
-        const userSessionCookie = await sealSession({
+        const userSessionCookie = sealSession({
             sessionId: 77,
             userId: 5,
             secret: 'secret',
@@ -78,7 +78,7 @@ describe('Session', () => {
         } as any;
 
         const session: SessionData = { sessionId: 77, userId: 42, secret: 'secret' };
-        await writeSealedSessionCookieToStore(session, cookieStore);
+        writeSealedSessionCookieToStore(session, cookieStore);
 
         expect(stored[kSessionCookieName].options.httpOnly).toBe(true);
         expect(stored[kSessionCookieName].options.maxAge).toBe(270 * 24 * 60 * 60);

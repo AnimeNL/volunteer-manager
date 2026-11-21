@@ -4,9 +4,10 @@
 import 'server-only';
 import type { cookies } from 'next/headers';
 
+import { buildCookieOptions } from './Constants';
 import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
 
-import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
+import { kSessionExpirationTimeSeconds } from './Constants';
 
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 type CookieStoreLike = ReturnType<typeof cookies> | CookieStore;
@@ -45,7 +46,7 @@ export interface SessionData {
  * Seals the given `session` in a format that can safely be shared with users without expecting them
  * to be able to tamper with the data.
  */
-export async function sealSession(session: SessionData): Promise<string> {
+export function sealSession(session: SessionData): string {
     return sealToken(session, 'session', kSessionPassword, kSessionExpirationTimeSeconds);
 }
 
@@ -53,7 +54,7 @@ export async function sealSession(session: SessionData): Promise<string> {
  * Unseals the given `sealedSession` back to its original format. An exception will be thrown when
  * the data cannot be unsealed successfully or does not match the current session shape.
  */
-export async function unsealSession(sealedSession: string): Promise<SessionData> {
+export function unsealSession(sealedSession: string): SessionData {
     const data = unsealToken<Partial<SessionData>>(sealedSession, 'session', kSessionPassword);
     if (!data || typeof data.sessionId !== 'number' || typeof data.userId !== 'number' ||
         typeof data.secret !== 'string' || !data.secret.length)
@@ -78,7 +79,7 @@ export async function getSessionFromCookieStore(cookieStore: CookieStoreLike)
     const sessionCookie = (await cookieStore).get(kSessionCookieName);
     if (sessionCookie) {
         try {
-            return await unsealSession(sessionCookie.value);
+            return unsealSession(sessionCookie.value);
         } catch { /* invalid or expired cookie; treat as signed out */ }
     }
 
@@ -89,26 +90,15 @@ export async function getSessionFromCookieStore(cookieStore: CookieStoreLike)
  * Writes an empty session cookie to the given `cookieStore`.
  */
 export function writeEmptySessionCookieToStore(cookieStore: CookieStore): void {
-    cookieStore.set(kSessionCookieName, '', {
-        httpOnly: true,
-        maxAge: 0,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    });
+    cookieStore.set(kSessionCookieName, '', buildCookieOptions(0));
 }
 
 /**
  * Writes the given `session` in sealed format to the given `cookieStore`.
  */
-export async function writeSealedSessionCookieToStore(
-    session: SessionData, cookieStore: CookieStore): Promise<void>
+export function writeSealedSessionCookieToStore(
+    session: SessionData, cookieStore: CookieStore): void
 {
-    cookieStore.set(kSessionCookieName, await sealSession(session), {
-        httpOnly: true,
-        maxAge: kSessionExpirationTimeSeconds,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    });
+    cookieStore.set(
+        kSessionCookieName, sealSession(session), buildCookieOptions(kSessionExpirationTimeSeconds));
 }

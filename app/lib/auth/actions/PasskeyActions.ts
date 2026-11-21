@@ -11,6 +11,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse } from '@simple
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
+import type { AuthActionResult } from './ActionHelpers';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { deleteUserPasskey, retrieveUserPasskeys, storeUserPasskey } from '../PasskeyStore';
@@ -56,14 +57,6 @@ interface CreatePasskeyChallengeResult {
     options?: {
         optionsJSON: PublicKeyCredentialCreationOptionsJSON;
     };
-}
-
-/**
- * Result returned by `registerPasskeyAction()` and `deletePasskeyAction()`.
- */
-interface PasskeyMutationResult {
-    success: boolean;
-    error?: string;
 }
 
 /**
@@ -147,7 +140,7 @@ export async function createPasskeyChallengeAction(): Promise<CreatePasskeyChall
  */
 export async function registerPasskeyAction(
     input: { name?: string; registration: RegistrationResponseJSON })
-        : Promise<PasskeyMutationResult>
+        : Promise<AuthActionResult>
 {
     const { user } = await requireAuthenticationContext(
         undefined, undefined, { bypassCache: true });
@@ -215,7 +208,7 @@ export async function registerPasskeyAction(
 /**
  * Deletes one of the signed-in user's registered passkeys.
  */
-export async function deletePasskeyAction(input: { id: number }): Promise<PasskeyMutationResult> {
+export async function deletePasskeyAction(input: { id: number }): Promise<AuthActionResult> {
     const { user } = await requireAuthenticationContext(
         undefined, undefined, { bypassCache: true });
 

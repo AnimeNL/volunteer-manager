@@ -4,9 +4,8 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 
+import { buildCookieOptions } from './Constants';
 import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
-
-import { kSecureCookie } from './Constants';
 
 /**
  * The password through which the display session will be sealed. Validated at module start-up.
@@ -31,7 +30,7 @@ const kDisplaySessionExpirationTimeSeconds = 399 * 24 * 60 * 60;
  * @param session The plaintext session data in its original format.
  * @returns The sealed session data, as a string.
  */
-async function sealDisplaySession(session: { id: number }): Promise<string> {
+function sealDisplaySession(session: { id: number }): string {
     return sealToken(
         session, 'display', kDisplaySessionPassword, kDisplaySessionExpirationTimeSeconds);
 }
@@ -43,7 +42,7 @@ async function sealDisplaySession(session: { id: number }): Promise<string> {
  * @param sealedSession The sealed session data to unseal, as a string.
  * @returns The plaintext session data in its original format.
  */
-async function unsealDisplaySession(sealedSession: string): Promise<{ id: number }> {
+function unsealDisplaySession(sealedSession: string): { id: number } {
     return unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
 }
 
@@ -56,7 +55,7 @@ export async function getDisplayId(): Promise<number | undefined> {
     const sessionCookie = cookieStore.get(kDisplaySessionCookieName);
     if (sessionCookie) {
         try {
-            return (await unsealDisplaySession(sessionCookie.value)).id;
+            return unsealDisplaySession(sessionCookie.value).id;
         } catch {
             console.error('Invalid display session cookie, discarded');
         }
@@ -70,11 +69,8 @@ export async function getDisplayId(): Promise<number | undefined> {
  */
 export async function setDisplayId(displayId: number): Promise<void> {
     const cookieStore = await cookies();
-    cookieStore.set(kDisplaySessionCookieName, await sealDisplaySession({ id: displayId }), {
-        httpOnly: true,
-        maxAge: kDisplaySessionExpirationTimeSeconds,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    });
+    cookieStore.set(
+        kDisplaySessionCookieName,
+        sealDisplaySession({ id: displayId }),
+        buildCookieOptions(kDisplaySessionExpirationTimeSeconds));
 }

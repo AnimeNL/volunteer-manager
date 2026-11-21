@@ -4,9 +4,8 @@
 import 'server-only';
 import type { cookies } from 'next/headers';
 
+import { buildCookieOptions } from './Constants';
 import { requireSealingSecret, sealToken, unsealToken } from './SealedToken';
-
-import { kSecureCookie } from './Constants';
 
 /**
  * Name of the short-lived cookie carrying a sealed WebAuthn challenge.
@@ -45,13 +44,8 @@ export function writePasskeyChallengeCookie(
     const sealed = sealToken(
         payload, 'passkey-challenge', kPasskeyChallengePassword, kPasskeyChallengeTtlSeconds);
 
-    cookieStore.set(kPasskeyChallengeCookieName, sealed, {
-        httpOnly: true,
-        maxAge: kPasskeyChallengeTtlSeconds,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    });
+    cookieStore.set(
+        kPasskeyChallengeCookieName, sealed, buildCookieOptions(kPasskeyChallengeTtlSeconds));
 }
 
 /**
@@ -67,13 +61,7 @@ export function consumePasskeyChallengeCookie(
     if (!cookie?.value)
         return undefined;
 
-    cookieStore.set(kPasskeyChallengeCookieName, '', {
-        httpOnly: true,
-        maxAge: 0,
-        path: '/',
-        sameSite: 'lax',
-        secure: kSecureCookie,
-    });
+    cookieStore.set(kPasskeyChallengeCookieName, '', buildCookieOptions(0));
 
     try {
         const payload = unsealToken<PasskeyChallengePayload>(

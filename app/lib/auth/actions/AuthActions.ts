@@ -11,6 +11,7 @@ import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@si
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
+import type { AuthActionResult } from './ActionHelpers';
 import type { StoredPasskeyCredential } from '../PasskeyStore';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
@@ -63,14 +64,6 @@ interface ConfirmIdentityResult {
 interface SignInPasswordResult {
     success: boolean;
     requiredPasswordUpdateToken?: string;
-    error?: string;
-}
-
-/**
- * Result returned by `signInPasswordUpdateAction()` and `signInPasskeyAction()`.
- */
-interface SignInActionResult {
-    success: boolean;
     error?: string;
 }
 
@@ -262,7 +255,7 @@ export async function signInPasswordAction(
  * revoking older sessions, and issuing a fresh persistent session cookie.
  */
 export async function signInPasswordUpdateAction(
-    input: { password: string; passwordResetRequest: string }): Promise<SignInActionResult>
+    input: { password: string; passwordResetRequest: string }): Promise<AuthActionResult>
 {
     const parsed = kSignInPasswordUpdateInput.safeParse(input);
     if (!parsed.success)
@@ -289,7 +282,7 @@ export async function signInPasswordUpdateAction(
  */
 export async function signInPasskeyAction(
     input: { username: string; verification: AuthenticationResponseJSON })
-        : Promise<SignInActionResult>
+        : Promise<AuthActionResult>
 {
     const parsed = kSignInPasskeyInput.safeParse(input);
     if (!parsed.success)

@@ -118,7 +118,7 @@ describe('AccountAuthActions', () => {
     });
 
     it('activates accounts atomically and sanitizes untrusted redirect URLs', async () => {
-        const token = await sealRegistrationRequest({
+        const token = sealRegistrationRequest({
             id: 91,
             token: 1,
             redirectUrl: '//evil.example.com/phish',
@@ -144,7 +144,7 @@ describe('AccountAuthActions', () => {
         expect(updateQuery).toContain('session_token');
         expect(updateParams).toContain(1);
 
-        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
+        const cookie = unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 401, userId: 91 });
 
         // Replaying the activation token after deactivation (`session_token` rotated) fails:
@@ -199,7 +199,7 @@ describe('AccountAuthActions', () => {
     it('verifies and completes password resets with Argon2id and full session revocation',
         async () =>
     {
-        const token = await sealPasswordResetRequest({ id: 42, token: 5 });
+        const token = sealPasswordResetRequest({ id: 42, token: 5 });
 
         // Tampered token returns { success: false }:
         await expect(verifyPasswordResetAction({ request: 'v1.invalid.token' }))
@@ -220,7 +220,7 @@ describe('AccountAuthActions', () => {
             password: 'NewStrongPassword1',
         });
         expect(completed).toEqual({ success: true });
-        const cookie = await unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
+        const cookie = unsealSession(mockCookieJar.get(kSessionCookieName)!.value);
         expect(cookie).toMatchObject({ sessionId: 501, userId: 42 });
 
         // Concurrent replay where `session_token` was already rotated aborts atomically:
