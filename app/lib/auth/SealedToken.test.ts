@@ -98,6 +98,12 @@ describe('SealedToken', () => {
             .toThrow(/Invalid sealed token format/);
         expect(() => unsealToken(`${version}.${keyId}.short`, 'session', kPrimarySecret))
             .toThrow(/truncated/);
+        expect(() => unsealToken(`${sealed}!`, 'session', kPrimarySecret))
+            .toThrow(/Invalid sealed token format/);
+        expect(() => unsealToken(`${sealed}=`, 'session', kPrimarySecret))
+            .toThrow(/Invalid sealed token format/);
+        expect(() => unsealToken(`${version}.${keyId}!$.${payload}`, 'session', kPrimarySecret))
+            .toThrow(/Invalid sealed token format/);
     });
 
     it('rejects expired tokens only after authentication succeeds', () => {

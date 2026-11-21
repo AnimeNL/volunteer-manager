@@ -23,7 +23,7 @@ export { kAnyEvent, kAnyTeam };
  *
  * @visible Exclusively for testing purposes.
  */
-export const kPermissionPattern = /^[a-z][\w-]*(?:\.[\w-]+)*(?:\:(create|read|update|delete))*$/;
+export const kPermissionPattern = /^[a-z][\w-]*(?:\.[\w-]+)*(?:\:(create|read|update|delete))?$/;
 
 /**
  * Valid runtime operations accepted when querying a CRUD permission.

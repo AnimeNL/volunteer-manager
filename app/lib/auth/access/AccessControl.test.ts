@@ -13,7 +13,10 @@ describe('AccessControl', () => {
             'foo.bar', 'foo.bar:create', 'foo.bar:read', 'foo.bar:update', 'foo.bar:delete',
             'foo.bar.baz',
         ];
-        const invalid = [ '', ' ', 'foo:unicorn', 'bar:unicorn', 'foo,bar', '1234', 'foo$bar' ];
+        const invalid = [
+            '', ' ', 'foo:unicorn', 'bar:unicorn', 'foo,bar', '1234', 'foo$bar',
+            'foo:read:delete', 'foo.bar:create:update',
+        ];
 
         for (const pattern of valid)
             expect(kPermissionPattern.test(pattern), pattern).toBe(true);

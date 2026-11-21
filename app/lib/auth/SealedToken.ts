@@ -10,6 +10,11 @@ import crypto from 'node:crypto';
 const kTokenVersion = 'v1';
 
 /**
+ * Pattern matching canonical unpadded base64url strings.
+ */
+const kBase64UrlPattern = /^[A-Za-z0-9_-]+$/;
+
+/**
  * Minimum length required for any sealing secret, in characters.
  */
 const kMinimumSecretLength = 32;
@@ -170,6 +175,9 @@ export function unsealToken<T = unknown>(
     const [ version, keyId, encodedPayload ] = parts;
     if (version !== kTokenVersion)
         throw new Error(`Unsupported sealed token version: "${version}".`);
+
+    if (!kBase64UrlPattern.test(keyId) || !kBase64UrlPattern.test(encodedPayload))
+        throw new Error('Invalid sealed token format.');
 
     const matchingKey = keys.find(key => key.id === keyId);
     if (!matchingKey)
