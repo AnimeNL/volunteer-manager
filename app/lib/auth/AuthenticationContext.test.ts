@@ -221,7 +221,7 @@ describe('AuthenticationContext', () => {
         }));
         expectAuthenticationQuery(mockConnection, { userId: 55, firstName: 'Target' });
         mockConnection.expect('delete', (_query, params) => {
-            expect(params).toEqual([ 300 ]);
+            expect(params).toEqual([ 300, 1 ]);
             return 1;
         });
         mockConnection.expect('insertReturningLastInsertedId', () => 303);

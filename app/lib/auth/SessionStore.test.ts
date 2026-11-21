@@ -5,7 +5,7 @@ import { Cache } from '@lib/cache';
 import { createAndWriteUserSessionCookie, createUserSession, hashSessionSecret,
     revokeAllUserSessions, revokeAndClearCurrentSessionCookie, revokeUserSession,
     verifyUserSession } from './SessionStore';
-import { kSessionCookieName, unsealSession } from './Session';
+import { kSessionCookieName, sealSession, unsealSession } from './Session';
 import { useMockConnection } from '../database/Connection';
 
 describe('SessionStore', () => {
@@ -76,9 +76,18 @@ describe('SessionStore', () => {
         authCache.set(42, { context: {} as any, sessions: new Map() });
         authCache.set(99, { context: {} as any, sessions: new Map() });
 
-        mockConnection.expect('delete', () => 1);
-        await revokeUserSession(77, 42);
+        mockConnection.expect('delete', (_query, params) => {
+            expect(params).toEqual([ 77, 42 ]);
+            return 1;
+        });
+        await expect(revokeUserSession(77, 42)).resolves.toBe(true);
         expect(authCache.has(42)).toBe(false);
+
+        mockConnection.expect('delete', (_query, params) => {
+            expect(params).toEqual([ 77, 42 ]);
+            return 0;
+        });
+        await expect(revokeUserSession(77, 42)).resolves.toBe(false);
 
         authCache.set(42, { context: {} as any, sessions: new Map() });
         mockConnection.expect('selectOneColumnManyRows', () => [ 99 ]);
@@ -175,5 +184,65 @@ describe('SessionStore', () => {
             restoredImpersonator: true,
             returnUrl: undefined,
         });
+    });
+
+    it('prevents duplicate impersonation restores and ignores unverified cookies on sign-out',
+        async () =>
+    {
+        const authCache = Cache.getInstance('Authentication');
+        authCache.clear();
+
+        const jar = new Map<string, { value: string; options: any }>();
+        const cookieStore = {
+            get: (name: string) => {
+                const entry = jar.get(name);
+                return entry ? { name, value: entry.value } : undefined;
+            },
+            set: (name: string, value: string, options: any) => {
+                jar.set(name, { value, options });
+            },
+        } as any;
+
+        const secret = 'concurrent-sign-out-secret';
+        jar.set(kSessionCookieName, {
+            value: await sealSession({ sessionId: 95, userId: 42, secret }),
+            options: {},
+        });
+
+        // Concurrent sign-out where the DB row was already deleted must not restore impersonator:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 95,
+            userId: 42,
+            sessionTokenHash: hashSessionSecret(secret),
+            impersonatorUserId: 1,
+            impersonatorReturnUrl: '/admin/organisation/accounts/42',
+        }));
+        mockConnection.expect('delete', (_query, params) => {
+            expect(params).toEqual([ 95, 42 ]);
+            return 0;
+        });
+
+        await expect(revokeAndClearCurrentSessionCookie(cookieStore)).resolves.toEqual({
+            restoredImpersonator: false,
+        });
+        expect(jar.get(kSessionCookieName)?.value).toBe('');
+        expect(jar.get(kSessionCookieName)?.options.maxAge).toBe(0);
+
+        // Expired or revoked session clears the cookie without deleting or evicting auth cache:
+        authCache.set(42, { context: {} as any, sessions: new Map() });
+        jar.set(kSessionCookieName, {
+            value: await sealSession({ sessionId: 96, userId: 42, secret }),
+            options: {},
+        });
+
+        mockConnection.expect('selectOneRow', () => undefined);
+        await expect(revokeAndClearCurrentSessionCookie(cookieStore)).resolves.toEqual({
+            restoredImpersonator: false,
+        });
+        expect(jar.get(kSessionCookieName)?.value).toBe('');
+        expect(jar.get(kSessionCookieName)?.options.maxAge).toBe(0);
+        expect(authCache.has(42)).toBe(true);
+
+        authCache.clear();
     });
 });

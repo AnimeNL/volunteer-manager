@@ -166,15 +166,19 @@ export async function touchUserSession(sessionId: number): Promise<void> {
 }
 
 /**
- * Revokes a single device session by its `sessionId` and invalidates the user's auth cache.
+ * Revokes a single device session by its `sessionId` (scoped to `userId` when provided),
+ * invalidates the user's auth cache, and returns whether a matching session row was removed.
  */
-export async function revokeUserSession(sessionId: number, userId?: number): Promise<void> {
-    await db.deleteFrom(tUsersSessions)
+export async function revokeUserSession(sessionId: number, userId?: number): Promise<boolean> {
+    const deleted = await db.deleteFrom(tUsersSessions)
         .where(tUsersSessions.sessionId.equals(sessionId))
+            .and(tUsersSessions.userId.equalsIfValue(userId))
         .executeDelete();
 
     if (userId !== undefined)
         Cache.getInstance('Authentication').delete(userId);
+
+    return deleted > 0;
 }
 
 /**
@@ -248,9 +252,13 @@ export async function revokeAndClearCurrentSessionCookie(
     const session = await getSessionFromCookieStore(cookieStore);
     if (session) {
         const verified = await verifyUserSession(session.sessionId, session.secret);
-        await revokeUserSession(session.sessionId, session.userId);
+        const revoked = verified && verified.userId === session.userId
+            ? await revokeUserSession(verified.sessionId, verified.userId)
+            : false;
 
-        if (verified?.impersonatorUserId && await isActiveUser(verified.impersonatorUserId)) {
+        if (revoked && verified?.impersonatorUserId &&
+            await isActiveUser(verified.impersonatorUserId))
+        {
             await createAndWriteUserSessionCookie(cookieStore, {
                 userId: verified.impersonatorUserId,
                 ip: metadata?.ip,
