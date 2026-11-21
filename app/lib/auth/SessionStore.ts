@@ -155,18 +155,29 @@ export async function revokeUserSession(sessionId: number, userId?: number): Pro
 }
 
 /**
- * Revokes all sessions belonging to `userId` (optionally preserving `exceptSessionId` when a user
- * changes their own password) and invalidates the user's auth cache.
+ * Revokes all sessions belonging to `userId` — including any impersonation sessions initiated by
+ * `userId` — (optionally preserving `exceptSessionId` when a user changes their own password) and
+ * invalidates the affected auth cache entries.
  */
 export async function revokeAllUserSessions(
     userId: number, exceptSessionId?: number): Promise<void>
 {
-    await db.deleteFrom(tUsersSessions)
-        .where(tUsersSessions.userId.equals(userId))
+    const impersonatedUserIds = await db.selectDistinctFrom(tUsersSessions)
+        .where(tUsersSessions.impersonatorUserId.equals(userId))
             .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
+        .selectOneColumn(tUsersSessions.userId)
+        .executeSelectMany();
+
+    await db.deleteFrom(tUsersSessions)
+        .where(tUsersSessions.userId.equals(userId)
+            .or(tUsersSessions.impersonatorUserId.equals(userId)))
+        .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
         .executeDelete();
 
-    Cache.getInstance('Authentication').delete(userId);
+    const authCache = Cache.getInstance('Authentication');
+    authCache.delete(userId);
+    for (const impersonatedUserId of impersonatedUserIds)
+        authCache.delete(impersonatedUserId);
 }
 
 /**

@@ -106,6 +106,7 @@ export function expectSetUserPassword(
     });
     mockConnection.expect('update', () => 1);
     mockConnection.expect('commit');
+    mockConnection.expect('selectOneColumnManyRows', () => []);
     mockConnection.expect('delete', (_query: string, params: any[]) => {
         options?.onRevokeParams?.(params);
         return options?.revokedCount ?? 0;

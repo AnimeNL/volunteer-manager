@@ -13,8 +13,8 @@ import type { SessionData } from './Session';
 import type { User } from './User';
 import { AccessControl, type AccessScope, type Grant } from './access/AccessControl';
 import { Cache } from '@lib/cache';
-import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, verifyUserSession }
-    from './SessionStore';
+import { createAndWriteUserSessionCookie, hashSessionSecret, revokeUserSession, touchUserSession,
+    verifyUserSession } from './SessionStore';
 import { executeAccessCheck } from './access/PermissionCheck';
 import { getBlobUrl } from '../database/BlobStore';
 import { getSessionFromCookieStore } from './Session';
@@ -312,9 +312,14 @@ export async function impersonateUser(
     if (!impersonatedUser)
         return undefined;
 
+    const cookieStore = await cookies();
+    const previousSession = await getSessionFromCookieStore(cookieStore);
+    if (previousSession)
+        await revokeUserSession(previousSession.sessionId, previousSession.userId);
+
     const requestHeaders = await headers();
 
-    await createAndWriteUserSessionCookie(await cookies(), {
+    await createAndWriteUserSessionCookie(cookieStore, {
         userId: impersonatedUser.id,
         impersonatorUserId: options.impersonatorUserId,
         impersonatorReturnUrl: options.returnUrl,

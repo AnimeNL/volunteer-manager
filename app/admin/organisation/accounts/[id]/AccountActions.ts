@@ -17,7 +17,7 @@ import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/Exampl
 import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
-    tUsersAuth, tUsersPasskeys, tUsersSessions } from '@lib/database';
+    tUsersAuth, tUsersPasskeys } from '@lib/database';
 
 import { kCommunicationLanguage, kFileType } from '@lib/database/Types';
 import { kTemporalPlainDate } from '@app/admin/lib/ZodTransformers';
@@ -149,17 +149,13 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
                 .where(tUsersPasskeys.userId.equals(userId))
                 .executeDelete();
 
-            await dbInstance.deleteFrom(tUsersSessions)
-                .where(tUsersSessions.userId.equals(userId))
-                .executeDelete();
-
             return affectedRows;
         });
 
         if (!affectedRows)
             return { success: false, error: 'The account could not be anonymized…' };
 
-        invalidateAuthCache(/* forUserId= */ userId);
+        await revokeAllUserSessions(userId);
 
         LogBuilder.for('AdminAnonymizeAccount')
             .withInitiatorUser(adminUser)

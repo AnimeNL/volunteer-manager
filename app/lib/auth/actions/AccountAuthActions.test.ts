@@ -178,6 +178,6 @@ describe('AccountAuthActions', () => {
         });
 
         expect(result).toEqual({ success: true });
-        expect(revokeParams).toEqual([ 42, 77 ]);
+        expect(revokeParams).toEqual([ 42, 42, 77 ]);
     });
 });

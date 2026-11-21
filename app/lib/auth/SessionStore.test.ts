@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { Cache } from '@lib/cache';
 import { createAndWriteUserSessionCookie, createUserSession, hashSessionSecret,
     revokeAllUserSessions, revokeAndClearCurrentSessionCookie, revokeUserSession,
     verifyUserSession } from './SessionStore';
@@ -66,12 +67,28 @@ describe('SessionStore', () => {
         await expect(verifyUserSession(999, secret)).resolves.toBeUndefined();
     });
 
-    it('revokes individual sessions and all user sessions', async () => {
+    it('revokes individual sessions, user sessions, and initiated impersonation sessions',
+        async () =>
+    {
+        const authCache = Cache.getInstance('Authentication');
+        authCache.set(42, { context: {} as any, sessions: new Map() });
+        authCache.set(99, { context: {} as any, sessions: new Map() });
+
         mockConnection.expect('delete', () => 1);
         await revokeUserSession(77, 42);
+        expect(authCache.has(42)).toBe(false);
 
-        mockConnection.expect('delete', () => 3);
+        authCache.set(42, { context: {} as any, sessions: new Map() });
+        mockConnection.expect('selectOneColumnManyRows', () => [ 99 ]);
+        mockConnection.expect('delete', (query, params) => {
+            expect(query).toContain('impersonator_user_id');
+            expect(params).toEqual([ 42, 42, 77 ]);
+            return 3;
+        });
+
         await revokeAllUserSessions(42, 77);
+        expect(authCache.has(42)).toBe(false);
+        expect(authCache.has(99)).toBe(false);
     });
 
     it('writes persistent session cookies and restores impersonator sessions on sign-out',

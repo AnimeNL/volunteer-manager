@@ -215,8 +215,15 @@ describe('AuthenticationContext', () => {
         expect(missing).toBeUndefined();
         expect(cookieStoreData.has(kSessionCookieName)).toBe(false);
 
-        // Active target writes a persistent impersonation session cookie:
+        // Active target revokes the admin's prior session and writes an impersonation cookie:
+        cookieStoreData.set(kSessionCookieName, await sealSession({
+            sessionId: 300, userId: 1, secret: 'admin-secret',
+        }));
         expectAuthenticationQuery(mockConnection, { userId: 55, firstName: 'Target' });
+        mockConnection.expect('delete', (_query, params) => {
+            expect(params).toEqual([ 300 ]);
+            return 1;
+        });
         mockConnection.expect('insertReturningLastInsertedId', () => 303);
 
         const impersonated = await impersonateUser(55, {
