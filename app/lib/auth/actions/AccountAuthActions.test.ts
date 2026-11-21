@@ -248,6 +248,14 @@ describe('AccountAuthActions', () => {
         });
 
         expect(mockCookieJar.has(kSessionCookieName)).toBe(false);
+
+        // Exhausting `password-reset-ip` throttles `verifyPasswordResetAction` before any DB query:
+        for (let i = 0; i < kAuthRateLimits.passwordResetByIp.limit; ++i)
+            checkRateLimit('password-reset-ip', '198.51.100.88', kAuthRateLimits.passwordResetByIp);
+
+        getMockHeaders().set('x-forwarded-for', '198.51.100.88');
+        await expect(verifyPasswordResetAction({ request: token }))
+            .resolves.toEqual({ success: false });
     });
 
     it('changes password while preserving the current persistent session and revoking others',

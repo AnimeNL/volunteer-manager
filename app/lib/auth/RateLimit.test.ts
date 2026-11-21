@@ -103,10 +103,16 @@ describe('RateLimit', () => {
         // A different /64 subnet is unaffected:
         expect(checkRateLimit('signin-ip', '2001:db8:1:3::1', policy).allowed).toBeTruthy();
 
-        // IPv4-mapped IPv6 shares the same bucket as the underlying IPv4 address:
+        // IPv4-mapped IPv6 (compressed, expanded, and hex forms) shares the IPv4 bucket:
         expect(checkRateLimit('signin-ip', '203.0.113.5', policy).allowed).toBeTruthy();
         expect(checkRateLimit('signin-ip', '::ffff:203.0.113.5', policy).allowed).toBeTruthy();
         expect(checkRateLimit('signin-ip', '::FFFF:203.0.113.5', policy).allowed).toBeFalsy();
+        expect(checkRateLimit(
+            'signin-ip', '0:0:0:0:0:ffff:203.0.113.5', policy).allowed).toBeFalsy();
+        expect(checkRateLimit('signin-ip', '::ffff:cb00:7105', policy).allowed).toBeFalsy();
+
+        // Loopback `::1` remains in its own IPv6 `/64` bucket and does not collide with IPv4:
+        expect(checkRateLimit('signin-ip', '::1', policy).allowed).toBeTruthy();
     });
 
     it('normalizes X-Forwarded-For headers cleanly', () => {

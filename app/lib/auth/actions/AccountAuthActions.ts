@@ -351,6 +351,10 @@ export async function verifyPasswordResetAction(
     if (!parsed.success)
         return { success: false };
 
+    const meta = await getAuthRequestMetadata();
+    if (!checkRateLimit('password-reset-ip', meta.ip, kAuthRateLimits.passwordResetByIp).allowed)
+        return { success: false };
+
     let resetRequest: { id: number; token: number };
     try {
         resetRequest = await unsealPasswordResetRequest(parsed.data.request);

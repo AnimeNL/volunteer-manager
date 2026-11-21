@@ -105,6 +105,62 @@ function getBucketStorage(bucket: RateLimitBucket): Map<string, RateLimitEntry> 
 }
 
 /**
+ * Parses one side of a `::`-split IPv6 address (with optional trailing dotted-quad IPv4) into
+ * 16-bit integer groups.
+ */
+function parseIpv6Side(part: string): number[] | undefined {
+    if (!part)
+        return [];
+
+    const segments = part.split(':');
+    const groups: number[] = [];
+
+    for (let index = 0; index < segments.length; ++index) {
+        const segment = segments[index];
+        if (segment.includes('.') && index === segments.length - 1) {
+            if (!net.isIPv4(segment))
+                return undefined;
+
+            const octets = segment.split('.').map(octet => Number.parseInt(octet, 10));
+            groups.push((octets[0] << 8) | octets[1], (octets[2] << 8) | octets[3]);
+        } else {
+            if (!/^[0-9a-f]{1,4}$/.test(segment))
+                return undefined;
+
+            groups.push(Number.parseInt(segment, 16));
+        }
+    }
+
+    return groups;
+}
+
+/**
+ * Parses a valid IPv6 address into 8 16-bit integer groups.
+ */
+function parseIpv6Groups(address: string): number[] | undefined {
+    const halves = address.split('::');
+    if (halves.length > 2)
+        return undefined;
+
+    const left = parseIpv6Side(halves[0]);
+    if (!left)
+        return undefined;
+
+    if (halves.length === 1)
+        return left.length === 8 ? left : undefined;
+
+    const right = parseIpv6Side(halves[1]);
+    if (!right)
+        return undefined;
+
+    const missing = 8 - left.length - right.length;
+    if (missing < 1)
+        return undefined;
+
+    return [ ...left, ...Array<number>(missing).fill(0), ...right ];
+}
+
+/**
  * Normalizes a rate limit key. IPv4-mapped IPv6 addresses are unwrapped to IPv4, and IPv6
  * addresses are bucketed by their `/64` network prefix so rotating interface identifiers within a
  * residential or mobile allocation cannot bypass per-IP limits.
@@ -114,19 +170,20 @@ function normalizeRateLimitKey(key: string): string {
     if (!net.isIPv6(normalized))
         return normalized;
 
-    if (normalized.startsWith('::ffff:') && net.isIPv4(normalized.slice(7)))
-        return normalized.slice(7);
+    const groups = parseIpv6Groups(normalized);
+    if (!groups)
+        return normalized;
 
-    const [ leftPart, rightPart ] = normalized.split('::');
-    const left = leftPart ? leftPart.split(':') : [];
-    const right = rightPart ? rightPart.split(':') : [];
-    const rightCount = right.length + (right.at(-1)?.includes('.') ? 1 : 0);
-    const missing = rightPart !== undefined ? Math.max(0, 8 - left.length - rightCount) : 0;
-    const prefix = [ ...left, ...Array<string>(missing).fill('0'), ...right ]
-        .slice(0, 4)
-        .map(group => Number.parseInt(group, 16).toString(16));
+    const isIpv4Mapped =
+        groups[0] === 0 && groups[1] === 0 && groups[2] === 0 &&
+        groups[3] === 0 && groups[4] === 0 && groups[5] === 0xffff;
 
-    return `${prefix.join(':')}::/64`;
+    if (isIpv4Mapped) {
+        return `${groups[6] >> 8}.${groups[6] & 0xff}.` +
+            `${groups[7] >> 8}.${groups[7] & 0xff}`;
+    }
+
+    return `${groups.slice(0, 4).map(group => group.toString(16)).join(':')}::/64`;
 }
 
 /**
