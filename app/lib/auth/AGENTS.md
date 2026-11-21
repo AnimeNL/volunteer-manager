@@ -26,6 +26,10 @@
 - **Prefer `requireAuthenticationContext()`**: Use `requireAuthenticationContext()` whenever
   unauthenticated requests should fail with `401`. Reserve `getAuthenticationContext()` for routes
   or actions that genuinely support visitors or return custom responses/redirects.
+- **Trusted reverse-proxy headers (`Host` and `X-Forwarded-For`)**: The production reverse proxy
+  validates `Host` against configured virtual hosts and overwrites `X-Forwarded-For` with the
+  connecting client IP. Auth actions and rate limiters may rely on both headers directly without
+  re-validating `Host` against the database or walking proxy hops.
 
 ## Testing Gotchas
 - **Avoid importing `next/headers` inside `vi.mock('next/headers')` factories**: In Vitest,
