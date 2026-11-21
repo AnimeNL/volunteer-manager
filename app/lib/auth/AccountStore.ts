@@ -72,10 +72,10 @@ async function consumeAccessCode(userId: number, storedValue: string): Promise<b
 }
 
 /**
- * Deletes any outstanding one-time access code for `userId` (e.g. after a successful password
- * login).
+ * Deletes any outstanding one-time access code for `userId` (e.g. after a successful password or
+ * passkey login).
  */
-async function clearUserAccessCode(userId: number): Promise<void> {
+export async function clearUserAccessCode(userId: number): Promise<void> {
     await db.deleteFrom(tUsersAuth)
         .where(tUsersAuth.userId.equals(userId))
             .and(tUsersAuth.authType.equals(kAuthType.code))
@@ -282,11 +282,14 @@ export async function setUserPassword(
 }
 
 /**
- * Returns the current session token for `userId`, or `null` if the user does not exist.
+ * Returns the current session token for `userId`, or `null` if the user does not exist, is not
+ * activated, or is anonymized.
  */
 async function getUserSessionToken(userId: number): Promise<number | null> {
     return db.selectFrom(tUsers)
         .where(tUsers.userId.equals(userId))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
         .selectOneColumn(tUsers.sessionToken)
         .executeSelectNoneOrOne();
 }
@@ -334,11 +337,21 @@ function generateAccessCode(): string {
 }
 
 /**
- * Generates a new 24-hour one-time access code for `userId`, replaces any existing code with its
- * expiry-prefixed Argon2id hash in `users_auth`, and returns the plaintext code (or `undefined` on
- * failure).
+ * Generates a new 24-hour one-time access code for an activated, non-anonymized `userId`, replaces
+ * any existing code with its expiry-prefixed Argon2id hash in `users_auth`, and returns the
+ * plaintext code (or `undefined` if the user is missing/inactive or on failure).
  */
 export async function createUserAccessCode(userId: number): Promise<string | undefined> {
+    const activeUserId = await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(userId))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
+        .selectOneColumn(tUsers.userId)
+        .executeSelectNoneOrOne();
+
+    if (!activeUserId)
+        return undefined;
+
     const accessCode = generateAccessCode();
     const expiresAt = Math.floor(Date.now() / 1000) + kAccessCodeExpirySeconds;
     const hashedAccessCode = `$exp=${expiresAt}${await hashPassword(accessCode)}`;
@@ -363,8 +376,8 @@ export async function createUserAccessCode(userId: number): Promise<string | und
 }
 
 /**
- * Creates a sealed password-reset token for `userId`, or returns `undefined` if the user does not
- * exist.
+ * Creates a sealed password-reset token for an activated, non-anonymized `userId`, or returns
+ * `undefined` if the user does not exist, is not activated, or is anonymized.
  */
 export async function createPasswordResetToken(userId: number): Promise<string | undefined> {
     const sessionToken = await getUserSessionToken(userId);

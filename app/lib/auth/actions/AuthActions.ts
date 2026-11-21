@@ -14,12 +14,12 @@ import { z } from 'zod/v4';
 import type { StoredPasskeyCredential } from '../PasskeyStore';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
+import { clearUserAccessCode, createPasswordResetToken, isValidActivatedUser,
+    verifyUserCredentials } from '../AccountStore';
 import { completePasswordUpdateWithToken, getAuthRequestMetadata } from './ActionHelpers';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
     from '../SessionStore';
-import { createPasswordResetToken, isValidActivatedUser, verifyUserCredentials }
-    from '../AccountStore';
 import { retrieveUserPasskeys, updatePasskeyCounter } from '../PasskeyStore';
 
 import { kAuthRateLimits } from '../RateLimit';
@@ -344,6 +344,7 @@ export async function signInPasskeyAction(
 
     await updatePasskeyCounter(
         user.id, match.passkeyId, BigInt(verification.authenticationInfo.newCounter));
+    await clearUserAccessCode(user.id);
 
     await createAndWriteUserSessionCookie(cookieStore, {
         userId: user.id,

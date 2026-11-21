@@ -3,7 +3,8 @@
 
 import { vi } from 'vitest';
 
-import { createUserAccessCode, verifyUserCredentials } from './AccountStore';
+import { createPasswordResetToken, createUserAccessCode, verifyUserCredentials }
+    from './AccountStore';
 import { hashPassword } from './Password';
 import { useMockConnection } from '../database/Connection';
 
@@ -67,6 +68,7 @@ describe('AccountStore.verifyUserCredentials', () => {
         vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
 
         let storedCodeHash = '';
+        mockConnection.expect('selectOneColumnOneRow', () => 12);
         mockConnection.expect('beginTransaction');
         mockConnection.expect('delete', () => 0);
         mockConnection.expect('insert', (_query, params) => {
@@ -120,5 +122,18 @@ describe('AccountStore.verifyUserCredentials', () => {
 
         await expect(verifyUserCredentials('user@example.com', 'WrongPassword1'))
             .resolves.toEqual({ authenticated: false });
+    });
+
+    it('restricts access codes and password reset tokens to active, non-anonymized accounts',
+        async () =>
+    {
+        mockConnection.expect('selectOneColumnOneRow', () => undefined);
+        await expect(createUserAccessCode(99)).resolves.toBeUndefined();
+
+        mockConnection.expect('selectOneColumnOneRow', () => undefined);
+        await expect(createPasswordResetToken(99)).resolves.toBeUndefined();
+
+        mockConnection.expect('selectOneColumnOneRow', () => 7);
+        await expect(createPasswordResetToken(99)).resolves.toBeTruthy();
     });
 });
