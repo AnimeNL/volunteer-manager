@@ -60,6 +60,7 @@ export function expectAuthenticationQuery(
         // UserAuthenticationContext.user:
         userId: 2000000,
         username: 'joe@example.com',
+        name: 'Joe Example',
         firstName: 'Joe',
         lastName: 'Example',
         avatarFileHash: undefined,

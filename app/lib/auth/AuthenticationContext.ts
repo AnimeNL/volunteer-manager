@@ -38,16 +38,16 @@ export interface AuthenticationResult {
     };
 
     // UserAuthenticationContext.events:
-    events: {
-        event?: string;
+    events?: {
+        event: string;
         grant?: string;
-        team?: string;
-        isEventHidden?: number;
+        team: string;
     }[];
 
     // UserAuthenticationContext.user:
     userId: number;
     username?: string;
+    name: string;
     firstName: string;
     lastName: string;
     displayName?: string;
@@ -68,83 +68,57 @@ type LoadUserAuthenticationContextParams =
 export async function loadUserAuthenticationContext(
     params: LoadUserAuthenticationContextParams): Promise<AuthenticationContext>
 {
-    const eventsJoin = tEvents.forUseInLeftJoin();
-    const rolesJoin = tRoles.forUseInLeftJoin();
     const storageJoin = tStorage.forUseInLeftJoin();
-    const teamsJoin = tTeams.forUseInLeftJoin();
-    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
     const dbInstance = db;
-    const baseUserSelect = {
-        // AuthenticationContext.accessControl:
-        accessControl: {
-            grants: tUsers.permissionsGrants,
-            revokes: tUsers.permissionsRevokes,
-            events: tUsers.permissionsEvents,
-            teams: tUsers.permissionsTeams,
-        },
+    const eventsSubSelect = dbInstance.subSelectUsing(tUsers)
+        .from(tUsersEvents)
+        .innerJoin(tEvents)
+            .on(tEvents.eventId.equals(tUsersEvents.eventId))
+                .and(tEvents.eventHidden.equals(/* false= */ 0))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tUsersEvents.teamId))
+        .innerJoin(tRoles)
+            .on(tRoles.roleId.equals(tUsersEvents.roleId))
+        .where(tUsersEvents.userId.equals(tUsers.userId))
+            .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .select({
+            event: tEvents.eventSlug,
+            grant: tRoles.rolePermissionGrant,
+            team: tTeams.teamSlug,
+        })
+        .forUseAsInlineAggregatedArrayValue();
 
-        // UserAuthenticationContext.events:
-        events: dbInstance.aggregateAsArray({
-            event: eventsJoin.eventSlug,
-            grant: rolesJoin.rolePermissionGrant,
-            team: teamsJoin.teamSlug,
-
-            // TODO: Figure out if we can do this filtering in the query somehow...
-            isEventHidden: eventsJoin.eventHidden,
-        }),
-
-        // UserAuthenticationContext.user:
-        userId: tUsers.userId,
-        username: tUsers.username,
-        firstName: tUsers.firstName,
-        lastName: tUsers.lastName,
-        displayName: tUsers.displayName,
-        avatarFileHash: storageJoin.fileHash,
-    };
-
-    const userSelectFrom = dbInstance.selectFrom(tUsers)
+    const authenticationResult = await dbInstance.selectFrom(tUsers)
         .leftJoin(storageJoin)
             .on(storageJoin.fileId.equals(tUsers.avatarId))
-        .leftJoin(usersEventsJoin)
-            .on(usersEventsJoin.userId.equals(tUsers.userId))
-            .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .leftJoin(eventsJoin)
-            .on(eventsJoin.eventId.equals(usersEventsJoin.eventId))
-        .leftJoin(teamsJoin)
-            .on(teamsJoin.teamId.equals(usersEventsJoin.teamId))
-        .leftJoin(rolesJoin)
-            .on(rolesJoin.roleId.equals(usersEventsJoin.roleId));
+        .where(tUsers.userId.equals(params.type === 'session' ? params.id : params.userId))
+            .and(tUsers.sessionToken.equalsIfValue(
+                params.type === 'session' ? params.token : undefined))
+            .and(tUsers.activated.equals(/* true= */ 1))
+            .and(tUsers.anonymized.isNull())
+        .select({
+            // AuthenticationContext.accessControl:
+            accessControl: {
+                grants: tUsers.permissionsGrants,
+                revokes: tUsers.permissionsRevokes,
+                events: tUsers.permissionsEvents,
+                teams: tUsers.permissionsTeams,
+            },
 
-    let authenticationResult: AuthenticationResult | null;
+            // UserAuthenticationContext.events:
+            events: eventsSubSelect,
 
-    switch (params.type) {
-        case 'session':
-            authenticationResult = await userSelectFrom
-                .groupBy(tUsers.userId)
-                .select(baseUserSelect)
-                .where(tUsers.userId.equals(params.id))
-                    .and(tUsers.sessionToken.equals(params.token))
-                    .and(tUsers.activated.equals(/* true= */ 1))
-                    .and(tUsers.anonymized.isNull())
-                .executeSelectNoneOrOne();
-
-            break;
-
-        case 'userId':
-            authenticationResult = await userSelectFrom
-                .groupBy(tUsers.userId)
-                .select(baseUserSelect)
-                .where(tUsers.userId.equals(params.userId))
-                    .and(tUsers.activated.equals(/* true= */ 1))
-                    .and(tUsers.anonymized.isNull())
-                .executeSelectNoneOrOne();
-
-            break;
-
-        default:
-            throw new Error('Invalid authentication type was provided');
-    }
+            // UserAuthenticationContext.user:
+            userId: tUsers.userId,
+            username: tUsers.username,
+            name: tUsers.name,
+            firstName: tUsers.firstName,
+            lastName: tUsers.lastName,
+            displayName: tUsers.displayName,
+            avatarFileHash: storageJoin.fileHash,
+        })
+        .executeSelectNoneOrOne();
 
     if (!authenticationResult) {
         return {
@@ -157,8 +131,7 @@ export async function loadUserAuthenticationContext(
     const user: User = {
         id: authenticationResult.userId,
         username: authenticationResult.username,
-        name: authenticationResult.displayName ||
-            `${authenticationResult.firstName} ${authenticationResult.lastName}`,
+        name: authenticationResult.name,
         nameOrFirstName: authenticationResult.displayName || authenticationResult.firstName,
         firstName: authenticationResult.firstName,
         lastName: authenticationResult.lastName,
@@ -173,13 +146,7 @@ export async function loadUserAuthenticationContext(
     if (!!authenticationResult.accessControl?.grants)
         grants.push(authenticationResult.accessControl.grants);
 
-    for (const entry of authenticationResult.events) {
-        if (!entry.event || !entry.team)
-            continue;  // incomplete data
-
-        if (entry.isEventHidden)
-            continue;  // the event has been suspended
-
+    for (const entry of authenticationResult.events ?? []) {
         if (!!entry.grant) {
             grants.push({
                 permission: entry.grant,
