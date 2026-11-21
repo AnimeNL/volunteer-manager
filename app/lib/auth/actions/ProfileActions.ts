@@ -41,12 +41,12 @@ const kOwnAccountFields = z.object({
 /**
  * Editable profile fields for the signed-in volunteer.
  */
-export type OwnAccountFields = z.infer<typeof kOwnAccountFields>;
+type OwnAccountFields = z.infer<typeof kOwnAccountFields>;
 
 /**
  * Result returned by `getOwnAccountAction()`.
  */
-export interface GetOwnAccountResult {
+interface GetOwnAccountResult {
     success: boolean;
     error?: string;
     account?: OwnAccountFields;
@@ -55,7 +55,7 @@ export interface GetOwnAccountResult {
 /**
  * Result returned by `updateOwnAccountAction()` and `updateAvatarAction()`.
  */
-export interface ProfileMutationResult {
+interface ProfileMutationResult {
     success: boolean;
     error?: string;
 }

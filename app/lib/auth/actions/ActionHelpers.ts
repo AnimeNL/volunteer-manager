@@ -15,7 +15,7 @@ import { validatePasswordStrength } from '../Password';
 /**
  * Request metadata derived from the trusted server-injected HTTP headers for an auth action.
  */
-export interface AuthRequestMetadata {
+interface AuthRequestMetadata {
     host: string;
     origin: string;
     rpId: string;
@@ -52,7 +52,7 @@ export function sanitizeRelativeRedirectUrl(url?: string): string | undefined {
  * Parameters for completing a token-authenticated password update (access-code sign-in or password
  * reset).
  */
-export interface CompletePasswordUpdateParams {
+interface CompletePasswordUpdateParams {
     token: string;
     password: string;
     meta: Pick<AuthRequestMetadata, 'ip' | 'userAgent'>;

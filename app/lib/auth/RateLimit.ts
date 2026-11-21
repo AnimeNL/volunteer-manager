@@ -17,7 +17,7 @@ const kMaximumTrackedKeys = 10_000;
 /**
  * Sliding-window rate limit configuration.
  */
-export interface RateLimitPolicy {
+interface RateLimitPolicy {
     /**
      * Maximum number of requests allowed within `windowSeconds`.
      */
@@ -32,7 +32,7 @@ export interface RateLimitPolicy {
 /**
  * Result of evaluating a rate limit check.
  */
-export interface RateLimitResult {
+interface RateLimitResult {
     /**
      * Whether the request is permitted to proceed.
      */

@@ -73,7 +73,7 @@ export type RegisterActionInput = z.input<typeof kRegisterInput>;
 /**
  * Standard result returned by account authentication mutations.
  */
-export interface AccountAuthResult {
+interface AccountAuthResult {
     success: boolean;
     error?: string;
 }
@@ -81,7 +81,7 @@ export interface AccountAuthResult {
 /**
  * Result returned by `registerActivateAction()`.
  */
-export interface RegisterActivateResult {
+interface RegisterActivateResult {
     success: boolean;
     firstName?: string;
     teamName?: string;
@@ -91,7 +91,7 @@ export interface RegisterActivateResult {
 /**
  * Result returned by `verifyPasswordResetAction()`.
  */
-export interface VerifyPasswordResetResult {
+interface VerifyPasswordResetResult {
     success: boolean;
     firstName?: string;
 }

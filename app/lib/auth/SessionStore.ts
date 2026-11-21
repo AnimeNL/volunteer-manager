@@ -28,7 +28,7 @@ const kMaxUserAgentLength = 255;
 /**
  * Parameters accepted when creating a new persistent server-side user session.
  */
-export interface CreateSessionParams {
+interface CreateSessionParams {
     userId: number;
     impersonatorUserId?: number;
     impersonatorReturnUrl?: string;
@@ -39,7 +39,7 @@ export interface CreateSessionParams {
 /**
  * Newly created session credentials returned to be sealed into the browser cookie.
  */
-export interface CreatedSession {
+interface CreatedSession {
     sessionId: number;
     secret: string;
     userId: number;
@@ -48,7 +48,7 @@ export interface CreatedSession {
 /**
  * Verified server-side session record resolved from `users_sessions`.
  */
-export interface VerifiedSession {
+interface VerifiedSession {
     sessionId: number;
     userId: number;
     impersonatorUserId?: number;
@@ -172,7 +172,7 @@ export async function revokeAllUserSessions(
 /**
  * Result returned when revoking and clearing the current session cookie.
  */
-export interface RevokeSessionResult {
+interface RevokeSessionResult {
     restoredImpersonator: boolean;
     returnUrl?: string;
 }

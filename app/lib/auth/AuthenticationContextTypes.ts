@@ -29,7 +29,7 @@ export interface UserAuthenticationContext {
 /**
  * Authentication Context specific to visitors.
  */
-export interface VisitorAuthenticationContext {
+interface VisitorAuthenticationContext {
     /**
      * Object that helps determine what permissions and permissions are granted to the visitor.
      */

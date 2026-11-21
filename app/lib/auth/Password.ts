@@ -49,7 +49,7 @@ const kLegacyScryptKeyLength = 32;
  * Result returned by `verifyPassword()`, indicating both whether the password matched and whether
  * the stored credential should be silently upgraded via `hashPassword()`.
  */
-export interface PasswordVerificationResult {
+interface PasswordVerificationResult {
     valid: boolean;
     needsUpgrade: boolean;
 }

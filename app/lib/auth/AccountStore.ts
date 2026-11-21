@@ -14,7 +14,7 @@ import { kAuthType } from '../database/Types';
 /**
  * Result of verifying a user's plaintext password or one-time access code.
  */
-export type CredentialVerificationResult =
+type CredentialVerificationResult =
     { authenticated: false } |
     { authenticated: true; authType: 'code' | 'password'; userId: number };
 
@@ -100,7 +100,7 @@ export async function verifyUserCredentials(
 /**
  * Input required to create a new unactivated user account with an Argon2id password hash.
  */
-export interface CreateAccountWithPasswordData {
+interface CreateAccountWithPasswordData {
     username: string;
     password: string;
     firstName: string;
@@ -152,7 +152,7 @@ export async function createAccountWithPassword(
 /**
  * Options controlling session invalidation when replacing a user's password.
  */
-export interface SetUserPasswordOptions {
+interface SetUserPasswordOptions {
     revokeSessions?: boolean;
     exceptSessionId?: number;
 }

@@ -33,6 +33,9 @@ For every file changed in the current diff (`git diff --name-only`):
 * **Ratcheting down hotspots**: If you modify an existing high-complexity function, prefer
   extracting small, single-purpose helpers or using early returns to reduce its complexity so the
   project-wide `maxAllowedComplexity` threshold in `biome.json` can be lowered over time.
+* **Minimal exports**: Only export types, functions, classes, and constants when they are actually
+  imported by another module. Keep the number of exports as small as possible without affecting
+  code quality.
 
 You must match the coding and style conventions of the existing project. Some specific rules:
 

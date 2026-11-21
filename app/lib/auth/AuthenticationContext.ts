@@ -6,7 +6,7 @@ import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
 
-import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
+import type { AuthenticationContext, UserAuthenticationContext }
     from './AuthenticationContextTypes';
 import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
 import type { SessionData } from './Session';
@@ -23,12 +23,6 @@ import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
 import { kRegistrationStatus } from '../database/Types';
-
-export type {
-    AuthenticationContext,
-    UserAuthenticationContext,
-    VisitorAuthenticationContext,
-};
 
 /**
  * Row shape returned by the user authentication query in `loadUserAuthenticationContext()`.
@@ -223,7 +217,7 @@ export function invalidateAuthCache(forUserId?: number): void {
 /**
  * Options accepted by `requireAuthenticationContext()`.
  */
-export interface RequireAuthenticationOptions {
+interface RequireAuthenticationOptions {
     /**
      * When true, bypasses the server-side `Authentication` cache and verifies the session directly
      * against the database. Use for high-risk security mutations.
@@ -328,7 +322,7 @@ export const getAuthenticationContext = cache(async (): Promise<AuthenticationCo
 /**
  * Options for `impersonateUser()`.
  */
-export interface ImpersonateUserOptions {
+interface ImpersonateUserOptions {
     impersonatorUserId: number;
     returnUrl: string;
     ip?: string;

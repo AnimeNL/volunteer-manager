@@ -33,7 +33,7 @@ const kKeyIdContext = 'animecon-sealed-token-kid-v1';
  * cryptographically separated per purpose so a token issued for one purpose can never be unsealed
  * for another.
  */
-export type SealedTokenPurpose =
+type SealedTokenPurpose =
     'display' |
     'passkey-challenge' |
     'password-reset' |
@@ -45,7 +45,7 @@ export type SealedTokenPurpose =
  * ordered list of secrets (primary first, previous keys following) to support zero-downtime key
  * rotation.
  */
-export type SealingSecret = string | readonly string[];
+type SealingSecret = string | readonly string[];
 
 /**
  * Internal envelope serialized inside the encrypted payload.

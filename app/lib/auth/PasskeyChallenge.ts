@@ -29,7 +29,7 @@ if (!kPasskeyChallengePassword || !kPasskeyChallengePassword.length)
 /**
  * Payload bound to a single WebAuthn ceremony in a sealed cookie.
  */
-export interface PasskeyChallengePayload {
+interface PasskeyChallengePayload {
     challenge: string;
     flow: 'authenticate' | 'register';
     rpId: string;

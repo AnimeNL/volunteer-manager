@@ -47,7 +47,7 @@ const kSignInPasskeyInput = z.object({
 /**
  * Result returned by `confirmIdentityAction()`.
  */
-export interface ConfirmIdentityResult {
+interface ConfirmIdentityResult {
     success: boolean;
     activated?: boolean;
     authenticationOptions?: {
@@ -60,7 +60,7 @@ export interface ConfirmIdentityResult {
 /**
  * Result returned by `signInPasswordAction()`.
  */
-export interface SignInPasswordResult {
+interface SignInPasswordResult {
     success: boolean;
     requiredPasswordUpdateToken?: string;
     error?: string;
@@ -69,7 +69,7 @@ export interface SignInPasswordResult {
 /**
  * Result returned by `signInPasswordUpdateAction()` and `signInPasskeyAction()`.
  */
-export interface SignInActionResult {
+interface SignInActionResult {
     success: boolean;
     error?: string;
 }
@@ -77,7 +77,7 @@ export interface SignInActionResult {
 /**
  * Result returned by `signOutAction()`.
  */
-export interface SignOutResult {
+interface SignOutResult {
     success: true;
     returnUrl?: string;
 }

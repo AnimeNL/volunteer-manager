@@ -26,7 +26,7 @@ const kRegistrationRequestExpirySeconds = 31 * 86400;    // one month
 /**
  * Payload sealed into a single-use password reset token.
  */
-export interface PasswordResetRequest {
+interface PasswordResetRequest {
     /**
      * Unique ID of the user whose password is being reset.
      */
@@ -42,7 +42,7 @@ export interface PasswordResetRequest {
 /**
  * Payload sealed into an e-mail registration activation token.
  */
-export interface RegistrationRequest {
+interface RegistrationRequest {
     /**
      * Unique ID of the user for whom the registration request was created.
      */

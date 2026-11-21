@@ -41,7 +41,7 @@ export interface PasskeyListEntry {
 /**
  * Result returned by `listPasskeysAction()`.
  */
-export interface ListPasskeysResult {
+interface ListPasskeysResult {
     success: boolean;
     error?: string;
     passkeys?: PasskeyListEntry[];
@@ -50,7 +50,7 @@ export interface ListPasskeysResult {
 /**
  * Result returned by `createPasskeyChallengeAction()`.
  */
-export interface CreatePasskeyChallengeResult {
+interface CreatePasskeyChallengeResult {
     success: boolean;
     error?: string;
     options?: {
@@ -61,7 +61,7 @@ export interface CreatePasskeyChallengeResult {
 /**
  * Result returned by `registerPasskeyAction()` and `deletePasskeyAction()`.
  */
-export interface PasskeyMutationResult {
+interface PasskeyMutationResult {
     success: boolean;
     error?: string;
 }
