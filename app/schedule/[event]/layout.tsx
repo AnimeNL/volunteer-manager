@@ -1,7 +1,7 @@
 // Copyright 2024 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden, notFound, unauthorized } from 'next/navigation';
+import { forbidden, notFound } from 'next/navigation';
 
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
@@ -14,9 +14,9 @@ import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleContextManager } from './ScheduleContextManager';
 import { ScheduleTheme } from './ScheduleTheme';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthenticationContext } from '@lib/auth';
 import { getEventBySlug } from '@lib/EventLoader';
 import { isAfter } from '@lib/Temporal';
+import { requireAuthenticationContext } from '@lib/auth';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kDesktopMaximumWidthPx, kDesktopMenuWidthPx } from './Constants';
@@ -52,10 +52,7 @@ const kStyles: { [key: string]: SxProps<Theme> } = {
  * and dark mode, and is accessible on both desktop and mobile devices.
  */
 export default async function ScheduleLayout(props: LayoutProps<'/schedule/[event]'>) {
-    const authenticationContext = await getAuthenticationContext();
-    if (!authenticationContext.user)
-        unauthorized();  // only signed in users can access the schedule
-
+    const authenticationContext = await requireAuthenticationContext();
     const { access, user } = authenticationContext;
 
     const environment = await determineEnvironment();

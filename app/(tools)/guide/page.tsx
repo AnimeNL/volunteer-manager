@@ -9,8 +9,8 @@ import Box from '@mui/material/Box';
 import { RegistrationContentContainer } from '@app/registration/RegistrationContentContainer';
 import { RegistrationLayout } from '../../registration/RegistrationLayout';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthenticationContext } from '@lib/auth';
 import { getStaticContent } from '@lib/Content';
+import { requireAuthenticationContext } from '@lib/auth';
 
 /**
  * Root component for the /guide page, which displays the personalised Volunteer Guide. The goal
@@ -23,8 +23,8 @@ export default async function GuidePage(props: PageProps<'/guide'>) {
     if (!environment)
         notFound();
 
-    const authenticationContext = await getAuthenticationContext();
-    if (!authenticationContext.user || !authenticationContext.events.size)
+    const authenticationContext = await requireAuthenticationContext();
+    if (!authenticationContext.events.size)
         forbidden();
 
     let guideTeamSlug: string;
