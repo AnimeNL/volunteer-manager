@@ -15,13 +15,14 @@ import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verify
     from '../AccountStore';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { determineEnvironment } from '@lib/Environment';
-import { getAuthRequestMetadata, sanitizeRelativeRedirectUrl } from './ActionHelpers';
-import { getSessionFromCookieStore } from '../getSession';
+import { completePasswordUpdateWithToken, getAuthRequestMetadata, sanitizeRelativeRedirectUrl }
+    from './ActionHelpers';
+import { getSessionFromCookieStore } from '../Session';
 import { getStaticContent } from '@lib/Content';
 import { loadUserAuthenticationContext, requireAuthenticationContext }
     from '../AuthenticationContext';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
-import { sealRegistrationRequest, unsealRegistrationRequest } from '../RegistrationRequest';
+import { sealPasswordResetRequest, sealRegistrationRequest, unsealPasswordResetRequest,
+    unsealRegistrationRequest } from '../Tokens';
 import { validatePasswordStrength } from '../Password';
 import db, { tUsers } from '@lib/database';
 
@@ -380,35 +381,14 @@ export async function completePasswordResetAction(
     if (!ipLimit.allowed)
         return { success: false, error: 'Too many requests. Please wait and try again.' };
 
-    const strengthError = validatePasswordStrength(parsed.data.password);
-    if (strengthError)
-        return { success: false, error: strengthError };
-
-    let resetRequest: { id: number; token: number };
-    try {
-        resetRequest = await unsealPasswordResetRequest(parsed.data.request);
-    } catch {
-        return { success: false, error: 'This password reset link has expired.' };
-    }
-
-    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
-    if (!user)
-        return { success: false, error: 'This password reset link is no longer valid.' };
-
-    await setUserPassword(user.id, parsed.data.password, { revokeSessions: true });
-    await createAndWriteUserSessionCookie(await cookies(), {
-        userId: user.id,
-        ip: meta.ip,
-        userAgent: meta.userAgent,
+    return completePasswordUpdateWithToken({
+        token: parsed.data.request,
+        password: parsed.data.password,
+        meta,
+        expiredError: 'This password reset link has expired.',
+        invalidError: 'This password reset link is no longer valid.',
+        logType: kLogType.AccountPasswordReset,
     });
-
-    RecordLog({
-        type: kLogType.AccountPasswordReset,
-        sourceUser: user,
-        data: { ip: meta.ip },
-    });
-
-    return { success: true };
 }
 
 /**

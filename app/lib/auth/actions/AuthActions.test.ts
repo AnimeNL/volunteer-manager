@@ -36,7 +36,7 @@ import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
 import { hashPassword } from '../Password';
 import { hashSessionSecret } from '../SessionStore';
 import { kSessionCookieName, unsealSession } from '../Session';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
+import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../Tokens';
 import { useMockConnection } from '../../database/Connection';
 
 import { kAuthType } from '../../database/Types';

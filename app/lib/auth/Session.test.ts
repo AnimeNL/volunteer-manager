@@ -19,8 +19,8 @@ vi.mock('next/headers', () => ({
 
 import type { SessionData } from './Session';
 import { getDisplayId, setDisplayId } from './DisplaySession';
-import { kSessionCookieName, sealSession, unsealSession, writeEmptySessionCookieToStore,
-    writeSealedSessionCookieToStore } from './Session';
+import { getSessionFromCookieStore, kSessionCookieName, sealSession, unsealSession,
+    writeEmptySessionCookieToStore, writeSealedSessionCookieToStore } from './Session';
 import { sealToken } from './SealedToken';
 
 describe('Session', () => {
@@ -68,24 +68,26 @@ describe('Session', () => {
         await expect(getDisplayId()).resolves.toBe(17);
     });
 
-    it('sets HttpOnly and SameSite=Lax on written and cleared session cookies', async () => {
+    it('reads, writes, and clears HttpOnly SameSite=Lax session cookies', async () => {
         const stored: Record<string, { value: string; options: any }> = {};
         const cookieStore = {
+            get: (name: string) => stored[name] ? { name, value: stored[name].value } : undefined,
             set: (name: string, value: string, options: any) => {
                 stored[name] = { value, options };
             },
         } as any;
 
-        await writeSealedSessionCookieToStore(
-            { sessionId: 77, userId: 42, secret: 'secret' }, cookieStore);
+        const session: SessionData = { sessionId: 77, userId: 42, secret: 'secret' };
+        await writeSealedSessionCookieToStore(session, cookieStore);
 
         expect(stored[kSessionCookieName].options.httpOnly).toBe(true);
         expect(stored[kSessionCookieName].options.sameSite).toBe('lax');
         expect(stored[kSessionCookieName].options.path).toBe('/');
-        expect(stored[kSessionCookieName].value.length).toBeGreaterThan(0);
+        await expect(getSessionFromCookieStore(cookieStore)).resolves.toEqual(session);
 
         writeEmptySessionCookieToStore(cookieStore);
         expect(stored[kSessionCookieName].value).toBe('');
         expect(stored[kSessionCookieName].options.maxAge).toBe(0);
+        await expect(getSessionFromCookieStore(cookieStore)).resolves.toBeUndefined();
     });
 });

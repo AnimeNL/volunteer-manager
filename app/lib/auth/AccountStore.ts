@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 
 import { hashPassword, verifyPassword } from './Password';
 import { revokeAllUserSessions } from './SessionStore';
-import { sealPasswordResetRequest } from './PasswordReset';
+import { sealPasswordResetRequest } from './Tokens';
 import db, { tUsers, tUsersAuth } from '../database';
 
 import { kAuthType } from '../database/Types';
@@ -193,15 +193,12 @@ export async function setUserPassword(
         await revokeAllUserSessions(userId, options.exceptSessionId);
 }
 
-type UserLike = { id: number };
-
 /**
- * Returns the current session token from the `user`. This is a value that's quite important to the
- * security of their account, so it won't be included in the regular User type.
+ * Returns the current session token for `userId`, or `null` if the user does not exist.
  */
-export async function getUserSessionToken(user: UserLike | number): Promise<number | null> {
+async function getUserSessionToken(userId: number): Promise<number | null> {
     return db.selectFrom(tUsers)
-        .where(tUsers.userId.equals(typeof user === 'number' ? user : user.id))
+        .where(tUsers.userId.equals(userId))
         .selectOneColumn(tUsers.sessionToken)
         .executeSelectNoneOrOne();
 }

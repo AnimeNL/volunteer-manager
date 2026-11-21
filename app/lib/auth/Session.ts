@@ -8,6 +8,7 @@ import { sealToken, unsealToken } from './SealedToken';
 import { kSecureCookie, kSessionExpirationTimeSeconds } from './Constants';
 
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
+type CookieStoreLike = ReturnType<typeof cookies> | CookieStore;
 
 /**
  * The password through which the session will be sealed. A start-up exception will be thrown when
@@ -67,6 +68,23 @@ export async function unsealSession(sealedSession: string): Promise<SessionData>
         userId: data.userId,
         secret: data.secret,
     };
+}
+
+/**
+ * Returns the unsealed session from `cookieStore`, or `undefined` when missing, invalid, or
+ * expired.
+ */
+export async function getSessionFromCookieStore(cookieStore: CookieStoreLike)
+    : Promise<SessionData | undefined>
+{
+    const sessionCookie = (await cookieStore).get(kSessionCookieName);
+    if (sessionCookie) {
+        try {
+            return await unsealSession(sessionCookie.value);
+        } catch { /* invalid or expired cookie; treat as signed out */ }
+    }
+
+    return undefined;
 }
 
 /**

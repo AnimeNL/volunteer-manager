@@ -14,16 +14,13 @@ import { z } from 'zod/v4';
 import type { StoredPasskeyCredential } from '../PasskeyStore';
 import { RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
+import { completePasswordUpdateWithToken, getAuthRequestMetadata } from './ActionHelpers';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { createAndWriteUserSessionCookie, revokeAndClearCurrentSessionCookie }
     from '../SessionStore';
-import { getAuthRequestMetadata } from './ActionHelpers';
-import { getUserSessionToken, isValidActivatedUser, setUserPassword, verifyUserCredentials }
+import { createPasswordResetToken, isValidActivatedUser, verifyUserCredentials }
     from '../AccountStore';
-import { loadUserAuthenticationContext } from '../AuthenticationContext';
 import { retrieveUserPasskeys, updatePasskeyCounter } from '../PasskeyStore';
-import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../PasswordReset';
-import { validatePasswordStrength } from '../Password';
 
 import { kAuthRateLimits } from '../RateLimit';
 
@@ -223,8 +220,8 @@ export async function signInPasswordAction(
     resetRateLimit('signin-account', username);
 
     if (verification.authType === 'code') {
-        const sessionToken = await getUserSessionToken(verification.userId);
-        if (!sessionToken)
+        const requiredPasswordUpdateToken = await createPasswordResetToken(verification.userId);
+        if (!requiredPasswordUpdateToken)
             return { success: false };
 
         RecordLog({
@@ -236,10 +233,7 @@ export async function signInPasswordAction(
 
         return {
             success: true,
-            requiredPasswordUpdateToken: await sealPasswordResetRequest({
-                id: verification.userId,
-                token: sessionToken,
-            }),
+            requiredPasswordUpdateToken,
         };
     }
 
@@ -275,35 +269,14 @@ export async function signInPasswordUpdateAction(
     if (!ipLimit.allowed)
         return { success: false, error: 'Too many attempts. Please wait and try again.' };
 
-    const strengthError = validatePasswordStrength(parsed.data.password);
-    if (strengthError)
-        return { success: false, error: strengthError };
-
-    let resetRequest: { id: number; token: number };
-    try {
-        resetRequest = await unsealPasswordResetRequest(parsed.data.passwordResetRequest);
-    } catch {
-        return { success: false, error: 'Your password update session has expired. Try again?' };
-    }
-
-    const { user } = await loadUserAuthenticationContext({ type: 'session', ...resetRequest });
-    if (!user)
-        return { success: false, error: 'Your password update session is no longer valid.' };
-
-    await setUserPassword(user.id, parsed.data.password, { revokeSessions: true });
-    await createAndWriteUserSessionCookie(await cookies(), {
-        userId: user.id,
-        ip: meta.ip,
-        userAgent: meta.userAgent,
+    return completePasswordUpdateWithToken({
+        token: parsed.data.passwordResetRequest,
+        password: parsed.data.password,
+        meta,
+        expiredError: 'Your password update session has expired. Try again?',
+        invalidError: 'Your password update session is no longer valid.',
+        logType: kLogType.AccountPasswordUpdate,
     });
-
-    RecordLog({
-        type: kLogType.AccountPasswordUpdate,
-        sourceUser: user,
-        data: { ip: meta.ip },
-    });
-
-    return { success: true };
 }
 
 /**

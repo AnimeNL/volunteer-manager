@@ -3,10 +3,8 @@
 
 import crypto from 'node:crypto';
 import { cache } from 'react';
+import { cookies, headers } from 'next/headers';
 import { forbidden, unauthorized } from 'next/navigation';
-
-// https://github.com/vercel/next.js/discussions/44270
-const headers = import('next/headers');
 
 import type { AuthenticationContext, UserAuthenticationContext, VisitorAuthenticationContext }
     from './AuthenticationContextTypes';
@@ -20,7 +18,7 @@ import { createAndWriteUserSessionCookie, hashSessionSecret, touchUserSession, v
     from './SessionStore';
 import { ensurePermissionRolesInitialised } from './access/PermissionRoles';
 import { getBlobUrl } from '../database/BlobStore';
-import { getSessionFromCookieStore } from './getSession';
+import { getSessionFromCookieStore } from './Session';
 import { normalizeClientIp } from './RateLimit';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '../database';
 
@@ -331,7 +329,7 @@ async function getAuthenticationContextFromSessionData(
  * Resolves the `AuthenticationContext` for the current request from Next.js cookies.
  */
 async function loadAuthenticationContext(bypassCache: boolean): Promise<AuthenticationContext> {
-    const sessionData = await getSessionFromCookieStore((await headers).cookies());
+    const sessionData = await getSessionFromCookieStore(cookies());
     if (sessionData)
         return getAuthenticationContextFromSessionData(sessionData, bypassCache);
 
@@ -373,10 +371,9 @@ export async function impersonateUser(
     if (!impersonatedUser)
         return undefined;
 
-    const nextHeaders = await headers;
-    const requestHeaders = await nextHeaders.headers();
+    const requestHeaders = await headers();
 
-    await createAndWriteUserSessionCookie(await nextHeaders.cookies(), {
+    await createAndWriteUserSessionCookie(await cookies(), {
         userId: impersonatedUser.id,
         impersonatorUserId: options.impersonatorUserId,
         impersonatorReturnUrl: options.returnUrl,
