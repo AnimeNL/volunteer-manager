@@ -74,10 +74,6 @@ export async function listPasskeysAction(): Promise<ListPasskeysResult> {
     if (!user.username)
         forbidden();
 
-    const environment = await determineEnvironment();
-    if (!environment)
-        notFound();
-
     const meta = await getAuthRequestMetadata();
     const credentials = await retrieveUserPasskeys(user.id, meta.rpId);
 
@@ -180,6 +176,7 @@ export async function registerPasskeyAction(
             expectedChallenge,
             expectedOrigin: meta.origin,
             expectedRPID: meta.rpId,
+            requireUserVerification: true,
         });
     } catch (error: unknown) {
         RecordErrorLog({
@@ -192,8 +189,16 @@ export async function registerPasskeyAction(
         return { success: false, error: 'The passkey registration could not be verified' };
     }
 
-    if (!verification.verified || !verification.registrationInfo)
+    if (!verification.verified || !verification.registrationInfo) {
+        RecordErrorLog({
+            error: new Error('WebAuthn registration response was not verified'),
+            requestUrl: { pathname: '/register-passkey' },
+            severity: kLogSeverity.Warning,
+            user,
+        });
+
         return { success: false, error: 'The passkey registration could not be verified' };
+    }
 
     await storeUserPasskey(user.id, meta.rpId, parsed.data.name, verification.registrationInfo);
 

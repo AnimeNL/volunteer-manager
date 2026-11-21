@@ -3,6 +3,7 @@
 
 import { vi } from 'vitest';
 
+const mockRecordErrorLog = vi.fn();
 const mockRecordLog = vi.fn();
 
 vi.mock('next/headers', async () => {
@@ -22,7 +23,11 @@ vi.mock('@lib/Environment', () => ({
 
 vi.mock('@lib/Log', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@lib/Log')>();
-    return { ...actual, RecordLog: (...args: any[]) => mockRecordLog(...args) };
+    return {
+        ...actual,
+        RecordErrorLog: (...args: any[]) => mockRecordErrorLog(...args),
+        RecordLog: (...args: any[]) => mockRecordLog(...args),
+    };
 });
 
 import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
@@ -30,12 +35,13 @@ import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
 import { mockCookieJar, resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
 
-import { kLogType } from '@lib/Log';
+import { kLogSeverity, kLogType } from '@lib/Log';
 
 describe('PasskeyActions', () => {
     const mockConnection = useMockConnection();
 
     beforeEach(async () => {
+        mockRecordErrorLog.mockClear();
         mockRecordLog.mockClear();
         await resetAuthActionTestState('203.0.113.30');
     });
@@ -89,6 +95,9 @@ describe('PasskeyActions', () => {
             success: false,
             error: 'The passkey registration could not be verified',
         });
+        expect(mockRecordErrorLog).toHaveBeenCalledWith(expect.objectContaining({
+            severity: kLogSeverity.Warning,
+        }));
     });
 
     it('rejects passkey registration when no challenge cookie is present', async () => {

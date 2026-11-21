@@ -56,6 +56,7 @@ export async function updatePasskeyCounter(
         })
         .where(tUsersPasskeys.userId.equals(userId))
             .and(tUsersPasskeys.userPasskeyId.equals(passkeyId))
+            .and(tUsersPasskeys.counter.lessOrEqual(counter))
         .executeUpdate();
 }
 

@@ -327,6 +327,7 @@ export async function signInPasskeyAction(
             expectedOrigin: meta.origin,
             expectedRPID: meta.rpId,
             credential: match.credential,
+            requireUserVerification: true,
         });
     } catch (error: unknown) {
         RecordErrorLog({
@@ -339,8 +340,16 @@ export async function signInPasskeyAction(
         return { success: false, error: 'Unable to verify the authentication response.' };
     }
 
-    if (!verification.verified)
+    if (!verification.verified) {
+        RecordErrorLog({
+            error: new Error('WebAuthn authentication response was not verified'),
+            requestUrl: { pathname: '/signin-passkey' },
+            severity: kLogSeverity.Warning,
+            user: user.id,
+        });
+
         return { success: false, error: 'Unable to verify the authentication response.' };
+    }
 
     await updatePasskeyCounter(
         user.id, match.passkeyId, BigInt(verification.authenticationInfo.newCounter));
