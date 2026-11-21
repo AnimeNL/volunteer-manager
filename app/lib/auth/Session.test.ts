@@ -81,6 +81,7 @@ describe('Session', () => {
         await writeSealedSessionCookieToStore(session, cookieStore);
 
         expect(stored[kSessionCookieName].options.httpOnly).toBe(true);
+        expect(stored[kSessionCookieName].options.maxAge).toBe(270 * 24 * 60 * 60);
         expect(stored[kSessionCookieName].options.sameSite).toBe('lax');
         expect(stored[kSessionCookieName].options.path).toBe('/');
         await expect(getSessionFromCookieStore(cookieStore)).resolves.toEqual(session);

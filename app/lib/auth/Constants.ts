@@ -8,7 +8,7 @@
 export const kSecureCookie = process.env.NODE_ENV === 'production';
 
 /**
- * Number of seconds after which an authentication session expires (180 days, ensuring people sign
- * in again at least once per conference cycle).
+ * Number of seconds after which an authentication session expires (270 days, covering an annual
+ * festival preparation cycle while ensuring volunteers sign in again between editions).
  */
-export const kSessionExpirationTimeSeconds = 180 * 24 * 60 * 60;
+export const kSessionExpirationTimeSeconds = 270 * 24 * 60 * 60;
