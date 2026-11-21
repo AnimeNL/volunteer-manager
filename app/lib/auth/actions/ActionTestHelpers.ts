@@ -105,10 +105,10 @@ export function expectSetUserPassword(
         options?.onInsertHash?.(params[2]);
         return 1;
     });
-    mockConnection.expect('commit');
     mockConnection.expect('selectOneColumnManyRows', () => []);
     mockConnection.expect('delete', (_query: string, params: any[]) => {
         options?.onRevokeParams?.(params);
         return options?.revokedCount ?? 0;
     });
+    mockConnection.expect('commit');
 }

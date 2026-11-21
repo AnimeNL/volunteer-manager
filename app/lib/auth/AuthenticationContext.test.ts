@@ -203,6 +203,14 @@ describe('AuthenticationContext', () => {
         const ctx = await requireAuthenticationContext('test.boolean');
         expect(ctx.user.firstName).toBe('Bob');
         await expectHttpStatus(() => requireAuthenticationContext('root'), 403);
+
+        // When `bypassCache` fails verification, the stale cache entry is evicted:
+        mockConnection.expect('selectOneRow', () => undefined);
+        await expectHttpStatus(
+            () => requireAuthenticationContext(undefined, undefined, { bypassCache: true }), 401);
+
+        mockConnection.expect('selectOneRow', () => undefined);
+        expect((await getAuthenticationContext()).user).toBeUndefined();
     });
 
     it('impersonates active accounts and rejects missing or inactive accounts', async () => {

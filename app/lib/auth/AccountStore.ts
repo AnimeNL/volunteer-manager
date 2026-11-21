@@ -4,8 +4,8 @@
 import 'server-only';
 import crypto from 'node:crypto';
 
+import { deleteAllUserSessions, evictAuthCacheForUsers } from './SessionStore';
 import { hashPassword, verifyPassword } from './Password';
-import { revokeAllUserSessions } from './SessionStore';
 import { sealPasswordResetRequest } from './Tokens';
 import db, { tUsers, tUsersAuth } from '../database';
 
@@ -237,6 +237,8 @@ export async function setUserPassword(
         !!options?.revokeSessions || options?.expectedSessionToken !== undefined;
 
     const dbInstance = db;
+    let affectedUserIds: number[] = [];
+
     const updated = await dbInstance.transaction(async () => {
         if (rotateSessionToken) {
             const affectedRows = await dbInstance.update(tUsers)
@@ -262,14 +264,19 @@ export async function setUserPassword(
             })
             .executeInsert();
 
+        if (options?.revokeSessions) {
+            affectedUserIds = await deleteAllUserSessions(
+                dbInstance, userId, options.exceptSessionId);
+        }
+
         return true;
     });
 
     if (!updated)
         return false;
 
-    if (options?.revokeSessions)
-        await revokeAllUserSessions(userId, options.exceptSessionId);
+    if (affectedUserIds.length)
+        evictAuthCacheForUsers(affectedUserIds);
 
     return true;
 }

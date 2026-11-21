@@ -182,6 +182,38 @@ export async function revokeUserSession(sessionId: number, userId?: number): Pro
 }
 
 /**
+ * Deletes all sessions belonging to `userId` — including any impersonation sessions initiated by
+ * `userId` — (optionally preserving `exceptSessionId`) using `dbInstance`, returning the user IDs
+ * whose auth cache entries should be invalidated after commit.
+ */
+export async function deleteAllUserSessions(
+    dbInstance: typeof db, userId: number, exceptSessionId?: number): Promise<number[]>
+{
+    const impersonatedUserIds = await dbInstance.selectDistinctFrom(tUsersSessions)
+        .where(tUsersSessions.impersonatorUserId.equals(userId))
+            .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
+        .selectOneColumn(tUsersSessions.userId)
+        .executeSelectMany();
+
+    await dbInstance.deleteFrom(tUsersSessions)
+        .where(tUsersSessions.userId.equals(userId)
+            .or(tUsersSessions.impersonatorUserId.equals(userId)))
+        .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
+        .executeDelete();
+
+    return [ userId, ...impersonatedUserIds ];
+}
+
+/**
+ * Invalidates cached authentication contexts for all `userIds`.
+ */
+export function evictAuthCacheForUsers(userIds: Iterable<number>): void {
+    const authCache = Cache.getInstance('Authentication');
+    for (const affectedUserId of userIds)
+        authCache.delete(affectedUserId);
+}
+
+/**
  * Revokes all sessions belonging to `userId` — including any impersonation sessions initiated by
  * `userId` — (optionally preserving `exceptSessionId` when a user changes their own password) and
  * invalidates the affected auth cache entries.
@@ -189,22 +221,8 @@ export async function revokeUserSession(sessionId: number, userId?: number): Pro
 export async function revokeAllUserSessions(
     userId: number, exceptSessionId?: number): Promise<void>
 {
-    const impersonatedUserIds = await db.selectDistinctFrom(tUsersSessions)
-        .where(tUsersSessions.impersonatorUserId.equals(userId))
-            .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
-        .selectOneColumn(tUsersSessions.userId)
-        .executeSelectMany();
-
-    await db.deleteFrom(tUsersSessions)
-        .where(tUsersSessions.userId.equals(userId)
-            .or(tUsersSessions.impersonatorUserId.equals(userId)))
-        .and(tUsersSessions.sessionId.notEqualsIfValue(exceptSessionId))
-        .executeDelete();
-
-    const authCache = Cache.getInstance('Authentication');
-    authCache.delete(userId);
-    for (const impersonatedUserId of impersonatedUserIds)
-        authCache.delete(impersonatedUserId);
+    const affectedUserIds = await deleteAllUserSessions(db, userId, exceptSessionId);
+    evictAuthCacheForUsers(affectedUserIds);
 }
 
 /**

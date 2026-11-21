@@ -250,8 +250,12 @@ async function getAuthenticationContextFromSessionData(
     }
 
     const verified = await verifyUserSession(sessionData.sessionId, sessionData.secret);
-    if (!verified || verified.userId !== sessionData.userId)
+    if (!verified || verified.userId !== sessionData.userId) {
+        if (bypassCache && cached?.sessions.has(sessionData.sessionId))
+            authCache.delete(sessionData.userId);
+
         return { access: new AccessControl({ /* no grants */ }), user: undefined };
+    }
 
     const context = await loadUserAuthenticationContext({ type: 'userId', userId: verified.userId });
     if (!context.user)
