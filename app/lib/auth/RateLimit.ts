@@ -7,19 +7,30 @@ import net from 'node:net';
 import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 
 declare namespace globalThis {
-    let animeConRateLimitStorage: Map<string, number[]> | undefined;
+    let animeConRateLimitStorage: Map<RateLimitBucket, Map<string, RateLimitEntry>> | undefined;
 }
 
 /**
- * Maximum number of distinct bucket+key entries retained in memory to prevent unbounded growth.
+ * Maximum number of distinct keys retained per bucket to prevent unbounded memory growth while
+ * isolating buckets from cross-bucket eviction.
  */
-const kMaximumTrackedKeys = 10_000;
+const kMaximumTrackedKeysPerBucket = 5_000;
+
+/**
+ * Tracked sliding-window state for a single key within a bucket.
+ */
+interface RateLimitEntry {
+    timestamps: number[];
+    logged: boolean;
+}
 
 /**
  * Distinct rate limit buckets for authentication flows.
  */
 type RateLimitBucket =
+    'avatar-upload-user' |
     'confirm-identity-ip' |
+    'password-change-user' |
     'password-reset-account' |
     'password-reset-ip' |
     'register-ip' |
@@ -61,7 +72,9 @@ interface RateLimitResult {
  * multiple volunteers sharing convention Wi-Fi NAT while blocking automated abuse.
  */
 export const kAuthRateLimits = {
+    avatarUploadByUser: { limit: 20, windowSeconds: 60 * 60 },
     confirmIdentityByIp: { limit: 30, windowSeconds: 15 * 60 },
+    passwordChangeByUser: { limit: 10, windowSeconds: 15 * 60 },
     passwordResetByAccount: { limit: 5, windowSeconds: 60 * 60 },
     passwordResetByIp: { limit: 15, windowSeconds: 60 * 60 },
     registerByIp: { limit: 10, windowSeconds: 60 * 60 },
@@ -72,9 +85,23 @@ export const kAuthRateLimits = {
 /**
  * Returns the shared in-process rate limit store.
  */
-function getStorage(): Map<string, number[]> {
+function getStorage(): Map<RateLimitBucket, Map<string, RateLimitEntry>> {
     globalThis.animeConRateLimitStorage ??= new Map();
     return globalThis.animeConRateLimitStorage;
+}
+
+/**
+ * Returns the isolated map for a single rate limit `bucket`.
+ */
+function getBucketStorage(bucket: RateLimitBucket): Map<string, RateLimitEntry> {
+    const storage = getStorage();
+    let bucketMap = storage.get(bucket);
+    if (!bucketMap) {
+        bucketMap = new Map();
+        storage.set(bucket, bucketMap);
+    }
+
+    return bucketMap;
 }
 
 /**
@@ -103,13 +130,6 @@ function normalizeRateLimitKey(key: string): string {
 }
 
 /**
- * Builds the composite map key for a bucket and identifier.
- */
-function toCompositeKey(bucket: RateLimitBucket, key: string): string {
-    return `${bucket}:${normalizeRateLimitKey(key)}`;
-}
-
-/**
  * Extracts a normalized client IP address from an `X-Forwarded-For` header value.
  */
 export function normalizeClientIp(forwardedFor?: string): string {
@@ -118,49 +138,57 @@ export function normalizeClientIp(forwardedFor?: string): string {
 }
 
 /**
+ * Evicts the least-recently-updated entries when `bucketStorage` exceeds its capacity cap.
+ */
+function evictOverflowEntries(bucketStorage: Map<string, RateLimitEntry>): void {
+    while (bucketStorage.size > kMaximumTrackedKeysPerBucket) {
+        const oldestKey = bucketStorage.keys().next().value;
+        if (oldestKey === undefined)
+            break;
+
+        bucketStorage.delete(oldestKey);
+    }
+}
+
+/**
  * Evaluates and records a sliding-window rate limit attempt for `bucket` + `key`.
  */
 export function checkRateLimit(
     bucket: RateLimitBucket, key: string, policy: RateLimitPolicy): RateLimitResult
 {
-    const storage = getStorage();
-    const compositeKey = toCompositeKey(bucket, key);
+    const bucketStorage = getBucketStorage(bucket);
+    const normalizedKey = normalizeRateLimitKey(key);
     const now = Date.now();
     const windowMs = policy.windowSeconds * 1000;
     const cutoff = now - windowMs;
 
-    const existing = storage.get(compositeKey);
-    const active = existing ? existing.filter(timestamp => timestamp > cutoff) : [];
+    const existing = bucketStorage.get(normalizedKey);
+    const active = existing ? existing.timestamps.filter(timestamp => timestamp > cutoff) : [];
 
     if (active.length >= policy.limit) {
-        storage.delete(compositeKey);
-        storage.set(compositeKey, active);
-
         const retryAfterSeconds = Math.max(1, Math.ceil((active[0] + windowMs - now) / 1000));
 
-        RecordErrorLog({
-            error: {
-                name: 'RateLimitExceeded',
-                message: `Rate limit reached for "${bucket}" (${policy.limit} requests ` +
-                    `per ${policy.windowSeconds}s; retry after ${retryAfterSeconds}s)`,
-            },
-            severity: kLogSeverity.Info,
-        });
+        bucketStorage.delete(normalizedKey);
+        bucketStorage.set(normalizedKey, { timestamps: active, logged: true });
+
+        if (!existing?.logged) {
+            RecordErrorLog({
+                error: {
+                    name: 'RateLimitExceeded',
+                    message: `Rate limit reached for "${bucket}" (${policy.limit} requests ` +
+                        `per ${policy.windowSeconds}s; retry after ${retryAfterSeconds}s)`,
+                },
+                severity: kLogSeverity.Info,
+            });
+        }
 
         return { allowed: false, retryAfterSeconds };
     }
 
     active.push(now);
-    storage.delete(compositeKey);
-    storage.set(compositeKey, active);
-
-    while (storage.size > kMaximumTrackedKeys) {
-        const oldestKey = storage.keys().next().value;
-        if (oldestKey === undefined)
-            break;
-
-        storage.delete(oldestKey);
-    }
+    bucketStorage.delete(normalizedKey);
+    bucketStorage.set(normalizedKey, { timestamps: active, logged: false });
+    evictOverflowEntries(bucketStorage);
 
     return { allowed: true };
 }
@@ -169,7 +197,7 @@ export function checkRateLimit(
  * Clears recorded attempts for a single `bucket` + `key` (e.g. after a successful sign-in).
  */
 export function resetRateLimit(bucket: RateLimitBucket, key: string): void {
-    getStorage().delete(toCompositeKey(bucket, key));
+    getBucketStorage(bucket).delete(normalizeRateLimitKey(key));
 }
 
 /**

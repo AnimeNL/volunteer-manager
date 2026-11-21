@@ -58,6 +58,10 @@ describe('RateLimit', () => {
         });
         expect(errorLogDelegateInvocations).toBe(1);
 
+        // Subsequent blocked attempts in the same breach do not re-emit error logs:
+        expect(checkRateLimit('signin-account', 'alice@example.com', policy).allowed).toBe(false);
+        expect(recordErrorLogSpy).toHaveBeenCalledTimes(1);
+
         // Different keys and buckets remain unaffected:
         expect(checkRateLimit('signin-account', 'bob@example.com', policy)).toEqual({
             allowed: true,
@@ -67,12 +71,14 @@ describe('RateLimit', () => {
         });
         expect(errorLogDelegateInvocations).toBe(1);
 
-        // Once the oldest attempt falls outside the window, a new attempt succeeds:
+        // Once the oldest attempt falls outside the window, a new attempt succeeds, and a fresh
+        // breach logs once again:
         vi.advanceTimersByTime(40_000);
         expect(checkRateLimit('signin-account', 'alice@example.com', policy)).toEqual({
             allowed: true,
         });
-        expect(errorLogDelegateInvocations).toBe(1);
+        expect(checkRateLimit('signin-account', 'alice@example.com', policy).allowed).toBe(false);
+        expect(errorLogDelegateInvocations).toBe(2);
     });
 
     it('clears tracked attempts when resetRateLimit is called', () => {
@@ -109,5 +115,16 @@ describe('RateLimit', () => {
         expect(normalizeClientIp('203.0.113.5')).toBe('203.0.113.5');
         expect(normalizeClientIp(' 203.0.113.5 , 10.0.0.1 ')).toBe('203.0.113.5');
         expect(normalizeClientIp('a'.repeat(100))).toHaveLength(64);
+    });
+
+    it('isolates per-bucket maps so IP churn cannot evict account rate limits', () => {
+        const policy = { limit: 1, windowSeconds: 60 };
+        expect(checkRateLimit('signin-account', 'victim@example.com', policy).allowed).toBe(true);
+        expect(checkRateLimit('signin-account', 'victim@example.com', policy).allowed).toBe(false);
+
+        for (let i = 0; i < 5_100; ++i)
+            checkRateLimit('signin-ip', `198.51.${Math.floor(i / 256)}.${i % 256}`, policy);
+
+        expect(checkRateLimit('signin-account', 'victim@example.com', policy).allowed).toBe(false);
     });
 });

@@ -10,7 +10,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
 import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
-import { checkRateLimit } from '../RateLimit';
+import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { createAccountWithPassword, isUsernameAvailable, setUserPassword, verifyUserCredentials }
     from '../AccountStore';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
@@ -270,12 +270,10 @@ export async function requestPasswordResetAction(
     const meta = await getAuthRequestMetadata();
     const { username } = parsed.data;
 
-    const ipLimit = checkRateLimit(
-        'password-reset-ip', meta.ip, kAuthRateLimits.passwordResetByIp);
-    const accountLimit = checkRateLimit(
-        'password-reset-account', username, kAuthRateLimits.passwordResetByAccount);
-
-    if (!ipLimit.allowed || !accountLimit.allowed) {
+    if (!checkRateLimit('password-reset-ip', meta.ip, kAuthRateLimits.passwordResetByIp).allowed ||
+        !checkRateLimit(
+            'password-reset-account', username, kAuthRateLimits.passwordResetByAccount).allowed)
+    {
         return {
             success: false,
             error: 'Too many password reset requests. Please try again later.',
@@ -412,11 +410,24 @@ export async function changePasswordAction(
     if (!user.username)
         return { success: false, error: 'Unable to verify your current password…' };
 
+    const meta = await getAuthRequestMetadata();
+    const userKey = String(user.id);
+    if (!checkRateLimit('signin-ip', meta.ip, kAuthRateLimits.signInByIp).allowed ||
+        !checkRateLimit(
+            'password-change-user', userKey, kAuthRateLimits.passwordChangeByUser).allowed)
+    {
+        return {
+            success: false,
+            error: 'Too many password change attempts. Please wait a few minutes and try again.',
+        };
+    }
+
     const verification = await verifyUserCredentials(user.username, parsed.data.currentPassword);
     if (!verification.authenticated || verification.userId !== user.id)
         return { success: false, error: 'That is not your current password…' };
 
-    const meta = await getAuthRequestMetadata();
+    resetRateLimit('password-change-user', userKey);
+
     const cookieStore = await cookies();
     const currentSession = await getSessionFromCookieStore(cookieStore);
 

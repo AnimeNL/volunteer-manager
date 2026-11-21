@@ -8,6 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { RecordLog, kLogType } from '@lib/Log';
+import { checkRateLimit } from '../RateLimit';
 import { executeAccessCheck } from '../access/PermissionCheck';
 import { formatDate } from '@lib/Temporal';
 import { getAuthRequestMetadata } from './ActionHelpers';
@@ -15,6 +16,7 @@ import { invalidateAuthCache, requireAuthenticationContext } from '../Authentica
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
+import { kAuthRateLimits } from '../RateLimit';
 import { kCommunicationLanguage, kFileType } from '@lib/database/Types';
 
 /**
@@ -213,6 +215,11 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
     const bytes = new Uint8Array(await avatarEntry.arrayBuffer());
     if (!hasPngSignature(bytes))
         return { success: false, error: 'Avatar uploads must be in PNG format.' };
+
+    const uploadLimit = checkRateLimit(
+        'avatar-upload-user', String(context.user.id), kAuthRateLimits.avatarUploadByUser);
+    if (!uploadLimit.allowed)
+        return { success: false, error: 'Too many avatar uploads. Please try again later.' };
 
     const avatarId = await storeBlobData({
         bytes,

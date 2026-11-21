@@ -10,10 +10,11 @@ vi.mock('next/headers', async () => {
 
 vi.mock('next/server', () => ({ after: () => {} }));
 
+import { checkRateLimit } from '../RateLimit';
 import { confirmIdentityAction, signInPasskeyAction, signInPasswordAction,
     signInPasswordUpdateAction, signOutAction } from './AuthActions';
 import { expectAuthenticationQuery } from '../AuthenticationTestHelpers';
-import { expectSetUserPassword, mockCookieJar, resetAuthActionTestState }
+import { expectSetUserPassword, getMockHeaders, mockCookieJar, resetAuthActionTestState }
     from './ActionTestHelpers';
 import { hashPassword } from '../Password';
 import { hashSessionSecret } from '../SessionStore';
@@ -21,6 +22,7 @@ import { kSessionCookieName, unsealSession } from '../Session';
 import { sealPasswordResetRequest, unsealPasswordResetRequest } from '../Tokens';
 import { useMockConnection } from '../../database/Connection';
 
+import { kAuthRateLimits } from '../RateLimit';
 import { kAuthType } from '../../database/Types';
 
 describe('AuthActions', () => {
@@ -105,6 +107,23 @@ describe('AuthActions', () => {
 
         const unsealed = await unsealPasswordResetRequest(codeResult.requiredPasswordUpdateToken!);
         expect(unsealed).toEqual({ id: 42, token: 7 });
+
+        // Once an IP hits `signin-ip`, further requests short-circuit without locking out accounts:
+        getMockHeaders().set('x-forwarded-for', '198.51.100.99');
+        for (let i = 0; i < kAuthRateLimits.signInByIp.limit; ++i)
+            checkRateLimit('signin-ip', '198.51.100.99', kAuthRateLimits.signInByIp);
+
+        for (let i = 0; i < kAuthRateLimits.signInByAccount.limit; ++i) {
+            const blocked = await signInPasswordAction({
+                username: 'victim@example.com',
+                password: 'WrongPassword1',
+            });
+            expect(blocked.success).toBe(false);
+        }
+
+        expect(checkRateLimit(
+            'signin-account', 'victim@example.com', { limit: 1, windowSeconds: 60 }).allowed)
+            .toBe(true);
     });
 
     it('enforces password strength and token validity in signInPasswordUpdateAction', async () => {

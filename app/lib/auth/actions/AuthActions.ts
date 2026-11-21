@@ -203,10 +203,9 @@ export async function signInPasswordAction(
     const { username, password } = parsed.data;
     const meta = await getAuthRequestMetadata();
 
-    const ipLimit = checkRateLimit('signin-ip', meta.ip, kAuthRateLimits.signInByIp);
-    const accountLimit = checkRateLimit(
-        'signin-account', username, kAuthRateLimits.signInByAccount);
-    if (!ipLimit.allowed || !accountLimit.allowed) {
+    if (!checkRateLimit('signin-ip', meta.ip, kAuthRateLimits.signInByIp).allowed ||
+        !checkRateLimit('signin-account', username, kAuthRateLimits.signInByAccount).allowed)
+    {
         return {
             success: false,
             error: 'Too many sign-in attempts. Please wait a few minutes and try again.',
