@@ -208,20 +208,16 @@ export async function loadUserAuthenticationContext(
 }
 
 /**
- * Invalidates any cached authentication context for the user identified by `userId`. Call this
- * whenever a user's profile, permissions, event participations, activation status, or session
- * token changes.
+ * Invalidates cached authentication context(s). Pass `forUserId` when a single user's profile,
+ * permissions, event participations, activation status, or session changes; omit it to clear all
+ * cached contexts when global authorization inputs (roles, event visibility) change.
  */
-export function invalidateUserAuthCache(userId: number): void {
-    Cache.getInstance('Authentication').delete(userId);
-}
-
-/**
- * Clears all cached authentication contexts. Call this when global authorization inputs change,
- * such as permission role definitions, role permission grants, or event visibility.
- */
-export function clearAuthCache(): void {
-    Cache.getInstance('Authentication').clear();
+export function invalidateAuthCache(forUserId?: number): void {
+    const authCache = Cache.getInstance('Authentication');
+    if (forUserId !== undefined)
+        authCache.delete(forUserId);
+    else
+        authCache.clear();
 }
 
 /**

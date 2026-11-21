@@ -11,7 +11,7 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { clearAuthCache } from '@lib/auth';
+import { invalidateAuthCache } from '@lib/auth';
 import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tRoles } from '@lib/database';
@@ -146,7 +146,7 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
             .executeUpdate();
 
         if (affectedRows)
-            clearAuthCache();
+            invalidateAuthCache();
 
         LogBuilder.for('UpdateRole')
             .withCondition(!!affectedRows)

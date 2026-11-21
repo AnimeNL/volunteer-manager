@@ -9,7 +9,7 @@ import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
-import { createPasswordResetToken, createUserAccessCode, impersonateUser, invalidateUserAuthCache,
+import { createPasswordResetToken, createUserAccessCode, impersonateUser, invalidateAuthCache,
     isUsernameAvailable, requireAuthenticationContext, revokeAllUserSessions } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
@@ -48,7 +48,7 @@ export async function activateAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'Unable to activate their account…' };
 
-        invalidateUserAuthCache(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateActivation')
             .withInitiatorUser(props.user)
@@ -159,7 +159,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         if (!affectedRows)
             return { success: false, error: 'The account could not be anonymized…' };
 
-        invalidateUserAuthCache(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminAnonymizeAccount')
             .withInitiatorUser(adminUser)
@@ -372,7 +372,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be deleted from the database' };
 
-        invalidateUserAuthCache(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminDeleteAvatar')
             .withInitiatorUser(props.user)
@@ -475,7 +475,7 @@ export async function setDefaultAvatar(userId: number, fileId: number, formData:
         if (!affectedRows)
             return { success: false, error: 'The avatar could not be updated in the database' };
 
-        invalidateUserAuthCache(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateAvatar')
             .withInitiatorUser(props.user)
@@ -559,7 +559,7 @@ export async function updateAccountInformation(userId: number, formData: unknown
         if (!affectedRows)
             return { success: false, error: 'Unable to update the existing user information' };
 
-        invalidateUserAuthCache(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateVolunteer')
             .withInitiatorUser(props.user)

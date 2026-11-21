@@ -41,8 +41,7 @@ evaluation across three entry points:
   as `{ context, sessions: Map<sessionId, secretHash> }`, validated in constant time on cache hits,
   and deduplicated per render via `React.cache()`. High-risk mutations (password changes, passkey
   registration/deletion) pass `{ bypassCache: true }` to verify directly against `users_sessions`.
-  Call `invalidateUserAuthCache(userId)` or `clearAuthCache()` when user or global authorization
-  inputs change.
+  Call `invalidateAuthCache(userId?)` when user or global authorization inputs change.
 - **Passkeys (`PasskeyChallenge.ts`, `PasskeyStore.ts`)**: WebAuthn ceremonies use 5-minute,
   single-use sealed `HttpOnly` challenge cookies bound to `{ flow, rpId, userId }`, constant-time
   credential ID matching, and monotonic signature counter persistence.

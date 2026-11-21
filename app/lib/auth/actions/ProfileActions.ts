@@ -11,7 +11,7 @@ import { RecordLog, kLogType } from '@lib/Log';
 import { executeAccessCheck } from '../access/PermissionCheck';
 import { formatDate } from '@lib/Temporal';
 import { getAuthRequestMetadata } from './ActionHelpers';
-import { invalidateUserAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
+import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
@@ -168,7 +168,7 @@ export async function updateOwnAccountAction(
         .where(tUsers.userId.equals(user.id))
         .executeUpdate();
 
-    invalidateUserAuthCache(user.id);
+    invalidateAuthCache(/* forUserId= */ user.id);
 
     const meta = await getAuthRequestMetadata();
     RecordLog({
@@ -232,7 +232,7 @@ export async function updateAvatarAction(formData: FormData): Promise<ProfileMut
     if (!affectedRows)
         return { success: false };
 
-    invalidateUserAuthCache(subjectUserId);
+    invalidateAuthCache(/* forUserId= */ subjectUserId);
 
     if (isOverride) {
         LogBuilder.for('AdminUpdateAvatar')

@@ -22,7 +22,7 @@ vi.mock('next/headers', () => ({
 import type { SessionData } from './Session';
 import { AccessControl } from './access/AccessControl';
 import { buildAuthenticationContext, expectAuthenticationQuery } from './AuthenticationTestHelpers';
-import { clearAuthCache, getAuthenticationContext, impersonateUser, invalidateUserAuthCache,
+import { getAuthenticationContext, impersonateUser, invalidateAuthCache,
     requireAuthenticationContext } from './AuthenticationContext';
 import { executeAccessCheck } from './access/PermissionCheck';
 import { hashSessionSecret } from './SessionStore';
@@ -45,7 +45,7 @@ describe('AuthenticationContext', () => {
 
     beforeEach(async () => {
         cookieStoreData.clear();
-        clearAuthCache();
+        invalidateAuthCache();
         await initialisePermissionRoles([]);
     });
 
@@ -127,13 +127,13 @@ describe('AuthenticationContext', () => {
 
         // Targeted invalidation forces Device A to re-verify against the database:
         await setSessionCookie(deviceA);
-        invalidateUserAuthCache(42);
+        invalidateAuthCache(/* forUserId= */ 42);
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContext()).user).toBeUndefined();
 
         // Global clear evicts all cached entries:
         await setSessionCookie(deviceB);
-        clearAuthCache();
+        invalidateAuthCache();
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContext()).user).toBeUndefined();
     });

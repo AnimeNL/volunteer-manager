@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/LogBuilder';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { invalidateUserAuthCache } from '@lib/auth';
+import { invalidateAuthCache } from '@lib/auth';
 import { maybeRevokeVolunteerTicket } from '@lib/tickets/maybeRevokeVolunteerTicket';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
@@ -71,7 +71,7 @@ export async function updateVolunteerStatus(
             .executeUpdate();
 
         if (affectedRows)
-            invalidateUserAuthCache(userId);
+            invalidateAuthCache(/* forUserId= */ userId);
 
         if (isCancelled && !!affectedRows) {
             await maybeRevokeVolunteerTicket({
@@ -150,7 +150,7 @@ export async function changeRole(
             .executeUpdate();
 
         if (affectedRows)
-            invalidateUserAuthCache(userId);
+            invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('UpdateVolunteerRole')
             .withCondition(!!affectedRows)
@@ -247,7 +247,7 @@ export async function changeTeam(
             .executeUpdate();
 
         if (affectedRows)
-            invalidateUserAuthCache(userId);
+            invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('UpdateVolunteerTeam')
             .withCondition(!!affectedRows)

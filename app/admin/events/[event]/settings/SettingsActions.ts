@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { clearAuthCache } from '@lib/auth';
+import { invalidateAuthCache } from '@lib/auth';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -166,7 +166,7 @@ export async function changeEventSlug(existingEventSlug: string, formData: unkno
         // thus URL, may have changed.
         Cache.getInstance('AdminNavigationActiveEvents').clear();
         Cache.getInstance('AdminNavigationMenuCache').clear();
-        clearAuthCache();
+        invalidateAuthCache();
 
         LogBuilder.for('UpdateEventSlug')
             .withCondition(!!affectedRows)
@@ -203,7 +203,7 @@ export async function publishEvent(eventSlug: string) {
         // Active events in the navigation area now has to consider the updated status of |event|,
         // for which the cache has to be manually cleared.
         Cache.getInstance('AdminNavigationActiveEvents').clear();
-        clearAuthCache();
+        invalidateAuthCache();
 
         LogBuilder.for('UpdateEventPublicationStatus')
             .withCondition(!!affectedRows)

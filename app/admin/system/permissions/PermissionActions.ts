@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import { AccessControl } from '@lib/auth/access';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { clearAuthCache, invalidateUserAuthCache } from '@lib/auth';
+import { invalidateAuthCache } from '@lib/auth';
 import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
@@ -137,7 +137,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             .executeUpdate();
 
         if (affectedRows)
-            invalidateUserAuthCache(userId);
+            invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdatePermission')
             .withCondition(!!affectedRows)
@@ -232,7 +232,7 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
             grants: grants?.split(',') || [ /* no grants */ ],
             revokes: revokes?.split(',') || [ /* no revokes */ ],
         });
-        clearAuthCache();
+        invalidateAuthCache();
 
         LogBuilder.for('UpdateRolePermissions')
             .withCondition(!!affectedRows)

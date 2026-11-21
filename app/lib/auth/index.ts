@@ -5,7 +5,7 @@ export type { AuthenticationContext, UserAuthenticationContext }
     from './AuthenticationContextTypes';
 export type { User } from './User';
 
-export { clearAuthCache, getAuthenticationContext, impersonateUser, invalidateUserAuthCache,
+export { getAuthenticationContext, impersonateUser, invalidateAuthCache,
     requireAuthenticationContext } from './AuthenticationContext';
 export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
 export { getDisplayId, setDisplayId } from './DisplaySession';
