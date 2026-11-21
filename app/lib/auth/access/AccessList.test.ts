@@ -52,9 +52,21 @@ describe('AccessList', () => {
         });
 
         expect(list.query('test')).toEqual({ expanded: false, global: true });
+        expect(list.query('test', { event: '2026', team: 'hosts' }))
+            .toEqual({ expanded: false, global: true, scope: 'global' });
         expect(list.query('test.foo')).toEqual({ expanded: true, global: true });
+        expect(list.query('test.foo', { event: '2026' }))
+            .toEqual({ expanded: true, global: true, scope: 'global' });
         expect(list.query('test.bar')).toEqual({ expanded: false, global: true });
         expect(list.query('test.qux')).toEqual({ expanded: false, global: false });
+        expect(list.query('test.qux', { event: '2026' })).toBeUndefined();
+
+        // Global grant registered before a scoped grant retains global access:
+        const globalFirst = new AccessList({
+            grants: [ 'test', { permission: 'test', event: '2024', team: 'crew' } ],
+        });
+        expect(globalFirst.query('test', { event: '2026', team: 'hosts' }))
+            .toEqual({ expanded: false, global: true, scope: 'global' });
     });
 
     it('matches event, team, and event+team scoped grants and wildcards', () => {

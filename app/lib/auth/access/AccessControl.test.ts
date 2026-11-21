@@ -144,6 +144,19 @@ describe('AccessControl', () => {
         expect(scopedAccess.can('test.boolean', { event: '2025', team: 'crew' })).toBe(true);
         expect(scopedAccess.can('test.boolean', { event: '2026', team: 'crew' })).toBe(false);
         expect(scopedAccess.can('test.boolean', { event: '2026', team: 'hosts' })).toBe(true);
+
+        // Explicit global revoke remains enforced across all scopes even alongside a scoped role
+        // revoke for the same permission:
+        const globalRevokeWithScopedRole = new AccessControl({
+            grants: [ 'test', { permission: 'restricted-role', event: '2026', team: 'crew' } ],
+            revokes: 'test.boolean',
+            events: kAnyEvent,
+            teams: kAnyTeam,
+        });
+        expect(globalRevokeWithScopedRole.can('test.boolean', { event: '2025', team: 'crew' }))
+            .toBe(false);
+        expect(globalRevokeWithScopedRole.can('test.boolean', { event: kAnyEvent, team: kAnyTeam }))
+            .toBe(false);
     });
 
     it('evaluates event visibility and broad explicit grants across event/team matrices',

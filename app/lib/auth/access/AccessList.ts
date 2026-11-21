@@ -152,11 +152,13 @@ export class AccessList {
                         access.expanded = false;
 
                     if (global) {
-                        if (!access.global)
-                            access.global = true;  // global access has now been granted
-
+                        access.global = true;
+                        access.scopes = undefined;
                         continue;
                     }
+
+                    if (access.global)
+                        continue;
 
                     access.scopes ??= [ /* empty by default */ ];
                     access.scopes.push({
@@ -205,6 +207,14 @@ export class AccessList {
             };
         }
 
+        if (access.global) {
+            return {
+                expanded: access.expanded,
+                global: true,
+                scope: 'global',
+            };
+        }
+
         const globalEventAccess =
             this.#events.has(kAnyEvent) || (!!scope.event && this.#events.has(scope.event));
 
@@ -214,28 +224,12 @@ export class AccessList {
         if (globalEventAccess && globalTeamAccess) {
             return {
                 expanded: access.expanded,
-                global: access.global,
+                global: false,
                 scope: 'global',
             };
         }
 
-        if (!access.scopes) {
-            const eventBlocked =
-                !!scope.event && scope.event !== kAnyEvent && !globalEventAccess && !access.global;
-            const teamBlocked =
-                !!scope.team && scope.team !== kAnyTeam && !globalTeamAccess && !access.global;
-
-            if (eventBlocked || teamBlocked)
-                return undefined;
-
-            return {
-                expanded: access.expanded,
-                global: access.global,
-                scope: 'global',
-            };
-        }
-
-        for (const accessScope of access.scopes) {
+        for (const accessScope of access.scopes ?? []) {
             const matchedScope = this.matchAccessScope(
                 accessScope, scope, globalEventAccess, globalTeamAccess);
 
