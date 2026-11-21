@@ -231,11 +231,20 @@ async function isActiveUser(userId: number): Promise<boolean> {
 
 /**
  * Creates a persistent session in `users_sessions` and writes it as a sealed cookie to
- * `cookieStore`.
+ * `cookieStore`. By default, revokes any existing session present in `cookieStore` first unless
+ * `options.revokeExisting` is `false`.
  */
 export async function createAndWriteUserSessionCookie(
-    cookieStore: CookieStore, params: CreateSessionParams): Promise<CreatedSession>
+    cookieStore: CookieStore,
+    params: CreateSessionParams,
+    options?: { revokeExisting?: boolean }): Promise<CreatedSession>
 {
+    if (options?.revokeExisting !== false) {
+        const existing = await getSessionFromCookieStore(cookieStore);
+        if (existing)
+            await revokeUserSession(existing.sessionId, existing.userId);
+    }
+
     const session = await createUserSession(params);
     await writeSealedSessionCookieToStore(session, cookieStore);
     return session;
@@ -263,7 +272,7 @@ export async function revokeAndClearCurrentSessionCookie(
                 userId: verified.impersonatorUserId,
                 ip: metadata?.ip,
                 userAgent: metadata?.userAgent,
-            });
+            }, { revokeExisting: false });
             return {
                 restoredImpersonator: true,
                 returnUrl: sanitizeRelativeRedirectUrl(verified.impersonatorReturnUrl),

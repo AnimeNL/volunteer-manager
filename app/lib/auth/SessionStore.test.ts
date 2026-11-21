@@ -245,4 +245,44 @@ describe('SessionStore', () => {
 
         authCache.clear();
     });
+
+    it('revokes any pre-existing session cookie by default when writing a new session',
+        async () =>
+    {
+        const jar = new Map<string, { value: string; options: any }>();
+        const cookieStore = {
+            get: (name: string) => {
+                const entry = jar.get(name);
+                return entry ? { name, value: entry.value } : undefined;
+            },
+            set: (name: string, value: string, options: any) => {
+                jar.set(name, { value, options });
+            },
+        } as any;
+
+        jar.set(kSessionCookieName, {
+            value: await sealSession({ sessionId: 70, userId: 11, secret: 'old-secret' }),
+            options: {},
+        });
+
+        mockConnection.expect('delete', (_query, params) => {
+            expect(params).toEqual([ 70, 11 ]);
+            return 1;
+        });
+        mockConnection.expect('insertReturningLastInsertedId', () => 71);
+
+        const replaced = await createAndWriteUserSessionCookie(cookieStore, { userId: 42 });
+        expect(replaced.sessionId).toBe(71);
+        expect(await unsealSession(jar.get(kSessionCookieName)!.value))
+            .toMatchObject({ sessionId: 71, userId: 42 });
+
+        // Passing `{ revokeExisting: false }` skips deleting the existing session row:
+        mockConnection.expect('insertReturningLastInsertedId', () => 72);
+
+        const kept = await createAndWriteUserSessionCookie(
+            cookieStore, { userId: 42 }, { revokeExisting: false });
+        expect(kept.sessionId).toBe(72);
+        expect(await unsealSession(jar.get(kSessionCookieName)!.value))
+            .toMatchObject({ sessionId: 72, userId: 42 });
+    });
 });

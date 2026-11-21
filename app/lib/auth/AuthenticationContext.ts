@@ -344,7 +344,7 @@ export async function impersonateUser(
         impersonatorReturnUrl: options.returnUrl,
         ip,
         userAgent: requestHeaders.get('user-agent') ?? undefined,
-    });
+    }, { revokeExisting: false });
 
     return impersonatedUser;
 }
