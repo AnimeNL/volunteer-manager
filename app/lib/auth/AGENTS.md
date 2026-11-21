@@ -3,7 +3,7 @@
 ## Documentation & Public API
 - **Keep `README.md` up-to-date**: Any change to authentication, session lifecycle, cryptography,
   abuse controls, or authorization semantics must be reflected in `app/lib/auth/README.md`. Keep it
-  under 100 lines and focused on motivations and security properties rather than file or function
+  under 150 lines and focused on motivations and security properties rather than file or function
   lists.
 - **Do not expand `index.ts` without confirmation**: Avoid adding exports to `index.ts`,
   `access/index.ts`, or `actions/index.ts`. Any new public export must be explicitly confirmed by

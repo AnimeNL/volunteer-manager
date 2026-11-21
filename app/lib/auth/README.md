@@ -87,9 +87,43 @@ queries so revoking one event or team does not affect others. Reusable permissio
 `root`) expand with cycle detection, and role revokes inherit the grant's scope. Unauthenticated
 requests fail with `401`; unauthorized ones with `403`.
 
+## Comparisons
+
+### Stateless [JWT]s
+Stateless JWTs avoid database reads on every request and interoperate easily across independent
+services, at the cost of making immediate revocation and live permission updates hard without
+reintroducing server-side state. Storing sessions in the database (as SHA-256 secret hashes) behind
+a 15-minute in-process cache with `bypassCache` on high-risk mutations preserves fast reads while
+giving immediate per-device/bulk revocation, live permission invalidation, and server-tracked
+impersonation without exposing claims in cookies or carrying JWT algorithm-confusion surface.
+Where statelessness fits (displays, e-mail links, WebAuthn challenges), this module uses
+purpose-isolated [AES-256-GCM] sealed tokens instead. The tradeoff is reliance on a shared database
+for session lifecycle and an in-process cache tuned for a single-instance deployment.
+
+### [Auth.js] (`next-auth`)
+Auth.js excels when an application needs federated OAuth/OIDC sign-in with standard adapters and
+minimal custom flows. Because this application uses first-party authentication — with silent
+`scrypt` / `$legacy-v0` password upgrades, on-site one-time access codes, explicit WebAuthn
+verification with counter-regression logging, admin impersonation with atomic return-session
+restoration, and tightly coupled `(event, team)` RBAC — adopting `next-auth` would mean working
+around its OAuth-centric abstractions while still maintaining custom credential, recovery, and
+authorization logic. The tradeoff is owning and auditing session, hashing, WebAuthn, and
+rate-limiting code in-house.
+
+### Managed identity providers (e.g. Clerk, Auth0)
+Hosted identity providers offload sign-in UI, adaptive risk scoring, and managed MFA, reducing
+in-house security maintenance. Keeping identity in the application database instead avoids
+third-party runtime dependency during live festivals (schedules, displays, on-site recovery),
+eliminates user-directory synchronization across event participations, permissions, and
+anonymization, supports dormant annual volunteers' legacy `scrypt` hashes natively, and avoids
+per-user SaaS billing for an annual volunteer base. The tradeoff is forgoing managed threat
+detection and turnkey MFA features in favor of self-contained operational simplicity.
+
 [AES-256-GCM]: https://csrc.nist.gov/pubs/sp/800/38/d/final
 [Argon2id]: https://datatracker.ietf.org/doc/html/rfc9106
+[Auth.js]: https://authjs.dev/
 [HKDF-SHA256]: https://datatracker.ietf.org/doc/html/rfc5869
+[JWT]: https://datatracker.ietf.org/doc/html/rfc7519
 [OWASP]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 [scrypt]: https://datatracker.ietf.org/doc/html/rfc7914
 [WebAuthn]: https://www.w3.org/TR/webauthn-2/
