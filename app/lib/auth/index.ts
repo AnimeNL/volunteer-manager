@@ -9,4 +9,4 @@ export { getAuthenticationContext, impersonateUser, invalidateAuthCache,
     requireAuthenticationContext } from './AuthenticationContext';
 export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
 export { getDisplayId, setDisplayId } from './DisplaySession';
-export { revokeAllUserSessions } from './SessionStore';
+export { revokeAllUserSessions, revokeUserSession } from './SessionStore';

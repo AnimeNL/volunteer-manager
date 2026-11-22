@@ -167,6 +167,10 @@ interface LogTypeParameterMap {
 
     AdminResetPasswordLink: NoParameters;
 
+    AdminRevokeSession: {
+        device: string;
+    };
+
     AdminSuspendVolunteer: {
         action: 'Restricted' | 'Unrestricted';
     };
@@ -751,6 +755,7 @@ export const kLogType: { [k in LogType]: k } = {
     AdminImpersonateVolunteer: 'AdminImpersonateVolunteer',
     AdminResetAccessCode: 'AdminResetAccessCode',
     AdminResetPasswordLink: 'AdminResetPasswordLink',
+    AdminRevokeSession: 'AdminRevokeSession',
     AdminSuspendVolunteer: 'AdminSuspendVolunteer',
     AdminUpdateActivation: 'AdminUpdateActivation',
     AdminUpdateAvatar: 'AdminUpdateAvatar',
