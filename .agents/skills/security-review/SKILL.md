@@ -98,6 +98,16 @@ Do not report the following deliberate design choices as vulnerabilities (list t
   `consumePasskeyChallengeCookie` intentionally clears the sealed `HttpOnly` challenge cookie via
   `Set-Cookie` (`maxAge: 0`) rather than maintaining a server-side consumed-challenge store, relying
   on the 5-minute TTL and WebAuthn signature/counter checks (documented in `app/lib/auth/README.md`).
+* **`changeTeam` (`app/admin/events/[event]/[team]/volunteers/[volunteer]/VolunteerActions.tsx`)**:
+  Intentionally authorizes `volunteers.participation:update` only on the source team so team leads
+  can transfer volunteers to another team as `Accepted` without holding permissions on the target
+  team.
+
+## Severity Calibration
+* Everything under `/admin` that requires authentication already operates behind a very high trust
+  bar (vetted senior leads and administrators). Issues that require authenticated `/admin` access
+  should be rated `Low` severity at most (reserve `Medium`/`High`/`Critical` for unauthenticated
+  exposure, public/volunteer-facing boundaries, or authentication/session bypasses).
 
 ## Report Format
 Present findings concisely in four sections:
