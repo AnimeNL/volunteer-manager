@@ -104,6 +104,14 @@ interface DutyBookPageProps {
     }[];
 
     /**
+     * Team to which this Duty Book belongs.
+     */
+    team: {
+        name: string;
+        slug: string;
+    };
+
+    /**
      * Timezone in which the event is taking place.
      */
     timezone: string;
@@ -133,6 +141,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
         try {
             const response = await markIncidentAsRead({
                 event: schedule.slug,
+                team: props.team.slug,
                 id: incidentId,
             });
 
@@ -143,13 +152,17 @@ export function DutyBookPage(props: DutyBookPageProps) {
             console.error('Unable to record the duty book access', error);
         }
 
+        const dutyBook = schedule.dutyBooks?.find(entry => entry.team === props.team.slug);
+        if (!!dutyBook?.unread)
+            dutyBook.unread = Math.max(0, dutyBook.unread - 1);
+
         if (!!schedule.dutyBookUnread)
             schedule.dutyBookUnread = Math.max(0, schedule.dutyBookUnread - 1);
 
         kReadIncidentCache.add(incidentId);
         setOpenedIncidentSet(new Set([ ...kReadIncidentCache ]));  // cause an invalidation
 
-    }, [ schedule ]);
+    }, [ props.team.slug, schedule ]);
 
     const refreshTimer = useRef<NodeJS.Timeout | number | null>(null);
 
@@ -159,6 +172,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
         const response = await reportIncident({
             event: schedule.slug,
+            team: props.team.slug,
             incident,
         });
 
@@ -180,7 +194,7 @@ export function DutyBookPage(props: DutyBookPageProps) {
 
         return true;
 
-    }, [ router, schedule ]);
+    }, [ props.team.slug, router, schedule ]);
 
     useEffect(() => {
         return /* cleanup function= */ () => {
@@ -194,11 +208,15 @@ export function DutyBookPage(props: DutyBookPageProps) {
     if (!schedule)
         return undefined;  // the page is still loading
 
+    const title = (schedule.dutyBooks?.length ?? 0) > 1
+        ? `Duty book (${props.team.name})`
+        : 'Duty book';
+
     return (
         <>
-            <SetTitle title="Duty book" />
+            <SetTitle title={title} />
             <HeaderSectionCard>
-                <CardHeader title="Duty book"
+                <CardHeader title={title}
                             subheader={
                                 'Whether it\'s a minor mishap, a safety concern, or an official ' +
                                 'reportable incident, your detailed accounts are vital to the ' +

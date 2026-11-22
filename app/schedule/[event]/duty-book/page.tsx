@@ -23,12 +23,10 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         team: kAnyTeam,  // todo: Scope this to the specific team page
     });
 
-    if (!hasUnrestrictedAccess) {
-        const teamSlug = events.get(event.slug);
-        const team = teamSlug ? await getTeam(teamSlug) : undefined;
-        if (!team?.flags.enableDutyBook)
-            forbidden();
-    }
+    const teamSlug = events.get(event.slug);
+    const team = teamSlug ? await getTeam(teamSlug) : undefined;
+    if (!hasUnrestrictedAccess && !team?.flags.enableDutyBook)
+        forbidden();
 
     const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
 
@@ -68,7 +66,11 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         };
     });
 
-    return <DutyBookPage incidents={processedIncidents} timezone={event.timeZone} />;
+    return (
+        <DutyBookPage incidents={processedIncidents}
+                      team={{ name: team?.name ?? '', slug: team?.slug ?? '' }}
+                      timezone={event.timeZone} />
+    );
 }
 
 export const generateMetadata = generateScheduleMetadataFn([ 'Duty book' ]);

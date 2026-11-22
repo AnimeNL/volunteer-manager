@@ -149,6 +149,8 @@ async function loadUserAuthenticationContext(userId: number): Promise<Authentica
             });
         }
 
+        // TODO: Volunteers can belong to multiple teams per event; refactor `events` so earlier
+        // team entries are not overwritten.
         events.set(entry.event, entry.team);
     }
 

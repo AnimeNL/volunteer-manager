@@ -3,36 +3,14 @@
 
 'use server';
 
-import { forbidden, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import type { AuthenticationContext } from '@lib/auth';
 import { DutyBookSummaryTask } from '@lib/scheduler/tasks/DutyBookSummaryTask';
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { getTeam } from '@lib/cache';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tDutyBook, tDutyBookViewers, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
-
-import { kAnyTeam } from '@lib/auth/access';
-import { kRegistrationStatus } from '@lib/database/Types';
-
-/**
- * Authenticates the volunteer for `eventSlug` and verifies that they have access to the Duty Book.
- */
-async function requireDutyBookAccess(context: AuthenticationContext, eventSlug: string) {
-    const { access, events, event } =
-        await requireVolunteerAuthenticationWithEvent(context, eventSlug);
-
-    if (!access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
-        const teamSlug = events.get(event.slug);
-        const team = teamSlug ? await getTeam(teamSlug) : undefined;
-        if (!team?.flags.enableDutyBook)
-            forbidden();
-    }
-
-    return event;
-}
+import { requireDutyBookAccess } from './requireDutyBookAccess';
+import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
 
 /**
  * Zod type that describes the data required to mark a Duty Book incident as read.
@@ -42,6 +20,11 @@ const kMarkIncidentAsReadData = z.object({
      * Unique slug of the event to which the Duty Book entry belongs.
      */
     event: z.string().nonempty(),
+
+    /**
+     * Unique slug of the team to which the Duty Book entry belongs.
+     */
+    team: z.string().nonempty(),
 
     /**
      * Unique ID of the Duty Book entry that the volunteer has read.
@@ -54,12 +37,14 @@ const kMarkIncidentAsReadData = z.object({
  */
 export async function markIncidentAsRead(formData: unknown) {
     return executeServerAction(formData, kMarkIncidentAsReadData, async (data, props) => {
-        const event = await requireDutyBookAccess(props.authenticationContext, data.event);
+        const { event, team } =
+            await requireDutyBookAccess(props.authenticationContext, data.event, data.team);
 
         const dbInstance = db;
         const exists = await dbInstance.selectFrom(tDutyBook)
             .where(tDutyBook.dutyBookId.equals(data.id))
                 .and(tDutyBook.dutyBookEventId.equals(event.id))
+                .and(tDutyBook.dutyBookTeamId.equals(team.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .selectCountAll()
             .executeSelectOne();
@@ -90,6 +75,11 @@ const kReportIncidentData = z.object({
     event: z.string().nonempty(),
 
     /**
+     * Unique slug of the team for which the incident should be reported.
+     */
+    team: z.string().nonempty(),
+
+    /**
      * The incident that's being reported by the signed-in user.
      */
     incident: z.string().min(8),
@@ -100,41 +90,17 @@ const kReportIncidentData = z.object({
  */
 export async function reportIncident(formData: unknown) {
     return executeServerAction(formData, kReportIncidentData, async (data, props) => {
-        const event = await requireDutyBookAccess(props.authenticationContext, data.event);
+        const { event, team } =
+            await requireDutyBookAccess(props.authenticationContext, data.event, data.team);
 
         const dbInstance = db;
-
-        // Temporary fallback until Iteration 5 accepts an explicit `team` parameter.
-        const teamId =
-            await dbInstance.selectFrom(tUsersEvents)
-                .innerJoin(tTeams)
-                    .on(tTeams.teamId.equals(tUsersEvents.teamId))
-                        .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
-                .where(tUsersEvents.userId.equals(props.user.id))
-                    .and(tUsersEvents.eventId.equals(event.id))
-                    .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-                .selectOneColumn(tTeams.teamId)
-                .limit(1)
-                .executeSelectNoneOrOne() ??
-            await dbInstance.selectFrom(tEventsTeams)
-                .innerJoin(tTeams)
-                    .on(tTeams.teamId.equals(tEventsTeams.teamId))
-                        .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
-                .where(tEventsTeams.eventId.equals(event.id))
-                    .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
-                .selectOneColumn(tTeams.teamId)
-                .limit(1)
-                .executeSelectNoneOrOne();
-
-        if (!teamId)
-            forbidden();
 
         // Step 1: Store the incident in the database
         const incidentId = await dbInstance.insertInto(tDutyBook)
             .values({
                 dutyBookUserId: props.user.id,
                 dutyBookEventId: event.id,
-                dutyBookTeamId: teamId,
+                dutyBookTeamId: team.id,
                 dutyBookIncident: data.incident,
                 dutyBookAiSummary: /* will be asynchronously generated= */ null,
                 dutyBookCreated: dbInstance.currentZonedDateTime(),
