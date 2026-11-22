@@ -40,102 +40,71 @@ outside of user requests, enabling the Volunteer Manager to optimise for immedia
 ## Building and deploying
 
 ### Checking out the repository
-We depend on a private `volunteer-manager-timeline` component, availability of which is restricted;
-talk to one of the maintainers of this repository if you need access. Releases of this package are
-published on [GitHub's NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) (also [see StackOverflow](https://stackoverflow.com/questions/28728665/how-to-use-private-github-repo-as-npm-dependency)).
-
-You will have to log in to GitHub's NPM repository to access the private package:
-
-```
-npm login --scope=@beverloo --registry=https://npm.pkg.github.com
-```
+This project requires Node.js `>=26.0.0` and depends on a private
+`@AnimeNL/volunteer-manager-timeline` package fetched directly over Git from GitHub. Talk to one of
+the maintainers of this repository if you need access, and ensure your local Git configuration (SSH
+key or personal access token) can clone private `AnimeNL` repositories before running `npm install`.
 
 ### Building a developer environment
-Developing the AnimeCon Volunteer Manager follows NextJS' best practices. The following commands are
-enabled and actively supported:
+Developing the AnimeCon Volunteer Manager follows Next.js' best practices. The following commands
+are enabled and actively supported:
 
 ```
-$ npm run build
-$ npm run dev
+$ npm run dev                   # Local dev server with Turbopack and hot reload
+$ npm run serve-with-scheduler  # Local dev server with the background scheduler enabled
+$ npm run build                 # Production Next.js build
+$ npm run lint                  # Biome lint and code quality checks
+$ npm run test                  # Vitest unit and component test suite
 ```
 
-It is recommended to run the `build` and `test` commands prior to committing a change.
+It is recommended to run `build`, `lint` and `test` prior to committing a change.
 
-The `dev` command spawns a local server that features live reload and advanced debugging
-capabilities. This is the recommended environment for development. In order for this to work well,
-you will need to copy [`.env.development.sample`](.env.development.sample) to `.env.development` and
-fill in the details of a MySQL database, as well as various encryption passwords. Each of those
-passwords needs to be at least 32 characters in length.
+To run the local server, copy [`.env.development.sample`](.env.development.sample) to
+`.env.development` and fill in the details of a MySQL (or MariaDB) database as well as the
+encryption secrets. Each of the sealing passwords (`APP_COOKIE_PASSWORD`, `APP_PASSRESET_PASSWORD`,
+and `APP_REGISTRATION_PASSWORD`) must be at least 32 characters in length.
 
-### Building a production environment
-Deployment of the AnimeCon Volunteer Manager happens using a Docker image. One can be created by
-running the following command, instructed by our [Dockerfile](Dockerfile):
+### Building and deploying to production
+Deployment of the AnimeCon Volunteer Manager happens via a multi-stage standalone Next.js Docker
+image defined in our [Dockerfile](Dockerfile). Pass a GitHub token with read access to the private
+timeline dependency as a build argument:
 
 ```
-$ npm run build-prod
+$ docker build --build-arg GH_TOKEN=<token> -t volunteer-manager .
 ```
 
-Once the image has been created, you can run it locally through `npm run serve-prod`, providing
-Docker has been installed on your system. The production environment will need a completed
-`.env.production` file based on [`.env.production.sample`](.env.production.sample).
+The container serves the application on port `3000`, exposes a `/statusz` health check endpoint
+(used by [`healthcheck.mjs`](healthcheck.mjs)), and requires environment variables matching
+[`.env.production.sample`](.env.production.sample).
 
-### Deploying to production
-Deployment to the actual server is done through a [GitHub Action](.github/workflows/deploy.yml) that
-mimics these steps remotely. This action is accessible through the GitHub user interface.
-
-## Testing
-
-### Vitest and unit tests
-We use [Vitest](https://vitest.dev/) for unit tests in the project. They primarily focus on
-server-side logic, as using them for client-side components is awkward at best. (Consider
-Playwright.) Adding unit tests is easy and cheap, so should be the default for anything involving
-non-trivial logic.
+## Testing and linting
+We use [Vitest](https://vitest.dev/) for unit and component tests across both `node` (server-side
+logic) and `jsdom` (React Testing Library) environments, and [Biome](https://biomejs.dev/) for
+linting and cognitive complexity checks. Adding unit tests is cheap and fast, and should be the
+default for anything involving non-trivial logic.
 
 ```
 $ npm run test
+$ npm run test:watch
+$ npm run lint
 ```
-
-### Playwright end-to-end tests
-We use [Playwright](https://playwright.dev/) to enable end-to-end testing of the critical user
-journeys part of the Volunteer Manager. The full suite can be found in [`e2e/`](./e2e), where the
-cases are grouped together based on their use case.
-
-```
-$ npm run test:e2e
-```
-
-Not everything is expected to be covered by end-to-end tests, their primary purpose is to act as a
-smoke test for important user journeys that we don't manually verify frequently. An example would be
-creating an account, as it's safe to assume everyone working on this project has one.
 
 ## Debugging
 
 ### TypeScript performance tracing
-Our project relies heavily on TypeScript for typing, and the "linting and checking validity of
-types" step is the slowest step in our build process. Use of recursive types and branches with far
-reaching consequences have repeatedly doubled, if not tripled build times.
-
-The [TypeScript Performance](https://github.com/microsoft/TypeScript/wiki/Performance) page contains
-a wealth of information on how to debug this. We've had success in identifying issues using tracing,
-which can be created as follows:
+Our project relies heavily on TypeScript for typing, and type-checking can become a bottleneck when
+complex or recursive types are introduced. The
+[TypeScript Performance](https://github.com/microsoft/TypeScript/wiki/Performance) page contains a
+wealth of information on how to debug this. Tracing can be generated as follows:
 
 ```
 $ npx tsc -p ./tsconfig.json --generateTrace trace
 ```
 
-The generated `trace.json` file, in the `trace/` directory, can then be inspected using the
-[Perfetto](https://ui.perfetto.dev/#!/viewer) tool. Any file or type that takes more than 100ms
-should be considered a concern.
-
-Another way to analyse the generated trace is to use the
-[@typescript/analyze-trace](https://www.npmjs.com/package/@typescript/analyze-trace) tool, which can
-be done as follows:
+The generated `trace.json` file in `trace/` can be inspected with
+[Perfetto](https://ui.perfetto.dev/#!/viewer) (anything over 100ms is worth investigating), or
+summarised with [@typescript/analyze-trace](https://www.npmjs.com/package/@typescript/analyze-trace):
 
 ```
-$ npm install --no-save @typescript/analyze-trace
-$ npx analyze-trace trace
+$ npx --yes @typescript/analyze-trace trace
 ```
-
-This tool will highlight any file that takes more than 500ms of compilation time. Note that the
-output is a little bit harder to read, as there exists a compounding effect where e.g. all of MUI
-may be attributed to an otherwise unrelated file.
