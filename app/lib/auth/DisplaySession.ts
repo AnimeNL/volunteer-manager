@@ -43,7 +43,11 @@ function sealDisplaySession(session: { id: number }): string {
  * @returns The plaintext session data in its original format.
  */
 function unsealDisplaySession(sealedSession: string): { id: number } {
-    return unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
+    const data = unsealToken<{ id: number }>(sealedSession, 'display', kDisplaySessionPassword);
+    if (typeof data?.id !== 'number')
+        throw new Error('Invalid display session payload');
+
+    return data;
 }
 
 /**

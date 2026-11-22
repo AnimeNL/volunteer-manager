@@ -238,8 +238,12 @@ async function getAuthenticationContextFromSessionData(
     }
 
     const context = await loadUserAuthenticationContext(verified.userId);
-    if (!context.user)
+    if (!context.user) {
+        if (bypassCache)
+            authCache.delete(sessionData.userId);
+
         return context;
+    }
 
     try {
         await touchUserSession(verified.sessionId);

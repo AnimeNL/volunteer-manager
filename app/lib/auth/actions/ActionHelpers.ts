@@ -28,7 +28,7 @@ interface AuthRequestMetadata {
 export async function getAuthRequestMetadata(): Promise<AuthRequestMetadata> {
     const requestHeaders = await headers();
     const host = requestHeaders.get('host') ?? 'animecon.team';
-    const origin = host.startsWith('localhost') ? `http://${host}` : `https://${host}`;
+    const origin = `https://${host}`;
     const rpId = host.replace(/:.*$/, '');
     const ip = normalizeClientIp(requestHeaders.get('x-forwarded-for') ?? undefined);
     const userAgent = requestHeaders.get('user-agent') ?? undefined;
