@@ -15,6 +15,7 @@ import { writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 
 /**
  * Zod type that describes information required in order to execute a decision in the playground.
@@ -235,7 +236,6 @@ export async function updateModelSettings(formData: unknown) {
 
         await writeSettings({
             'ai-setting-decision-model': data.decisionModel,
-            'ai-setting-gemini-api-key': data.geminiApiKey,
             'ai-setting-gemini-api': data.geminiApi,
             'ai-setting-image-model': data.imageModel,
             'ai-setting-text-model-high': data.textModelHigh,
@@ -245,6 +245,9 @@ export async function updateModelSettings(formData: unknown) {
             'ai-setting-thinking-level': data.thinkingLevel,
             'ai-setting-top-p': data.topP,
         });
+
+        if (data.geminiApiKey !== kMaskedSecret)
+            await writeSetting('ai-setting-gemini-api-key', data.geminiApiKey);
 
         LogBuilder.for('UpdateIntegrationSettings')
             .withInitiatorUser(props.user)

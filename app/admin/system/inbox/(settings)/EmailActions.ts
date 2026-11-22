@@ -18,7 +18,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tEmailAccountsPermissions, tTeams, tUsers } from '@lib/database';
 
 import { kInboxOperations } from '../InboxAccess';
-import { kMaskedPassword } from './MaskedPassword';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 
 /**
  * Zod type that describes that no data is expected.
@@ -179,7 +179,7 @@ export async function updateEmailAccountSmtp(accountId: number, formData: unknow
         if (!existingAccount)
             notFound();
 
-        const passwordChanged = data.smtpPassword !== kMaskedPassword;
+        const passwordChanged = data.smtpPassword !== kMaskedSecret;
         if (!passwordChanged && !existingAccount.hasSmtpPassword)
             return { success: false, error: 'An outgoing (SMTP) password must be provided…' };
 
@@ -251,13 +251,13 @@ export async function updateEmailAccountImap(accountId: number, formData: unknow
         const hostname = data.imapHostname || null;
         const port = typeof data.imapPort === 'number' ? data.imapPort : null;
         const username = data.imapUsername || null;
-        const passwordChanged = !!data.imapPassword && data.imapPassword !== kMaskedPassword;
+        const passwordChanged = !!data.imapPassword && data.imapPassword !== kMaskedSecret;
 
         const disablingImap = !hostname && port === null && !username && !passwordChanged;
         if (!disablingImap) {
             const hasPassword =
                 passwordChanged ||
-                (data.imapPassword === kMaskedPassword && existingAccount.hasImapPassword);
+                (data.imapPassword === kMaskedSecret && existingAccount.hasImapPassword);
 
             if (!hostname || port === null || !username || !hasPassword) {
                 return {

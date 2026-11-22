@@ -13,6 +13,7 @@ import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import { AccountQuickActions } from './AccountQuickActions';
 import { DeleteEmailAccountAction } from './DeleteEmailAccountAction';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
+import { MaskedTextFieldElement } from '@app/admin/components/MaskedTextFieldElement';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
@@ -20,7 +21,7 @@ import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';
 
-import { kMaskedPassword } from '../../MaskedPassword';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 
 import * as actions from '../../EmailActions';
 
@@ -31,7 +32,8 @@ import * as actions from '../../EmailActions';
 export default async function EmailAccountPage(
     props: PageProps<'/admin/system/inbox/accounts/[id]'>)
 {
-    await requireAuthentication('system.integrations');
+    const { access } = await requireAuthentication('system.integrations');
+    const canRevealSecrets = access.can('root');
 
     const params = await props.params;
 
@@ -49,16 +51,19 @@ export default async function EmailAccountPage(
             smtpHostname: tEmailAccounts.emailAccountSmtpHostname,
             smtpPort: tEmailAccounts.emailAccountSmtpPort,
             smtpUsername: tEmailAccounts.emailAccountSmtpUsername,
-            hasSmtpPassword: tEmailAccounts.emailAccountSmtpPassword.notEquals(''),
+            smtpPassword: tEmailAccounts.emailAccountSmtpPassword,
             imapHostname: tEmailAccounts.emailAccountImapHostname,
             imapPort: tEmailAccounts.emailAccountImapPort,
             imapUsername: tEmailAccounts.emailAccountImapUsername,
-            hasImapPassword: tEmailAccounts.emailAccountImapPassword.isNotNull(),
+            imapPassword: tEmailAccounts.emailAccountImapPassword,
         })
         .executeSelectNoneOrOne();
 
     if (!account)
         notFound();
+
+    const hasSmtpPassword = account.smtpPassword !== '';
+    const hasImapPassword = account.imapPassword !== null;
 
     const defaultAccountId = await readSetting('integration-email-default-account-id') ?? 1;
     const linkedTeamCount = await dbInstance.selectFrom(tTeams)
@@ -73,20 +78,20 @@ export default async function EmailAccountPage(
         smtpHostname: account.smtpHostname,
         smtpPort: account.smtpPort,
         smtpUsername: account.smtpUsername,
-        smtpPassword: account.hasSmtpPassword ? kMaskedPassword : '',
+        smtpPassword: hasSmtpPassword ? kMaskedSecret : '',
     };
 
     const imapDefaultValues = {
         imapHostname: account.imapHostname ?? '',
         imapPort: account.imapPort ?? '',
         imapUsername: account.imapUsername ?? '',
-        imapPassword: account.hasImapPassword ? kMaskedPassword : '',
+        imapPassword: hasImapPassword ? kMaskedSecret : '',
     };
 
-    const smtpConfigured = !!account.smtpHostname && account.hasSmtpPassword;
+    const smtpConfigured = !!account.smtpHostname && hasSmtpPassword;
     const imapConfigured =
         !!account.imapHostname && !!account.imapPort && !!account.imapUsername &&
-        account.hasImapPassword;
+        hasImapPassword;
 
     const headerAction = (
         <DeleteEmailAccountAction action={ actions.deleteEmailAccount.bind(null, account.id) }
@@ -134,9 +139,12 @@ export default async function EmailAccountPage(
                                       required autoComplete="off" placeholder="apikey" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="smtpPassword" label="Password" type="password"
-                                      fullWidth size="small" required autoComplete="new-password"
-                                      placeholder="Password / API key" />
+                    <MaskedTextFieldElement
+                        name="smtpPassword" label="Password" type="password" fullWidth size="small"
+                        required autoComplete="new-password" placeholder="Password / API key"
+                        secretValue={
+                            canRevealSecrets ? (account.smtpPassword || undefined) : undefined
+                        } />
                 </Grid>
             </FormGridSection>
             <FormGridSection icon={ <InboxOutlinedIcon /> } title="Incoming server (IMAP)"
@@ -158,9 +166,12 @@ export default async function EmailAccountPage(
                                       autoComplete="off" placeholder="team@animecon.nl" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="imapPassword" label="Password" type="password"
-                                      fullWidth size="small" autoComplete="new-password"
-                                      placeholder="Password / app password" />
+                    <MaskedTextFieldElement
+                        name="imapPassword" label="Password" type="password" fullWidth size="small"
+                        autoComplete="new-password" placeholder="Password / app password"
+                        secretValue={
+                            canRevealSecrets ? (account.imapPassword ?? undefined) : undefined
+                        } />
                 </Grid>
             </FormGridSection>
             <Section noHeader>

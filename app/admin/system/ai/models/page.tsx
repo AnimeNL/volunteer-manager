@@ -1,8 +1,7 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { SelectElement, SliderElement, TextFieldElement }
-    from '@components/proxy/react-hook-form-mui';
+import { SelectElement, SliderElement } from '@components/proxy/react-hook-form-mui';
 
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
@@ -14,6 +13,7 @@ import { DecisionPlayground } from './DecisionPlayground';
 import { FormGrid } from '@app/admin/components/FormGrid';
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { GeminiModelSelect } from './GeminiModelSelect';
+import { MaskedTextFieldElement } from '@app/admin/components/MaskedTextFieldElement';
 import { ModelPlayground } from './ModelPlayground';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
@@ -22,6 +22,7 @@ import { readSettings } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 
 import * as actions from '../AiActions';
 
@@ -49,7 +50,8 @@ const kThinkingLevelOptions: { id: TextGenerationThinkingLevel, label: string }[
  * time, verify whether the integrations are working as expected.
  */
 export default async function ModelsAiPage() {
-    await requireAuthentication('system.internals.ai');
+    const { access } = await requireAuthentication('system.internals.ai');
+    const canRevealSecrets = access.can('root');
 
     const settings = await readSettings([
         'ai-setting-decision-model',
@@ -74,7 +76,7 @@ export default async function ModelsAiPage() {
         textModelHigh: settings['ai-setting-text-model-high'] ?? kDefaultTextModel,
         textModelLow: settings['ai-setting-text-model-low'] ?? kDefaultTextModel,
         textModelMedium: settings['ai-setting-text-model-medium'] ?? kDefaultTextModel,
-        geminiApiKey: settings['ai-setting-gemini-api-key'],
+        geminiApiKey: settings['ai-setting-gemini-api-key'] ? kMaskedSecret : '',
         geminiApi: settings['ai-setting-gemini-api'],
 
         temperature: settings['ai-setting-temperature'] ?? 0,
@@ -122,8 +124,12 @@ export default async function ModelsAiPage() {
                                            label="Text Generation (low complexity)" />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <TextFieldElement name="geminiApiKey" label="Gemini API Key" size="small"
-                                           fullWidth type="password" />
+                        <MaskedTextFieldElement
+                            name="geminiApiKey" label="Gemini API Key" size="small" fullWidth
+                            type="password"
+                            secretValue={
+                                canRevealSecrets ? settings['ai-setting-gemini-api-key'] : undefined
+                            } />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <Divider />
