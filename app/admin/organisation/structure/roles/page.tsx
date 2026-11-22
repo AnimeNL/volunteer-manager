@@ -5,20 +5,96 @@ import { z } from 'zod/v4';
 
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 
+import type { AccessDescriptor, AccessOperation } from '@lib/auth/access';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
+import { AccessControl, executeAccessCheck } from '@lib/auth/access';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateAuthCache } from '@lib/auth';
-import { executeAccessCheck } from '@lib/auth/access';
+import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import db, { tRoles } from '@lib/database';
+import { validatePermissionRestrictions } from '@app/admin/system/permissions/toPermissionList';
+import db, { tPermissionsRoles, tRoles } from '@lib/database';
+
+import { kCrudOperations } from '@app/admin/system/permissions/toPermissionList';
+import { kPermissions } from '@lib/auth/access';
 
 import { HotelEligibleHeaderCell, HotelEligibleCell, RestrictedDefaultHeaderCell,
     RestrictedDefaultCell, TrainingEligibleHeaderCell, TrainingEligibleCell }
         from '../StructureCells';
+
+/**
+ * Verifies whether a single permission identifier (or prefix / CRUD operation) is defined in
+ * `kPermissions`.
+ */
+function isValidPermissionIdentifier(entry: string): boolean {
+    const parts = entry.split(':');
+    if (parts.length > 2)
+        return false;
+
+    const [ permission, operation ] = parts;
+    if (operation !== undefined) {
+        if (!Object.hasOwn(kPermissions, permission))
+            return false;
+
+        const descriptor: AccessDescriptor = kPermissions[permission as keyof typeof kPermissions];
+        return descriptor.type === 'crud' &&
+            kCrudOperations.includes(operation as AccessOperation);
+    }
+
+    if (Object.hasOwn(kPermissions, permission))
+        return true;
+
+    const prefix = `${permission}.`;
+    return Object.keys(kPermissions).some(key => key.startsWith(prefix));
+}
+
+/**
+ * Validates that every entry in a role's comma-separated `rolePermissionGrant` is either a known
+ * permission role or a valid permission identifier, and adheres to assignment restrictions.
+ */
+async function validateRolePermissionGrant(
+    grant: string, userAccess: AccessControl, existingGrant: string | null): Promise<boolean>
+{
+    const entries = grant.split(',').map(entry => entry.trim()).filter(Boolean);
+    if (!entries.length)
+        return true;
+
+    const availableRoles = await db.selectFrom(tPermissionsRoles)
+        .where(tPermissionsRoles.permissionRoleId.notEquals('root'))
+        .select({
+            id: tPermissionsRoles.permissionRoleId,
+            grants: tPermissionsRoles.permissionRoleGrants,
+        })
+        .executeSelectMany();
+
+    const knownRoles = new Map<string, string[]>();
+    for (const role of availableRoles) {
+        knownRoles.set(
+            role.id,
+            role.grants ? role.grants.split(',').map(g => g.trim()).filter(Boolean) : []);
+    }
+
+    const existingAccess = new AccessControl({ grants: existingGrant ?? undefined });
+
+    for (const entry of entries) {
+        const roleGrants = knownRoles.get(entry);
+        const permissionsToCheck = roleGrants ?? [ entry ];
+
+        if (!roleGrants && !isValidPermissionIdentifier(entry))
+            return false;
+
+        try {
+            validatePermissionRestrictions(permissionsToCheck, userAccess, existingAccess);
+        } catch {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 /**
  * Data source used to populate and manage the roles table.
@@ -133,10 +209,36 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
     },
 
     async update(updatedRow, previousRow, props) {
+        const existingRole = await db.selectFrom(tRoles)
+            .where(tRoles.roleId.equals(updatedRow.id))
+            .select({
+                rolePermissionGrant: tRoles.rolePermissionGrant,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!existingRole)
+            return false;
+
+        const existingGrant = existingRole.rolePermissionGrant?.trim() || null;
+        const nextGrant = updatedRow.rolePermissionGrant?.trim() || null;
+
+        if (nextGrant !== existingGrant) {
+            const { access: freshAccess } = await requireAuthenticationContext(
+                'system.permissions', undefined, { bypassCache: true });
+
+            if (nextGrant) {
+                const valid = await validateRolePermissionGrant(
+                    nextGrant, freshAccess, existingGrant);
+
+                if (!valid)
+                    return false;
+            }
+        }
+
         const affectedRows = await db.update(tRoles)
             .set({
                 roleName: updatedRow.roleName,
-                rolePermissionGrant: updatedRow.rolePermissionGrant || null,
+                rolePermissionGrant: nextGrant,
                 roleAvailabilityEventLimit: updatedRow.availabilityEventLimit,
                 roleFlagDefaultRestricted: updatedRow.flagDefaultRestricted ? 1 : 0,
                 roleHotelEligible: updatedRow.hotelEligible ? 1 : 0,
@@ -195,7 +297,7 @@ export default async function RolesPage() {
             headerName: 'Permission',
             headerAlign: 'center',
             description: 'Permission (scoped) granted to this role',
-            editable: true,
+            editable: access.can('system.permissions'),
             sortable: false,
             flex: 1,
         },

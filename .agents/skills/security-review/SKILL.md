@@ -46,9 +46,10 @@ wrappers):
 ### 3. Client-side security boundaries
 Audit `'use client'` modules and RSC-to-Client boundaries for XSS, open redirects, token leaks, and
 data exposure:
-* **Auth & account UI** (`app/registration/AuthenticationFlow.tsx`, `app/registration/authentication/`):
-  verify URL tokens, post-auth/sign-out redirects, WebAuthn flows, password inputs, and sign-out
-  cleanup are safe and never rely on client-side validation for security.
+* **Auth & account UI** (`app/registration/AuthenticationFlow.tsx` and
+  `app/registration/authentication/`): verify URL tokens, post-auth/sign-out redirects, WebAuthn
+  flows, password inputs, and sign-out cleanup are safe and never rely on client-side validation
+  for security.
 * **Untrusted content rendering**: verify HTML, SVG, Markdown, and sandboxed `<iframe>` sinks (such
   as inbound e-mail rendering, QR codes, and remote Markdown) prevent script execution, unsafe URL
   protocols, and unsafe file downloads.
