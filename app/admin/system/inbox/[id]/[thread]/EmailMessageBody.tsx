@@ -71,6 +71,28 @@ function readParentFontFaceCss(): string {
 }
 
 /**
+ * Restrictive Content-Security-Policy applied inside the sandboxed e-mail `<iframe>`.
+ */
+const kEmailIframeCsp = [
+    "default-src 'none'",
+    "style-src 'unsafe-inline'",
+    "font-src 'self' data:",
+    'img-src https: http: data:',
+    "base-uri 'none'",
+    "form-action 'none'",
+].join('; ');
+
+/**
+ * Strips high-risk HTML elements (`<script>`, `<iframe>`, `<object>`, `<embed>`, `<meta>`,
+ * `<base>`, `<link>`) from untrusted inbound e-mail HTML before placing it into `srcDoc`.
+ */
+function sanitizeEmailHtml(html: string): string {
+    return html
+        .replace(/<(script|iframe|object|embed)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+        .replace(/<(script|iframe|object|embed|meta|base|link)\b[^>]*\/?>/gi, '');
+}
+
+/**
  * Builds the `srcDoc` HTML document used to render `html` inside a sandboxed `<iframe>`, matching
  * the active light or dark palette and typography of the admin interface.
  */
@@ -85,7 +107,10 @@ function buildEmailSrcDoc(html: string, isDark: boolean, theme: Theme): string {
     const lineHeight = theme.typography.body2.lineHeight ?? 1.43;
 
     return [
-        '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>',
+        '<!doctype html><html><head><meta charset="utf-8">',
+        '<meta name="referrer" content="no-referrer">',
+        `<meta http-equiv="Content-Security-Policy" content="${kEmailIframeCsp}">`,
+        '<base target="_blank"><style>',
         `html{margin:0;padding:0;background:transparent;color-scheme:${colorScheme};`,
         'overflow:hidden;}',
         `body{margin:0;padding:0;display:flow-root;background:transparent;color:${textColor};`,
@@ -97,7 +122,7 @@ function buildEmailSrcDoc(html: string, isDark: boolean, theme: Theme): string {
         `border-left:3px solid ${dividerColor};color:${secondaryColor};}`,
         '[data-email-quote-collapsed="true"]{display:none!important;}',
         '</style></head><body>',
-        html,
+        sanitizeEmailHtml(html),
         '</body></html>',
     ].join('');
 }
