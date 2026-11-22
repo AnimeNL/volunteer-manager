@@ -38,6 +38,17 @@ export default defineConfig({
                         'react-hook-form-mui',
                     ],
                 },
+                ssr: {
+                    enabled: true,
+                    include: [
+                        'ts-sql-query/Table',
+                        'ts-sql-query/connections/MariaDBConnection',
+                        'ts-sql-query/queryRunners/InterceptorQueryRunner',
+                        'ts-sql-query/queryRunners/MariaDBPoolQueryRunner',
+                        'ts-sql-query/queryRunners/MockQueryRunner',
+                        'zod/v4',
+                    ],
+                },
             },
         },
         env: {
