@@ -23,6 +23,7 @@ import Typography from '@mui/material/Typography';
 import { CmComIcon } from '@app/admin/components/icons/CmComIcon';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { GoogleIcon } from '@app/admin/components/icons/GoogleIcon';
+import { MaskedTextFieldElement } from '@app/admin/components/MaskedTextFieldElement';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TwilioIcon } from '@app/admin/components/icons/TwilioIcon';
@@ -34,7 +35,7 @@ import { readSettings } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
 
-import { kMaskedSecret } from './MaskedSecret';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
 import { updateIntegration } from './Actions';
@@ -58,7 +59,10 @@ const kGoogleLocationOptions = [
  * Volunteer Manager integrates with.
  */
 export default async function IntegrationsPage() {
-    const { user } = await requireAuthentication('system.integrations');
+    const { access, user } = await requireAuthentication('system.integrations');
+
+    const canRevealSecrets = access.can('root');
+    const revealSecret = (value?: string) => canRevealSecrets ? value : undefined;
 
     const emailAccounts = await db.selectFrom(tEmailAccounts)
         .where(tEmailAccounts.emailAccountDeleted.isNull())
@@ -248,8 +252,12 @@ export default async function IntegrationsPage() {
                                       size="small" required />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="AnimeCon[clientSecret]" label="Client Secret" fullWidth
-                                      size="small" required />
+                    <MaskedTextFieldElement
+                        name="AnimeCon[clientSecret]" label="Client Secret" fullWidth size="small"
+                        required
+                        secretValue={
+                            revealSecret(settings['integration-animecon-client-secret'])
+                        } />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -257,8 +265,10 @@ export default async function IntegrationsPage() {
                                       size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="AnimeCon[password]" label="Password" type="password"
-                                      size="small" fullWidth required />
+                    <MaskedTextFieldElement
+                        name="AnimeCon[password]" label="Password" type="password" size="small"
+                        fullWidth required
+                        secretValue={ revealSecret(settings['integration-animecon-password']) } />
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
@@ -305,12 +315,14 @@ export default async function IntegrationsPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Google[apiKey]" label="API Key" fullWidth required
-                                      size="small" />
+                    <MaskedTextFieldElement
+                        name="Google[apiKey]" label="API Key" fullWidth required size="small"
+                        secretValue={ revealSecret(settings['integration-google-apikey']) } />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Google[credential]" label="Credential" fullWidth
-                                      size="small" required />
+                    <MaskedTextFieldElement
+                        name="Google[credential]" label="Credential" fullWidth size="small" required
+                        secretValue={ revealSecret(settings['integration-google-credentials']) } />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <SelectElement name="Google[location]" label="Location" fullWidth required
@@ -337,8 +349,12 @@ export default async function IntegrationsPage() {
                                       size="small" required />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Twilio[accountAuthToken]" label="Auth token" fullWidth
-                                      size="small" required />
+                    <MaskedTextFieldElement
+                        name="Twilio[accountAuthToken]" label="Auth token" fullWidth size="small"
+                        required
+                        secretValue={
+                            revealSecret(settings['integration-twilio-account-auth-token'])
+                        } />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="Twilio[messagingSidSms]" label="SMS SID" fullWidth
@@ -389,20 +405,32 @@ export default async function IntegrationsPage() {
                                       size="small" required />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Weeztix[clientSecret]" label="Client secret" fullWidth
-                                      size="small" required />
+                    <MaskedTextFieldElement
+                        name="Weeztix[clientSecret]" label="Client secret" fullWidth size="small"
+                        required
+                        secretValue={
+                            revealSecret(settings['integration-weeztix-client-secret'])
+                        } />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="Weeztix[redirectUrl]" label="Redirect URL"
                                       fullWidth required size="small" />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Weeztix[accessToken]" label="Access token" fullWidth
-                                      size="small" slotProps={{ input: { disabled: true } }} />
+                    <MaskedTextFieldElement
+                        name="Weeztix[accessToken]" label="Access token" fullWidth size="small"
+                        slotProps={{ input: { disabled: true } }}
+                        secretValue={
+                            revealSecret(settings['integration-weeztix-access-token'])
+                        } />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                    <TextFieldElement name="Weeztix[refreshToken]" label="Refresh token" fullWidth
-                                      size="small"  slotProps={{ input: { disabled: true } }} />
+                    <MaskedTextFieldElement
+                        name="Weeztix[refreshToken]" label="Refresh token" fullWidth size="small"
+                        slotProps={{ input: { disabled: true } }}
+                        secretValue={
+                            revealSecret(settings['integration-weeztix-refresh-token'])
+                        } />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldElement name="Weeztix[companyId]" label="Company ID" fullWidth
@@ -455,12 +483,18 @@ export default async function IntegrationsPage() {
                     </Typography>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="YourTicketProvider[ticketingApiKey]" required
-                                      label="Ticketing API Key" fullWidth size="small" />
+                    <MaskedTextFieldElement
+                        name="YourTicketProvider[ticketingApiKey]" required
+                        label="Ticketing API Key" fullWidth size="small"
+                        secretValue={
+                            revealSecret(settings['integration-ytp-ticketing-api-key'])
+                        } />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="YourTicketProvider[visitorApiKey]" required
-                                      label="Visitor Information API Key" fullWidth size="small" />
+                    <MaskedTextFieldElement
+                        name="YourTicketProvider[visitorApiKey]" required
+                        label="Visitor Information API Key" fullWidth size="small"
+                        secretValue={ revealSecret(settings['integration-ytp-visitor-api-key']) } />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="YourTicketProvider[endpoint]" label="Endpoint" fullWidth

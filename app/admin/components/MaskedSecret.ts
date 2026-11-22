@@ -3,6 +3,6 @@
 
 /**
  * Sentinel value rendered in secret form fields when a credential is already configured, so the
- * plaintext secret is never serialized to the client.
+ * plaintext secret is not displayed in the UI (and never serialized to non-root clients).
  */
 export const kMaskedSecret = '●●●●●●●●';

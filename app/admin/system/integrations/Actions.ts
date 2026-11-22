@@ -11,7 +11,7 @@ import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
-import { kMaskedSecret } from './MaskedSecret';
+import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
 /**
