@@ -39,6 +39,8 @@ const kUpdateVolunteerNotesData = z.object({
  */
 export async function updateVolunteerNotes(formData: unknown) {
     return executeServerAction(formData, kUpdateVolunteerNotesData, async (data, props) => {
+        // Intentionally checks `read` at event scope so leaders who can view volunteer notes in
+        // the schedule app can also update them across teams.
         const { event } = await requireVolunteerAuthenticationWithEvent(
             props.authenticationContext, data.event, {
                 permission: 'volunteers.participation',

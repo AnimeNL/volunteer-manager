@@ -75,6 +75,7 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
 
 }), {
     async authorize(operation, props, context) {
+        // Intentionally maps all mutating operations (`create`, `update`, `delete`) to `update`.
         executeAccessCheck(props.authenticationContext, {
             permission: 'volunteers.vendor-teams',
             operation: operation === 'read' ? 'read' : 'update',

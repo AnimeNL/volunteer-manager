@@ -75,6 +75,16 @@ Audit `.agents/skills/security-review/SKILL.md` itself against the current repos
 references and assumptions are still accurate, identify any new security-sensitive areas or attack
 surfaces it should cover, and propose concrete updates.
 
+## Known Intentional Patterns
+Do not report the following deliberate design choices as vulnerabilities (list them under
+**Verified Exceptions** instead):
+* **`updateVolunteerNotes` (`app/schedule/[event]/volunteers/[volunteer]/VolunteerActions.ts`)**:
+  Intentionally authorizes with `volunteers.participation:read` (event-scoped, `kAnyTeam`) so
+  leaders who can view volunteer notes in the schedule app can also update them across teams.
+* **`VendorTable` (`app/admin/events/[event]/[team]/first-aid/VendorTable.tsx`)**:
+  Intentionally maps `create`, `update`, and `delete` operations to `volunteers.vendor-teams:update`
+  (keeping `read` separate).
+
 ## Report Format
 Present findings concisely in four sections:
 1. **Summary**: Scope covered and finding counts by severity (`Critical`, `High`, `Medium`, `Low`,
