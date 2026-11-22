@@ -16,6 +16,11 @@ Treat the review as read-only unless the user asks for fixes. Before auditing co
 `app/lib/auth/README.md` and `app/lib/auth/AGENTS.md` so documented design decisions and tradeoffs
 are distinguished from real regressions (while still verifying their compensating controls hold).
 
+**Non-goal — enumerating specifics**: It is a non-goal of this skill to document security specifics
+or maintain an exhaustive inventory of files, functions, and exceptions. The goal is to enable a
+model to identify categories of risk and question assumptions from the get-go. Mentioning a category
+of issue or concern is appropriate; mentioning a specific file or function rarely is.
+
 ## Audit Goals
 
 ### 1. Core authentication & authorization (`app/lib/auth`)
@@ -50,9 +55,10 @@ data exposure:
   `app/registration/authentication/`): verify URL tokens, post-auth/sign-out redirects, WebAuthn
   flows, password inputs, and sign-out cleanup are safe and never rely on client-side validation
   for security.
-* **Untrusted content rendering**: verify HTML, SVG, Markdown, and sandboxed `<iframe>` sinks (such
-  as inbound e-mail rendering, QR codes, and remote Markdown) prevent script execution, unsafe URL
-  protocols, and unsafe file downloads.
+* **Untrusted content rendering**: verify HTML, SVG, Markdown (including AI/LLM outputs), and
+  sandboxed `<iframe>` sinks (such as inbound e-mail rendering, QR codes, and remote Markdown)
+  prevent script execution, unsafe URL protocols (such as `javascript:`), and unsafe file
+  downloads.
 * **Storage, bridges & payloads**: check client storage, dynamic links, `postMessage`/device
   bridges, and Server-to-Client props so secrets, tokens, or unauthorized PII are never exposed.
 
@@ -61,19 +67,23 @@ Because Next.js layouts do not re-run on every navigation, every entry point mus
 security boundary:
 * **Route handlers** (`route.ts` / `route.tsx` across all of `app/`): every exported HTTP method
   opens with an appropriate check (user auth + resource authorization, shared secret, webhook
-  signature, or verified intentional public access with safe response headers).
+  signature verification that rejects unauthenticated requests, or verified intentional public
+  access with safe response and download headers).
 * **Pages & layouts** (`page.tsx`, `layout.tsx`, and `generateMetadata`): no `'use client'` pages
   or layouts; every non-public page begins with the appropriate authentication and permission check
-  for its area, and metadata does not leak protected data before auth.
-* **Server Actions & `<DataTable>` data sources**: every `'use server'` function and
+  for its area, and `generateMetadata` entity/title lookups do not leak protected or hidden data
+  before auth.
+* **Server Actions & `<DataTable>` data sources**: every `'use server'` module and function and
   `createDataSource()` validates inputs, enforces explicit permission/ownership checks beyond mere
-  sign-in (preventing IDOR on bound or URL parameters), and justifies any `allowVisitors: true`,
+  sign-in (preventing IDOR on bound or URL parameters), avoids exposing server-only helpers as
+  public `'use server'` endpoints, and justifies any `allowVisitors: true`,
   `allowUnauthenticated()`, or non-`executeServerAction()` usage.
 
 ### 5. Keep this skill up-to-date
 Audit `.agents/skills/security-review/SKILL.md` itself against the current repository: verify its
-references and assumptions are still accurate, identify any new security-sensitive areas or attack
-surfaces it should cover, and propose concrete updates.
+references and assumptions are still accurate, identify any new security-sensitive categories or
+attack surfaces it should cover, and propose concrete updates (keeping them category-level rather
+than enumerating specific files or functions).
 
 ## Known Intentional Patterns
 Do not report the following deliberate design choices as vulnerabilities (list them under
