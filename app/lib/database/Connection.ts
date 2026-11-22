@@ -9,12 +9,17 @@ import { MariaDBConnection } from 'ts-sql-query/connections/MariaDBConnection';
 import { MariaDBPoolQueryRunner } from 'ts-sql-query/queryRunners/MariaDBPoolQueryRunner';
 import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
-import { LogBuilder } from '@lib/log/index';
+/**
+ * Listener invoked whenever a database query fails.
+ */
+type DatabaseQueryErrorListener = (
+    queryType: QueryType, query: string, params: any[], error: Error) => void;
 
 declare namespace globalThis {
     let animeConConnectionPool: Pool | undefined;
     let animeConMockConnection: DBConnection | undefined;
     let animeConQueryCount: number | undefined;
+    let animeConQueryErrorListener: DatabaseQueryErrorListener | undefined;
     let animeConQueryLog: {
         queryType: QueryType;
         query: string;
@@ -124,15 +129,17 @@ export class ErrorReportingQueryRunner extends InterceptorQueryRunner<undefined>
         if (query.includes('DatabaseError') || params.includes('DatabaseError'))
             return;  // prevent recursion
 
-        LogBuilder.for('DatabaseError')
-            .withSeverity('Error')
-            .recordImmediately({
-                message: error.message,
-                stack: error.stack,
-                query,
-                params: params.map(param => String(param)),
-            });
+        globalThis.animeConQueryErrorListener?.(queryType, query, params, error);
     }
+}
+
+/**
+ * Registers or clears the listener invoked whenever a database query fails.
+ */
+export function setDatabaseQueryErrorListener(
+    listener: DatabaseQueryErrorListener | undefined): void
+{
+    globalThis.animeConQueryErrorListener = listener;
 }
 
 /**

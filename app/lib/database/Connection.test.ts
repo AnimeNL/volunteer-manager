@@ -3,11 +3,12 @@
 
 import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
-import { ErrorReportingQueryRunner, useMockConnection } from './Connection';
-import db, { tHotels, tLogs } from './index';
+import { ErrorReportingQueryRunner, setDatabaseQueryErrorListener, useMockConnection }
+    from './Connection';
+import { LogBuilder } from '@lib/log/index';
+import db, { kMaxTextColumnByteLength, tHotels, tLogs } from './index';
 
 import { kLogSeverity } from '@lib/Log';
-import { kMaxTextColumnByteLength } from './index';
 
 describe('Connection', () => {
     const mockConnection = useMockConnection();
@@ -71,39 +72,54 @@ describe('Connection', () => {
     });
 
     it('truncates oversized DatabaseError log payloads and avoids recursion', async () => {
-        let recordedParams: unknown[] | undefined;
-        const done = new Promise<void>(resolve => {
-            mockConnection.expect('insert', (_query, params) => {
-                recordedParams = params;
-                resolve();
-                return 1;
-            });
+        setDatabaseQueryErrorListener((_queryType, query, params, error) => {
+            LogBuilder.for('DatabaseError')
+                .withSeverity('Error')
+                .recordImmediately({
+                    message: error.message,
+                    stack: error.stack,
+                    query,
+                    params: params.map(param => String(param)),
+                });
         });
 
-        const failingRunner = new ErrorReportingQueryRunner(new MockQueryRunner(() => {
-            throw new Error('Data too long for column \'log_output\' at row 1');
-        }));
+        try {
+            let recordedParams: unknown[] | undefined;
+            const done = new Promise<void>(resolve => {
+                mockConnection.expect('insert', (_query, params) => {
+                    recordedParams = params;
+                    resolve();
+                    return 1;
+                });
+            });
 
-        // Should not trigger any `mockConnection` query when `'DatabaseError'` is in params.
-        await expect(
-            failingRunner.executeInsert('insert into logs values (?)', [ 'DatabaseError' ])
-        ).rejects.toThrow('Data too long');
+            const failingRunner = new ErrorReportingQueryRunner(new MockQueryRunner(() => {
+                throw new Error('Data too long for column \'log_output\' at row 1');
+            }));
 
-        // Should truncate `log_data` to fit within MariaDB's `TEXT` byte limit.
-        await expect(
-            failingRunner.executeInsert(
-                'insert into integrations_logs (log_output, row_id) values (?, ?)',
-                [ 'あ'.repeat(30000), 42 ])
-        ).rejects.toThrow('Data too long');
+            // Should not trigger any `mockConnection` query when `'DatabaseError'` is in params.
+            await expect(
+                failingRunner.executeInsert('insert into logs values (?)', [ 'DatabaseError' ])
+            ).rejects.toThrow('Data too long');
 
-        await done;
+            // Should truncate `log_data` to fit within MariaDB's `TEXT` byte limit.
+            await expect(
+                failingRunner.executeInsert(
+                    'insert into integrations_logs (log_output, row_id) values (?, ?)',
+                    [ 'あ'.repeat(30000), 42 ])
+            ).rejects.toThrow('Data too long');
 
-        expect(recordedParams).toBeDefined();
-        expect(recordedParams![0]).toBe('DatabaseError');
+            await done;
 
-        const serializedData = recordedParams![6] as string;
-        expect(Buffer.byteLength(serializedData, 'utf8')).toBeLessThanOrEqual(
-            kMaxTextColumnByteLength);
-        expect(serializedData).not.toContain('\ufffd');
+            expect(recordedParams).toBeDefined();
+            expect(recordedParams![0]).toBe('DatabaseError');
+
+            const serializedData = recordedParams![6] as string;
+            expect(Buffer.byteLength(serializedData, 'utf8')).toBeLessThanOrEqual(
+                kMaxTextColumnByteLength);
+            expect(serializedData).not.toContain('\ufffd');
+        } finally {
+            setDatabaseQueryErrorListener(undefined);
+        }
     });
 });

@@ -16,6 +16,22 @@ export async function register() {
         return;
     }
 
+    // Wire database query error reporting into the application log without introducing a circular
+    // dependency between `@lib/database` and `@lib/log`.
+    const { setDatabaseQueryErrorListener } = await import('@lib/database/Connection');
+    const { LogBuilder } = await import('@lib/log/index');
+
+    setDatabaseQueryErrorListener((_queryType, query, params, error) => {
+        LogBuilder.for('DatabaseError')
+            .withSeverity('Error')
+            .recordImmediately({
+                message: error.message,
+                stack: error.stack,
+                query,
+                params: params.map(param => String(param)),
+            });
+    });
+
     if (process.env.NODE_ENV !== 'production' && process.env.APP_SCHEDULER_ENABLED !== '1') {
         // Fail silent: this is intentionally done by the developer.
         return;
