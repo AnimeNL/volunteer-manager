@@ -11,7 +11,7 @@ import { FavouriteCache } from './FavouriteCache';
 import { ScheduleCache } from './ScheduleCache';
 import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
-import { getEventBySlug } from '@lib/EventLoader';
+import { getEvent } from '@lib/cache';
 import { isAfter, isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
@@ -996,8 +996,8 @@ export type GetScheduleResult = PublicSchedule | 'forbidden' | 'not-found';
 export async function getSchedule(
     eventSlug: string, context: UserAuthenticationContext): Promise<GetScheduleResult>
 {
-    const event = await getEventBySlug(eventSlug);
-    if (!event || !event.festivalId)
+    const event = await getEvent(eventSlug);
+    if (!event || !event.integrations?.anPlanFestivalId)
         return 'not-found';
 
     const { access, user } = context;
@@ -1059,7 +1059,7 @@ export async function getSchedule(
             sortPastDaysLast: settings['schedule-sort-past-days-last'] ?? true,
             sortPastEventsLast: settings['schedule-sort-past-events-last'] ?? true,
             timeOffset: settings['schedule-time-offset-seconds'] || undefined,
-            timezone: event.timezone,
+            timezone: event.timeZone,
             updateFrequencyMs: (settings['schedule-check-in-rate-seconds'] ?? (5 * 60)) * 1000,
         },
         knowledge: [ /* empty */ ],
@@ -1101,7 +1101,8 @@ export async function getSchedule(
         (!!settings['schedule-sales-product-panel'] && !!teamAccess);
 
     await populateProgram(dbInstance, schedule, includeProductPanel,
-        !!settings['schedule-sales-sold-out'], currentTime, event.id, event.festivalId);
+        !!settings['schedule-sales-sold-out'], currentTime, event.id,
+        event.integrations.anPlanFestivalId);
 
     const fullVendorAccess = access.can('volunteers.vendor-teams', 'read', {
         event: event.slug,
@@ -1119,11 +1120,11 @@ export async function getSchedule(
 
     const unavailabilityFn = determineVolunteerUnavailability.bind(null, {
         currentTime,
-        currentZonedTime: currentTime.withTimeZone(event.timezone),
-        eventAvailabilityStartTime: event.temporalStartTime.subtract({
+        currentZonedTime: currentTime.withTimeZone(event.timeZone),
+        eventAvailabilityStartTime: event.startTime.subtract({
             hours: kAvailabilityBeforeOpeningHours
         }),
-        eventAvailabilityEndTime: event.temporalEndTime.add({
+        eventAvailabilityEndTime: event.endTime.add({
             hours: kAvailabilityAfterOpeningHours
         }),
     });

@@ -5,7 +5,7 @@ import { forbidden, notFound } from 'next/navigation';
 
 import { FinanceDashboard } from '@app/admin/events/[event]/finance/FinanceDashboard';
 import { determineFilters } from '../../Filters';
-import { getEventBySlug } from '@lib/EventLoader';
+import { getEvent } from '@lib/cache';
 
 /**
  * Page that displays sales statistics for a particular event. This page is only available for those
@@ -19,7 +19,7 @@ export default async function StatisticsPage(props: PageProps<'/statistics/sales
 
     const params = await props.params;
 
-    const event = await getEventBySlug(params.event);
+    const event = await getEvent(params.event);
     if (!event || !filters.events.find(e => e.hasSales && e.id === event.id))
         notFound();
 

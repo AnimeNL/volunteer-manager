@@ -14,7 +14,7 @@ import { MobileNavigation } from './components/MobileNavigation';
 import { ScheduleContextManager } from './ScheduleContextManager';
 import { ScheduleTheme } from './ScheduleTheme';
 import { determineEnvironment } from '@lib/Environment';
-import { getEventBySlug } from '@lib/EventLoader';
+import { getEvent } from '@lib/cache';
 import { isAfter } from '@lib/Temporal';
 import { requireAuthenticationContext } from '@lib/auth';
 import db, { tEnvironmentsEvents, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
@@ -61,7 +61,7 @@ export default async function ScheduleLayout(props: LayoutProps<'/schedule/[even
 
     const params = await props.params;
 
-    const event = await getEventBySlug(params.event);
+    const event = await getEvent(params.event);
     if (!event)
         notFound();  // the requested |event| does not exist
 
