@@ -12,9 +12,10 @@ import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
 import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
-import db, { tDutyBook, tDutyBookViewers } from '@lib/database';
+import db, { tDutyBook, tDutyBookViewers, tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kAnyTeam } from '@lib/auth/access';
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
  * Authenticates the volunteer for `eventSlug` and verifies that they have access to the Duty Book.
@@ -103,11 +104,37 @@ export async function reportIncident(formData: unknown) {
 
         const dbInstance = db;
 
+        // Temporary fallback until Iteration 5 accepts an explicit `team` parameter.
+        const teamId =
+            await dbInstance.selectFrom(tUsersEvents)
+                .innerJoin(tTeams)
+                    .on(tTeams.teamId.equals(tUsersEvents.teamId))
+                        .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
+                .where(tUsersEvents.userId.equals(props.user.id))
+                    .and(tUsersEvents.eventId.equals(event.id))
+                    .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+                .selectOneColumn(tTeams.teamId)
+                .limit(1)
+                .executeSelectNoneOrOne() ??
+            await dbInstance.selectFrom(tEventsTeams)
+                .innerJoin(tTeams)
+                    .on(tTeams.teamId.equals(tEventsTeams.teamId))
+                        .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
+                .where(tEventsTeams.eventId.equals(event.id))
+                    .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+                .selectOneColumn(tTeams.teamId)
+                .limit(1)
+                .executeSelectNoneOrOne();
+
+        if (!teamId)
+            forbidden();
+
         // Step 1: Store the incident in the database
         const incidentId = await dbInstance.insertInto(tDutyBook)
             .values({
                 dutyBookUserId: props.user.id,
                 dutyBookEventId: event.id,
+                dutyBookTeamId: teamId,
                 dutyBookIncident: data.incident,
                 dutyBookAiSummary: /* will be asynchronously generated= */ null,
                 dutyBookCreated: dbInstance.currentZonedDateTime(),

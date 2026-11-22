@@ -1988,7 +1988,7 @@ tables:
       KEY `users_sessions_impersonator_user_id` (`impersonator_user_id`),
       CONSTRAINT `users_sessions_impersonator_user_id` FOREIGN KEY (`impersonator_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
       CONSTRAINT `users_sessions_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: inbox_email_attachments
   type: BASE TABLE
   columns:
@@ -5869,6 +5869,9 @@ tables:
   - name: duty_book_event_id
     type: int(4) unsigned
     nullable: false
+  - name: duty_book_team_id
+    type: int(4) unsigned
+    nullable: false
   - name: duty_book_incident
     type: text
     nullable: false
@@ -5893,11 +5896,12 @@ tables:
     nullable: true
     default: "NULL"
   indexes:
-  - name: duty_book_event_id
-    def: KEY duty_book_event_id (duty_book_event_id) USING BTREE
+  - name: duty_book_event_team
+    def: KEY duty_book_event_team (duty_book_event_id, duty_book_team_id) USING BTREE
     table: duty_book
     columns:
     - duty_book_event_id
+    - duty_book_team_id
   - name: PRIMARY
     def: PRIMARY KEY (duty_book_id) USING BTREE
     table: duty_book
@@ -5915,6 +5919,7 @@ tables:
       `duty_book_id` int(4) unsigned NOT NULL AUTO_INCREMENT,
       `duty_book_user_id` int(4) unsigned NOT NULL,
       `duty_book_event_id` int(4) unsigned NOT NULL,
+      `duty_book_team_id` int(4) unsigned NOT NULL,
       `duty_book_incident` text NOT NULL,
       `duty_book_ai_summary` text DEFAULT NULL,
       `duty_book_created` datetime NOT NULL DEFAULT current_timestamp(),
@@ -5922,7 +5927,7 @@ tables:
       `duty_book_hidden` datetime DEFAULT NULL,
       `duty_book_deleted` datetime DEFAULT NULL,
       PRIMARY KEY (`duty_book_id`),
-      KEY `duty_book_event_id` (`duty_book_event_id`)
+      KEY `duty_book_event_team` (`duty_book_event_id`,`duty_book_team_id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=[Redacted by tbls] DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - name: displays_requests
   type: BASE TABLE
