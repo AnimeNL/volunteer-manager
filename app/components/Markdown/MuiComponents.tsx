@@ -13,6 +13,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import { MarkdownRemoteContent } from './MarkdownRemoteContent';
+import { isSafeLinkHref } from './isSafeLinkHref';
 
 /**
  * Component variants to integrate the Markdown renderer with our use of Material UI.
@@ -42,10 +43,16 @@ export const kMuiComponents: Partial<Components> = {
             {children}
         </Typography>,
 
-    a: ({ children, href, ...props }) =>
-        <MuiLink component={Link} href={href} {...props}>
-            {children}
-        </MuiLink>,
+    a: ({ children, href, ...props }) => {
+        if (!isSafeLinkHref(href))
+            return <span>{children}</span>;
+
+        return (
+            <MuiLink component={Link} href={href} {...props}>
+                {children}
+            </MuiLink>
+        );
+    },
 
     p: ({ children, ...props }) =>
         <Typography variant="inherit" component="p" {...props}>

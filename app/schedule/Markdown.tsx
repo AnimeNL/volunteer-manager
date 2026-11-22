@@ -14,6 +14,8 @@ import Box from '@mui/material/Box';
 import { default as MuiLink, type LinkProps } from '@mui/material/Link';
 import Typography, { type TypographyProps } from '@mui/material/Typography';
 
+import { isSafeLinkHref } from '@components/Markdown/isSafeLinkHref';
+
 /**
  * Manual styles that apply to the <BaseMarkdown> client component.
  */
@@ -67,36 +69,6 @@ function Text(props: TypographyProps & { tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' |
 /**
  * URL protocols allowed for rendered Markdown links.
  */
-const kSafeLinkProtocols = new Set([ 'http:', 'https:', 'mailto:', 'tel:' ]);
-
-/**
- * Returns whether the given `href` uses a safe protocol or a relative path.
- */
-function isSafeLinkHref(href?: string): boolean {
-    if (!href)
-        return false;
-
-    const trimmed = href.trim();
-    if (!trimmed)
-        return false;
-
-    if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\'))
-        return true;
-
-    if (trimmed.startsWith('#') || trimmed.startsWith('?') ||
-        trimmed.startsWith('./') || trimmed.startsWith('../'))
-    {
-        return true;
-    }
-
-    try {
-        const parsed = new URL(trimmed);
-        return kSafeLinkProtocols.has(parsed.protocol);
-    } catch {
-        return false;
-    }
-}
-
 /**
  * Markdown replacement for both the native HTML <a> anchor element, as well as the Material UI
  * <Link> element, that employs NextJS routing.
