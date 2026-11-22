@@ -239,9 +239,7 @@ async function getAuthenticationContextFromSessionData(
 
     const context = await loadUserAuthenticationContext(verified.userId);
     if (!context.user) {
-        if (bypassCache)
-            authCache.delete(sessionData.userId);
-
+        authCache.delete(sessionData.userId);
         return context;
     }
 
@@ -307,16 +305,21 @@ export async function impersonateUser(
         ? await verifyUserSession(previousSession.sessionId, previousSession.secret)
         : undefined;
 
-    if (verifiedPrevious?.impersonatorUserId !== undefined)
+    if (!verifiedPrevious ||
+        verifiedPrevious.userId !== options.impersonatorUserId ||
+        verifiedPrevious.impersonatorUserId !== undefined)
+    {
         return undefined;
+    }
 
     const { user: impersonatedUser } = await loadUserAuthenticationContext(userId);
 
     if (!impersonatedUser)
         return undefined;
 
-    if (verifiedPrevious && verifiedPrevious.userId === previousSession?.userId)
-        await revokeUserSession(verifiedPrevious.sessionId, verifiedPrevious.userId);
+    const revoked = await revokeUserSession(verifiedPrevious.sessionId, verifiedPrevious.userId);
+    if (!revoked)
+        return undefined;
 
     const requestHeaders = await headers();
     const rawIp = options.ip?.trim() || requestHeaders.get('x-forwarded-for')?.trim();

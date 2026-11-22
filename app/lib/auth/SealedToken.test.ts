@@ -96,13 +96,30 @@ describe('SealedToken', () => {
             .toThrow(/Unsupported sealed token version/);
         expect(() => unsealToken('only-one-part', 'session', kPrimarySecret))
             .toThrow(/Invalid sealed token format/);
-        expect(() => unsealToken(`${version}.${keyId}.short`, 'session', kPrimarySecret))
+        expect(() => unsealToken(`${version}.${keyId}.shor`, 'session', kPrimarySecret))
             .toThrow(/truncated/);
+        expect(() => unsealToken(`${version}.${keyId}.short`, 'session', kPrimarySecret))
+            .toThrow(/Invalid sealed token format/);
         expect(() => unsealToken(`${sealed}!`, 'session', kPrimarySecret))
             .toThrow(/Invalid sealed token format/);
         expect(() => unsealToken(`${sealed}=`, 'session', kPrimarySecret))
             .toThrow(/Invalid sealed token format/);
         expect(() => unsealToken(`${version}.${keyId}!$.${payload}`, 'session', kPrimarySecret))
+            .toThrow(/Invalid sealed token format/);
+
+        // Reject non-canonical base64url payload (mutated unused trailing bits):
+        const nonCanonicalPayload = (() => {
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+            const rem = payload.length % 4;
+            if (rem === 0)
+                return `${payload}A`;
+
+            const lastIdx = alphabet.indexOf(payload[payload.length - 1]);
+            const mutated = alphabet[lastIdx ^ 1];
+            return `${payload.slice(0, -1)}${mutated}`;
+        })();
+        expect(() => unsealToken(
+            `${version}.${keyId}.${nonCanonicalPayload}`, 'session', kPrimarySecret))
             .toThrow(/Invalid sealed token format/);
     });
 

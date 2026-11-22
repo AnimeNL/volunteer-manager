@@ -184,6 +184,9 @@ export function unsealToken<T = unknown>(
         throw new Error('Sealed token was signed with an unknown key.');
 
     const rawPayload = Buffer.from(encodedPayload, 'base64url');
+    if (rawPayload.toString('base64url') !== encodedPayload)
+        throw new Error('Invalid sealed token format.');
+
     if (rawPayload.length < kIvLengthBytes + kAuthTagLengthBytes)
         throw new Error('Sealed token payload is truncated.');
 

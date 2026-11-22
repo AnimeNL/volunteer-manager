@@ -214,19 +214,66 @@ describe('AuthenticationContext', () => {
     });
 
     it('impersonates active accounts and rejects missing or inactive accounts', async () => {
-        // Missing or inactive target returns undefined without writing a cookie:
+        // Without a verified prior session, impersonation is rejected with zero DB queries:
+        const unauthenticated = await impersonateUser(999, {
+            impersonatorUserId: 1,
+            returnUrl: '/admin/organisation/accounts/999',
+        });
+        expect(unauthenticated).toBeUndefined();
+        expect(cookieStoreData.has(kSessionCookieName)).toBe(false);
+
+        // Missing or inactive target returns undefined without revoking or writing a cookie:
+        const adminCookie = sealSession({
+            sessionId: 300, userId: 1, secret: 'admin-secret',
+        });
+        cookieStoreData.set(kSessionCookieName, adminCookie);
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 300,
+            userId: 1,
+            sessionTokenHash: hashSessionSecret('admin-secret'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
         mockConnection.expect('selectOneRow', () => undefined);
         const missing = await impersonateUser(999, {
             impersonatorUserId: 1,
             returnUrl: '/admin/organisation/accounts/999',
         });
         expect(missing).toBeUndefined();
-        expect(cookieStoreData.has(kSessionCookieName)).toBe(false);
+        expect(cookieStoreData.get(kSessionCookieName)).toBe(adminCookie);
+
+        // Mismatched impersonatorUserId is rejected:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 300,
+            userId: 1,
+            sessionTokenHash: hashSessionSecret('admin-secret'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        const mismatched = await impersonateUser(55, {
+            impersonatorUserId: 99,
+            returnUrl: '/admin/organisation/accounts/55',
+        });
+        expect(mismatched).toBeUndefined();
+
+        // Failed atomic revocation of the prior session aborts without creating a new session:
+        mockConnection.expect('selectOneRow', () => ({
+            sessionId: 300,
+            userId: 1,
+            sessionTokenHash: hashSessionSecret('admin-secret'),
+            impersonatorUserId: null,
+            impersonatorReturnUrl: null,
+        }));
+        expectAuthenticationQuery(mockConnection, { userId: 55, firstName: 'Target' });
+        mockConnection.expect('delete', () => 0);
+        const failedRevoke = await impersonateUser(55, {
+            impersonatorUserId: 1,
+            returnUrl: '/admin/organisation/accounts/55',
+        });
+        expect(failedRevoke).toBeUndefined();
+        expect(cookieStoreData.get(kSessionCookieName)).toBe(adminCookie);
 
         // Active target revokes the admin's prior session and writes an impersonation cookie:
-        cookieStoreData.set(kSessionCookieName, sealSession({
-            sessionId: 300, userId: 1, secret: 'admin-secret',
-        }));
         mockConnection.expect('selectOneRow', () => ({
             sessionId: 300,
             userId: 1,
