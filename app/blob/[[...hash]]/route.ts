@@ -22,12 +22,29 @@ export async function GET(request: NextRequest, context: RouteContext<'/blob/[[.
         });
 
         if (data) {
+            const cacheControl = 'public, max-age=31536000, immutable';
+            const etag = `"${hash}"`;
+
+            const ifNoneMatch = request.headers.get('if-none-match');
+            const matchesETag = !!ifNoneMatch && (
+                ifNoneMatch === '*' ||
+                ifNoneMatch.split(',').some(tag => tag.trim().replace(/^W\//, '') === etag));
+
+            if (matchesETag) {
+                return new Response(null, {
+                    status: 304,
+                    headers: [
+                        [ 'Cache-Control', cacheControl ],
+                        [ 'ETag', etag ],
+                    ],
+                });
+            }
+
             return new Response(data.bytes, {
                 headers: [
-                    [ 'Cache-Control', 'max-age=31536000'],
-                    [ 'Cache-Control', 'max-age=31536000, immutable'],
+                    [ 'Cache-Control', cacheControl ],
                     [ 'Content-Type', data.mimeType ],
-                    [ 'Pragma', 'public' ],
+                    [ 'ETag', etag ],
                     [ 'X-Content-Type-Options', 'nosniff' ],
                 ],
             });
