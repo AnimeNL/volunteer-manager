@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import EuroIcon from '@mui/icons-material/Euro';
 import List from '@mui/material/List';
@@ -34,11 +33,6 @@ export function TotalRevenueCard(props: TotalRevenueCardProps) {
     if (!headline)
         return null;
 
-    const changePercentage =
-        headline.changePercentage !== undefined
-            ? Math.round(headline.changePercentage)
-            : undefined;
-
     return (
         <Paper sx={{ px: 2, py: 1 }}>
             <Stack direction="column" spacing={1}>
@@ -52,23 +46,9 @@ export function TotalRevenueCard(props: TotalRevenueCardProps) {
                             Total revenue
                         </Typography>
                     </Stack>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                        <Typography variant="h6">
-                            { formatMetric(headline.figure, 'revenue') }
-                        </Typography>
-                        { changePercentage !== undefined &&
-                            <Tooltip title="Compared to the previous 7-day period">
-                                <div>
-                                    <Chip size="small"
-                                          color={ changePercentage >= 0 ? 'success' : 'error' }
-                                          label={
-                                              changePercentage > 0
-                                                  ? `+${changePercentage}% w/w`
-                                                  : `${changePercentage}% w/w`
-                                          } />
-                                </div>
-                            </Tooltip> }
-                    </Stack>
+                    <Typography variant="h6">
+                        { formatMetric(headline.figure, 'revenue') }
+                    </Typography>
                 </Stack>
                 { historical.length > 0 &&
                     <>
