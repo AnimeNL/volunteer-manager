@@ -16,6 +16,8 @@ export default async function EventlessHelpRequestPageWithId(
     props: PageProps<'/schedule/help-request/[id]'>)
 {
     const { access, user } = await getAuthenticationContext();
+    if (!user)
+        redirect('/');
 
     const params = await props.params;
 
@@ -30,7 +32,7 @@ export default async function EventlessHelpRequestPageWithId(
     if (!event)
         notFound();
 
-    if (!user || !access.can('event.help-requests', { event }))
+    if (!access.can('event.help-requests', { event }))
         redirect('/');
 
     const environment = await db.selectFrom(tEvents)

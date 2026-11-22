@@ -6,6 +6,7 @@ import { forbidden, notFound } from 'next/navigation';
 import type { AccessScope, PermissionAccessCheck, PermissionSet } from '@lib/auth/access';
 import type { CachedEvent } from '@lib/cache';
 import type { UserAuthenticationContext } from '@lib/auth';
+import { executeAccessCheck } from '@lib/auth/access';
 import { getEvent } from '@lib/cache';
 import { requireAuthenticationContext } from '@lib/auth';
 
@@ -44,6 +45,8 @@ export async function requireAuthentication(
     permission?: PermissionAccessCheck | PermissionSet,
     scope?: AccessScope): Promise<UserAuthenticationContextWithEvent>
 {
+    const context = await requireAuthenticationContext();
+
     let eventIdentifier: EventIdentifier;
     if (isPropsWithParams(propsOrEvent)) {
         const params = await propsOrEvent.params;
@@ -56,12 +59,13 @@ export async function requireAuthentication(
     if (!event)
         notFound();
 
-    const actualScope: AccessScope = {
-        event: event.slug,
-        ...scope,
-    };
+    if (permission) {
+        executeAccessCheck(context, permission, {
+            event: event.slug,
+            ...scope,
+        });
+    }
 
-    const context = await requireAuthenticationContext(permission, actualScope);
     if (!context.access.can('event.schedule.access', { event: event.slug })) {
         if (!context.events.has(event.slug))
             forbidden();
