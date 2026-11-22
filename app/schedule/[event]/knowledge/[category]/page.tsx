@@ -17,9 +17,9 @@ import { Markdown } from '@components/Markdown';
 import { SetTitle } from '../../components/SetTitle';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
 import { requireAuthentication } from '../../requireAuthentication';
-import db, { tContent, tContentCategories } from '@lib/database';
+import db, { tContent, tContentCategories, tUsersEvents } from '@lib/database';
 
-import { kContentType } from '@lib/database/Types';
+import { kContentType, kRegistrationStatus } from '@lib/database/Types';
 import { kThemeImageVersion } from '@app/config';
 
 /**
@@ -29,7 +29,7 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleKnowledgeCategoryPage(
     props: PageProps<'/schedule/[event]/knowledge/[category]'>)
 {
-    await requireAuthentication(props);
+    const { access, event, user } = await requireAuthentication(props);
 
     const params = await props.params;
     const searchParams = await props.searchParams;
@@ -41,11 +41,15 @@ export default async function ScheduleKnowledgeCategoryPage(
                 .and(tContent.contentCategoryId.equals(tContentCategories.categoryId))
                 .and(tContent.revisionVisible.equals(/* true= */ 1))
         .where(tContentCategories.categoryId.equals(parseInt(params.category, 10)))
+            .and(tContentCategories.eventId.equals(event.id))
             .and(tContentCategories.categoryDeleted.isNull())
         .select({
             title: tContentCategories.categoryTitle,
             icon: tContentCategories.categoryIcon,
             description: tContentCategories.categoryDescription,
+
+            roles: tContentCategories.categoryRoles,
+            teams: tContentCategories.categoryTeams,
 
             questions: dbInstance.aggregateAsArray({
                 id: tContent.contentPath,
@@ -58,6 +62,32 @@ export default async function ScheduleKnowledgeCategoryPage(
 
     if (!category || !category.questions.length)
         notFound();
+
+    const restrictedRoles = category.roles ? category.roles.split(',').filter(Boolean) : [];
+    const restrictedTeams = category.teams ? category.teams.split(',').filter(Boolean) : [];
+
+    if ((restrictedRoles.length > 0 || restrictedTeams.length > 0) &&
+        !access.can('event.knowledge', { event: event.slug }))
+    {
+        const participation = await dbInstance.selectFrom(tUsersEvents)
+            .where(tUsersEvents.userId.equals(user.id))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
+            .select({
+                roleId: tUsersEvents.roleId,
+                teamId: tUsersEvents.teamId,
+            })
+            .executeSelectNoneOrOne();
+
+        if (!participation)
+            notFound();
+
+        if (restrictedRoles.length > 0 && !restrictedRoles.includes(`${participation.roleId}`))
+            notFound();
+
+        if (restrictedTeams.length > 0 && !restrictedTeams.includes(`${participation.teamId}`))
+            notFound();
+    }
 
     category.questions.sort((lhs, rhs) => lhs.question.localeCompare(rhs.question));
 
