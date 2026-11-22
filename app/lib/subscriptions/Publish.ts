@@ -26,7 +26,7 @@ interface PublicationBase {
 type Publication = PublicationBase & (
     { type: 'Application'; typeId: number; message: ApplicationMessage } |
     { type: 'Help'; typeId: number; message: HelpMessage } |
-    { type: 'Incident', typeId?: number; message: IncidentMessage } |
+    { type: 'Incident'; typeId: number; message: IncidentMessage } |
     { type: 'Registration'; typeId?: undefined; message: RegistrationMessage } |
     { type: 'Test'; typeId?: undefined; message: TestMessage }
 );

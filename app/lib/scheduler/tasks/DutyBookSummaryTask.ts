@@ -69,6 +69,7 @@ export class DutyBookSummaryTask extends TaskWithParams<TaskParams> {
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .select({
                 summary: tDutyBook.dutyBookAiSummary,
+                teamId: tDutyBook.dutyBookTeamId,
                 text: tDutyBook.dutyBookIncident,
                 user: {
                     id: tUsers.userId,
@@ -121,6 +122,7 @@ export class DutyBookSummaryTask extends TaskWithParams<TaskParams> {
             this.log.info('Scheduling a publication to announce the Duty Book incident...');
             await Publish({
                 type: kSubscriptionType.Incident,
+                typeId: incident.teamId,
                 sourceUserId: incident.user.id,
                 message: {
                     author: incident.user.name,

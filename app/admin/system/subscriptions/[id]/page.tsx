@@ -103,10 +103,10 @@ export default async function AccountSubscriptionPage(
         switch (subscription.type) {
             case kSubscriptionType.Application:
             case kSubscriptionType.Help:
+            case kSubscriptionType.Incident:
                 type = `${subscription.type}/${subscription.typeId}`;
                 break;
 
-            case kSubscriptionType.Incident:
             case kSubscriptionType.Registration:
             case kSubscriptionType.Test:
                 type = `${subscription.type}`;

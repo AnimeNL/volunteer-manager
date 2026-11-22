@@ -194,6 +194,7 @@ export async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
         .select({
             id: tTeams.teamId,
             name: tTeams.teamName,
+            enableDutyBook: tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1),
         })
         .orderBy('name', 'asc')
         .executeSelectMany();
@@ -215,14 +216,14 @@ export async function getSubscriptionTypes(): Promise<SubscriptionTypeInfo[]> {
             label: `Help request for ${type}`,
             description: 'Request for help issued through our displays',
         })),
-        {
-            id: kSubscriptionType.Incident,
+        ...teams.filter(team => team.enableDutyBook).map(team => ({
+            id: `${kSubscriptionType.Incident}/${team.id}`,
             type: kSubscriptionType.Incident,
-            typeId: null,
+            typeId: team.id,
             Icon: BookIcon,
-            label: 'Duty Book incidents',
+            label: `Duty Book incidents for ${team.name}`,
             description: 'Report of an incident through the portal',
-        },
+        })),
         {
             id: kSubscriptionType.Registration,
             type: kSubscriptionType.Registration,
