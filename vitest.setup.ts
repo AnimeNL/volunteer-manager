@@ -92,6 +92,12 @@ vi.mock('next/navigation', () => {
     };
 });
 
+vi.mock('mariadb', () => ({
+    createPool: () => {
+        throw new Error('Unexpected MariaDB pool creation in tests; call useMockConnection()');
+    },
+}));
+
 vi.mock('server-only', () => {
     return {};
 });
