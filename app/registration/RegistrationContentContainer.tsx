@@ -54,6 +54,26 @@ export function RegistrationContentContainer(props: RegistrationContentContainer
 
     const [ authFlowOpen, setAuthFlowOpen ] = useState<boolean>(initialAuthFlowOpen);
     const [ authFlowRedirectUrl, setAuthFlowRedirectUrl ] = useState<string | undefined>();
+    const [ passwordResetRequest, setPasswordResetRequest ] =
+        useState<string | undefined>(() => searchParams.get('password-reset-request') ?? undefined);
+    const [ registrationRequest, setRegistrationRequest ] =
+        useState<string | undefined>(() => searchParams.get('registration-request') ?? undefined);
+
+    // Strip single-use authentication tokens from the browser URL and history once captured in
+    // component state so they do not linger if the dialog is dismissed.
+    useEffect(() => {
+        if (!searchParams.has('password-reset-request') &&
+            !searchParams.has('registration-request'))
+        {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('password-reset-request');
+        url.searchParams.delete('registration-request');
+        window.history.replaceState(
+            window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    }, [ searchParams ]);
 
     // Observe requests for the authentication context to be opened from within the rendering tree
     // of the <RegistrationLayout>.
@@ -68,6 +88,12 @@ export function RegistrationContentContainer(props: RegistrationContentContainer
 
     }, [ authenticationContext ]);
 
+    const handleCloseAuthFlow = () => {
+        setAuthFlowOpen(false);
+        setPasswordResetRequest(undefined);
+        setRegistrationRequest(undefined);
+    };
+
     return (
         <>
             <Paper elevation={2}>
@@ -78,14 +104,12 @@ export function RegistrationContentContainer(props: RegistrationContentContainer
                 {props.children}
 
             </Paper>
-            <LazyAuthenticationFlow onClose={() => setAuthFlowOpen(false)}
+            <LazyAuthenticationFlow onClose={handleCloseAuthFlow}
                                     open={authFlowOpen}
-                                    passwordResetRequest={
-                                        searchParams.get('password-reset-request')!}
+                                    passwordResetRequest={passwordResetRequest}
                                     registrationRedirectUrl={
                                         authFlowRedirectUrl ?? props.redirectUrl}
-                                    registrationRequest={
-                                        searchParams.get('registration-request')!}
+                                    registrationRequest={registrationRequest}
                                     user={props.user} />
         </>
     );
