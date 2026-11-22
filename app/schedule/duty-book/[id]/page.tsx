@@ -4,15 +4,13 @@
 import { notFound, redirect } from 'next/navigation';
 
 import { getAuthenticationContext } from '@lib/auth';
-import db, { tDutyBook, tEvents, tUsersEvents, tTeams } from '@lib/database';
-
-import { kRegistrationStatus } from '@lib/database/Types';
+import db, { tDutyBook, tEvents, tTeams } from '@lib/database';
 
 /**
- * The <EventlessDutyBookPageWithId> component redirects the user to the event-specific schedule
- * instance to which the Duty Book entry with the given ID belongs. We don't do any permission
- * verifications: the IDs are sequential, so the worst case information leakage is the number of
- * incidents reports we stored per event, which is fine for people to know.
+ * The <EventlessDutyBookPageWithId> component redirects the user to the event- and team-specific
+ * schedule instance to which the Duty Book entry with the given ID belongs. We don't do any
+ * permission verifications: the IDs are sequential, so the worst case information leakage is the
+ * number of incidents reports we stored per event, which is fine for people to know.
  */
 export default async function EventlessDutyBookPageWithId(
     props: PageProps<'/schedule/duty-book/[id]'>)
@@ -23,31 +21,26 @@ export default async function EventlessDutyBookPageWithId(
 
     const params = await props.params;
 
-    const dbInstance = db;
-    const event = await dbInstance.selectFrom(tDutyBook)
+    const incident = await db.selectFrom(tDutyBook)
         .innerJoin(tEvents)
             .on(tEvents.eventId.equals(tDutyBook.dutyBookEventId))
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tDutyBook.dutyBookTeamId))
         .where(tDutyBook.dutyBookId.equals(parseInt(params.id, /* radix= */ 10)))
             .and(tDutyBook.dutyBookDeleted.isNull())
-        .selectOneColumn(tEvents.eventSlug)
+        .select({
+            environment: tTeams.teamEnvironment,
+            event: tEvents.eventSlug,
+            team: tTeams.teamSlug,
+        })
         .executeSelectNoneOrOne();
 
-    if (!event)
+    if (!incident)
         notFound();
 
-    const environment = await db.selectFrom(tEvents)
-        .innerJoin(tUsersEvents)
-            .on(tUsersEvents.eventId.equals(tEvents.eventId))
-                .and(tUsersEvents.userId.equals(user.id))
-                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Accepted))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tUsersEvents.teamId))
-        .where(tEvents.eventSlug.equals(event))
-        .selectOneColumn(tTeams.teamEnvironment)
-        .executeSelectNoneOrOne();
-
-    if (!!environment)
-        redirect(`https://${environment}/schedule/${event}/duty-book`);
+    const target = `/schedule/${incident.event}/duty-book/${incident.team}`;
+    if (!!incident.environment)
+        redirect(`https://${incident.environment}${target}`);
     else
-        redirect(`/schedule/${event}/duty-book/${params.id}`);
+        redirect(target);
 }

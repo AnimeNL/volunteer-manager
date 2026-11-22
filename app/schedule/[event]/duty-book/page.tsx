@@ -1,75 +1,84 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { forbidden } from 'next/navigation';
+import Link from '@app/LinkProxy';
+import { forbidden, redirect } from 'next/navigation';
 
-import { DutyBookPage } from './DutyBookPage';
+import BookIcon from '@mui/icons-material/Book';
+import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardHeader from '@mui/material/CardHeader';
+import ReadMoreIcon from '@mui/icons-material/ReadMore';
+
+import { HeaderSectionCard } from '../components/HeaderSectionCard';
+import { SetTitle } from '../components/SetTitle';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { getTeam } from '@lib/cache';
 import { requireAuthentication } from '../requireAuthentication';
-import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
+import db, { tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access';
+import { kRegistrationStatus } from '@lib/database/Types';
 
 /**
- * The <DutyBookPage> component displays an overview of the Duty Book entries, including the ability
- * to log a new entry in the Duty Book for others to be aware of.
+ * The <DutyBookIndexPage> redirects the user directly to their team's Duty Book when they have
+ * access to a single team, or presents a team picker when they have access to multiple teams.
  */
-export default async function DutyBookServerPage(props: PageProps<'/schedule/[event]/duty-book'>) {
-    const { access, event, events, user } = await requireAuthentication(props);
+export default async function DutyBookIndexPage(props: PageProps<'/schedule/[event]/duty-book'>) {
+    const { access, event, user } = await requireAuthentication(props);
 
-    const hasUnrestrictedAccess = access.can('event.duty-book', 'read', {
-        event: event.slug,
-        team: kAnyTeam,  // todo: Scope this to the specific team page
-    });
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
-    const teamSlug = events.get(event.slug);
-    const team = teamSlug ? await getTeam(teamSlug) : undefined;
-    if (!hasUnrestrictedAccess && !team?.flags.enableDutyBook)
-        forbidden();
-
-    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
-
-    const dbInstance = db;
-    const incidents = await dbInstance.selectFrom(tDutyBook)
-        .innerJoin(tUsers)
-            .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
-        .leftJoin(dutyBookViewersJoin)
-            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
-                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(user.id))
-        .where(tDutyBook.dutyBookEventId.equals(event.id))
-            .and(tDutyBook.dutyBookDeleted.isNull())
+    const teams = await db.selectFrom(tEventsTeams)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+                .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
+                .and(tTeams.teamDeleted.isNull())
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.eventId.equals(tEventsTeams.eventId))
+                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
+                .and(usersEventsJoin.userId.equals(user.id))
+                .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .where(tEventsTeams.eventId.equals(event.id))
+            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
         .select({
-            id: tDutyBook.dutyBookId,
-            author: tUsers.name,
-            authorUserId: tUsers.userId,
-            date: dbInstance.dateTimeAsString(tDutyBook.dutyBookCreated),
-            read: dutyBookViewersJoin.dutyBookViewerDate,
-
-            hidden: tDutyBook.dutyBookHidden.isNotNull(),
-
-            summary: tDutyBook.dutyBookAiSummary,
-            text: tDutyBook.dutyBookIncident,
+            name: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            isMember: usersEventsJoin.userId.isNotNull(),
         })
-        .orderBy(tDutyBook.dutyBookCreated, 'desc')
+        .orderBy(tTeams.teamName, 'asc')
         .executeSelectMany();
 
-    const processedIncidents = incidents.map(incident => {
-        const canAccessContent =
-            incident.authorUserId === user.id || !incident.hidden || hasUnrestrictedAccess;
+    const accessibleTeams = teams.filter(team =>
+        team.isMember ||
+        access.can('event.duty-book', 'read', { event: event.slug, team: team.slug }));
 
-        return {
-            ...incident,
-            read: !!incident.read,
-            summary: canAccessContent ? incident.summary : undefined,
-            text: canAccessContent ? incident.text : undefined,
-        };
-    });
+    if (!accessibleTeams.length)
+        forbidden();
+
+    if (accessibleTeams.length === 1)
+        redirect(`/schedule/${event.slug}/duty-book/${accessibleTeams[0].slug}`);
 
     return (
-        <DutyBookPage incidents={processedIncidents}
-                      team={{ name: team?.name ?? '', slug: team?.slug ?? '' }}
-                      timezone={event.timeZone} />
+        <>
+            <SetTitle title="Duty book" />
+            <HeaderSectionCard>
+                <CardHeader title="Duty book"
+                            subheader="Select a team to view or report incidents in its Duty Book."
+                            slotProps={{ title: { variant: 'subtitle2' } }}
+                            avatar={ <BookIcon /> } />
+            </HeaderSectionCard>
+            { accessibleTeams.map(team => (
+                <Card key={team.slug}>
+                    <CardActionArea LinkComponent={Link}
+                                    href={`/schedule/${event.slug}/duty-book/${team.slug}`}>
+                        <CardHeader action={ <ReadMoreIcon color="disabled" /> }
+                                    avatar={ <BookIcon color="primary" /> }
+                                    title={team.name}
+                                    subheader={`${event.shortName} incident records`}
+                                    slotProps={{ title: { variant: 'subtitle2' } }} />
+                    </CardActionArea>
+                </Card>
+            )) }
+        </>
     );
 }
 
