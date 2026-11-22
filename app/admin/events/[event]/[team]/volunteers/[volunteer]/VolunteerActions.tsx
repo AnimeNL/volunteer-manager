@@ -3,7 +3,7 @@
 
 'use server';
 
-import { forbidden } from 'next/navigation';
+import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/LogBuilder';
@@ -26,6 +26,14 @@ const kParticipationActionSchema = z.object({
 });
 
 /**
+ * Zod type validating the positional arguments for `updateVolunteerStatus()`.
+ */
+const kVolunteerStatusArgsSchema = z.object({
+    status: z.enum([ kRegistrationStatus.Accepted, kRegistrationStatus.Cancelled ]),
+    userId: z.number().int().positive(),
+});
+
+/**
  * Updates the volunteer's participation status (e.g. Cancelled or Accepted).
  */
 export async function updateVolunteerStatus(
@@ -33,14 +41,28 @@ export async function updateVolunteerStatus(
     status: typeof kRegistrationStatus.Accepted | typeof kRegistrationStatus.Cancelled,
     formData: unknown)
 {
-    const isCancelled = status === kRegistrationStatus.Cancelled;
-
     return executeServerAction(formData, kParticipationActionSchema, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'volunteers.participation',
                 operation: 'update',
             });
+
+        const parsedArgs = kVolunteerStatusArgsSchema.safeParse({ status, userId });
+        if (!parsedArgs.success)
+            notFound();
+
+        const isCancelled = parsedArgs.data.status === kRegistrationStatus.Cancelled;
+
+        const existingParticipation = await db.selectFrom(tUsersEvents)
+            .where(tUsersEvents.userId.equals(parsedArgs.data.userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .selectCountAll()
+            .executeSelectOne();
+
+        if (!existingParticipation)
+            notFound();
 
         const isSilent = !data.subject || !data.message;
         if (isSilent) {
@@ -50,7 +72,7 @@ export async function updateVolunteerStatus(
         } else {
             await sendCommunication({
                 sender: props.user,
-                recipient: userId,
+                recipient: parsedArgs.data.userId,
                 subject: data.subject!,
                 message: data.message!,
                 metadata: {
@@ -63,28 +85,28 @@ export async function updateVolunteerStatus(
 
         const affectedRows = await db.update(tUsersEvents)
             .set({
-                registrationStatus: status,
+                registrationStatus: parsedArgs.data.status,
             })
-            .where(tUsersEvents.userId.equals(userId))
+            .where(tUsersEvents.userId.equals(parsedArgs.data.userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
             .executeUpdate();
 
         if (affectedRows)
-            invalidateAuthCache(/* forUserId= */ userId);
+            invalidateAuthCache(/* forUserId= */ parsedArgs.data.userId);
 
         if (isCancelled && !!affectedRows) {
             await maybeRevokeVolunteerTicket({
                 event,
                 initiatorUserId: props.user.id,
-                userId,
+                userId: parsedArgs.data.userId,
             });
         }
 
         LogBuilder.for('UpdateVolunteerStatus')
             .withCondition(!!affectedRows)
             .withInitiatorUser(props.user.id)
-            .withAffectedUser(userId)
+            .withAffectedUser(parsedArgs.data.userId)
             .withSeverity('Warning')
             .record({
                 action: isCancelled ? 'Cancelled' : 'Reinstated',
@@ -182,7 +204,8 @@ const kChangeTeamSchema = z.object({
 });
 
 /**
- * Changes the volunteer's team for this event.
+ * Changes the volunteer's team for this event. Intentionally authorizes only on the source team so
+ * team leads can transfer volunteers to another team without holding permissions on the target team.
  */
 export async function changeTeam(
     userId: number, eventSlug: string, teamSlug: string, formData: unknown)

@@ -259,4 +259,27 @@ describe('DataSourceWrapper', () => {
 
         expect(errorLogDelegateInvoked).toBeTruthy();
     });
+
+    it('rejects invalid or oversized pagination ranges during list() operations', async () => {
+        const wrapper = new DataSourceWrapper(kEmptyContext, kBasicRowModel, kDefaultDataSourceId, {
+            async authorize(operation, props, context) { /* no-op */ },
+            async list() {
+                return { rowCount: 0, rows: [] };
+            },
+        });
+
+        const invalidRanges = [
+            { start: -1, end: 10 },
+            { start: 10, end: 5 },
+            { start: 0.5, end: 10 },
+            { start: 0, end: 500 },
+        ];
+
+        for (const range of invalidRanges) {
+            await expect(wrapper.call('list', { /* empty */ }, { ...kDefaultListParams, ...range }))
+                .rejects.toThrow(/NEXT_HTTP_ERROR_FALLBACK;404/);
+        }
+
+        expect(errorLogDelegateInvoked).toBeTruthy();
+    });
 });

@@ -14,12 +14,17 @@ import { RecordErrorLog } from '@lib/Log';
 import { getAuthenticationContext, type AuthenticationContext } from '@lib/auth';
 
 /**
+ * Maximum number of rows that may be requested in a single `list()` page.
+ */
+const kMaximumPageSize = 500;
+
+/**
  * Zod validator used to verify that the `GridGetRowsParams` information we get for the `list()`
  * operation adheres to the expected structure. Not meant to be comprehensive.
  */
 const kGridGetRowsParamsValidator = z.object({
     // GridGetRowsParams:
-    end: z.number(),
+    end: z.number().int().min(0),
     filterModel: z.object({
         quickFilterValues: z.array(z.string()).optional(),
     }),
@@ -27,8 +32,8 @@ const kGridGetRowsParamsValidator = z.object({
         field: z.string(),
         sort: z.enum([ 'asc', 'desc' ]).nullish(),
     })),
-    start: z.number(),
-});
+    start: z.number().int().min(0),
+}).refine(params => params.end >= params.start && (params.end - params.start) < kMaximumPageSize);
 
 /**
  * Converts the given |operation| to the `AccessOperation` type.

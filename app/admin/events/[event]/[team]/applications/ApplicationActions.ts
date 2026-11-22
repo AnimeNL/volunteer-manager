@@ -77,6 +77,16 @@ export async function claimApplication(
 }
 
 /**
+ * Zod type that describes the data required to decide an application.
+ */
+const kDecideApplicationData = z.object({
+    approved: z.boolean(),
+    userId: z.number().int().positive(),
+    subject: z.string().optional(),
+    message: z.string().optional(),
+});
+
+/**
  * Server action that should be called when a decision regarding an application has been made. The
  * `approved` boolean indicates whether the application was approved or not.
  */
@@ -85,14 +95,27 @@ export async function decideApplication(
     subject?: string, message?: string)
 {
     'use server';
-    return executeServerAction(new FormData, kNoDataRequired, async (data, props) => {
+    return executeServerAction(
+        { approved, userId, subject, message }, kDecideApplicationData, async (data, props) =>
+    {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'volunteers.participation',
                 operation: 'update',
             });
 
-        const isSilent = !subject || !message;
+        const existingApplication = await db.selectFrom(tUsersEvents)
+            .where(tUsersEvents.userId.equals(data.userId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Registered))
+            .selectCountAll()
+            .executeSelectOne();
+
+        if (!existingApplication)
+            notFound();
+
+        const isSilent = !data.subject || !data.message;
         if (isSilent) {
             if (!props.access.can('organisation.silent'))
                 forbidden();
@@ -100,13 +123,13 @@ export async function decideApplication(
         } else {
             await sendCommunication({
                 sender: props.user,
-                recipient: userId,
-                subject,
-                message,
+                recipient: data.userId,
+                subject: data.subject!,
+                message: data.message!,
                 metadata: {
                     eventId: event.id,
                     teamId: team.id,
-                    promptId: approved ? 'application-approved' : 'application-rejected',
+                    promptId: data.approved ? 'application-approved' : 'application-rejected',
                 },
             });
         }
@@ -114,32 +137,33 @@ export async function decideApplication(
         const affectedRows = await db.update(tUsersEvents)
             .set({
                 registrationStatus:
-                    approved ? kRegistrationStatus.Accepted
-                             : kRegistrationStatus.Rejected
+                    data.approved ? kRegistrationStatus.Accepted
+                                  : kRegistrationStatus.Rejected
             })
-            .where(tUsersEvents.userId.equals(userId))
+            .where(tUsersEvents.userId.equals(data.userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Registered))
             .executeUpdate();
 
         if (affectedRows)
-            invalidateAuthCache(/* forUserId= */ userId);
+            invalidateAuthCache(/* forUserId= */ data.userId);
 
         LogBuilder.for('DecideApplication')
             .withCondition(!!affectedRows)
             .withSeverity('Warning')
             .withInitiatorUser(props.user)
-            .withAffectedUser(userId)
+            .withAffectedUser(data.userId)
             .record({
                 event: event.shortName,
                 team: team.title,
-                verdict: approved ? 'Accepted' : 'Rejected',
+                verdict: data.approved ? 'Accepted' : 'Rejected',
             });
 
         return {
             success: true,
             refresh: true,
-            message: approved
+            message: data.approved
                 ? isSilent ? 'The application has been approved silently.'
                            : 'The e-mail has been sent and the application has been approved.'
                 : isSilent ? 'The application has been rejected silently.'

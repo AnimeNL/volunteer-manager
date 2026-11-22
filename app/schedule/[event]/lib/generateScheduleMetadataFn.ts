@@ -50,12 +50,17 @@ export async function generateScheduleMetadata<T extends ExpectedProps>(props: T
 
     let eventName = globalThis.animeConScheduleEventNameCache.get(params.event);
     if (!eventName) {
-        eventName = await db.selectFrom(tEvents)
+        const resolvedEventName = await db.selectFrom(tEvents)
             .where(tEvents.eventSlug.equals(params.event))
             .selectOneColumn(tEvents.eventShortName)
-            .executeSelectNoneOrOne() ?? 'AnimeCon';
+            .executeSelectNoneOrOne();
 
-        globalThis.animeConScheduleEventNameCache.set(params.event, eventName);
+        if (resolvedEventName) {
+            eventName = resolvedEventName;
+            globalThis.animeConScheduleEventNameCache.set(params.event, eventName);
+        } else {
+            eventName = 'AnimeCon';
+        }
     }
 
     if (!!title)
