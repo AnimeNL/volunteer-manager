@@ -3,6 +3,7 @@
 
 import { defineConfig } from 'vitest/config';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import react from '@vitejs/plugin-react';
 
 async function attemptToExtractMuiLicenseFromEnvFiles() {
@@ -72,6 +73,7 @@ export default defineConfig({
             '**/node_modules/**',
         ],
         globals: true,
+        maxWorkers: Math.min(16, Math.max(1, os.availableParallelism() - 1)),
         projects: [
             {
                 extends: true,
