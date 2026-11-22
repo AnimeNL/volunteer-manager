@@ -156,9 +156,6 @@ export function DutyBookPage(props: DutyBookPageProps) {
         if (!!dutyBook?.unread)
             dutyBook.unread = Math.max(0, dutyBook.unread - 1);
 
-        if (!!schedule.dutyBookUnread)
-            schedule.dutyBookUnread = Math.max(0, schedule.dutyBookUnread - 1);
-
         kReadIncidentCache.add(incidentId);
         setOpenedIncidentSet(new Set([ ...kReadIncidentCache ]));  // cause an invalidation
 

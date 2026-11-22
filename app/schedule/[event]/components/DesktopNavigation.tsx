@@ -256,12 +256,31 @@ export function DesktopNavigation() {
                                                 href={area.url}
                                                 icon={ <ArrowRightIcon /> } label={area.name} /> )}
                 </List>
-                { !!schedule.config.enableDutyBook &&
-                    <DesktopNavigationEntry active={ schedulePathname.startsWith('/duty-book') }
-                                            badge={ schedule.dutyBookUnread }
-                                            href={ scheduleBaseUrl + '/duty-book' }
-                                            icon={ <BookIcon /> }
-                                            label="Duty book" /> }
+                { schedule.dutyBooks?.length === 1 &&
+                    <DesktopNavigationEntry
+                        active={ schedulePathname.startsWith('/duty-book') }
+                        badge={ schedule.dutyBooks[0].unread }
+                        href={ `${scheduleBaseUrl}/duty-book/${schedule.dutyBooks[0].team}` }
+                        icon={ <BookIcon /> }
+                        label="Duty book" /> }
+
+                { (schedule.dutyBooks?.length ?? 0) > 1 &&
+                    <>
+                        <DesktopNavigationEntry active={ schedulePathname === '/duty-book' }
+                                                href={ scheduleBaseUrl + '/duty-book' }
+                                                icon={ <BookIcon /> }
+                                                label="Duty book" />
+                        <List dense sx={kStyles.areas}>
+                            { schedule.dutyBooks!.map(dutyBook =>
+                                <DesktopNavigationEntry
+                                    key={dutyBook.team}
+                                    active={ schedulePathname === `/duty-book/${dutyBook.team}` }
+                                    badge={ dutyBook.unread }
+                                    href={ `${scheduleBaseUrl}/duty-book/${dutyBook.team}` }
+                                    icon={ <ArrowRightIcon /> }
+                                    label={ dutyBook.name } /> )}
+                        </List>
+                    </> }
 
                 { !!schedule.config.enableHelpRequests &&
                     <DesktopNavigationEntry active={ schedulePathname.startsWith('/help-requests') }

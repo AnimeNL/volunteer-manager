@@ -121,10 +121,17 @@ export function OverviewPage() {
                 <TicketCard event={schedule.event} slug={schedule.slug} /> }
             { /* TODO: Available back-up volunteers */ }
             { /* TODO: Available senior volunteers */ }
-            { (!!isMobile && !!schedule?.config.enableDutyBook) &&
-                <DutyBookCard event={schedule.event}
-                              slug={schedule.slug}
-                              unread={schedule.dutyBookUnread} /> }
+            { (!!isMobile && !!schedule?.dutyBooks?.length) &&
+                schedule.dutyBooks.map(dutyBook => (
+                    <DutyBookCard key={dutyBook.team}
+                                  event={schedule.event}
+                                  slug={schedule.slug}
+                                  team={dutyBook.team}
+                                  teamName={schedule.dutyBooks!.length > 1
+                                      ? dutyBook.name
+                                      : undefined}
+                                  unread={dutyBook.unread} />
+                )) }
             { (!!isMobile && !!schedule?.knowledge?.length) &&
                 <KnowledgeBaseCard slug={schedule.slug} /> }
             { (!!isMobile && !!schedule?.config.enableHelpRequests) &&

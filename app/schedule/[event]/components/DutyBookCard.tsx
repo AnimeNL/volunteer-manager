@@ -27,6 +27,16 @@ interface DutyBookCardProps {
     slug: string;
 
     /**
+     * Slug of the team to which this Duty Book belongs.
+     */
+    team: string;
+
+    /**
+     * Display name of the team, included in the title when the user has multiple Duty Books.
+     */
+    teamName?: string;
+
+    /**
      * Number of unread Duty Book items that the signed in user hasn't seen yet.
      */
     unread?: number;
@@ -37,9 +47,12 @@ interface DutyBookCardProps {
  * mobile devices, as a link is added to the left-hand side menu for larger screen devices.
  */
 export function DutyBookCard(props: DutyBookCardProps) {
+    const title = props.teamName ? `Duty book (${props.teamName})` : 'Duty book';
+
     return (
         <Card>
-            <CardActionArea LinkComponent={Link} href={`/schedule/${props.slug}/duty-book`}
+            <CardActionArea LinkComponent={Link}
+                            href={`/schedule/${props.slug}/duty-book/${props.team}`}
                             sx={{ '& .MuiCardHeader-action': { alignSelf: 'center',
                                                                pr: 1, pt: 0.5 } }}>
 
@@ -48,7 +61,7 @@ export function DutyBookCard(props: DutyBookCardProps) {
                                     <ReadMoreIcon color="disabled" />
                                 </Badge> }
                             avatar={ <BookIcon color="primary" /> }
-                            title="Duty book"
+                            title={title}
                             subheader={`${props.event} incident records`}
                             slotProps={{ title: { variant: 'subtitle2' } }} />
 

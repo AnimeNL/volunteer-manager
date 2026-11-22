@@ -81,11 +81,6 @@ export const kPublicSchedule = z.strictObject({
         enableAvatarManagement: z.boolean().optional(),
 
         /**
-         * Whether the duty book should be enabled and accessible.
-         */
-        enableDutyBook: z.boolean().optional(),
-
-        /**
          * Whether Del a Rie Advies is able to generate personalised advice.
          */
         enableGeneratedAdvice: z.boolean().optional(),
@@ -168,12 +163,6 @@ export const kPublicSchedule = z.strictObject({
          */
         unread: z.number(),
     })).optional(),
-
-    /**
-     * Number of unread entries in the Duty Book, if any. Only included when the signed in user has
-     * access to the Duty Book.
-     */
-    dutyBookUnread: z.number().optional(),
 
     /**
      * Activity IDs that have been favourited by the volunteer.
@@ -470,11 +459,6 @@ export const kPublicSchedule = z.strictObject({
          * Colour associated with the team, used to emphasise their identity.
          */
         colour: z.string(),
-
-        /**
-         * Whether this team has access to the Duty Book.
-         */
-        enableDutyBook: z.boolean(),
     })),
 
     /**

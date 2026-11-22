@@ -329,10 +329,6 @@ async function populateDutyBooks(
         name: team.name,
         unread: unreadByTeam.get(team.id) ?? 0,
     }));
-
-    // Temporarily kept populated until Iteration 7 removes the deprecated fields.
-    schedule.config.enableDutyBook = true;
-    schedule.dutyBookUnread = schedule.dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -630,8 +626,6 @@ async function registerVolunteers(
                     id: tTeams.teamId,
                     name: tTeams.teamName,
                     colour: tTeams.teamColourLightTheme,
-
-                    teamFlagEnableDutyBook: tTeams.teamFlagEnableDutyBook,
                 },
             },
         })
@@ -648,7 +642,6 @@ async function registerVolunteers(
                 id: teamId,
                 name: volunteer.user.team.name,
                 colour: volunteer.user.team.colour,
-                enableDutyBook: !!volunteer.user.team.teamFlagEnableDutyBook,
             };
         }
 
@@ -1056,7 +1049,6 @@ export async function getSchedule(
         config: {
             activityListLimit: settings['schedule-activity-list-limit'] ?? 5,
             enableAvatarManagement: access.can('organisation.avatars'),
-            enableDutyBook: false,
             enableGeneratedAdvice: settings['schedule-del-a-rie-advies-genai'] ?? false,
             enableHelpRequests: access.can('event.help-requests', { event: event.slug }),
             enableLogicalDays: settings['schedule-logical-days'] ?? false,
