@@ -32,11 +32,11 @@ const kNoDataRequired = z.object({ /* no parameters */ });
  */
 export async function activateAccount(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -51,7 +51,7 @@ export async function activateAccount(userId: number, formData: unknown) {
         invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateActivation')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .record({ action: 'Activated' });
 
@@ -213,18 +213,18 @@ export async function confirmDiscord(userId: number, formData: unknown) {
  */
 export async function createAccessCode(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         const accessCode = await createUserAccessCode(userId);
         if (!accessCode)
             return { success: false, error: 'Unable to create a new access code…' };
 
         LogBuilder.for('AdminResetAccessCode')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Error')
             .record();
@@ -248,11 +248,11 @@ const kCreateAccountData = z.object({
  */
 export async function createAccount(formData: unknown) {
     'use server';
-    return executeServerAction(formData, kCreateAccountData, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'create',
-        });
+    return executeServerAction(formData, kCreateAccountData, async (data) => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'create' },
+            undefined,
+            { bypassCache: true });
 
         if (!await isUsernameAvailable(data.username))
             return { success: false, error: 'This e-mail address already has an account…' };
@@ -276,7 +276,7 @@ export async function createAccount(formData: unknown) {
         // that their account has been created either.
 
         LogBuilder.for('AccountRegister')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .record();
 
@@ -292,11 +292,11 @@ export async function createAccount(formData: unknown) {
  */
 export async function deactivateAccount(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -312,7 +312,7 @@ export async function deactivateAccount(userId: number, formData: unknown) {
         await revokeAllUserSessions(userId);
 
         LogBuilder.for('AdminUpdateActivation')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .record({ action: 'Deactived' });
 
@@ -417,18 +417,18 @@ export async function impersonate(userId: number, formData: unknown) {
  */
 export async function resetPassword(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         const passwordResetRequest = await createPasswordResetToken(userId);
         if (!passwordResetRequest)
             notFound();
 
         LogBuilder.for('AdminResetPasswordLink')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Error')
             .record();
@@ -503,11 +503,11 @@ const kAccountPermissionData = z.object({
  */
 export async function updateAccountInformation(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kAccountPermissionData, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kAccountPermissionData, async (data) => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         const currentUser = await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(userId))
@@ -558,7 +558,7 @@ export async function updateAccountInformation(userId: number, formData: unknown
         invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateVolunteer')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Warning')
             .withDiff({
@@ -670,11 +670,11 @@ const kUpdateAccountSuspensionData = z.object({
  */
 export async function updateAccountSuspension(userId: number, suspend: boolean, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kUpdateAccountSuspensionData, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kUpdateAccountSuspensionData, async (data) => {
+        const { user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
 
         if (!!suspend && !data.reason?.length)
             return { success: false, error: 'A reason for the suspension must be given…' };
@@ -690,7 +690,7 @@ export async function updateAccountSuspension(userId: number, suspend: boolean, 
             return { success: false, error: 'Unable to update the suspension status…' };
 
         LogBuilder.for('AdminSuspendVolunteer')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Error')
             .record({

@@ -12,8 +12,8 @@ import { LogBuilder } from '@lib/log/index';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateAuthCache } from '@lib/auth';
 import { executeAccessCheck } from '@lib/auth/access';
+import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 
@@ -113,7 +113,12 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.permissions');
+        if (operation === 'read') {
+            executeAccessCheck(props.authenticationContext, 'system.permissions');
+        } else {
+            await requireAuthenticationContext(
+                'system.permissions', undefined, { bypassCache: true });
+        }
     },
 
     async create(partialRow, props) {

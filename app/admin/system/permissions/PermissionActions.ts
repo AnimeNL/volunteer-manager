@@ -9,9 +9,8 @@ import { z } from 'zod/v4';
 import { AccessControl } from '@lib/auth/access';
 import { Cache } from '@lib/cache';
 import { LogBuilder } from '@lib/log/index';
-import { invalidateAuthCache } from '@lib/auth';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
+import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
 import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';
 import db, { tPermissionsRoles, tUsers } from '@lib/database';
 
@@ -32,8 +31,9 @@ const kAccountPermissionData = z.object({
  * Server Action called when account permissions are being updated.
  */
 export async function updateAccountPermissions(userId: number, formData: unknown) {
-    return executeServerAction(formData, kAccountPermissionData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.permissions');
+    return executeServerAction(formData, kAccountPermissionData, async (data) => {
+        const { access, user } = await requireAuthenticationContext(
+            'system.permissions', undefined, { bypassCache: true });
 
         const dbInstance = db;
         const existingAccessInfo = await dbInstance.selectFrom(tUsers)
@@ -52,7 +52,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             notFound();
 
         const existingAccess = new AccessControl(existingAccessInfo);
-        if (existingAccess.can('root') && !props.access.can('root'))
+        if (existingAccess.can('root') && !access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
         const availableRoles = await dbInstance.selectFrom(tPermissionsRoles)
@@ -81,7 +81,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
             if (!roleGrants)
                 return { success: false, error: `Unknown permission role: "${role}"` };
 
-            if (!props.access.can('root') && !existingGrants.has(role)) {
+            if (!access.can('root') && !existingGrants.has(role)) {
                 if (role === 'root' && !existingAccess.can('root')) {
                     return {
                         success: false,
@@ -90,7 +90,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
                 }
 
                 try {
-                    validatePermissionRestrictions(roleGrants, props.access, existingAccess);
+                    validatePermissionRestrictions(roleGrants, access, existingAccess);
                 } catch (error: any) {
                     return { success: false, error: error.message };
                 }
@@ -102,10 +102,10 @@ export async function updateAccountPermissions(userId: number, formData: unknown
 
         try {
             if (!!data.grants)
-                grants = toPermissionList(data.grants, props.access, existingAccess);
+                grants = toPermissionList(data.grants, access, existingAccess);
 
             if (!!data.revokes)
-                revokes = toPermissionList(data.revokes, props.access, existingAccess);
+                revokes = toPermissionList(data.revokes, access, existingAccess);
 
         } catch (error: any) {
             return { success: false, error: error.message };
@@ -141,7 +141,7 @@ export async function updateAccountPermissions(userId: number, formData: unknown
 
         LogBuilder.for('AdminUpdatePermission')
             .withCondition(!!affectedRows)
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(user)
             .withAffectedUser(userId)
             .withSeverity('Warning')
             .withDiff({
@@ -183,8 +183,9 @@ const kRolePermissionData = z.object({
  * Server Action called when role permissions are being updated.
  */
 export async function updateRolePermissions(roleId: string, formData: unknown) {
-    return executeServerAction(formData, kRolePermissionData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.permissions');
+    return executeServerAction(formData, kRolePermissionData, async (data) => {
+        const { access, user } = await requireAuthenticationContext(
+            'system.permissions', undefined, { bypassCache: true });
 
         if (roleId === 'root')
             return { success: false, error: 'The root role cannot be modified' };
@@ -203,7 +204,7 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
             notFound();
 
         const existingAccess = new AccessControl(existingRoleInfo);
-        if (existingAccess.can('root') && !props.access.can('root'))
+        if (existingAccess.can('root') && !access.can('root'))
             return { success: false, error: 'You are not allowed to update these permissions…' };
 
         let grants: string | null = null;
@@ -211,10 +212,10 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
 
         try {
             if (!!data.grants)
-                grants = toPermissionList(data.grants, props.access, existingAccess);
+                grants = toPermissionList(data.grants, access, existingAccess);
 
             if (!!data.revokes)
-                revokes = toPermissionList(data.revokes, props.access, existingAccess);
+                revokes = toPermissionList(data.revokes, access, existingAccess);
 
         } catch (error: any) {
             return { success: false, error: error.message };
@@ -236,7 +237,7 @@ export async function updateRolePermissions(roleId: string, formData: unknown) {
 
         LogBuilder.for('UpdateRolePermissions')
             .withCondition(!!affectedRows)
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(user)
             .withSeverity('Warning')
             .withDiff({
                 grants: {

@@ -137,10 +137,17 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'organisation.roles',
-            operation,
-        });
+        if (operation === 'read') {
+            executeAccessCheck(props.authenticationContext, {
+                permission: 'organisation.roles',
+                operation,
+            });
+        } else {
+            await requireAuthenticationContext(
+                { permission: 'organisation.roles', operation },
+                undefined,
+                { bypassCache: true });
+        }
     },
 
     async create(partialRow, props) {
