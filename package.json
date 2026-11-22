@@ -1,6 +1,6 @@
 {
   "name": "volunteer-manager-animecon",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "AnimeCon Volunteer Manager",
   "scripts": {
     "sync-db": "node ts-sql.build.mjs",
@@ -8,8 +8,8 @@
     "build-with-bundle-analyzer": "cross-env ANALYZE=true next build",
     "circular": "npx madge --circular --extensions ts,tsx .",
     "dev": "next dev --turbo",
+    "dev-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
     "serve": "next dev --turbo",
-    "serve-with-scheduler": "cross-env APP_SCHEDULER_ENABLED=1 next dev --turbo",
     "lint": "biome check",
     "lint:fix": "biome lint --write",
     "test": "cross-env NODE_OPTIONS=--no-webstorage vitest run",

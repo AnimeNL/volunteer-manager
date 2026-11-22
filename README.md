@@ -50,11 +50,11 @@ Developing the AnimeCon Volunteer Manager follows Next.js' best practices. The f
 are enabled and actively supported:
 
 ```
-$ npm run dev                   # Local dev server with Turbopack and hot reload
-$ npm run serve-with-scheduler  # Local dev server with the background scheduler enabled
-$ npm run build                 # Production Next.js build
-$ npm run lint                  # Biome lint and code quality checks
-$ npm run test                  # Vitest unit and component test suite
+$ npm run dev                 # Local dev server with Turbopack and hot reload
+$ npm run dev-with-scheduler  # Local dev server with the background scheduler enabled
+$ npm run build               # Production Next.js build
+$ npm run lint                # Biome lint and code quality checks
+$ npm run test                # Vitest unit and component test suite
 ```
 
 It is recommended to run `build`, `lint` and `test` prior to committing a change.
