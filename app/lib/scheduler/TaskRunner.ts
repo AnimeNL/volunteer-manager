@@ -70,7 +70,8 @@ export class TaskRunner {
             return kTaskResult.InvalidNamedTask;
 
         try {
-            const taskConstructor = kTaskRegistry[context.taskName as keyof typeof kTaskRegistry];
+            const taskLoader = kTaskRegistry[context.taskName as keyof typeof kTaskRegistry];
+            const taskConstructor = await taskLoader();
             const task = new taskConstructor(context);
 
             let result: boolean | undefined;

@@ -1,21 +1,13 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { CancelTicketTask } from './tasks/CancelTicketTask';
-import { CleanUpExpiredSessionsTask } from './tasks/CleanUpExpiredSessionsTask';
-import { CleanUpIntegrationLogsTask } from './tasks/CleanUpIntegrationLogsTask';
-import { DutyBookSummaryTask } from './tasks/DutyBookSummaryTask';
-import { ImportActivitiesTask } from './tasks/ImportActivitiesTask';
-import { ImportEmailTask } from './tasks/ImportEmailTask';
-import { NoopComplexTask } from './tasks/NoopComplexTask';
-import { NoopTask } from './tasks/NoopTask';
-import { PopulateSchedulerTask } from './tasks/PopulateSchedulerTask';
-import { SendEmailTask } from './tasks/SendEmailTask';
-import { SendSmsTask } from './tasks/SendSmsTask';
-import { SendWhatsappTask } from './tasks/SendWhatsappTask';
-import { UpdateTicketTask } from './tasks/UpdateTicketTask';
-import { WeeztixImportTask } from './tasks/WeeztixImportTask';
-import { YourTicketProviderImportTask } from './tasks/YourTicketProviderImportTask';
+import type { Task, TaskWithParams } from './Task';
+import type { TaskContext } from './TaskContext';
+
+/**
+ * Constructor type for a registered scheduler task.
+ */
+type TaskConstructor = new (context: TaskContext) => Task | TaskWithParams<any>;
 
 /**
  * Object containing all tasks known to the AnimeCon Volunteer Manager. Each task must extend either
@@ -23,22 +15,37 @@ import { YourTicketProviderImportTask } from './tasks/YourTicketProviderImportTa
  * the registry is the `TaskRunner`, which is responsible for execution.
  */
 export const kTaskRegistry = {
-    CancelTicketTask,
-    CleanUpExpiredSessionsTask,
-    CleanUpIntegrationLogsTask,
-    DutyBookSummaryTask,
-    ImportActivitiesTask,
-    ImportEmailTask,
-    NoopComplexTask,
-    NoopTask,
-    PopulateSchedulerTask,
-    SendEmailTask,
-    SendSmsTask,
-    SendWhatsappTask,
-    UpdateTicketTask,
-    WeeztixImportTask,
-    YourTicketProviderImportTask,
-};
+    CancelTicketTask: () =>
+        import('./tasks/CancelTicketTask').then(m => m.CancelTicketTask),
+    CleanUpExpiredSessionsTask: () =>
+        import('./tasks/CleanUpExpiredSessionsTask').then(m => m.CleanUpExpiredSessionsTask),
+    CleanUpIntegrationLogsTask: () =>
+        import('./tasks/CleanUpIntegrationLogsTask').then(m => m.CleanUpIntegrationLogsTask),
+    DutyBookSummaryTask: () =>
+        import('./tasks/DutyBookSummaryTask').then(m => m.DutyBookSummaryTask),
+    ImportActivitiesTask: () =>
+        import('./tasks/ImportActivitiesTask').then(m => m.ImportActivitiesTask),
+    ImportEmailTask: () =>
+        import('./tasks/ImportEmailTask').then(m => m.ImportEmailTask),
+    NoopComplexTask: () =>
+        import('./tasks/NoopComplexTask').then(m => m.NoopComplexTask),
+    NoopTask: () =>
+        import('./tasks/NoopTask').then(m => m.NoopTask),
+    PopulateSchedulerTask: () =>
+        import('./tasks/PopulateSchedulerTask').then(m => m.PopulateSchedulerTask),
+    SendEmailTask: () =>
+        import('./tasks/SendEmailTask').then(m => m.SendEmailTask),
+    SendSmsTask: () =>
+        import('./tasks/SendSmsTask').then(m => m.SendSmsTask),
+    SendWhatsappTask: () =>
+        import('./tasks/SendWhatsappTask').then(m => m.SendWhatsappTask),
+    UpdateTicketTask: () =>
+        import('./tasks/UpdateTicketTask').then(m => m.UpdateTicketTask),
+    WeeztixImportTask: () =>
+        import('./tasks/WeeztixImportTask').then(m => m.WeeztixImportTask),
+    YourTicketProviderImportTask: () =>
+        import('./tasks/YourTicketProviderImportTask').then(m => m.YourTicketProviderImportTask),
+} satisfies Record<string, () => Promise<TaskConstructor>>;
 
 /**
  * Type containing the task names that are known to the scheduler.
