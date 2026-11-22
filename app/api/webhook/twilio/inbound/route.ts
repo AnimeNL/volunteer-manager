@@ -14,9 +14,14 @@ import { kTwilioWebhookEndpoint } from '@lib/database/Types';
  * generally either SMS or WhatsApp. An immediate response is expected.
  */
 export async function POST(request: NextRequest) {
-    // biome-ignore lint/correctness/noUnusedVariables: not implemented yet
     const { authenticated, body } =
         await authenticateAndRecordTwilioRequest(request, kTwilioWebhookEndpoint.Inbound);
+
+    if (!authenticated || !body) {
+        return new Response(undefined, {
+            status: /* HTTP Forbidden= */ 403,
+        });
+    }
 
     // TODO: Do something with the `body`
 
