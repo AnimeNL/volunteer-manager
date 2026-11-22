@@ -150,6 +150,26 @@ export const kPublicSchedule = z.strictObject({
     }),
 
     /**
+     * Duty Books accessible to the signed in user for this event, ordered by team name.
+     */
+    dutyBooks: z.array(z.strictObject({
+        /**
+         * Unique slug of the team to which this Duty Book belongs.
+         */
+        team: z.string(),
+
+        /**
+         * Display name of the team to which this Duty Book belongs.
+         */
+        name: z.string(),
+
+        /**
+         * Number of unread entries in this team's Duty Book.
+         */
+        unread: z.number(),
+    })).optional(),
+
+    /**
      * Number of unread entries in the Duty Book, if any. Only included when the signed in user has
      * access to the Duty Book.
      */

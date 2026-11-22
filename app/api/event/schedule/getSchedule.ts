@@ -16,8 +16,8 @@ import { isAfter, isBefore } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesTimeslots, tContent,
     tContentCategories, tDisplaysRequests, tDutyBook, tDutyBookViewers, tEventsSales,
-    tEventsSalesConfiguration, tNardo, tRoles, tSchedule, tShifts, tStorage, tTeams, tUsers,
-    tUsersEvents, tUsersEventsPreferencesAvailability, tVendors, tVendorsSchedule }
+    tEventsSalesConfiguration, tEventsTeams, tNardo, tRoles, tSchedule, tShifts, tStorage, tTeams,
+    tUsers, tUsersEvents, tUsersEventsPreferencesAvailability, tVendors, tVendorsSchedule }
     from '@lib/database';
 
 import { kActivityType, kEventSalesCategory, kRegistrationStatus, kVendorTeam } from '@lib/database/Types';
@@ -229,18 +229,6 @@ async function populateMetadata(
     if (!schedule.config.enableHelpRequests && !includeAdvice)
         return;  // no information is requested to be provided to the schedule...
 
-    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
-
-    const dutyBookUnreadSubQuery = dbInstance.selectFrom(tDutyBook)
-        .leftJoin(dutyBookViewersJoin)
-            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
-                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(schedule.userId))
-        .where(tDutyBook.dutyBookEventId.equals(eventId))
-            .and(tDutyBook.dutyBookDeleted.isNull())
-            .and(dutyBookViewersJoin.dutyBookId.isNull())
-        .selectCountAll()
-        .forUseAsInlineQueryValue();
-
     const helpRequestsPendingSubQuery = dbInstance.selectFrom(tDisplaysRequests)
         .where(tDisplaysRequests.requestEventId.equals(eventId))
             .and(tDisplaysRequests.requestAcknowledgedBy.isNull())
@@ -262,7 +250,6 @@ async function populateMetadata(
 
     const metadata = await db.selectFromNoTable()
         .select({
-            dutyBookUnread: dutyBookUnreadSubQuery,
             helpRequestsPending: helpRequestsPendingSubQuery,
             nardoAdvice: nardoAdviceSubQuery,
         })
@@ -271,13 +258,81 @@ async function populateMetadata(
     if (!metadata)
         return;
 
-    schedule.dutyBookUnread = metadata.dutyBookUnread;
-
     if (schedule.config.enableHelpRequests)
         schedule.helpRequestsPending = metadata.helpRequestsPending;
 
     if (includeAdvice)
         schedule.nardo = metadata.nardoAdvice;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Populates the Duty Books accessible to the signed in user for `eventId`, together with per-team
+ * unread incident counts. Queries `users_events` directly so multi-team volunteers see every team's
+ * Duty Book they participate in.
+ */
+async function populateDutyBooks(
+    dbInstance: DBConnection, access: AccessControl, schedule: Response, eventId: number)
+{
+    const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
+
+    const teams = await dbInstance.selectFrom(tEventsTeams)
+        .innerJoin(tTeams)
+            .on(tTeams.teamId.equals(tEventsTeams.teamId))
+                .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
+                .and(tTeams.teamDeleted.isNull())
+        .leftJoin(usersEventsJoin)
+            .on(usersEventsJoin.eventId.equals(tEventsTeams.eventId))
+                .and(usersEventsJoin.teamId.equals(tEventsTeams.teamId))
+                .and(usersEventsJoin.userId.equals(schedule.userId))
+                .and(usersEventsJoin.registrationStatus.equals(kRegistrationStatus.Accepted))
+        .where(tEventsTeams.eventId.equals(eventId))
+            .and(tEventsTeams.enableTeam.equals(/* true= */ 1))
+        .select({
+            id: tTeams.teamId,
+            name: tTeams.teamName,
+            slug: tTeams.teamSlug,
+            isMember: usersEventsJoin.userId.isNotNull(),
+        })
+        .orderBy(tTeams.teamName, 'asc')
+        .executeSelectMany();
+
+    const accessibleTeams = teams.filter(team =>
+        team.isMember ||
+        access.can('event.duty-book', 'read', { event: schedule.slug, team: team.slug }));
+
+    if (!accessibleTeams.length)
+        return;
+
+    const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
+
+    const unreadCounts = await dbInstance.selectFrom(tDutyBook)
+        .leftJoin(dutyBookViewersJoin)
+            .on(dutyBookViewersJoin.dutyBookId.equals(tDutyBook.dutyBookId))
+                .and(dutyBookViewersJoin.dutyBookViewerUserId.equals(schedule.userId))
+        .where(tDutyBook.dutyBookEventId.equals(eventId))
+            .and(tDutyBook.dutyBookTeamId.in(accessibleTeams.map(team => team.id)))
+            .and(tDutyBook.dutyBookDeleted.isNull())
+            .and(dutyBookViewersJoin.dutyBookId.isNull())
+        .select({
+            teamId: tDutyBook.dutyBookTeamId,
+            unread: dbInstance.countAll(),
+        })
+        .groupBy(tDutyBook.dutyBookTeamId)
+        .executeSelectMany();
+
+    const unreadByTeam = new Map(unreadCounts.map(entry => [ entry.teamId, entry.unread ]));
+
+    schedule.dutyBooks = accessibleTeams.map(team => ({
+        team: team.slug,
+        name: team.name,
+        unread: unreadByTeam.get(team.id) ?? 0,
+    }));
+
+    // Temporarily kept populated until Iteration 7 removes the deprecated fields.
+    schedule.config.enableDutyBook = true;
+    schedule.dutyBookUnread = schedule.dutyBooks.reduce((sum, entry) => sum + entry.unread, 0);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1085,19 +1140,9 @@ export async function getSchedule(
         dbInstance, schedule, currentTime, event.id, unavailabilityFn, notesAccess,
         phoneNumberAccess, teamAccess, team);
 
+    await populateDutyBooks(dbInstance, access, schedule, event.id);
     await populateKnowledgeBase(dbInstance, access, schedule, event.id);
     await populateTicket(schedule, event.id);
-
-    if (access.can('event.duty-book', 'read', { event: event.slug, team: kAnyTeam })) {
-        schedule.config.enableDutyBook = true;
-    } else if (Object.hasOwn(schedule.volunteers, `${schedule.userId}`)) {
-        const volunteer = schedule.volunteers[`${schedule.userId}`];
-        if (schedule.teams[volunteer.team].enableDutyBook)
-            schedule.config.enableDutyBook = true;
-    }
-
-    if (!schedule.config.enableDutyBook)
-        schedule.dutyBookUnread = undefined;
 
     // ---------------------------------------------------------------------------------------------
 
