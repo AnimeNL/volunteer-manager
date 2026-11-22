@@ -12,6 +12,7 @@ import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
 import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
+import { getEvent } from '@lib/cache';
 import { markdownToJsx } from '@components/Markdown';
 import { queryActivityContext } from './prompts/context/ActivityContextParameters';
 import { queryAuthorContext } from './prompts/context/AuthorContextParameters';
@@ -26,6 +27,8 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db from '@lib/database';
 
 import type * as prompts from './prompts';
+
+import { kAnyTeam } from '@lib/auth/access';
 
 /**
  * Zod types that describe the information required to execute a communication prompt.
@@ -106,7 +109,17 @@ export async function executeCommunicationPrompt(
         notFound();
 
     return executeServerAction(params, kCommunicationPromptData[id], async (inputData, props) => {
-        await requireAuthentication(props.authenticationContext);
+        const event = await getEvent(inputData.eventId);
+        if (!event)
+            notFound();
+
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'event.visible',
+            scope: {
+                event: event.slug,
+                team: kAnyTeam,
+            },
+        });
 
         const dbInstance = db;
 

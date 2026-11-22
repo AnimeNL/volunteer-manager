@@ -94,6 +94,10 @@ Do not report the following deliberate design choices as vulnerabilities (list t
 * **`VendorTable` (`app/admin/events/[event]/[team]/first-aid/VendorTable.tsx`)**:
   Intentionally maps `create`, `update`, and `delete` operations to `volunteers.vendor-teams:update`
   (keeping `read` separate).
+* **Client-cleared passkey challenge cookie (`app/lib/auth/PasskeyChallenge.ts`)**:
+  `consumePasskeyChallengeCookie` intentionally clears the sealed `HttpOnly` challenge cookie via
+  `Set-Cookie` (`maxAge: 0`) rather than maintaining a server-side consumed-challenge store, relying
+  on the 5-minute TTL and WebAuthn signature/counter checks (documented in `app/lib/auth/README.md`).
 
 ## Report Format
 Present findings concisely in four sections:
