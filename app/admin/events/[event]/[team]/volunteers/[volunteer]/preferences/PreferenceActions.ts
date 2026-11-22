@@ -10,14 +10,14 @@ import { executeAccessCheck } from '@lib/auth/access';
 import { LogBuilder } from '@lib/log/index';
 import { requireVolunteerAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
-import db, { tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
+import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
 
-import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
-import { kShirtFit, kShirtSize } from '@lib/database/Types';
 import { kAvailabilityBuildUpTearDownScheme, kServiceHoursProperty, kServiceTimingProperty }
     from './AvailabilitySettings';
+import { kEventAvailabilityStatus, kShirtFit, kShirtSize } from '@lib/database/Types';
+import { kTemporalPlainDate, kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
 // -------------------------------------------------------------------------------------------------
 // Availability preferences
@@ -45,7 +45,12 @@ export async function updateAvailabilityPreferences(
         const { event, team } = await requireVolunteerAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug);
 
-        if (props.user.id !== userId) {
+        const canUpdateParticipation = props.access.can('volunteers.participation', 'update', {
+            event: event.slug,
+            team: team.slug,
+        });
+
+        if (props.user.id !== userId && !canUpdateParticipation) {
             executeAccessCheck(props.authenticationContext, {
                 permission: 'volunteers.participation',
                 operation: 'update',
@@ -54,6 +59,18 @@ export async function updateAvailabilityPreferences(
                     team: team.slug,
                 },
             });
+        }
+
+        if (props.user.id === userId &&
+            !props.access.can('event.visible', { event: event.slug, team: team.slug }))
+        {
+            const availabilityStatus = await db.selectFrom(tEvents)
+                .where(tEvents.eventId.equals(event.id))
+                .selectOneColumn(tEvents.eventAvailabilityStatus)
+                .executeSelectNoneOrOne();
+
+            if (availabilityStatus !== kEventAvailabilityStatus.Available)
+                forbidden();
         }
 
         let buildUpTearDown: string | null = null;
@@ -74,7 +91,7 @@ export async function updateAvailabilityPreferences(
         }
 
         let exceptions: string | undefined;
-        if (!!data.exceptions) {
+        if (canUpdateParticipation && !!data.exceptions) {
             const kExceptionSchema = z.array(z.object({
                 start: kTemporalZonedDateTime,
                 end: kTemporalZonedDateTime,
@@ -133,8 +150,8 @@ export async function updateAvailabilityPreferences(
 
             // Volunteers cannot alter their exceptions, so preserve them from earlier versions.
             const carriedForwardExceptions =
-                !data.exceptions ? existing?.exceptions
-                                 : exceptions;
+                !canUpdateParticipation || !data.exceptions ? existing?.exceptions
+                                                            : exceptions;
 
             if (existing &&
                 existing.buildUpTearDown === buildUpTearDown &&
