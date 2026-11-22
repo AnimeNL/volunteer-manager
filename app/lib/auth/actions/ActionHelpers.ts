@@ -4,7 +4,7 @@
 import 'server-only';
 import { cookies, headers } from 'next/headers';
 
-import { RecordLog } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { findActiveUser, setUserPassword } from '../AccountStore';
 import { normalizeClientIp } from '../RateLimit';
@@ -71,7 +71,7 @@ interface CompletePasswordUpdateParams {
     meta: Pick<AuthRequestMetadata, 'ip' | 'userAgent'>;
     expiredError: string;
     invalidError: string;
-    logType: Parameters<typeof RecordLog>[0]['type'];
+    logType: 'AccountPasswordReset' | 'AccountPasswordUpdate';
 }
 
 /**
@@ -110,11 +110,9 @@ export async function completePasswordUpdateWithToken(
         userAgent: params.meta.userAgent,
     });
 
-    RecordLog({
-        type: params.logType,
-        sourceUser: user.id,
-        data: { ip: params.meta.ip },
-    });
+    LogBuilder.for(params.logType)
+        .withInitiatorUser(user.id)
+        .record();
 
     return { success: true };
 }

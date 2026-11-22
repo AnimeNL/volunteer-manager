@@ -8,11 +8,10 @@ import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
 import { LogBuilder } from '@lib/log/index';
-import { RecordLog, kLogType } from '@lib/Log';
 import { checkRateLimit } from '../RateLimit';
 import { formatDate } from '@lib/Temporal';
-import { getAuthRequestMetadata, parseBirthdate } from './ActionHelpers';
 import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';
+import { parseBirthdate } from './ActionHelpers';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tUsers } from '@lib/database';
 
@@ -172,12 +171,24 @@ export async function updateOwnAccountAction(
 
     invalidateAuthCache(/* forUserId= */ user.id);
 
-    const meta = await getAuthRequestMetadata();
-    RecordLog({
-        type: kLogType.AccountUpdate,
-        sourceUser: user,
-        data: { ip: meta.ip, ...existing },
-    });
+    LogBuilder.for('AccountUpdate')
+        .withInitiatorUser(user)
+        .withDiff({
+            'First Name': { before: existing.firstName, after: update.firstName.trim() },
+            'Last Name': { before: existing.lastName, after: update.lastName.trim() },
+            'Language': { before: existing.language ?? '', after: update.language ?? '' },
+            'Gender': { before: existing.gender, after: update.gender.trim() },
+            'Birthdate': {
+                before: existing.birthdate?.toString() ?? '',
+                after: birthdate.toString(),
+            },
+            'Phone Number': { before: existing.phoneNumber ?? '', after: phoneNumber },
+            'Discord': {
+                before: existing.discordHandle ?? '',
+                after: normalizedDiscord ?? '',
+            },
+        })
+        .record();
 
     return { success: true };
 }
@@ -271,12 +282,9 @@ export async function updateAvatarAction(formData: FormData): Promise<AuthAction
             .withSeverity('Warning')
             .record();
     } else {
-        const meta = await getAuthRequestMetadata();
-        RecordLog({
-            type: kLogType.AccountUpdateAvatar,
-            sourceUser: context.user,
-            data: { ip: meta.ip },
-        });
+        LogBuilder.for('AccountUpdateAvatar')
+            .withInitiatorUser(context.user)
+            .record();
     }
 
     return { success: true };

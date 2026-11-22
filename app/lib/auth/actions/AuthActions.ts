@@ -13,7 +13,8 @@ import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
 import type { StoredPasskeyCredential } from '../PasskeyStore';
-import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { clearUserAccessCode, createPasswordResetToken, isValidActivatedUser,
     verifyUserCredentials } from '../AccountStore';
@@ -140,16 +141,13 @@ export async function confirmIdentityAction(
     const { username } = parsed.data;
     const user = await isValidActivatedUser(username);
 
-    RecordLog({
-        type: kLogType.AccountIdentityCheck,
-        severity: kLogSeverity.Debug,
-        data: {
+    LogBuilder.for('AccountIdentityCheck')
+        .withSeverity('Debug')
+        .record({
+            origin: meta.host,
             userId: user?.id,
             username,
-            origin: meta.host,
-            ip: meta.ip,
-        },
-    });
+        });
 
     if (!user)
         return { success: false };
@@ -221,12 +219,10 @@ export async function signInPasswordAction(
         if (!requiredPasswordUpdateToken)
             return { success: false };
 
-        RecordLog({
-            type: kLogType.AccountIdentifyAccessCode,
-            severity: kLogSeverity.Debug,
-            sourceUser: verification.userId,
-            data: { ip: meta.ip },
-        });
+        LogBuilder.for('AccountIdentifyAccessCode')
+            .withInitiatorUser(verification.userId)
+            .withSeverity('Debug')
+            .record();
 
         return {
             success: true,
@@ -240,12 +236,10 @@ export async function signInPasswordAction(
         userAgent: meta.userAgent,
     });
 
-    RecordLog({
-        type: kLogType.AccountIdentifyPassword,
-        severity: kLogSeverity.Debug,
-        sourceUser: verification.userId,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountIdentifyPassword')
+        .withInitiatorUser(verification.userId)
+        .withSeverity('Debug')
+        .record();
 
     return { success: true };
 }
@@ -272,7 +266,7 @@ export async function signInPasswordUpdateAction(
         meta,
         expiredError: 'Your password update session has expired. Try again?',
         invalidError: 'Your password update session is no longer valid.',
-        logType: kLogType.AccountPasswordUpdate,
+        logType: 'AccountPasswordUpdate',
     });
 }
 
@@ -354,12 +348,10 @@ export async function signInPasskeyAction(
         userAgent: meta.userAgent,
     });
 
-    RecordLog({
-        type: kLogType.AccountIdentifyPasskey,
-        severity: kLogSeverity.Debug,
-        sourceUser: user.id,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountIdentifyPasskey')
+        .withInitiatorUser(user.id)
+        .withSeverity('Debug')
+        .record();
 
     return { success: true };
 }

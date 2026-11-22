@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import type { AuthActionResult } from './ActionHelpers';
 import { LogBuilder } from '@lib/log/index';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
-import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate }
@@ -236,11 +236,9 @@ export async function registerActivateAction(
         userAgent: meta.userAgent,
     });
 
-    RecordLog({
-        type: kLogType.AccountActivate,
-        sourceUser: user.id,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountActivate')
+        .withInitiatorUser(user.id)
+        .record();
 
     const safeRedirectUrl = sanitizeRelativeRedirectUrl(registrationRequest.redirectUrl);
     return {
@@ -321,11 +319,9 @@ export async function requestPasswordResetAction(
         },
     });
 
-    RecordLog({
-        type: kLogType.AccountPasswordResetRequest,
-        sourceUser: passwordResetData.userId,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountPasswordResetRequest')
+        .withInitiatorUser(passwordResetData.userId)
+        .record();
 
     return { success: true };
 }
@@ -384,7 +380,7 @@ export async function completePasswordResetAction(
         meta,
         expiredError: 'This password reset link has expired.',
         invalidError: 'This password reset link is no longer valid.',
-        logType: kLogType.AccountPasswordReset,
+        logType: 'AccountPasswordReset',
     });
 }
 
@@ -448,11 +444,9 @@ export async function changePasswordAction(
         });
     }
 
-    RecordLog({
-        type: kLogType.AccountPasswordUpdate,
-        sourceUser: user,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountPasswordUpdate')
+        .withInitiatorUser(user)
+        .record();
 
     return { success: true };
 }

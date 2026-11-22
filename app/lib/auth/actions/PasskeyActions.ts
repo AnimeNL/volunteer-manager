@@ -12,7 +12,8 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
-import { RecordErrorLog, RecordLog, kLogSeverity, kLogType } from '@lib/Log';
+import { LogBuilder } from '@lib/log/index';
+import { RecordErrorLog, kLogSeverity } from '@lib/Log';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { deleteUserPasskey, retrieveUserPasskeys, storeUserPasskey } from '../PasskeyStore';
 import { determineEnvironment } from '@lib/Environment';
@@ -195,12 +196,10 @@ export async function registerPasskeyAction(
 
     await storeUserPasskey(user.id, meta.rpId, parsed.data.name, verification.registrationInfo);
 
-    RecordLog({
-        type: kLogType.AccountPasskeyCreate,
-        severity: kLogSeverity.Debug,
-        sourceUser: user,
-        data: { ip: meta.ip },
-    });
+    LogBuilder.for('AccountPasskeyCreate')
+        .withInitiatorUser(user)
+        .withSeverity('Debug')
+        .record();
 
     return { success: true };
 }
@@ -219,17 +218,13 @@ export async function deletePasskeyAction(input: { id: number }): Promise<AuthAc
     if (!parsed.success)
         return { success: false, error: 'Invalid passkey identifier.' };
 
-    const meta = await getAuthRequestMetadata();
     const credentialDeleted = await deleteUserPasskey(user.id, parsed.data.id);
 
-    if (credentialDeleted) {
-        RecordLog({
-            type: kLogType.AccountPasskeyDelete,
-            severity: kLogSeverity.Debug,
-            sourceUser: user,
-            data: { ip: meta.ip },
-        });
-    }
+    LogBuilder.for('AccountPasskeyDelete')
+        .withCondition(credentialDeleted)
+        .withInitiatorUser(user)
+        .withSeverity('Debug')
+        .record();
 
     return { success: true };
 }

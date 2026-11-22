@@ -155,7 +155,35 @@ interface LogTypeParameterMap {
     // Administration > Organisation > Accounts
     // ---------------------------------------------------------------------------------------------
 
+    AccountActivate: NoParameters;
+
+    AccountIdentifyAccessCode: NoParameters;
+
+    AccountIdentifyPasskey: NoParameters;
+
+    AccountIdentifyPassword: NoParameters;
+
+    AccountIdentityCheck: {
+        origin: string;
+        userId?: number;
+        username: string;
+    };
+
+    AccountPasskeyCreate: NoParameters;
+
+    AccountPasskeyDelete: NoParameters;
+
+    AccountPasswordReset: NoParameters;
+
+    AccountPasswordResetRequest: NoParameters;
+
+    AccountPasswordUpdate: NoParameters;
+
     AccountRegister: NoParameters;
+
+    AccountUpdate: NoParameters;
+
+    AccountUpdateAvatar: NoParameters;
 
     AdminAnonymizeAccount: NoParameters;
 
@@ -749,7 +777,19 @@ export const kLogType: { [k in LogType]: k } = {
     // Administration > Organisation > Accounts
     // ---------------------------------------------------------------------------------------------
 
+    AccountActivate: 'AccountActivate',
+    AccountIdentifyAccessCode: 'AccountIdentifyAccessCode',
+    AccountIdentifyPasskey: 'AccountIdentifyPasskey',
+    AccountIdentifyPassword: 'AccountIdentifyPassword',
+    AccountIdentityCheck: 'AccountIdentityCheck',
+    AccountPasskeyCreate: 'AccountPasskeyCreate',
+    AccountPasskeyDelete: 'AccountPasskeyDelete',
+    AccountPasswordReset: 'AccountPasswordReset',
+    AccountPasswordResetRequest: 'AccountPasswordResetRequest',
+    AccountPasswordUpdate: 'AccountPasswordUpdate',
     AccountRegister: 'AccountRegister',
+    AccountUpdate: 'AccountUpdate',
+    AccountUpdateAvatar: 'AccountUpdateAvatar',
     AdminAnonymizeAccount: 'AdminAnonymizeAccount',
     AdminDeleteAvatar: 'AdminDeleteAvatar',
     AdminImpersonateVolunteer: 'AdminImpersonateVolunteer',

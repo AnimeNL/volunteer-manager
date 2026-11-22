@@ -26,16 +26,20 @@ vi.mock('@lib/Log', async (importOriginal) => {
     return {
         ...actual,
         RecordErrorLog: (...args: any[]) => mockRecordErrorLog(...args),
-        RecordLog: (...args: any[]) => mockRecordLog(...args),
     };
 });
+
+vi.mock('@lib/log/LogRecorder', () => ({
+    RecordAfterRequestFinished: (...args: any[]) => mockRecordLog(...args),
+    RecordImmediately: vi.fn(),
+}));
 
 import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
     registerPasskeyAction } from './PasskeyActions';
 import { mockCookieJar, resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
 
-import { kLogSeverity, kLogType } from '@lib/Log';
+import { kLogSeverity } from '@lib/Log';
 
 describe('PasskeyActions', () => {
     const mockConnection = useMockConnection();
@@ -119,7 +123,7 @@ describe('PasskeyActions', () => {
         const result = await deletePasskeyAction({ id: 9 });
         expect(result).toEqual({ success: true });
         expect(mockRecordLog).toHaveBeenCalledWith(expect.objectContaining({
-            type: kLogType.AccountPasskeyDelete,
+            type: 'AccountPasskeyDelete',
         }));
     });
 });
