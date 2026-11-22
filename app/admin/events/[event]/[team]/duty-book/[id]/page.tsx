@@ -72,6 +72,9 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
                 team: context.team.slug,
             },
         });
+
+        if (!context.team.flags.enableDutyBook)
+            notFound();
     },
 
     async list(params, props, context) {
@@ -80,6 +83,7 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
             .innerJoin(tDutyBook)
                 .on(tDutyBook.dutyBookId.equals(tDutyBookViewers.dutyBookId))
                     .and(tDutyBook.dutyBookEventId.equals(context.event.id))
+                    .and(tDutyBook.dutyBookTeamId.equals(context.team.id))
                     .and(tDutyBook.dutyBookDeleted.isNull())
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tDutyBookViewers.dutyBookViewerUserId))
@@ -134,6 +138,7 @@ export default async function EventTeamDutyBookIncidentPage(
             .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
         .where(tDutyBook.dutyBookId.equals(incidentId))
             .and(tDutyBook.dutyBookEventId.equals(event.id))
+            .and(tDutyBook.dutyBookTeamId.equals(team.id))
             .and(tDutyBook.dutyBookDeleted.isNull())
         .select({
             id: tDutyBook.dutyBookId,

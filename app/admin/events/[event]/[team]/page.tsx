@@ -38,7 +38,7 @@ export default async function EventTeamPage(props: PageProps<'/admin/events/[eve
         });
     }
 
-    if (team.flags.enableDutyBook) {
+    if (team.flags.enableDutyBook && access.can('event.duty-book', 'read', scope)) {
         tiles.push({
             Icon: OutlinedFlagIcon,
             href: `/admin/events/${event.slug}/${team.slug}/duty-book`,

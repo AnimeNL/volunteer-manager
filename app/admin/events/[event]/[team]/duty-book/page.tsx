@@ -45,8 +45,10 @@ async function generateSummary(event: string, team: string) {
                 .on(tTeams.teamSlug.equals(team))
             .leftJoin(dutyBookJoin)
                 .on(dutyBookJoin.dutyBookEventId.equals(tEvents.eventId))
+                    .and(dutyBookJoin.dutyBookTeamId.equals(tTeams.teamId))
                     .and(dutyBookJoin.dutyBookDeleted.isNull())
             .where(tEvents.eventSlug.equals(event))
+                .and(tTeams.teamFlagEnableDutyBook.equals(/* true= */ 1))
             .select({
                 event: tEvents.eventName,
                 team: tTeams.teamName,
@@ -141,6 +143,9 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
                 team: context.team.slug,
             },
         });
+
+        if (!context.team.flags.enableDutyBook)
+            notFound();
     },
 
     async list(params, props, context) {
@@ -149,6 +154,7 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
             .innerJoin(tUsers)
                 .on(tUsers.userId.equals(tDutyBook.dutyBookUserId))
             .where(tDutyBook.dutyBookEventId.equals(context.event.id))
+                .and(tDutyBook.dutyBookTeamId.equals(context.team.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
                 .and(tUsers.name.containsInsensitiveIfValue(params.search).or(
                     tDutyBook.dutyBookIncident.containsInsensitiveIfValue(params.search).or(

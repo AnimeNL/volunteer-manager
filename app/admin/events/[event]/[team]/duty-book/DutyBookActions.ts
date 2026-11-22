@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
@@ -21,11 +22,14 @@ export async function deleteIncident(
 {
     'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEventAndTeam(
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
                 operation: 'delete',
             });
+
+        if (!team.flags.enableDutyBook)
+            notFound();
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
@@ -34,6 +38,7 @@ export async function deleteIncident(
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookEventId.equals(event.id))
+                .and(tDutyBook.dutyBookTeamId.equals(team.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
@@ -69,11 +74,14 @@ export async function updateDetails(
 {
     'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEventAndTeam(
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
                 operation: 'update',
             });
+
+        if (!team.flags.enableDutyBook)
+            notFound();
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
@@ -83,6 +91,7 @@ export async function updateDetails(
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookEventId.equals(event.id))
+                .and(tDutyBook.dutyBookTeamId.equals(team.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 
@@ -115,7 +124,7 @@ export async function updateVisibility(
 {
     'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
-        const { event } = await requireAuthenticationWithEventAndTeam(
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
                 permission: 'event.duty-book',
 
@@ -123,6 +132,9 @@ export async function updateVisibility(
                 // even though the ability to delete and/or edit them is separately restricted.
                 operation: 'read',
             });
+
+        if (!team.flags.enableDutyBook)
+            notFound();
 
         const dbInstance = db;
         const affectedRows = await dbInstance.update(tDutyBook)
@@ -133,6 +145,7 @@ export async function updateVisibility(
             })
             .where(tDutyBook.dutyBookId.equals(incidentId))
                 .and(tDutyBook.dutyBookEventId.equals(event.id))
+                .and(tDutyBook.dutyBookTeamId.equals(team.id))
                 .and(tDutyBook.dutyBookDeleted.isNull())
             .executeUpdate();
 

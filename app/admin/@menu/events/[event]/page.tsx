@@ -292,6 +292,11 @@ export default async function EventMenu(props: PageProps<'/admin/events/[event]'
                 {
                     Icon: OutlinedFlagIcon,
                     label: 'Duty book',
+                    permission: {
+                        permission: 'event.duty-book',
+                        operation: 'read',
+                        scope: eventAndTeamScope,
+                    },
                     url: `/admin/events/${event.slug}/${team.slug}/duty-book`,
                     condition: team.flagEnableDutyBook,
                 },
