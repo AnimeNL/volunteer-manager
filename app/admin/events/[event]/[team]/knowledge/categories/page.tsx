@@ -142,7 +142,7 @@ export default async function KnowledgeCategoriesPage(
             </Section>
             <Section noHeader tabs>
                 <DataTable columns={columns} source={knowledgeCategoriesDataSource}
-                           context={{ event: event.slug }}
+                           context={{ event: event.slug, team: team.slug }}
                            defaultSort={{ field: 'order', sort: 'asc' }}
                            pageSize={100} disableFooter subject="category"
                            listViewProps={{

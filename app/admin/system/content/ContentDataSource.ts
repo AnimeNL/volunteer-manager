@@ -16,7 +16,6 @@ import { executeAccessCheck } from '@lib/auth/access';
 import { getEvent } from '@lib/cache';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access';
 import { kContentType } from '@lib/database/Types';
 
 /**
@@ -28,15 +27,22 @@ export async function authorizeContentScope(
     if (scope.eventId === 0) {
         executeAccessCheck(authenticationContext, 'system.content');
     } else {
-        const event = await getEvent(scope.eventId);
-        if (!event)
+        const [ event, teamSlug ] = await Promise.all([
+            getEvent(scope.eventId),
+            db.selectFrom(tTeams)
+                .where(tTeams.teamId.equals(scope.teamId))
+                .selectOneColumn(tTeams.teamSlug)
+                .executeSelectNoneOrOne(),
+        ]);
+
+        if (!event || !teamSlug)
             notFound();
 
         executeAccessCheck(authenticationContext, {
             permission: 'event.visible',
             scope: {
                 event: event.slug,
-                team: kAnyTeam,
+                team: teamSlug,
             },
         });
     }

@@ -10,9 +10,8 @@ import { createDataSource, withContext, withRowModel } from '@app/admin/componen
 import { executeAccessCheck } from '@lib/auth/access';
 import db, { tContent, tContentCategories } from '@lib/database';
 
-import { kAnyTeam } from '@lib/auth/access';
 import { kContentType } from '@lib/database/Types';
-import { kEventTransformer } from '@app/admin/components/DataTable';
+import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';
 
 /**
  * Data source used to populate and manage the knowledge base categories table.
@@ -22,6 +21,11 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
      * Event for which the categories are being obtained.
      */
     event: kEventTransformer,
+
+    /**
+     * Team through which the categories are being managed.
+     */
+    team: kTeamTransformer,
 
 }), withRowModel({
     /**
@@ -65,7 +69,7 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
             permission: 'event.visible',
             scope: {
                 event: context.event.slug,
-                team: kAnyTeam,
+                team: context.team.slug,
             },
         });
     },
