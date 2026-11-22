@@ -34,6 +34,7 @@ import { readSettings } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts } from '@lib/database';
 
+import { kMaskedSecret } from './MaskedSecret';
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
 import { updateIntegration } from './Actions';
@@ -120,31 +121,32 @@ export default async function IntegrationsPage() {
             apiEndpoint: settings['integration-animecon-api-endpoint'],
             authEndpoint: settings['integration-animecon-auth-endpoint'],
             clientId: settings['integration-animecon-client-id'],
-            clientSecret: settings['integration-animecon-client-secret'],
+            clientSecret: settings['integration-animecon-client-secret'] ? kMaskedSecret : '',
             username: settings['integration-animecon-username'],
-            password: settings['integration-animecon-password'],
+            password: settings['integration-animecon-password'] ? kMaskedSecret : '',
             scopes: settings['integration-animecon-scopes'],
         },
         Email: {
             defaultAccountId: settings['integration-email-default-account-id'] ?? 1,
         },
         Google: {
-            apiKey: settings['integration-google-apikey'] ?? '',
-            credential: settings['integration-google-credentials'] ?? '',
+            apiKey: settings['integration-google-apikey'] ? kMaskedSecret : '',
+            credential: settings['integration-google-credentials'] ? kMaskedSecret : '',
             location: settings['integration-google-location'] ?? '',
             projectId: settings['integration-google-project-id'] ?? '',
         },
         Twilio: {
             accountSid: settings['integration-twilio-account-sid'] ?? '',
-            accountAuthToken: settings['integration-twilio-account-auth-token'] ?? '',
+            accountAuthToken:
+                settings['integration-twilio-account-auth-token'] ? kMaskedSecret : '',
             messagingSidSms: settings['integration-twilio-messaging-sid-sms'] ?? '',
             messagingSidWhatsapp: settings['integration-twilio-messaging-sid-whatsapp'] ?? '',
             region: settings['integration-twilio-region'],
         },
         Weeztix: {
-            accessToken: settings['integration-weeztix-access-token'] ?? '',
+            accessToken: settings['integration-weeztix-access-token'] ? kMaskedSecret : '',
             clientId: settings['integration-weeztix-client-id'] ?? '',
-            clientSecret: settings['integration-weeztix-client-secret'] ?? '',
+            clientSecret: settings['integration-weeztix-client-secret'] ? kMaskedSecret : '',
             companyId: settings['integration-weeztix-company-id'] ?? '',
             metaFirstNameId: settings['integration-weeztix-meta-first-name-id'] ?? '',
             metaFunctionId: settings['integration-weeztix-meta-function-id'] ?? '',
@@ -153,11 +155,11 @@ export default async function IntegrationsPage() {
             metaOrganisationId: settings['integration-weeztix-meta-organisation-id'] ?? '',
             redirectUrl: settings['integration-weeztix-redirect-url'] ??
                 `https://${(await headers()).get('Host')}/admin/system/integrations/weeztix-oauth`,
-            refreshToken: settings['integration-weeztix-refresh-token'] ?? '',
+            refreshToken: settings['integration-weeztix-refresh-token'] ? kMaskedSecret : '',
         },
         YourTicketProvider: {
-            ticketingApiKey: settings['integration-ytp-ticketing-api-key'] ?? '',
-            visitorApiKey: settings['integration-ytp-visitor-api-key'] ?? '',
+            ticketingApiKey: settings['integration-ytp-ticketing-api-key'] ? kMaskedSecret : '',
+            visitorApiKey: settings['integration-ytp-visitor-api-key'] ? kMaskedSecret : '',
             endpoint: settings['integration-ytp-endpoint'] ?? '',
             queueEndpoint: settings['integration-ytp-queue-endpoint'] ?? '',
         },
@@ -358,7 +360,13 @@ export default async function IntegrationsPage() {
                              headerAction={
                                 <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                                     {weeztixExpirationWarning}
-                                    <WeeztixAuthorizeButton settings={defaultValues['Weeztix']}
+                                    <WeeztixAuthorizeButton settings={{
+                                                                clientId:
+                                                                    defaultValues.Weeztix.clientId,
+                                                                redirectUrl:
+                                                                    defaultValues.Weeztix
+                                                                        .redirectUrl,
+                                                            }}
                                                             state={weeztixState} />
                                     <IntegrationInfoButton
                                         href="/admin/system/integrations/weeztix" />

@@ -9,8 +9,9 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/index';
 import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
-import { writeSettings } from '@lib/Settings';
+import { writeSetting, writeSettings } from '@lib/Settings';
 
+import { kMaskedSecret } from './MaskedSecret';
 import { kTwilioRegion } from '@lib/integrations/twilio/TwilioTypes';
 
 /**
@@ -76,11 +77,17 @@ export async function updateIntegration(integration: Integration, formData: unkn
                     'integration-animecon-api-endpoint': data.AnimeCon!.apiEndpoint,
                     'integration-animecon-auth-endpoint': data.AnimeCon!.authEndpoint,
                     'integration-animecon-client-id': data.AnimeCon!.clientId,
-                    'integration-animecon-client-secret': data.AnimeCon!.clientSecret,
                     'integration-animecon-username': data.AnimeCon!.username,
-                    'integration-animecon-password': data.AnimeCon!.password,
                     'integration-animecon-scopes': data.AnimeCon!.scopes,
                 });
+
+                if (data.AnimeCon!.clientSecret !== kMaskedSecret) {
+                    await writeSetting(
+                        'integration-animecon-client-secret', data.AnimeCon!.clientSecret);
+                }
+
+                if (data.AnimeCon!.password !== kMaskedSecret)
+                    await writeSetting('integration-animecon-password', data.AnimeCon!.password);
 
                 break;
 
@@ -93,42 +100,64 @@ export async function updateIntegration(integration: Integration, formData: unkn
 
             case 'Google':
                 await writeSettings({
-                    'integration-google-apikey': data.Google!.apiKey,
-                    'integration-google-credentials': data.Google!.credential,
                     'integration-google-location': data.Google!.location,
                     'integration-google-project-id': data.Google!.projectId,
                 });
+
+                if (data.Google!.apiKey !== kMaskedSecret)
+                    await writeSetting('integration-google-apikey', data.Google!.apiKey);
+
+                if (data.Google!.credential !== kMaskedSecret)
+                    await writeSetting('integration-google-credentials', data.Google!.credential);
 
                 break;
 
             case 'Twilio':
                 await writeSettings({
-                    'integration-twilio-account-auth-token': data.Twilio!.accountAuthToken,
                     'integration-twilio-account-sid': data.Twilio!.accountSid,
                     'integration-twilio-messaging-sid-sms': data.Twilio!.messagingSidSms,
                     'integration-twilio-messaging-sid-whatsapp': data.Twilio!.messagingSidWhatsapp,
                     'integration-twilio-region': data.Twilio!.region,
                 });
 
+                if (data.Twilio!.accountAuthToken !== kMaskedSecret) {
+                    await writeSetting(
+                        'integration-twilio-account-auth-token', data.Twilio!.accountAuthToken);
+                }
+
                 break;
 
             case 'Weeztix':
                 await writeSettings({
                     'integration-weeztix-client-id': data.Weeztix!.clientId,
-                    'integration-weeztix-client-secret': data.Weeztix!.clientSecret,
                     'integration-weeztix-redirect-url': data.Weeztix!.redirectUrl,
                 });
+
+                if (data.Weeztix!.clientSecret !== kMaskedSecret) {
+                    await writeSetting(
+                        'integration-weeztix-client-secret', data.Weeztix!.clientSecret);
+                }
 
                 break;
 
             case 'YourTicketProvider':
                 await writeSettings({
-                    'integration-ytp-ticketing-api-key': data.YourTicketProvider!.ticketingApiKey,
-                    'integration-ytp-visitor-api-key': data.YourTicketProvider!.visitorApiKey,
                     'integration-ytp-endpoint': data.YourTicketProvider!.endpoint,
                     'integration-ytp-queue-endpoint':
                         data.YourTicketProvider!.queueEndpoint || undefined,
                 });
+
+                if (data.YourTicketProvider!.ticketingApiKey !== kMaskedSecret) {
+                    await writeSetting(
+                        'integration-ytp-ticketing-api-key',
+                        data.YourTicketProvider!.ticketingApiKey);
+                }
+
+                if (data.YourTicketProvider!.visitorApiKey !== kMaskedSecret) {
+                    await writeSetting(
+                        'integration-ytp-visitor-api-key',
+                        data.YourTicketProvider!.visitorApiKey);
+                }
 
                 break;
         }
