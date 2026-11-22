@@ -52,7 +52,6 @@ const kIntegrationSettingsData = z.object({
         ticketingApiKey: z.string().nonempty(),
         visitorApiKey: z.string().nonempty(),
         endpoint: z.url(),
-        queueEndpoint: z.url().or(z.literal('')).nullish(),
     }).optional(),
 });
 
@@ -143,8 +142,6 @@ export async function updateIntegration(integration: Integration, formData: unkn
             case 'YourTicketProvider':
                 await writeSettings({
                     'integration-ytp-endpoint': data.YourTicketProvider!.endpoint,
-                    'integration-ytp-queue-endpoint':
-                        data.YourTicketProvider!.queueEndpoint || undefined,
                 });
 
                 if (data.YourTicketProvider!.ticketingApiKey !== kMaskedSecret) {

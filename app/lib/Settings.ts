@@ -170,7 +170,6 @@ export type Settings = {
     'integration-ytp-ticketing-api-key': string;
     'integration-ytp-visitor-api-key': string;
     'integration-ytp-endpoint': string;
-    'integration-ytp-queue-endpoint': string;
 
     // ---------------------------------------------------------------------------------------------
     // Schedule settings:

@@ -117,7 +117,6 @@ export default async function IntegrationsPage() {
         'integration-ytp-ticketing-api-key',
         'integration-ytp-visitor-api-key',
         'integration-ytp-endpoint',
-        'integration-ytp-queue-endpoint',
     ]);
 
     const defaultValues = {
@@ -165,7 +164,6 @@ export default async function IntegrationsPage() {
             ticketingApiKey: settings['integration-ytp-ticketing-api-key'] ? kMaskedSecret : '',
             visitorApiKey: settings['integration-ytp-visitor-api-key'] ? kMaskedSecret : '',
             endpoint: settings['integration-ytp-endpoint'] ?? '',
-            queueEndpoint: settings['integration-ytp-queue-endpoint'] ?? '',
         },
     };
 
@@ -499,10 +497,6 @@ export default async function IntegrationsPage() {
                 <Grid size={{ xs: 12 }}>
                     <TextFieldElement name="YourTicketProvider[endpoint]" label="Endpoint" fullWidth
                                       size="small" required />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <TextFieldElement name="YourTicketProvider[queueEndpoint]"
-                                      label="Queue endpoint" fullWidth size="small" />
                 </Grid>
             </FormGridSection>
         </>
