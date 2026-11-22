@@ -6,7 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';

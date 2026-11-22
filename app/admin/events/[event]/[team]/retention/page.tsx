@@ -9,7 +9,7 @@ import type { Column } from '@app/admin/components/DataTable';
 import type { RetentionCellContext } from './RetentionCells';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { RetentionActionsCell, RetentionLatestEventCell, RetentionStatusCell,
     RetentionStatusMobileCell, RetentionVolunteerCell } from './RetentionCells';
 import { RetentionOutreachList } from './RetentionOutreachList';

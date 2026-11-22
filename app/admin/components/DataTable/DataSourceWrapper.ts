@@ -10,7 +10,7 @@ import type { GridGetRowsParams, GridGetRowsResponse, GridRowModel }
 import type { AccessOperation } from '@lib/auth/access';
 import type { DataSource, DataSourceListParams, DataSourceOperation } from './DataSource';
 import type { DataSourceProps } from './DataSourceProps';
-import { RecordErrorLog } from '@lib/Log';
+import { RecordErrorLog } from '@lib/ErrorLog';
 import { getAuthenticationContext, type AuthenticationContext } from '@lib/auth';
 
 /**

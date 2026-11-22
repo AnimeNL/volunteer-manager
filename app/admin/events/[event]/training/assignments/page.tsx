@@ -15,7 +15,7 @@ import { ConfirmedParticipationSection } from './ConfirmedParticipationSection';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExtraParticipantsSection } from './ExtraParticipantsSection';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';

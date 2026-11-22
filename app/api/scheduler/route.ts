@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 import { TaskRunner } from '@lib/scheduler/TaskRunner';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 

@@ -7,9 +7,9 @@ import { cookies } from 'next/headers';
 import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Publish, kSubscriptionType } from '@lib/subscriptions';
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { completePasswordUpdateWithToken, getAuthRequestMetadata, parseBirthdate }

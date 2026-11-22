@@ -12,7 +12,7 @@ import { ActivityLocationCell, ActivityTitleCell, AnPlanLinkCell, AnPlanLinkHead
     HelpRequestedCell, HelpRequestedHeader, VisibleCell, VisibleHeader } from '../ProgramCells';
 import { DataTable, createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';

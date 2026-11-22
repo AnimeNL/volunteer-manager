@@ -6,7 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { SmtpMessage } from '@lib/integrations/smtp/SmtpMessage';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { createImapClient } from '@lib/integrations/imap';

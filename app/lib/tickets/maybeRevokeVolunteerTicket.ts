@@ -3,7 +3,7 @@
 
 import type { CachedEvent } from '@lib/cache/Types';
 import { CancelTicketTask } from '@lib/scheduler/tasks/CancelTicketTask';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { createTicketService } from '@lib/tickets';
 import db, { tUsersEvents, tUsersEventsTickets } from '@lib/database';
 

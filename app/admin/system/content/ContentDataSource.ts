@@ -9,7 +9,7 @@ import type { ContentScope } from './ContentScope';
 import type { ContentType } from '@lib/database/Types';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { Cache } from '@lib/cache/Cache';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { executeAccessCheck } from '@lib/auth/access';

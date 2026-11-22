@@ -7,11 +7,11 @@ import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { LogSeverity } from '@lib/database/Types';
-import { RecordErrorLog } from '@lib/Log';
+import { RecordErrorLog } from '@lib/ErrorLog';
 import { executeServerAction } from '@lib/serverAction';
 
 import { kErrorSource } from '@lib/database/Types';
-import { kLogSeverity } from '@lib/Log';
+import { kLogSeverity } from '@lib/ErrorLog';
 
 /**
  * HTTP Status codes for which this Server Action may be invoked.

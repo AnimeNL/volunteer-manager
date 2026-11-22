@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { checkRateLimit } from '../RateLimit';
 import { formatDate } from '@lib/Temporal';
 import { invalidateAuthCache, requireAuthenticationContext } from '../AuthenticationContext';

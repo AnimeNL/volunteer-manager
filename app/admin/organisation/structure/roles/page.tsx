@@ -9,7 +9,7 @@ import type { AccessDescriptor, AccessOperation } from '@lib/auth/access';
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { AccessControl, executeAccessCheck } from '@lib/auth/access';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';

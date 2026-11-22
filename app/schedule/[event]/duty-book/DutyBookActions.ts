@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { DutyBookSummaryTask } from '@lib/scheduler/tasks/DutyBookSummaryTask';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { requireDutyBookAccess } from './requireDutyBookAccess';
 import db, { tDutyBook, tDutyBookViewers } from '@lib/database';

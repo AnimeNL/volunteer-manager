@@ -28,7 +28,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
-import { kLogSeverity } from '@lib/Log';
+import { kLogSeverity } from '@lib/ErrorLog';
 
 /**
  * Page that displays the specific information relating to an individual errors, i.e. where and when

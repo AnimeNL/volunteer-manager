@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { ExportType } from '@lib/database/Types';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
 import { requireAuthentication } from '@lib/requireAuthentication';

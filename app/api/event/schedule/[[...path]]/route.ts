@@ -3,7 +3,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 import { getAuthenticationContext } from '@lib/auth';
 import { getSchedule } from '../getSchedule';
 import { runWithUserContext } from '@lib/integrations/Instrumentation';

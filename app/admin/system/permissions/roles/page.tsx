@@ -8,7 +8,7 @@ import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotion
 import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { Cache } from '@lib/cache';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';

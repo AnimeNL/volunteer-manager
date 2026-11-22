@@ -11,7 +11,7 @@ import { CategoryCell } from './SettingsCells';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { FinanceProcessor } from '../FinanceProcessor';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { and } from '@lib/auth/access';

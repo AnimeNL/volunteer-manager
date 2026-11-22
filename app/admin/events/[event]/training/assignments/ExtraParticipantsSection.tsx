@@ -12,7 +12,7 @@ import type { TrainingSessionCellContext } from './TrainingAssignmentCells';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingSessionCell } from './TrainingAssignmentCells';
 import { executeAccessCheck } from '@lib/auth/access';

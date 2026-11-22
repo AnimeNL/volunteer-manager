@@ -17,7 +17,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { HotelCommunicationCell, HotelCommunicationHeaderCell, HotelOccupantCell }
     from './HotelAssignmentCells';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { PendingAssignmentsSection } from './PendingAssignmentsSection';
 import { PreferenceHistorySection } from './PreferenceHistorySection';
 import { Section } from '@app/admin/components/Section';

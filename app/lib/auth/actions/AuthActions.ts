@@ -13,8 +13,8 @@ import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
 import type { StoredPasskeyCredential } from '../PasskeyStore';
-import { LogBuilder } from '@lib/log/index';
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { LogBuilder } from '@lib/log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 import { checkRateLimit, resetRateLimit } from '../RateLimit';
 import { clearUserAccessCode, createPasswordResetToken, isValidActivatedUser,
     verifyUserCredentials } from '../AccountStore';

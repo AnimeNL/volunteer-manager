@@ -3,7 +3,7 @@
 
 import { setImmediate } from 'node:timers';
 
-import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
+import { SetRecordErrorLogDeferDelegate } from '@lib/ErrorLog';
 import { SmtpClientMock } from '@lib/integrations/smtp/SmtpClientMock';
 import { useMockConnection } from '@lib/database/Connection';
 

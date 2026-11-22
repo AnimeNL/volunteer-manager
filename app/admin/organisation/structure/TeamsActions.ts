@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { Cache, invalidateTeamCache } from '@lib/cache';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import { invalidateAuthCache } from '@lib/auth';

@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import type { AuthenticationContext } from '@lib/auth';
 import { CancelTicketTask } from '@lib/scheduler/tasks/CancelTicketTask';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { UpdateTicketTask } from '@lib/scheduler/tasks/UpdateTicketTask';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';

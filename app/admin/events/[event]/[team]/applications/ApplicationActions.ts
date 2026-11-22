@@ -4,7 +4,7 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';

@@ -6,7 +6,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { writeSetting, writeSettings } from '@lib/Settings';

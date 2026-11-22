@@ -12,7 +12,7 @@ import { AccessControl, executeAccessCheck } from '@lib/auth/access';
 import { AccountStatusButton } from '../AccountStatusButton';
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { LogsDataTable } from '@app/admin/system/diagnostics/logs/LogsDataTable';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';

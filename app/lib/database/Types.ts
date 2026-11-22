@@ -1,10 +1,10 @@
 // Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { LogSeverity } from '@lib/Log';
+import type { LogSeverity } from '@lib/ErrorLog';
 
 /**
- * @deprecated Use the `LogSeverity` type from the `@lib/Log` module instead.
+ * @deprecated Use the `LogSeverity` type from the `@lib/ErrorLog` module instead.
  */
 export type { LogSeverity };
 

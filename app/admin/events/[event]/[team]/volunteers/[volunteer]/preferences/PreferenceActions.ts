@@ -7,7 +7,7 @@ import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { executeAccessCheck } from '@lib/auth/access';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { requireVolunteerAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,

@@ -8,7 +8,7 @@ import { headers } from 'next/headers';
 import { z } from 'zod/v4';
 
 import type { ExportType, VendorTeam } from '@lib/database/Types';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';

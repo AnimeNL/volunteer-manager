@@ -12,8 +12,8 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { z } from 'zod/v4';
 
 import type { AuthActionResult } from './ActionHelpers';
-import { LogBuilder } from '@lib/log/index';
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { LogBuilder } from '@lib/log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 import { consumePasskeyChallengeCookie, writePasskeyChallengeCookie } from '../PasskeyChallenge';
 import { deleteUserPasskey, retrieveUserPasskeys, storeUserPasskey } from '../PasskeyStore';
 import { determineEnvironment } from '@lib/Environment';

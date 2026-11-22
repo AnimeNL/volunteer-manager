@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import type { CommunicationLanguage } from '@lib/database/Types';
 import { AccessControl } from '@lib/auth/access';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';

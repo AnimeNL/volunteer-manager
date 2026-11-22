@@ -11,7 +11,7 @@ import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { Cache, getTeam } from '@lib/cache';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';

@@ -21,8 +21,8 @@ vi.mock('@lib/Environment', () => ({
     }),
 }));
 
-vi.mock('@lib/Log', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@lib/Log')>();
+vi.mock('@lib/ErrorLog', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@lib/ErrorLog')>();
     return {
         ...actual,
         RecordErrorLog: (...args: any[]) => mockRecordErrorLog(...args),
@@ -39,7 +39,7 @@ import { createPasskeyChallengeAction, deletePasskeyAction, listPasskeysAction,
 import { mockCookieJar, resetAuthActionTestState, signInTestUser } from './ActionTestHelpers';
 import { useMockConnection } from '../../database/Connection';
 
-import { kLogSeverity } from '@lib/Log';
+import { kLogSeverity } from '@lib/ErrorLog';
 
 describe('PasskeyActions', () => {
     const mockConnection = useMockConnection();

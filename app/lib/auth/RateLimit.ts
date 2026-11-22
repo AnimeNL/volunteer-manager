@@ -4,7 +4,7 @@
 import 'server-only';
 import net from 'node:net';
 
-import { RecordErrorLog, kLogSeverity } from '@lib/Log';
+import { RecordErrorLog, kLogSeverity } from '@lib/ErrorLog';
 
 declare namespace globalThis {
     let animeConRateLimitStorage: Map<RateLimitBucket, Map<string, RateLimitEntry>> | undefined;

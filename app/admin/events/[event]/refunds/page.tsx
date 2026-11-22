@@ -18,7 +18,7 @@ import { AvailabilityWindow } from '@app/admin/components/AvailabilityWindow';
 import { BooleanCell } from '@app/admin/components/DataTable/cells/BooleanCell';
 import { DataTable, createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { FormGridSection } from '@app/admin/components/FormGridSection';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { PrivacyIconButton } from '../[team]/volunteers/[volunteer]/preferences/PrivacyIconButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';

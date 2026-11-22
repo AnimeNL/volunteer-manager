@@ -4,7 +4,7 @@
 import 'server-only';
 import { cookies, headers } from 'next/headers';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { createAndWriteUserSessionCookie } from '../SessionStore';
 import { findActiveUser, setUserPassword } from '../AccountStore';
 import { normalizeClientIp } from '../RateLimit';

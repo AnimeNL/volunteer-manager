@@ -4,7 +4,7 @@
 import { z, type ZodType } from 'zod/v4';
 
 import type { User } from './auth';
-import { SetRecordErrorLogDeferDelegate } from './Log';
+import { SetRecordErrorLogDeferDelegate } from './ErrorLog';
 import { executeServerAction, type ServerActionImplementation } from './serverAction';
 
 describe('serverAction', () => {

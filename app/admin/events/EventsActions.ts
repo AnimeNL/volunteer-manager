@@ -6,7 +6,7 @@
 import { z } from 'zod/v4';
 
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';

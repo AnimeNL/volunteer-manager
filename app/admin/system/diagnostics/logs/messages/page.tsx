@@ -7,7 +7,7 @@ import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 
 import { DataTable, createDataSource, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';

@@ -5,10 +5,10 @@ import { MockQueryRunner } from 'ts-sql-query/queryRunners/MockQueryRunner';
 
 import { ErrorReportingQueryRunner, setDatabaseQueryErrorListener, useMockConnection }
     from './Connection';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import db, { kMaxTextColumnByteLength, tHotels, tLogs } from './index';
 
-import { kLogSeverity } from '@lib/Log';
+import { kLogSeverity } from '@lib/ErrorLog';
 
 describe('Connection', () => {
     const mockConnection = useMockConnection();

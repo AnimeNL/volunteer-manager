@@ -7,7 +7,7 @@ import type { UpdatableRow } from 'ts-sql-query';
 import { z } from 'zod/v4';
 
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { invalidateAuthCache } from '@lib/auth';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';

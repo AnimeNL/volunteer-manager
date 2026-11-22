@@ -16,7 +16,7 @@ import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
 import { kErrorSource } from '@lib/database/Types';
-import { kLogSeverity } from '@lib/Log';
+import { kLogSeverity } from '@lib/ErrorLog';
 
 /**
  * Data source through which the error logs can be retrieved.

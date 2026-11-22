@@ -9,7 +9,7 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { ColourRangeCell } from './ShiftCategoryCells';
 import { DataTable, createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { ExcitementCell, ExcitementHeader } from '../ShiftCells';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';

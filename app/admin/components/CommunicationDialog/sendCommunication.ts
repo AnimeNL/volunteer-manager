@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import type { User } from '@lib/auth';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { PromptFactory, type CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { getTeam } from '@lib/cache';

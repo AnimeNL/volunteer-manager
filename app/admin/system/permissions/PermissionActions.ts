@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { AccessControl } from '@lib/auth/access';
 import { Cache } from '@lib/cache';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
 import { toPermissionList, validatePermissionRestrictions } from './toPermissionList';

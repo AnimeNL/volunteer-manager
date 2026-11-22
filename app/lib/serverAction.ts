@@ -9,7 +9,7 @@ import type { $ZodArrayDef, $ZodNullableDef, $ZodOptionalDef, $ZodPipeDef, $ZodT
 
 import type { AuthenticationContext, User } from './auth';
 import { AccessControl } from './auth/access';
-import { RecordErrorLog, kLogSeverity } from './Log';
+import { RecordErrorLog, kLogSeverity } from './ErrorLog';
 import { getAuthenticationContext } from './auth';
 import { runWithUserContext } from './integrations/Instrumentation';
 

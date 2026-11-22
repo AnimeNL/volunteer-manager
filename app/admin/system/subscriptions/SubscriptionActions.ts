@@ -11,7 +11,7 @@ import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 import type { SubscriptionType } from '@lib/subscriptions';
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';

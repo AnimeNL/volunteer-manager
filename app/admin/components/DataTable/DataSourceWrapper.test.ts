@@ -9,7 +9,7 @@ import type { GridGetRowsParams } from '@mui/x-data-grid-premium';
 import type { AuthenticationContext } from '@lib/auth';
 import { AccessControl } from '@lib/auth/access';
 import { DataSourceWrapper } from './DataSourceWrapper';
-import { SetRecordErrorLogDeferDelegate } from '@lib/Log';
+import { SetRecordErrorLogDeferDelegate } from '@lib/ErrorLog';
 import { withContext, withRowModel } from './Types';
 
 const mocks = vi.hoisted(() => ({

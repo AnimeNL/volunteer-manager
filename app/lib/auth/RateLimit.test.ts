@@ -3,7 +3,7 @@
 
 import { vi } from 'vitest';
 
-import * as Log from '@lib/Log';
+import * as Log from '@lib/ErrorLog';
 import { checkRateLimit, clearRateLimits, normalizeClientIp, resetRateLimit } from './RateLimit';
 
 describe('RateLimit', () => {

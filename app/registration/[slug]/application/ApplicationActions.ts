@@ -3,7 +3,7 @@
 
 import { z } from 'zod/v4';
 
-import { LogBuilder } from '@lib/log/index';
+import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { SendEmailTask } from '@lib/scheduler/tasks/SendEmailTask';
 import { determineAvailabilityStatus } from '@lib/EnvironmentContext';

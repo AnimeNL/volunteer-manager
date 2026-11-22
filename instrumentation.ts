@@ -19,7 +19,7 @@ export async function register() {
     // Wire database query error reporting into the application log without introducing a circular
     // dependency between `@lib/database` and `@lib/log`.
     const { setDatabaseQueryErrorListener } = await import('@lib/database/Connection');
-    const { LogBuilder } = await import('@lib/log/index');
+    const { LogBuilder } = await import('@lib/log');
 
     setDatabaseQueryErrorListener((_queryType, query, params, error) => {
         LogBuilder.for('DatabaseError')
