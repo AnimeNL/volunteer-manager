@@ -1,8 +1,11 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden } from 'next/navigation';
+
 import { DutyBookPage } from './DutyBookPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
+import { getTeam } from '@lib/cache';
 import { requireAuthentication } from '../requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tUsers } from '@lib/database';
 
@@ -13,12 +16,19 @@ import { kAnyTeam } from '@lib/auth/access';
  * to log a new entry in the Duty Book for others to be aware of.
  */
 export default async function DutyBookServerPage(props: PageProps<'/schedule/[event]/duty-book'>) {
-    const { access, event, user } = await requireAuthentication(props);
+    const { access, event, events, user } = await requireAuthentication(props);
 
     const hasUnrestrictedAccess = access.can('event.duty-book', 'read', {
         event: event.slug,
         team: kAnyTeam,  // todo: Scope this to the specific team page
     });
+
+    if (!hasUnrestrictedAccess) {
+        const teamSlug = events.get(event.slug);
+        const team = teamSlug ? await getTeam(teamSlug) : undefined;
+        if (!team?.flags.enableDutyBook)
+            forbidden();
+    }
 
     const dutyBookViewersJoin = tDutyBookViewers.forUseInLeftJoin();
 
@@ -53,6 +63,7 @@ export default async function DutyBookServerPage(props: PageProps<'/schedule/[ev
         return {
             ...incident,
             read: !!incident.read,
+            summary: canAccessContent ? incident.summary : undefined,
             text: canAccessContent ? incident.text : undefined,
         };
     });
