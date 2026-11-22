@@ -65,10 +65,46 @@ function Text(props: TypographyProps & { tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' |
 }
 
 /**
+ * URL protocols allowed for rendered Markdown links.
+ */
+const kSafeLinkProtocols = new Set([ 'http:', 'https:', 'mailto:', 'tel:' ]);
+
+/**
+ * Returns whether the given `href` uses a safe protocol or a relative path.
+ */
+function isSafeLinkHref(href?: string): boolean {
+    if (!href)
+        return false;
+
+    const trimmed = href.trim();
+    if (!trimmed)
+        return false;
+
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\'))
+        return true;
+
+    if (trimmed.startsWith('#') || trimmed.startsWith('?') ||
+        trimmed.startsWith('./') || trimmed.startsWith('../'))
+    {
+        return true;
+    }
+
+    try {
+        const parsed = new URL(trimmed);
+        return kSafeLinkProtocols.has(parsed.protocol);
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Markdown replacement for both the native HTML <a> anchor element, as well as the Material UI
  * <Link> element, that employs NextJS routing.
  */
 function LinkComponent(props: LinkProps & { children?: React.ReactNode }) {
+    if (!isSafeLinkHref(props.href))
+        return <span>{props.children}</span>;
+
     return <MuiLink component={Link} {...props} />;
 }
 
@@ -102,18 +138,21 @@ export function Markdown(props: MarkdownProps) {
     return (
         <Box sx={sx}>
             <Typography component="div" sx={kStyles.root} variant={defaultVariant}>
-                <MuiMarkdown overrides={{
-                    ...defaultOverrides,
-                    a: { component: LinkComponent },
-                    blockquote: { component: Alert, props: { severity: 'warning' } },
-                    h1: { component: Text, props: { tag: 'h1' } },
-                    h2: { component: Text, props: { tag: 'h2' } },
-                    h3: { component: Text, props: { tag: 'h3' } },
-                    h4: { component: Text, props: { tag: 'h4' } },
-                    h5: { component: Text, props: { tag: 'h5' } },
-                    h6: { component: Text, props: { tag: 'h6' } },
-                    p: { component: Text, props: { tag: 'p', variant: defaultVariant } },
-                    span: { component: Text, props: { tag: 'span', variant: defaultVariant } },
+                <MuiMarkdown options={{
+                    disableParsingRawHTML: true,
+                    overrides: {
+                        ...defaultOverrides,
+                        a: { component: LinkComponent },
+                        blockquote: { component: Alert, props: { severity: 'warning' } },
+                        h1: { component: Text, props: { tag: 'h1' } },
+                        h2: { component: Text, props: { tag: 'h2' } },
+                        h3: { component: Text, props: { tag: 'h3' } },
+                        h4: { component: Text, props: { tag: 'h4' } },
+                        h5: { component: Text, props: { tag: 'h5' } },
+                        h6: { component: Text, props: { tag: 'h6' } },
+                        p: { component: Text, props: { tag: 'p', variant: defaultVariant } },
+                        span: { component: Text, props: { tag: 'span', variant: defaultVariant } },
+                    },
                 }}>
                     {children}
                 </MuiMarkdown>
