@@ -11,6 +11,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
+import { kAnyEvent } from '@lib/auth/access';
 import { kEventAvailabilityStatus } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 
@@ -30,7 +31,10 @@ const kCreateEventData = z.object({
  */
 export async function createEvent(formData: unknown) {
     return executeServerAction(formData, kCreateEventData, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, 'event.settings');
+        await requireAuthentication(props.authenticationContext, {
+            permission: 'event.settings',
+            scope: { event: kAnyEvent },
+        });
 
         if (data.slug.length < 4 || data.slug.length > 12)
             return { success: false, error: 'The slug must be between 4 and 12 characters long.' };

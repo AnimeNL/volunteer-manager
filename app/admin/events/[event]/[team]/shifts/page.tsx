@@ -157,6 +157,7 @@ const shiftsDataSource = createDataSource('event/team/shifts', withContext({
             })
             .where(tShifts.shiftId.equals(row.id))
                 .and(tShifts.eventId.equals(context.event.id))
+                .and(tShifts.teamId.equals(context.team.id))
                 .and(tShifts.shiftDeleted.isNull())
             .executeUpdate();
 

@@ -3,6 +3,7 @@
 
 'use server';
 
+import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
@@ -13,6 +14,7 @@ import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import type { VendorTeam } from '@lib/database/Types';
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+import { kVendorTeam } from '@lib/database/Types';
 import { kVendorTeamName } from './VendorTable';
 
 /**
@@ -41,6 +43,10 @@ export async function updateVendorSchedule(
                 operation: 'update',
             });
 
+        const parsedVendorTeam = z.enum(kVendorTeam).safeParse(vendorTeam);
+        if (!parsedVendorTeam.success)
+            notFound();
+
         const vendorsScheduleJoin = tVendorsSchedule.forUseInLeftJoin();
 
         const dbInstance = db;
@@ -49,7 +55,7 @@ export async function updateVendorSchedule(
                 .on(vendorsScheduleJoin.vendorId.equals(tVendors.vendorId))
                     .and(vendorsScheduleJoin.vendorsScheduleDeleted.isNull())
             .where(tVendors.eventId.equals(event.id))
-                .and(tVendors.vendorTeam.equals(vendorTeam))
+                .and(tVendors.vendorTeam.equals(parsedVendorTeam.data))
                 .and(tVendors.vendorVisible.equals(/* true= */ 1))
             .select({
                 id: tVendors.vendorId,
@@ -67,7 +73,9 @@ export async function updateVendorSchedule(
 
         await dbInstance.transaction(async () => {
             for (const resource of data.resources) {
-                const knownSchedule = knownResourcesMap.get(resource) || [ /* empty */ ];
+                const knownSchedule = knownResourcesMap.get(resource);
+                if (!knownSchedule)
+                    continue;
                 const schedule = data.schedule.filter(period => period.vendorId === resource);
 
                 const seenPeriods = new Set<number>();

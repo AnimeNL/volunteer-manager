@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log/index';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
@@ -50,10 +50,17 @@ const kWebsiteSettingsData = z.object({
  * Server Action called when website settings for a particular event and environment are being
  * updated by a lead. Changes will take effect immediately.
  */
-export async function updateSettings(eventId: number, environmentId: number, formData: unknown) {
+export async function updateSettings(eventSlug: string, teamSlug: string, formData: unknown) {
     'use server';
     return executeServerAction(formData, kWebsiteSettingsData, async (data, props) => {
-        await requireAuthenticationWithEvent(props.authenticationContext, eventId);
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventSlug, teamSlug);
+
+        if (!team.flags.managesContent)
+            notFound();
+
+        const eventId = event.id;
+        const environmentId = team.environmentId;
 
         const dbInstance = db;
 

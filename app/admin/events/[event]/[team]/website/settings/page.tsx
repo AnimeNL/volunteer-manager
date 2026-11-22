@@ -29,7 +29,7 @@ export default async function EventTeamWebsiteSettingsPage(
 
     const dbInstance = db;
 
-    const action = actions.updateSettings.bind(null, event.id, team.environmentId);
+    const action = actions.updateSettings.bind(null, event.slug, team.slug);
     const defaultValues = await dbInstance.selectFrom(tEnvironmentsEvents)
         .where(tEnvironmentsEvents.eventId.equals(event.id))
             .and(tEnvironmentsEvents.environmentId.equals(team.environmentId))

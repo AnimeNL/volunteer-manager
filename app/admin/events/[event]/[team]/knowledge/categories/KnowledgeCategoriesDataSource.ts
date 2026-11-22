@@ -1,6 +1,7 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+import { forbidden } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
@@ -72,6 +73,9 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
                 team: context.team.slug,
             },
         });
+
+        if (!context.team.flags.managesKnowledgeBase)
+            forbidden();
     },
 
     async create(partialRow, props, context) {
