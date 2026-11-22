@@ -1,42 +1,41 @@
 # AnimeCon Volunteer Manager
 This repository contains the [AnimeCon](https://animecon.nl/) Volunteer Manager, through which the
-Crew, Crew Care, Festival Host and Steward teams will be managed. The following features are
-available in the current version:
+Crew, Crew Care, Festival Host and Steward teams are managed. The following features are available
+in the current version:
 
   * Multi-tenant landing page referring visitors to all active events,
-  * Registration portal for information backed by a CMS, allowing visitors to apply to join,
-    * Volunteers can use passkeys as opposed to passwords to access their accounts,
-    * Once approved, volunteers can express their hotel and training preferences, share their
-      availability and, after the event, request their ticket to be refunded.
-  * Administration area for managing the volunteers,
-    * Several dashboards summarising the current status of an event's organisation,
+  * Registration portal backed by a CMS, allowing visitors to apply and manage their participation,
+    * Secure authentication with passkeys or Argon2id passwords and per-device session management,
+    * Versioned preferences for hotels, trainings, availability, language and ticket refunds.
+  * Volunteer schedule portal and venue displays for use during the event,
+    * Personal schedules, festival ticket QR codes, categorised Knowledge Base and feedback tracking,
+    * Venue displays showing live schedules with integrated help-request support.
+  * Responsive, Dark Mode-enabled administration area for managing events and volunteers,
+    * Overview dashboards covering event status, deadlines, recent changes, finances and diagnostics,
     * Flexible event management for any number of in-flight events at once,
-      * Automatic program sync with the AnimeCon AnPlan tool, including a changelog,
-      * Automatic e-mail generation for mutations that directly impact volunteers,
-      * Define shifts and provide scheduling per volunteer, across teams and aligned with the
-        event's program,
-      * Separated application and volunteer management systems, per team, per event,
-      * Hotel booking management including support for non-volunteers and warnings,
-      * Retention management to easily approach volunteers who helped out before, including the
-        ability to generate both e-mail and text messages,
-      * Training scheduling management including support for non-volunteers and warnings,
-      * Vendor management and scheduling for First Aid and Security teams,
-    * Knowledge Base to provide volunteers access to categorised Q&A during the event,
-    * Full accountability through extensive logging, including any and all outgoing messages,
-    * Powerful permission management based on assigned roles and expressly granted privileges,
+      * Automatic program sync with AnimeCon's AnPlan tool, including history and owner outreach,
+      * AI-assisted, personalised volunteer outreach across e-mail, SMS and WhatsApp,
+      * Shift definition and cross-team scheduling aligned with the event's program,
+      * Separated application (with claiming), volunteer, retention and vendor management,
+      * Hotel and training management with preference history, payment tracking and non-volunteers,
+      * Ticketing and financial dashboards (volunteer, associate and visitor tickets, QR codes,
+        UTM filtering and anonymisation),
+      * Duty Book with AI-generated summaries and Knowledge Base management,
+    * Multi-account team e-mail management with integrated threaded inboxes (SMTP & IMAP),
+    * Full accountability through structured logging, API instrumentation and outbound message logs,
+    * Dynamic role-based permission management supporting scoped grants and revokes,
     * Direct integration with our friends at [Del a Rie Advies](https://delarieadvies.nl).
-  * Multi-year statistics, each of which can be sliced by team and situation,
-  * GDPR-compliant data export tool, enabling third parties to securely access the data they need
-    with strict limits on availability, time and request limits.
+  * GDPR-compliant data export tool with strict availability, time and request limits.
 
-The Volunteer Manager has integrations with [AnPlan](https://animecon.nl/),
-[Google Cloud](https://cloud.google.com) and the
-[Google Vertex AI API](https://cloud.google.com/vertex-ai/docs/reference/rest) for sourcing event
-information and implementing certain functionality. A MySQL (or MariaDB) database is used, for which
-we use the excellent [ts-sql-query](https://ts-sql-query.readthedocs.io/en/stable/) library.
+The Volunteer Manager integrates with [AnPlan](https://animecon.nl/) for program data, the
+[Google Gemini API](https://ai.google.dev/) for AI-assisted content generation and decisions,
+[Weeztix](https://weeztix.com/) and [YourTicketProvider](https://www.yourticketprovider.nl/) for
+ticketing and financial data, [Twilio](https://www.twilio.com/) for SMS and WhatsApp messaging, and
+SMTP/IMAP servers for team e-mail. A MySQL (or MariaDB) database is used via
+[ts-sql-query](https://ts-sql-query.readthedocs.io/en/stable/).
 
-A [purpose built scheduler](app/lib/scheduler/) is included to execute one-off and repeating tasks
-outside of user requests, enabling the Volunteer Manager to optimise for imediate responsiveness.
+A [purpose-built scheduler](app/lib/scheduler/) is included to execute one-off and repeating tasks
+outside of user requests, enabling the Volunteer Manager to optimise for immediate responsiveness.
 
 ## Building and deploying
 
