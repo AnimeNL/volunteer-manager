@@ -320,10 +320,13 @@ export async function moveApplication(
             .where(tUsersEvents.userId.equals(userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(currentTeam.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Registered))
             .executeUpdate();
 
         if (!affectedRows)
             return { success: false, error: 'Unable to move the application in the database…' };
+
+        invalidateAuthCache(/* forUserId= */ userId);
 
         const targetUserName = await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(userId))
@@ -382,7 +385,11 @@ export async function reconsiderApplication(
             .where(tUsersEvents.userId.equals(userId))
                 .and(tUsersEvents.eventId.equals(event.id))
                 .and(tUsersEvents.teamId.equals(team.id))
+                .and(tUsersEvents.registrationStatus.equals(kRegistrationStatus.Rejected))
             .executeUpdate();
+
+        if (affectedRows)
+            invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('ReconsiderApplication')
             .withCondition(!!affectedRows)
