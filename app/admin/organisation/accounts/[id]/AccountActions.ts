@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { CommunicationLanguage } from '@lib/database/Types';
+import { AccessControl } from '@lib/auth/access';
 import { LogBuilder } from '@lib/log/index';
 import { PromptExecutor } from '@lib/ai/PromptExecutor';
 import { PromptFactory } from '@lib/ai/PromptFactory';
@@ -14,7 +15,6 @@ import { createPasswordResetToken, createUserAccessCode, impersonateUser, invali
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
 import { readExampleMessages, writeExampleMessagesForUser } from '@lib/ai/ExampleMessages';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeUserSettings } from '@lib/UserSettings';
 import db, { tFeedback, tNardoPersonalised, tOutboxEmail, tStorage, tSubscriptions, tUsers,
     tUsersAuth, tUsersPasskeys } from '@lib/database';
@@ -27,16 +27,47 @@ import { kTemporalPlainDate } from '@app/admin/lib/ZodTransformers';
  */
 const kNoDataRequired = z.object({ /* no parameters */ });
 
+const kRootAccountError = 'You are not allowed to manage a root account…';
+
+/**
+ * Verifies that `adminAccess` is allowed to manage `targetUserId`. Non-root administrators cannot
+ * modify, reset credentials for, or impersonate `root` accounts.
+ */
+async function canManageTargetAccount(
+    adminAccess: AccessControl, targetUserId: number): Promise<boolean>
+{
+    if (adminAccess.can('root'))
+        return true;
+
+    const targetAccessInfo = await db.selectFrom(tUsers)
+        .where(tUsers.userId.equals(targetUserId))
+        .select({
+            grants: tUsers.permissionsGrants,
+            revokes: tUsers.permissionsRevokes,
+            events: tUsers.permissionsEvents,
+            teams: tUsers.permissionsTeams,
+        })
+        .executeSelectNoneOrOne();
+
+    if (!targetAccessInfo)
+        notFound();
+
+    return !new AccessControl(targetAccessInfo).can('root');
+}
+
 /**
  * Server action that activates the account identified by the given `userId`.
  */
 export async function activateAccount(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -80,13 +111,16 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
     ];
 
     return executeServerAction(formData, kNoDataRequired, async () => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'delete' },
             undefined,
             { bypassCache: true });
 
         if (kUnanonymizableUserIds.includes(userId))
             return { success: false, error: 'This account is not allowed to be anonymized.' };
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const dbInstance = db;
         const uniqueHash = nanoid(8);
@@ -156,6 +190,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
             return { success: false, error: 'The account could not be anonymized…' };
 
         await revokeAllUserSessions(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminAnonymizeAccount')
             .withInitiatorUser(adminUser)
@@ -180,11 +215,14 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
  */
 export async function confirmDiscord(userId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -196,7 +234,7 @@ export async function confirmDiscord(userId: number, formData: unknown) {
 
         LogBuilder.for('AdminVerifyDiscord')
             .withCondition(!!affectedRows)
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .record();
 
@@ -214,10 +252,13 @@ export async function confirmDiscord(userId: number, formData: unknown) {
 export async function createAccessCode(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const accessCode = await createUserAccessCode(userId);
         if (!accessCode)
@@ -293,10 +334,13 @@ export async function createAccount(formData: unknown) {
 export async function deactivateAccount(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const affectedRows = await db.update(tUsers)
             .set({
@@ -310,6 +354,7 @@ export async function deactivateAccount(userId: number, formData: unknown) {
             return { success: false, error: 'Unable to deactivate their account…' };
 
         await revokeAllUserSessions(userId);
+        invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateActivation')
             .withInitiatorUser(adminUser)
@@ -329,11 +374,14 @@ export async function deactivateAccount(userId: number, formData: unknown) {
  */
 export async function deleteAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const dbInstance = db;
 
@@ -371,7 +419,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
         invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminDeleteAvatar')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Warning')
             .record();
@@ -386,8 +434,11 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
 export async function impersonate(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             'organisation.impersonation', undefined, { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const impersonatedUser = await impersonateUser(userId, {
             impersonatorUserId: adminUser.id,
@@ -418,10 +469,13 @@ export async function impersonate(userId: number, formData: unknown) {
 export async function resetPassword(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const passwordResetRequest = await createPasswordResetToken(userId);
         if (!passwordResetRequest)
@@ -445,11 +499,14 @@ export async function resetPassword(userId: number, formData: unknown) {
  */
 export async function setDefaultAvatar(userId: number, fileId: number, formData: unknown) {
     'use server';
-    return executeServerAction(formData, kNoDataRequired, async (data, props) => {
-        await requireAuthentication(props.authenticationContext, {
-            permission: 'organisation.accounts',
-            operation: 'update',
-        });
+    return executeServerAction(formData, kNoDataRequired, async () => {
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
+            { permission: 'organisation.accounts', operation: 'update' },
+            undefined,
+            { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const existingAvatar = await db.selectFrom(tStorage)
             .where(tStorage.fileId.equals(fileId))
@@ -474,7 +531,7 @@ export async function setDefaultAvatar(userId: number, fileId: number, formData:
         invalidateAuthCache(/* forUserId= */ userId);
 
         LogBuilder.for('AdminUpdateAvatar')
-            .withInitiatorUser(props.user)
+            .withInitiatorUser(adminUser)
             .withAffectedUser(userId)
             .withSeverity('Warning')
             .record();
@@ -504,10 +561,13 @@ const kAccountPermissionData = z.object({
 export async function updateAccountInformation(userId: number, formData: unknown) {
     'use server';
     return executeServerAction(formData, kAccountPermissionData, async (data) => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         const currentUser = await db.selectFrom(tUsers)
             .where(tUsers.userId.equals(userId))
@@ -613,10 +673,13 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
         if (props.user.id !== userId) {
             // Users are always welcome to update their own settings - no further checks will be
             // done in that case. Such changes will not be logged either.
-            await requireAuthentication(props.authenticationContext, {
-                permission: 'organisation.accounts',
-                operation: 'update',
-            });
+            const { access: adminAccess } = await requireAuthenticationContext(
+                { permission: 'organisation.accounts', operation: 'update' },
+                undefined,
+                { bypassCache: true });
+
+            if (!await canManageTargetAccount(adminAccess, userId))
+                return { success: false, error: kRootAccountError };
         }
 
         // Write the example messages to the database.
@@ -671,10 +734,13 @@ const kUpdateAccountSuspensionData = z.object({
 export async function updateAccountSuspension(userId: number, suspend: boolean, formData: unknown) {
     'use server';
     return executeServerAction(formData, kUpdateAccountSuspensionData, async (data) => {
-        const { user: adminUser } = await requireAuthenticationContext(
+        const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
             undefined,
             { bypassCache: true });
+
+        if (!await canManageTargetAccount(adminAccess, userId))
+            return { success: false, error: kRootAccountError };
 
         if (!!suspend && !data.reason?.length)
             return { success: false, error: 'A reason for the suspension must be given…' };
