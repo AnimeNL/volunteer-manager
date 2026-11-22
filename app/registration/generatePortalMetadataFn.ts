@@ -12,7 +12,9 @@ const kTitleCache = new Map();
 
 /**
  * Generates the page title specific to the landing page or one of the registration portal pages, in
- * which we highlight the name of the team about which the visitor is being informed.
+ * which we highlight the name of the team about which the visitor is being informed. Authentication
+ * and `eventHidden` filtering are intentionally omitted because event short names in page titles
+ * are non-sensitive.
  */
 async function generateMetadata(props: LayoutProps<'/registration/[slug]'>, title?: string)
     : Promise<Metadata>

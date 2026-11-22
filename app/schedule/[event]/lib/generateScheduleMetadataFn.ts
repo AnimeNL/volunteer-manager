@@ -40,7 +40,8 @@ globalThis.animeConScheduleTitleCache = new Map;
 
 /**
  * Generates metadata for a page with the given `title`. A Next.js `Metadata` object will be
- * returned that can be used directly on a page.
+ * returned that can be used directly on a page. Authentication and `eventHidden` filtering are
+ * intentionally omitted because event short names in page titles are non-sensitive.
  */
 export async function generateScheduleMetadata<T extends ExpectedProps>(props: T, title?: string[])
     : Promise<Metadata>
