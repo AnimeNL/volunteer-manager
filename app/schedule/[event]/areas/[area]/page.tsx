@@ -14,6 +14,10 @@ export default async function ScheduleAreaPage(props: PageProps<'/schedule/[even
     return <LocationList areaId={(await props.params).area} />;
 }
 
+/**
+ * Generates metadata for the schedule area page. Authentication is intentionally omitted because
+ * area names in page titles are non-sensitive.
+ */
 export async function generateMetadata(props: PageProps<'/schedule/[event]/areas/[area]'>) {
     const cache = getTitleCache('areas');
     const area = (await props.params).area;

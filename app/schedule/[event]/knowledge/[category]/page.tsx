@@ -124,6 +124,10 @@ export default async function ScheduleKnowledgeCategoryPage(
     );
 }
 
+/**
+ * Generates metadata for the knowledge base category page. Authentication is intentionally omitted
+ * because category titles in page titles are non-sensitive.
+ */
 export async function generateMetadata(props: PageProps<'/schedule/[event]/knowledge/[category]'>) {
     const cache = getTitleCache('knowledge-base');
     const category = (await props.params).category;

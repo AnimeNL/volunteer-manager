@@ -168,6 +168,10 @@ export default async function ScheduleHelpRequestPage(
     );
 }
 
+/**
+ * Generates metadata for the help request page. Authentication is intentionally omitted because
+ * display labels in page titles are non-sensitive.
+ */
 export async function generateMetadata(props: PageProps<'/schedule/[event]/help-requests/[id]'>) {
     const cache = getTitleCache('help-requests');
     const id = (await props.params).id;
