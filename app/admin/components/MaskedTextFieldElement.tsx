@@ -36,7 +36,7 @@ interface MaskedTextFieldElementProps extends TextFieldElementProps {
  * the right-hand side of the input that reveals the stored value in a small popover.
  */
 export function MaskedTextFieldElement(props: MaskedTextFieldElementProps) {
-    const { secretValue, slotProps, ...textFieldProps } = props;
+    const { secretValue, slotProps, type = 'password', ...textFieldProps } = props;
 
     const [ anchorEl, setAnchorEl ] = useState<HTMLElement | null>(null);
     const [ copied, setCopied ] = useState(false);
@@ -75,7 +75,7 @@ export function MaskedTextFieldElement(props: MaskedTextFieldElementProps) {
     }, [ secretValue ]);
 
     if (!secretValue)
-        return <TextFieldElement {...textFieldProps} slotProps={slotProps} />;
+        return <TextFieldElement {...textFieldProps} type={type} slotProps={slotProps} />;
 
     const open = Boolean(anchorEl);
 
@@ -102,6 +102,7 @@ export function MaskedTextFieldElement(props: MaskedTextFieldElementProps) {
         <>
             <TextFieldElement
                 {...textFieldProps}
+                type={type}
                 slotProps={{
                     ...slotProps,
                     input: {
