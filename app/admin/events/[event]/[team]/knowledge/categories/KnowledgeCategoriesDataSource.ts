@@ -67,10 +67,9 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.visible',
+            permission: 'event.knowledge',
             scope: {
                 event: context.event.slug,
-                team: context.team.slug,
             },
         });
 

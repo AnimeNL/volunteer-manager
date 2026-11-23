@@ -30,6 +30,12 @@ export default async function KnowledgeLayout(
             {
                 Icon: CategoryIcon,
                 label: 'Categories',
+                permission: {
+                    permission: 'event.knowledge',
+                    scope: {
+                        event: event.slug,
+                    },
+                },
                 url: `/admin/events/${event.slug}/${team.slug}/knowledge/categories`,
                 urlMatchMode: 'strict',
             },

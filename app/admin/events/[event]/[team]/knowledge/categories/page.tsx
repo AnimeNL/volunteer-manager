@@ -25,7 +25,7 @@ import { kKnowledgeBaseIconTable } from '@components/KnowledgeBaseIconTable';
 export default async function KnowledgeCategoriesPage(
     props: PageProps<'/admin/events/[event]/[team]/knowledge/categories'>)
 {
-    const { event, team } = await requireAuthenticationWithEventAndTeam(props);
+    const { event, team } = await requireAuthenticationWithEventAndTeam(props, 'event.knowledge');
     if (!team.flags.managesKnowledgeBase)
         notFound();
 
