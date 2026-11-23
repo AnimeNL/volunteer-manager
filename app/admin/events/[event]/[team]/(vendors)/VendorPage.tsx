@@ -1,39 +1,67 @@
-// Copyright 2023 Peter Beverloo & AnimeCon. All rights reserved.
+// Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { notFound } from 'next/navigation';
 
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import SecurityIcon from '@mui/icons-material/Security';
 
-import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { Section } from '@app/admin/components/Section';
-import { VendorSchedule } from '../first-aid/VendorSchedule';
-import { VendorTable } from '../first-aid/VendorTable';
-import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
+import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { VendorSchedule } from './VendorSchedule';
+import { VendorTable } from './VendorTable';
 import { readSetting } from '@lib/Settings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';
 
-import { updateVendorSchedule } from '../first-aid/VendorActions';
+import { updateVendorSchedule } from './VendorActions';
 
 /**
- * The security team (normally supporting the Stewards) is responsible for the physical security of
- * our visitors and volunteers. They're a vendor team, and therefore not considered volunteers.
+ * Configuration for each supported vendor team.
  */
-export default async function EventTeamSecurityPage(
-    props: PageProps<'/admin/events/[event]/[team]/security'>)
-{
+const kVendorTeams = {
+    'first-aid': {
+        defaultRole: 'First Aid',
+        description: 'professional first aiders',
+        icon: <LocalHospitalIcon color="primary" />,
+        setting: 'vendor-first-aid-roles',
+        teamFlag: 'managesFirstAid',
+        title: 'First aid',
+        vendorTeam: kVendorTeam.FirstAid,
+    },
+    'security': {
+        defaultRole: 'Security',
+        description: 'professional security team',
+        icon: <SecurityIcon color="primary" />,
+        setting: 'vendor-security-roles',
+        teamFlag: 'managesSecurity',
+        title: 'Security',
+        vendorTeam: kVendorTeam.Security,
+    },
+} as const;
+
+type VendorTeamSlug = keyof typeof kVendorTeams;
+
+/**
+ * Shared server component for managing a vendor team (First Aid or Security) and its schedule.
+ */
+export async function VendorPage(props: {
+    params: Promise<{ event: string; team: string }>;
+    vendor: VendorTeamSlug;
+}) {
+    const config = kVendorTeams[props.vendor];
+
     const { access, event, team } = await requireAuthenticationWithEventAndTeam(props, {
         permission: 'volunteers.vendor-teams',
         operation: 'read',
     });
 
-    if (!team.flags.managesSecurity)
+    if (!team.flags[config.teamFlag])
         notFound();
 
-    const roleSetting = await readSetting('vendor-security-roles') ?? 'Security';
+    const roleSetting = await readSetting(config.setting) ?? config.defaultRole;
     const roles = roleSetting.split(',').map(role => role.trim());
 
     const vendorsScheduleJoin = tVendorsSchedule.forUseInLeftJoin();
@@ -43,7 +71,7 @@ export default async function EventTeamSecurityPage(
         .leftJoin(vendorsScheduleJoin)
             .on(vendorsScheduleJoin.vendorId.equals(tVendors.vendorId))
                 .and(vendorsScheduleJoin.vendorsScheduleDeleted.isNull())
-        .where(tVendors.vendorTeam.equals(kVendorTeam.Security))
+        .where(tVendors.vendorTeam.equals(config.vendorTeam))
             .and(tVendors.eventId.equals(event.id))
             .and(tVendors.vendorVisible.equals(/* true= */ 1))
         .select({
@@ -66,25 +94,25 @@ export default async function EventTeamSecurityPage(
     });
 
     const action =
-        canUpdateVendors ? updateVendorSchedule.bind(null, event.slug, team.slug, 'security')
+        canUpdateVendors ? updateVendorSchedule.bind(null, event.slug, team.slug, props.vendor)
                          : undefined!;
 
     return (
         <>
-            <Section icon={ <SecurityIcon color="primary" /> } title="Security"
+            <Section icon={config.icon} title={config.title}
                      documentation="event/vendor-team" limited={!canUpdateVendors}
                      breadcrumbs={[
                          { label: event.shortName, href: `/admin/events/${event.slug}` },
                          { label: team.title, href: `/admin/events/${event.slug}/${team.slug}` },
-                         { label: 'Security' },
+                         { label: config.title },
                      ]}>
                 <SectionIntroduction>
-                    Team management for the professional security team helping us out with{' '}
+                    Team management for the {config.description} helping us out with{' '}
                     {event.shortName}.
                 </SectionIntroduction>
             </Section>
             <Section noHeader>
-                <VendorTable event={event.slug} team={kVendorTeam.Security}
+                <VendorTable event={event.slug} team={config.vendorTeam}
                              readOnly={!canUpdateVendors} roles={roles} />
             </Section>
             { !!schedule.length &&
@@ -100,6 +128,3 @@ export default async function EventTeamSecurityPage(
         </>
     );
 }
-
-export const generateMetadata = createGenerateMetadataFn(
-    'Security', { team: 'team' }, { event: 'event' });

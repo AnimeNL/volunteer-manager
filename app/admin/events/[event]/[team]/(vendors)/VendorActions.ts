@@ -76,6 +76,7 @@ export async function updateVendorSchedule(
                 const knownSchedule = knownResourcesMap.get(resource);
                 if (!knownSchedule)
                     continue;
+
                 const schedule = data.schedule.filter(period => period.vendorId === resource);
 
                 const seenPeriods = new Set<number>();
