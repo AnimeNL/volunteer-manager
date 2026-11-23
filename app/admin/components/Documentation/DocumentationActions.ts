@@ -14,7 +14,6 @@ import { requireAuthentication } from '@lib/requireAuthentication';
  * on the server, with the JSX thereafter shared to the client.
  */
 export async function fetchDocumentation(topic: string) {
-    'use server';
     return executeServerAction({ topic }, z.object({ topic: z.string() }), async (data, props) => {
         await requireAuthentication(props.authenticationContext);
 

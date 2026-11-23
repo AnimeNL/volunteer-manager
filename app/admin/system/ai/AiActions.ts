@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -33,7 +35,6 @@ const kExecuteDecisionPlaygroundData = z.object({
  * Server action to execute a structured decision from the Decision Playground.
  */
 export async function executeDecisionPlayground(formData: unknown) {
-    'use server';
 
     return executeServerAction(formData, kExecuteDecisionPlaygroundData, async data => {
         await requireAuthentication('system.internals.ai');
@@ -117,7 +118,6 @@ const kExecuteModelPlaygroundData = z.object({
  * Server action to execute a selected AI model from the Model Playground.
  */
 export async function executeModelPlayground(formData: unknown) {
-    'use server';
 
     return executeServerAction(formData, kExecuteModelPlaygroundData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
@@ -182,7 +182,6 @@ const kUpdateExampleMessagesData = z.object({
  * Server action to update the example messages that can be consumed by AI.
  */
 export async function updateExampleMessages(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdateExampleMessagesData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
 
@@ -230,7 +229,6 @@ const kUpdateModelSettingsData = z.object({
  * Server action to update the model settings used by the system globally.
  */
 export async function updateModelSettings(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdateModelSettingsData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
 
@@ -273,7 +271,6 @@ const kUpdatePromptData = z.object({
  * Server action to update the system prompt used in generated communication.
  */
 export async function updatePrompt(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdatePromptData, async (data, props) => {
         await requireAuthentication('system.internals.ai');
 

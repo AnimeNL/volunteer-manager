@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -40,7 +42,6 @@ const kCreateEnvironmentData = z.object({
  * Server action that creates a new environment in the Volunteer Manager.
  */
 export async function createEnvironment(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateEnvironmentData, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
@@ -102,7 +103,6 @@ const kCreateTeamData = z.object({
  * Server action that creates a new team in the Volunteer Manager.
  */
 export async function createTeam(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateTeamData, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
@@ -185,7 +185,6 @@ export async function createTeam(formData: unknown) {
  * Server action that deletes the environment identified by the given `environmentId`.
  */
 export async function deleteEnvironment(environmentId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
@@ -247,7 +246,6 @@ export async function deleteEnvironment(environmentId: number, formData: unknown
  * Server action that regenerates a team's invite key.
  */
 export async function resetTeamKey(teamId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
@@ -291,7 +289,6 @@ export async function resetTeamKey(teamId: number, formData: unknown) {
  * Server action that either disables or enables the team identified by the given `teamId`.
  */
 export async function toggleTeamEnabled(teamId: number, enabled: boolean, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',
@@ -360,7 +357,6 @@ const kUpdateEnvironmentData = z.object({
  * Server action that updates environment information for the one identified by the given `userId`.
  */
 export async function updateEnvironment(environmentId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdateEnvironmentData, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.environments',
@@ -437,7 +433,6 @@ const kUpdateTeamData = z.object({
  * Server action that updates team information for the one identified by the given `teamId`.
  */
 export async function updateTeam(teamId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdateTeamData, async (data, props) => {
         await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.teams',

@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -59,7 +61,6 @@ async function canManageTargetAccount(
  * Server action that activates the account identified by the given `userId`.
  */
 export async function activateAccount(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -98,7 +99,6 @@ export async function activateAccount(userId: number, formData: unknown) {
  * Server action that can be used to anonymize an account.
  */
 export async function anonymizeAccount(userId: number, formData: unknown) {
-    'use server';
 
     /**
      * Array of accounts that cannot by anonymized. This is to protect the system in case someone
@@ -214,7 +214,6 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
  * Server action that confirms the account's associated Discord handle as having been verified.
  */
 export async function confirmDiscord(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -250,7 +249,6 @@ export async function confirmDiscord(userId: number, formData: unknown) {
  * Server action that associates an access code with the account identified by the given `userId`
  */
 export async function createAccessCode(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -288,7 +286,6 @@ const kCreateAccountData = z.object({
  * Server action that creates an account with the given `formData`.
  */
 export async function createAccount(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateAccountData, async (data) => {
         const { user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'create' },
@@ -332,7 +329,6 @@ export async function createAccount(formData: unknown) {
  * Server action that deactivates the account identified by the given `userId`
  */
 export async function deactivateAccount(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -373,7 +369,6 @@ export async function deactivateAccount(userId: number, formData: unknown) {
  * Server action that deletes the avatar with the given `fileId` from storage.
  */
 export async function deleteAvatar(userId: number, fileId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -432,7 +427,6 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
  * Server action that signs the user in to the account identified by the given `userId`
  */
 export async function impersonate(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             'organisation.impersonation', undefined, { bypassCache: true });
@@ -467,7 +461,6 @@ export async function impersonate(userId: number, formData: unknown) {
  * Server action resets the password of the account identified by the given `userId`
  */
 export async function resetPassword(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -498,7 +491,6 @@ export async function resetPassword(userId: number, formData: unknown) {
  * Server action that sets the user's selected avatar to `fileId`.
  */
 export async function setDefaultAvatar(userId: number, fileId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -559,7 +551,6 @@ const kAccountPermissionData = z.object({
  * Server Action called when the account information is being updated.
  */
 export async function updateAccountInformation(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kAccountPermissionData, async (data) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
@@ -668,7 +659,6 @@ const kAccountSettingsData = z.object({
  * Server Action called when the account settings are being updated.
  */
 export async function updateAccountSettings(userId: number, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kAccountSettingsData, async (data, props) => {
         if (props.user.id !== userId) {
             // Users are always welcome to update their own settings - no further checks will be
@@ -732,7 +722,6 @@ const kUpdateAccountSuspensionData = z.object({
  * Server Action called when the account's suspension status should be updated.
  */
 export async function updateAccountSuspension(userId: number, suspend: boolean, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kUpdateAccountSuspensionData, async (data) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },

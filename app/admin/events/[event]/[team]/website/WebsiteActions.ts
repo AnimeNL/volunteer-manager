@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -51,7 +53,6 @@ const kWebsiteSettingsData = z.object({
  * updated by a lead. Changes will take effect immediately.
  */
 export async function updateSettings(eventSlug: string, teamSlug: string, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kWebsiteSettingsData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug);

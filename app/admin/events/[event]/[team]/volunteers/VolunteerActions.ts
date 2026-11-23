@@ -7,76 +7,52 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
-import db, { tEvents, tTeams, tUsersEvents } from '@lib/database';
+import db, { tUsersEvents } from '@lib/database';
 
 /**
- * Returns context, sourced from the database, for a volunteer action with the following properties.
+ * Zod schema for the communication payload sent to a volunteer.
  */
-async function getContextForVolunteerAction(userId: number, eventId: number, teamId: number) {
-    const result = await db.selectFrom(tUsersEvents)
-        .innerJoin(tEvents)
-            .on(tEvents.eventId.equals(tUsersEvents.eventId))
-        .innerJoin(tTeams)
-            .on(tTeams.teamId.equals(tUsersEvents.teamId))
-        .where(tUsersEvents.userId.equals(userId))
-            .and(tUsersEvents.eventId.equals(eventId))
-            .and(tUsersEvents.teamId.equals(teamId))
-        .select({
-            event: {
-                id: tEvents.eventId,
-
-                festivalId: tEvents.eventFestivalId,
-                shortName: tEvents.eventShortName,
-                slug: tEvents.eventSlug,
-                timezone: tEvents.eventTimezone,
-            },
-            team: {
-                id: tTeams.teamId,
-                slug: tTeams.teamSlug,
-            },
-        })
-        .executeSelectNoneOrOne();
-
-    if (!result)
-        notFound();  // the given information cannot be validated
-
-    return result;
-}
+const kCommunicationData = z.object({
+    subject: z.string().nonempty(),
+    message: z.string().nonempty(),
+});
 
 /**
  * Server Action that will be invoked by the <CommunicationIconButton> component when a message
- * should be send on the user's behalf. All input should be treated as untrusted until verified.
+ * should be sent on the user's behalf. All input should be treated as untrusted until verified.
  */
 export async function sendCommunicationToVolunteer(
     eventId: number, teamId: number, recipientId: number, promptId: CommunicationPromptId,
     subject?: string, message?: string)
 {
-    return executeServerAction(new FormData(), z.object({ /* none */ }), async (data, props) => {
-        const { event, team } = await getContextForVolunteerAction(recipientId, eventId, teamId);
+    return executeServerAction({ subject, message }, kCommunicationData, async (data, props) => {
+        const { event, team } = await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, eventId, teamId, {
+                permission: 'volunteers.participation',
+                operation: 'update',
+            });
 
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'volunteers.participation',
-            operation: 'update',
-            scope: {
-                event: event.slug,
-                team: team.slug,
-            },
-        });
+        const volunteer = await db.selectFrom(tUsersEvents)
+            .where(tUsersEvents.userId.equals(recipientId))
+                .and(tUsersEvents.eventId.equals(event.id))
+                .and(tUsersEvents.teamId.equals(team.id))
+            .selectOneColumn(tUsersEvents.userId)
+            .executeSelectNoneOrOne();
 
-        if (!subject || !message)
-            return { success: false, error: 'Subject and/or message are missing from the request' };
+        if (!volunteer)
+            notFound();
 
         await sendCommunication({
             sender: props.user,
             recipient: recipientId,
-            subject,
-            message,
+            subject: data.subject,
+            message: data.message,
             metadata: {
-                eventId,
-                teamId,
+                eventId: event.id,
+                teamId: team.id,
                 promptId,
             },
         });

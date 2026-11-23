@@ -6,8 +6,8 @@
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { rerunTask, scheduleTask } from '@lib/scheduler';
 
 import { kTaskRegistry, type RegisteredTasks } from '@lib/scheduler/TaskRegistry';
@@ -28,9 +28,8 @@ const kCreateSchedulerTaskData = z.object({
  * Server action that schedules a new task.
  */
 export async function createSchedulerTask(formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateSchedulerTaskData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
+        await requireAuthentication(props.authenticationContext, 'system.internals.scheduler');
 
         if (!Object.hasOwn(kTaskRegistry, data.task)) {
             return {
@@ -79,14 +78,21 @@ export async function createSchedulerTask(formData: unknown) {
 }
 
 /**
+ * Zod type that describes the data required when rerunning an existing task.
+ */
+const kRerunSchedulerTaskData = z.object({
+    taskId: z.number(),
+    taskName: z.string(),
+});
+
+/**
  * Server action that reruns an existing task.
  */
 export async function rerunSchedulerTask(taskId: number, taskName: string) {
-    'use server';
-    return executeServerAction(new FormData, z.object({ /* none */ }), async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
+    return executeServerAction({ taskId, taskName }, kRerunSchedulerTaskData, async (data, props) => {
+        await requireAuthentication(props.authenticationContext, 'system.internals.scheduler');
 
-        const repeatedTaskId = await rerunTask(taskId);
+        const repeatedTaskId = await rerunTask(data.taskId);
         if (!repeatedTaskId) {
             return {
                 success: false,
@@ -97,7 +103,7 @@ export async function rerunSchedulerTask(taskId: number, taskName: string) {
         LogBuilder.for('RepeatSchedulerTask')
             .withInitiatorUser(props.user)
             .withSeverity('Debug')
-            .record({ taskId, taskName, repeatedTaskId });
+            .record({ taskId: data.taskId, taskName: data.taskName, repeatedTaskId });
 
         return {
             success: true,

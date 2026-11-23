@@ -23,11 +23,13 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { getSubscriptionTypes, updateSubscriptions } from '../SubscriptionActions';
+import { getSubscriptionTypes } from '../getSubscriptionTypes';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 import { kSubscriptionType } from '@lib/database/Types';
+
+import { updateSubscriptions } from '../SubscriptionActions';
 
 /**
  * Available channels for subscriptions to be delivered through.

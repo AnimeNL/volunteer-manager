@@ -6,7 +6,7 @@
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { executeAccessCheck } from '@lib/auth/access';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
 import { writeSettings } from '@lib/Settings';
 
@@ -47,7 +47,7 @@ const kUpdateSettingsData = z.looseObject({ /* freeform key-value mapping */ });
  */
 export async function updateSettings(formData: unknown) {
     return executeServerAction(formData, kUpdateSettingsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals.settings');
+        await requireAuthentication(props.authenticationContext, 'system.internals.settings');
 
         const settings: { [k: string]: boolean | number | string } = {};
         for (const [ setting, rawValue ] of Object.entries(data)) {

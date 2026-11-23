@@ -1,6 +1,8 @@
 // Copyright 2025 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -29,7 +31,6 @@ const kNoDataRequired = z.object({ /* no parameters */ });
 export async function claimApplication(
     eventSlug: string, teamSlug: string, userId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -94,7 +95,6 @@ export async function decideApplication(
     eventSlug: string, teamSlug: string, approved: boolean, userId: number,
     subject?: string, message?: string)
 {
-    'use server';
     return executeServerAction(
         { approved, userId, subject, message }, kDecideApplicationData, async (data, props) =>
     {
@@ -190,7 +190,6 @@ const kCreateApplicationData = z.object({
  * Server action that should be called when a new application should be created.
  */
 export async function createApplication(eventSlug: string, teamSlug: string, formData: unknown) {
-    'use server';
     return executeServerAction(formData, kCreateApplicationData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -315,7 +314,6 @@ const kMoveApplicationData = z.object({
 export async function moveApplication(
     eventSlug: string, teamSlug: string, userId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kMoveApplicationData, async (data, props) => {
         const { event, team: currentTeam } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -394,7 +392,6 @@ export async function moveApplication(
 export async function reconsiderApplication(
     eventSlug: string, teamSlug: string, userId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kNoDataRequired, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {

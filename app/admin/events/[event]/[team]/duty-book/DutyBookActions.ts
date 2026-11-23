@@ -1,6 +1,8 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
+'use server';
+
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
@@ -20,7 +22,6 @@ const kDeleteIncidentData = z.object({ /* nothing */ });
 export async function deleteIncident(
     eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kDeleteIncidentData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -72,7 +73,6 @@ const kUpdateDetailsData = z.object({
 export async function updateDetails(
     eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kUpdateDetailsData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {
@@ -122,7 +122,6 @@ const kUpdateVisibilityData = z.object({
 export async function updateVisibility(
     eventSlug: string, teamSlug: string, incidentId: number, formData: unknown)
 {
-    'use server';
     return executeServerAction(formData, kUpdateVisibilityData, async (data, props) => {
         const { event, team } = await requireAuthenticationWithEventAndTeam(
             props.authenticationContext, eventSlug, teamSlug, {

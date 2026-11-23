@@ -6,6 +6,7 @@
 import { z } from 'zod/v4';
 
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeUserSetting } from '@lib/UserSettings';
 
 /**
@@ -19,8 +20,9 @@ const kUpdateUserColourData = z.object({
  * Server Action through which the colour chosen by the signed in user can be updated to `colour`.
  */
 export async function updateUserColour(colour?: string) {
-    'use server';
     return executeServerAction({ colour }, kUpdateUserColourData, async (data, props) => {
+        await requireAuthentication(props.authenticationContext);
+
         await writeUserSetting(props.user.id, 'admin-theme-color', data.colour);
     });
 }

@@ -7,8 +7,8 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kMaskedSecret } from '@app/admin/components/MaskedSecret';
@@ -65,7 +65,7 @@ type Integration = keyof z.infer<typeof kIntegrationSettingsData>;
  */
 export async function updateIntegration(integration: Integration, formData: unknown) {
     return executeServerAction(formData, kIntegrationSettingsData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.integrations');
+        await requireAuthentication(props.authenticationContext, 'system.integrations');
 
         if (typeof data[integration] === 'undefined')
             notFound();

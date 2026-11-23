@@ -36,6 +36,14 @@ const kHotelConfigurationData = z.object({
 });
 
 /**
+ * Zod schema for the communication payload sent for a hotel confirmation.
+ */
+const kCommunicationData = z.object({
+    subject: z.string().nonempty(),
+    message: z.string().nonempty(),
+});
+
+/**
  * Server Action that will be invoked by the <CommunicationDialog> component when a hotel
  * confirmation message should be sent on the user's behalf.
  */
@@ -43,7 +51,7 @@ export async function sendHotelConfirmationCommunication(
     eventSlug: string, bookingId: number, recipientId: number, teamId: number,
     promptId: CommunicationPromptId, subject?: string, message?: string)
 {
-    return executeServerAction(new FormData(), z.object({ /* none */ }), async (data, props) => {
+    return executeServerAction({ subject, message }, kCommunicationData, async (data, props) => {
         const { event } = await requireAuthenticationWithEvent(
             props.authenticationContext, eventSlug, 'event.hotels');
 
@@ -69,14 +77,11 @@ export async function sendHotelConfirmationCommunication(
         if (!booking)
             notFound();
 
-        if (!subject || !message)
-            return { success: false, error: 'Subject and/or message are missing from the request' };
-
         await sendCommunication({
             sender: props.user,
             recipient: recipientId,
-            subject,
-            message,
+            subject: data.subject,
+            message: data.message,
             metadata: {
                 eventId: event.id,
                 teamId: booking.teamId,
