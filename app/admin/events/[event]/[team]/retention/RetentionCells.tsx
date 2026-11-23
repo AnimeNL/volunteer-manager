@@ -23,7 +23,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import type { RetentionRowModel } from './page';
+import type { RetentionRowModel } from './RetentionDataSource';
 import type { ServerActionResult } from '@lib/serverAction';
 import { CommunicationIconButton } from '@app/admin/components/CommunicationDialog';
 import { ResponsiveFormDialog } from '@app/admin/components/ResponsiveFormDialog';
