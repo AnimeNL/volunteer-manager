@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { StatisticsDetails } from './StatisticsDetails';
+import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 
 /**
  * Props accepted by the <StatisticsSection> component when a "read more" button should be shown.
@@ -75,7 +76,9 @@ export function StatisticsSection(props: React.PropsWithChildren<StatisticsSecti
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         { !!props.kpi &&
                             <Tooltip title="Key Performance Indicator">
-                                <StarIcon fontSize="small" htmlColor="#ffa000" />
+                                <TooltipIconWrapper>
+                                    <StarIcon fontSize="small" htmlColor="#ffa000" />
+                                </TooltipIconWrapper>
                             </Tooltip> }
                         { !!props.description &&
                             <StatisticsDetails title={props.title}
