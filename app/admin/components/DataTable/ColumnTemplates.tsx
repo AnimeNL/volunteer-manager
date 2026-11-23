@@ -5,7 +5,7 @@
 
 import Link from '@app/LinkProxy';
 
-import type { GridColDef } from '@mui/x-data-grid-premium';
+import type { GridColDef, GridValidRowModel } from '@mui/x-data-grid-premium';
 import { default as MuiLink } from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
@@ -97,7 +97,7 @@ export const kColumnTemplates = {
                 return undefined;
 
             const HeaderComponent = column.templateProps.headerComponent as
-                React.JSXElementConstructor<{ context?: any; }>;
+                React.JSXElementConstructor<{ context?: unknown; }>;
 
             return <HeaderComponent context={column.templateProps.componentContext} />;
         },
@@ -107,7 +107,7 @@ export const kColumnTemplates = {
                 return undefined;
 
             const Component = column.templateProps.component as
-                React.JSXElementConstructor<{ context?: any; row: any }>;
+                React.JSXElementConstructor<{ context?: unknown; row: GridValidRowModel }>;
             return <Component context={column.templateProps.componentContext} row={params.row} />;
         },
 

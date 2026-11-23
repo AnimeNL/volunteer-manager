@@ -1,12 +1,12 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import type { GridRowModel } from '@mui/x-data-grid-premium';
+import type { GridValidRowModel } from '@mui/x-data-grid-premium';
 
 /**
  * Returns whether the given |row| has been frozen.
  */
-export function isFrozenRow(row: GridRowModel<any>, frozenColumn?: any): boolean {
+export function isFrozenRow(row: GridValidRowModel, frozenColumn?: string): boolean {
     if (!frozenColumn)
         return false;
 
@@ -17,7 +17,7 @@ export function isFrozenRow(row: GridRowModel<any>, frozenColumn?: any): boolean
 /**
  * Returns whether the given |row| has been protected.
  */
-export function isProtectedRow(row: GridRowModel<any>, protectedColumn?: any): boolean {
+export function isProtectedRow(row: GridValidRowModel, protectedColumn?: string): boolean {
     if (!protectedColumn)
         return false;
 
@@ -33,9 +33,12 @@ export function isProtectedRow(row: GridRowModel<any>, protectedColumn?: any): b
  * @param field Field, or path to a field from which the value should be derived.
  * @return Value of that entry in the row model.
  */
-export function resolveRowModelField(row: GridRowModel<any>, field: string): any {
-    return field.split('.').reduce((object: any, key: string) => {
-        return object && object[key] !== undefined ? object[key] : undefined;
+export function resolveRowModelField(row: GridValidRowModel, field: string): unknown {
+    return field.split('.').reduce<unknown>((object, key) => {
+        if (object && typeof object === 'object' && key in object)
+            return (object as Record<string, unknown>)[key];
+
+        return undefined;
     }, row);
 }
 
@@ -47,7 +50,7 @@ export function resolveRowModelField(row: GridRowModel<any>, field: string): any
  * @param template Template from which the input should be derived.
  * @return Output based on the `template`, or an empty fragment when absent.
  */
-export function resolveTemplate(row: GridRowModel<any>, template?: string): string {
+export function resolveTemplate(row: GridValidRowModel, template?: string): string {
     if (!template)
         return '#';
 

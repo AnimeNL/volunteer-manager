@@ -406,8 +406,8 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             if (props.refreshOnMutation)
                 router.refresh();
 
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : String(error));
             setRefreshTrigger(prev => prev + 1);
         }
     }, [ props.refreshOnMutation, props.source.reorder, router, subject ]);
@@ -517,7 +517,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
             getRows: async (params) => {
                 const response = await sourceRef.current.list(contextRef.current, params);
 
-                loadedRowIdsRef.current = response.rows.map((row: any) => row.id);
+                loadedRowIdsRef.current = response.rows.map(row => row.id);
                 return response;
             },
             updateRow: props.source.update
@@ -631,7 +631,7 @@ export default function DataTableClient<Interface extends DataSourceInterface<an
                     footer: {
                         onCreate: props.source.create ? () => setCreateOpen(true) : undefined,
                         subject,
-                    } as any,
+                    },
                 }}
 
                 onDataSourceError={handleDataSourceError} />

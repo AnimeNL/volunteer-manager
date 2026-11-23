@@ -72,7 +72,7 @@ export interface DataTableListViewProps<RowModel extends object> {
     /**
      * Optional context to share with the `startComponent`. Must be serialisable by React.
      */
-    startComponentContext?: any;
+    startComponentContext?: unknown;
 
     /**
      * Component to display at the end of the list item, if any.
@@ -83,7 +83,7 @@ export interface DataTableListViewProps<RowModel extends object> {
     /**
      * Optional context to share with the `endComponent`. Must be serialisable by React.
      */
-    endComponentContext?: any;
+    endComponentContext?: unknown;
 
     /**
      * Template from which the URL to link to can be derived. Can contain any of the fields as
@@ -121,12 +121,12 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
     /**
      * Callback when a row is requested to be deleted.
      */
-    onDelete?: (row: GridRowModel<any>) => void;
+    onDelete?: (row: GridRowModel) => void;
 
     /**
      * Callback when a row is requested to be edited.
      */
-    onEdit?: (row: GridRowModel<any>) => void;
+    onEdit?: (row: GridRowModel) => void;
 
     /**
      * Column through which it can be derived whether this row has been protected. Protected rows
@@ -137,7 +137,7 @@ interface DataTableListViewRowProps<RowModel extends object = any> {
     /**
      * The row that's being rendered in this list view.
      */
-    row: GridRowModel<any>;
+    row: GridRowModel;
 }
 
 /**
@@ -169,10 +169,10 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
 
     }, [ /* no deps */ ]);
 
-    const handleCloseMenu = useCallback((event?: any) => {
+    const handleCloseMenu = useCallback((event?: React.SyntheticEvent | object) => {
         setMenuAnchor(null);
-        if (event)
-            event?.stopPropagation();
+        if (event && 'stopPropagation' in event && typeof event.stopPropagation === 'function')
+            event.stopPropagation();
 
     }, [ /* no deps */ ]);
 
@@ -217,7 +217,8 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                 {!!props.listViewProps.primaryField &&
                     <Typography noWrap variant="body2" sx={{ fontWeight: 500 }}>
-                        {resolveRowModelField(props.row, props.listViewProps.primaryField)}
+                        {resolveRowModelField(
+                            props.row, props.listViewProps.primaryField) as React.ReactNode}
                     </Typography> }
                 { !!props.listViewProps.primaryTemplate &&
                     <Typography noWrap variant="body2" color="textSecondary">
@@ -225,7 +226,8 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
                     </Typography> }
                 { !!props.listViewProps.secondaryField &&
                     <Typography noWrap variant="body2" color="textSecondary">
-                        {resolveRowModelField(props.row, props.listViewProps.secondaryField)}
+                        {resolveRowModelField(
+                            props.row, props.listViewProps.secondaryField) as React.ReactNode}
                     </Typography> }
                 { !!props.listViewProps.secondaryTemplate &&
                     <Typography noWrap variant="body2" color="textSecondary">
@@ -236,7 +238,8 @@ export function DataTableListViewRow(props: React.PropsWithChildren<DataTableLis
             { !!props.listViewProps.dateField &&
                 <Typography variant="body2" color="textSecondary" sx={{ flexShrink: 0 }}>
                     <LocalDateTime
-                        dateTime={resolveRowModelField(props.row, props.listViewProps.dateField)}
+                        dateTime={String(resolveRowModelField(
+                            props.row, props.listViewProps.dateField) ?? '')}
                         fixedWidth format={ props.listViewProps.dateFieldFormat ?? 'YYYY-MM-DD' } />
                 </Typography>}
 

@@ -70,7 +70,7 @@ export type Column<RowModel extends GridValidRowModel = GridValidRowModel> = Gri
         template: 'component';
         templateProps: {
             headerComponent?: React.JSXElementConstructor<{ context?: any, listView?: boolean }>;
-            componentContext?: any;
+            componentContext?: unknown;
             component:
                 React.JSXElementConstructor<{ context?: any, listView?: boolean, row: RowModel }>;
         };

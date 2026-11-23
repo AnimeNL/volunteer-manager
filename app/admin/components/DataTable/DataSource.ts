@@ -1,6 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
-import type { GridGetRowsResponse } from '@mui/x-data-grid-premium';
+import type { GridGetRowsResponse, GridRowId } from '@mui/x-data-grid-premium';
 
 import type { AccessOperation } from '@lib/auth/access';
 import type { DataSourceProps } from './DataSourceProps';
@@ -71,7 +71,7 @@ export interface DataSource<Context, RowModel> {
      * @param context When set, contextual information required by this data source.
      * @returns A boolean indicating whether the reorder succeeded.
      */
-    reorder?(order: Array<RowModel extends { id: infer Id } ? Id : any>,
+    reorder?(order: Array<RowModel extends { id: infer Id } ? Id : GridRowId>,
              props: DataSourceProps,
              context: Context): Promise<boolean>;
 

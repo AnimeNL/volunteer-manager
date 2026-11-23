@@ -32,6 +32,13 @@ import { styled } from '@mui/material/styles';
 
 import { useIsMobile } from '@app/admin/lib/useIsMobile';
 
+declare module '@mui/x-data-grid-premium' {
+    interface FooterPropsOverrides {
+        onCreate?: () => void;
+        subject?: string;
+    }
+}
+
 /**
  * Formatting rules to apply when formatting a quantative number.
  */

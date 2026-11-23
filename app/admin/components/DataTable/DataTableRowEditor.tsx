@@ -5,7 +5,8 @@
 
 import { useCallback, useMemo } from 'react';
 
-import type { GridRowModel } from '@mui/x-data-grid-premium';
+import type { GridRowModel, GridSingleSelectColDef, GridValidRowModel }
+    from '@mui/x-data-grid-premium';
 import { CheckboxElement, SelectElement, TextFieldElement, type FieldValues }
     from '@proxy/react-hook-form-mui';
 
@@ -19,11 +20,13 @@ import { ResponsiveFormDialog, type ResponsiveFormDialogProps } from '../Respons
 /**
  * Props accepted by the <DataTableRowEditor> component.
  */
-interface DataTableRowEditorProps extends Pick<ResponsiveFormDialogProps, 'open' | 'onClose'> {
+interface DataTableRowEditorProps<RowModel extends GridValidRowModel = GridValidRowModel>
+    extends Pick<ResponsiveFormDialogProps, 'open' | 'onClose'>
+{
     /**
      * The columns configuration for the data table.
      */
-    columns: Column<any>[];
+    columns: Column<RowModel>[];
 
     /**
      * Whether the editor is creating a new row instead of editing an existing one.
@@ -51,7 +54,9 @@ interface DataTableRowEditorProps extends Pick<ResponsiveFormDialogProps, 'open'
  * Component for the mobile row editing bottom sheet, to make much of the editable information much
  * more accessible.
  */
-export function DataTableRowEditor(props: DataTableRowEditorProps) {
+export function DataTableRowEditor<RowModel extends GridValidRowModel = GridValidRowModel>(
+    props: DataTableRowEditorProps<RowModel>)
+{
     const { open, onClose, onSave, row, create } = props;
 
     const subject = props.subject ?? 'item';
@@ -98,16 +103,22 @@ export function DataTableRowEditor(props: DataTableRowEditorProps) {
                         const required = !!column.editorProps?.required;
 
                         if (column.type === 'singleSelect') {
-                            const rawOptions = typeof (column as any).valueOptions === 'function'
-                                ? (column as any).valueOptions({ row: row ?? {} })
-                                : (column as any).valueOptions;
+                            const selectColumn = column as GridSingleSelectColDef<RowModel>;
+                            const rawOptions = typeof selectColumn.valueOptions === 'function'
+                                ? selectColumn.valueOptions({
+                                      field: column.field,
+                                      row: (row ?? {}) as RowModel,
+                                  })
+                                : selectColumn.valueOptions;
 
                             const options = Array.isArray(rawOptions)
                                 ? rawOptions.map(option => {
                                       if (typeof option === 'object' && option !== null) {
+                                          const value = 'value' in option ? option.value : option;
+                                          const label = 'label' in option ? option.label : value;
                                           return {
-                                            id: option.value,
-                                            label: String(option.label || option.value)
+                                              id: value,
+                                              label: String(label || value),
                                           };
                                       }
 

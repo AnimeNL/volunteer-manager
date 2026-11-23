@@ -137,7 +137,7 @@ export class DataSourceWrapper {
     async call(operation: 'update', context: unknown, params: GridRowModel, previousParams: GridRowModel): Promise<boolean | GridRowModel>;
     async call(operation: 'list', context: unknown, params: GridGetRowsParams)
         : Promise<GridGetRowsResponse>;
-    async call(operation: DataSourceOperation, context: unknown, ...args: any) {
+    async call(operation: DataSourceOperation, context: unknown, ...args: unknown[]) {
         const authenticationContext = await getAuthenticationContext();
         if (!authenticationContext.user && !this.#dataSource.allowUnauthenticated?.()) {
             this.reportError(
@@ -293,7 +293,7 @@ export class DataSourceWrapper {
                     notFound();  // does not return
                 }
 
-                const params: DataSourceListParams<any> = {
+                const params: DataSourceListParams<string> = {
                     page: {
                         offset: validatedInputParams.start,
                         limit: (validatedInputParams.end - validatedInputParams.start) + 1,
