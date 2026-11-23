@@ -66,7 +66,7 @@ const programAreasDataSource = createDataSource('admin/event/program/areas', wit
 }), {
     async authorize(operation, props, context) {
         executeAccessCheck(props.authenticationContext, {
-            permission: 'event.visible',
+            permission: operation === 'read' ? 'event.visible' : 'event.settings',
             scope: {
                 event: context.event.slug,
             },
