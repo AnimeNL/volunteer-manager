@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { VolunteerPage } from '../volunteers/[volunteer]/VolunteerPage';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <ScheduleShiftsPage> component displays the regular volunteer page for the signed in user,

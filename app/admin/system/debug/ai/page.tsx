@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createAiClient } from '@lib/integrations/genai';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The <SystemDebugAiPage> contains a collection of AI-related test cases.

@@ -19,7 +19,7 @@ import { createAiClient } from '@lib/integrations/genai';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tDutyBook, tEvents, tTeams, tUsers } from '@lib/database';
 
 /**

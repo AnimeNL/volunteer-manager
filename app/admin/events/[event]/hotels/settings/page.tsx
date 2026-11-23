@@ -18,7 +18,7 @@ import { PriceCell, PrivateCell, PrivateHeader } from './HotelSettingsCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents, tHotels, tHotelsBookings } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';

@@ -7,7 +7,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import QuizOutlinedIcon from '@mui/icons-material/QuizOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 
 /**
  * Configures the tabs to navigate between questions and categories.

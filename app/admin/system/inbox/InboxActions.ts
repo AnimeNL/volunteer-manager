@@ -11,7 +11,7 @@ import { createSmtpClient } from '@lib/integrations/smtp';
 import { executeServerAction } from '@lib/serverAction';
 import { invalidateInboxNavigationCache, requireInboxAccess } from './InboxAccess';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEmailAccounts, tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
 
 /**

@@ -16,7 +16,7 @@ import { KnowledgeBaseIcon } from '@components/KnowledgeBaseIcon';
 import { Markdown } from '@components/Markdown';
 import { SetTitle } from '../../components/SetTitle';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tContentCategories, tUsersEvents } from '@lib/database';
 
 import { kContentType, kRegistrationStatus } from '@lib/database/Types';

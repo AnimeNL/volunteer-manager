@@ -10,7 +10,7 @@ import { DisplaysCard } from './dashboard/DisplaysCard';
 import { FeedbackCard } from './dashboard/FeedbackCard';
 import { NardoCard } from './dashboard/NardoCard';
 import { createGenerateMetadataFn } from '../lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { kDashboardPermissions } from './dashboard/DashboardPermissions';
 

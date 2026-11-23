@@ -20,7 +20,7 @@ import { SectionHeader } from '@app/admin/components/SectionHeader';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 import { kEventTicketCategory } from '@lib/database/Types';
 

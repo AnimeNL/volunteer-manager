@@ -13,7 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatBytes } from '@app/admin/lib/formatBytes';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { kProtectedCaches } from './../ProtectedCaches';
 

@@ -18,7 +18,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * Page that displays the financial dashboard for the given event.

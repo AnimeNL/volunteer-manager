@@ -27,7 +27,7 @@ import { getAvailabilityTimeslots } from './getAvailabilityTimeslots';
 import { getHotelRooms } from './getHotelRooms';
 import { getTrainings } from './getTrainings';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';

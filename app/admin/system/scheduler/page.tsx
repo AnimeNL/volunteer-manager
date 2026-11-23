@@ -14,7 +14,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tTasks } from '@lib/database';
 
 import { kTaskFormatFn } from '@lib/scheduler/TaskRegistry';

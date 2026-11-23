@@ -12,7 +12,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createKnowledgeBaseScope } from '@app/admin/system/content/ContentScope';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tContentCategories } from '@lib/database';
 
 import { createContent } from '@app/admin/system/content/ContentActions';

@@ -9,9 +9,8 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log/LogBuilder';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { invalidateAuthCache } from '@lib/auth';
+import { invalidateAuthCache, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { maybeRevokeVolunteerTicket } from '@lib/tickets/maybeRevokeVolunteerTicket';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tRoles, tTeamsRoles, tUsersEvents } from '@lib/database';
 

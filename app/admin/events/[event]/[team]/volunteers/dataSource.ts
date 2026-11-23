@@ -8,7 +8,7 @@ import { createDataSource, kEventTransformer, kTeamTransformer, withContext, wit
     from '@app/admin/components/DataTable';
 import { createTicketService } from '@lib/tickets';
 import { isBefore } from '@lib/Temporal';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEvents, tHotelsBookings, tRefunds, tRoles, tSchedule, tShifts, tShiftsCategories,
     tTrainingsAssignments, tUsers, tUsersCommunication, tUsersEvents,
     tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,

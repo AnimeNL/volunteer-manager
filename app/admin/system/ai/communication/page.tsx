@@ -26,7 +26,7 @@ import { SystemPrompt } from '@lib/ai/prompts/SystemPrompt';
 import { TokenOverviewAlert } from '../TokenOverviewAlert';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import * as actions from '../AiActions';
 import * as prompts from '@lib/ai/prompts';

@@ -12,7 +12,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createAnimeConClient } from '@lib/integrations/animecon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The AnimeCon integration page is able to issue various API calls for illustrative debugging

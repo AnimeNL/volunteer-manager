@@ -13,7 +13,7 @@ import { type Column, type ExtractRowModel,DataTable, createDataSource, withRowM
 import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tUsers } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';

@@ -11,8 +11,7 @@ import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { requireAuthentication, requireAuthenticationWithEventAndTeam }
-    from '@lib/requireAuthentication';
+import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';

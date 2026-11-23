@@ -12,8 +12,8 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { invalidateAuthCache, requireAuthentication, requireAuthenticationContext }
+    from '@lib/auth';
 import db, { tEvents, tPermissionsRoles, tRoles, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

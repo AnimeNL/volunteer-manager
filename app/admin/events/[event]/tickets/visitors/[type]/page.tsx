@@ -13,7 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * Data source for visitor tickets obtained from the ticketing provider for a specific type.

@@ -11,7 +11,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VendorSchedule } from './VendorSchedule';
 import { VendorTable } from './VendorTable';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tVendors, tVendorsSchedule } from '@lib/database';
 
 import { kVendorTeam } from '@lib/database/Types';

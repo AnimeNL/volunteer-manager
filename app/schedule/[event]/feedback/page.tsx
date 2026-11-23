@@ -3,7 +3,7 @@
 
 import { FeedbackPage } from './FeedbackPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 /**

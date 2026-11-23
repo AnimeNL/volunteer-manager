@@ -9,7 +9,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <EventHotelsPage> page is the overview page for hotel room management of a particular event.

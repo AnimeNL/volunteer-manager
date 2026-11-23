@@ -7,7 +7,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Overview page for Artificial Intelligence, providing links to each section contained therein.

@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ThreadStateActionBar } from './ThreadStateActionBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { requireInboxAccess } from '../../InboxAccess';
 import db, { tInboxEmail, tInboxEmailAttachments, tInboxThreads, tUsers } from '@lib/database';
 

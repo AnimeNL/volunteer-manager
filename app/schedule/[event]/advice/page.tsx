@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import { AdviceContainer } from './AdviceContainer';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { SetTitle } from '../components/SetTitle';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 
 import { kThemeImageVersion } from '@app/config';
 

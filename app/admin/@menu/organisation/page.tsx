@@ -11,7 +11,7 @@ import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlin
 
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../layout/NavigationMenu';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tDisplays, tFeedback } from '@lib/database';
 
 /**

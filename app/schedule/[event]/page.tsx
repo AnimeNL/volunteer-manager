@@ -3,7 +3,7 @@
 
 import { OverviewPage } from './OverviewPage';
 import { generateScheduleMetadataFn } from './lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <ScheduleMainPage> component contains the main page of the schedule, that shows an overview

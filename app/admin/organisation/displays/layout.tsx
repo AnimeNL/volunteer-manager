@@ -5,7 +5,7 @@ import HelpIcon from '@mui/icons-material/Help';
 import TabletIcon from '@mui/icons-material/Tablet';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The <DisplaysLayout> is the layout wrapper that provides navigation for the Display management,

@@ -12,7 +12,7 @@ import { PromptFactory } from '@lib/ai/PromptFactory';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
 import { readSetting } from '@lib/Settings';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tNardoPersonalised, tUsers, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

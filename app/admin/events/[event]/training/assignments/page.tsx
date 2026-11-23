@@ -25,7 +25,7 @@ import {
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDate } from '@lib/Temporal';
 import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents, tRoles, tTeams, tTrainings, tTrainingsAssignments, tTrainingsExtra, tUsers,
     tUsersCommunication, tUsersEvents, tUsersEventsPreferencesTraining } from '@lib/database';
 

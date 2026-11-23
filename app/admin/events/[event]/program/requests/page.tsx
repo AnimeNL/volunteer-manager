@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tActivitiesLogs, tEventsTeams, tShifts, tTeams, tUsers }
     from '@lib/database';
 

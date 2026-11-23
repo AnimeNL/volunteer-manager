@@ -9,7 +9,7 @@ import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 
 /**

@@ -3,7 +3,7 @@
 
 import { unauthorized } from 'next/navigation';
 
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Debugging page that triggers the HTTP 401 Unauthorized page.

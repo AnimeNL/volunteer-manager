@@ -15,7 +15,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { retentionDataSource } from './RetentionDataSource';
 import db, { tRetention, tUsers, tUsersEvents } from '@lib/database';
 

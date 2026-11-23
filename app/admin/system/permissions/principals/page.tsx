@@ -15,7 +15,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { parseCrudOperations } from '../toPermissionList';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents, tPermissions, tPermissionsRoles, tRoles, tStorage, tTeams, tUsers,
     tUsersEvents } from '@lib/database';
 

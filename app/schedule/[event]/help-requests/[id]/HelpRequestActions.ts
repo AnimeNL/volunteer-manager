@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestStatus } from '@lib/database/Types';

@@ -14,7 +14,7 @@ import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { FormGridSection } from '../../components/FormGridSection';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { updateAccountSettings } from '../../organisation/accounts/[id]/AccountActions';
 

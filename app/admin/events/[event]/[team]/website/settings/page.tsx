@@ -12,7 +12,7 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEnvironmentsEvents } from '@lib/database';
 
 import * as actions from '../WebsiteActions';

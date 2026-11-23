@@ -26,7 +26,7 @@ import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tSchedule, tShifts } from '@lib/database';
 
 import { createShift } from './ShiftActions';

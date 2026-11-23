@@ -13,8 +13,8 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { invalidateAuthCache, requireAuthenticationContext } from '@lib/auth';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { invalidateAuthCache, requireAuthentication, requireAuthenticationContext }
+    from '@lib/auth';
 import { validatePermissionRestrictions } from '@app/admin/system/permissions/toPermissionList';
 import db, { tPermissionsRoles, tRoles } from '@lib/database';
 

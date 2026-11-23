@@ -17,7 +17,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAnPlanLocationUrl } from '@lib/AnPlan';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivitiesAreas, tActivitiesLocations, tActivitiesLogs } from '@lib/database';
 
 import { kActivityType, kMutation, kMutationSeverity } from '@lib/database/Types';

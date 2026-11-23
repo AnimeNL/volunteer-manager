@@ -11,7 +11,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { or, requireAuthentication } from '@lib/requireAuthentication';
+import { or, requireAuthentication } from '@lib/auth';
 
 /**
  * Overview page for the Communication pages. Displays a set of tiles that link through to the

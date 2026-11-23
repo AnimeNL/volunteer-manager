@@ -5,7 +5,7 @@ import { forbidden, notFound } from 'next/navigation';
 
 import type { AuthenticationContext } from '@lib/auth';
 import { getTeam } from '@lib/cache';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tEventsTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

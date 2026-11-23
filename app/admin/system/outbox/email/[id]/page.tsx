@@ -17,7 +17,7 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEmailAccounts, tOutboxEmail, tUsers } from '@lib/database';
 
 /**

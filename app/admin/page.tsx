@@ -12,7 +12,7 @@ import { ProfilePromotionCard } from './dashboard/ProfilePromotionCard';
 import { SchedulerCard } from './dashboard/SchedulerCard';
 import { WelcomeCard } from './dashboard/WelcomeCard';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Main dashboard of the AnimeCon Volunteer Manager. Includes various cards in a masonry layout that

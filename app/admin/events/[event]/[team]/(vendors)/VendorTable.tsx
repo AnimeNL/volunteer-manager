@@ -8,7 +8,7 @@ import { DataTable, createDataSource, kEventTransformer, withContext, withRowMod
 import { LogBuilder } from '@app/lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tVendors } from '@lib/database';
 
 import type { ShirtFit, ShirtSize, VendorTeam } from '@lib/database/Types';

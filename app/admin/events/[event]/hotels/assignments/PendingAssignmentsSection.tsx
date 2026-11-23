@@ -12,7 +12,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { readUserSetting } from '@lib/UserSettings';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesHotel } from '@lib/database';
 

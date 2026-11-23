@@ -19,7 +19,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
 import { kEventTicketProvider } from '@lib/database/Types';

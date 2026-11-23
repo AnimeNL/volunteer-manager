@@ -22,7 +22,7 @@ import { queryTeamContext } from './prompts/context/TeamContextParameters';
 import { queryTeamInviteKeyContext } from './prompts/context/TeamInviteKeyContextParameters';
 import { queryTrainingContext } from './prompts/context/TrainingContextParameters';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db from '@lib/database';
 
 import type * as prompts from './prompts';

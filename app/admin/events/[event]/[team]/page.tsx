@@ -17,7 +17,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 
 /**
  * Overview page for a team participating in an event. Displays a set of tiles that link through to

@@ -33,7 +33,7 @@ import { createTicketService } from '@lib/tickets';
 import { formatDate } from '@lib/Temporal';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tActivitiesLocations, tActivitiesTimeslots, tShifts, tTeams }
     from '@lib/database';
 

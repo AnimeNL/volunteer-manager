@@ -13,7 +13,7 @@ import { LocalDateTime } from '@app/admin/components/LocalDateTime';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tLogs } from '@lib/database';
 
 /**

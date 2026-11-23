@@ -9,7 +9,7 @@ import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getSubscriptionTypes } from './getSubscriptionTypes';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tSubscriptions } from '@lib/database';
 
 import { kSubscriptionType } from '@lib/subscriptions';

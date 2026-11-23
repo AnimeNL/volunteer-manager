@@ -21,7 +21,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamQuickActions } from './TeamQuickActions';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEmailAccounts, tEnvironments, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 import * as actions from '../TeamsActions';

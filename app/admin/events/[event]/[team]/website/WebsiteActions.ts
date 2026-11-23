@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEnvironments, tEnvironmentsEvents, tEvents } from '@lib/database';
 
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';

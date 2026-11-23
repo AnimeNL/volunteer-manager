@@ -11,7 +11,7 @@ import type { BarSeriesType, ChartsReferenceLineProps, LineSeriesType }
 import type { RemoteGraphFnReturn } from '../finance/graphs/RemoteGraphFn';
 import { executeServerAction } from '@lib/serverAction';
 import { isAfter, isBefore } from '@lib/Temporal';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents, tEventsDates, tEventsTeams, tUsersEvents } from '@lib/database';
 
 import { kDateType, kRegistrationStatus } from '@lib/database/Types';

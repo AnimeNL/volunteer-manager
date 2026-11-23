@@ -5,7 +5,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { or, requireAuthentication } from '@lib/requireAuthentication';
+import { or, requireAuthentication } from '@lib/auth';
 
 /**
  * The <InboxSettingsLayout> provides tab navigation between the configured e-mail accounts and

@@ -9,7 +9,7 @@ import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, kEventTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { getAnPlanActivityUrl } from '@lib/AnPlan';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tActivitiesLocations, tActivitiesLogs, tActivitiesTimeslots,
     tShifts } from '@lib/database';
 

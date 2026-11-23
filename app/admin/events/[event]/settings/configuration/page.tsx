@@ -25,7 +25,7 @@ import { QuickActionButton } from '@app/admin/components/QuickActionButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents, tStorage } from '@lib/database';
 
 import { kEventAvailabilityStatus } from '@lib/database/Types';

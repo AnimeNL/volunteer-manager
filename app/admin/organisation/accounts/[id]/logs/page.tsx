@@ -17,8 +17,7 @@ import { LogsDataTable } from '@app/admin/system/diagnostics/logs/LogsDataTable'
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
-import { revokeUserSession } from '@lib/auth';
+import { requireAuthentication, revokeUserSession } from '@lib/auth';
 import db, { tUsers, tUsersSessions } from '@lib/database';
 
 /**

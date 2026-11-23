@@ -11,7 +11,7 @@ import { IssueTypeCell, LocalBuildCell } from './IssueTypeCell';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
 import { kErrorSource } from '@lib/database/Types';

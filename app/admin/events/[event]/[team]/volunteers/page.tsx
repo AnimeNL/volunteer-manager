@@ -27,7 +27,7 @@ import { ShiftsCell } from './ShiftsCell';
 import { StatusCell } from './StatusCell';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { volunteerDataSource } from './dataSource';
 import db, { tUsers, tUsersEvents } from '@lib/database';
 

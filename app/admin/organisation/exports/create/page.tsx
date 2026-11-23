@@ -19,7 +19,7 @@ import { ExportTile } from './ExportTile';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents, tTeams } from '@lib/database';
 
 import { kExportType } from '@lib/database/Types';

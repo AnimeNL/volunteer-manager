@@ -19,7 +19,7 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createWeeztixClient, type WeeztixClient } from '@lib/integrations/weeztix';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Callback signature for sequentially executing an operation against the `WeeztixClient`.

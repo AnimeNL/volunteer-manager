@@ -13,7 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { knowledgeCategoriesDataSource } from './KnowledgeCategoriesDataSource';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEventsTeams, tRoles, tTeams, tTeamsRoles } from '@lib/database';
 
 import { kKnowledgeBaseIconTable } from '@components/KnowledgeBaseIconTable';

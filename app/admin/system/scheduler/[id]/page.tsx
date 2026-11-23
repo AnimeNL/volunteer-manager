@@ -25,7 +25,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { StatusCell } from '../../diagnostics/integrations/IntegrationLogsCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDuration } from '@lib/Temporal';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { rerunSchedulerTask } from '../SchedulerActions';
 import db, { tIntegrationsLogs, tTasks } from '@lib/database';
 

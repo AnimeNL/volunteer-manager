@@ -12,8 +12,7 @@ import { executeServerAction } from '@lib/serverAction';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { isAfter } from '@lib/Temporal';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication, requireAuthenticationWithEventAndTeam }
-    from '@lib/requireAuthentication';
+import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { writeUserSetting, writeUserSettings } from '@lib/UserSettings';
 import db, { tActivities, tActivitiesTimeslots, tRoles, tSchedule, tScheduleLogs, tShifts, tUsers,
     tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';

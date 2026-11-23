@@ -19,7 +19,7 @@ import { type Setting, readSettings, writeSetting, writeSettings } from '@lib/Se
 import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './generateWeeztixState';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { createWeeztixClient } from '@lib/integrations/weeztix';
 
 /**

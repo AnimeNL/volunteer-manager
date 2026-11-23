@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { requireAuthenticationWithEventAndTeam, requireVolunteerAuthenticationWithEventAndTeam }
-    from '@lib/requireAuthentication';
+    from '@lib/auth';
 import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';

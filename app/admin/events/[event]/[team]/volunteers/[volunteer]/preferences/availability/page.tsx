@@ -12,7 +12,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getAvailabilityTimeslots } from '../getAvailabilityTimeslots';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tUsers, tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
 /**

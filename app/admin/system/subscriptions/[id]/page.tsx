@@ -24,7 +24,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTypeIcon } from './SubscriptionTypeIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getSubscriptionTypes } from '../getSubscriptionTypes';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 import { kSubscriptionType } from '@lib/database/Types';

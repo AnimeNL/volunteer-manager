@@ -7,7 +7,7 @@ import PublicIcon from '@mui/icons-material/Public';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <EventTicketsLayout> provides the necessary context for tabs to work across these pages.

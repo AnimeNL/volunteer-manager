@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';

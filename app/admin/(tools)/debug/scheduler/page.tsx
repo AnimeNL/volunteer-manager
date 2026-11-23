@@ -15,7 +15,7 @@ import { WeeztixImportTask } from '@lib/scheduler/tasks/WeeztixImportTask';
 import { YourTicketProviderImportTask } from '@lib/scheduler/tasks/YourTicketProviderImportTask';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Zod schema describing the task execution request.

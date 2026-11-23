@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { rerunTask, scheduleTask } from '@lib/scheduler';
 
 import { kTaskRegistry, type RegisteredTasks } from '@lib/scheduler/TaskRegistry';

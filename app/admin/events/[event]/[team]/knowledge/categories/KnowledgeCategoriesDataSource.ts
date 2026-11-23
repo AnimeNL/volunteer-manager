@@ -8,7 +8,7 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tContentCategories } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';

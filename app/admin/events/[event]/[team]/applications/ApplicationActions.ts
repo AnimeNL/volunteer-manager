@@ -10,8 +10,7 @@ import { LogBuilder } from '@lib/log';
 import { Publish } from '@lib/subscriptions';
 import { executeServerAction } from '@lib/serverAction';
 import { getTeam } from '@lib/cache';
-import { invalidateAuthCache } from '@lib/auth';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { invalidateAuthCache, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tTeams, tTeamsRoles, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesParticipation } from '@lib/database';

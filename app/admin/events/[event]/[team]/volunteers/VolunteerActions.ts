@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tUsersEvents } from '@lib/database';
 

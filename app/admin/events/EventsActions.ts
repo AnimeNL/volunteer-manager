@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
 import { kAnyEvent } from '@lib/auth/access';

@@ -16,7 +16,7 @@ import { LogBuilder } from '@lib/log';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingSessionCell } from './TrainingAssignmentCells';
 import { readUserSetting } from '@lib/UserSettings';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tTrainingsAssignments, tTrainingsExtra } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';

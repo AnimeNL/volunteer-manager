@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { writeSetting, writeSettings } from '@lib/Settings';
 
 import { kMaskedSecret } from '@app/admin/components/MaskedSecret';

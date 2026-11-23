@@ -9,7 +9,7 @@ import { z } from 'zod/v4';
 import type { CommunicationPromptId } from '@lib/ai/PromptFactory';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import { sendCommunication } from '@app/admin/components/CommunicationDialog/sendCommunication';
 import db, { tEvents, tHotelsBookings, tUsersEvents } from '@lib/database';
 

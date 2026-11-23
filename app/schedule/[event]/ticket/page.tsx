@@ -3,7 +3,7 @@
 
 import { TicketPage } from './TicketPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <ScheduleTicketPage> component displays the signed in volunteer's event ticket, including a

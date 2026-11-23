@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { executeServerAction } from "@lib/serverAction";
 import { getStaticContent } from '@lib/Content';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Server action that fetches the documentation for the given `topic`. It's rendered using Markdown

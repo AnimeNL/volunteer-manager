@@ -15,7 +15,7 @@ import { OverviewTiles } from '@app/admin/components/OverviewTiles';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../lib/generatePageMetadata';
-import { or, requireAuthentication } from '@lib/requireAuthentication';
+import { or, requireAuthentication } from '@lib/auth';
 
 /**
  * Overview page for the System pages. Displays a set of tiles that link through to the individual

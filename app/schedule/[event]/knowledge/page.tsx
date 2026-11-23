@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { KnowledgeBaseCategories } from './KnowledgeBaseCategories';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 
 import { kThemeImageVersion } from '@app/config';
 

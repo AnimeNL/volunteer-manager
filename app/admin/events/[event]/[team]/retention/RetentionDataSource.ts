@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import { LogBuilder } from '@lib/log';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { readSetting } from '@lib/Settings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEvents, tRetention, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kCommunicationLanguage, kRegistrationStatus, type RetentionStatus }

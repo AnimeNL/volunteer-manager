@@ -8,7 +8,7 @@ import type { ExportType } from '@lib/database/Types';
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
 import { nanoid } from '@lib/nanoid';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents, tExports } from '@lib/database';
 
 /**

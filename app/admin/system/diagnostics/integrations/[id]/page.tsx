@@ -19,7 +19,7 @@ import { KeyValueList } from '@app/admin/components/KeyValueList';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication, and } from '@lib/requireAuthentication';
+import { and, requireAuthentication } from '@lib/auth';
 import db, { tIntegrationsLogs, tTasks, tUsers } from '@lib/database';
 
 import { kIntegrationLogStatus } from '@lib/database/Types';

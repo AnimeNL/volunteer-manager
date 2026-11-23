@@ -18,7 +18,7 @@ import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
 import { isBefore } from '@lib/Temporal';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
 import * as actions from '../ExportsActions';

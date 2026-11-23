@@ -13,7 +13,7 @@ import { sendCommunication } from '@app/admin/components/CommunicationDialog/sen
 import db, { tRetention, tUsers } from '@lib/database';
 
 import { kRetentionStatus } from '@lib/database/Types';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 
 /**
  * Interface describing the payload for sending a WhatsApp message.

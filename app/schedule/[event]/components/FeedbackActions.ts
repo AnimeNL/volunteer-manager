@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { executeServerAction } from '@lib/serverAction';
-import { requireVolunteerAuthentication } from '@lib/requireAuthentication';
+import { requireVolunteerAuthentication } from '@lib/auth';
 import db, { tFeedback } from '@lib/database';
 
 /**

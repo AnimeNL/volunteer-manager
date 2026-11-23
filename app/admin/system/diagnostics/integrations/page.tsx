@@ -15,7 +15,7 @@ import { IntegrationCell, StatusCell, StatusHeader } from './IntegrationLogsCell
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
-import { and, requireAuthentication } from '@lib/requireAuthentication';
+import { and, requireAuthentication } from '@lib/auth';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import db, { tIntegrationsLogs } from '@lib/database';
 

@@ -22,7 +22,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { assignmentsDataSource } from './HotelAssignmentsDataSource';
 import { compileDateWarnings } from './compileDateWarnings';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tHotels } from '@lib/database';
 
 import { sendHotelConfirmationCommunication } from '../HotelsActions';

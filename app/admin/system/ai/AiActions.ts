@@ -12,7 +12,7 @@ import { PromptFactory } from '@lib/ai/PromptFactory';
 import { PromptValidator } from '@lib/ai/PromptValidator';
 import { createAiClient } from '@lib/integrations/genai';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { writeExampleMessages } from '@lib/ai/ExampleMessages';
 import { writeSetting, writeSettings } from '@lib/Settings';
 

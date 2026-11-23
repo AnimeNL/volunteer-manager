@@ -11,7 +11,7 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tNardo, tUsers } from '@lib/database';
 
 /**

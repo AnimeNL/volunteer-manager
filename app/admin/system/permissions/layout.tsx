@@ -6,7 +6,7 @@ import KeyIcon from '@mui/icons-material/Key';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The <PermissionsLayout> provides tab navigation between the principals, permissions and roles

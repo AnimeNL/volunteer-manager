@@ -11,7 +11,7 @@ import { checkPermission } from '@lib/auth/access';
 import { computePalette } from './layout/ThemeUtilities';
 import { determineEnvironment } from '@lib/Environment';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
 import { kDashboardPermissions } from './organisation/dashboard/DashboardPermissions';

@@ -18,7 +18,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDate } from '@lib/Temporal';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents, tTrainings, tTrainingsAssignments } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';

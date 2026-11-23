@@ -32,7 +32,7 @@ import { WeeztixIcon } from '@app/admin/components/icons/WeeztixIcon';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { generateWeeztixState } from './weeztix-oauth/generateWeeztixState';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEmailAccounts } from '@lib/database';
 
 import { kMaskedSecret } from '@app/admin/components/MaskedSecret';

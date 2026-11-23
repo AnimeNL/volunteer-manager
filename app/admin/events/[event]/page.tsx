@@ -11,7 +11,7 @@ import { EventRecentChangesCard } from './dashboard/EventRecentChangesCard';
 import { EventTeamsCard } from './dashboard/EventTeamsCard';
 import { EventTrainingsCard } from './dashboard/EventTrainingsCard';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tEvents } from '@lib/database';
 
 import { kEventAvailabilityStatus } from '@lib/database/Types';

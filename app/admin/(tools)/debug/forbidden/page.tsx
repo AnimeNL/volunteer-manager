@@ -3,7 +3,7 @@
 
 import { forbidden } from 'next/navigation';
 
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Debugging page that triggers the HTTP 403 Forbidden page.

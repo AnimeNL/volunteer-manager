@@ -16,7 +16,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';

@@ -4,7 +4,7 @@
 import type { NextRequest } from 'next/server';
 import { notFound } from 'next/navigation';
 
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { requireInboxAccess } from '@app/admin/system/inbox/InboxAccess';
 import db, { tInboxEmail, tInboxEmailAttachments, tInboxThreads } from '@lib/database';
 

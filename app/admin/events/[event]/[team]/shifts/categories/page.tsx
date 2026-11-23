@@ -13,8 +13,7 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication, requireAuthenticationWithEventAndTeam }
-    from '@lib/requireAuthentication';
+import { requireAuthentication, requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tShifts, tShiftsCategories } from '@lib/database';
 
 import { kExcitementOptions } from '@app/admin/components/ExcitementIcon';

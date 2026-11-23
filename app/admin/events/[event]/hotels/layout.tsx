@@ -8,7 +8,7 @@ import PaidIcon from '@mui/icons-material/Paid';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <EventHotelsLayout> is used to configure the accessible tabs within hotel management.

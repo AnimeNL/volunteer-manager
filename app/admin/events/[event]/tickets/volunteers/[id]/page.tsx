@@ -24,7 +24,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TicketQrAction } from '../../TicketQrAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tTeams, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
 import { cancelPurchase, disassociatePurchase, resendPurchaseConfirmation,

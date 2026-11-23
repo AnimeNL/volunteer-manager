@@ -9,7 +9,7 @@ import MapIcon from '@mui/icons-material/Map';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <ProgramLayout> component contains the common elements between the different pages that make

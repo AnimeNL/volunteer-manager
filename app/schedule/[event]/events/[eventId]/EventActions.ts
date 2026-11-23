@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 
 import { FavouriteCache } from '@app/api/event/schedule/FavouriteCache';
 import { executeServerAction } from '@lib/serverAction';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tUsersEventsFavourites } from '@lib/database';
 
 /**

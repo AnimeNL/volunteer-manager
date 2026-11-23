@@ -26,7 +26,7 @@ import type { NavigationTopLevelItem } from '@app/admin/layout/NavigationItem';
 import { Cache } from '@lib/cache';
 import { NavigationMenu } from '../../../layout/NavigationMenu';
 import { createTicketService, isTicketServiceConfigured } from '@lib/tickets';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tActivities, tEvents, tEventsTeams, tHotels, tHotelsBookings, tRoles, tShifts, tTeams,
     tTrainingsAssignments, tTrainingsExtra, tUsersEvents, tUsersEventsPreferencesHotel,
     tUsersEventsPreferencesTraining } from '@lib/database';

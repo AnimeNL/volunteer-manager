@@ -19,7 +19,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSettings } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { kAiSupportedModelIdentifiers } from '@lib/integrations/genai/Models';
 import { kMaskedSecret } from '@app/admin/components/MaskedSecret';

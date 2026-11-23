@@ -14,7 +14,7 @@ import { CommunicationIconButton } from '@app/admin/components/CommunicationDial
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Zod schema describing the data accepted by the `commit` debug action.

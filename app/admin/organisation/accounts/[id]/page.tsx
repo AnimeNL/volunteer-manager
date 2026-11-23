@@ -29,7 +29,7 @@ import { TeamCell } from './ParticipationCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tEvents, tRoles, tStorage, tTeams, tUsers, tUsersEvents } from '@lib/database';
 
 import { kFileType } from '@lib/database/Types';

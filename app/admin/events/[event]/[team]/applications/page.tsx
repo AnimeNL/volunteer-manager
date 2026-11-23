@@ -25,7 +25,7 @@ import { ReconsiderApplicationButton } from './ReconsiderApplicationButton';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { generateInviteKey } from '@lib/EnvironmentContext';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEvents, tEventsTeams, tStorage, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesAvailability } from '@lib/database';
 

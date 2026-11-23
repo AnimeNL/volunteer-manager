@@ -9,7 +9,7 @@ import { IntegrationPerformanceGraph, type IntegrationPerformancePoint }
     from './IntegrationPerformanceGraph';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { and, requireAuthentication } from '@lib/requireAuthentication';
+import { and, requireAuthentication } from '@lib/auth';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import db, { tIntegrationsLogs } from '@lib/database';

@@ -10,10 +10,9 @@ import { Cache, invalidateTeamCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
 import { clearPageMetadataCache } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
-import { invalidateAuthCache } from '@lib/auth';
+import { invalidateAuthCache, requireAuthentication } from '@lib/auth';
 import { nanoid } from '@lib/nanoid';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEnvironments, tTeams, tTeamsRoles } from '@lib/database';
 
 import { kEnvironmentPurpose } from '@lib/database/Types';

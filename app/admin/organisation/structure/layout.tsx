@@ -6,7 +6,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import WorkOutlinedIcon from '@mui/icons-material/WorkOutlined';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The <OrganisationEntitiesLayout> is the core layout that provides tab navigation between the

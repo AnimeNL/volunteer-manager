@@ -29,7 +29,7 @@ import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tEvents, tEventsTeams, tHotelsBookings, tRoles, tSchedule, tShifts, tStorage, tTeams,
     tTeamsRoles, tTrainingsAssignments, tUsers, tUsersEvents, tUsersEventsPreferencesHotel,
     tUsersEventsPreferencesTraining, tUsersEventsTickets }

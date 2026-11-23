@@ -21,7 +21,7 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { executeServerAction } from '@lib/serverAction';
 import { markdownToHtml } from '@components/Markdown';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
 

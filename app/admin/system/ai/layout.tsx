@@ -7,7 +7,7 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { GeminiIcon } from '@app/admin/components/icons/GeminiIcon';
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * The <ArtificialIntelligenceLayout> is the core layout through which different parts of our AI

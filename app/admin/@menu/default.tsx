@@ -22,7 +22,7 @@ import { NavigationMenu } from '../layout/NavigationMenu';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
 import { queryAccessibleInboxes } from '../system/inbox/InboxAccess';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tInboxThreads, tLogs, tLogsFormat, tOutboxEmail, tOutboxTwilio, tTwilioWebhookCalls }
     from '@lib/database';
 

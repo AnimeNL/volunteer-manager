@@ -6,7 +6,7 @@
 import { z } from 'zod/v4';
 
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { writeUserSetting } from '@lib/UserSettings';
 
 /**

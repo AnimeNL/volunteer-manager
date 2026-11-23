@@ -10,7 +10,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createGlobalScope } from './ContentScope';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 import { createContent } from './ContentActions';
 

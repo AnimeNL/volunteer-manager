@@ -14,7 +14,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { readSetting } from '@lib/Settings';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tActivitiesLocations, tDisplays, tEvents } from '@lib/database';
 
 import { type DisplayHelpRequestStatus, kDisplayHelpRequestStatus } from '@lib/database/Types';

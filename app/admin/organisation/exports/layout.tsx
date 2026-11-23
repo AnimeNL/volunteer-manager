@@ -5,7 +5,7 @@ import DvrIcon from '@mui/icons-material/Dvr';
 import ShareIcon from '@mui/icons-material/Share';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 
 /**
  * Layout of the data export feature, setting context for page tabulation.

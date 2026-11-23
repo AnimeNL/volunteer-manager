@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 import db, { tHotels, tHotelsBookings, tHotelsPayments, tRoles, tTeams, tUsers, tUsersEvents }
     from '@lib/database';
 

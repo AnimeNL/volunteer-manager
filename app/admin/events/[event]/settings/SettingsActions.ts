@@ -8,10 +8,9 @@ import { z } from 'zod/v4';
 
 import { Cache, getEvent, invalidateEventCache } from '@lib/cache';
 import { LogBuilder } from '@lib/log';
-import { invalidateAuthCache } from '@lib/auth';
+import { invalidateAuthCache, requireAuthenticationWithEvent } from '@lib/auth';
 import { createTicketService } from '@lib/tickets';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { storeBlobData } from '@lib/database/BlobStore';
 import db, { tEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 

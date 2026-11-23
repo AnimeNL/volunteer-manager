@@ -14,7 +14,7 @@ import { SynchronizeInboxAction } from './SynchronizeInboxAction';
 import { ThreadStateCell, ThreadStateHeader } from '../InboxCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { queryInboxAssignees, requireInboxAccess } from '../InboxAccess';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import db, { tInboxEmail, tInboxThreads, tUsers } from '@lib/database';
 
 import { sendInboxMessage, synchronizeInbox } from '../InboxActions';

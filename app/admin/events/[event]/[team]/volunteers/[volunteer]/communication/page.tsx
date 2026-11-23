@@ -13,7 +13,7 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerContactSection } from '../VolunteerContactSection';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tOutboxEmail, tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 
 /**

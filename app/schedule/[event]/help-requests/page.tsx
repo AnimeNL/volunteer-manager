@@ -27,7 +27,7 @@ import { HelpRequestTarget } from '../components/HelpRequestTarget';
 import { SetTitle } from '../components/SetTitle';
 import { formatDate } from '@lib/Temporal';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/database/Types';

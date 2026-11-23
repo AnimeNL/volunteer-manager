@@ -17,7 +17,7 @@ import { createDataSource, withContext, withRowModel } from '@app/admin/componen
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { formatDate } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEventAndTeam } from '@lib/auth';
 import db, { tSchedule, tScheduleLogs, tShifts, tUsers } from '@lib/database';
 
 import { kEventTransformer, kTeamTransformer } from '@app/admin/components/DataTable';

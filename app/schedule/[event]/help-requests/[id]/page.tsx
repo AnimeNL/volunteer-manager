@@ -19,7 +19,7 @@ import { HelpRequestTarget } from '../../components/HelpRequestTarget';
 import { SetTitle } from '../../components/SetTitle';
 import { formatDate, formatDuration } from '@lib/Temporal';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
-import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/auth';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestTarget } from '@lib/database/Types';

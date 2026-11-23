@@ -20,7 +20,7 @@ import { TicketSearchBar } from './TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * Data source for visitor ticket types obtained from the ticketing provider.

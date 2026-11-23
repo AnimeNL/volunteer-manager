@@ -7,7 +7,7 @@ import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 import { SectionTabContext } from '@app/admin/components/SectionTabContext';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
+import { requireAuthenticationWithEvent } from '@lib/auth';
 
 /**
  * The <EventTrainingLayout> is used to configure the accessible tabs within training management.

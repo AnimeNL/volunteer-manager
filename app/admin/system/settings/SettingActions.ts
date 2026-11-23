@@ -6,7 +6,7 @@
 import { z } from 'zod/v4';
 
 import { LogBuilder } from '@lib/log';
-import { requireAuthentication } from '@lib/requireAuthentication';
+import { requireAuthentication } from '@lib/auth';
 import { executeServerAction } from '@lib/serverAction';
 import { writeSettings } from '@lib/Settings';
 
