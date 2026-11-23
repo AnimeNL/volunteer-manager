@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { EventPage } from './EventPage';
-import { requireAuthentication } from '../../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <ScheduleEventPage> component display a page for a particular event. It lists information
@@ -11,7 +11,7 @@ import { requireAuthentication } from '../../requireAuthentication';
 export default async function ScheduleEventPage(
     props: PageProps<'/schedule/[event]/events/[eventId]'>)
 {
-    await requireAuthentication(props);
+    await requireVolunteerAuthenticationWithEvent(props);
 
     const params = await props.params;
     return <EventPage activityId={params.eventId} />;

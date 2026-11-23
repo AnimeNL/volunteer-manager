@@ -3,7 +3,7 @@
 
 import { FeedbackPage } from './FeedbackPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 /**
@@ -11,7 +11,7 @@ import db, { tFeedback, tUsers } from '@lib/database';
  * responses when they are available.
  */
 export default async function FeedbackServerPage(props: PageProps<'/schedule/[event]/feedback'>) {
-    const { event, user } = await requireAuthentication(props);
+    const { event, user } = await requireVolunteerAuthenticationWithEvent(props);
 
     const usersJoin = tUsers.forUseInLeftJoin();
 

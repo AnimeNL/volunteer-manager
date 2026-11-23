@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import { AdviceContainer } from './AdviceContainer';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { SetTitle } from '../components/SetTitle';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 import { kThemeImageVersion } from '@app/config';
 
@@ -16,7 +16,7 @@ import { kThemeImageVersion } from '@app/config';
  * advice will be fetched from the server, where it may be cached for a period of time.
  */
 export default async function AdvicePage(props: PageProps<'/schedule/[event]/advice'>) {
-    await requireAuthentication(props);
+    await requireVolunteerAuthenticationWithEvent(props);
     return (
         <>
             <SetTitle title="Del a Rie Advies" />

@@ -27,7 +27,7 @@ import { HelpRequestTarget } from '../components/HelpRequestTarget';
 import { SetTitle } from '../components/SetTitle';
 import { formatDate } from '@lib/Temporal';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { type DisplayHelpRequestTarget, kDisplayHelpRequestTarget } from '@lib/database/Types';
@@ -143,7 +143,7 @@ function HelpRequestSummary(props: HelpRequestSummaryProps) {
 export default async function ScheduleHelpRequestsPage(
     props: PageProps<'/schedule/[event]/help-requests'>)
 {
-    const { event } = await requireAuthentication(props, 'event.help-requests');
+    const { event } = await requireVolunteerAuthenticationWithEvent(props, 'event.help-requests');
 
     const acknowledgedUserJoin = tUsers.forUseInLeftJoinAs('auj');
     const closedUserJoin = tUsers.forUseInLeftJoinAs('cuj');

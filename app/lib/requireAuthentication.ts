@@ -384,12 +384,18 @@ function verifyAccess(
 
     } else if (!hasAdminAccess) {
         if (!event) {
-            if (context.events.size === 0)
+            if (context.events.size === 0 &&
+                !context.access.can('event.schedule.access', { event: kAnyEvent }))
+            {
                 forbidden();  // TODO: Is this the right thing to do? They're still logged in.
+            }
 
         } else if (!team?.slug) {
-            if (!context.events.has(event.slug))
+            if (!context.events.has(event.slug) &&
+                !context.access.can('event.schedule.access', { event: event.slug }))
+            {
                 forbidden();
+            }
 
         } else {
             if (context.events.get(event.slug) !== team.slug)

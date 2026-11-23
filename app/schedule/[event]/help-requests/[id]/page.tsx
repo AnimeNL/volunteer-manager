@@ -19,7 +19,7 @@ import { HelpRequestTarget } from '../../components/HelpRequestTarget';
 import { SetTitle } from '../../components/SetTitle';
 import { formatDate, formatDuration } from '@lib/Temporal';
 import { generateScheduleMetadata, getTitleCache } from '../../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tUsers } from '@lib/database';
 
 import { kDisplayHelpRequestTarget } from '@lib/database/Types';
@@ -34,7 +34,7 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleHelpRequestPage(
     props: PageProps<'/schedule/[event]/help-requests/[id]'>)
 {
-    const { event } = await requireAuthentication(props, 'event.help-requests');
+    const { event } = await requireVolunteerAuthenticationWithEvent(props, 'event.help-requests');
     const params = await props.params;
 
     const acknowledgedUserJoin = tUsers.forUseInLeftJoinAs('auj');

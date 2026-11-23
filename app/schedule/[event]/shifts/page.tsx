@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
 import { VolunteerPage } from '../volunteers/[volunteer]/VolunteerPage';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <ScheduleShiftsPage> component displays the regular volunteer page for the signed in user,
@@ -12,7 +12,7 @@ import { requireAuthentication } from '../requireAuthentication';
  * discover the user ID of the person signed in to the Volunteer Manager.
  */
 export default async function ScheduleShiftsPage(props: PageProps<'/schedule/[event]/shifts'>) {
-    const { user } = await requireAuthentication(props);
+    const { user } = await requireVolunteerAuthenticationWithEvent(props);
 
     return <VolunteerPage userId={`${user.id}`} />;
 }

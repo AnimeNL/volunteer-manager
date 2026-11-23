@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { KnowledgeBaseCategories } from './KnowledgeBaseCategories';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 import { kThemeImageVersion } from '@app/config';
 
@@ -17,7 +17,7 @@ import { kThemeImageVersion } from '@app/config';
 export default async function ScheduleKnowledgePage(
     props: PageProps<'/schedule/[event]/knowledge'>)
 {
-    await requireAuthentication(props);
+    await requireVolunteerAuthenticationWithEvent(props);
     return (
         <>
             <HeaderSectionCard>

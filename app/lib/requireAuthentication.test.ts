@@ -355,6 +355,20 @@ describe('requireAuthentication', () => {
             }
         });
 
+        it('allows access for users with event.schedule.access without event.visible', async () => {
+            const context = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.schedule.access', event: 'event-2026' },
+                    ],
+                },
+                events: new Map(),
+            });
+
+            const result = await requireVolunteerAuthentication(context);
+            expect(result.user).toEqual(context.user);
+        });
+
         it('rejects authenticated users without volunteer or admin access', async () => {
             const context = buildAuthenticationContext({
                 events: new Map(),
@@ -394,6 +408,38 @@ describe('requireAuthentication', () => {
             const result = await requireVolunteerAuthenticationWithEvent(context, 'event-2026');
             expect(result.user).toEqual(context.user);
             expect(result.event).toEqual(kTestEvent);
+        });
+
+        it('allows access for users with event.schedule.access for the specific event', async () => {
+            const context = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.schedule.access', event: 'event-2026' },
+                    ],
+                },
+                events: new Map(),
+            });
+
+            const result = await requireVolunteerAuthenticationWithEvent(context, 'event-2026');
+            expect(result.user).toEqual(context.user);
+            expect(result.event).toEqual(kTestEvent);
+
+            const otherEventContext = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.schedule.access', event: 'other-event' },
+                    ],
+                },
+                events: new Map(),
+            });
+
+            try {
+                await requireVolunteerAuthenticationWithEvent(otherEventContext, 'event-2026');
+                expect.unreachable('Expected requireVolunteerAuthenticationWithEvent to throw 403');
+            } catch (error: any) {
+                expect(isHTTPAccessFallbackError(error)).toBeTruthy();
+                expect(getAccessFallbackHTTPStatus(error)).toBe(403);
+            }
         });
 
         it('verifies event-level permissions when provided', async () => {
@@ -543,6 +589,25 @@ describe('requireAuthentication', () => {
                 await requireVolunteerAuthenticationWithEventAndTeam(
                     context, 'event-2026', 'stewards');
                 expect.unreachable('Expected 403 for wrong team');
+            } catch (error: any) {
+                expect(isHTTPAccessFallbackError(error)).toBeTruthy();
+                expect(getAccessFallbackHTTPStatus(error)).toBe(403);
+            }
+        });
+        it('rejects users with only event.schedule.access when team is required', async () => {
+            const context = buildAuthenticationContext({
+                access: {
+                    grants: [
+                        { permission: 'event.schedule.access', event: 'event-2026' },
+                    ],
+                },
+                events: new Map(),
+            });
+
+            try {
+                await requireVolunteerAuthenticationWithEventAndTeam(
+                    context, 'event-2026', 'stewards');
+                expect.unreachable('Expected 403 for event.schedule.access without team access');
             } catch (error: any) {
                 expect(isHTTPAccessFallbackError(error)).toBeTruthy();
                 expect(getAccessFallbackHTTPStatus(error)).toBe(403);

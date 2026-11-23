@@ -3,14 +3,14 @@
 
 import { OverviewPage } from './OverviewPage';
 import { generateScheduleMetadataFn } from './lib/generateScheduleMetadataFn';
-import { requireAuthentication } from './requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <ScheduleMainPage> component contains the main page of the schedule, that shows an overview
  * of the things we'd like the volunteer to know about.
  */
 export default async function ScheduleMainPage(props: PageProps<'/schedule/[event]'>) {
-    await requireAuthentication(props);
+    await requireVolunteerAuthenticationWithEvent(props);
 
     return <OverviewPage />;
 }

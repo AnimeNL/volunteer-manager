@@ -3,14 +3,14 @@
 
 import { TicketPage } from './TicketPage';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
  * The <ScheduleTicketPage> component displays the signed in volunteer's event ticket, including a
  * scannable QR code when one has been issued to them.
  */
 export default async function ScheduleTicketPage(props: PageProps<'/schedule/[event]/ticket'>) {
-    await requireAuthentication(props);
+    await requireVolunteerAuthenticationWithEvent(props);
 
     return <TicketPage />;
 }

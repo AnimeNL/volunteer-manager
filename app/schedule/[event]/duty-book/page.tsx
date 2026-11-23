@@ -13,7 +13,7 @@ import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import { HeaderSectionCard } from '../components/HeaderSectionCard';
 import { SetTitle } from '../components/SetTitle';
 import { generateScheduleMetadataFn } from '../lib/generateScheduleMetadataFn';
-import { requireAuthentication } from '../requireAuthentication';
+import { requireVolunteerAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEventsTeams, tTeams, tUsersEvents } from '@lib/database';
 
 import { kRegistrationStatus } from '@lib/database/Types';
@@ -23,7 +23,7 @@ import { kRegistrationStatus } from '@lib/database/Types';
  * access to a single team, or presents a team picker when they have access to multiple teams.
  */
 export default async function DutyBookIndexPage(props: PageProps<'/schedule/[event]/duty-book'>) {
-    const { access, event, user } = await requireAuthentication(props);
+    const { access, event, user } = await requireVolunteerAuthenticationWithEvent(props);
 
     const usersEventsJoin = tUsersEvents.forUseInLeftJoin();
 
