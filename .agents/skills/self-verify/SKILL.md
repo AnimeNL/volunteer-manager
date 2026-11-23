@@ -9,6 +9,10 @@ description: Explains how to verify changes prior to considering a task complete
 You must always verify code changes before considering a task complete. In this project, three steps
 are mandatory, one step is optional.
 
+When running commands in PowerShell on Windows, always invoke `npm.cmd` and `npx.cmd` instead of
+`npm` and `npx` (e.g. `npm.cmd run test`, `npx.cmd tsc ...`) because PowerShell's script execution
+policy blocks `npm.ps1` and `npx.ps1`.
+
 1. You must build (`npx next build --experimental-build-mode compile`) and type-check
    (`npx tsc --project tsconfig.build.json`) the code sequentially, and verify that both complete
    successfully. This is expected to take approximately 10 seconds.
