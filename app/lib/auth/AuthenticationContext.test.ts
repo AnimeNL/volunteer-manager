@@ -89,8 +89,7 @@ describe('AuthenticationContext', () => {
         expectAuthenticationQuery(mockConnection, { userId: 42, firstName: 'Alice Updated' });
         mockConnection.expect('update', () => 1);
 
-        const bypassed = await requireAuthenticationContext(
-            undefined, undefined, { bypassCache: true });
+        const bypassed = await requireAuthenticationContext(undefined, { bypassCache: true });
         expect(bypassed.user.firstName).toBe('Alice Updated');
 
         // Device B verifies once and merges into the user's cached session map without evicting A:
@@ -207,7 +206,7 @@ describe('AuthenticationContext', () => {
         // When `bypassCache` fails verification, the stale cache entry is evicted:
         mockConnection.expect('selectOneRow', () => undefined);
         await expectHttpStatus(
-            () => requireAuthenticationContext(undefined, undefined, { bypassCache: true }), 401);
+            () => requireAuthenticationContext(undefined, { bypassCache: true }), 401);
 
         mockConnection.expect('selectOneRow', () => undefined);
         expect((await getAuthenticationContext()).user).toBeUndefined();

@@ -64,7 +64,6 @@ export async function activateAccount(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -113,7 +112,6 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'delete' },
-            undefined,
             { bypassCache: true });
 
         if (kUnanonymizableUserIds.includes(userId))
@@ -217,7 +215,6 @@ export async function confirmDiscord(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -252,7 +249,6 @@ export async function createAccessCode(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -289,7 +285,6 @@ export async function createAccount(formData: unknown) {
     return executeServerAction(formData, kCreateAccountData, async (data) => {
         const { user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'create' },
-            undefined,
             { bypassCache: true });
 
         if (!await isUsernameAvailable(data.username))
@@ -332,7 +327,6 @@ export async function deactivateAccount(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -372,7 +366,6 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -429,7 +422,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
 export async function impersonate(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
-            'organisation.impersonation', undefined, { bypassCache: true });
+            'organisation.impersonation', { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
             return { success: false, error: kRootAccountError };
@@ -464,7 +457,6 @@ export async function resetPassword(userId: number, formData: unknown) {
     return executeServerAction(formData, kNoDataRequired, async (_data, props) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -494,7 +486,6 @@ export async function setDefaultAvatar(userId: number, fileId: number, formData:
     return executeServerAction(formData, kNoDataRequired, async () => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -554,7 +545,6 @@ export async function updateAccountInformation(userId: number, formData: unknown
     return executeServerAction(formData, kAccountPermissionData, async (data) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))
@@ -665,7 +655,6 @@ export async function updateAccountSettings(userId: number, formData: unknown) {
             // done in that case. Such changes will not be logged either.
             const { access: adminAccess } = await requireAuthenticationContext(
                 { permission: 'organisation.accounts', operation: 'update' },
-                undefined,
                 { bypassCache: true });
 
             if (!await canManageTargetAccount(adminAccess, userId))
@@ -725,7 +714,6 @@ export async function updateAccountSuspension(userId: number, suspend: boolean, 
     return executeServerAction(formData, kUpdateAccountSuspensionData, async (data) => {
         const { access: adminAccess, user: adminUser } = await requireAuthenticationContext(
             { permission: 'organisation.accounts', operation: 'update' },
-            undefined,
             { bypassCache: true });
 
         if (!await canManageTargetAccount(adminAccess, userId))

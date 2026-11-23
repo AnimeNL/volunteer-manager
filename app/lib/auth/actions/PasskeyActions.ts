@@ -91,8 +91,7 @@ export async function listPasskeysAction(): Promise<ListPasskeysResult> {
  * challenge in a sealed `HttpOnly` cookie.
  */
 export async function createPasskeyChallengeAction(): Promise<CreatePasskeyChallengeResult> {
-    const { user } = await requireAuthenticationContext(
-        undefined, undefined, { bypassCache: true });
+    const { user } = await requireAuthenticationContext(undefined, { bypassCache: true });
 
     if (!user.username)
         forbidden();
@@ -143,8 +142,7 @@ export async function registerPasskeyAction(
     input: { name?: string; registration: RegistrationResponseJSON })
         : Promise<AuthActionResult>
 {
-    const { user } = await requireAuthenticationContext(
-        undefined, undefined, { bypassCache: true });
+    const { user } = await requireAuthenticationContext(undefined, { bypassCache: true });
 
     if (!user.username)
         forbidden();
@@ -208,8 +206,7 @@ export async function registerPasskeyAction(
  * Deletes one of the signed-in user's registered passkeys.
  */
 export async function deletePasskeyAction(input: { id: number }): Promise<AuthActionResult> {
-    const { user } = await requireAuthenticationContext(
-        undefined, undefined, { bypassCache: true });
+    const { user } = await requireAuthenticationContext(undefined, { bypassCache: true });
 
     if (!user.username)
         forbidden();

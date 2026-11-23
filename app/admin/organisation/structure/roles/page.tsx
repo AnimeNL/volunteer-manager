@@ -145,7 +145,6 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
         } else {
             await requireAuthenticationContext(
                 { permission: 'organisation.roles', operation },
-                undefined,
                 { bypassCache: true });
         }
     },
@@ -231,7 +230,7 @@ const rolesDataSource = createDataSource('organisation/structure/roles', withRow
 
         if (nextGrant !== existingGrant) {
             const { access: freshAccess } = await requireAuthenticationContext(
-                'system.permissions', undefined, { bypassCache: true });
+                'system.permissions', { bypassCache: true });
 
             if (nextGrant) {
                 const valid = await validateRolePermissionGrant(

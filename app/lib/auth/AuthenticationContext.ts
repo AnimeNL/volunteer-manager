@@ -6,7 +6,7 @@ import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
 import { unauthorized } from 'next/navigation';
 
-import type { AccessScope, Grant } from './access/AccessList';
+import type { Grant } from './access/AccessList';
 import type { AuthenticationContext, UserAuthenticationContext }
     from './AuthenticationContextTypes';
 import type { PermissionAccessCheck, PermissionSet } from './access/PermissionCheck';
@@ -195,7 +195,6 @@ interface RequireAuthenticationOptions {
  */
 export async function requireAuthenticationContext(
     permission?: PermissionAccessCheck | PermissionSet,
-    scope?: AccessScope,
     options?: RequireAuthenticationOptions): Promise<UserAuthenticationContext>
 {
     const authenticationContext = options?.bypassCache
@@ -206,7 +205,7 @@ export async function requireAuthenticationContext(
         unauthorized();
 
     if (permission)
-        executeAccessCheck(authenticationContext, permission, scope);
+        executeAccessCheck(authenticationContext, permission);
 
     return authenticationContext;
 }

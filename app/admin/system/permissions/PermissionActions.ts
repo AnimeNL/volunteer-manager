@@ -33,7 +33,7 @@ const kAccountPermissionData = z.object({
 export async function updateAccountPermissions(userId: number, formData: unknown) {
     return executeServerAction(formData, kAccountPermissionData, async (data) => {
         const { access, user } = await requireAuthenticationContext(
-            'system.permissions', undefined, { bypassCache: true });
+            'system.permissions', { bypassCache: true });
 
         const dbInstance = db;
         const existingAccessInfo = await dbInstance.selectFrom(tUsers)
@@ -185,7 +185,7 @@ const kRolePermissionData = z.object({
 export async function updateRolePermissions(roleId: string, formData: unknown) {
     return executeServerAction(formData, kRolePermissionData, async (data) => {
         const { access, user } = await requireAuthenticationContext(
-            'system.permissions', undefined, { bypassCache: true });
+            'system.permissions', { bypassCache: true });
 
         if (roleId === 'root')
             return { success: false, error: 'The root role cannot be modified' };

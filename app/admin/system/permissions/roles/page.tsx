@@ -117,7 +117,7 @@ const rolesDataSource = createDataSource('admin/system/permissions/roles', withR
             executeAccessCheck(props.authenticationContext, 'system.permissions');
         } else {
             await requireAuthenticationContext(
-                'system.permissions', undefined, { bypassCache: true });
+                'system.permissions', { bypassCache: true });
         }
     },
 

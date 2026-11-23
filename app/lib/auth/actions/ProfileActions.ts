@@ -212,7 +212,7 @@ async function resolveAvatarSubject(
     if (overrideUserId === context.user.id)
         return { subjectUserId: context.user.id, isOverride: false };
 
-    await requireAuthenticationContext('organisation.avatars', undefined, { bypassCache: true });
+    await requireAuthenticationContext('organisation.avatars', { bypassCache: true });
     return { subjectUserId: overrideUserId, isOverride: true };
 }
 

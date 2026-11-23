@@ -391,8 +391,7 @@ export async function completePasswordResetAction(
 export async function changePasswordAction(
     input: { currentPassword: string; newPassword: string }): Promise<AuthActionResult>
 {
-    const { user } = await requireAuthenticationContext(
-        undefined, undefined, { bypassCache: true });
+    const { user } = await requireAuthenticationContext(undefined, { bypassCache: true });
 
     const parsed = kChangePasswordInput.safeParse(input);
     if (!parsed.success)
