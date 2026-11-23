@@ -194,33 +194,31 @@ export default async function EventTicketsAssociatesPage(
                         Changes made here will be reflected in the real ticket immediately.
                     </SectionIntroduction>
                     { !!updateTicketFn ? (
-                        <>
-                            <FormGrid action={updateTicketFn} defaultValues={{
-                                holder: ticket.holder ?? '',
-                                nickname: ticket.nickname ?? '',
-                                function: ticket.function ?? '',
-                                organisation: ticket.organisation ?? '',
-                            }}>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextFieldElement name="holder" label="Ticket holder" required
-                                                      fullWidth size="small" />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <TextFieldElement name="nickname" label="Nickname"
-                                                      fullWidth size="small" />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <FreeSoloAutocompleteElement
-                                        name="function" label="Function" options={knownRoles}
-                                        required />
-                                </Grid>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <FreeSoloAutocompleteElement
-                                        name="organisation" label="Organisation"
-                                        options={knownTeams} required />
-                                </Grid>
-                            </FormGrid>
-                        </>
+                        <FormGrid action={updateTicketFn} defaultValues={{
+                            holder: ticket.holder ?? '',
+                            nickname: ticket.nickname ?? '',
+                            function: ticket.function ?? '',
+                            organisation: ticket.organisation ?? '',
+                        }}>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextFieldElement name="holder" label="Ticket holder" required
+                                                  fullWidth size="small" />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextFieldElement name="nickname" label="Nickname"
+                                                  fullWidth size="small" />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <FreeSoloAutocompleteElement
+                                    name="function" label="Function" options={knownRoles}
+                                    required />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <FreeSoloAutocompleteElement
+                                    name="organisation" label="Organisation"
+                                    options={knownTeams} required />
+                            </Grid>
+                        </FormGrid>
                     ) : (
                         <Grid container spacing={2}>
                             <Grid size={{ xs: 12, md: 6 }}>
