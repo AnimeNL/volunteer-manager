@@ -36,15 +36,15 @@ export interface NavigationProps {
          * Unique slug identifying the event.
          */
         slug: string;
+
+        /**
+         * Most recent time at which sales information was updated for this event, as a
+         * Temporal.ZonedDateTime compatible string representation.
+         */
+        updated?: string;
     }[];
 
     // TODO: enableVolunteers <events>
-
-    /**
-     * Most recent time at which sales information was updated, as a Temporal.ZonedDateTime
-     * compatible string representation.
-     */
-    recentSalesUpdate?: string;
 }
 
 /**
@@ -68,20 +68,22 @@ export function Navigation(props: NavigationProps) {
 
     const updateTime = useMemo(() => {
         let updateTime: Temporal.ZonedDateTime | undefined;
-        if (shouldDisplayUpdateTime) {
-            if (pathname.startsWith('/statistics/sales') && !!props.recentSalesUpdate)
-                updateTime = Temporal.ZonedDateTime.from(props.recentSalesUpdate);
+        if (shouldDisplayUpdateTime && pathname.startsWith('/statistics/sales/')) {
+            const eventSlug = pathname.slice('/statistics/sales/'.length).split('/')[0];
+            const salesEvent = props.enableSales.find(event => event.slug === eventSlug);
+            if (!!salesEvent?.updated)
+                updateTime = Temporal.ZonedDateTime.from(salesEvent.updated);
         }
 
         if (!updateTime)
             return undefined;
 
-        const currentTime = Temporal.Now.zonedDateTimeISO();
-        const difference = updateTime.since(currentTime);
+        const currentTime = Temporal.Now.zonedDateTimeISO(updateTime.timeZoneId);
+        const difference = updateTime.since(currentTime, { largestUnit: 'years' });
 
         return formatDuration(difference);
 
-    }, [ pathname, props.recentSalesUpdate, shouldDisplayUpdateTime ]);
+    }, [ pathname, props.enableSales, shouldDisplayUpdateTime ]);
 
     // ---------------------------------------------------------------------------------------------
 
