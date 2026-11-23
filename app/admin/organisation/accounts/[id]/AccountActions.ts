@@ -126,7 +126,7 @@ export async function anonymizeAccount(userId: number, formData: unknown) {
         const uniqueHash = nanoid(8);
 
         const affectedRows = await dbInstance.transaction(async () => {
-            const affectedRows = await db.update(tUsers)
+            const affectedRows = await dbInstance.update(tUsers)
                 .set({
                     username: `${uniqueHash}@animecon.team`,
                     firstName: uniqueHash,
@@ -403,7 +403,7 @@ export async function deleteAvatar(userId: number, fileId: number, formData: unk
                     .and(tStorage.userId.equals(userId))
                 .executeDelete();
 
-            await db.update(tUsers)
+            await dbInstance.update(tUsers)
                 .set({
                     avatarId: alternativeAvatar
                 })
