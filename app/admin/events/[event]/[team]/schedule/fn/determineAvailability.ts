@@ -3,9 +3,18 @@
 
 import { z } from 'zod/v4';
 
-import { validateTime } from './validateTime';
-
 import { kTemporalZonedDateTime } from '@app/admin/lib/ZodTransformers';
+
+/**
+ * Returns a time that is guaranteed to be valid. The `input` will be used when it conforms to the
+ * "HH:MM" syntax, otherwise `defaultValue` will be returned.
+ */
+export function validateTime(input: string | undefined, defaultValue: string): string {
+    if (/^\d{1,2}:[0-5][0-9]$/.test(input || ''))
+        return input!;
+
+    return defaultValue;
+}
 
 /**
  * Type describing an availability exception, as stored in the database.

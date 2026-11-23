@@ -6,20 +6,17 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { determineAvailability } from './fn/determineAvailability';
+import type { CachedEvent } from '@lib/cache';
+import { determineAvailability, validateTime } from './fn/determineAvailability';
 import { executeServerAction } from '@lib/serverAction';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
-import { getTimeslots } from './fn/getTimeslots';
-import { getTimeslotsForShifts } from './fn/getTimeslotsForShifts';
 import { isAfter } from '@lib/Temporal';
-import { isValidShift } from './fn/isValidShift';
 import { readSettings } from '@lib/Settings';
 import { requireAuthentication, requireAuthenticationWithEventAndTeam }
     from '@lib/requireAuthentication';
-import { validateTime } from './fn/validateTime';
 import { writeUserSetting, writeUserSettings } from '@lib/UserSettings';
-import db, { tRoles, tSchedule, tScheduleLogs, tUsers, tUsersEvents,
-    tUsersEventsPreferencesAvailability } from '@lib/database';
+import db, { tActivities, tActivitiesTimeslots, tRoles, tSchedule, tScheduleLogs, tShifts, tUsers,
+    tUsersEvents, tUsersEventsPreferencesAvailability } from '@lib/database';
 
 import type { kServiceHoursProperty } from '@app/registration/[slug]/application/ApplicationActions';
 import { kMutation, kRegistrationStatus } from '@lib/database/Types';
@@ -1011,4 +1008,144 @@ export async function getSchedule(
             schedule,
         };
     });
+}
+
+// -------------------------------------------------------------------------------------------------
+// Internal helpers
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Zod type definition for the `shift_demand` column value stored in the `shifts` table.
+ */
+const kShiftDemand = z.array(z.object({
+    start: z.string().datetime({ offset: true }),
+    end: z.string().datetime({ offset: true }),
+    volunteers: z.number().min(1),
+}));
+
+/**
+ * Fetches the timeslots for the event identified by `festivalId` from the database.
+ */
+async function getTimeslots(festivalId?: number) {
+    const timeslotData = await db.selectFrom(tActivities)
+        .innerJoin(tActivitiesTimeslots)
+            .on(tActivitiesTimeslots.activityId.equals(tActivities.activityId))
+        .where(tActivities.activityFestivalId.equals(festivalId ?? 0))
+            .and(tActivities.activityDeleted.isNull())
+            .and(tActivitiesTimeslots.timeslotDeleted.isNull())
+        .select({
+            id: tActivitiesTimeslots.timeslotId,
+            start: tActivitiesTimeslots.timeslotStartTime,
+            end: tActivitiesTimeslots.timeslotEndTime,
+        })
+        .executeSelectMany();
+
+    return new Map(timeslotData.map(
+        timeslot => [ timeslot.id, { start: timeslot.start, end: timeslot.end } ]));
+}
+
+/**
+ * Fetches the timeslots for the given `shiftIds` from the database.
+ */
+async function getTimeslotsForShifts(shiftIds: number[]) {
+    const activitiesJoin = tActivities.forUseInLeftJoin();
+    const activitiesTimeslotsJoin = tActivitiesTimeslots.forUseInLeftJoin();
+
+    const dbInstance = db;
+    const shifts = await dbInstance.selectFrom(tShifts)
+        .leftJoin(activitiesJoin)
+            .on(activitiesJoin.activityId.equals(tShifts.shiftActivityId))
+        .leftJoin(activitiesTimeslotsJoin)
+            .on(activitiesTimeslotsJoin.activityId.equals(activitiesJoin.activityId))
+        .where(tShifts.shiftId.in(shiftIds))
+            .and(tShifts.shiftDeleted.isNull())
+        .select({
+            id: tShifts.shiftId,
+            demand: tShifts.shiftDemand,
+            timeslots: dbInstance.aggregateAsArray({
+                start: activitiesTimeslotsJoin.timeslotStartTime,
+                end: activitiesTimeslotsJoin.timeslotEndTime,
+            }),
+        })
+        .groupBy(tShifts.shiftId, tShifts.shiftActivityId)
+        .executeSelectMany();
+
+    return shifts.map(shift => {
+        let demand;
+        if (!!shift.demand) {
+            try {
+                const demandObj = JSON.parse(shift.demand);
+                const demandParsed = kShiftDemand.safeParse(demandObj);
+
+                if (demandParsed.success)
+                    demand = demandParsed.data;
+
+            } catch (error: any) {
+                console.warn('Unable to parse shift demand:', shift.demand, error);
+            }
+        }
+
+        return {
+            ...shift,
+            demand,
+        };
+    });
+}
+
+/**
+ * Determines whether the given `shift` is valid to schedule for the given `volunteer`. This
+ * considers both their existing shifts and their (un)availability, in relation to the event.
+ */
+async function isValidShift(
+    event: CachedEvent,
+    volunteer: {
+        id: number;
+        availabilityExceptions?: string;
+        availabilityTimeslots?: string;
+    },
+    shift: { start: Temporal.ZonedDateTime; end: Temporal.ZonedDateTime },
+    ignoreShift?: number): Promise<boolean>
+{
+    const timeslots = await getTimeslots(event.integrations?.anPlanFestivalId);
+    const settings = await readSettings([
+        'schedule-day-view-start-time',
+        'schedule-event-view-start-hours',
+        'schedule-event-view-end-hours',
+    ]);
+
+    // biome-ignore lint/correctness/noUnusedVariables: not implemented yet
+    const availability = determineAvailability({
+        event: {
+            startTime: event.startTime,
+            endTime: event.endTime,
+            timezone: event.timeZone,
+        },
+        settings,
+        timeslots,
+        volunteer: {
+            availabilityExceptions: volunteer.availabilityExceptions,
+            availabilityTimeslots: volunteer.availabilityTimeslots,
+            // deliberately do not carry over the timing preferences, as that would block shifts
+            // from being assigned there -- they are preferences, not rules
+        },
+    });
+
+    // TODO: Process `availability.unavailable` - this isn't currently working
+
+    const conflictingShiftIds = await db.selectFrom(tSchedule)
+        .where(tSchedule.userId.equals(volunteer.id))
+            .and(tSchedule.eventId.equals(event.id))
+            .and(tSchedule.scheduleTimeStart.lessThan(shift.end))
+            .and(tSchedule.scheduleTimeEnd.greaterThan(shift.start))
+            .and(tSchedule.scheduleDeleted.isNull())
+        .selectOneColumn(tSchedule.scheduleId)
+        .executeSelectMany();
+
+    if (!conflictingShiftIds.length)
+        return true;  // no conflicting shifts were found
+
+    if (conflictingShiftIds.length === 1 && conflictingShiftIds[0] === ignoreShift)
+        return true;  // the only conflicting shift is the one we ignore
+
+    return false;  // one or more actually conflicting shifts were found
 }
