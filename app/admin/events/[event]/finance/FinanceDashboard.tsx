@@ -7,13 +7,10 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 
 import type { FinancialFilter } from '@lib/tickets/Types';
-import { EventRevenueCard } from './kpi/EventRevenueCard';
-import { EventSalesCard } from './kpi/EventSalesCard';
+import { FinanceMetricCard } from './kpi/FinanceMetricCard';
 import { FinanceProcessor } from './FinanceProcessor';
 import { LockerSalesGraph } from './graphs/LockerSalesGraph';
 import { SalesDataGrid } from './SalesDataGrid';
-import { TicketRevenueCard } from './kpi/TicketRevenueCard';
-import { TicketSalesCard } from './kpi/TicketSalesCard';
 import { TotalRevenueCard } from './kpi/TotalRevenueCard';
 import { VisitorGraphCard } from './graphs/VisitorGraphCard';
 import { fetchProductSales } from './graphs/ProductSalesGraphFn';
@@ -64,16 +61,16 @@ export async function FinanceDashboard(props: FinanceDashboardProps) {
             { /** Section: KPI overview ------------------------------------------------------- */ }
 
             <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <TicketSalesCard processor={processor} />
+                <FinanceMetricCard metric="ticket-sales" processor={processor} />
             </Grid>
             <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <TicketRevenueCard processor={processor} />
+                <FinanceMetricCard metric="ticket-revenue" processor={processor} />
             </Grid>
             <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <EventSalesCard processor={processor} />
+                <FinanceMetricCard metric="event-sales" processor={processor} />
             </Grid>
             <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <EventRevenueCard processor={processor} />
+                <FinanceMetricCard metric="event-revenue" processor={processor} />
             </Grid>
 
             { /** Section: Festival sales ----------------------------------------------------- */ }

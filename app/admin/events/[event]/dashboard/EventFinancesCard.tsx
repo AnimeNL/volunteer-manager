@@ -4,9 +4,8 @@
 import Grid from '@mui/material/Grid';
 
 import type { CachedEvent } from '@lib/cache';
+import { FinanceMetricCard } from '../finance/kpi/FinanceMetricCard';
 import { FinanceProcessor } from '../finance/FinanceProcessor';
-import { TicketRevenueCard } from '../finance/kpi/TicketRevenueCard';
-import { TicketSalesCard } from '../finance/kpi/TicketSalesCard';
 
 /**
  * Props accepted by the <EventFinancesCard> component.
@@ -29,10 +28,10 @@ export async function EventFinancesCard(props: EventFinancesCardProps) {
     return (
         <Grid container spacing={1.5}>
             <Grid size={{ xs: 12, lg: 6 }}>
-                <TicketRevenueCard processor={processor} />
+                <FinanceMetricCard metric="ticket-revenue" processor={processor} />
             </Grid>
             <Grid size={{ xs: 12, lg: 6 }}>
-                <TicketSalesCard processor={processor} />
+                <FinanceMetricCard metric="ticket-sales" processor={processor} />
             </Grid>
         </Grid>
     );
