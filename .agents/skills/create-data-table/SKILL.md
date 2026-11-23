@@ -12,7 +12,7 @@ are available, and you need to understand the requirements:
 1. The context (`withContext()`) is used when the <DataTable> can have multiple data tenants, for
    example multiple events, or multiple event+team tuples. Always use transformers such as the
    `kEventTransformer` or `kTemporalZonedDateTime` when applicable.
-2. Authorization (`authorize()`) is always required. You must use `executeAccessCheck()` matching
+2. Authorization (`authorize()`) is always required. You must use `requireAuthentication*()` matching
    the same permission as the page that embeds the <DataTable>. Use the `operations` parameter when
    a CRUD permission is used.
 3. Listing data (`list()`) is always required. This operation supports pagination and search

@@ -5,8 +5,12 @@ export type { AuthenticationContext, UserAuthenticationContext }
     from './AuthenticationContextTypes';
 export type { User } from './User';
 
+export { and, or, requireAuthentication, requireAuthenticationWithEvent,
+    requireAuthenticationWithEventAndTeam, requireVolunteerAuthentication,
+    requireVolunteerAuthenticationWithEvent, requireVolunteerAuthenticationWithEventAndTeam }
+    from './RequireAuthentication';
+export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
 export { getAuthenticationContext, impersonateUser, invalidateAuthCache,
     requireAuthenticationContext } from './AuthenticationContext';
-export { createPasswordResetToken, createUserAccessCode, isUsernameAvailable } from './AccountStore';
 export { getDisplayId, setDisplayId } from './DisplaySession';
 export { revokeAllUserSessions, revokeUserSession } from './SessionStore';

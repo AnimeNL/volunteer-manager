@@ -5,17 +5,13 @@ import { getAccessFallbackHTTPStatus, isHTTPAccessFallbackError }
     from 'next/dist/client/components/http-access-fallback/http-access-fallback';
 
 import type { CachedEvent, CachedTeam } from '@lib/cache';
-import { AccessControl } from '@lib/auth/access';
+import { AccessControl } from './access/AccessControl';
 import { Cache } from '@lib/cache';
-import { buildAuthenticationContext } from '@lib/auth/AuthenticationTestHelpers';
-import {
-    requireAuthentication,
-    requireAuthenticationWithEvent,
-    requireAuthenticationWithEventAndTeam,
-    requireVolunteerAuthentication,
-    requireVolunteerAuthenticationWithEvent,
-    requireVolunteerAuthenticationWithEventAndTeam,
-} from './requireAuthentication';
+import { buildAuthenticationContext } from './AuthenticationTestHelpers';
+import { requireAuthentication, requireAuthenticationWithEvent,
+    requireAuthenticationWithEventAndTeam, requireVolunteerAuthentication,
+    requireVolunteerAuthenticationWithEvent, requireVolunteerAuthenticationWithEventAndTeam }
+    from './RequireAuthentication';
 import { useMockConnection } from '@lib/database/Connection';
 
 describe('requireAuthentication', () => {

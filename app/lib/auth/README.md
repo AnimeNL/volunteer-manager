@@ -1,9 +1,10 @@
 # Authentication & Authorization (`app/lib/auth`)
 
 This component owns identity, session lifecycle, credential security, and permission evaluation
-across three entry points: `@lib/auth` (request identity, sessions, cache, impersonation, displays,
-admin helpers), `@lib/auth/access` (permission evaluation and enforcement), and `@lib/auth/actions`
-(Server Actions for sign-in, registration, passkeys, passwords, and profile/avatar updates).
+across three entry points: `@lib/auth` (request identity, route/action authorization, sessions,
+cache, impersonation, displays, admin helpers), `@lib/auth/access` (permission evaluation), and
+`@lib/auth/actions` (Server Actions for sign-in, registration, passkeys, passwords, and
+profile/avatar updates).
 
 ## Authentication & Security Properties
 
