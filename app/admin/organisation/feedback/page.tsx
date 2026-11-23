@@ -12,7 +12,6 @@ import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/access';
 import db, { tFeedback, tUsers } from '@lib/database';
 
 import { kFeedbackResponse } from '@lib/database/Types';
@@ -51,7 +50,7 @@ const feedbackDataSource = createDataSource('organisation/feedback', withRowMode
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.feedback');
+        await requireAuthentication(props.authenticationContext, 'organisation.feedback');
     },
 
     async list(params, props) {

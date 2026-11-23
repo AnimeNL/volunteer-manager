@@ -17,7 +17,6 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tTrainings, tTrainingsAssignments } from '@lib/database';
@@ -84,12 +83,8 @@ const settingsDataSource = createDataSource('admin/event/training/settings', wit
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.trainings');
     },
 
     async create(partialRow, props, context) {

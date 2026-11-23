@@ -23,7 +23,6 @@ import {
     TrainingCommunicationCell, TrainingCommunicationHeaderCell, TrainingParticipantCell,
     TrainingSessionCell } from './TrainingAssignmentCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { processVolunteerCommunication } from '../../[team]/volunteers/dataSource';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
@@ -103,12 +102,8 @@ const assignmentsDataSource = createDataSource('admin/event/training/assignments
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.trainings');
     },
 
     async list(params, props, context) {

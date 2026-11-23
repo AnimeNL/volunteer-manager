@@ -16,7 +16,6 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TicketSearchBar } from '../TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 /**
@@ -81,12 +80,9 @@ const eventTicketSearchDataSource = createDataSource('event/tickets/search', wit
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug, {
             permission: 'event.tickets',
             operation: 'read',
-            scope: {
-                event: context.event.slug,
-            },
         });
     },
 

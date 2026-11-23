@@ -27,7 +27,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamCell } from './ParticipationCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { getBlobUrl } from '@lib/database/BlobStore';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
@@ -86,7 +85,7 @@ const accountParticipationDataSource =
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.accounts',
             operation: 'read',
         });

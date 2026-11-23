@@ -24,7 +24,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tRefunds, tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesRefunds } from '@lib/database';
 
@@ -85,12 +84,8 @@ const eventRefundsDataSource = createDataSource('admin/event/refunds', withConte
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'volunteers.refunds',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'volunteers.refunds');
     },
 
     async list(params, props, context) {

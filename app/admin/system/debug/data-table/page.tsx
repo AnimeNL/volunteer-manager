@@ -11,7 +11,6 @@ import { DataTable, createDataSource, withContext, withRowModel }
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents } from '@lib/database';
 
@@ -28,7 +27,7 @@ const dataSource = createDataSource('system/debug/data-table', withContext({
     location: z.string().optional(),
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, 'system.internals.debug');
+        await requireAuthentication(props.authenticationContext, 'system.internals.debug');
     },
 
     async delete(params, props, context) {

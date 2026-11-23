@@ -15,9 +15,8 @@ import { IntegrationCell, StatusCell, StatusHeader } from './IntegrationLogsCell
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
-import { and, executeAccessCheck } from '@lib/auth/access';
+import { and, requireAuthentication } from '@lib/requireAuthentication';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs } from '@lib/database';
 
 import { kIntegrationLogStatus, kIntegrationLogTarget } from '@lib/database/Types';
@@ -65,7 +64,7 @@ const integrationLogsDataSource = createDataSource(
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, and(
+        await requireAuthentication(props.authenticationContext, and(
         {
             permission: 'system.integrations',
         },

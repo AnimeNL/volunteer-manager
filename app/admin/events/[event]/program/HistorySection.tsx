@@ -11,7 +11,7 @@ import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { Section } from '@app/admin/components/Section';
 import { SeverityCell } from '@app/admin/components/DataTable/cells/SeverityCell';
-import { executeAccessCheck } from '@lib/auth/access';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesAreas, tActivitiesLocations, tActivitiesLogs,
     tUsers } from '@lib/database';
 
@@ -82,12 +82,7 @@ const programHistoryDataSource = createDataSource('admin/event/program/history',
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.visible',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug);
     },
 
     async list(params, props, context) {

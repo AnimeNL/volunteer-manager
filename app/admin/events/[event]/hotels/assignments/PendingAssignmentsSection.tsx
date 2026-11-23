@@ -11,8 +11,8 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { executeAccessCheck } from '@lib/auth/access';
 import { readUserSetting } from '@lib/UserSettings';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tHotels, tHotelsBookings, tTeams, tUsers, tUsersEvents,
     tUsersEventsPreferencesHotel } from '@lib/database';
 
@@ -66,12 +66,8 @@ const pendingDataSource = createDataSource('admin/event/hotels/assignments/pendi
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.hotels',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.hotels');
     },
 
     async list(params, props, context) {

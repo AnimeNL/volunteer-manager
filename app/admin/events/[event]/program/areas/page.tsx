@@ -16,7 +16,6 @@ import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { getAnPlanAreaUrl } from '@lib/AnPlan';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivitiesAreas, tActivitiesLogs } from '@lib/database';
@@ -65,12 +64,9 @@ const programAreasDataSource = createDataSource('admin/event/program/areas', wit
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: operation === 'read' ? 'event.visible' : 'event.settings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug,
+            operation === 'read' ? undefined : 'event.settings');
     },
 
     async create(partialRow, props, context) {

@@ -13,7 +13,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VolunteerContactSection } from '../VolunteerContactSection';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tOutboxEmail, tUsers, tUsersCommunication, tUsersEvents } from '@lib/database';
 
@@ -63,14 +62,11 @@ const volunteerCommunicationDataSource = createDataSource('event/team/volunteer/
 
     }), {
         async authorize(operation, props, context) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.participation',
-                operation: 'read',
-                scope: {
-                    event: context.event.slug,
-                    team: context.team.slug,
-                },
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, context.event.slug, context.team.slug, {
+                    permission: 'volunteers.participation',
+                    operation: 'read',
+                });
         },
 
         async list(params, props, context) {

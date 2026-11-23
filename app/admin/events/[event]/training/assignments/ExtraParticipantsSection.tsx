@@ -15,8 +15,8 @@ import { ExpandableSection } from '@app/admin/components/ExpandableSection';
 import { LogBuilder } from '@lib/log';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TrainingSessionCell } from './TrainingAssignmentCells';
-import { executeAccessCheck } from '@lib/auth/access';
 import { readUserSetting } from '@lib/UserSettings';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tTrainingsAssignments, tTrainingsExtra } from '@lib/database';
 
 import { kEventTransformer } from '@app/admin/components/DataTable';
@@ -58,12 +58,8 @@ const extraDataSource = createDataSource('admin/event/training/assignments/extra
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.trainings');
     },
 
     async create(partialRow, props, context) {

@@ -13,7 +13,6 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tPermissions } from '@lib/database';
 
@@ -65,7 +64,7 @@ type PermissionRow = z.infer<typeof kPermissionRowModel>;
  */
 const permissionsDataSource = createDataSource('admin/system/permissions', kPermissionRowModel, {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.permissions');
+        await requireAuthentication(props.authenticationContext, 'system.permissions');
     },
 
     async list() {

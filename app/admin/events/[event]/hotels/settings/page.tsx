@@ -18,7 +18,6 @@ import { PriceCell, PrivateCell, PrivateHeader } from './HotelSettingsCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tEvents, tHotels, tHotelsBookings } from '@lib/database';
 
@@ -78,12 +77,8 @@ const eventHotelSettingsDataSource = createDataSource('admin/event/hotels/settin
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.hotels',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.hotels');
     },
 
     async create(partialRow, props, context) {

@@ -10,7 +10,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createDataSource, withRowModel } from '@app/admin/components/DataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tOutboxEmail, tUsers } from '@lib/database';
 
@@ -56,7 +55,7 @@ const emailDataSource = createDataSource('admin/system/outbox/email', withRowMod
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.internals.outbox');
+        await requireAuthentication(props.authenticationContext, 'system.internals.outbox');
     },
 
     async list(params, props) {

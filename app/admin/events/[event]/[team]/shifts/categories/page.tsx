@@ -13,8 +13,8 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
-import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
+import { requireAuthentication, requireAuthenticationWithEventAndTeam }
+    from '@lib/requireAuthentication';
 import db, { tShifts, tShiftsCategories } from '@lib/database';
 
 import { kExcitementOptions } from '@app/admin/components/ExcitementIcon';
@@ -60,7 +60,7 @@ const shiftCategoriesDataSource = createDataSource('admin/event/shift-categories
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'event.shift-categories');
+        await requireAuthentication(props.authenticationContext, 'event.shift-categories');
     },
 
     async create(partialRow, props) {

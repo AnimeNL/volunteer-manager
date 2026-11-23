@@ -17,7 +17,6 @@ import { SummaryAction } from './SummaryAction';
 import { VisibilityHeaderCell, VisibilityCell } from './VisibilityCell';
 import { createAiClient } from '@lib/integrations/genai';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
@@ -135,14 +134,11 @@ const dutyBookDataSource = createDataSource('event/team/duty-book', withContext(
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.duty-book',
-            operation: 'read',
-            scope: {
-                event: context.event.slug,
-                team: context.team.slug,
-            },
-        });
+        await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, context.event.slug, context.team.slug, {
+                permission: 'event.duty-book',
+                operation: 'read',
+            });
 
         if (!context.team.flags.enableDutyBook)
             notFound();

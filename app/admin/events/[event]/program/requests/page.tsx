@@ -15,7 +15,6 @@ import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { getLeadersForEvent } from '@app/admin/lib/getLeadersForEvent';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tActivities, tActivitiesLogs, tEventsTeams, tShifts, tTeams, tUsers }
@@ -79,12 +78,9 @@ const programRequestsDataSource = createDataSource('admin/event/program/requests
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug, {
             permission: 'volunteers.program-requests',
             operation,
-            scope: {
-                event: context.event.slug,
-            },
         });
     },
 

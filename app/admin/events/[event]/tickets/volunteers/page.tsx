@@ -12,7 +12,6 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { IssuedCell, IssuedHeaderCell } from '../TicketCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tRoles, tUsers, tUsersEvents, tUsersEventsTickets } from '@lib/database';
 
@@ -53,12 +52,9 @@ const eventTicketDataSource = createDataSource('admin/event/tickets/volunteers',
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug, {
             permission: 'volunteers.tickets',
             operation: 'read',
-            scope: {
-                event: context.event.slug,
-            },
         });
     },
 

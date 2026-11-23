@@ -10,7 +10,6 @@ import type { CommunicationPromptId } from './PromptFactory';
 import type { Language } from './Language';
 import { PromptExecutor, type GetPromptParameters } from './PromptExecutor';
 import { PromptFactory } from './PromptFactory';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
 import { getEvent } from '@lib/cache';
 import { markdownToJsx } from '@components/Markdown';
@@ -277,7 +276,7 @@ export async function executePromptWithExampleParameters(formData: unknown) {
     'use server';
 
     return executeServerAction(formData, kCommunicationExamplePromptData, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, 'system.internals.ai');
+        await requireAuthentication(props.authenticationContext, 'system.internals.ai');
 
         const promptInstance = PromptFactory.createById(data.id);
         if (!promptInstance)

@@ -14,12 +14,10 @@ import { FinanceProcessor } from '../FinanceProcessor';
 import { LogBuilder } from '@lib/log';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
-import { and } from '@lib/auth/access';
+import { and, requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
-import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
 import { kEventTicketCategory } from '@lib/database/Types';
 import { kEventTicketCategoryOptions } from './Settings';
@@ -72,10 +70,9 @@ const eventFinanceDataSource = createDataSource('admin/event/finance/settings', 
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(
-            props.authenticationContext,
-            and('statistics.finances', 'event.settings'),
-            { event: context.event.slug });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug,
+            and('statistics.finances', 'event.settings'));
     },
 
     async list(params, props, context) {

@@ -15,7 +15,6 @@ import { ScheduleHistoryTable } from './ScheduleHistoryTable';
 import { ScheduleImpl } from './ScheduleImpl';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { readUserSettings } from '@lib/UserSettings';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
@@ -143,14 +142,11 @@ const scheduleHistoryDataSource =
 
     }), {
         async authorize(operation, props, context) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.schedules',
-                operation: 'read',
-                scope: {
-                    event: context.event.slug,
-                    team: context.team.slug,
-                },
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, context.event.slug, context.team.slug, {
+                    permission: 'volunteers.schedules',
+                    operation: 'read',
+                });
         },
 
         async list(params, props, context) {

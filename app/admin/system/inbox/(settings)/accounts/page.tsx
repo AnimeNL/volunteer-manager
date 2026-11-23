@@ -17,7 +17,6 @@ import { OutgoingCell, OutgoingHeader } from '../../InboxCells';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { readSetting } from '@lib/Settings';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEmailAccounts, tTeams } from '@lib/database';
@@ -60,7 +59,7 @@ const emailAccountsDataSource = createDataSource('admin/system/inbox/accounts', 
 
 }), {
     async authorize(_operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.integrations');
+        await requireAuthentication(props.authenticationContext, 'system.integrations');
     },
 
     async list(params) {

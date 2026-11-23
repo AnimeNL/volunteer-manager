@@ -24,7 +24,6 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShiftSettingsForm } from './ShiftSettingsForm';
 import { TooltipIconWrapper } from '@components/TooltipIconWrapper';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { getShiftMetadata } from './getShiftMetadata';
 import { getShiftsForEvent } from '@app/admin/lib/getShiftsForEvent';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
@@ -89,14 +88,11 @@ const shiftsDataSource = createDataSource('event/team/shifts', withContext({
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'volunteers.shifts',
-            operation,
-            scope: {
-                event: context.event.slug,
-                team: context.team.slug,
-            },
-        });
+        await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, context.event.slug, context.team.slug, {
+                permission: 'volunteers.shifts',
+                operation,
+            });
     },
 
     async list(params, props, context) {

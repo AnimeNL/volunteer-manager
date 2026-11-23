@@ -13,9 +13,8 @@ import { SchedulerCreateTaskPanel } from './SchedulerCreateTaskPanel';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/access';
 import { globalScheduler } from '@lib/scheduler/SchedulerImpl';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tTasks } from '@lib/database';
 
 import { kTaskFormatFn } from '@lib/scheduler/TaskRegistry';
@@ -62,7 +61,7 @@ const schedulerDataSource = createDataSource('admin/system/scheduler', withRowMo
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.internals.scheduler');
+        await requireAuthentication(props.authenticationContext, 'system.internals.scheduler');
     },
 
     async list(params, props) {

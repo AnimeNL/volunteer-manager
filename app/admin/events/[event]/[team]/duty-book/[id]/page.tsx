@@ -17,7 +17,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { VisibilityToggle } from './VisibilityToggle';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tDutyBook, tDutyBookViewers, tEvents, tUsers } from '@lib/database';
@@ -64,14 +63,11 @@ const viewingHistoryDataSource = createDataSource('event/team/duty-book/viewers'
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.duty-book',
-            operation: 'read',
-            scope: {
-                event: context.event.slug,
-                team: context.team.slug,
-            },
-        });
+        await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, context.event.slug, context.team.slug, {
+                permission: 'event.duty-book',
+                operation: 'read',
+            });
 
         if (!context.team.flags.enableDutyBook)
             notFound();

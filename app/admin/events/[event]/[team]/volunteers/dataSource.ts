@@ -7,8 +7,8 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, kEventTransformer, kTeamTransformer, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/access';
 import { isBefore } from '@lib/Temporal';
+import { requireAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import db, { tEvents, tHotelsBookings, tRefunds, tRoles, tSchedule, tShifts, tShiftsCategories,
     tTrainingsAssignments, tUsers, tUsersCommunication, tUsersEvents,
     tUsersEventsPreferencesAvailability, tUsersEventsPreferencesHotel,
@@ -136,14 +136,11 @@ export const volunteerDataSource = createDataSource('event/team/volunteers', wit
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'volunteers.participation',
-            operation: 'read',
-            scope: {
-                event: context.event.slug,
-                team: context.team.slug,
-            },
-        });
+        await requireAuthenticationWithEventAndTeam(
+            props.authenticationContext, context.event.slug, context.team.slug, {
+                permission: 'volunteers.participation',
+                operation: 'read',
+            });
     },
 
     async list(params, props, context) {

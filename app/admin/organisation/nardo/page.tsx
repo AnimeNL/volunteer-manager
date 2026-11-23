@@ -12,7 +12,6 @@ import { Section } from '../../components/Section';
 import { SectionIntroduction } from '../../components/SectionIntroduction';
 import { createGenerateMetadataFn } from '../../lib/generatePageMetadata';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/access';
 import db, { tNardo, tUsers } from '@lib/database';
 
 /**
@@ -44,7 +43,7 @@ const nardoDataSource = createDataSource('organisation/nardo', withRowModel({
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.nardo');
+        await requireAuthentication(props.authenticationContext, 'organisation.nardo');
     },
 
     async create(partialRow, props) {

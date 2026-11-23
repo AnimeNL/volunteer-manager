@@ -8,7 +8,7 @@ import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/access';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tContent, tContentCategories } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
@@ -66,12 +66,8 @@ export const knowledgeCategoriesDataSource = createDataSource('admin/event/faq-c
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.knowledge',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.knowledge');
 
         if (!context.team.flags.managesKnowledgeBase)
             forbidden();

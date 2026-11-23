@@ -12,10 +12,9 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { SubscriptionTestAction } from './SubscriptionTestAction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/access';
 import { publishSubscriptionTest } from './SubscriptionActions';
 import { queryUsersWithPermission } from '@app/admin/lib/queryUsersWithPermission';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tSubscriptions, tUsers } from '@lib/database';
 
 /**
@@ -49,7 +48,7 @@ const subscriptionsDataSource = createDataSource('admin/system/subscriptions', w
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.subscriptions.management');
+        await requireAuthentication(props.authenticationContext, 'system.subscriptions.management');
     },
 
     async list(params) {

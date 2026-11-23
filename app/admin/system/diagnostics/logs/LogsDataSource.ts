@@ -5,9 +5,9 @@ import { z } from 'zod/v4';
 
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/access';
-import db, { tLogs, tLogsFormat, tUsers } from '@lib/database';
+import { requireAuthentication } from '@lib/requireAuthentication';
 import { resolveTemplate } from '@app/admin/components/DataTable/Utilities';
+import db, { tLogs, tLogsFormat, tUsers } from '@lib/database';
 
 /**
  * Data source used to populate the system logs table.
@@ -62,7 +62,7 @@ export const logsDataSource = createDataSource('system/diagnostics/logs', withCo
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthentication(props.authenticationContext, {
             permission: 'system.logs',
             operation: operation,
         });

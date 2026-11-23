@@ -10,9 +10,9 @@ import type { Column, ExtractRowModel } from '@app/admin/components/DataTable';
 import { DataTable, createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
 import { ExpandableSection } from '@app/admin/components/ExpandableSection';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatDate } from '@lib/Temporal';
 import { readUserSetting } from '@lib/UserSettings';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tTeams, tTrainings, tUsers, tUsersEvents, tUsersEventsPreferencesTraining }
     from '@lib/database';
 
@@ -61,12 +61,8 @@ const historyDataSource = createDataSource('admin/event/training/assignments/his
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.trainings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.trainings');
     },
 
     async list(params, props, context) {

@@ -14,7 +14,6 @@ import { FormGridSection } from '@app/admin/components/FormGridSection';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { requireAuthentication } from '@lib/requireAuthentication';
-import { executeAccessCheck } from '@lib/auth/access';
 import db, { tUsers } from '@lib/database';
 
 import * as actions from './[id]/AccountActions';
@@ -52,7 +51,7 @@ const accountsDataSource = createDataSource('admin/organisation/accounts', withR
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthentication(props.authenticationContext, {
             permission: 'organisation.accounts',
             operation: 'read',
         });

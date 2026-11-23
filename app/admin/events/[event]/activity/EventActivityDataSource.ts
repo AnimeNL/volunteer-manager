@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import type { ExtractRowModel } from '@app/admin/components/DataTable';
 import { createDataSource, withContext, withRowModel }
     from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/access';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tTeams, tUsers, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
@@ -101,12 +101,7 @@ export const eventActivityDataSource = createDataSource('admin/event/activity', 
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.visible',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug);
     },
 
     async list(params, props, context) {

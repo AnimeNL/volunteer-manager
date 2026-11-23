@@ -11,7 +11,6 @@ import { IssueTypeCell, LocalBuildCell } from './IssueTypeCell';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tErrorLogs, tUsers } from '@lib/database';
 
@@ -68,7 +67,7 @@ const errorLogsDataSource = createDataSource('admin/system/diagnostics/errors', 
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthentication(props.authenticationContext, {
             permission: 'system.logs',
             operation: 'read',
         });

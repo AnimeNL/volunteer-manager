@@ -17,7 +17,6 @@ import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { ShareableLink } from './ShareableLink';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { determineEnvironment } from '@lib/Environment';
-import { executeAccessCheck } from '@lib/auth/access';
 import { isBefore } from '@lib/Temporal';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
@@ -63,7 +62,7 @@ const exportAccessLogsDataSource = createDataSource('organisation/exports/access
     }).optional(),
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.exports');
+        await requireAuthentication(props.authenticationContext, 'organisation.exports');
     },
 
     async list(params, props, context) {

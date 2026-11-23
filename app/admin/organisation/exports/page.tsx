@@ -11,7 +11,6 @@ import { ExportAvailabilityCell } from './ExportsRowComponents';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tEvents, tExportsLogs, tExports, tUsers } from '@lib/database';
 
@@ -64,7 +63,7 @@ const exportsDataSource = createDataSource('admin/organisation/exports', withRow
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.exports');
+        await requireAuthentication(props.authenticationContext, 'organisation.exports');
     },
 
     async list(params, props) {

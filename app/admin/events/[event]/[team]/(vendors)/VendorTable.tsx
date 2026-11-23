@@ -7,12 +7,11 @@ import { DataTable, createDataSource, kEventTransformer, withContext, withRowMod
     type ExtractRowModel } from '@app/admin/components/DataTable';
 import { LogBuilder } from '@app/lib/log/index';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
-import { executeAccessCheck } from '@lib/auth/access';
 import { readSetting } from '@lib/Settings';
+import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tVendors } from '@lib/database';
 
 import type { ShirtFit, ShirtSize, VendorTeam } from '@lib/database/Types';
-import { kAnyTeam } from '@lib/auth/access';
 import { kShirtFit, kShirtSize, kVendorGender, kVendorTeam } from '@lib/database/Types';
 
 /**
@@ -76,13 +75,9 @@ const vendorDataSource = createDataSource('admin/events/vendor-team', withContex
 }), {
     async authorize(operation, props, context) {
         // Intentionally maps all mutating operations (`create`, `update`, `delete`) to `update`.
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug, {
             permission: 'volunteers.vendor-teams',
             operation: operation === 'read' ? 'read' : 'update',
-            scope: {
-                event: context.event.slug,
-                team: kAnyTeam,
-            },
         });
     },
 

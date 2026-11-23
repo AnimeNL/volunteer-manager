@@ -6,10 +6,10 @@
 import { forbidden, notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
-import { executeAccessCheck } from '@lib/auth/access';
 import { LogBuilder } from '@lib/log';
-import { requireVolunteerAuthenticationWithEventAndTeam } from '@lib/requireAuthentication';
 import { executeServerAction } from '@lib/serverAction';
+import { requireAuthenticationWithEventAndTeam, requireVolunteerAuthenticationWithEventAndTeam }
+    from '@lib/requireAuthentication';
 import db, { tEvents, tRoles, tUsersEvents, tUsersEventsPreferencesAvailability,
     tUsersEventsPreferencesHotel, tUsersEventsPreferencesParticipation,
     tUsersEventsPreferencesRefunds, tUsersEventsPreferencesTraining } from '@lib/database';
@@ -51,14 +51,11 @@ export async function updateAvailabilityPreferences(
         });
 
         if (props.user.id !== userId && !canUpdateParticipation) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.participation',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, event.slug, team.slug, {
+                    permission: 'volunteers.participation',
+                    operation: 'update',
+                });
         }
 
         if (props.user.id === userId &&
@@ -246,14 +243,11 @@ export async function updateHotelPreferences(
             notFound();
 
         if (props.user.id !== userId) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.participation',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, event.slug, team.slug, {
+                    permission: 'volunteers.participation',
+                    operation: 'update',
+                });
         } else if (!!data.interested) {
             const eligibility = await db.selectFrom(tUsersEvents)
                 .innerJoin(tRoles)
@@ -370,14 +364,11 @@ export async function updateParticipationPreferences(
             props.authenticationContext, eventSlug, teamSlug);
 
         if (props.user.id !== userId) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.participation',
-                operation: 'update',
-                scope: {
-                    event: event.slug,
-                    team: team.slug,
-                },
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, event.slug, team.slug, {
+                    permission: 'volunteers.participation',
+                    operation: 'update',
+                });
         }
 
         const dbInstance = db;
@@ -480,10 +471,8 @@ export async function updateRefundPreferences(
             notFound();
 
         if (props.user.id !== userId) {
-            executeAccessCheck(props.authenticationContext, 'volunteers.refunds', {
-                event: event.slug,
-                team: team.slug,
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, event.slug, team.slug, 'volunteers.refunds');
         }
 
         const dbInstance = db;
@@ -573,13 +562,11 @@ export async function updateTrainingPreferences(
             notFound();
 
         if (props.user.id !== userId) {
-            executeAccessCheck(props.authenticationContext, {
-                permission: 'volunteers.participation',
-                operation: 'update',
-            }, {
-                event: event.slug,
-                team: team.slug,
-            });
+            await requireAuthenticationWithEventAndTeam(
+                props.authenticationContext, event.slug, team.slug, {
+                    permission: 'volunteers.participation',
+                    operation: 'update',
+                });
         } else if (data.trainingId !== 0) {
             const eligibility = await db.selectFrom(tUsersEvents)
                 .innerJoin(tRoles)

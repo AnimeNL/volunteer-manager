@@ -1,7 +1,6 @@
 // Copyright 2026 Peter Beverloo & AnimeCon. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the LICENSE file.
 
-import { notFound } from 'next/navigation';
 import { z } from 'zod/v4';
 
 import type { AuthenticationContext, User } from '@lib/auth';
@@ -12,8 +11,8 @@ import { Cache } from '@lib/cache/Cache';
 import { LogBuilder } from '@lib/log';
 import { ScheduleCache } from '@app/api/event/schedule/ScheduleCache';
 import { createDataSource, withContext, withRowModel } from '@app/admin/components/DataTable';
-import { executeAccessCheck } from '@lib/auth/access';
-import { getEvent } from '@lib/cache';
+import { requireAuthentication, requireAuthenticationWithEventAndTeam }
+    from '@lib/requireAuthentication';
 import db, { tContent, tContentCategories, tEvents, tTeams, tUsers } from '@lib/database';
 
 import { kContentType } from '@lib/database/Types';
@@ -25,26 +24,10 @@ export async function authorizeContentScope(
     authenticationContext: AuthenticationContext, scope: ContentScope)
 {
     if (scope.eventId === 0) {
-        executeAccessCheck(authenticationContext, 'system.content');
+        await requireAuthentication(authenticationContext, 'system.content');
     } else {
-        const [ event, teamSlug ] = await Promise.all([
-            getEvent(scope.eventId),
-            db.selectFrom(tTeams)
-                .where(tTeams.teamId.equals(scope.teamId))
-                .selectOneColumn(tTeams.teamSlug)
-                .executeSelectNoneOrOne(),
-        ]);
-
-        if (!event || !teamSlug)
-            notFound();
-
-        executeAccessCheck(authenticationContext, {
-            permission: 'event.visible',
-            scope: {
-                event: event.slug,
-                team: teamSlug,
-            },
-        });
+        await requireAuthenticationWithEventAndTeam(
+            authenticationContext, scope.eventId, scope.teamId);
     }
 }
 

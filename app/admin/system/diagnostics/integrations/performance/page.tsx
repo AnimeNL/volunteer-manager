@@ -9,10 +9,9 @@ import { IntegrationPerformanceGraph, type IntegrationPerformancePoint }
     from './IntegrationPerformanceGraph';
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
+import { and, requireAuthentication } from '@lib/requireAuthentication';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { executeServerAction } from '@lib/serverAction';
-import { requireAuthentication, and } from '@lib/requireAuthentication';
 import db, { tIntegrationsLogs } from '@lib/database';
 
 import { kIntegrationLogTarget } from '@lib/database/Types';
@@ -32,7 +31,7 @@ const kFetchPerformanceDataSchema = z.object({
 async function fetchIntegrationPerformance(input: unknown) {
     'use server';
     return executeServerAction(input, kFetchPerformanceDataSchema, async (data, props) => {
-        executeAccessCheck(props.authenticationContext, and(
+        await requireAuthentication(props.authenticationContext, and(
             {
                 permission: 'system.integrations',
             },

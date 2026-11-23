@@ -8,7 +8,7 @@ import { z } from 'zod/v4';
 import DevicesIcon from '@mui/icons-material/Devices';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
-import { AccessControl, executeAccessCheck } from '@lib/auth/access';
+import { AccessControl } from '@lib/auth/access';
 import { AccountStatusButton } from '../AccountStatusButton';
 import { DataTable, createDataSource, withContext, withRowModel, type Column, type ExtractRowModel }
     from '@app/admin/components/DataTable';
@@ -100,13 +100,13 @@ const accountSessionsDataSource =
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthentication(props.authenticationContext, {
             permission: 'system.logs',
             operation: 'read',
         });
 
         if (operation === 'delete') {
-            executeAccessCheck(props.authenticationContext, {
+            await requireAuthentication(props.authenticationContext, {
                 permission: 'organisation.accounts',
                 operation: 'update',
             });

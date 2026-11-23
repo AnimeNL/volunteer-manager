@@ -12,7 +12,6 @@ import { DataTable, createDataSource, withContext, withRowModel, type Column, ty
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatBytes } from '@app/admin/lib/formatBytes';
 import { requireAuthentication } from '@lib/requireAuthentication';
 
@@ -98,7 +97,7 @@ const cacheEntryDataSource = createDataSource('admin/system/cache/entries', with
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'system.internals.cache');
+        await requireAuthentication(props.authenticationContext, 'system.internals.cache');
     },
 
     async delete(params, props, context) {

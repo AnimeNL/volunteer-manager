@@ -19,7 +19,6 @@ import { SectionLoading } from '@app/admin/components/SectionLoading';
 import { TicketSearchBar } from './TicketSearchBar';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
 import { createTicketService } from '@lib/tickets';
-import { executeAccessCheck } from '@lib/auth/access';
 import { formatTicketPrice } from '@lib/tickets/TicketHelpers';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 
@@ -65,12 +64,9 @@ const eventTicketTypesDataSource = createDataSource('admin/event/tickets/visitor
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
+        await requireAuthenticationWithEvent(props.authenticationContext, context.event.slug, {
             permission: 'event.tickets',
             operation: 'read',
-            scope: {
-                event: context.event.slug,
-            },
         });
     },
 

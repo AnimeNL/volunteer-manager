@@ -11,7 +11,6 @@ import { DataTable, createDataSource, withRowModel, type Column, type ExtractRow
 import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthentication } from '@lib/requireAuthentication';
 import db, { tDisplays, tDisplaysRequests, tEvents, tUsers } from '@lib/database';
 
@@ -63,7 +62,7 @@ const helpRequestsDataSource = createDataSource('admin/organisation/displayReque
 
 }), {
     async authorize(operation, props) {
-        executeAccessCheck(props.authenticationContext, 'organisation.displays');
+        await requireAuthentication(props.authenticationContext, 'organisation.displays');
     },
 
     async list(params, props) {

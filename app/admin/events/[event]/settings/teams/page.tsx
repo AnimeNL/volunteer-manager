@@ -16,7 +16,6 @@ import { Section } from '@app/admin/components/Section';
 import { SectionIntroduction } from '@app/admin/components/SectionIntroduction';
 import { TeamNameCell } from './TeamCells';
 import { createGenerateMetadataFn } from '@app/admin/lib/generatePageMetadata';
-import { executeAccessCheck } from '@lib/auth/access';
 import { requireAuthenticationWithEvent } from '@lib/requireAuthentication';
 import db, { tContent, tEventsTeams, tTeams } from '@lib/database';
 
@@ -71,12 +70,8 @@ const eventTeamsDataSource = createDataSource('admin/event/settings/teams', with
 
 }), {
     async authorize(operation, props, context) {
-        executeAccessCheck(props.authenticationContext, {
-            permission: 'event.settings',
-            scope: {
-                event: context.event.slug,
-            },
-        });
+        await requireAuthenticationWithEvent(
+            props.authenticationContext, context.event.slug, 'event.settings');
     },
 
     async list(params, props, context) {
