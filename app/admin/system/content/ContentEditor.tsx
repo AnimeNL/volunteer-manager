@@ -7,8 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import type { MDXEditorMethods } from '@mdxeditor/editor';
-import { type FieldValues, FormContainer, SelectElement, TextFieldElement }
-    from '@proxy/react-hook-form-mui';
+import { type FieldValues, SelectElement, TextFieldElement } from '@proxy/react-hook-form-mui';
 
 import type { ValueOptions } from '@mui/x-data-grid-premium';
 import Alert from '@mui/material/Alert';
@@ -26,6 +25,7 @@ import { styled } from '@mui/material/styles';
 import type { ContentRowModel } from './ContentDataSource';
 import type { SectionHeaderProps } from '../../components/SectionHeader';
 import type { ServerActionResult } from '@lib/serverAction';
+import { FormProvider } from '@components/FormProvider';
 import { Section } from '../../components/Section';
 import { formatDate } from '@lib/Temporal';
 import { validateContentPath } from './ContentCreate';
@@ -98,7 +98,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
     const [ loading, setLoading ] = useState<boolean>(false);
     const [ success, setSuccess ] = useState<string | undefined>();
 
-    const handleSave = useCallback(async (data: FieldValues) => {
+    const handleSave = useCallback(async (data: FieldValues): Promise<ServerActionResult> => {
         setLoading(true);
         setError(undefined);
         setSuccess(undefined);
@@ -117,8 +117,12 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                 setSuccess('The changes have been saved');
             else
                 setError(response.error ?? 'The changes could not be saved');
-        } catch (error: any) {
-            setError(error.message);
+
+            return response;
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            setError(message);
+            return { success: false, error: message };
         } finally {
             setLoading(false);
         }
@@ -172,7 +176,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
     }
 
     return (
-        <FormContainer defaultValues={defaultValues} onSuccess={handleSave}>
+        <FormProvider action={handleSave} defaultValues={defaultValues}>
             <Stack direction="column" spacing={1.5}>
                 <SectionComponent {...sectionHeaderProps}>
                     {children}
@@ -237,7 +241,7 @@ export function ContentEditor(props: React.PropsWithChildren<ContentEditorProps>
                     </Stack>
                 </SectionComponent>
             </Stack>
-        </FormContainer>
+        </FormProvider>
     );
 }
 
