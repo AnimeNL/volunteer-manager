@@ -121,9 +121,14 @@ export class UpdateTicketTask extends TaskWithParams<TaskParams> {
     }
 
     /**
-     * Updates ticket metadata and order receiver information for a Weeztix ticket, then runs a
-     * one-off import to reflect the updated order locally. Ticket metadata is updated before
-     * receiver information so Weeztix's ticket PDF rebuild includes the changes.
+     * Updates ticket metadata and order receiver information for a Weeztix ticket, then reflects
+     * the changes in the local database and cache. Ticket metadata is updated before receiver
+     * information so Weeztix's ticket PDF rebuild includes the changes.
+     *
+     * Intentionally bypasses `TicketService` to call `WeeztixClient` and update the local
+     * `tWeeztix*` tables and `TicketProvider` cache directly: provider-specific mutations and
+     * transactional local synchronisation are owned by scheduler tasks rather than the
+     * read-oriented service layer.
      */
     private async updateWeeztixTicket(orderGuid: string, ticketGuid: string, params: TaskParams)
         : Promise<boolean>

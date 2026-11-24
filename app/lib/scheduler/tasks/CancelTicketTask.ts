@@ -98,6 +98,10 @@ export class CancelTicketTask extends TaskWithParams<TaskParams> {
 
     /**
      * Cancels the tickets associated with a Weeztix order.
+     *
+     * Intentionally bypasses `TicketService` to call `WeeztixClient` and update the local
+     * `tWeeztix*` tables directly: provider-specific mutations and transactional local
+     * synchronisation are owned by scheduler tasks rather than the read-oriented service layer.
      */
     private async cancelWeeztixOrder(orderGuid: string, params: TaskParams): Promise<boolean> {
         const dbInstance = db;
