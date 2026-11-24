@@ -120,25 +120,16 @@ export async function writeUserSetting<T extends keyof UserSettingsMap>(
 export async function writeUserSettings<T extends keyof UserSettingsMap>(
     userId: number, settings: { [k in T]: UserSettingsMap[k] | undefined }) : Promise<void>
 {
-    const userSettingsCache = Cache.getInstance('UserSettings');
-    const userSettings = userSettingsCache.get(userId);
-
     const dbInstance = db;
     await dbInstance.transaction(async () => {
         for (const [ setting, value ] of Object.entries(settings)) {
             if (value === undefined || value === null) {
-                if (!!userSettings)
-                    delete userSettings[setting];
-
                 await dbInstance.deleteFrom(tUsersSettings)
                     .where(tUsersSettings.userId.equals(userId))
                         .and(tUsersSettings.settingName.equals(setting))
                     .executeDelete();
 
             } else {
-                if (!!userSettings)
-                    userSettings[setting] = value;
-
                 const settingValue = JSON.stringify(value);
 
                 await dbInstance.insertInto(tUsersSettings)
@@ -152,4 +143,15 @@ export async function writeUserSettings<T extends keyof UserSettingsMap>(
             }
         }
     });
+
+    const userSettingsCache = Cache.getInstance('UserSettings');
+    const userSettings = userSettingsCache.get(userId);
+    if (!!userSettings) {
+        for (const [ setting, value ] of Object.entries(settings)) {
+            if (value === undefined || value === null)
+                delete userSettings[setting];
+            else
+                userSettings[setting] = value;
+        }
+    }
 }
